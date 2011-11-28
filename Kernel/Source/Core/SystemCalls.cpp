@@ -48,57 +48,63 @@ void abort()
 void * sbrk(ptrdiff_t pAdjustment)
 {
 	static uint8_t memoryMapIndex;
-	MultiBoot::MemoryBlock * memoryMap = MultiBoot::GetMemoryBlock(memoryMapIndex);
+	MultiBoot::MemoryBlock& memoryMap = MultiBoot::GetMemoryBlock(memoryMapIndex);
 
 	if (pAdjustment >= 0)
 	{
 		uint8_t originalIndex = memoryMapIndex;
-		while ((memoryMap->Length - memoryMap->Used) < pAdjustment &&
+		while ((memoryMap.Length - memoryMap.Used) < pAdjustment &&
                memoryMapIndex < MultiBoot::GetMemoryBlockCount())
 		{
 			++memoryMapIndex;
-			++memoryMap;
+		    if (memoryMapIndex >= MultiBoot::GetMemoryBlockCount())
+		    {
+			    memoryMapIndex = originalIndex;
+			    Panic("PANIC: Insufficient memory");
+		    }
+			memoryMap = MultiBoot::GetMemoryBlock(memoryMapIndex);
 		}
-		if (memoryMapIndex >= MultiBoot::GetMemoryBlockCount())
-		{
-			memoryMapIndex = originalIndex;
-			Panic("PANIC: Insufficient memory");
-		}
-		memoryMap->Used += pAdjustment;
-		return reinterpret_cast<void *>(memoryMap->Address + (memoryMap->Used - pAdjustment));
+		memoryMap.Used += pAdjustment;
+		return reinterpret_cast<void *>(memoryMap.Address + (memoryMap.Used - pAdjustment));
 	}
-	memoryMap->Used += pAdjustment;
-	if (memoryMap->Used == 0 && memoryMapIndex > 0) --memoryMapIndex;
+	memoryMap.Used += pAdjustment;
+	if (memoryMap.Used == 0 && memoryMapIndex > 0) --memoryMapIndex;
 
     return nullptr;
 }
 
-_PTR _malloc_r(_reent * pReentrant, size_t pSize)
+_PTR _malloc_r(_reent* pReentrant,
+               size_t pSize)
 {
     if (pReentrant) { }
     return malloc(pSize);
 }
 
-_PTR _calloc_r(_reent * pReentrant, size_t pCount, size_t pSize)
+_PTR _calloc_r(_reent* pReentrant,
+               size_t pCount,
+               size_t pSize)
 {
     if (pReentrant) { }
     return calloc(pCount, pSize);
 }
 
-void _free_r(_reent * pReentrant, _PTR pMemory)
+void _free_r(_reent* pReentrant,
+             _PTR pMemory)
 {
     if (pReentrant) { }
     free(pMemory);
 }
 
-_PTR _realloc_r(_reent * pReentrant, _PTR pMemory, size_t pSize)
+_PTR _realloc_r(_reent* pReentrant,
+                _PTR pMemory,
+                size_t pSize)
 {
     if (pReentrant) { }
     return realloc(pMemory, pSize);
 }
 
-int gettimeofday(timeval * pTime,
-                 void * pTimeZone)
+int gettimeofday(timeval* pTime,
+                 void* pTimeZone)
 {
 	if (pTime)
 	{
@@ -107,7 +113,7 @@ int gettimeofday(timeval * pTime,
 	}
 	if (pTimeZone)
 	{
-		timezone * tz = reinterpret_cast<timezone *>(pTimeZone);
+		timezone * tz = reinterpret_cast<timezone*>(pTimeZone);
 		tz->tz_minuteswest = 0;
 		tz->tz_dsttime = 0;
 	}
@@ -127,7 +133,6 @@ int close(int)
     errno = EBADF;
     return -1;
 }
-
 
 int fstat(int,
           struct stat*)
