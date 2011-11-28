@@ -18,15 +18,22 @@ bool Device::HasMemoryConflict(uint32_t pAddress, uint32_t pLength)
 
 bool Device::HasIOPortConflict(uint16_t pIOPort) { return mClaimedIOPorts.find(pIOPort) != mClaimedIOPorts.end(); }
 
+bool Device::HasInterruptConflict(uint8_t pInterrupt) { return mClaimedInterrupts.find(pInterrupt) != mClaimedInterrupts.end(); }
+
 bool Device::IsMemoryAvailable(uint32_t pAddress, uint32_t pLength) { return DeviceManager::IsMemoryAvailable(pAddress, pLength); }
 
 bool Device::IsIOPortAvailable(uint16_t pIOPort) { return DeviceManager::IsIOPortAvailable(pIOPort); }
+
+bool Device::IsInterruptAvailable(uint8_t pInterrupt) { return DeviceManager::IsInterruptAvailable(pInterrupt); }
 
 void Device::ClaimMemory(uint32_t pAddress, uint32_t pLength) { mClaimedMemory[pAddress] = pLength; }
 
 void Device::ClaimIOPort(uint16_t pIOPort) { mClaimedIOPorts.insert(pIOPort); }
 
+void Device::ClaimInterrupt(uint8_t pInterrupt) { mClaimedInterrupts.insert(pInterrupt); }
+
 void Device::ReleaseMemory(uint32_t pAddress) { mClaimedMemory.erase(pAddress); }
 
 void Device::ReleaseIOPort(uint16_t pIOPort) { mClaimedIOPorts.erase(pIOPort); }
 
+void Device::ReleaseInterrupt(uint8_t pInterrupt) { mClaimedInterrupts.erase(pInterrupt); }

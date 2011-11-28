@@ -36,6 +36,17 @@ bool DeviceManager::IsIOPortAvailable(uint16_t pIOPort)
     return true;
 }
 
+bool DeviceManager::IsInterruptAvailable(uint8_t pInterrupt)
+{
+    Device* device = nullptr;
+    for (DeviceList::iterator it = sDevices.begin(); it != sDevices.end(); ++it)
+    {
+        device = *it;
+        if (device->HasInterruptConflict(pInterrupt)) return false;
+    }
+    return true;
+}
+
 bool DeviceManager::Register(Device* pDevice)
 {
     if (!pDevice->Initialize()) return false;

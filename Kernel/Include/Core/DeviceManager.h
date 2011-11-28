@@ -18,6 +18,7 @@ namespace Core
 
         static bool IsMemoryAvailable(uint32_t pAddress, uint32_t pLength);
         static bool IsIOPortAvailable(uint16_t pIOPort);
+        static bool IsInterruptAvailable(uint8_t pInterrupt);
 
         static bool Register(Device* pDevice);
         static bool RegisterCOMPortLogger(COMPortLogger* pCOMPortLogger);
@@ -35,11 +36,10 @@ namespace Core
         static Console& GetConsole();
 
     private:
-
         static DeviceList sDevices;
         static COMPortLoggerList sCOMPortLoggers;
         static Console* sConsole;
 
-        DeviceManager() { }
+        DeviceManager();
     };
 }
