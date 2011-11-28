@@ -1,0 +1,16 @@
+/*.exe
+/*.7z
+/*.pdb
+/*.manifest
+/Build
+/Logs
+/SDK
+/Proton.iso
+/Proton.sdf
+/Proton.opensdf
+/Proton.suo
+
+/Kernel/*.log
+/Kernel/Object
+
+/SDKInstaller/obj

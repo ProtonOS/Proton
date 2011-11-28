@@ -1,0 +1,113 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Makefile.omake" />
+    <None Include="Source\Core\Boot.asm" />
+    <None Include="Source\Kernel.ld" />
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="Source\Core.lib" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Source\Core\Device.cpp" />
+    <ClCompile Include="Source\Core\DeviceManager.cpp" />
+    <ClCompile Include="Source\Core\DLMalloc.cpp" />
+    <ClCompile Include="Source\Core\Console.cpp" />
+    <ClCompile Include="Source\Kernel.cpp" />
+    <ClCompile Include="Source\Core\MultiBoot.cpp" />
+    <ClCompile Include="Source\Core\SystemCalls.cpp" />
+    <ClCompile Include="Source\Core\COMPortLogger.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Include\Core\Config.h" />
+    <ClInclude Include="Include\Core\Device.h" />
+    <ClInclude Include="Include\Core\DeviceManager.h" />
+    <ClInclude Include="Include\Core\Console.h" />
+    <ClInclude Include="Include\Kernel.h" />
+    <ClInclude Include="Include\Core\MultiBoot.h" />
+    <ClInclude Include="Include\PortIO.h" />
+    <ClInclude Include="Include\Core\COMPortLogger.h" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{FACF6CC0-B659-4FD2-8BBD-A377A66CFE7C}</ProjectGuid>
+    <Keyword>MakeFileProj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <OutDir>..\Build\boot</OutDir>
+    <IntDir>Object\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <OutDir>..\Build\boot</OutDir>
+    <IntDir>Object\</IntDir>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <NMakeBuildCommandLine>"$(SolutionDir)SDK\bin\omake"</NMakeBuildCommandLine>
+    <NMakeOutput>Proton.bin</NMakeOutput>
+    <NMakeCleanCommandLine>"$(SolutionDir)SDK\bin\omake"</NMakeCleanCommandLine>
+    <NMakeReBuildCommandLine>"$(SolutionDir)SDK\bin\omake"</NMakeReBuildCommandLine>
+    <NMakePreprocessorDefinitions>
+    </NMakePreprocessorDefinitions>
+    <NMakeIncludeSearchPath>.\Include;..\SDK\include;..\SDK\include\c++</NMakeIncludeSearchPath>
+    <IncludePath>..\SDK\include;..\SDK\include\c++</IncludePath>
+    <ReferencePath />
+    <LibraryPath />
+    <SourcePath />
+    <ExcludePath />
+    <NMakeForcedIncludes>cstdint</NMakeForcedIncludes>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <NMakeBuildCommandLine>"$(SolutionDir)SDK\bin\omake"</NMakeBuildCommandLine>
+    <NMakeOutput>Proton.bin</NMakeOutput>
+    <NMakeCleanCommandLine>"$(SolutionDir)SDK\bin\omake"</NMakeCleanCommandLine>
+    <NMakeReBuildCommandLine>"$(SolutionDir)SDK\bin\omake"</NMakeReBuildCommandLine>
+    <NMakePreprocessorDefinitions>
+    </NMakePreprocessorDefinitions>
+    <NMakeIncludeSearchPath>.\Include;..\SDK\include;..\SDK\include\c++</NMakeIncludeSearchPath>
+    <IncludePath>..\SDK\include;..\SDK\include\c++</IncludePath>
+    <ReferencePath />
+    <LibraryPath />
+    <SourcePath />
+    <ExcludePath />
+    <NMakeForcedIncludes>cstdint</NMakeForcedIncludes>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <BuildLog>
+      <Path>
+      </Path>
+    </BuildLog>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <BuildLog>
+      <Path>
+      </Path>
+    </BuildLog>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
