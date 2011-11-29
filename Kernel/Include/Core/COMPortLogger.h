@@ -12,14 +12,9 @@ namespace Core
         void Cleanup();
 
         void WriteByte(uint8_t pByte);
-        void WriteString(const char* pString);
-        void WriteLine(const char* pLine);
 
     private:
-        //static const uint16_t BaseIOPort        = 0x03F8;
         static const uint16_t BaseIOPort        = 0x02F8;
-        //static const uint16_t BaseIOPort        = 0x03E8;
-        //static const uint16_t BaseIOPort        = 0x02E8;
         static const uint16_t DataIOPort        = BaseIOPort + 0x00;
         static const uint16_t InterruptIOPort   = BaseIOPort + 0x01;
         static const uint16_t FIFOIOPort        = BaseIOPort + 0x02;

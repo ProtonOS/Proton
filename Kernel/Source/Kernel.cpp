@@ -17,7 +17,6 @@ void Kernel(uint32_t pMultiBootMagic,
         delete comPortLogger;
         return;
     }
-	DeviceManager::COMPortLoggersWriteLine("See? It works!");
 
     Console* console = new Console();
     if (!DeviceManager::RegisterConsole(console))

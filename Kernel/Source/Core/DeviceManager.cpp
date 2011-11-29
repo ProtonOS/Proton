@@ -5,13 +5,12 @@
 using namespace Core;
 
 DeviceManager::DeviceList DeviceManager::sDevices;
-DeviceManager::COMPortLoggerList DeviceManager::sCOMPortLoggers;
+COMPortLogger* DeviceManager::sCOMPortLogger = nullptr;
 Console* DeviceManager::sConsole = nullptr;
 
 void DeviceManager::Initialize()
 {
     new(&sDevices) DeviceList;
-    new(&sCOMPortLoggers) COMPortLoggerList;
 }
 
 bool DeviceManager::IsMemoryAvailable(uint32_t pAddress, uint32_t pLength)
@@ -57,7 +56,7 @@ bool DeviceManager::Register(Device* pDevice)
 bool DeviceManager::RegisterCOMPortLogger(COMPortLogger* pCOMPortLogger)
 {
     if (!Register(pCOMPortLogger)) return false;
-    sCOMPortLoggers.push_back(pCOMPortLogger);
+    sCOMPortLogger = pCOMPortLogger;
     return true;
 }
 
@@ -77,7 +76,7 @@ void DeviceManager::Unregister(Device* pDevice)
 void DeviceManager::UnregisterCOMPortLogger(COMPortLogger* pCOMPortLogger)
 {
     Unregister(pCOMPortLogger);
-    sCOMPortLoggers.remove(pCOMPortLogger);
+    sCOMPortLogger = nullptr;
 }
 
 void DeviceManager::UnregisterConsole(Console* pConsole)
@@ -86,27 +85,8 @@ void DeviceManager::UnregisterConsole(Console* pConsole)
     sConsole = nullptr;
 }
 
-void DeviceManager::COMPortLoggersWriteByte(uint8_t pByte)
-{
-    std::for_each(sCOMPortLoggers.begin(),
-                  sCOMPortLoggers.end(),
-                  [&](COMPortLogger* pLogger){ pLogger->WriteByte(pByte); });
-}
-
-void DeviceManager::COMPortLoggersWriteString(const char* pString)
-{
-    std::for_each(sCOMPortLoggers.begin(),
-                  sCOMPortLoggers.end(),
-                  [&](COMPortLogger* pLogger){ pLogger->WriteString(pString); });
-}
-
-void DeviceManager::COMPortLoggersWriteLine(const char* pLine)
-{
-    std::for_each(sCOMPortLoggers.begin(),
-                  sCOMPortLoggers.end(),
-                  [&](COMPortLogger* pLogger){ pLogger->WriteLine(pLine); });
-}
-
 const DeviceManager::DeviceList& DeviceManager::GetDevices() { return sDevices; }
+
+COMPortLogger& DeviceManager::GetCOMPortLogger() { return *sCOMPortLogger; }
 
 Console& DeviceManager::GetConsole() { return *sConsole; }

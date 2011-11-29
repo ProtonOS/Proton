@@ -64,8 +64,8 @@ void Console::WriteCharacter(char pCharacter)
     if (pCharacter == '\n')
     {
         MoveToNextLine();
-    	DeviceManager::COMPortLoggersWriteByte('\r');
-    	DeviceManager::COMPortLoggersWriteByte('\n');
+    	DeviceManager::GetCOMPortLogger().WriteByte('\r');
+    	DeviceManager::GetCOMPortLogger().WriteByte('\n');
     }
     else
     {
@@ -73,7 +73,7 @@ void Console::WriteCharacter(char pCharacter)
 	    *cursor = pCharacter;
 	    *(cursor + 1) = mAttributes;
 	    Advance();
-    	DeviceManager::COMPortLoggersWriteByte(pCharacter);
+    	DeviceManager::GetCOMPortLogger().WriteByte(pCharacter);
     }
 }
 
@@ -98,8 +98,8 @@ void Console::WriteLine(const char* pString)
 {
 	WriteString(pString, 0);
 	if (mCursorColumn > 0) MoveToNextLine();
-    DeviceManager::COMPortLoggersWriteByte('\r');
-    DeviceManager::COMPortLoggersWriteByte('\n');
+    DeviceManager::GetCOMPortLogger().WriteByte('\r');
+    DeviceManager::GetCOMPortLogger().WriteByte('\n');
 }
 
 uint8_t* Console::GetCursor() { return mBaseMemory + (((mCursorRow * mColumns) + mCursorColumn) * 2); }

@@ -58,23 +58,6 @@ void COMPortLogger::WriteByte(uint8_t pByte)
 	outb(DataIOPort, pByte);
 }
 
-void COMPortLogger::WriteString(const char* pString)
-{
-	const char* iterator = pString;
-	while (*iterator)
-	{
-		WriteByte(*iterator);
-		++iterator;
-	}
-}
-
-void COMPortLogger::WriteLine(const char * pLine)
-{
-	WriteString(pLine);
-	WriteByte(0x0D);
-	WriteByte(0x0A);
-}
-
 bool COMPortLogger::IsTransmitEmpty()
 {
 	return (inb(LineStatusIOPort) & 0x20) != 0;

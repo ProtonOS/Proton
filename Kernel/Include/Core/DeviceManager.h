@@ -12,7 +12,6 @@ namespace Core
     {
     public:
         typedef std::list<Device*> DeviceList;
-        typedef std::list<COMPortLogger*> COMPortLoggerList;
 
         static void Initialize();
 
@@ -28,16 +27,13 @@ namespace Core
         static void UnregisterCOMPortLogger(COMPortLogger* pCOMPortLogger);
         static void UnregisterConsole(Console* pConsole);
 
-        static void COMPortLoggersWriteByte(uint8_t pByte);
-        static void COMPortLoggersWriteString(const char* pString);
-        static void COMPortLoggersWriteLine(const char* pLine);
-
         static const DeviceList& GetDevices();
+        static COMPortLogger& GetCOMPortLogger();
         static Console& GetConsole();
 
     private:
         static DeviceList sDevices;
-        static COMPortLoggerList sCOMPortLoggers;
+        static COMPortLogger* sCOMPortLogger;
         static Console* sConsole;
 
         DeviceManager();
