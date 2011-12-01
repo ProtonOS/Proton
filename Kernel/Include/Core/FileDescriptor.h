@@ -2,8 +2,6 @@
 
 #include <string>
 
-using namespace std;
-
 namespace Core
 {
     struct FileDescriptor
@@ -23,7 +21,7 @@ namespace Core
         uint32_t BlockCount;
         bool TerminalStream;
         uint32_t Offset;
-        string Path;
+        std::string Path;
         CloseHandler Close;
         LSeekHandler LSeek;
         WriteHandler Write;

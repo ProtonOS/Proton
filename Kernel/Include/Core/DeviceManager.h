@@ -7,15 +7,12 @@
 #include <Core/Driver/Console.h>
 #include <Core/Driver/PIC.h>
 
-using namespace std;
-using namespace Core::Driver;
-
 namespace Core
 {
     class DeviceManager
     {
     public:
-        typedef list<Device*> DeviceList;
+        typedef std::list<Core::Device*> DeviceList;
 
         static bool Startup();
         static void Shutdown();
@@ -24,26 +21,26 @@ namespace Core
         static bool IsIOPortAvailable(uint16_t pIOPort);
         static bool IsInterruptAvailable(uint8_t pInterrupt);
 
-        static bool Register(Device* pDevice);
-        static bool RegisterCOMPortLogger(COMPortLogger* pCOMPortLogger);
-        static bool RegisterConsole(Console* pConsole);
-        static bool RegisterPIC(PIC* pPIC);
+        static bool Register(Core::Device* pDevice);
+        static bool RegisterCOMPortLogger(Core::COMPortLogger* pCOMPortLogger);
+        static bool RegisterConsole(Core::Driver::Console* pConsole);
+        static bool RegisterPIC(Core::Driver::PIC* pPIC);
 
-        static void Unregister(Device* pDevice);
-        static void UnregisterCOMPortLogger(COMPortLogger* pCOMPortLogger);
-        static void UnregisterConsole(Console* pConsole);
-        static void UnregisterPIC(PIC* pPIC);
+        static void Unregister(Core::Device* pDevice);
+        static void UnregisterCOMPortLogger(Core::COMPortLogger* pCOMPortLogger);
+        static void UnregisterConsole(Core::Driver::Console* pConsole);
+        static void UnregisterPIC(Core::Driver::PIC* pPIC);
 
         static const DeviceList& GetDevices();
-        static COMPortLogger& GetCOMPortLogger();
-        static Console& GetConsole();
-        static PIC& GetPIC();
+        static Core::COMPortLogger& GetCOMPortLogger();
+        static Core::Driver::Console& GetConsole();
+        static Core::Driver::PIC& GetPIC();
 
     private:
         static DeviceList sDevices;
-        static COMPortLogger* sCOMPortLogger;
-        static Console* sConsole;
-        static PIC* sPIC;
+        static Core::COMPortLogger* sCOMPortLogger;
+        static Core::Driver::Console* sConsole;
+        static Core::Driver::PIC* sPIC;
 
         DeviceManager();
     };

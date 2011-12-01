@@ -4,8 +4,6 @@
 
 #include <Core/FileDescriptor.h>
 
-using namespace std;
-
 namespace Core
 {
     class FileSystem
@@ -13,8 +11,8 @@ namespace Core
     public:
         virtual void OnRegister() = 0;
         virtual void OnUnregister() = 0;
-        virtual const string& GetRoot() = 0;
+        virtual const std::string& GetRoot() = 0;
 
-        virtual int32_t Open(FileDescriptor* pDescriptor, const string& pPath, int32_t pFlags, mode_t pMode) = 0;
+        virtual int32_t Open(Core::FileDescriptor* pDescriptor, const std::string& pPath, int32_t pFlags, mode_t pMode) = 0;
     };
 }

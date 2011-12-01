@@ -29,6 +29,7 @@
     <ClCompile Include="Source\Core\FileSystemManager.cpp" />
     <ClCompile Include="Source\Core\GDT.cpp" />
     <ClCompile Include="Source\Core\IDT.cpp" />
+    <ClCompile Include="Source\Driver\PIC8259A.cpp" />
     <ClCompile Include="Source\Kernel.cpp" />
     <ClCompile Include="Source\Core\MultiBoot.cpp" />
     <ClCompile Include="Source\Core\SystemCalls.cpp" />
@@ -48,6 +49,7 @@
     <ClInclude Include="Include\Core\IDT.h" />
     <ClInclude Include="Include\Core\IDTExternalStubs.h" />
     <ClInclude Include="Include\Core\IDTInitializeStubs.h" />
+    <ClInclude Include="Include\Driver\PIC8259A.h" />
     <ClInclude Include="Include\Kernel.h" />
     <ClInclude Include="Include\Core\MultiBoot.h" />
     <ClInclude Include="Include\PortIO.h" />

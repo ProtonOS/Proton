@@ -2,8 +2,6 @@
 
 #include <array>
 
-using namespace std;
-
 namespace Core
 {
     class IDT
@@ -80,9 +78,9 @@ namespace Core
             PresentType = 0x80
         };
 
-        typedef array<Descriptor, MaxDescriptors> DescriptorsArray;
-        typedef array<bool, MaxDescriptors> ScheduledArray;
-        typedef array<IDTHandler, MaxDescriptors> HandlersArray;
+        typedef std::array<Descriptor, MaxDescriptors> DescriptorsArray;
+        typedef std::array<bool, MaxDescriptors> ScheduledArray;
+        typedef std::array<IDTHandler, MaxDescriptors> HandlersArray;
 
         static Register sRegister;
         static DescriptorsArray sDescriptors;

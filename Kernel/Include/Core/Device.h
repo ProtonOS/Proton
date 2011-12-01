@@ -3,8 +3,6 @@
 #include <map>
 #include <set>
 
-using namespace std;
-
 namespace Core
 {
     class Device
@@ -30,9 +28,9 @@ namespace Core
         void ReleaseInterrupt(uint8_t pInterrupt);
 
     private:
-        typedef map<uint32_t, uint32_t> ClaimedMemoryMap;
-        typedef set<uint16_t> ClaimedIOPortsSet;
-        typedef set<uint8_t> ClaimedInterruptsSet;
+        typedef std::map<uint32_t, uint32_t> ClaimedMemoryMap;
+        typedef std::set<uint16_t> ClaimedIOPortsSet;
+        typedef std::set<uint8_t> ClaimedInterruptsSet;
 
         ClaimedMemoryMap mClaimedMemory;
         ClaimedIOPortsSet mClaimedIOPorts;

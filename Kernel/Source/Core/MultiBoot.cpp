@@ -1,17 +1,15 @@
 #include <Core/MultiBoot.h>
 
-using namespace Core;
-
-const char* MultiBoot::sCommandLine = nullptr;
-MultiBoot::MemoryBlockArray MultiBoot::sMemoryBlocks;
-uint8_t MultiBoot::sMemoryBlockCount = 0;
+const char* Core::MultiBoot::sCommandLine = nullptr;
+Core::MultiBoot::MemoryBlockArray Core::MultiBoot::sMemoryBlocks;
+uint8_t Core::MultiBoot::sMemoryBlockCount = 0;
 
 extern "C" {
 extern char __BOF;
 extern char __EOF;
 }
 
-bool MultiBoot::Startup(uint32_t pMultiBootMagic, void * pMultiBootData)
+bool Core::MultiBoot::Startup(uint32_t pMultiBootMagic, void * pMultiBootData)
 {
     if (pMultiBootMagic != Magic) return false;
     Header& header = *reinterpret_cast<Header*>(pMultiBootData);
@@ -49,14 +47,14 @@ bool MultiBoot::Startup(uint32_t pMultiBootMagic, void * pMultiBootData)
     return sMemoryBlockCount > 0;
 }
 
-void MultiBoot::Shutdown()
+void Core::MultiBoot::Shutdown()
 {
     sMemoryBlockCount = 0;
     sCommandLine = nullptr;
 }
 
-const char* MultiBoot::GetCommandLine() { return sCommandLine; }
+const char* Core::MultiBoot::GetCommandLine() { return sCommandLine; }
 
-MultiBoot::MemoryBlock& MultiBoot::GetMemoryBlock(uint8_t pIndex) { return sMemoryBlocks[pIndex]; }
+Core::MultiBoot::MemoryBlock& Core::MultiBoot::GetMemoryBlock(uint8_t pIndex) { return sMemoryBlocks[pIndex]; }
 
-uint8_t MultiBoot::GetMemoryBlockCount() { return sMemoryBlockCount; }
+uint8_t Core::MultiBoot::GetMemoryBlockCount() { return sMemoryBlockCount; }

@@ -3,10 +3,7 @@ extern "C" {
 }
 #include <Core/DeviceManager.h>
 
-using namespace Core;
-using namespace Core::Driver;
-
-Console::Console()
+Core::Driver::Console::Console()
     : mBaseMemory(reinterpret_cast<uint8_t*>(BaseMemory)),
       mColumns(DefaultColumns),
       mRows(DefaultRows),
@@ -16,7 +13,7 @@ Console::Console()
 {
 }
 
-bool Console::OnRegister()
+bool Core::Driver::Console::OnRegister()
 {
     uint32_t memoryRequired = mColumns * mRows * 2;
     if (!IsMemoryAvailable(BaseMemory, memoryRequired)) return false;
@@ -26,31 +23,31 @@ bool Console::OnRegister()
     return true;
 }
 
-void Console::OnUnregister()
+void Core::Driver::Console::OnUnregister()
 {
     ReleaseMemory(reinterpret_cast<uint32_t>(mBaseMemory));
 }
 
-uint8_t Console::CreateAttributes(ConsoleColor pForeground, ConsoleColor pBackground) { return pForeground | (pBackground << 4); }
+uint8_t Core::Driver::Console::CreateAttributes(ConsoleColor pForeground, ConsoleColor pBackground) { return pForeground | (pBackground << 4); }
 
-void Console::MoveTo(uint8_t pColumn, uint8_t pRow)
+void Core::Driver::Console::MoveTo(uint8_t pColumn, uint8_t pRow)
 {
     mCursorColumn = pColumn % mColumns;
     mCursorRow = pRow % mRows;
 }
 
-void Console::MoveToTopLeft() { MoveTo(0, 0); }
+void Core::Driver::Console::MoveToTopLeft() { MoveTo(0, 0); }
 
-void Console::MoveToNextLine() { MoveTo(0, mCursorRow + 1); }
+void Core::Driver::Console::MoveToNextLine() { MoveTo(0, mCursorRow + 1); }
 
-void Console::Clear(uint8_t pAttributes)
+void Core::Driver::Console::Clear(uint8_t pAttributes)
 {
 	mAttributes = pAttributes;
 	MoveToTopLeft();
 
 	int32_t index = 0;
 	int32_t count = mColumns * mRows;
-	uint8_t * cursor = GetCursor();
+	uint8_t* cursor = GetCursor();
 	while (index < count)
 	{
 		*cursor = ' ';
@@ -60,13 +57,13 @@ void Console::Clear(uint8_t pAttributes)
 	}
 }
 
-void Console::WriteCharacter(char pCharacter)
+void Core::Driver::Console::WriteCharacter(char pCharacter)
 {
     if (pCharacter == '\n')
     {
         MoveToNextLine();
-    	DeviceManager::GetCOMPortLogger().WriteByte('\r');
-    	DeviceManager::GetCOMPortLogger().WriteByte('\n');
+    	Core::DeviceManager::GetCOMPortLogger().WriteByte('\r');
+    	Core::DeviceManager::GetCOMPortLogger().WriteByte('\n');
     }
     else
     {
@@ -74,12 +71,12 @@ void Console::WriteCharacter(char pCharacter)
 	    *cursor = pCharacter;
 	    *(cursor + 1) = mAttributes;
 	    Advance();
-    	DeviceManager::GetCOMPortLogger().WriteByte(pCharacter);
+    	Core::DeviceManager::GetCOMPortLogger().WriteByte(pCharacter);
     }
 }
 
-void Console::WriteString(const char* pString,
-                          uint32_t pLength)
+void Core::Driver::Console::WriteString(const char* pString,
+                                uint32_t pLength)
 {
     const char* iterator = pString;
     bool useLength = pLength > 0;
@@ -95,17 +92,17 @@ void Console::WriteString(const char* pString,
     }
 }
 
-void Console::WriteLine(const char* pString)
+void Core::Driver::Console::WriteLine(const char* pString)
 {
 	WriteString(pString, 0);
 	if (mCursorColumn > 0) MoveToNextLine();
-    DeviceManager::GetCOMPortLogger().WriteByte('\r');
-    DeviceManager::GetCOMPortLogger().WriteByte('\n');
+    Core::DeviceManager::GetCOMPortLogger().WriteByte('\r');
+    Core::DeviceManager::GetCOMPortLogger().WriteByte('\n');
 }
 
-uint8_t* Console::GetCursor() { return mBaseMemory + (((mCursorRow * mColumns) + mCursorColumn) * 2); }
+uint8_t* Core::Driver::Console::GetCursor() { return mBaseMemory + (((mCursorRow * mColumns) + mCursorColumn) * 2); }
 
-void Console::Advance()
+void Core::Driver::Console::Advance()
 {
 	++mCursorColumn;
 	if (mCursorColumn >= mColumns)

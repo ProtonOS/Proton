@@ -2,8 +2,6 @@
 
 #include <array>
 
-using namespace std;
-
 namespace Core
 {
     class GDT
@@ -56,7 +54,7 @@ namespace Core
         static void Shutdown();
 
     private:
-        typedef array<Descriptor, MaxDescriptors> DescriptorsArray;
+        typedef std::array<Descriptor, MaxDescriptors> DescriptorsArray;
 
         static Register sRegister;
         static DescriptorsArray sDescriptors;

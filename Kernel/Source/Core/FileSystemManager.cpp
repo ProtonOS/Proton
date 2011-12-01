@@ -7,33 +7,31 @@ extern "C" {
 #include <Core/DeviceManager.h>
 #include <Core/FileSystemManager.h>
 
-using namespace Core;
+Core::FileSystemManager::FileSystemMap Core::FileSystemManager::sFileSystems;
+Core::FileSystemManager::DescriptorArray Core::FileSystemManager::sDescriptors;
 
-FileSystemManager::FileSystemMap FileSystemManager::sFileSystems;
-FileSystemManager::DescriptorArray FileSystemManager::sDescriptors;
-
-uint32_t STDINRead(FileDescriptor* pDescriptor, void* pData, size_t pLength)
+uint32_t STDINRead(Core::FileDescriptor* pDescriptor, void* pData, size_t pLength)
 {
     // make a keyboard buffer, filled via interrupts, need keyboard maps from system files
     if (pDescriptor && pData && pLength) { }
     return 0;
 }
 
-uint32_t STDOUTWrite(FileDescriptor* pDescriptor, const void* pData, size_t pLength)
+uint32_t STDOUTWrite(Core::FileDescriptor* pDescriptor, const void* pData, size_t pLength)
 {
     if (pDescriptor) { }
-    DeviceManager::GetConsole().WriteString(reinterpret_cast<const char*>(pData), pLength);
+    Core::DeviceManager::GetConsole().WriteString(reinterpret_cast<const char*>(pData), pLength);
     return pLength;
 }
 
-uint32_t STDERRWrite(FileDescriptor* pDescriptor, const void* pData, size_t pLength)
+uint32_t STDERRWrite(Core::FileDescriptor* pDescriptor, const void* pData, size_t pLength)
 {
     if (pDescriptor) { }
-    DeviceManager::GetConsole().WriteString(reinterpret_cast<const char*>(pData), pLength);
+    Core::DeviceManager::GetConsole().WriteString(reinterpret_cast<const char*>(pData), pLength);
     return pLength;
 }
 
-bool FileSystemManager::Startup()
+bool Core::FileSystemManager::Startup()
 {
     new(&sFileSystems) FileSystemMap;
     sDescriptors.fill(FileDescriptor());
@@ -62,20 +60,20 @@ bool FileSystemManager::Startup()
     return true;
 }
 
-void FileSystemManager::Shutdown()
+void Core::FileSystemManager::Shutdown()
 {
 }
 
-FileSystem* FileSystemManager::GetFileSystem(const string& pRoot)
+Core::FileSystem* Core::FileSystemManager::GetFileSystem(const std::string& pRoot)
 {
     FileSystemMap::iterator it = sFileSystems.find(pRoot);
     if (it == sFileSystems.end()) return nullptr;
     return (*it).second;
 }
 
-FileDescriptor* FileSystemManager::GetDescriptor(uint16_t pIndex) { return &sDescriptors[pIndex]; }
+Core::FileDescriptor* Core::FileSystemManager::GetDescriptor(uint16_t pIndex) { return &sDescriptors[pIndex]; }
 
-bool FileSystemManager::Register(FileSystem* pFileSystem)
+bool Core::FileSystemManager::Register(Core::FileSystem* pFileSystem)
 {
     if (sFileSystems.find(pFileSystem->GetRoot()) != sFileSystems.end()) return false;
     sFileSystems[pFileSystem->GetRoot()] = pFileSystem;

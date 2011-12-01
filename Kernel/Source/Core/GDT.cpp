@@ -1,15 +1,13 @@
 #include <Core/GDT.h>
 
-using namespace Core;
-
 extern "C" {
-extern void GDTUpdate(GDT::Register* pRegister);
+extern void GDTUpdate(Core::GDT::Register* pRegister);
 }
 
-GDT::Register GDT::sRegister;
-GDT::DescriptorsArray GDT::sDescriptors;
+Core::GDT::Register Core::GDT::sRegister;
+Core::GDT::DescriptorsArray Core::GDT::sDescriptors;
 
-void GDT::SetSegment(uint8_t pIndex, uint32_t pAddress, uint32_t pLimit, uint8_t pAccess, uint8_t pFlags)
+void Core::GDT::SetSegment(uint8_t pIndex, uint32_t pAddress, uint32_t pLimit, uint8_t pAccess, uint8_t pFlags)
 {
     sDescriptors[pIndex].AddressLow = pAddress & 0xFFFF;
     sDescriptors[pIndex].AddressMid = (pAddress >> 16) & 0xFF;
@@ -19,7 +17,7 @@ void GDT::SetSegment(uint8_t pIndex, uint32_t pAddress, uint32_t pLimit, uint8_t
     sDescriptors[pIndex].Access = pAccess;
 }
 
-bool GDT::Startup()
+bool Core::GDT::Startup()
 {
     sDescriptors.fill(Descriptor());
 
@@ -37,6 +35,6 @@ bool GDT::Startup()
      return true;
 }
 
-void GDT::Shutdown()
+void Core::GDT::Shutdown()
 {
 }

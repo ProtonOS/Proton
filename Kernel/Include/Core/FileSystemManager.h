@@ -6,8 +6,6 @@
 
 #include <Core/FileSystem.h>
 
-using namespace std;
-
 namespace Core
 {
     class FileSystemManager
@@ -19,15 +17,15 @@ namespace Core
         static bool Startup();
         static void Shutdown();
 
-        static bool Register(FileSystem* pFilesystem);
-        static void Unregister(FileSystem* pFilesystem);
+        static bool Register(Core::FileSystem* pFilesystem);
+        static void Unregister(Core::FileSystem* pFilesystem);
 
-        static FileSystem* GetFileSystem(const string& pRoot);
-        static FileDescriptor* GetDescriptor(uint16_t pIndex);
+        static Core::FileSystem* GetFileSystem(const std::string& pRoot);
+        static Core::FileDescriptor* GetDescriptor(uint16_t pIndex);
 
     private:
-        typedef map<string, FileSystem*> FileSystemMap;
-        typedef array<FileDescriptor, MaxDescriptors> DescriptorArray;
+        typedef std::map<std::string, Core::FileSystem*> FileSystemMap;
+        typedef std::array<Core::FileDescriptor, MaxDescriptors> DescriptorArray;
 
         static FileSystemMap sFileSystems;
         static DescriptorArray sDescriptors;

@@ -15,9 +15,7 @@ extern "C" {
 #include <Core/FileSystemManager.h>
 #include <Core/GDT.h>
 #include <Core/IDT.h>
-
-using namespace Core;
-using namespace Core::Driver;
+#include <Driver/PIC8259A.h>
 
 // SystemCalls
 
@@ -31,6 +29,7 @@ public:
     static void Shutdown();
 
 private:
-    static COMPortLogger* sCOMPortLogger;
-    static Console* sConsole;
+    static Core::COMPortLogger* sCOMPortLogger;
+    static Core::Driver::Console* sConsole;
+    static Driver::PIC8259A* sPIC;
 };

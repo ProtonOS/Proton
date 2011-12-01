@@ -1,14 +1,11 @@
+#include <PortIO.h>
 #include <Core/DeviceManager.h>
 
-#include <PortIO.h>
-
-using namespace Core;
-
-COMPortLogger::COMPortLogger()
+Core::COMPortLogger::COMPortLogger()
 {
 }
 
-bool COMPortLogger::OnRegister()
+bool Core::COMPortLogger::OnRegister()
 {
     if (!IsIOPortAvailable(DataIOPort) ||
         !IsIOPortAvailable(InterruptIOPort) ||
@@ -39,7 +36,7 @@ bool COMPortLogger::OnRegister()
     return true;
 }
 
-void COMPortLogger::OnUnregister()
+void Core::COMPortLogger::OnUnregister()
 {
     ReleaseIOPort(DataIOPort);
     ReleaseIOPort(InterruptIOPort);
@@ -51,14 +48,14 @@ void COMPortLogger::OnUnregister()
     ReleaseIOPort(ScratchIOPort);
 }
 
-void COMPortLogger::WriteByte(uint8_t pByte)
+void Core::COMPortLogger::WriteByte(uint8_t pByte)
 {
 	uint32_t attempts = WriteAttempts;
 	while (attempts && !IsTransmitEmpty()) --attempts;
 	outb(DataIOPort, pByte);
 }
 
-bool COMPortLogger::IsTransmitEmpty()
+bool Core::COMPortLogger::IsTransmitEmpty()
 {
 	return (inb(LineStatusIOPort) & 0x20) != 0;
 }

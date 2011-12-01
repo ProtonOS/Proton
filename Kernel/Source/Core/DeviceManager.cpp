@@ -1,25 +1,23 @@
 #include <Core/DeviceManager.h>
 
-using namespace Core;
+Core::DeviceManager::DeviceList Core::DeviceManager::sDevices;
+Core::COMPortLogger* Core::DeviceManager::sCOMPortLogger = nullptr;
+Core::Driver::Console* Core::DeviceManager::sConsole = nullptr;
+Core::Driver::PIC* Core::DeviceManager::sPIC = nullptr;
 
-DeviceManager::DeviceList DeviceManager::sDevices;
-COMPortLogger* DeviceManager::sCOMPortLogger = nullptr;
-Console* DeviceManager::sConsole = nullptr;
-PIC* DeviceManager::sPIC = nullptr;
-
-bool DeviceManager::Startup()
+bool Core::DeviceManager::Startup()
 {
     new(&sDevices) DeviceList;
     return true;
 }
 
-void DeviceManager::Shutdown()
+void Core::DeviceManager::Shutdown()
 {
 }
 
-bool DeviceManager::IsMemoryAvailable(uint32_t pAddress, uint32_t pLength)
+bool Core::DeviceManager::IsMemoryAvailable(uint32_t pAddress, uint32_t pLength)
 {
-    Device* device = nullptr;
+    Core::Device* device = nullptr;
     for (DeviceList::iterator it = sDevices.begin(); it != sDevices.end(); ++it)
     {
         device = *it;
@@ -28,9 +26,9 @@ bool DeviceManager::IsMemoryAvailable(uint32_t pAddress, uint32_t pLength)
     return true;
 }
 
-bool DeviceManager::IsIOPortAvailable(uint16_t pIOPort)
+bool Core::DeviceManager::IsIOPortAvailable(uint16_t pIOPort)
 {
-    Device* device = nullptr;
+    Core::Device* device = nullptr;
     for (DeviceList::iterator it = sDevices.begin(); it != sDevices.end(); ++it)
     {
         device = *it;
@@ -39,9 +37,9 @@ bool DeviceManager::IsIOPortAvailable(uint16_t pIOPort)
     return true;
 }
 
-bool DeviceManager::IsInterruptAvailable(uint8_t pInterrupt)
+bool Core::DeviceManager::IsInterruptAvailable(uint8_t pInterrupt)
 {
-    Device* device = nullptr;
+    Core::Device* device = nullptr;
     for (DeviceList::iterator it = sDevices.begin(); it != sDevices.end(); ++it)
     {
         device = *it;
@@ -50,62 +48,62 @@ bool DeviceManager::IsInterruptAvailable(uint8_t pInterrupt)
     return true;
 }
 
-bool DeviceManager::Register(Device* pDevice)
+bool Core::DeviceManager::Register(Core::Device* pDevice)
 {
     if (!pDevice->OnRegister()) return false;
     sDevices.push_back(pDevice);
     return true;
 }
 
-bool DeviceManager::RegisterCOMPortLogger(COMPortLogger* pCOMPortLogger)
+bool Core::DeviceManager::RegisterCOMPortLogger(Core::COMPortLogger* pCOMPortLogger)
 {
     if (!Register(pCOMPortLogger)) return false;
     sCOMPortLogger = pCOMPortLogger;
     return true;
 }
 
-bool DeviceManager::RegisterConsole(Console* pConsole)
+bool Core::DeviceManager::RegisterConsole(Core::Driver::Console* pConsole)
 {
     if (!Register(pConsole)) return false;
     sConsole = pConsole;
     return true;
 }
 
-bool DeviceManager::RegisterPIC(PIC* pPIC)
+bool Core::DeviceManager::RegisterPIC(Core::Driver::PIC* pPIC)
 {
     if (!Register(pPIC)) return false;
     sPIC = pPIC;
     return true;
 }
 
-void DeviceManager::Unregister(Device* pDevice)
+void Core::DeviceManager::Unregister(Core::Device* pDevice)
 {
     pDevice->OnUnregister();
     sDevices.remove(pDevice);
 }
 
-void DeviceManager::UnregisterCOMPortLogger(COMPortLogger* pCOMPortLogger)
+void Core::DeviceManager::UnregisterCOMPortLogger(Core::COMPortLogger* pCOMPortLogger)
 {
     Unregister(pCOMPortLogger);
     sCOMPortLogger = nullptr;
 }
 
-void DeviceManager::UnregisterConsole(Console* pConsole)
+void Core::DeviceManager::UnregisterConsole(Core::Driver::Console* pConsole)
 {
     Unregister(pConsole);
     sConsole = nullptr;
 }
 
-void DeviceManager::UnregisterPIC(PIC* pPIC)
+void Core::DeviceManager::UnregisterPIC(Core::Driver::PIC* pPIC)
 {
     Unregister(pPIC);
     sPIC = nullptr;
 }
 
-const DeviceManager::DeviceList& DeviceManager::GetDevices() { return sDevices; }
+const Core::DeviceManager::DeviceList& Core::DeviceManager::GetDevices() { return sDevices; }
 
-COMPortLogger& DeviceManager::GetCOMPortLogger() { return *sCOMPortLogger; }
+Core::COMPortLogger& Core::DeviceManager::GetCOMPortLogger() { return *sCOMPortLogger; }
 
-Console& DeviceManager::GetConsole() { return *sConsole; }
+Core::Driver::Console& Core::DeviceManager::GetConsole() { return *sConsole; }
 
-PIC& DeviceManager::GetPIC() { return *sPIC; }
+Core::Driver::PIC& Core::DeviceManager::GetPIC() { return *sPIC; }

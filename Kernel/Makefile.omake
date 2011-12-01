@@ -70,6 +70,7 @@
 	Source/Core/MultiBoot.cpp
 	Source/Core/SystemCalls.cpp
 	Source/Core/Driver/Console.cpp
+	Source/Driver/PIC8259A.cpp
 }
 
 MKDIR ${MKDIR_ARGS} ${OBJECT}

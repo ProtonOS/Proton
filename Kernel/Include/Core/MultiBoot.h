@@ -2,8 +2,6 @@
 
 #include <array>
 
-using namespace std;
-
 namespace Core
 {
     class MultiBoot
@@ -30,7 +28,7 @@ namespace Core
         static const uint32_t MemoryMapAvailable = 1;
         static const uint32_t MemoryMapConventional = (1024 * 640);
 
-        typedef array<MemoryBlock, MaxMemoryBlocks> MemoryBlockArray;
+        typedef std::array<MemoryBlock, MaxMemoryBlocks> MemoryBlockArray;
 
         struct Header
         {

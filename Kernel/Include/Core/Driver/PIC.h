@@ -9,8 +9,8 @@ namespace Core
         class PIC : public Device
         {
         public:
-            virtual bool OnRegister();
-            virtual void OnUnregister();
+            virtual bool OnRegister() = 0;
+            virtual void OnUnregister() = 0;
 
             virtual void StartInterrupts() = 0;
             virtual void StopInterrupts() = 0;

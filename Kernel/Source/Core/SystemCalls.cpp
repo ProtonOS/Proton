@@ -12,25 +12,23 @@ extern "C" {
 #undef errno
 extern int errno;
 
-void * __dso_handle = nullptr;
+void* __dso_handle = nullptr;
 
-int open(const char * pathname, int flags, mode_t mode);
+int open(const char* pathname, int flags, mode_t mode);
 }
 
 #include <Core/DeviceManager.h>
 #include <Core/FileSystemManager.h>
 #include <Core/MultiBoot.h>
 
-using namespace Core;
-
 void Halt() { __asm("hlt"); }
 
 void Panic(const char * pMessage)
 {
     __asm("cli");
-	DeviceManager::GetConsole().Clear(Console::CreateAttributes(ConsoleColor::DarkBlack, ConsoleColor::LightRed));
-	DeviceManager::GetConsole().WriteLine(pMessage);
-	while (TRUE) Halt();
+	Core::DeviceManager::GetConsole().Clear(Core::Driver::Console::CreateAttributes(Core::Driver::ConsoleColor::DarkBlack, Core::Driver::ConsoleColor::LightRed));
+	Core::DeviceManager::GetConsole().WriteLine(pMessage);
+	while (true) Halt();
 }
 
 long sysconf(int pSetting)
@@ -46,24 +44,24 @@ void abort()
     while(true);
 }
 
-void * sbrk(ptrdiff_t pAdjustment)
+void* sbrk(ptrdiff_t pAdjustment)
 {
 	static uint8_t memoryMapIndex;
-	MultiBoot::MemoryBlock& memoryMap = MultiBoot::GetMemoryBlock(memoryMapIndex);
+	Core::MultiBoot::MemoryBlock& memoryMap = Core::MultiBoot::GetMemoryBlock(memoryMapIndex);
 
 	if (pAdjustment >= 0)
 	{
 		uint8_t originalIndex = memoryMapIndex;
 		while ((memoryMap.Length - memoryMap.Used) < pAdjustment &&
-               memoryMapIndex < MultiBoot::GetMemoryBlockCount())
+               memoryMapIndex < Core::MultiBoot::GetMemoryBlockCount())
 		{
 			++memoryMapIndex;
-		    if (memoryMapIndex >= MultiBoot::GetMemoryBlockCount())
+		    if (memoryMapIndex >= Core::MultiBoot::GetMemoryBlockCount())
 		    {
 			    memoryMapIndex = originalIndex;
 			    Panic("PANIC: Insufficient memory");
 		    }
-			memoryMap = MultiBoot::GetMemoryBlock(memoryMapIndex);
+			memoryMap = Core::MultiBoot::GetMemoryBlock(memoryMapIndex);
 		}
 		memoryMap.Used += pAdjustment;
 		return reinterpret_cast<void *>(memoryMap.Address + (memoryMap.Used - pAdjustment));
@@ -114,7 +112,7 @@ int gettimeofday(timeval* pTime,
 	}
 	if (pTimeZone)
 	{
-		timezone * tz = reinterpret_cast<timezone*>(pTimeZone);
+		timezone* tz = reinterpret_cast<timezone*>(pTimeZone);
 		tz->tz_minuteswest = 0;
 		tz->tz_dsttime = 0;
 	}
@@ -164,10 +162,10 @@ int write(int pDescriptorIndex,
           const void* pData,
           size_t pLength)
 {
-    FileDescriptor * descriptor = nullptr;
+    Core::FileDescriptor* descriptor = nullptr;
     if (pDescriptorIndex < 0 ||
-        pDescriptorIndex >= FileSystemManager::MaxDescriptors ||
-        !(descriptor = FileSystemManager::GetDescriptor(pDescriptorIndex)) ||
+        pDescriptorIndex >= Core::FileSystemManager::MaxDescriptors ||
+        !(descriptor = Core::FileSystemManager::GetDescriptor(pDescriptorIndex)) ||
         !descriptor->Active)
     {
         errno = EBADF;
