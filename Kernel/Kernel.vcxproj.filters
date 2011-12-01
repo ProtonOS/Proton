@@ -16,7 +16,13 @@
       <Filter>Source Files</Filter>
     </None>
     <None Include="Makefile.omake" />
-    <None Include="Source\Core\GlobalDescriptorTableUpdate.asm">
+    <None Include="Source\Core\GDTUpdate.asm">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="Source\Core\IDTUpdate.asm">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="Source\Core\IDTStubs.asm">
       <Filter>Source Files</Filter>
     </None>
   </ItemGroup>
@@ -39,9 +45,6 @@
     <ClCompile Include="Source\Core\DLMalloc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Core\Console.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Core\DeviceManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -51,7 +54,13 @@
     <ClCompile Include="Source\Core\FileSystemManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Core\GlobalDescriptorTable.cpp">
+    <ClCompile Include="Source\Core\GDT.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Core\IDT.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Core\Driver\Console.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -66,9 +75,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Include\Core\COMPortLogger.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Core\Console.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Include\Core\DeviceManager.h">
@@ -86,13 +92,28 @@
     <ClInclude Include="Include\Core\FileSystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\Core\ConsoleColor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Include\Core\FileDescriptor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\Core\GlobalDescriptorTable.h">
+    <ClInclude Include="Include\Core\GDT.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Core\IDT.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Core\IDTExternalStubs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Core\IDTInitializeStubs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Core\Driver\PIC.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Core\Driver\Console.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Core\Driver\ConsoleColor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,5 +1,3 @@
-#include <Core/Console.h>
-#include <Core/Device.h>
 #include <Core/DeviceManager.h>
 
 using namespace Core;

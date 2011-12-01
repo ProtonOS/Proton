@@ -13,9 +13,11 @@ extern "C" {
 #include <Core/MultiBoot.h>
 #include <Core/DeviceManager.h>
 #include <Core/FileSystemManager.h>
-#include <Core/GlobalDescriptorTable.h>
+#include <Core/GDT.h>
+#include <Core/IDT.h>
 
 using namespace Core;
+using namespace Core::Driver;
 
 // SystemCalls
 

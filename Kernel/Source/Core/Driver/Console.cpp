@@ -4,6 +4,7 @@ extern "C" {
 #include <Core/DeviceManager.h>
 
 using namespace Core;
+using namespace Core::Driver;
 
 Console::Console()
     : mBaseMemory(reinterpret_cast<uint8_t*>(BaseMemory)),

@@ -5,6 +5,7 @@ using namespace Core;
 DeviceManager::DeviceList DeviceManager::sDevices;
 COMPortLogger* DeviceManager::sCOMPortLogger = nullptr;
 Console* DeviceManager::sConsole = nullptr;
+PIC* DeviceManager::sPIC = nullptr;
 
 bool DeviceManager::Startup()
 {
@@ -70,6 +71,13 @@ bool DeviceManager::RegisterConsole(Console* pConsole)
     return true;
 }
 
+bool DeviceManager::RegisterPIC(PIC* pPIC)
+{
+    if (!Register(pPIC)) return false;
+    sPIC = pPIC;
+    return true;
+}
+
 void DeviceManager::Unregister(Device* pDevice)
 {
     pDevice->OnUnregister();
@@ -88,8 +96,16 @@ void DeviceManager::UnregisterConsole(Console* pConsole)
     sConsole = nullptr;
 }
 
+void DeviceManager::UnregisterPIC(PIC* pPIC)
+{
+    Unregister(pPIC);
+    sPIC = nullptr;
+}
+
 const DeviceManager::DeviceList& DeviceManager::GetDevices() { return sDevices; }
 
 COMPortLogger& DeviceManager::GetCOMPortLogger() { return *sCOMPortLogger; }
 
 Console& DeviceManager::GetConsole() { return *sConsole; }
+
+PIC& DeviceManager::GetPIC() { return *sPIC; }

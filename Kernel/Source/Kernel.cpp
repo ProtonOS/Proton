@@ -36,14 +36,16 @@ bool Kernel::Startup(uint32_t pMultiBootMagic,
 
     printf("Debug: printf works at this point\n");
 
-    if (!GlobalDescriptorTable::Startup()) return false;
+    if (!GDT::Startup()) return false;
+    if (!IDT::Startup()) return false;
 
     return true;
 }
 
 void Kernel::Shutdown()
 {
-    GlobalDescriptorTable::Shutdown();
+    IDT::Shutdown();
+    GDT::Shutdown();
 
     FileSystemManager::Shutdown();
 

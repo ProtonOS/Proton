@@ -52,21 +52,24 @@
 #define SOURCE(ASM_FILES)
 {
     Source/Core/Boot.asm
-	Source/Core/GlobalDescriptorTableUpdate.asm
+	Source/Core/GDTUpdate.asm
+	Source/Core/IDTStubs.asm
+	Source/Core/IDTUpdate.asm
 }
 
 #define SOURCE(CPP_FILES)
 {
     Source/Kernel.cpp
     Source/Core/COMPortLogger.cpp
-	Source/Core/Console.cpp
 	Source/Core/Device.cpp
 	Source/Core/DeviceManager.cpp
 	Source/Core/DLMalloc.cpp
 	Source/Core/FileSystemManager.cpp
-	Source/Core/GlobalDescriptorTable.cpp
+	Source/Core/GDT.cpp
+	Source/Core/IDT.cpp
 	Source/Core/MultiBoot.cpp
 	Source/Core/SystemCalls.cpp
+	Source/Core/Driver/Console.cpp
 }
 
 MKDIR ${MKDIR_ARGS} ${OBJECT}

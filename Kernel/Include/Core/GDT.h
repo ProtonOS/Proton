@@ -6,7 +6,7 @@ using namespace std;
 
 namespace Core
 {
-    class GlobalDescriptorTable
+    class GDT
     {
     public:
         static const uint8_t MaxDescriptors = 5;
@@ -61,6 +61,8 @@ namespace Core
         static Register sRegister;
         static DescriptorsArray sDescriptors;
 
+        GDT();
+        GDT(const GDT&);
         static void SetSegment(uint8_t pIndex,
                                uint32_t pAddress,
                                uint32_t pLimit,

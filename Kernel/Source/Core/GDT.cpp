@@ -1,15 +1,15 @@
-#include <Core/GlobalDescriptorTable.h>
+#include <Core/GDT.h>
 
 using namespace Core;
 
 extern "C" {
-extern void GlobalDescriptorTableUpdate(GlobalDescriptorTable::Register * pRegister);
+extern void GDTUpdate(GDT::Register* pRegister);
 }
 
-GlobalDescriptorTable::Register GlobalDescriptorTable::sRegister;
-GlobalDescriptorTable::DescriptorsArray GlobalDescriptorTable::sDescriptors;
+GDT::Register GDT::sRegister;
+GDT::DescriptorsArray GDT::sDescriptors;
 
-void GlobalDescriptorTable::SetSegment(uint8_t pIndex, uint32_t pAddress, uint32_t pLimit, uint8_t pAccess, uint8_t pFlags)
+void GDT::SetSegment(uint8_t pIndex, uint32_t pAddress, uint32_t pLimit, uint8_t pAccess, uint8_t pFlags)
 {
     sDescriptors[pIndex].AddressLow = pAddress & 0xFFFF;
     sDescriptors[pIndex].AddressMid = (pAddress >> 16) & 0xFF;
@@ -19,7 +19,7 @@ void GlobalDescriptorTable::SetSegment(uint8_t pIndex, uint32_t pAddress, uint32
     sDescriptors[pIndex].Access = pAccess;
 }
 
-bool GlobalDescriptorTable::Startup()
+bool GDT::Startup()
 {
     sDescriptors.fill(Descriptor());
 
@@ -32,11 +32,11 @@ bool GlobalDescriptorTable::Startup()
     SetSegment(3, 0x00000000, 0xFFFFFFFF, Access::ReadWriteOnePresentAccess | Access::ExecutableAccess | Access::Ring3Access, Flags::Selector32BitGranularity4KBFlags);
     SetSegment(4, 0x00000000, 0xFFFFFFFF, Access::ReadWriteOnePresentAccess | Access::Ring3Access, Flags::Selector32BitGranularity4KBFlags);
 
-    GlobalDescriptorTableUpdate(&sRegister);
+    GDTUpdate(&sRegister);
     
      return true;
 }
 
-void GlobalDescriptorTable::Shutdown()
+void GDT::Shutdown()
 {
 }
