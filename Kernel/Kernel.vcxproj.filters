@@ -16,6 +16,9 @@
       <Filter>Source Files</Filter>
     </None>
     <None Include="Makefile.omake" />
+    <None Include="Source\Core\GlobalDescriptorTableUpdate.asm">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Library Include="Source\Core.lib" />
@@ -46,6 +49,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\Core\FileSystemManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Core\GlobalDescriptorTable.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -84,6 +90,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Include\Core\FileDescriptor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Core\GlobalDescriptorTable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

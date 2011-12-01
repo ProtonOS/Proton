@@ -35,11 +35,18 @@ bool Kernel::Startup(uint32_t pMultiBootMagic,
     if (!FileSystemManager::Startup()) return false;
 
     printf("Debug: printf works at this point\n");
+
+    if (!GlobalDescriptorTable::Startup()) return false;
+
     return true;
 }
 
 void Kernel::Shutdown()
 {
+    GlobalDescriptorTable::Shutdown();
+
+    FileSystemManager::Shutdown();
+
     if (sConsole)
     {
         DeviceManager::UnregisterConsole(sConsole);

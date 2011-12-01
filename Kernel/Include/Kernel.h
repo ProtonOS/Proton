@@ -13,6 +13,7 @@ extern "C" {
 #include <Core/MultiBoot.h>
 #include <Core/DeviceManager.h>
 #include <Core/FileSystemManager.h>
+#include <Core/GlobalDescriptorTable.h>
 
 using namespace Core;
 

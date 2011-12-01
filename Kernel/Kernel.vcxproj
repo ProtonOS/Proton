@@ -13,6 +13,7 @@
   <ItemGroup>
     <None Include="Makefile.omake" />
     <None Include="Source\Core\Boot.asm" />
+    <None Include="Source\Core\GlobalDescriptorTableUpdate.asm" />
     <None Include="Source\Kernel.ld" />
   </ItemGroup>
   <ItemGroup>
@@ -24,6 +25,7 @@
     <ClCompile Include="Source\Core\DLMalloc.cpp" />
     <ClCompile Include="Source\Core\Console.cpp" />
     <ClCompile Include="Source\Core\FileSystemManager.cpp" />
+    <ClCompile Include="Source\Core\GlobalDescriptorTable.cpp" />
     <ClCompile Include="Source\Kernel.cpp" />
     <ClCompile Include="Source\Core\MultiBoot.cpp" />
     <ClCompile Include="Source\Core\SystemCalls.cpp" />
@@ -38,6 +40,7 @@
     <ClInclude Include="Include\Core\FileDescriptor.h" />
     <ClInclude Include="Include\Core\FileSystem.h" />
     <ClInclude Include="Include\Core\FileSystemManager.h" />
+    <ClInclude Include="Include\Core\GlobalDescriptorTable.h" />
     <ClInclude Include="Include\Kernel.h" />
     <ClInclude Include="Include\Core\MultiBoot.h" />
     <ClInclude Include="Include\PortIO.h" />

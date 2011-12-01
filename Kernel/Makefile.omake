@@ -52,6 +52,7 @@
 #define SOURCE(ASM_FILES)
 {
     Source/Core/Boot.asm
+	Source/Core/GlobalDescriptorTableUpdate.asm
 }
 
 #define SOURCE(CPP_FILES)
@@ -63,6 +64,7 @@
 	Source/Core/DeviceManager.cpp
 	Source/Core/DLMalloc.cpp
 	Source/Core/FileSystemManager.cpp
+	Source/Core/GlobalDescriptorTable.cpp
 	Source/Core/MultiBoot.cpp
 	Source/Core/SystemCalls.cpp
 }
