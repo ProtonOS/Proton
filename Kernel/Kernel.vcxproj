@@ -23,6 +23,7 @@
     <ClCompile Include="Source\Core\DeviceManager.cpp" />
     <ClCompile Include="Source\Core\DLMalloc.cpp" />
     <ClCompile Include="Source\Core\Console.cpp" />
+    <ClCompile Include="Source\Core\FileSystemManager.cpp" />
     <ClCompile Include="Source\Kernel.cpp" />
     <ClCompile Include="Source\Core\MultiBoot.cpp" />
     <ClCompile Include="Source\Core\SystemCalls.cpp" />
@@ -30,9 +31,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\Core\Config.h" />
+    <ClInclude Include="Include\Core\ConsoleColor.h" />
     <ClInclude Include="Include\Core\Device.h" />
     <ClInclude Include="Include\Core\DeviceManager.h" />
     <ClInclude Include="Include\Core\Console.h" />
+    <ClInclude Include="Include\Core\FileDescriptor.h" />
+    <ClInclude Include="Include\Core\FileSystem.h" />
+    <ClInclude Include="Include\Core\FileSystemManager.h" />
     <ClInclude Include="Include\Kernel.h" />
     <ClInclude Include="Include\Core\MultiBoot.h" />
     <ClInclude Include="Include\PortIO.h" />

@@ -18,6 +18,7 @@ int open(const char * pathname, int flags, mode_t mode);
 }
 
 #include <Core/DeviceManager.h>
+#include <Core/FileSystemManager.h>
 #include <Core/MultiBoot.h>
 
 using namespace Core;
@@ -27,7 +28,7 @@ void Halt() { __asm("hlt"); }
 void Panic(const char * pMessage)
 {
     __asm("cli");
-	DeviceManager::GetConsole().Clear(Console::CreateAttributes(Console::Color::DarkBlack, Console::Color::LightRed));
+	DeviceManager::GetConsole().Clear(Console::CreateAttributes(ConsoleColor::DarkBlack, ConsoleColor::LightRed));
 	DeviceManager::GetConsole().WriteLine(pMessage);
 	while (TRUE) Halt();
 }
@@ -124,12 +125,14 @@ int open(const char*,
          int,
          mode_t)
 {
+    Panic("OPEN");
     errno = ENFILE;
     return -1;
 }
 
 int close(int)
 {
+    Panic("CLOSE");
     errno = EBADF;
     return -1;
 }
@@ -137,6 +140,7 @@ int close(int)
 int fstat(int,
           struct stat*)
 {
+    Panic("FSTAT");
     errno = EBADF;
     return -1;
 }
@@ -144,28 +148,44 @@ int fstat(int,
 int stat(const char*,
          struct stat*)
 {
+    Panic("STAT");
     errno = EBADF;
     return -1;
 }
 
 int isatty(int)
 {
+    Panic("ISATTY");
     errno = EBADF;
     return 0;
 }
 
-int write(int,
-          const void*,
-          size_t)
+int write(int pDescriptorIndex,
+          const void* pData,
+          size_t pLength)
 {
-    errno = EBADF;
-    return -1;
+    FileDescriptor * descriptor = nullptr;
+    if (pDescriptorIndex < 0 ||
+        pDescriptorIndex >= FileSystemManager::MaxDescriptors ||
+        !(descriptor = FileSystemManager::GetDescriptor(pDescriptorIndex)) ||
+        !descriptor->Active)
+    {
+        errno = EBADF;
+        return -1;
+    }
+    if (!descriptor->Write)
+    {
+        errno = EINVAL;
+        return -1;
+    }
+    return descriptor->Write(descriptor, pData, pLength);
 }
 
 off_t lseek(int,
             off_t,
             int)
 {
+    Panic("LSEEK");
     errno = EBADF;
     return -1;
 }
@@ -174,6 +194,7 @@ int read(int,
          void*,
          size_t)
 {
+    Panic("READ");
     errno = EBADF;
     return -1;
 }

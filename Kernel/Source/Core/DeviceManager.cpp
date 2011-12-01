@@ -1,16 +1,19 @@
 #include <Core/DeviceManager.h>
 
-#include <algorithm>
-
 using namespace Core;
 
 DeviceManager::DeviceList DeviceManager::sDevices;
 COMPortLogger* DeviceManager::sCOMPortLogger = nullptr;
 Console* DeviceManager::sConsole = nullptr;
 
-void DeviceManager::Initialize()
+bool DeviceManager::Startup()
 {
     new(&sDevices) DeviceList;
+    return true;
+}
+
+void DeviceManager::Shutdown()
+{
 }
 
 bool DeviceManager::IsMemoryAvailable(uint32_t pAddress, uint32_t pLength)
@@ -48,7 +51,7 @@ bool DeviceManager::IsInterruptAvailable(uint8_t pInterrupt)
 
 bool DeviceManager::Register(Device* pDevice)
 {
-    if (!pDevice->Initialize()) return false;
+    if (!pDevice->OnRegister()) return false;
     sDevices.push_back(pDevice);
     return true;
 }
@@ -69,7 +72,7 @@ bool DeviceManager::RegisterConsole(Console* pConsole)
 
 void DeviceManager::Unregister(Device* pDevice)
 {
-    pDevice->Cleanup();
+    pDevice->OnUnregister();
     sDevices.remove(pDevice);
 }
 

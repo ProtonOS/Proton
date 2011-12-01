@@ -15,7 +15,7 @@ Console::Console()
 {
 }
 
-bool Console::Initialize()
+bool Console::OnRegister()
 {
     uint32_t memoryRequired = mColumns * mRows * 2;
     if (!IsMemoryAvailable(BaseMemory, memoryRequired)) return false;
@@ -25,12 +25,12 @@ bool Console::Initialize()
     return true;
 }
 
-void Console::Cleanup()
+void Console::OnUnregister()
 {
     ReleaseMemory(reinterpret_cast<uint32_t>(mBaseMemory));
 }
 
-uint8_t Console::CreateAttributes(Color pForeground, Color pBackground) { return pForeground | (pBackground << 4); }
+uint8_t Console::CreateAttributes(ConsoleColor pForeground, ConsoleColor pBackground) { return pForeground | (pBackground << 4); }
 
 void Console::MoveTo(uint8_t pColumn, uint8_t pRow)
 {

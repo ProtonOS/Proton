@@ -8,8 +8,8 @@ namespace Core
     {
     public:
         COMPortLogger();
-        bool Initialize();
-        void Cleanup();
+        bool OnRegister();
+        void OnUnregister();
 
         void WriteByte(uint8_t pByte);
 

@@ -6,14 +6,17 @@
 #include <Core/COMPortLogger.h>
 #include <Core/Console.h>
 
+using namespace std;
+
 namespace Core
 {
     class DeviceManager
     {
     public:
-        typedef std::list<Device*> DeviceList;
+        typedef list<Device*> DeviceList;
 
-        static void Initialize();
+        static bool Startup();
+        static void Shutdown();
 
         static bool IsMemoryAvailable(uint32_t pAddress, uint32_t pLength);
         static bool IsIOPortAvailable(uint16_t pIOPort);

@@ -1,31 +1,60 @@
 #include <Kernel.h>
 
 extern "C" {
-void Kernel(uint32_t pMultiBootMagic, void * pMultiBootData);
+    void Main(uint32_t pMultiBootMagic,
+              void * pMultiBootData)
+    {
+        if (!Kernel::Startup(pMultiBootMagic, pMultiBootData))
+        {
+            Kernel::Shutdown();
+            return;
+        }
+        while (true) ;
+    }
 }
 
-void Kernel(uint32_t pMultiBootMagic,
-            void * pMultiBootData)
+COMPortLogger* Kernel::sCOMPortLogger = nullptr;
+Console* Kernel::sConsole = nullptr;
+
+bool Kernel::Startup(uint32_t pMultiBootMagic,
+                     void * pMultiBootData)
 {
-    if (!MultiBoot::Initialize(pMultiBootMagic, pMultiBootData)) return;
+    if (!MultiBoot::Startup(pMultiBootMagic, pMultiBootData)) return false;
 
-    DeviceManager::Initialize();
+    if (!DeviceManager::Startup()) return false;
 
-    COMPortLogger* comPortLogger = new COMPortLogger();
-    if (!DeviceManager::RegisterCOMPortLogger(comPortLogger))
+    sCOMPortLogger = new COMPortLogger();
+    if (!DeviceManager::RegisterCOMPortLogger(sCOMPortLogger)) return false;
+
+    sConsole = new Console();
+    if (!DeviceManager::RegisterConsole(sConsole)) return false;
+
+	DeviceManager::GetConsole().Clear(Console::CreateAttributes(ConsoleColor::LightWhite, ConsoleColor::DarkBlack));
+    DeviceManager::GetConsole().WriteLine("Starting Proton (" BRANCH ")...");
+
+    if (!FileSystemManager::Startup()) return false;
+
+    printf("Debug: printf works at this point\n");
+    return true;
+}
+
+void Kernel::Shutdown()
+{
+    if (sConsole)
     {
-        delete comPortLogger;
-        return;
+        DeviceManager::UnregisterConsole(sConsole);
+        delete sConsole;
+        sConsole = nullptr;
     }
 
-    Console* console = new Console();
-    if (!DeviceManager::RegisterConsole(console))
+    if (sCOMPortLogger)
     {
-        delete console;
-        return;
+        DeviceManager::UnregisterCOMPortLogger(sCOMPortLogger);
+        delete sCOMPortLogger;
+        sCOMPortLogger = nullptr;
     }
-	DeviceManager::GetConsole().Clear(Console::CreateAttributes(Console::Color::LightWhite, Console::Color::DarkBlack));
-    DeviceManager::GetConsole().WriteLine("Booting Proton (" BRANCH ")...");
 
-    while (true) ;
+    DeviceManager::Shutdown();
+
+    MultiBoot::Shutdown();
 }

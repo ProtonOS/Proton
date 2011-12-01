@@ -3,13 +3,15 @@
 #include <map>
 #include <set>
 
+using namespace std;
+
 namespace Core
 {
     class Device
     {
     public:
-        virtual bool Initialize() = 0;
-        virtual void Cleanup() = 0;
+        virtual bool OnRegister() = 0;
+        virtual void OnUnregister() = 0;
 
         bool HasMemoryConflict(uint32_t pAddress, uint32_t pLength);
         bool HasIOPortConflict(uint16_t pIOPort);
@@ -28,10 +30,9 @@ namespace Core
         void ReleaseInterrupt(uint8_t pInterrupt);
 
     private:
-
-        typedef std::map<uint32_t, uint32_t> ClaimedMemoryMap;
-        typedef std::set<uint16_t> ClaimedIOPortsSet;
-        typedef std::set<uint8_t> ClaimedInterruptsSet;
+        typedef map<uint32_t, uint32_t> ClaimedMemoryMap;
+        typedef set<uint16_t> ClaimedIOPortsSet;
+        typedef set<uint8_t> ClaimedInterruptsSet;
 
         ClaimedMemoryMap mClaimedMemory;
         ClaimedIOPortsSet mClaimedIOPorts;

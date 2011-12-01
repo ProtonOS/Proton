@@ -19,7 +19,8 @@ namespace Core
             uint32_t Padding;
         };
 
-        static bool Initialize(uint32_t pMultiBootMagic, void * pMultiBootData);
+        static bool Startup(uint32_t pMultiBootMagic, void* pMultiBootData);
+        static void Shutdown();
         static const char* GetCommandLine();
         static MemoryBlock& GetMemoryBlock(uint8_t pIndex);
         static uint8_t GetMemoryBlockCount();

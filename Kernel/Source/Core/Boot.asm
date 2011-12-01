@@ -20,7 +20,7 @@ Boot:
     push ebx
     push eax
 
-    call Kernel
+    call Main
     cli
 Hang:
     hlt

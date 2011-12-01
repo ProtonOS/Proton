@@ -62,6 +62,7 @@
 	Source/Core/Device.cpp
 	Source/Core/DeviceManager.cpp
 	Source/Core/DLMalloc.cpp
+	Source/Core/FileSystemManager.cpp
 	Source/Core/MultiBoot.cpp
 	Source/Core/SystemCalls.cpp
 }

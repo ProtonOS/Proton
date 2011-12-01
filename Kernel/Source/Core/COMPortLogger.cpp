@@ -8,7 +8,7 @@ COMPortLogger::COMPortLogger()
 {
 }
 
-bool COMPortLogger::Initialize()
+bool COMPortLogger::OnRegister()
 {
     if (!IsIOPortAvailable(DataIOPort) ||
         !IsIOPortAvailable(InterruptIOPort) ||
@@ -39,7 +39,7 @@ bool COMPortLogger::Initialize()
     return true;
 }
 
-void COMPortLogger::Cleanup()
+void COMPortLogger::OnUnregister()
 {
     ReleaseIOPort(DataIOPort);
     ReleaseIOPort(InterruptIOPort);

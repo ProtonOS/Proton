@@ -11,7 +11,7 @@ extern char __BOF;
 extern char __EOF;
 }
 
-bool MultiBoot::Initialize(uint32_t pMultiBootMagic, void * pMultiBootData)
+bool MultiBoot::Startup(uint32_t pMultiBootMagic, void * pMultiBootData)
 {
     if (pMultiBootMagic != Magic) return false;
     Header& header = *reinterpret_cast<Header*>(pMultiBootData);
@@ -47,6 +47,12 @@ bool MultiBoot::Initialize(uint32_t pMultiBootMagic, void * pMultiBootData)
 		}
 	}
     return sMemoryBlockCount > 0;
+}
+
+void MultiBoot::Shutdown()
+{
+    sMemoryBlockCount = 0;
+    sCommandLine = nullptr;
 }
 
 const char* MultiBoot::GetCommandLine() { return sCommandLine; }
