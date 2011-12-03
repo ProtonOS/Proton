@@ -107,8 +107,13 @@ int gettimeofday(timeval* pTime,
 {
 	if (pTime)
 	{
-		pTime->tv_sec = 0;
-		pTime->tv_usec = 0;
+        pTime->tv_sec = 0;
+        pTime->tv_usec = 0;
+        if (Core::SystemClock::IsReady())
+        {
+	        pTime->tv_sec = static_cast<time_t>(Core::SystemClock::GetSecondsSinceEpoch());
+	        pTime->tv_usec = static_cast<suseconds_t>(Core::SystemClock::GetMilliseconds());
+        }
 	}
 	if (pTimeZone)
 	{

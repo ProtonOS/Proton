@@ -16,6 +16,8 @@ extern "C" {
 #include <Core/GDT.h>
 #include <Core/IDT.h>
 #include <Driver/PIC8259A.h>
+#include <Driver/PIT8254.h>
+#include <Driver/RTC146818A.h>
 
 // SystemCalls
 
@@ -32,4 +34,6 @@ private:
     static Core::COMPortLogger* sCOMPortLogger;
     static Core::Driver::Console* sConsole;
     static Driver::PIC8259A* sPIC;
+    static Driver::PIT8254* sPIT;
+    static Driver::RTC146818A* sRTC;
 };

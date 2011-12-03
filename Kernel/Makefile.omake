@@ -69,8 +69,11 @@
 	Source/Core/IDT.cpp
 	Source/Core/MultiBoot.cpp
 	Source/Core/SystemCalls.cpp
+	Source/Core/SystemClock.cpp
 	Source/Core/Driver/Console.cpp
 	Source/Driver/PIC8259A.cpp
+	Source/Driver/PIT8254.cpp
+	Source/Driver/RTC146818A.cpp
 }
 
 MKDIR ${MKDIR_ARGS} ${OBJECT}

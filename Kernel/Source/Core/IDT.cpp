@@ -5,8 +5,8 @@
 extern "C" {
 extern void IDTUpdate(Core::IDT::Register* pRegister);
 #include <Core/IDTExternalStubs.h> // Must remain here
-void IDTISRHandler(Core::IDT::Registers pRegisters);
-void IDTIRQHandler(Core::IDT::Registers pRegisters);
+void IDTISRHandler(Core::InterruptRegisters pRegisters);
+void IDTIRQHandler(Core::InterruptRegisters pRegisters);
 }
 
 Core::IDT::Register Core::IDT::sRegister;
@@ -40,9 +40,9 @@ void Core::IDT::Unschedule(uint8_t pInterrupt) { sScheduled[pInterrupt] = false;
 
 void Core::IDT::WaitFor(uint8_t pInterrupt) { while (sScheduled[pInterrupt]) IOWAIT(); }
 
-void Core::IDT::RegisterHandler(uint8_t pInterrupt, IDTHandler pHandler) { sHandlers[pInterrupt] = pHandler; }
+void Core::IDT::RegisterHandler(uint8_t pInterrupt, Core::InterruptHandler* pHandler) { sHandlers[pInterrupt] = pHandler; }
 
-Core::IDT::IDTHandler Core::IDT::GetHandler(uint8_t pInterrupt) { return sHandlers[pInterrupt]; }
+Core::InterruptHandler* Core::IDT::GetHandler(uint8_t pInterrupt) { return sHandlers[pInterrupt]; }
 
 void Core::IDT::SetInterrupt(uint8_t pIndex, uint32_t pAddress, uint16_t pSelector, uint8_t pTypeAndFlags)
 {
@@ -55,17 +55,17 @@ void Core::IDT::SetInterrupt(uint8_t pIndex, uint32_t pAddress, uint16_t pSelect
 
 void Core::IDT::SetInterrupt(uint8_t pIndex, uint32_t pAddress) { SetInterrupt(pIndex, pAddress, Selector::DescriptorIndexSelector, Type::Interrupt386Gate32BitType | Type::PresentType); }
 
-void IDTISRHandler(Core::IDT::Registers pRegisters)
+void IDTISRHandler(Core::InterruptRegisters pRegisters)
 {
     Core::IDT::Unschedule(pRegisters.int_no);
-    Core::IDT::IDTHandler handler = Core::IDT::GetHandler(pRegisters.int_no);
-    if (handler) handler(pRegisters);
+    Core::InterruptHandler* handler = Core::IDT::GetHandler(pRegisters.int_no);
+    if (handler) handler->OnInterrupt(pRegisters);
 }
 
-void IDTIRQHandler(Core::IDT::Registers pRegisters)
+void IDTIRQHandler(Core::InterruptRegisters pRegisters)
 {
     Core::IDT::Unschedule(Core::IDT::RemappedIRQBase + pRegisters.int_no);
-    Core::IDT::IDTHandler handler = Core::IDT::GetHandler(Core::IDT::RemappedIRQBase + pRegisters.int_no);
-    if (handler) handler(pRegisters);
+    Core::InterruptHandler* handler = Core::IDT::GetHandler(Core::IDT::RemappedIRQBase + pRegisters.int_no);
+    if (handler) handler->OnInterrupt(pRegisters);
     Core::DeviceManager::GetPIC().ResetInterrupts(pRegisters.int_no >= 9);
 }

@@ -29,7 +29,10 @@
     <ClCompile Include="Source\Core\FileSystemManager.cpp" />
     <ClCompile Include="Source\Core\GDT.cpp" />
     <ClCompile Include="Source\Core\IDT.cpp" />
+    <ClCompile Include="Source\Core\SystemClock.cpp" />
     <ClCompile Include="Source\Driver\PIC8259A.cpp" />
+    <ClCompile Include="Source\Driver\PIT8254.cpp" />
+    <ClCompile Include="Source\Driver\RTC146818A.cpp" />
     <ClCompile Include="Source\Kernel.cpp" />
     <ClCompile Include="Source\Core\MultiBoot.cpp" />
     <ClCompile Include="Source\Core\SystemCalls.cpp" />
@@ -37,11 +40,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\Core\Config.h" />
+    <ClInclude Include="Include\Core\Driver\RTC.h" />
     <ClInclude Include="Include\Core\Driver\ConsoleColor.h" />
     <ClInclude Include="Include\Core\Device.h" />
     <ClInclude Include="Include\Core\DeviceManager.h" />
     <ClInclude Include="Include\Core\Driver\Console.h" />
     <ClInclude Include="Include\Core\Driver\PIC.h" />
+    <ClInclude Include="Include\Core\Driver\PIT.h" />
     <ClInclude Include="Include\Core\FileDescriptor.h" />
     <ClInclude Include="Include\Core\FileSystem.h" />
     <ClInclude Include="Include\Core\FileSystemManager.h" />
@@ -49,7 +54,12 @@
     <ClInclude Include="Include\Core\IDT.h" />
     <ClInclude Include="Include\Core\IDTExternalStubs.h" />
     <ClInclude Include="Include\Core\IDTInitializeStubs.h" />
+    <ClInclude Include="Include\Core\InterruptHandler.h" />
+    <ClInclude Include="Include\Core\InterruptRegisters.h" />
+    <ClInclude Include="Include\Core\SystemClock.h" />
     <ClInclude Include="Include\Driver\PIC8259A.h" />
+    <ClInclude Include="Include\Driver\PIT8254.h" />
+    <ClInclude Include="Include\Driver\RTC146818A.h" />
     <ClInclude Include="Include\Kernel.h" />
     <ClInclude Include="Include\Core\MultiBoot.h" />
     <ClInclude Include="Include\PortIO.h" />

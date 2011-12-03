@@ -3,7 +3,9 @@
 Core::DeviceManager::DeviceList Core::DeviceManager::sDevices;
 Core::COMPortLogger* Core::DeviceManager::sCOMPortLogger = nullptr;
 Core::Driver::Console* Core::DeviceManager::sConsole = nullptr;
+Core::Driver::RTC* Core::DeviceManager::sRTC = nullptr;
 Core::Driver::PIC* Core::DeviceManager::sPIC = nullptr;
+Core::Driver::PIT* Core::DeviceManager::sPIT = nullptr;
 
 bool Core::DeviceManager::Startup()
 {
@@ -69,10 +71,24 @@ bool Core::DeviceManager::RegisterConsole(Core::Driver::Console* pConsole)
     return true;
 }
 
+bool Core::DeviceManager::RegisterRTC(Core::Driver::RTC* pRTC)
+{
+    if (!Register(pRTC)) return false;
+    sRTC = pRTC;
+    return true;
+}
+
 bool Core::DeviceManager::RegisterPIC(Core::Driver::PIC* pPIC)
 {
     if (!Register(pPIC)) return false;
     sPIC = pPIC;
+    return true;
+}
+
+bool Core::DeviceManager::RegisterPIT(Core::Driver::PIT* pPIT)
+{
+    if (!Register(pPIT)) return false;
+    sPIT = pPIT;
     return true;
 }
 
@@ -94,10 +110,22 @@ void Core::DeviceManager::UnregisterConsole(Core::Driver::Console* pConsole)
     sConsole = nullptr;
 }
 
+void Core::DeviceManager::UnregisterRTC(Core::Driver::RTC* pRTC)
+{
+    Unregister(pRTC);
+    sRTC = nullptr;
+}
+
 void Core::DeviceManager::UnregisterPIC(Core::Driver::PIC* pPIC)
 {
     Unregister(pPIC);
     sPIC = nullptr;
+}
+
+void Core::DeviceManager::UnregisterPIT(Core::Driver::PIT* pPIT)
+{
+    Unregister(pPIT);
+    sPIT = nullptr;
 }
 
 const Core::DeviceManager::DeviceList& Core::DeviceManager::GetDevices() { return sDevices; }
@@ -106,4 +134,8 @@ Core::COMPortLogger& Core::DeviceManager::GetCOMPortLogger() { return *sCOMPortL
 
 Core::Driver::Console& Core::DeviceManager::GetConsole() { return *sConsole; }
 
+Core::Driver::RTC& Core::DeviceManager::GetRTC() { return *sRTC; }
+
 Core::Driver::PIC& Core::DeviceManager::GetPIC() { return *sPIC; }
+
+Core::Driver::PIT& Core::DeviceManager::GetPIT() { return *sPIT; }

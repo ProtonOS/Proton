@@ -16,6 +16,8 @@ extern "C" {
 Core::COMPortLogger* Kernel::sCOMPortLogger = nullptr;
 Core::Driver::Console* Kernel::sConsole = nullptr;
 Driver::PIC8259A* Kernel::sPIC = nullptr;
+Driver::PIT8254* Kernel::sPIT = nullptr;
+Driver::RTC146818A* Kernel::sRTC = nullptr;
 
 bool Kernel::Startup(uint32_t pMultiBootMagic,
                      void * pMultiBootData)
@@ -38,14 +40,41 @@ bool Kernel::Startup(uint32_t pMultiBootMagic,
     if (!Core::GDT::Startup()) return false;
     if (!Core::IDT::Startup()) return false;
 
+    sRTC = new Driver::RTC146818A();
+    if (!Core::DeviceManager::RegisterRTC(sRTC)) return false;
+
     sPIC = new Driver::PIC8259A();
     if (!Core::DeviceManager::RegisterPIC(sPIC)) return false;
+
+    sPIT = new Driver::PIT8254(100);
+    if (!Core::DeviceManager::RegisterPIT(sPIT)) return false;
+
+    if (!Core::SystemClock::Startup()) return false;
+
+	time_t startupTime = time(NULL);
+	printf("Startup @ %s", ctime(&startupTime));
 
     return true;
 }
 
 void Kernel::Shutdown()
 {
+    Core::SystemClock::Shutdown();
+
+    if (sRTC)
+    {
+        Core::DeviceManager::UnregisterRTC(sRTC);
+        delete sRTC;
+        sRTC = nullptr;
+    }
+
+    if (sPIT)
+    {
+        Core::DeviceManager::UnregisterPIT(sPIT);
+        delete sPIT;
+        sPIT = nullptr;
+    }
+
     if (sPIC)
     {
         Core::DeviceManager::UnregisterPIC(sPIC);
