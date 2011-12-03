@@ -140,5 +140,6 @@ uint32_t Driver::RTC146818A::GetSecondsSinceEpoch()
 {
     uint32_t nowDays = GetTotalDays((GetCentury() * 100) + GetYear(), GetMonth(), GetDayOfMonth());
     uint32_t epochDays = GetTotalDays(1970, 1, 1);
-    return ((nowDays - epochDays) * 24 * 60 * 60) + (GetHour() * 60 * 60) + (GetMinute() * 60) + GetSecond() + 1;
+    uint32_t secondsSinceEpoch = ((nowDays - epochDays) * 24 * 60 * 60) + (GetHour() * 60 * 60) + (GetMinute() * 60);
+    return  secondsSinceEpoch + GetSecond();
 }

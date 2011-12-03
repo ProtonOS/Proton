@@ -5,7 +5,10 @@ uint32_t Core::SystemClock::sStartupTime = 0;
 
 bool Core::SystemClock::Startup()
 {
-    sStartupTime = Core::DeviceManager::GetRTC().GetSecondsSinceEpoch();
+    uint32_t startTime = Core::DeviceManager::GetRTC().GetSecondsSinceEpoch();
+    uint8_t initSecond = Core::DeviceManager::GetRTC().GetSecond();
+    while (Core::DeviceManager::GetRTC().GetSecond() == initSecond);
+    sStartupTime = startTime + 1;
     return true;
 }
 

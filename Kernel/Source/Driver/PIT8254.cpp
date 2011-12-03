@@ -32,9 +32,6 @@ bool Driver::PIT8254::OnRegister()
     uint8_t low = divisor & 0xFF;
     uint8_t high = (divisor >> 8) & 0xFF;
 
-    uint8_t initSecond = Core::DeviceManager::GetRTC().GetSecond();
-    while (Core::DeviceManager::GetRTC().GetSecond() == initSecond);
-
     outb(CommandIOPort, Command::Counter0InitializeCommand);
     outb(Counter0IOPort, low);
     outb(Counter0IOPort, high);
