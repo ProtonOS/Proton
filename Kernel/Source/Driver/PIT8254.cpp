@@ -61,8 +61,8 @@ void Driver::PIT8254::OnInterrupt(Core::InterruptRegisters)
             mMillisecondsElapsed = 0;
             ++mSecondsElapsed;
 
-	        time_t t = time(NULL);
-	        printf("Time = %s", ctime(&t));
+	        //time_t t = time(NULL);
+	        //printf("Time = %s", ctime(&t));
         }
     }
 }

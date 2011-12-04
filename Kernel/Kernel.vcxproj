@@ -37,7 +37,6 @@
     <ClCompile Include="Source\Core\MultiBoot.cpp" />
     <ClCompile Include="Source\Core\SystemCalls.cpp" />
     <ClCompile Include="Source\Core\COMPortLogger.cpp" />
-    <ClCompile Include="Source\Runtime\Interpreter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\Core\Config.h" />
@@ -65,7 +64,6 @@
     <ClInclude Include="Include\Core\MultiBoot.h" />
     <ClInclude Include="Include\PortIO.h" />
     <ClInclude Include="Include\Core\COMPortLogger.h" />
-    <ClInclude Include="Include\Runtime\Interpreter.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{FACF6CC0-B659-4FD2-8BBD-A377A66CFE7C}</ProjectGuid>
