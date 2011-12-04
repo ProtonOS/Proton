@@ -7,8 +7,15 @@ namespace Core
     class MultiBoot
     {
     public:
+        static const uint8_t MaxLoadedModules = 16;
         static const uint8_t MaxMemoryBlocks = 64;
 
+        struct LoadedModule
+        {
+            uint32_t Address;
+            uint32_t Length;
+            const char* Identifier;
+        };
         struct MemoryBlock
         {
         	uint32_t Address;
@@ -20,6 +27,8 @@ namespace Core
         static bool Startup(uint32_t pMultiBootMagic, void* pMultiBootData);
         static void Shutdown();
         static const char* GetCommandLine();
+        static LoadedModule& GetLoadedModule(uint8_t pIndex);
+        static uint8_t GetLoadedModuleCount();
         static MemoryBlock& GetMemoryBlock(uint8_t pIndex);
         static uint8_t GetMemoryBlockCount();
 
@@ -28,6 +37,7 @@ namespace Core
         static const uint32_t MemoryMapAvailable = 1;
         static const uint32_t MemoryMapConventional = (1024 * 640);
 
+        typedef std::array<LoadedModule, MaxLoadedModules> LoadedModuleArray;
         typedef std::array<MemoryBlock, MaxMemoryBlocks> MemoryBlockArray;
 
         struct Header
@@ -58,6 +68,14 @@ namespace Core
 	        uint16_t VBEInterfaceLength;
         };
 
+        struct Module
+        {
+            uint32_t Start;
+            uint32_t End;
+            uint32_t Identifier;
+            uint32_t Reserved;
+        };
+
         struct MemoryMap
         {
 	        uint32_t Size;
@@ -69,6 +87,8 @@ namespace Core
         };
 
         static const char* sCommandLine;
+        static LoadedModuleArray sLoadedModules;
+        static uint8_t sLoadedModuleCount;
         static MemoryBlockArray sMemoryBlocks;
         static uint8_t sMemoryBlockCount;
 

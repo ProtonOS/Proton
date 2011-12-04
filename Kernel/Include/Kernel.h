@@ -18,6 +18,7 @@ extern "C" {
 #include <Driver/PIC8259A.h>
 #include <Driver/PIT8254.h>
 #include <Driver/RTC146818A.h>
+#include <Runtime/Interpreter.h>
 
 // SystemCalls
 

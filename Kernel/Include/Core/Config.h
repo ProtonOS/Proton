@@ -1,3 +1,3 @@
 #pragma once
 
-#define BRANCH "Helium"
+#define BRANCH "Lithium"

@@ -74,6 +74,7 @@
 	Source/Driver/PIC8259A.cpp
 	Source/Driver/PIT8254.cpp
 	Source/Driver/RTC146818A.cpp
+	Source/Runtime/Interpreter.cpp
 }
 
 MKDIR ${MKDIR_ARGS} ${OBJECT}

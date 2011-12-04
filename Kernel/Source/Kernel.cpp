@@ -52,7 +52,9 @@ bool Kernel::Startup(uint32_t pMultiBootMagic,
     if (!Core::SystemClock::Startup()) return false;
 
 	time_t startupTime = time(NULL);
-	printf("Startup @ %s", ctime(&startupTime));
+    printf("Startup @ %s", ctime(&startupTime));
+
+    if (!Runtime::Interpreter::Startup()) return false;
 
     return true;
 }
