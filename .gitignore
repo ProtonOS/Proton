@@ -23,4 +23,5 @@
 /OS/Mernel/bin
 
 /Nernel/*.log
+/Nernel/*.cache
 /Nernel/Object
