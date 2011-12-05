@@ -40,7 +40,7 @@
 
 #define CONST(CPP_ARGS, -I../SDK/include -I../SDK/include/c++ -I./Include -include cstdint -std=c++0x -Wall -Wextra -Werror -fno-builtin -nostdlib -fpack-struct=1 -nostartfiles -nodefaultlibs -c);
 #define CONST(GCC_ARGS,-I../SDK/include -Wall -Wextra -Werror -Wno-return-type -fno-builtin -nostdlib -std=c99 -fpack-struct=1 -nostartfiles -nodefaultlibs -c);
-#define CONST(VM_CLR_GCC_ARGS, -I./Include/VM/CLR -Wno-pointer-sign -Wno-unused-but-set-variable -Wno-sign-compare -Wno-missing-field-initializers -Wno-unused-parameter ${GCC_ARGS});
+#define CONST(RUNTIME_GCC_ARGS, -I./Include/Runtime -Wno-pointer-sign -Wno-unused-but-set-variable -Wno-sign-compare -Wno-missing-field-initializers -Wno-unused-parameter ${GCC_ARGS});
 #define CONST(LD_ARGS, -L../SDK/lib -T Source/Kernel.ld);
 #define CONST(LD_LIBS, -lstdc++ -lc -lm -lgcc);
 #define CONST(RM_ARGS, -rf);
@@ -62,45 +62,45 @@
 	Source/Core/IDTUpdate.asm
 }
 
-#define SOURCE(VM_CLR_C_FILES)
+#define SOURCE(RUNTIME_C_FILES)
 {
-    Source/VM/CLR/CLIFile.c
-    Source/VM/CLR/Delegate.c
-    Source/VM/CLR/Finalizer.c
-    Source/VM/CLR/Generics.c
-    Source/VM/CLR/Heap.c
-    Source/VM/CLR/InternalCall.c
-    Source/VM/CLR/JIT.c
-    Source/VM/CLR/JIT_Execute.c
-    Source/VM/CLR/MetaData.c
-    Source/VM/CLR/MetaData_Fill.c
-    Source/VM/CLR/MetaData_Search.c
-    Source/VM/CLR/MethodState.c
-#    Source/VM/CLR/PInvoke.c
-    Source/VM/CLR/RVA.c
-    Source/VM/CLR/Sys.c
-    Source/VM/CLR/System.Array.c
-    Source/VM/CLR/System.Char.c
-    Source/VM/CLR/System.Console.c
-    Source/VM/CLR/System.DateTime.c
-    Source/VM/CLR/System.Diagnostics.Debugger.c
-    Source/VM/CLR/System.Enum.c
-    Source/VM/CLR/System.Environment.c
-    Source/VM/CLR/System.GC.c
-    Source/VM/CLR/System.IO.FileInternal.c
-    Source/VM/CLR/System.Math.c
-    Source/VM/CLR/System.Object.c
-    Source/VM/CLR/System.Runtime.CompilerServices.RuntimeHelpers.c
-    Source/VM/CLR/System.RuntimeType.c
-    Source/VM/CLR/System.String.c
-    Source/VM/CLR/System.Threading.Interlocked.c
-    Source/VM/CLR/System.Threading.Monitor.c
-    Source/VM/CLR/System.Threading.Thread.c
-    Source/VM/CLR/System.Type.c
-    Source/VM/CLR/System.ValueType.c
-    Source/VM/CLR/System.WeakReference.c
-    Source/VM/CLR/Thread.c
-    Source/VM/CLR/Type.c
+    Source/Runtime/CLIFile.c
+    Source/Runtime/Delegate.c
+    Source/Runtime/Finalizer.c
+    Source/Runtime/Generics.c
+    Source/Runtime/Heap.c
+    Source/Runtime/InternalCall.c
+    Source/Runtime/JIT.c
+    Source/Runtime/JIT_Execute.c
+    Source/Runtime/MetaData.c
+    Source/Runtime/MetaData_Fill.c
+    Source/Runtime/MetaData_Search.c
+    Source/Runtime/MethodState.c
+#    Source/Runtime/PInvoke.c
+    Source/Runtime/RVA.c
+    Source/Runtime/Sys.c
+    Source/Runtime/System.Array.c
+    Source/Runtime/System.Char.c
+    Source/Runtime/System.Console.c
+    Source/Runtime/System.DateTime.c
+    Source/Runtime/System.Diagnostics.Debugger.c
+    Source/Runtime/System.Enum.c
+    Source/Runtime/System.Environment.c
+    Source/Runtime/System.GC.c
+    Source/Runtime/System.IO.FileInternal.c
+    Source/Runtime/System.Math.c
+    Source/Runtime/System.Object.c
+    Source/Runtime/System.Runtime.CompilerServices.RuntimeHelpers.c
+    Source/Runtime/System.RuntimeType.c
+    Source/Runtime/System.String.c
+    Source/Runtime/System.Threading.Interlocked.c
+    Source/Runtime/System.Threading.Monitor.c
+    Source/Runtime/System.Threading.Thread.c
+    Source/Runtime/System.Type.c
+    Source/Runtime/System.ValueType.c
+    Source/Runtime/System.WeakReference.c
+    Source/Runtime/Thread.c
+    Source/Runtime/Type.c
 }
 
 #define SOURCE(CPP_FILES)
@@ -125,11 +125,9 @@
 MKDIR ${MKDIR_ARGS} ${OBJECT}
 MKDIR ${MKDIR_ARGS} ${LOGS}
 MKDIR ${MKDIR_ARGS} ${BUILD}/boot/grub
-MKDIR ${MKDIR_ARGS} ${BUILD}/VM/CLR
 
 CP ${CP_ARGS} ../SDK/grub/stage2_eltorito ${BUILD}/boot/grub
 CP ${CP_ARGS} ../SDK/grub/menu.lst ${BUILD}/boot/grub
-CP ${CP_ARGS} ../VM/CLR/bin/mscorlib.dll ${BUILD}/VM/CLR
 
 common TOOL(AS -o ) : ASM_FILES
 {
@@ -141,11 +139,11 @@ common TOOL(CPP ${CPP_ARGS} -o ) : CPP_FILES
     #prefix{${OBJECT}/$(FILENAME.NO_EXTENSION.DIR_TO_FILENAME).o} : ALL
 }
 
-common TOOL(GCC ${VM_CLR_GCC_ARGS} -o ) : VM_CLR_C_FILES
+common TOOL(GCC ${RUNTIME_GCC_ARGS} -o ) : RUNTIME_C_FILES
 {
     #prefix{${OBJECT}/$(FILENAME.NO_EXTENSION.DIR_TO_FILENAME).o} : ALL
 }
 
-LD ${LD_ARGS} -o ${OUT} ${${OBJECT}/&([ASM_FILES].NO_EXTENSION.DIR_TO_FILENAME).o} ${${OBJECT}/&([CPP_FILES].NO_EXTENSION.DIR_TO_FILENAME).o} ${${OBJECT}/&([VM_CLR_C_FILES].NO_EXTENSION.DIR_TO_FILENAME).o} ${LD_LIBS}
+LD ${LD_ARGS} -o ${OUT} ${${OBJECT}/&([ASM_FILES].NO_EXTENSION.DIR_TO_FILENAME).o} ${${OBJECT}/&([CPP_FILES].NO_EXTENSION.DIR_TO_FILENAME).o} ${${OBJECT}/&([RUNTIME_C_FILES].NO_EXTENSION.DIR_TO_FILENAME).o} ${LD_LIBS}
 
 MKISOFS ${MKISOFS_ARGS} -o ${ISO} ${BUILD}

@@ -147,7 +147,7 @@ int open(const char*,
 
 int close(int)
 {
-    Panic("CLOSE");
+    //Panic("CLOSE");
     errno = EBADF;
     return -1;
 }

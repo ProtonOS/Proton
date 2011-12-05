@@ -2,18 +2,18 @@
 
 extern "C" {
 	
-void* GetModuleAddress(int i);
+    void* GetModuleAddress(int i);
 
-void* GetModuleAddress(int i)
-{
-	return reinterpret_cast<void*>(Core::MultiBoot::GetLoadedModule(i).Address);
-}
+    void* GetModuleAddress(int i)
+    {
+	    return reinterpret_cast<void*>(Core::MultiBoot::GetLoadedModule(i).Address);
+    }
 
-#include "VM/CLR/CLIFile.h"
-#include "VM/CLR/MetaData.h"
-#include "VM/CLR/Type.h"
-#include "VM/CLR/Heap.h"
-#include "VM/CLR/Finalizer.h"
+    #include "Runtime/CLIFile.h"
+    #include "Runtime/MetaData.h"
+    #include "Runtime/Type.h"
+    #include "Runtime/Heap.h"
+    #include "Runtime/Finalizer.h"
 
     void Main(uint32_t pMultiBootMagic,
               void * pMultiBootData)

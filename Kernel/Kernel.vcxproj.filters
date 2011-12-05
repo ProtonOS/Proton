@@ -25,7 +25,7 @@
     <None Include="Source\Core\IDTStubs.asm">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="Source\VM\CLR\Bugs.txt" />
+    <None Include="Source\Runtime\Bugs.txt" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="Source\Core.lib" />
@@ -76,115 +76,115 @@
     <ClCompile Include="Source\Core\SystemClock.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\VM\CLR\Thread.c">
+    <ClCompile Include="Source\Runtime\Type.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\VM\CLR\CLIFile.c">
+    <ClCompile Include="Source\Runtime\CLIFile.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\VM\CLR\Delegate.c">
+    <ClCompile Include="Source\Runtime\Delegate.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\VM\CLR\Finalizer.c">
+    <ClCompile Include="Source\Runtime\Finalizer.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\VM\CLR\Generics.c">
+    <ClCompile Include="Source\Runtime\Generics.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\VM\CLR\Heap.c">
+    <ClCompile Include="Source\Runtime\Heap.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\VM\CLR\InternalCall.c">
+    <ClCompile Include="Source\Runtime\InternalCall.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\VM\CLR\JIT.c">
+    <ClCompile Include="Source\Runtime\JIT.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\VM\CLR\JIT_Execute.c">
+    <ClCompile Include="Source\Runtime\JIT_Execute.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\VM\CLR\MetaData.c">
+    <ClCompile Include="Source\Runtime\MetaData.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\VM\CLR\MetaData_Fill.c">
+    <ClCompile Include="Source\Runtime\MetaData_Fill.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\VM\CLR\MetaData_Search.c">
+    <ClCompile Include="Source\Runtime\MetaData_Search.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\VM\CLR\MethodState.c">
+    <ClCompile Include="Source\Runtime\MethodState.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\VM\CLR\PInvoke.c">
+    <ClCompile Include="Source\Runtime\PInvoke.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\VM\CLR\RVA.c">
+    <ClCompile Include="Source\Runtime\RVA.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\VM\CLR\Sys.c">
+    <ClCompile Include="Source\Runtime\Sys.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\VM\CLR\System.Array.c">
+    <ClCompile Include="Source\Runtime\System.Array.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\VM\CLR\System.Char.c">
+    <ClCompile Include="Source\Runtime\System.Char.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\VM\CLR\System.Console.c">
+    <ClCompile Include="Source\Runtime\System.Console.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\VM\CLR\System.DateTime.c">
+    <ClCompile Include="Source\Runtime\System.DateTime.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\VM\CLR\System.Diagnostics.Debugger.c">
+    <ClCompile Include="Source\Runtime\System.Diagnostics.Debugger.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\VM\CLR\System.Enum.c">
+    <ClCompile Include="Source\Runtime\System.Enum.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\VM\CLR\System.Environment.c">
+    <ClCompile Include="Source\Runtime\System.Environment.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\VM\CLR\System.GC.c">
+    <ClCompile Include="Source\Runtime\System.GC.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\VM\CLR\System.IO.FileInternal.c">
+    <ClCompile Include="Source\Runtime\System.IO.FileInternal.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\VM\CLR\System.Math.c">
+    <ClCompile Include="Source\Runtime\System.Math.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\VM\CLR\System.Object.c">
+    <ClCompile Include="Source\Runtime\System.Object.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\VM\CLR\System.Runtime.CompilerServices.RuntimeHelpers.c">
+    <ClCompile Include="Source\Runtime\System.Runtime.CompilerServices.RuntimeHelpers.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\VM\CLR\System.RuntimeType.c">
+    <ClCompile Include="Source\Runtime\System.RuntimeType.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\VM\CLR\System.String.c">
+    <ClCompile Include="Source\Runtime\System.String.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\VM\CLR\System.Threading.Interlocked.c">
+    <ClCompile Include="Source\Runtime\System.Threading.Interlocked.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\VM\CLR\System.Threading.Monitor.c">
+    <ClCompile Include="Source\Runtime\System.Threading.Monitor.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\VM\CLR\System.Threading.Thread.c">
+    <ClCompile Include="Source\Runtime\System.Threading.Thread.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\VM\CLR\System.Type.c">
+    <ClCompile Include="Source\Runtime\System.Type.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\VM\CLR\System.ValueType.c">
+    <ClCompile Include="Source\Runtime\System.ValueType.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\VM\CLR\System.WeakReference.c">
+    <ClCompile Include="Source\Runtime\System.WeakReference.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\VM\CLR\Type.c">
+    <ClCompile Include="Source\Runtime\Thread.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -264,139 +264,139 @@
     <ClInclude Include="Include\Core\SystemClock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\CIL_OpCodes.h">
+    <ClInclude Include="Include\Runtime\CIL_OpCodes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\Types.h">
+    <ClInclude Include="Include\Runtime\Types.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\CLIFile.h">
+    <ClInclude Include="Include\Runtime\CLIFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\Compat.h">
+    <ClInclude Include="Include\Runtime\Compat.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\Config.h">
+    <ClInclude Include="Include\Runtime\Config.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\Delegate.h">
+    <ClInclude Include="Include\Runtime\Delegate.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\EvalStack.h">
+    <ClInclude Include="Include\Runtime\EvalStack.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\Finalizer.h">
+    <ClInclude Include="Include\Runtime\Finalizer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\Generics.h">
+    <ClInclude Include="Include\Runtime\Generics.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\Heap.h">
+    <ClInclude Include="Include\Runtime\Heap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\InternalCall.h">
+    <ClInclude Include="Include\Runtime\InternalCall.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\JIT.h">
+    <ClInclude Include="Include\Runtime\JIT.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\JIT_OpCodes.h">
+    <ClInclude Include="Include\Runtime\JIT_OpCodes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\MetaData.h">
+    <ClInclude Include="Include\Runtime\MetaData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\MetaDataTables.h">
+    <ClInclude Include="Include\Runtime\MetaDataTables.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\MethodState.h">
+    <ClInclude Include="Include\Runtime\MethodState.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\PInvoke.h">
+    <ClInclude Include="Include\Runtime\PInvoke.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\PInvoke_CaseCode.h">
+    <ClInclude Include="Include\Runtime\PInvoke_CaseCode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\PInvoke_TypeDef.h">
+    <ClInclude Include="Include\Runtime\PInvoke_TypeDef.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\RVA.h">
+    <ClInclude Include="Include\Runtime\RVA.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\Sys.h">
+    <ClInclude Include="Include\Runtime\Sys.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\System.Array.h">
+    <ClInclude Include="Include\Runtime\System.Array.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\System.Char.CaseConversion.h">
+    <ClInclude Include="Include\Runtime\System.Char.CaseConversion.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\System.Char.h">
+    <ClInclude Include="Include\Runtime\System.Char.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\System.Char.UC_IndexRuns.h">
+    <ClInclude Include="Include\Runtime\System.Char.UC_IndexRuns.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\System.Console.h">
+    <ClInclude Include="Include\Runtime\System.Console.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\System.DateTime.h">
+    <ClInclude Include="Include\Runtime\System.DateTime.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\System.Diagnostics.Debugger.h">
+    <ClInclude Include="Include\Runtime\System.Diagnostics.Debugger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\System.Enum.h">
+    <ClInclude Include="Include\Runtime\System.Enum.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\System.Environment.h">
+    <ClInclude Include="Include\Runtime\System.Environment.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\System.GC.h">
+    <ClInclude Include="Include\Runtime\System.GC.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\System.IO.FileInternal.h">
+    <ClInclude Include="Include\Runtime\System.IO.FileInternal.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\System.Math.h">
+    <ClInclude Include="Include\Runtime\System.Math.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\System.Object.h">
+    <ClInclude Include="Include\Runtime\System.Object.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\System.Runtime.CompilerServices.RuntimeHelpers.h">
+    <ClInclude Include="Include\Runtime\System.Runtime.CompilerServices.RuntimeHelpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\System.RuntimeType.h">
+    <ClInclude Include="Include\Runtime\System.RuntimeType.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\System.String.h">
+    <ClInclude Include="Include\Runtime\System.String.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\System.Threading.Interlocked.h">
+    <ClInclude Include="Include\Runtime\System.Threading.Interlocked.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\System.Threading.Monitor.h">
+    <ClInclude Include="Include\Runtime\System.Threading.Monitor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\System.Threading.Thread.h">
+    <ClInclude Include="Include\Runtime\System.Threading.Thread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\System.Type.h">
+    <ClInclude Include="Include\Runtime\System.Type.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\System.ValueType.h">
+    <ClInclude Include="Include\Runtime\System.ValueType.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\System.WeakReference.h">
+    <ClInclude Include="Include\Runtime\System.WeakReference.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\Thread.h">
+    <ClInclude Include="Include\Runtime\Thread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VM\CLR\Type.h">
+    <ClInclude Include="Include\Runtime\Type.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
