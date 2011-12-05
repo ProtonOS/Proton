@@ -32,9 +32,6 @@
 #define TOOL(MKISOFS, ../SDK/bin/mkisofs);
 #define TOOL_WIN32(MKISOFS, ../SDK/bin/mkisofs.exe);
 
-#define TOOL(FAPPEND, ../SDK/bin/fappend);
-#define TOOL_WIN32(FAPPEND, ../SDK/bin/fappend.exe);
-
 #define CONST(GCC_ARGS, -I../SDK/include -I./Include -include types.h -g -Wall -Wextra -Werror -Wno-return-type -Wno-unused-parameter -fno-builtin -nostdlib -std=c99 -fpack-struct=1 -nostartfiles -nodefaultlibs -c);
 #define CONST(RUNTIME_GCC_ARGS, -I./Include/Runtime -Wno-pointer-sign -Wno-unused-but-set-variable -Wno-sign-compare -Wno-missing-field-initializers ${GCC_ARGS});
 #define CONST(LD_ARGS, -L../SDK/lib -T Source/Nernel.ld);
@@ -112,6 +109,7 @@
     Source/Runtime/System.WeakReference.c
     Source/Runtime/Thread.c
     Source/Runtime/Type.c
+	Source/Runtime/Proton.IO.PortIO.c
 }
 
 

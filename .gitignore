@@ -9,8 +9,8 @@
 
 /Build
 
-/corlib/bin
-/corlib/obj
+/Runtime/corlib/bin
+/Runtime/corlib/obj
 
 /Logs
 
@@ -19,8 +19,8 @@
 /SDKInstaller/obj
 /SDKInstaller/bin
 
-/Mernel/obj
-/Mernel/bin
+/OS/Mernel/obj
+/OS/Mernel/bin
 
 /Nernel/*.log
 /Nernel/Object

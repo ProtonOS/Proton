@@ -42,7 +42,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>"$(SolutionDir)SDK\bin\cp.exe" -f "$(TargetPath)" "$(SolutionDir)Build\mernel.exe"</PostBuildEvent>
+    <PostBuildEvent>"$(SolutionDir)SDK\bin\cp.exe" -f "mernel.exe" "$(SolutionDir)Build\mernel.exe"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

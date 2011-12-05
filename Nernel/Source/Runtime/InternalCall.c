@@ -46,6 +46,7 @@
 #include "System.DateTime.h"
 #include "System.Math.h"
 #include "Delegate.h"
+#include "Proton.IO.PortIO.h"
 
 #define MAX_PARAMS 6
 
@@ -156,10 +157,18 @@ static tInternalCall internalCalls[] = {
 
 	{"System.Diagnostics", "Debugger", "Break", System_Diagnostics_Debugger_Break, TYPE_SYSTEM_VOID, 0},
 
+	{"Proton.IO",	"PortIO",	"InByte", Proton_IO_PortIO_InByte, TYPE_SYSTEM_BYTE, 1, {TYPE_SYSTEM_UINT16} },
+	{NULL,			NULL,		"InUShort",  Proton_IO_PortIO_InUShort, TYPE_SYSTEM_UINT16, 1, {TYPE_SYSTEM_UINT16} },
+	{NULL,			NULL,		"InUInt",  Proton_IO_PortIO_InUInt, TYPE_SYSTEM_UINT32, 1, {TYPE_SYSTEM_UINT16} },
+	{NULL,			NULL,		"OutByte",  Proton_IO_PortIO_OutByte, TYPE_SYSTEM_VOID, 2, {TYPE_SYSTEM_UINT16, TYPE_SYSTEM_BYTE} },
+	{NULL,			NULL,		"OutUShort",  Proton_IO_PortIO_OutUShort, TYPE_SYSTEM_VOID, 2, {TYPE_SYSTEM_UINT16, TYPE_SYSTEM_UINT16} },
+	{NULL,			NULL,		"OutUInt",  Proton_IO_PortIO_OutUInt, TYPE_SYSTEM_VOID, 2, {TYPE_SYSTEM_UINT16, TYPE_SYSTEM_UINT32} },
+
 	{NULL, NULL, NULL, NULL}
 };
 
-fnInternalCall InternalCall_Map(tMD_MethodDef *pMethod) {
+fnInternalCall InternalCall_Map(tMD_MethodDef *pMethod) 
+{
 	tInternalCall *pCall;
 	STRING curNameSpace;
 	STRING curType;
