@@ -1,0 +1,142 @@
+#define PLATFORM(WINDOWS_X32);
+#define PLATFORM_ALIAS(WINDOWS_X32, WINDOWS_32);
+#define PLATFORM_ALIAS(WINDOWS_X32, WIN32);
+
+#define PLATFORM(LINUX_X32);
+#define PLATFORM_ALIAS(LINUX_X32, LINUX_32);
+#define PLATFORM_ALIAS(LINUX_X32, LINUX32);
+
+#define PLATFORM(MAC_OSX_X32);
+#define PLATFORM_ALIAS(MAC_OSX_X32, MAC_OSX_32);
+#define PLATFORM_ALIAS(MAC_OSX_X32, MAC32);
+
+
+#define TOOL(GCC, ../SDK/bin/i686-elf-gcc);
+#define TOOL_WIN32(GCC, ../SDK/bin/i686-elf-gcc.exe);
+
+#define TOOL(AS, ../SDK/bin/i686-elf-as);
+#define TOOL_WIN32(AS, ../SDK/bin/i686-elf-as.exe);
+
+#define TOOL(LD, ../SDK/bin/i686-elf-ld);
+#define TOOL_WIN32(LD, ../SDK/bin/i686-elf-ld.exe);
+
+#define TOOL(RM, ../SDK/bin/rm);
+#define TOOL_WIN32(RM, ../SDK/bin/rm.exe);
+
+#define TOOL(CP, ../SDK/bin/cp);
+#define TOOL_WIN32(CP, ../SDK/bin/cp.exe);
+
+#define TOOL(MKDIR, ../SDK/bin/mkdir);
+#define TOOL_WIN32(MKDIR, ../SDK/bin/mkdir.exe);
+
+#define TOOL(MKISOFS, ../SDK/bin/mkisofs);
+#define TOOL_WIN32(MKISOFS, ../SDK/bin/mkisofs.exe);
+
+#define TOOL(FAPPEND, ../SDK/bin/fappend);
+#define TOOL_WIN32(FAPPEND, ../SDK/bin/fappend.exe);
+
+#define CONST(GCC_ARGS, -I../SDK/include -I./Include -include types.h -g -Wall -Wextra -Werror -Wno-return-type -Wno-unused-parameter -fno-builtin -nostdlib -std=c99 -fpack-struct=1 -nostartfiles -nodefaultlibs -c);
+#define CONST(RUNTIME_GCC_ARGS, -I./Include/Runtime -Wno-pointer-sign -Wno-unused-but-set-variable -Wno-sign-compare -Wno-missing-field-initializers ${GCC_ARGS});
+#define CONST(LD_ARGS, -L../SDK/lib -T Source/Nernel.ld);
+#define CONST(LD_LIBS, -lc -lm -lgcc);
+#define CONST(RM_ARGS, -rf);
+#define CONST(CP_ARGS, -f);
+#define CONST(MKDIR_ARGS, -p);
+#define CONST(MKISOFS_ARGS, -quiet -rational-rock -b boot/grub/stage2_eltorito -no-emul-boot -boot-load-size 4 -boot-info-table);
+
+#define CONST(OBJECT, ./Object);
+#define CONST(LOGS, ../Logs);
+#define CONST(BUILD, ../Build);
+#define CONST(OUT, ${BUILD}/boot/nernel.bin);
+#define CONST(ISO, ../Proton.iso);
+
+#define SOURCE(ASM_FILES)
+{
+    Source/Core/Boot.asm
+	Source/Core/GDTUpdate.asm
+	Source/Core/IDTStubs.asm
+	Source/Core/IDTUpdate.asm
+}
+
+#define SOURCE(C_FILES)
+{
+    Source/Nernel.c
+	Source/Core/Console.c
+	Source/Core/DLMalloc.c
+	Source/Core/GDT.c
+	Source/Core/IDT.c
+	Source/Core/MultiBoot.c
+	Source/Core/PIC.c
+	Source/Core/PIT.c
+	Source/Core/RTC.c
+	Source/Core/SystemCalls.c
+	Source/Core/SystemClock.c
+}
+
+#define SOURCE(RUNTIME_C_FILES)
+{
+    Source/Runtime/CLIFile.c
+    Source/Runtime/Delegate.c
+    Source/Runtime/Finalizer.c
+    Source/Runtime/Generics.c
+    Source/Runtime/Heap.c
+    Source/Runtime/InternalCall.c
+    Source/Runtime/JIT.c
+    Source/Runtime/JIT_Execute.c
+    Source/Runtime/MetaData.c
+    Source/Runtime/MetaData_Fill.c
+    Source/Runtime/MetaData_Search.c
+    Source/Runtime/MethodState.c
+#    Source/Runtime/PInvoke.c
+    Source/Runtime/RVA.c
+    Source/Runtime/Sys.c
+    Source/Runtime/System.Array.c
+    Source/Runtime/System.Char.c
+    Source/Runtime/System.Console.c
+    Source/Runtime/System.DateTime.c
+    Source/Runtime/System.Diagnostics.Debugger.c
+    Source/Runtime/System.Enum.c
+    Source/Runtime/System.Environment.c
+    Source/Runtime/System.GC.c
+    Source/Runtime/System.IO.FileInternal.c
+    Source/Runtime/System.Math.c
+    Source/Runtime/System.Object.c
+    Source/Runtime/System.Runtime.CompilerServices.RuntimeHelpers.c
+    Source/Runtime/System.RuntimeType.c
+    Source/Runtime/System.String.c
+    Source/Runtime/System.Threading.Interlocked.c
+    Source/Runtime/System.Threading.Monitor.c
+    Source/Runtime/System.Threading.Thread.c
+    Source/Runtime/System.Type.c
+    Source/Runtime/System.ValueType.c
+    Source/Runtime/System.WeakReference.c
+    Source/Runtime/Thread.c
+    Source/Runtime/Type.c
+}
+
+
+MKDIR ${MKDIR_ARGS} ${OBJECT}
+MKDIR ${MKDIR_ARGS} ${LOGS}
+MKDIR ${MKDIR_ARGS} ${BUILD}/boot/grub
+
+CP ${CP_ARGS} ../SDK/grub/stage2_eltorito ${BUILD}/boot/grub
+CP ${CP_ARGS} ../SDK/grub/menu.lst ${BUILD}/boot/grub
+
+common TOOL(AS -o ) : ASM_FILES
+{
+    #prefix{${OBJECT}/$(FILENAME.NO_EXTENSION.DIR_TO_FILENAME).o} : ALL
+}
+
+common TOOL(GCC ${GCC_ARGS} -o ) : C_FILES
+{
+    #prefix{${OBJECT}/$(FILENAME.NO_EXTENSION.DIR_TO_FILENAME).o} : ALL
+}
+
+common TOOL(GCC ${RUNTIME_GCC_ARGS} -o ) : RUNTIME_C_FILES
+{
+    #prefix{${OBJECT}/$(FILENAME.NO_EXTENSION.DIR_TO_FILENAME).o} : ALL
+}
+
+LD ${LD_ARGS} -o ${OUT} ${${OBJECT}/&([ASM_FILES].NO_EXTENSION.DIR_TO_FILENAME).o} ${${OBJECT}/&([C_FILES].NO_EXTENSION.DIR_TO_FILENAME).o} ${${OBJECT}/&([RUNTIME_C_FILES].NO_EXTENSION.DIR_TO_FILENAME).o} ${LD_LIBS}
+
+MKISOFS ${MKISOFS_ARGS} -o ${ISO} ${BUILD}

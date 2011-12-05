@@ -1,0 +1,12 @@
+#pragma once
+
+#include <types.h>
+
+void SystemClock_Startup();
+void SystemClock_Shutdown();
+
+bool_t SystemClock_IsReady();
+uint32_t SystemClock_GetSecondsSinceEpoch();
+uint16_t SystemClock_GetMilliseconds();
+
+extern uint32_t gSystemClock_StartupTime;

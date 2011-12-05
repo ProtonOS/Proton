@@ -1,7 +1,7 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Kernel", "Kernel\Kernel.vcxproj", "{FACF6CC0-B659-4FD2-8BBD-A377A66CFE7C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Nernel", "Nernel\Nernel.vcxproj", "{FACF6CC0-B659-4FD2-8BBD-A377A66CFE7C}"
 	ProjectSection(ProjectDependencies) = postProject
 		{8403B654-F6BF-4C0E-B521-12A6943FBBD8} = {8403B654-F6BF-4C0E-B521-12A6943FBBD8}
 		{6A77A7C0-FB66-4CAA-94EE-142DBA20655D} = {6A77A7C0-FB66-4CAA-94EE-142DBA20655D}

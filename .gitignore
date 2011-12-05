@@ -2,22 +2,25 @@
 /*.7z
 /*.pdb
 /*.manifest
-/Build
-/Logs
-/SDK
 /Proton.iso
 /Proton.sdf
 /Proton.opensdf
 /Proton.suo
 
+/Build
+
 /corlib/bin
 /corlib/obj
 
-/Kernel/*.log
-/Kernel/Object
+/Logs
+
+/SDK
 
 /SDKInstaller/obj
 /SDKInstaller/bin
 
 /Mernel/obj
 /Mernel/bin
+
+/Nernel/*.log
+/Nernel/Object
