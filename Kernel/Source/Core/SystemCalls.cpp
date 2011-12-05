@@ -17,6 +17,7 @@ void* __dso_handle = nullptr;
 int open(const char* pathname, int flags, mode_t mode);
 }
 
+
 #include <Core/DeviceManager.h>
 #include <Core/FileSystemManager.h>
 #include <Core/MultiBoot.h>
@@ -31,6 +32,17 @@ void Panic(const char * pMessage)
 	while (true) Halt();
 }
 
+extern "C" void _fini() { }
+
+extern "C" char* getcwd(char* buf, size_t bufLen)
+{
+	static const char* curDir = (const char*)"/";
+	static size_t curDirLen = 1;
+	if (curDirLen > bufLen)
+		Panic("Buffer not big enough for current directory!");
+	strcpy(buf, curDir);
+	return (char*)curDir;
+}
 long sysconf(int pSetting)
 {
     if (pSetting == _SC_PAGE_SIZE) return 1;

@@ -15,4 +15,13 @@
 /Kernel/*.log
 /Kernel/Object
 
-/SDKInstaller/obj
+/SDKInstaller/obj/*
+/SDKInstaller/bin/*
+
+/VM/CLR/bin/*
+!/VM/CLR/bin/KEEP_ME
+/VM/CLR/corlib/bin/*
+/VM/CLR/corlib/obj/*
+
+/Mernel/obj/*
+/Mernel/bin/*

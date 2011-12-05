@@ -11,6 +11,7 @@
 .long MAGIC
 .long FLAGS
 .long CHECK
+.global _exit
 
 .set SIZE, 0x4000
 .comm stack, SIZE, 32
@@ -21,6 +22,7 @@ Boot:
     push eax
 
     call Main
+_exit:
     cli
 Hang:
     hlt

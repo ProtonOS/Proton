@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace System {
+namespace corlib.System {
 
 	public static class Activator {
 

@@ -1,6 +1,20 @@
 #include <Kernel.h>
 
 extern "C" {
+	
+void* GetModuleAddress(int i);
+
+void* GetModuleAddress(int i)
+{
+	return reinterpret_cast<void*>(Core::MultiBoot::GetLoadedModule(i).Address);
+}
+
+#include "VM/CLR/CLIFile.h"
+#include "VM/CLR/MetaData.h"
+#include "VM/CLR/Type.h"
+#include "VM/CLR/Heap.h"
+#include "VM/CLR/Finalizer.h"
+
     void Main(uint32_t pMultiBootMagic,
               void * pMultiBootData)
     {
@@ -9,6 +23,22 @@ extern "C" {
             Kernel::Shutdown();
             return;
         }
+		
+		JIT_Execute_Init();
+		MetaData_Init();
+		Type_Init();
+		Heap_Init();
+		Finalizer_Init();
+
+		tCLIFile *pCLIFile;
+		char* args = (char*)"";
+		int retValue;
+		pCLIFile = CLIFile_Load((char*)"mernel.exe");
+		
+		retValue = CLIFile_Execute(pCLIFile, 0, &args );
+
+		printf("Execution finished, return %i", retValue);
+
         while (true) ;
     }
 }
