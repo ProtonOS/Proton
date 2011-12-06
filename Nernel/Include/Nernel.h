@@ -2,6 +2,8 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+#include <strings.h>
 #include <time.h>
 
 #include <Core/Config.h>
@@ -13,6 +15,11 @@
 #include <Core/PIT.h>
 #include <Core/RTC.h>
 #include <Core/SystemClock.h>
+#include <Runtime/CLIFile.h>
+#include <Runtime/MetaData.h>
+#include <Runtime/Type.h>
+#include <Runtime/Heap.h>
+#include <Runtime/Finalizer.h>
 
 void Halt();
 void Panic(const char* pMessage);

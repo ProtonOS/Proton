@@ -80,18 +80,12 @@ tMetaData* CLIFile_GetMetaDataForAssembly(unsigned char *pAssemblyName) {
 	}
 }
 
-void* GetModuleAddress(int i);
+void* GetModuleByFileName(const char* pFileName);
 
 static void* LoadFileFromDisk(const char *pFileName)
 {
-	if (!strcmp(pFileName, "corlib.dll"))
-	{
-		return GetModuleAddress(0);
-	}
-	else if (!strcmp(pFileName, "mernel.exe"))
-	{
-		return GetModuleAddress(1);
-	}
+    void* module = GetModuleByFileName(pFileName);
+    if (module) return module;
 	else	
 	{
 		printf(pFileName);
