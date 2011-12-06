@@ -12,7 +12,6 @@ void* GetModuleByFileName(const char* pFileName)
         	return (void*)gMultiBoot_LoadedModules[index].Address;
         }
     }
-    while (TRUE);
 	return NULL;
 }
 

@@ -86,34 +86,31 @@ static void* LoadFileFromDisk(const char *pFileName)
 {
     void* module = GetModuleByFileName(pFileName);
     if (module) return module;
-	else	
+
+	int f;
+	void *pData = NULL;
+
+	f = open(pFileName, O_RDONLY|O_BINARY);
+	if (f >= 0) 
 	{
-		printf(pFileName);
-		int f;
-		void *pData = NULL;
+		int len;
+		len = lseek(f, 0, SEEK_END);
+		lseek(f, 0, SEEK_SET);
+		// TODO: Change to use mmap() or windows equivilent
+		pData = mallocForever(len);
 
-		f = open(pFileName, O_RDONLY|O_BINARY);
-		if (f >= 0) 
+		if (pData != NULL) 
 		{
-			int len;
-			len = lseek(f, 0, SEEK_END);
-			lseek(f, 0, SEEK_SET);
-			// TODO: Change to use mmap() or windows equivilent
-			pData = mallocForever(len);
-
-			if (pData != NULL) 
+			int r = read(f, pData, len);
+			if (r != len) 
 			{
-				int r = read(f, pData, len);
-				if (r != len) 
-				{
-					free(pData);
-					pData = NULL;
-				}
+				free(pData);
+				pData = NULL;
 			}
-			close(f);
 		}
-		return pData;
+		close(f);
 	}
+	return pData;
 }
 
 static tCLIFile* LoadPEFile(void *pData) {
