@@ -172,6 +172,12 @@
     <ClCompile Include="Source\Nernel.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Runtime\Proton.IO.PortIO.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Runtime\Proton.IO.MemoryIO.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\PortIO.h">
@@ -349,6 +355,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Include\Nernel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Runtime\Proton.IO.PortIO.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Runtime\Proton.IO.MemoryIO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

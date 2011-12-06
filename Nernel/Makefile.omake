@@ -110,6 +110,7 @@
     Source/Runtime/Thread.c
     Source/Runtime/Type.c
 	Source/Runtime/Proton.IO.PortIO.c
+	Source/Runtime/Proton.IO.MemoryIO.c
 }
 
 

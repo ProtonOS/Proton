@@ -44,6 +44,8 @@
     <ClCompile Include="Source\Runtime\MetaData_Search.c" />
     <ClCompile Include="Source\Runtime\MethodState.c" />
     <ClCompile Include="Source\Runtime\PInvoke.c" />
+    <ClCompile Include="Source\Runtime\Proton.IO.MemoryIO.c" />
+    <ClCompile Include="Source\Runtime\Proton.IO.PortIO.c" />
     <ClCompile Include="Source\Runtime\RVA.c" />
     <ClCompile Include="Source\Runtime\Sys.c" />
     <ClCompile Include="Source\Runtime\System.Array.c" />
@@ -102,6 +104,8 @@
     <ClInclude Include="Include\Runtime\PInvoke.h" />
     <ClInclude Include="Include\Runtime\PInvoke_CaseCode.h" />
     <ClInclude Include="Include\Runtime\PInvoke_TypeDef.h" />
+    <ClInclude Include="Include\Runtime\Proton.IO.MemoryIO.h" />
+    <ClInclude Include="Include\Runtime\Proton.IO.PortIO.h" />
     <ClInclude Include="Include\Runtime\RVA.h" />
     <ClInclude Include="Include\Runtime\Sys.h" />
     <ClInclude Include="Include\Runtime\System.Array.h" />

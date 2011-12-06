@@ -47,6 +47,7 @@
 #include "System.Math.h"
 #include "Delegate.h"
 #include "Proton.IO.PortIO.h"
+#include "Proton.IO.MemoryIO.h"
 
 #define MAX_PARAMS 6
 
@@ -163,6 +164,13 @@ static tInternalCall internalCalls[] = {
 	{NULL,			NULL,		"OutByte",  Proton_IO_PortIO_OutByte, TYPE_SYSTEM_VOID, 2, {TYPE_SYSTEM_UINT16, TYPE_SYSTEM_BYTE} },
 	{NULL,			NULL,		"OutUShort",  Proton_IO_PortIO_OutUShort, TYPE_SYSTEM_VOID, 2, {TYPE_SYSTEM_UINT16, TYPE_SYSTEM_UINT16} },
 	{NULL,			NULL,		"OutUInt",  Proton_IO_PortIO_OutUInt, TYPE_SYSTEM_VOID, 2, {TYPE_SYSTEM_UINT16, TYPE_SYSTEM_UINT32} },
+
+	{"Proton.IO",	"MemoryIO",	"InByte", Proton_IO_MemoryIO_InByte, TYPE_SYSTEM_BYTE, 1, {TYPE_SYSTEM_UINT32} },
+	{NULL,			NULL,		"InUShort",  Proton_IO_MemoryIO_InUShort, TYPE_SYSTEM_UINT16, 1, {TYPE_SYSTEM_UINT32} },
+	{NULL,			NULL,		"InUInt",  Proton_IO_MemoryIO_InUInt, TYPE_SYSTEM_UINT32, 1, {TYPE_SYSTEM_UINT32} },
+	{NULL,			NULL,		"OutByte",  Proton_IO_MemoryIO_OutByte, TYPE_SYSTEM_VOID, 2, {TYPE_SYSTEM_UINT32, TYPE_SYSTEM_BYTE} },
+	{NULL,			NULL,		"OutUShort",  Proton_IO_MemoryIO_OutUShort, TYPE_SYSTEM_VOID, 2, {TYPE_SYSTEM_UINT32, TYPE_SYSTEM_UINT16} },
+	{NULL,			NULL,		"OutUInt",  Proton_IO_MemoryIO_OutUInt, TYPE_SYSTEM_VOID, 2, {TYPE_SYSTEM_UINT32, TYPE_SYSTEM_UINT32} },
 
 	{NULL, NULL, NULL, NULL}
 };
