@@ -2743,10 +2743,32 @@ JIT_STORESTATICFIELD_PTR_start: // only for 32-bit
 	OPCODE_USE(JIT_STORESTATICFIELD_INT32);
 	{
 		tMD_FieldDef *pFieldDef;
+		tMD_TypeDef *pParentType;
 		PTR pMem;
 		U32 value;
-
+		
 		pFieldDef = (tMD_FieldDef*)GET_OP();
+		pParentType = pFieldDef->pParentType;
+		if (pParentType->isTypeInitialised == 0)
+		{
+			// Set the state to initialised
+			pParentType->isTypeInitialised = 1;
+			// Initialise the type (if there is a static constructor)
+			if (pParentType->pStaticConstructor != NULL) 
+			{
+				tMethodState *pCallMethodState;
+
+				// Call static constructor
+				// Need to re-run this instruction when we return from static constructor call
+				//pCurrentMethodState->ipOffset -= 2;
+				pCurOp -= 2;
+				pCallMethodState = MethodState_Direct(pThread, pParentType->pStaticConstructor, pCurrentMethodState, 0);
+				// There can be no parameters, so don't need to set them up
+				CHANGE_METHOD_STATE(pCallMethodState);
+				GO_NEXT_CHECK();
+			}
+		}
+
 		value = POP_U32();
 		pMem = pFieldDef->pMemory;
 		*(U32*)pMem = value;
@@ -2763,10 +2785,32 @@ JIT_STORESTATICFIELD_INT64_start:
 	OPCODE_USE(JIT_STORESTATICFIELD_INT64);
 	{
 		tMD_FieldDef *pFieldDef;
+		tMD_TypeDef *pParentType;
 		PTR pMem;
 		U64 value;
-
+		
 		pFieldDef = (tMD_FieldDef*)GET_OP();
+		pParentType = pFieldDef->pParentType;
+		if (pParentType->isTypeInitialised == 0)
+		{
+			// Set the state to initialised
+			pParentType->isTypeInitialised = 1;
+			// Initialise the type (if there is a static constructor)
+			if (pParentType->pStaticConstructor != NULL) 
+			{
+				tMethodState *pCallMethodState;
+
+				// Call static constructor
+				// Need to re-run this instruction when we return from static constructor call
+				//pCurrentMethodState->ipOffset -= 2;
+				pCurOp -= 2;
+				pCallMethodState = MethodState_Direct(pThread, pParentType->pStaticConstructor, pCurrentMethodState, 0);
+				// There can be no parameters, so don't need to set them up
+				CHANGE_METHOD_STATE(pCallMethodState);
+				GO_NEXT_CHECK();
+			}
+		}
+
 		value = POP_U64();
 		//pMem = pFieldDef->pParentType->pStaticFields + pFieldDef->memOffset;
 		pMem = pFieldDef->pMemory;
@@ -2780,9 +2824,31 @@ JIT_STORESTATICFIELD_VALUETYPE_start:
 	OPCODE_USE(JIT_STORESTATICFIELD_VALUETYPE);
 	{
 		tMD_FieldDef *pFieldDef;
+		tMD_TypeDef *pParentType;
 		PTR pMem;
-
+		
 		pFieldDef = (tMD_FieldDef*)GET_OP();
+		pParentType = pFieldDef->pParentType;
+		if (pParentType->isTypeInitialised == 0)
+		{
+			// Set the state to initialised
+			pParentType->isTypeInitialised = 1;
+			// Initialise the type (if there is a static constructor)
+			if (pParentType->pStaticConstructor != NULL) 
+			{
+				tMethodState *pCallMethodState;
+
+				// Call static constructor
+				// Need to re-run this instruction when we return from static constructor call
+				//pCurrentMethodState->ipOffset -= 2;
+				pCurOp -= 2;
+				pCallMethodState = MethodState_Direct(pThread, pParentType->pStaticConstructor, pCurrentMethodState, 0);
+				// There can be no parameters, so don't need to set them up
+				CHANGE_METHOD_STATE(pCallMethodState);
+				GO_NEXT_CHECK();
+			}
+		}
+
 		pMem = pFieldDef->pMemory;
 		POP_VALUETYPE(pMem, pFieldDef->memSize, pFieldDef->memSize);
 	}
