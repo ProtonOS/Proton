@@ -3,7 +3,7 @@
 #define MultiBoot_Magic                     0x2BADB002
 #define MultiBoot_MemoryMapAvailable        1
 #define MultiBoot_MemoryMapConventional     (1024 * 640)
-#define MultiBoot_MaxLoadedModules          16
+#define MultiBoot_MaxLoadedModules          64
 #define MultiBoot_MaxMemoryBlocks           64
 
 typedef struct 
@@ -11,6 +11,7 @@ typedef struct
     uint32_t Address;
     uint32_t Length;
     const char* Identifier;
+    uint32_t Reserved;
 } MultiBoot_LoadedModule;
 
 typedef struct
@@ -18,7 +19,7 @@ typedef struct
     uint32_t Address;
     uint32_t Length;
     uint32_t Used;
-    uint32_t Padding;
+    uint32_t Reserved;
 } MultiBoot_MemoryBlock;
 
 typedef struct

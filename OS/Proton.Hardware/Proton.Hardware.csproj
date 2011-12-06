@@ -2,20 +2,18 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{8403B654-F6BF-4C0E-B521-12A6943FBBD8}</ProjectGuid>
-    <OutputType>Exe</OutputType>
-    <RootNamespace>Mernel</RootNamespace>
-    <AssemblyName>Mernel</AssemblyName>
+    <ProjectGuid>{ED40A76A-6FC4-40A3-AFE8-8713614FEB86}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Proton.Hardware</RootNamespace>
+    <AssemblyName>Proton.Hardware</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <TargetFrameworkProfile>
-    </TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
-    <PlatformTarget>x86</PlatformTarget>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -23,24 +21,22 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Program.cs" />
+    <Compile Include="Device.cs" />
+    <Compile Include="DeviceManager.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Proton.Hardware\Proton.Hardware.csproj">
-      <Project>{ED40A76A-6FC4-40A3-AFE8-8713614FEB86}</Project>
-      <Name>Proton.Hardware</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Proton.IO\Proton.IO.csproj">
       <Project>{5708CB7A-88D3-439A-A642-822E1F27A4AB}</Project>
       <Name>Proton.IO</Name>
@@ -48,7 +44,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>"$(SolutionDir)SDK\bin\cp.exe" -f "mernel.exe" "$(SolutionDir)Build\mernel.exe"</PostBuildEvent>
+    <PostBuildEvent>"$(SolutionDir)SDK\bin\cp.exe" -f "proton.hardware.dll" "$(SolutionDir)Build\proton.hardware.dll"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -22,6 +22,12 @@
 /OS/Mernel/obj
 /OS/Mernel/bin
 
+/OS/Proton.Hardware/obj
+/OS/Proton.Hardware/bin
+
+/OS/Proton.IO/obj
+/OS/Proton.IO/bin
+
 /Nernel/*.log
 /Nernel/*.cache
 /Nernel/Object
