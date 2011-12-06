@@ -37,6 +37,14 @@
     <Compile Include="Program.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Proton.Diagnostics\Proton.Diagnostics.csproj">
+      <Project>{A295E1ED-1DFD-4E6A-A6A0-B6148634EEDE}</Project>
+      <Name>Proton.Diagnostics</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Proton.Drivers\Proton.Drivers.csproj">
+      <Project>{6AADB455-7843-4DE5-9023-FEC18D5DC93C}</Project>
+      <Name>Proton.Drivers</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Proton.Hardware\Proton.Hardware.csproj">
       <Project>{ED40A76A-6FC4-40A3-AFE8-8713614FEB86}</Project>
       <Name>Proton.Hardware</Name>

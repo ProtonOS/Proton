@@ -5,10 +5,10 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{ED40A76A-6FC4-40A3-AFE8-8713614FEB86}</ProjectGuid>
+    <ProjectGuid>{A295E1ED-1DFD-4E6A-A6A0-B6148634EEDE}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>Proton.Hardware</RootNamespace>
-    <AssemblyName>Proton.Hardware</AssemblyName>
+    <RootNamespace>Proton.Diagnostics</RootNamespace>
+    <AssemblyName>Proton.Diagnostics</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -33,22 +33,21 @@
     <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Device.cs" />
-    <Compile Include="DeviceManager.cs" />
-    <Compile Include="SerialPort.cs" />
+    <Compile Include="SerialPortWriter.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Proton.Hardware\Proton.Hardware.csproj">
+      <Project>{ED40A76A-6FC4-40A3-AFE8-8713614FEB86}</Project>
+      <Name>Proton.Hardware</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Proton.IO\Proton.IO.csproj">
       <Project>{5708CB7A-88D3-439A-A642-822E1F27A4AB}</Project>
       <Name>Proton.IO</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Reference Include="System" />
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>"$(SolutionDir)SDK\bin\cp.exe" -f "proton.hardware.dll" "$(SolutionDir)Build\proton.hardware.dll"</PostBuildEvent>
+    <PostBuildEvent>"$(SolutionDir)SDK\bin\cp.exe" -f "proton.diagnostics.dll" "$(SolutionDir)Build\proton.diagnostics.dll"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -42,19 +42,24 @@ namespace Proton.Hardware
 
         protected void ClaimMemory(uint pAddress, uint pLength)
         {
-            mClaimedMemory.Add(new ClaimedMemory(pAddress, pLength));
-            mClaimedMemory.Sort((m1, m2) => m1.Address.CompareTo(m2.Address));
+            int index = mClaimedMemory.FindIndex(m => m.Address > pAddress);
+            if (index < 0)
+            {
+                if (mClaimedMemory.Count > 0) index = mClaimedMemory.Count - 1;
+                else index = 0;
+            }
+            mClaimedMemory.Insert(index, new ClaimedMemory(pAddress, pLength));
         }
 
-        protected void ClaimPort(ushort pPort) { mClaimedPorts.Add(pPort); }
-
-        protected void ReleaseMemory(uint pAddress)
+        protected Proton.IO.Port ClaimPort(ushort pPort)
         {
-            int index = mClaimedMemory.FindIndex(m => m.Address == pAddress);
-            if (index >= 0) mClaimedMemory.RemoveAt(index);
+            mClaimedPorts.Add(pPort);
+            return new Proton.IO.Port(pPort);
         }
 
-        protected void ReleasePort(ushort pPort) { mClaimedPorts.Remove(pPort); }
+        protected void ReleaseAllMemory() { mClaimedMemory.Clear(); }
+
+        protected void ReleaseAllPorts() { mClaimedPorts.Clear(); }
 
         protected internal abstract bool OnRegister();
         protected internal abstract void OnUnregister();

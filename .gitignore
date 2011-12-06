@@ -22,6 +22,12 @@
 /OS/Mernel/obj
 /OS/Mernel/bin
 
+/OS/Proton.Diagnostics/obj
+/OS/Proton.Diagnostics/bin
+
+/OS/Proton.Drivers/obj
+/OS/Proton.Drivers/bin
+
 /OS/Proton.Hardware/obj
 /OS/Proton.Hardware/bin
 
