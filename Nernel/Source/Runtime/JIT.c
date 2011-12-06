@@ -1204,6 +1204,7 @@ conv2:
 					PushOp(JIT_STOREFIELD_TYPEID + pStackType->stackType);
 					// Get the FieldRef or FieldDef of the field to store
 					u32Value = GetUnalignedU32(pCIL, &cilOfs);
+
 					pFieldDef = MetaData_GetFieldDefFromDefOrRef(pMethodDef->pMetaData, u32Value, pMethodDef->pParentType->ppClassTypeArgs, pMethodDef->ppMethodTypeArgs);
 					PushPTR(pFieldDef);
 					// Pop the object/valuetype on which to store the field. Don't care what it is
