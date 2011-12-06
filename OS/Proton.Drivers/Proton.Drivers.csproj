@@ -46,9 +46,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />
-  <ItemGroup>
-    <Reference Include="System" />
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>"$(SolutionDir)SDK\bin\cp.exe" -f "proton.drivers.dll" "$(SolutionDir)Build\proton.drivers.dll"</PostBuildEvent>

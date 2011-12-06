@@ -1,5 +1,6 @@
 ﻿using System;
 
+
 namespace Proton.Diagnostics
 {
     public static class SerialPortWriter

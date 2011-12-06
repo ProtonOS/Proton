@@ -43,9 +43,6 @@
       <Name>Proton.IO</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Reference Include="System" />
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>"$(SolutionDir)SDK\bin\cp.exe" -f "proton.hardware.dll" "$(SolutionDir)Build\proton.hardware.dll"</PostBuildEvent>

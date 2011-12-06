@@ -3,7 +3,7 @@
 
 #define NULL 0
 
-#include "Proton.IO.PortIO.h"
+#include "Proton.IO.MemoryIO.h"
 
 tAsyncCall* Proton_IO_MemoryIO_InByte(PTR pThis_, PTR pParams, PTR pReturnValue)
 {
