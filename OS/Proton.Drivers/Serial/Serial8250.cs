@@ -1,30 +1,32 @@
-﻿using System;
+﻿using Proton.Hardware;
+using Proton.IO;
+using System;
 
-namespace Proton.Drivers.Serial
+namespace Proton.Drivers
 {
-    public sealed class SerialPort8250 : Proton.Hardware.SerialPort
+    public sealed class Serial8250 : Serial
     {
-        private Proton.IO.Port mDataPort = null;
-        private Proton.IO.Port mInterruptEnablePort = null;
-        private Proton.IO.Port mFIFOControlPort = null;
-        private Proton.IO.Port mLineControlPort = null;
-        private Proton.IO.Port mModemControlPort = null;
-        private Proton.IO.Port mLineStatusPort = null;
-        private Proton.IO.Port mModemStatusPort = null;
-        private Proton.IO.Port mScratchPort = null;
+        private Port mDataPort = null;
+        private Port mInterruptEnablePort = null;
+        private Port mFIFOControlPort = null;
+        private Port mLineControlPort = null;
+        private Port mModemControlPort = null;
+        private Port mLineStatusPort = null;
+        private Port mModemStatusPort = null;
+        private Port mScratchPort = null;
 
-        public SerialPort8250(ushort pBasePort, byte pIRQ) : base(pBasePort, pIRQ) { }
+        public Serial8250(ushort pBasePort, byte pIRQ) : base(pBasePort, pIRQ) { }
 
         public bool IsTransmitEmpty { get { return (mLineStatusPort.Byte & 0x20) != 0; } }
 
-        public override Proton.IO.Port DataPort { get { return mDataPort; } }
-        public override Proton.IO.Port InterruptEnablePort { get { return mInterruptEnablePort; } }
-        public override Proton.IO.Port FIFOControlPort { get { return mFIFOControlPort; } }
-        public override Proton.IO.Port LineControlPort { get { return mLineControlPort; } }
-        public override Proton.IO.Port ModemControlPort { get { return mModemControlPort; } }
-        public override Proton.IO.Port LineStatusPort { get { return mLineStatusPort; } }
-        public override Proton.IO.Port ModemStatusPort { get { return mModemStatusPort; } }
-        public override Proton.IO.Port ScratchPort { get { return mScratchPort; } }
+        public override Port DataPort { get { return mDataPort; } }
+        public override Port InterruptEnablePort { get { return mInterruptEnablePort; } }
+        public override Port FIFOControlPort { get { return mFIFOControlPort; } }
+        public override Port LineControlPort { get { return mLineControlPort; } }
+        public override Port ModemControlPort { get { return mModemControlPort; } }
+        public override Port LineStatusPort { get { return mLineStatusPort; } }
+        public override Port ModemStatusPort { get { return mModemStatusPort; } }
+        public override Port ScratchPort { get { return mScratchPort; } }
 
         public override void WriteByte(byte pByte)
         {

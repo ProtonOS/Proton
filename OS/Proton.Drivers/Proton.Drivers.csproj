@@ -33,7 +33,7 @@
     <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Serial\SerialPort8250.cs" />
+    <Compile Include="Serial\Serial8250.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Proton.Hardware\Proton.Hardware.csproj">

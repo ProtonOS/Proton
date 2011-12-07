@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Proton.Diagnostics;
+using Proton.Drivers;
+using Proton.Hardware;
+using System;
 using System.Runtime.CompilerServices;
 
 namespace Mernel
@@ -9,11 +12,11 @@ namespace Mernel
         {
             Console.WriteLine("Mernel: Hello World!");
 
-            Proton.Hardware.SerialPort serialPort2 = new Proton.Drivers.Serial.SerialPort8250(0x02F8, 0x03);
-            if (!Proton.Hardware.DeviceManager.Register(serialPort2)) return;
-            Proton.Diagnostics.SerialPortWriter.SetSerialPort(serialPort2);
+            Serial serial2 = new Serial8250(0x02F8, 0x03);
+            if (!DeviceManager.Register(serial2)) return;
+            SerialWriter.SetSerial(serial2);
 
-            Proton.Diagnostics.SerialPortWriter.WriteLine("SerialPortWriter Enabled");
+            SerialWriter.WriteLine("SerialWriter Enabled");
         }
     }
 }

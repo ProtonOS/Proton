@@ -33,7 +33,7 @@
     <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="SerialPortWriter.cs" />
+    <Compile Include="SerialWriter.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Proton.Hardware\Proton.Hardware.csproj">

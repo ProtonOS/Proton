@@ -35,7 +35,7 @@
   <ItemGroup>
     <Compile Include="Device.cs" />
     <Compile Include="DeviceManager.cs" />
-    <Compile Include="SerialPort.cs" />
+    <Compile Include="Serial.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Proton.IO\Proton.IO.csproj">
