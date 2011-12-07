@@ -7,11 +7,7 @@ namespace Proton.Diagnostics
     {
         private static Proton.Hardware.SerialPort sSerialPort = null;
 
-        public static void SetSerialPort(Proton.Hardware.SerialPort pSerialPort)
-        {
-            sSerialPort = pSerialPort;
-            Console.WriteLine("Problem Here: pSerialPort " + (pSerialPort == null ? "==" : "!=") + " null, sSerialPort " + (sSerialPort == null ? "==" : "!=") + " null");
-        }
+        public static void SetSerialPort(Proton.Hardware.SerialPort pSerialPort) { sSerialPort = pSerialPort; }
 
         public static void WriteString(string pString)
         {
