@@ -132,6 +132,7 @@ file CREATE_OR_TRUNCATE(${BUILD}/boot/grub/menu.lst)
 	module /proton.devices.dll
 	module /proton.filesystems.dll
 	module /proton.diagnostics.dll
+	module /System.dll
 }
 
 common TOOL(AS -o ) : ASM_FILES

@@ -7,7 +7,23 @@ namespace Proton.IO
         private readonly uint mAddress;
         private readonly uint mLength;
 
-        public Memory(uint pAddress, uint pLength) { mAddress = pAddress; mLength = pLength; }
+        public byte this[uint pOffset]
+        {
+            get
+            {
+                return GetByte(pOffset);
+            }
+            set
+            {
+                SetByte(pOffset, value);
+            }
+        }
+
+        public Memory(uint pAddress, uint pLength) 
+        {
+            mAddress = pAddress;
+            mLength = pLength; 
+        }
 
         public byte GetByte(uint pOffset)
         {
