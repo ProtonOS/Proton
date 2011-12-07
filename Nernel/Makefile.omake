@@ -129,8 +129,8 @@ file CREATE_OR_TRUNCATE(${BUILD}/boot/grub/menu.lst)
 	module /corlib.dll
 	module /mernel.exe
 	module /proton.io.dll
-	module /proton.hardware.dll
-	module /proton.drivers.dll
+	module /proton.devices.dll
+	module /proton.filesystems.dll
 	module /proton.diagnostics.dll
 }
 

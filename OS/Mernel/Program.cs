@@ -1,6 +1,5 @@
-﻿using Proton.Diagnostics;
-using Proton.Drivers;
-using Proton.Hardware;
+﻿using Proton.Devices;
+using Proton.Diagnostics;
 using System;
 using System.Runtime.CompilerServices;
 
@@ -10,7 +9,7 @@ namespace Mernel
     {
         private static void Main(string[] pArgs)
         {
-            Console.WriteLine("Mernel: Hello World!");
+            Console.WriteLine("Mernel: Startup");
 
             Serial serial2 = new Serial8250(0x02F8, 0x03);
             if (!DeviceManager.Register(serial2)) return;

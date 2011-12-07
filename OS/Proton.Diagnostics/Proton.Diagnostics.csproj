@@ -36,9 +36,9 @@
     <Compile Include="SerialWriter.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Proton.Hardware\Proton.Hardware.csproj">
+    <ProjectReference Include="..\Proton.Devices\Proton.Devices.csproj">
       <Project>{ED40A76A-6FC4-40A3-AFE8-8713614FEB86}</Project>
-      <Name>Proton.Hardware</Name>
+      <Name>Proton.Devices</Name>
     </ProjectReference>
     <ProjectReference Include="..\Proton.IO\Proton.IO.csproj">
       <Project>{5708CB7A-88D3-439A-A642-822E1F27A4AB}</Project>

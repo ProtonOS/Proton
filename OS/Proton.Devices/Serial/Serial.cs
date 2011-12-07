@@ -1,7 +1,7 @@
 ﻿using Proton.IO;
 using System;
 
-namespace Proton.Hardware
+namespace Proton.Devices
 {
     public abstract class Serial : Device
     {

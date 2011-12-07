@@ -41,13 +41,13 @@
       <Project>{A295E1ED-1DFD-4E6A-A6A0-B6148634EEDE}</Project>
       <Name>Proton.Diagnostics</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Proton.Drivers\Proton.Drivers.csproj">
+    <ProjectReference Include="..\Proton.FileSystems\Proton.FileSystems.csproj">
       <Project>{6AADB455-7843-4DE5-9023-FEC18D5DC93C}</Project>
-      <Name>Proton.Drivers</Name>
+      <Name>Proton.FileSystems</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Proton.Hardware\Proton.Hardware.csproj">
+    <ProjectReference Include="..\Proton.Devices\Proton.Devices.csproj">
       <Project>{ED40A76A-6FC4-40A3-AFE8-8713614FEB86}</Project>
-      <Name>Proton.Hardware</Name>
+      <Name>Proton.Devices</Name>
     </ProjectReference>
     <ProjectReference Include="..\Proton.IO\Proton.IO.csproj">
       <Project>{5708CB7A-88D3-439A-A642-822E1F27A4AB}</Project>

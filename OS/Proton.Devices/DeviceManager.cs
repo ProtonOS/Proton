@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Proton.Hardware
+namespace Proton.Devices
 {
     public static class DeviceManager
     {

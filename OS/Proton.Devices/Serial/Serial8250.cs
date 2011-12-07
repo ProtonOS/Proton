@@ -1,8 +1,7 @@
-﻿using Proton.Hardware;
-using Proton.IO;
+﻿using Proton.IO;
 using System;
 
-namespace Proton.Drivers
+namespace Proton.Devices
 {
     public sealed class Serial8250 : Serial
     {
@@ -34,7 +33,7 @@ namespace Proton.Drivers
             mDataPort.Byte = pByte;
         }
 
-        protected override bool OnRegister()
+        protected internal override bool OnRegister()
         {
             if (!IsPortAvailable((ushort)(BasePort + 0)) ||
                 !IsPortAvailable((ushort)(BasePort + 1)) ||
@@ -57,7 +56,7 @@ namespace Proton.Drivers
             return true;
         }
 
-        protected override void OnUnregister()
+        protected internal override void OnUnregister()
         {
             mDataPort = null;
             mInterruptEnablePort = null;

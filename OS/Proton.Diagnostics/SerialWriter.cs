@@ -1,4 +1,4 @@
-﻿using Proton.Hardware;
+﻿using Proton.Devices;
 using System;
 
 
