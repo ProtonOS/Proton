@@ -22,6 +22,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>x86</PlatformTarget>
+    <NoStdLib>true</NoStdLib>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -31,6 +32,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>x86</PlatformTarget>
+    <NoStdLib>true</NoStdLib>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Memory.cs" />
@@ -38,9 +40,16 @@
     <Compile Include="Port.cs" />
     <Compile Include="PortIO.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Runtime\corlib\corlib.csproj">
+      <Project>{6A77A7C0-FB66-4CAA-94EE-142DBA20655D}</Project>
+      <Name>corlib</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>"$(SolutionDir)SDK\bin\cp.exe" -f "proton.io.dll" "$(SolutionDir)Build\proton.io.dll"</PostBuildEvent>
+    <PostBuildEvent>"$(SolutionDir)SDK\bin\mkdir.exe" -p "$(SolutionDir)Build\gac\proton"
+"$(SolutionDir)SDK\bin\cp.exe" -f "$(TargetPath)" "$(SolutionDir)Build\gac\proton\proton.io.dll"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

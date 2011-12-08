@@ -15,7 +15,7 @@
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
-    <PlatformTarget>x86</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -23,20 +23,30 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <NoStdLib>true</NoStdLib>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
-    <PlatformTarget>x86</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <NoStdLib>true</NoStdLib>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Runtime\corlib\corlib.csproj">
+      <Project>{6A77A7C0-FB66-4CAA-94EE-142DBA20655D}</Project>
+      <Name>corlib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Runtime\System\System.csproj">
+      <Project>{388F5D73-0211-4A64-B501-92CDC4E32ACF}</Project>
+      <Name>System</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Proton.Diagnostics\Proton.Diagnostics.csproj">
       <Project>{A295E1ED-1DFD-4E6A-A6A0-B6148634EEDE}</Project>
       <Name>Proton.Diagnostics</Name>
@@ -56,7 +66,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>"$(SolutionDir)SDK\bin\cp.exe" -f "mernel.exe" "$(SolutionDir)Build\mernel.exe"</PostBuildEvent>
+    <PostBuildEvent>"$(SolutionDir)SDK\bin\mkdir.exe" -p "$(SolutionDir)Build\boot"
+"$(SolutionDir)SDK\bin\cp.exe" -f "$(TargetPath)" "$(SolutionDir)Build\boot\mernel.exe"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

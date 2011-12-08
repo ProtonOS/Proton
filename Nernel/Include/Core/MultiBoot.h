@@ -71,6 +71,7 @@ typedef struct
 
 bool_t MultiBoot_Startup(uint32_t pMultiBootMagic, void* pMultiBootData);
 void MultiBoot_Shutdown();
+void* MultiBoot_GetModuleByFileName(const char* pFileName);
 
 extern const char* gMultiBoot_CommandLine;
 extern MultiBoot_LoadedModule gMultiBoot_LoadedModules[];

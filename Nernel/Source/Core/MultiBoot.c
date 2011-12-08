@@ -1,3 +1,6 @@
+#include <string.h>
+#include <strings.h>
+
 #include <Core/MultiBoot.h>
 
 const char* gMultiBoot_CommandLine = NULL;
@@ -78,4 +81,21 @@ void MultiBoot_Shutdown()
     gMultiBoot_LoadedModuleCount = 0;
     gMultiBoot_MemoryBlockCount = 0;
     gMultiBoot_CommandLine = NULL;
+}
+
+void* MultiBoot_GetModuleByFileName(const char* pFileName)
+{
+    for (uint8_t index = 0; index < gMultiBoot_LoadedModuleCount; ++index)
+    {
+        size_t length = strlen(gMultiBoot_LoadedModules[index].Identifier);
+        const char* fileName = gMultiBoot_LoadedModules[index].Identifier + length;
+        while (fileName != gMultiBoot_LoadedModules[index].Identifier && *fileName != '/') --fileName;
+        if (*fileName == '/') ++fileName;
+
+        if (!strcasecmp(fileName, pFileName))
+        {
+        	return (void*)gMultiBoot_LoadedModules[index].Address;
+        }
+    }
+	return NULL;
 }

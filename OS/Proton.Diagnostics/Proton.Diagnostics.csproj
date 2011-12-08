@@ -22,6 +22,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>x86</PlatformTarget>
+    <NoStdLib>true</NoStdLib>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -31,11 +32,16 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>x86</PlatformTarget>
+    <NoStdLib>true</NoStdLib>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="SerialWriter.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Runtime\corlib\corlib.csproj">
+      <Project>{6A77A7C0-FB66-4CAA-94EE-142DBA20655D}</Project>
+      <Name>corlib</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Proton.Devices\Proton.Devices.csproj">
       <Project>{ED40A76A-6FC4-40A3-AFE8-8713614FEB86}</Project>
       <Name>Proton.Devices</Name>
@@ -47,7 +53,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>"$(SolutionDir)SDK\bin\cp.exe" -f "proton.diagnostics.dll" "$(SolutionDir)Build\proton.diagnostics.dll"</PostBuildEvent>
+    <PostBuildEvent>"$(SolutionDir)SDK\bin\mkdir.exe" -p "$(SolutionDir)Build\gac\proton"
+"$(SolutionDir)SDK\bin\cp.exe" -f "$(TargetPath)" "$(SolutionDir)Build\gac\proton\proton.diagnostics.dll"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

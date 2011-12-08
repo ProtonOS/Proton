@@ -114,8 +114,8 @@
 }
 
 
-MKDIR ${MKDIR_ARGS} ${OBJECT}
 MKDIR ${MKDIR_ARGS} ${LOGS}
+MKDIR ${MKDIR_ARGS} ${OBJECT}
 MKDIR ${MKDIR_ARGS} ${BUILD}/boot/grub
 
 CP ${CP_ARGS} ../SDK/grub/stage2_eltorito ${BUILD}/boot/grub
@@ -126,13 +126,13 @@ file CREATE_OR_TRUNCATE(${BUILD}/boot/grub/menu.lst)
 	default 0
 	title Proton
 	kernel /boot/nernel.bin
-	module /corlib.dll
-	module /mernel.exe
-	module /proton.io.dll
-	module /proton.devices.dll
-	module /proton.filesystems.dll
-	module /proton.diagnostics.dll
-	module /System.dll
+	module /boot/mernel.exe
+	module /gac/corlib.dll
+	module /gac/system.dll
+	module /gac/proton/proton.io.dll
+	module /gac/proton/proton.devices.dll
+	module /gac/proton/proton.filesystems.dll
+	module /gac/proton/proton.diagnostics.dll
 }
 
 common TOOL(AS -o ) : ASM_FILES

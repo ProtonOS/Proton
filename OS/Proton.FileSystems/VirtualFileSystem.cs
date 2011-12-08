@@ -14,7 +14,7 @@ namespace Proton.FileSystems
 
         internal static bool Mount(FileSystem pFileSystem)
         {
-            if (sFileSystems.Exists(fs => fs.Root == pFileSystem.Root)) return false;
+            for (int index = 0; index < sFileSystems.Count; ++index) if (sFileSystems[index].Root == pFileSystem.Root) return false;
 
             sFileSystems.Insert(0, pFileSystem);
             pFileSystem.Mounted();

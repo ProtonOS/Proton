@@ -80,11 +80,11 @@ tMetaData* CLIFile_GetMetaDataForAssembly(unsigned char *pAssemblyName) {
 	}
 }
 
-void* GetModuleByFileName(const char* pFileName);
+void* MultiBoot_GetModuleByFileName(const char* pFileName);
 
 static void* LoadFileFromDisk(const char *pFileName)
 {
-    void* module = GetModuleByFileName(pFileName);
+    void* module = MultiBoot_GetModuleByFileName(pFileName);
     if (module) return module;
 
 	int f;

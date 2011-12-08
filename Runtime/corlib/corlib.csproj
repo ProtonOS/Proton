@@ -215,6 +215,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>"$(SolutionDir)SDK\bin\cp.exe" -f "corlib.dll" "$(SolutionDir)Build\corlib.dll"</PostBuildEvent>
+    <PostBuildEvent>"$(SolutionDir)SDK\bin\mkdir.exe" -p "$(SolutionDir)Build\gac"
+"$(SolutionDir)SDK\bin\cp.exe" -f "$(TargetPath)" "$(SolutionDir)Build\gac\corlib.dll"</PostBuildEvent>
   </PropertyGroup>
 </Project>

@@ -1,20 +1,5 @@
 #include <Nernel.h>
 
-void* GetModuleByFileName(const char* pFileName)
-{
-    bool_t absolute = pFileName[0] == '/';
-    int32_t offset = 0;
-    if (!absolute) ++offset;
-    for (uint8_t index = 0; index < gMultiBoot_LoadedModuleCount; ++index)
-    {
-        if (!strcasecmp(gMultiBoot_LoadedModules[index].Identifier + offset, pFileName))
-        {
-        	return (void*)gMultiBoot_LoadedModules[index].Address;
-        }
-    }
-	return NULL;
-}
-
 void Main(uint32_t pMultiBootMagic,
             void* pMultiBootData)
 {

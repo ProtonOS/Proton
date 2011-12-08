@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Proton.IO;
+using System;
 using System.Collections.Generic;
 
 namespace Proton.Devices
@@ -28,12 +29,20 @@ namespace Proton.Devices
         {
             if (mClaimedMemory.Count == 0) return false;
 
-            int index = mClaimedMemory.FindIndex(m => m.Address > pAddress);
-            if (index >= 0 && pAddress + pLength >= mClaimedMemory[index].Address) return true;
-            if (index > 0)
+            int conflictIndex = -1;
+            for (int index = 0; index < mClaimedMemory.Count; ++index)
             {
-                --index;
-                if (mClaimedMemory[index].Address + mClaimedMemory[index].Length >= pAddress) return true;
+                if (mClaimedMemory[index].Address > pAddress)
+                {
+                    conflictIndex = index;
+                    break;
+                }
+            }
+            if (conflictIndex >= 0 && pAddress + pLength >= mClaimedMemory[conflictIndex].Address) return true;
+            if (conflictIndex > 0)
+            {
+                --conflictIndex;
+                if (mClaimedMemory[conflictIndex].Address + mClaimedMemory[conflictIndex].Length >= pAddress) return true;
             }
             return false;
         }
@@ -42,19 +51,27 @@ namespace Proton.Devices
 
         protected void ClaimMemory(uint pAddress, uint pLength)
         {
-            int index = mClaimedMemory.FindIndex(m => m.Address > pAddress);
-            if (index < 0)
+            int insertIndex = -1;
+            for (int index = 0; index < mClaimedMemory.Count; ++index)
             {
-                if (mClaimedMemory.Count > 0) index = mClaimedMemory.Count - 1;
-                else index = 0;
+                if (mClaimedMemory[index].Address > pAddress)
+                {
+                    insertIndex = index;
+                    break;
+                }
             }
-            mClaimedMemory.Insert(index, new ClaimedMemory(pAddress, pLength));
+            if (insertIndex < 0)
+            {
+                if (mClaimedMemory.Count > 0) insertIndex = mClaimedMemory.Count - 1;
+                else insertIndex = 0;
+            }
+            mClaimedMemory.Insert(insertIndex, new ClaimedMemory(pAddress, pLength));
         }
 
-        protected Proton.IO.Port ClaimPort(ushort pPort)
+        protected Port ClaimPort(ushort pPort)
         {
             mClaimedPorts.Add(pPort);
-            return new Proton.IO.Port(pPort);
+            return new Port(pPort);
         }
 
         protected void ReleaseAllMemory() { mClaimedMemory.Clear(); }
