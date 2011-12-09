@@ -169,7 +169,7 @@
     <NMakePreprocessorDefinitions>
     </NMakePreprocessorDefinitions>
     <NMakeIncludeSearchPath>.\Include;..\SDK\include;..\SDK\include\c++</NMakeIncludeSearchPath>
-    <IncludePath>..\SDK\include;..\SDK\include\c++</IncludePath>
+    <IncludePath>..\SDK\include;..\SDK\include\c++;.\Include;.\Include\Runtime</IncludePath>
     <ReferencePath />
     <LibraryPath />
     <SourcePath />
@@ -184,7 +184,7 @@
     <NMakePreprocessorDefinitions>
     </NMakePreprocessorDefinitions>
     <NMakeIncludeSearchPath>.\Include;..\SDK\include;..\SDK\include\c++</NMakeIncludeSearchPath>
-    <IncludePath>..\SDK\include;..\SDK\include\c++</IncludePath>
+    <IncludePath>..\SDK\include;..\SDK\include\c++;.\Include;.\Include\Runtime</IncludePath>
     <ReferencePath />
     <LibraryPath />
     <SourcePath />

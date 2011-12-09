@@ -52,7 +52,12 @@ namespace System.Collections.Generic {
 			}
 		}
 
-		public static Comparer<T> Default { get; private set; }
+        private static Comparer<T> _default;
+        public static Comparer<T> Default 
+        {
+            get { return _default; } 
+            private set { _default = value; } 
+        }
 
 		public abstract int Compare(T x, T y);
 

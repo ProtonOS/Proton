@@ -314,7 +314,7 @@ namespace System.Collections.Generic {
 
 		public Dictionary(IDictionary<TKey, TValue> dictionary, IEqualityComparer<TKey> comparer) {
 			this.Init(dictionary.Count, comparer);
-			foreach (var item in dictionary) {
+			foreach (KeyValuePair<TKey, TValue> item in dictionary) {
 				this.Add(item.Key, item.Value);
 			}
 		}

@@ -38,6 +38,8 @@ tAsyncCall* System_Type_GetTypeFromHandle(PTR pThis_, PTR pParams, PTR pReturnVa
 tAsyncCall* System_Type_get_IsValueType(PTR pThis_, PTR pParams, PTR pReturnValue) {
 	tRuntimeType *pRuntimeType = (tRuntimeType*)pThis_;
 	
+	
+
 	*(U32*)pReturnValue = pRuntimeType->pTypeDef->isValueType;
 
 	return NULL;

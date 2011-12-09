@@ -7,7 +7,9 @@ namespace System {
 		public const uint MaxValue = 0xffffffff;
 		public const uint MinValue = 0;
 
-		internal uint m_value;
+#pragma warning disable 649
+        internal uint m_value;
+#pragma warning restore 649
 
 		public override bool Equals(object obj) {
 			return (obj is uint) && ((uint)obj).m_value == this.m_value;

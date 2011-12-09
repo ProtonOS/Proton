@@ -32,7 +32,12 @@ namespace System.Collections.Generic {
 			Default = new DefaultComparer();
 		}
 
-		public static EqualityComparer<T> Default { get; private set; }
+        private static EqualityComparer<T> _default;
+		public static EqualityComparer<T> Default 
+        {
+            get { return _default; }
+            private set { _default = value; }
+        }
 
 		public abstract bool Equals(T x, T y);
 

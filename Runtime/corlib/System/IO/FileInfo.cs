@@ -1,28 +1,35 @@
 #if !LOCALTEST
 
-namespace System.IO {
-	public sealed class FileInfo : FileSystemInfo {
+namespace System.IO
+{
+    public sealed class FileInfo : FileSystemInfo
+    {
+#pragma warning disable 169
+        private bool exists;
+#pragma warning restore 169
 
-		private bool exists;
+        public FileInfo(string path)
+        {
+            CheckPath(path);
 
-		public FileInfo(string path) {
-			CheckPath(path);
+            base.originalPath = path;
+            base.fullPath = Path.GetFullPath(path);
+        }
 
-			base.originalPath = path;
-			base.fullPath = Path.GetFullPath(path);
-		}
+        public override bool Exists
+        {
+            get { throw new Exception("The method or operation is not implemented."); }
+        }
 
-		public override bool Exists {
-			get { throw new Exception("The method or operation is not implemented."); }
-		}
+        public override string Name
+        {
+            get
+            {
+                return Path.GetFileName(base.fullPath);
+            }
+        }
 
-		public override string Name {
-			get {
-				return Path.GetFileName(base.fullPath);
-			}
-		}
-
-	}
+    }
 }
 
 #endif

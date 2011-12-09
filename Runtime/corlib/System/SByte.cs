@@ -6,7 +6,9 @@ namespace System {
 		public const sbyte MinValue = -128;
 		public const sbyte MaxValue = 127;
 
-		internal sbyte m_value;
+#pragma warning disable 649
+        internal sbyte m_value;
+#pragma warning restore 649
 
 		public override bool Equals(object obj) {
 			return (obj is sbyte) && ((sbyte)obj).m_value == this.m_value;
