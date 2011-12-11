@@ -17,193 +17,75 @@
 #define MetaData_Stream_Offset_Size         0x04;
 #define MetaData_Stream_Offset_Name         0x08;
 
-bool_t MetaData_IsValidSignature(uint8_t* pMetaDataHeader);
-uint32_t MetaData_GetVersionLength(uint8_t* pMetaDataHeader);
-const char* MetaData_GetVersion(uint8_t* pMetaDataHeader);
-uint16_t MetaData_GetStreamCount(uint8_t* pMetaDataHeader);
-uint8_t* MetaData_GetStream(uint8_t* pMetaDataHeader, uint16_t pStreamIndex);
-uint32_t MetaData_GetStreamRVA(uint8_t* pMetaDataHeader, uint16_t pStreamIndex);
-uint32_t MetaData_GetStreamSize(uint8_t* pMetaDataHeader, uint16_t pStreamIndex);
-const char* MetaData_GetStreamName(uint8_t* pMetaDataHeader, uint16_t pStreamIndex);
-uint8_t* MetaData_GetStreamData(uint8_t* pMetaDataHeader, uint16_t pStreamIndex);
+bool_t MetaData_IsValidSignature(const uint8_t* pMetaDataHeader);
+uint32_t MetaData_GetVersionLength(const uint8_t* pMetaDataHeader);
+const char* MetaData_GetVersion(const uint8_t* pMetaDataHeader);
+uint16_t MetaData_GetStreamCount(const uint8_t* pMetaDataHeader);
+const uint8_t* MetaData_GetStream(const uint8_t* pMetaDataHeader, uint16_t pStreamIndex);
+uint32_t MetaData_GetStreamRVA(const uint8_t* pMetaDataHeader, uint16_t pStreamIndex);
+uint32_t MetaData_GetStreamSize(const uint8_t* pMetaDataHeader, uint16_t pStreamIndex);
+const char* MetaData_GetStreamName(const uint8_t* pMetaDataHeader, uint16_t pStreamIndex);
+const uint8_t* MetaData_GetStreamData(const uint8_t* pMetaDataHeader, uint16_t pStreamIndex);
 
+#define MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit   0x01
+#define MetaDataTablesHeader_HeapOffsetSizes_GUIDs32Bit     0x02
+#define MetaDataTablesHeader_HeapOffsetSizes_Blobs32Bit     0x04
 
-struct ModuleDefinition;
-struct TypeReference;
-struct TypeDefinition;
-struct Field;
-struct MethodDefinition;
-struct Parameter;
-struct InterfaceImplementation;
-struct MemberReference;
-struct Constant;
-struct CustomAttribute;
-struct FieldMarshal;
-struct DeclSecurity;
-struct ClassLayout;
-struct FieldLayout;
-struct StandAloneSignature;
-struct EventMap;
-struct Event;
-struct PropertyMap;
-struct Property;
-struct MethodSemantics;
-struct MethodImplementation;
-struct ModuleReference;
-struct TypeSpecification;
-struct ImplementationMap;
-struct FieldRVA;
-struct AssemblyDefinition;
-struct AssemblyProcessor;
-struct AssemblyOperatingSystem;
-struct AssemblyReference;
-struct AssemblyReferenceProcessor;
-struct AssemblyReferenceOperatingSystem;
-struct File;
-struct ExportedType;
-struct ManifestResource;
-struct NestedClass;
-struct GenericParameter;
-struct MethodSpecification;
-struct GenericParameterConstraint;
+#define MetaData_Table_ModuleDefinition                     0x00
+#define MetaData_Table_TypeReference                        0x01
+#define MetaData_Table_TypeDefinition                       0x02
+#define MetaData_Table_Field                                0x04
+#define MetaData_Table_MethodDefinition                     0x06
+#define MetaData_Table_Parameter                            0x08
+#define MetaData_Table_InterfaceImplementation              0x09
+#define MetaData_Table_MemberReference                      0x0A
+#define MetaData_Table_Constant                             0x0B
+#define MetaData_Table_CustomAttribute                      0x0C
+#define MetaData_Table_FieldMarshal                         0x0D
+#define MetaData_Table_DeclSecurity                         0x0E
+#define MetaData_Table_ClassLayout                          0x0F
+#define MetaData_Table_FieldLayout                          0x10
+#define MetaData_Table_StandAloneSignature                  0x11
+#define MetaData_Table_EventMap                             0x12
+#define MetaData_Table_Event                                0x14
+#define MetaData_Table_PropertyMap                          0x15
+#define MetaData_Table_Property                             0x17
+#define MetaData_Table_MethodSemantics                      0x18
+#define MetaData_Table_MethodImplementation                 0x19
+#define MetaData_Table_ModuleReference                      0x1A
+#define MetaData_Table_TypeSpecification                    0x1B
+#define MetaData_Table_ImplementationMap                    0x1C
+#define MetaData_Table_FieldRVA                             0x1D
+#define MetaData_Table_AssemblyDefinition                   0x20
+#define MetaData_Table_AssemblyProcessor                    0x21
+#define MetaData_Table_AssemblyOperatingSystem              0x22
+#define MetaData_Table_AssemblyReference                    0x23
+#define MetaData_Table_AssemblyReferenceProcessor           0x24
+#define MetaData_Table_AssemblyReferenceOperatingSystem     0x25
+#define MetaData_Table_File                                 0x26
+#define MetaData_Table_ExportedType                         0x27
+#define MetaData_Table_ManifestResource                     0x28
+#define MetaData_Table_NestedClass                          0x29
+#define MetaData_Table_GenericParameter                     0x2A
+#define MetaData_Table_GenericParameterConstraint           0x2C
 
+typedef struct
+{
+    uint32_t Reserved;
+    uint8_t MajorVersion;
+    uint8_t MinorVersion;
+    uint8_t HeapOffsetSizes;
+    uint8_t MoreReserved;
+    uint64_t PresentTables;
+    uint64_t SortedTables;
+} MetaDataTablesHeader;
 
-#define TypeDefOrRefUnion(n) \
-uint8_t TypeOf##n; \
-union \
-{ \
-    struct TypeDefinition* TypeDefinition; \
-    struct TypeReference* TypeReference; \
-    struct TypeSpecification* TypeSpecification; \
-} n;
-
-#define HasConstantUnion(n) \
-uint8_t TypeOf##n; \
-union \
-{ \
-    struct Field* Field; \
-    struct Parameter* Parameter; \
-    struct Property* Property; \
-} n;
-
-#define HasCustomAttributeUnion(n) \
-uint8_t TypeOf##n; \
-union \
-{ \
-    struct MethodDefinition* MethodDefinition; \
-    struct Field* Field; \
-    struct TypeReference* TypeReference; \
-    struct TypeDefinition* TypeDefinition; \
-    struct Parameter* Parameter; \
-    struct InterfaceImplementation* InterfaceImplementation; \
-    struct MemberReference* MemberReference; \
-    struct ModuleDefinition* ModuleDefinition; \
-    struct Permission* Permission; \
-    struct Property* Property; \
-    struct Event* Event; \
-    struct StandAloneSignature* StandAloneSignature; \
-    struct ModuleReference* ModuleReference; \
-    struct TypeSpecification* TypeSpecification; \
-    struct AssemblyDefinition* AssemblyDefinition; \
-    struct AssemblyReference* AssemblyReference; \
-    struct File* File; \
-    struct ExportedType* ExportedType; \
-    struct ManifestResource* ManifestResource; \
-    struct GenericParameter* GenericParameter; \
-    struct GenericParameterConstraint* GenericParameterConstraint; \
-    struct MethodSpecification* MethodSpecification; \
-} n;
-
-#define HasFieldMarshalUnion(n) \
-uint8_t TypeOf##n; \
-union \
-{ \
-    struct Field* Field; \
-    struct Parameter* Parameter; \
-} n;
-
-#define HasDeclSecurityUnion(n) \
-uint8_t TypeOf##n; \
-union \
-{ \
-    struct TypeDefinition* TypeDefinition; \
-    struct MethodDefinition* MethodDefinition; \
-    struct AssemblyDefinition* AssemblyDefinition; \
-} n;
-
-#define MemberRefParentUnion(n) \
-uint8_t TypeOf##n; \
-union \
-{ \
-    struct TypeDefinition* TypeDefinition; \
-    struct TypeReference* TypeReference; \
-    struct ModuleReference* ModuleReference; \
-    struct MethodDefinition* MethodDefinition; \
-    struct TypeSpecification* TypeSpecification; \
-} n;
-
-#define HasSemanticsUnion(n) \
-uint8_t TypeOf##n; \
-union \
-{ \
-    struct Event* Event; \
-    struct Property* Property; \
-} n;
-
-#define MethodDefOrRefUnion(n) \
-uint8_t TypeOf##n; \
-union \
-{ \
-    struct MethodDefinition* MethodDefinition; \
-    struct MemberReference* MemberReference; \
-} n;
-
-#define MemberForwardedUnion(n) \
-uint8_t TypeOf##n; \
-union \
-{ \
-    struct Field* Field; \
-    struct MethodDefinition* MethodDefinition; \
-} n;
-
-#define ImplementationUnion(n) \
-uint8_t TypeOf##n; \
-union \
-{ \
-    struct File* File; \
-    struct AssemblyReference* AssemblyReference; \
-    struct ExportedType* ExportedType; \
-} n;
-
-#define CustomAttributeTypeUnion(n) \
-uint8_t TypeOf##n; \
-union \
-{ \
-    struct MethodDefinition* MethodDefinition; \
-    struct MemberReference* MemberReference; \
-} n;
-
-#define ResolutionScopeUnion(n) \
-uint8_t TypeOf##n; \
-union \
-{ \
-    struct ModuleDefinition* ModuleDefinition; \
-    struct ModuleReference* ModuleReference; \
-    struct AssemblyReference* AssemblyReference; \
-    struct TypeReference* TypeReference; \
-} n;
-
-#define TypeOrMethodDefUnion(n) \
-uint8_t TypeOf##n; \
-union \
-{ \
-    struct TypeDefinition* TypeDefinition; \
-    struct MethodDefinition* MethodDefinition; \
-} n;
 
 #define TypeDefOrRef_Type_TypeDefinition                    0x00
 #define TypeDefOrRef_Type_TypeReference                     0x01
 #define TypeDefOrRef_Type_TypeSpecification                 0x02
+#define TypeDefOrRef_Type_Bits                              0x02
+#define TypeDefOrRef_Type_Mask                              0x03
 
 #define HasConstant_Type_Field                              0x00
 #define HasConstant_Type_Parameter                          0x01
@@ -217,7 +99,7 @@ union \
 #define HasCustomAttribute_Type_InterfaceImplementation     0x05
 #define HasCustomAttribute_Type_MemberReference             0x06
 #define HasCustomAttribute_Type_ModuleDefinition            0x07
-#define HasCustomAttribute_Type_Permission                  0x08
+#define HasCustomAttribute_Type_DeclSecurity                0x08
 #define HasCustomAttribute_Type_Property                    0x09
 #define HasCustomAttribute_Type_Event                       0x0A
 #define HasCustomAttribute_Type_StandAloneSignature         0x0B
@@ -265,30 +147,11 @@ union \
 #define ResolutionScope_Type_ModuleReference                0x01
 #define ResolutionScope_Type_AssemblyReference              0x02
 #define ResolutionScope_Type_TypeReference                  0x03
+#define ResolutionScope_Type_Bits                           0x02
+#define ResolutionScope_Type_Mask                           0x03
 
 #define TypeOrMethodDef_Type_TypeDefinition                 0x00
 #define TypeOrMethodDef_Type_MethodDefinition               0x01
-
-
-typedef struct
-{
-    uint16_t Generation;
-    const char* Name;
-    const uint8_t* ModuleVersionID;
-    const uint8_t* EncID;
-    const uint8_t* EncBaseID;
-} ModuleDefinition;
-
-typedef struct
-{
-    ResolutionScopeUnion(ResolutionScope)
-    const char* Name;
-    const char* Namespace;
-} TypeReference;
-
-#define TypeDefinition_Extends_TypeDefinition       0x00
-#define TypeDefinition_Extends_TypeReference        0x01
-#define TypeDefinition_Extends_TypeSpecification    0x02
 
 
 #define AssemblyHashAlgorithm_None                                      0x0000
@@ -444,28 +307,214 @@ typedef struct
 #define TypeAttributes_IsTypeForwarder                                  0x00200000
 
 
-typedef struct
+typedef struct _ModuleDefinition ModuleDefinition;
+typedef struct _TypeReference TypeReference;
+typedef struct _TypeDefinition TypeDefinition;
+typedef struct _Field Field;
+typedef struct _MethodDefinition MethodDefinition;
+typedef struct _Parameter Parameter;
+typedef struct _InterfaceImplementation InterfaceImplementation;
+typedef struct _MemberReference MemberReference;
+typedef struct _Constant Constant;
+typedef struct _CustomAttribute CustomAttribute;
+typedef struct _FieldMarshal FieldMarshal;
+typedef struct _DeclSecurity DeclSecurity;
+typedef struct _ClassLayout ClassLayout;
+typedef struct _FieldLayout FieldLayout;
+typedef struct _StandAloneSignature StandAloneSignature;
+typedef struct _EventMap EventMap;
+typedef struct _Event Event;
+typedef struct _PropertyMap PropertyMap;
+typedef struct _Property Property;
+typedef struct _MethodSemantics MethodSemantics;
+typedef struct _MethodImplementation MethodImplementation;
+typedef struct _ModuleReference ModuleReference;
+typedef struct _TypeSpecification TypeSpecification;
+typedef struct _ImplementationMap ImplementationMap;
+typedef struct _FieldRVA FieldRVA;
+typedef struct _AssemblyDefinition AssemblyDefinition;
+typedef struct _AssemblyProcessor AssemblyProcessor;
+typedef struct _AssemblyOperatingSystem AssemblyOperatingSystem;
+typedef struct _AssemblyReference AssemblyReference;
+typedef struct _AssemblyReferenceProcessor AssemblyReferenceProcessor;
+typedef struct _AssemblyReferenceOperatingSystem AssemblyReferenceOperatingSystem;
+typedef struct _File File;
+typedef struct _ExportedType ExportedType;
+typedef struct _ManifestResource ManifestResource;
+typedef struct _NestedClass NestedClass;
+typedef struct _GenericParameter GenericParameter;
+typedef struct _MethodSpecification MethodSpecification;
+typedef struct _GenericParameterConstraint GenericParameterConstraint;
+
+
+#define TypeDefOrRefUnion(n) \
+uint8_t TypeOf##n; \
+union \
+{ \
+    TypeDefinition* TypeDefinition; \
+    TypeReference* TypeReference; \
+    TypeSpecification* TypeSpecification; \
+} n;
+
+#define HasConstantUnion(n) \
+uint8_t TypeOf##n; \
+union \
+{ \
+    Field* Field; \
+    Parameter* Parameter; \
+    Property* Property; \
+} n;
+
+#define HasCustomAttributeUnion(n) \
+uint8_t TypeOf##n; \
+union \
+{ \
+    MethodDefinition* MethodDefinition; \
+    Field* Field; \
+    TypeReference* TypeReference; \
+    TypeDefinition* TypeDefinition; \
+    Parameter* Parameter; \
+    InterfaceImplementation* InterfaceImplementation; \
+    MemberReference* MemberReference; \
+    ModuleDefinition* ModuleDefinition; \
+    DeclSecurity* Permission; \
+    Property* Property; \
+    Event* Event; \
+    StandAloneSignature* StandAloneSignature; \
+    ModuleReference* ModuleReference; \
+    TypeSpecification* TypeSpecification; \
+    AssemblyDefinition* AssemblyDefinition; \
+    AssemblyReference* AssemblyReference; \
+    File* File; \
+    ExportedType* ExportedType; \
+    ManifestResource* ManifestResource; \
+    GenericParameter* GenericParameter; \
+    GenericParameterConstraint* GenericParameterConstraint; \
+    MethodSpecification* MethodSpecification; \
+} n;
+
+#define HasFieldMarshalUnion(n) \
+uint8_t TypeOf##n; \
+union \
+{ \
+    Field* Field; \
+    Parameter* Parameter; \
+} n;
+
+#define HasDeclSecurityUnion(n) \
+uint8_t TypeOf##n; \
+union \
+{ \
+    TypeDefinition* TypeDefinition; \
+    MethodDefinition* MethodDefinition; \
+    AssemblyDefinition* AssemblyDefinition; \
+} n;
+
+#define MemberRefParentUnion(n) \
+uint8_t TypeOf##n; \
+union \
+{ \
+    TypeDefinition* TypeDefinition; \
+    TypeReference* TypeReference; \
+    ModuleReference* ModuleReference; \
+    MethodDefinition* MethodDefinition; \
+    TypeSpecification* TypeSpecification; \
+} n;
+
+#define HasSemanticsUnion(n) \
+uint8_t TypeOf##n; \
+union \
+{ \
+    Event* Event; \
+    Property* Property; \
+} n;
+
+#define MethodDefOrRefUnion(n) \
+uint8_t TypeOf##n; \
+union \
+{ \
+    MethodDefinition* MethodDefinition; \
+    MemberReference* MemberReference; \
+} n;
+
+#define MemberForwardedUnion(n) \
+uint8_t TypeOf##n; \
+union \
+{ \
+    Field* Field; \
+    MethodDefinition* MethodDefinition; \
+} n;
+
+#define ImplementationUnion(n) \
+uint8_t TypeOf##n; \
+union \
+{ \
+    File* File; \
+    AssemblyReference* AssemblyReference; \
+    ExportedType* ExportedType; \
+} n;
+
+#define CustomAttributeTypeUnion(n) \
+uint8_t TypeOf##n; \
+union \
+{ \
+    MethodDefinition* MethodDefinition; \
+    MemberReference* MemberReference; \
+} n;
+
+#define ResolutionScopeUnion(n) \
+uint8_t TypeOf##n; \
+union \
+{ \
+    ModuleDefinition* ModuleDefinition; \
+    ModuleReference* ModuleReference; \
+    AssemblyReference* AssemblyReference; \
+    TypeReference* TypeReference; \
+} n;
+
+#define TypeOrMethodDefUnion(n) \
+uint8_t TypeOf##n; \
+union \
+{ \
+    TypeDefinition* TypeDefinition; \
+    MethodDefinition* MethodDefinition; \
+} n;
+
+
+struct _ModuleDefinition
+{
+    uint16_t Generation;
+    const char* Name;
+    const uint8_t* ModuleVersionID;
+    const uint8_t* EncID;
+    const uint8_t* EncBaseID;
+};
+
+struct _TypeReference
+{
+    ResolutionScopeUnion(ResolutionScope)
+    const char* Name;
+    const char* Namespace;
+};
+
+struct _TypeDefinition
 {
     uint32_t Flags;
     const char* Name;
     const char* Namespace;
     TypeDefOrRefUnion(Extends)
-    const struct Field* FieldList;
-    const struct MethodDefinition* MethodDefinitionList;
-} TypeDefinition;
+    Field* FieldList;
+    MethodDefinition* MethodDefinitionList;
+};
 
-typedef struct
+struct _Field
 {
     uint16_t Flags;
     const char* Name;
-    uint8_t TypeOfSignature;
-    union
-    {
-        const struct TypeDefinition* TypeDefinition;
-    } Signature;
-} Field;
+    const uint8_t* Signature;
+};
 
-typedef struct
+struct _MethodDefinition
 {
     uint32_t VirtualAddress;
     uint16_t ImplFlags;
@@ -474,145 +523,145 @@ typedef struct
     uint8_t TypeOfSignature;
     union
     {
-        const TypeDefinition* TypeDefinition;
+        TypeDefinition* TypeDefinition;
     } Signature;
-    struct Parameter* ParameterList;
-} MethodDefinition;
+    Parameter* ParameterList;
+};
 
-typedef struct
+struct _Parameter
 {
     uint16_t Flags;
     uint16_t Sequence;
     const char* Name;
-} Parameter;
+};
 
-typedef struct
+struct _InterfaceImplementation
 {
-    struct TypeDefinition* Implementor;
+    TypeDefinition* Implementor;
     TypeDefOrRefUnion(Interface)
-} InterfaceImplementation;
+};
 
-typedef struct
+struct _MemberReference
 {
     MemberRefParentUnion(Parent)
     const char* Name;
     uint8_t TypeOfSignature;
     union
     {
-        const struct TypeDefinition* TypeDefinition;
+        TypeDefinition* TypeDefinition;
     } Signature;
-} MemberReference;
+};
 
-typedef struct
+struct _Constant
 {
     uint8_t Type;
     HasConstantUnion(Parent)
     const uint8_t* Value;
-} Constant;
+};
 
-typedef struct
+struct _CustomAttribute
 {
     HasCustomAttributeUnion(Parent)
     CustomAttributeTypeUnion(Type)
     const uint8_t* Value;
-} CustomAttribute;
+};
 
-typedef struct
+struct _FieldMarshal
 {
     HasFieldMarshalUnion(Parent)
     const uint8_t* NativeType;
-} FieldMarshal;
+};
 
-typedef struct
+struct _DeclSecurity
 {
     uint16_t Action;
     HasDeclSecurityUnion(Parent)
     const uint8_t* PermissionSet;
-} DeclSecurity;
+};
 
-typedef struct
+struct _ClassLayout
 {
     uint16_t PackingSize;
     uint32_t ClassSize;
-    struct TypeDefinition* Parent;
-} ClassLayout;
+    TypeDefinition* Parent;
+};
 
-typedef struct
+struct _FieldLayout
 {
     uint32_t Offset;
-    struct Field* Field;
-} FieldLayout;
+    Field* Field;
+};
 
-typedef struct
+struct _StandAloneSignature
 {
     const uint8_t* Signature;
-} StandAloneSignature;
+};
 
-typedef struct
+struct _EventMap
 {
-    struct TypeDefinition* Parent;
-    struct Event* EventList;
-} EventMap;
+    TypeDefinition* Parent;
+    Event* EventList;
+};
 
-typedef struct
+struct _Event
 {
     uint16_t Flags;
     const char* Name;
-    TypeDefOrRef(EventType)
-} Event;
+    TypeDefOrRefUnion(EventType)
+};
 
-typedef struct
+struct _PropertyMap
 {
-    struct TypeDefinition* Parent;
-    struct Property* PropertyList;
-} PropertyMap;
+    TypeDefinition* Parent;
+    Property* PropertyList;
+};
 
-typedef struct
+struct _Property
 {
     uint16_t Flags;
     const char* Name;
     const uint8_t* Signature;
-} Property;
+};
 
-typedef struct
+struct _MethodSemantics
 {
     uint16_t Semantics;
-    struct MethodDefinition* Method;
+    MethodDefinition* Method;
     HasSemanticsUnion(Association)
-} MethodSemantics;
+};
 
-typedef struct
+struct _MethodImplementation
 {
-    struct TypeDefinition* Parent;
+    TypeDefinition* Parent;
     MethodDefOrRefUnion(MethodBody)
     MethodDefOrRefUnion(MethodDeclaration)
-} MethodImplementation;
+};
 
-typedef struct
+struct _ModuleReference
 {
     const char* Name;
-} ModuleReference;
+};
 
-typedef struct
+struct _TypeSpecification
 {
     const uint8_t* Signature;
-} TypeSpecification;
+};
 
-typedef struct
+struct _ImplementationMap
 {
     uint16_t MappingFlags;
     MemberForwardedUnion(MemberForwarded)
     const char* ImportName;
-    struct ModuleReference* ImportScope;
-} ImplementationMap;
+    ModuleReference* ImportScope;
+};
 
-typedef struct
+struct _FieldRVA
 {
     uint32_t VirtualAddress;
-    struct Field* Field;
-} FieldRVA;
+    Field* Field;
+};
 
-typedef struct
+struct _AssemblyDefinition
 {
     uint32_t HashAlgorithmID;
     uint16_t MajorVersion;
@@ -623,21 +672,21 @@ typedef struct
     const uint8_t* PublicKey;
     const char* Name;
     const char* Culture;
-} AssemblyDefinition;
+};
 
-typedef struct
+struct _AssemblyProcessor
 {
     uint32_t Processor;
-} AssemblyProcessor;
+};
 
-typedef struct
+struct _AssemblyOperatingSystem
 {
     uint32_t PlatformID;
     uint32_t MajorVersion;
     uint32_t MinorVersion;
-} AssemblyOperatingSystem;
+};
 
-typedef struct
+struct _AssemblyReference
 {
     uint16_t MajorVersion;
     uint16_t MinorVersion;
@@ -648,68 +697,68 @@ typedef struct
     const char* Name;
     const char* Culture;
     const uint8_t* HashValue;
-} AssemblyReference;
+};
 
-typedef struct
+struct _AssemblyReferenceProcessor
 {
     uint32_t Processor;
-    struct AssemblyReference* AssemblyReference;
-} AssemblyReferenceProcessor;
+    AssemblyReference* AssemblyReference;
+};
 
-typedef struct
+struct _AssemblyReferenceOperatingSystem
 {
     uint32_t PlatformID;
     uint32_t MajorVersion;
     uint32_t MinorVersion;
-    struct AssemblyReference* AssemblyReference;
-} AssemblyReferenceOperatingSystem;
+    AssemblyReference* AssemblyReference;
+};
 
-typedef struct
+struct _File
 {
     uint32_t Flags;
     const char* Name;
     const uint8_t* HashValue;
-} File;
+};
 
-typedef struct
+struct _ExportedType
 {
     uint32_t Flags;
-    struct TypeDefinition* TypeDefinitionID;
+    TypeDefinition* TypeDefinitionID;
     const char* Name;
     const char* Namespace;
     ImplementationUnion(Implementation)
-} ExportedType;
+};
 
-typedef struct
+struct _ManifestResource
 {
     uint32_t Offset;
     uint32_t Flags;
     const char* Name;
     ImplementationUnion(Implementation)
-} ManifestResource;
+};
 
-typedef struct
+struct _NestedClass
 {
-    struct TypeDefinition* Nested;
-    struct TypeDefinition* Enclosing;
-} NestedClass;
+    TypeDefinition* Nested;
+    TypeDefinition* Enclosing;
+};
 
-typedef struct
+struct _GenericParameter
 {
     uint16_t Index;
     uint16_t Flags;
     TypeOrMethodDefUnion(Owner)
     const char* Name;
-} GenericParameter;
+};
 
-typedef struct
+struct _MethodSpecification
 {
     MethodDefOrRefUnion(Method)
     const uint8_t* Instantiation;
-} MethodSpecification;
+};
 
-typedef struct
+struct _GenericParameterConstraint
 {
-    struct GenericParameter* Owner;
+    GenericParameter* Owner;
     TypeDefOrRefUnion(Constraint)
-} GenericParameterConstraint;
+};

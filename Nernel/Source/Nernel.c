@@ -15,22 +15,6 @@ void Main(uint32_t pMultiBootMagic,
         CLIFile* cliFile = CLIFile_Create(peFile);
         if (cliFile)
         {
-            uint16_t streamCount = MetaData_GetStreamCount(cliFile->MetaDataHeader);
-            for (uint16_t streamIndex = 0; streamIndex < streamCount; ++streamIndex)
-            {
-                //uint32_t streamRVA = MetaData_GetStreamRVA(cliFile->MetaDataHeader, streamIndex);
-                //uint32_t streamSize = MetaData_GetStreamSize(cliFile->MetaDataHeader, streamIndex);
-                const char* streamName = MetaData_GetStreamName(cliFile->MetaDataHeader, streamIndex);
-                uint8_t* streamData = MetaData_GetStreamData(cliFile->MetaDataHeader, streamIndex);
-
-                if (!strcmp(streamName, "#~")) cliFile->Tables = streamData;
-                else if (!strcmp(streamName, "#Strings")) cliFile->StringsHeap = streamData;
-                else if (!strcmp(streamName, "#US")) cliFile->UserStringsHeap = streamData;
-                else if (!strcmp(streamName, "#Blob")) cliFile->BlobsHeap = streamData;
-                else if (!strcmp(streamName, "#GUID")) cliFile->GUIDsHeap = streamData;
-
-                printf("Loaded Stream, Name %s\n", CLIFile_GetString(cliFile, 10));
-            }
         }
     }
     /*
