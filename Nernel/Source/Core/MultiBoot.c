@@ -99,3 +99,17 @@ void* MultiBoot_GetModuleByFileName(const char* pFileName)
     }
 	return NULL;
 }
+
+MultiBoot_LoadedModule* MultiBoot_GetLoadedModuleByFileName(const char* pFileName)
+{
+    for (uint8_t index = 0; index < gMultiBoot_LoadedModuleCount; ++index)
+    {
+        size_t length = strlen(gMultiBoot_LoadedModules[index].Identifier);
+        const char* fileName = gMultiBoot_LoadedModules[index].Identifier + length;
+        while (fileName != gMultiBoot_LoadedModules[index].Identifier && *fileName != '/') --fileName;
+        if (*fileName == '/') ++fileName;
+
+        if (!strcasecmp(fileName, pFileName)) return &gMultiBoot_LoadedModules[index];
+    }
+	return NULL;
+}

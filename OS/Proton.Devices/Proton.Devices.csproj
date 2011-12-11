@@ -35,6 +35,8 @@
     <NoStdLib>true</NoStdLib>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="ATA\ATABus.cs" />
+    <Compile Include="ATA\ATADrive.cs" />
     <Compile Include="Device.cs" />
     <Compile Include="DeviceManager.cs" />
     <Compile Include="Serial\Serial.cs" />
@@ -49,6 +51,9 @@
       <Project>{5708CB7A-88D3-439A-A642-822E1F27A4AB}</Project>
       <Name>Proton.IO</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

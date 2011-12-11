@@ -21,6 +21,8 @@
 #include <Runtime/Heap.h>
 #include <Runtime/Finalizer.h>
 
+#include <CLR/CLIFile.h>
+
 void Halt();
 void Panic(const char* pMessage);
 

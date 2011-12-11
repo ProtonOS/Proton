@@ -68,6 +68,9 @@
 	Source/Core/RTC.c
 	Source/Core/SystemCalls.c
 	Source/Core/SystemClock.c
+	Source/CLR/PEFile.c
+	Source/CLR/CLIFile.c
+	Source/CLR/MetaData.c
 }
 
 #define SOURCE(RUNTIME_C_FILES)

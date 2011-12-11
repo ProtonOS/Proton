@@ -20,6 +20,9 @@
     <None Include="Source\Runtime\Bugs.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\CLR\CLIFile.c" />
+    <ClCompile Include="Source\CLR\MetaData.c" />
+    <ClCompile Include="Source\CLR\PEFile.c" />
     <ClCompile Include="Source\Core\DLMalloc.c" />
     <ClCompile Include="Source\Core\Console.c" />
     <ClCompile Include="Source\Core\GDT.c" />
@@ -72,6 +75,9 @@
     <ClCompile Include="Source\Runtime\Type.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Include\CLR\CLIFile.h" />
+    <ClInclude Include="Include\CLR\MetaData.h" />
+    <ClInclude Include="Include\CLR\PEFile.h" />
     <ClInclude Include="Include\Core\Config.h" />
     <ClInclude Include="Include\Core\Console.h" />
     <ClInclude Include="Include\Core\GDT.h" />
