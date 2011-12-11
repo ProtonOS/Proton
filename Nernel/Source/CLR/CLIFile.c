@@ -263,16 +263,29 @@ CLIFile* CLIFile_Create(PEFile* pFile)
         tableData += 4;
     }
 
-    printf("Test: %u\n", *(unsigned int*)tableData);
+	// Not quite sure why this is needed, but it's there,
+	// so we have to account for it.
+	tableData += 4;
+
 
     tableData = CLIFile_LoadModuleDefinitions(cliFile, tableData);
     printf("Loaded %u ModuleDefinitions\n", (unsigned int)cliFile->ModuleDefinitionCount);
-    tableData = CLIFile_LoadTypeReferences(cliFile, tableData);
+    printf("Module 0: Name \"%s\"\n", cliFile->ModuleDefinitions[0].Name);
+
+	tableData = CLIFile_LoadTypeReferences(cliFile, tableData);
     printf("Loaded %u TypeReferences\n", (unsigned int)cliFile->TypeReferenceCount);
-    tableData = CLIFile_LoadTypeDefinitions(cliFile, tableData);
+	for (uint32_t mI = 0; mI < cliFile->TypeReferenceCount; mI++)
+	{
+		printf("TypeRef %u: Name '%s.%s'\n", (unsigned int)mI, cliFile->TypeReferences[mI].Namespace, cliFile->TypeReferences[mI].Name);
+	}
+    
+	tableData = CLIFile_LoadTypeDefinitions(cliFile, tableData);
     printf("Loaded %u TypeDefinitions\n", (unsigned int)cliFile->TypeDefinitionCount);
-    tableData = CLIFile_LoadFields(cliFile, tableData);
+	printf("TypeDef 0: Name \"%s\"\n", cliFile->TypeDefinitions[0].Name); // this should be <Module>
+    
+	tableData = CLIFile_LoadFields(cliFile, tableData);
     printf("Loaded %u Fields\n", (unsigned int)cliFile->FieldCount);
+	printf("FieldDef 0: Name \"%s\"\n", cliFile->Fields[0].Name);
 
     printf("Loaded Assembly\n");
     return cliFile;
@@ -283,28 +296,72 @@ void CLIFile_Destroy(CLIFile* pFile)
     free(pFile);
 }
 
-const char* CLIFile_GetString(CLIFile* pFile, uint32_t pVirtualAddress) { return (const char*)(pFile->StringsHeap + pVirtualAddress); }
-const uint8_t* CLIFile_GetUserString(CLIFile* pFile, uint32_t pVirtualAddress) { return (const uint8_t*)(pFile->UserStringsHeap + pVirtualAddress); }
-const uint8_t* CLIFile_GetBlob(CLIFile* pFile, uint32_t pVirtualAddress) { return (const uint8_t*)(pFile->BlobsHeap + pVirtualAddress); }
-const uint8_t* CLIFile_GetGUID(CLIFile* pFile, uint32_t pVirtualAddress) { return (const uint8_t*)(pFile->GUIDsHeap + pVirtualAddress); }
+const char* CLIFile_GetString(CLIFile* pFile, uint32_t pVirtualAddress)
+{
+	return (const char*)(pFile->StringsHeap + pVirtualAddress); 
+}
+const uint8_t* CLIFile_GetUserString(CLIFile* pFile, uint32_t pVirtualAddress) 
+{
+	return (const uint8_t*)(pFile->UserStringsHeap + pVirtualAddress);
+}
+const uint8_t* CLIFile_GetBlob(CLIFile* pFile, uint32_t pVirtualAddress)
+{
+	return (const uint8_t*)(pFile->BlobsHeap + pVirtualAddress); 
+}
+const uint8_t* CLIFile_GetGUID(CLIFile* pFile, uint32_t pVirtualAddress)
+{
+	return (const uint8_t*)(pFile->GUIDsHeap + pVirtualAddress);
+}
 
 const uint8_t* CLIFile_LoadModuleDefinitions(CLIFile* pFile, const uint8_t* pTableData)
 {
     for (uint32_t index = 0, heapIndex = 0; index < pFile->ModuleDefinitionCount; ++index)
     {
-        pFile->ModuleDefinitions[index].Generation = *(uint16_t*)pTableData; pTableData += 2;
-        printf("%u\n", *(uint16_t*)pTableData);
-        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
-        else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
-        pFile->ModuleDefinitions[index].Name = (const char*)(pFile->StringsHeap + heapIndex);
-        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_GUIDs32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
-        else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        pFile->ModuleDefinitions[index].Generation = *(uint16_t*)pTableData; 
+		pTableData += 2;
+        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit) != 0) 
+		{
+			heapIndex = *(uint32_t*)pTableData;
+			pTableData += 4;
+		}
+        else 
+		{
+			heapIndex = *((uint16_t*)pTableData);
+			pTableData += 2;
+		}
+        pFile->ModuleDefinitions[index].Name = CLIFile_GetString(pFile, heapIndex);
+        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_GUIDs32Bit) != 0)
+		{
+			heapIndex = *(uint32_t*)pTableData;
+			pTableData += 4;
+		}
+        else
+		{
+			heapIndex = *(uint16_t*)pTableData; 
+			pTableData += 2; 
+		}
         pFile->ModuleDefinitions[index].ModuleVersionID = pFile->GUIDsHeap + heapIndex;
-        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_GUIDs32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
-        else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_GUIDs32Bit) != 0)
+		{
+			heapIndex = *(uint32_t*)pTableData;
+			pTableData += 4;
+		}
+        else
+		{
+			heapIndex = *(uint16_t*)pTableData;
+			pTableData += 2; 
+		}
         pFile->ModuleDefinitions[index].EncID = pFile->GUIDsHeap + heapIndex;
-        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_GUIDs32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
-        else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_GUIDs32Bit) != 0)
+		{
+			heapIndex = *(uint32_t*)pTableData;
+			pTableData += 4;
+		}
+        else 
+		{
+			heapIndex = *(uint16_t*)pTableData; 
+			pTableData += 2;
+		}
         pFile->ModuleDefinitions[index].EncBaseID = pFile->GUIDsHeap + heapIndex;
     }
     return pTableData;

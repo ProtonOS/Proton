@@ -239,21 +239,21 @@ typedef struct
 #define MethodAttributes_HasSecurity                                    0x4000
 #define MethodAttributes_RequireSecurityObject                          0x8000
 
-#define MethodImplementationAttributes_CodeTypeMask                     0x0003
-#define MethodImplementationAttributes_IL                               0x0000
-#define MethodImplementationAttributes_Native                           0x0001
-#define MethodImplementationAttributes_OPTIL                            0x0002
-#define MethodImplementationAttributes_Runtime                          0x0003
-#define MethodImplementationAttributes_ManagedMask                      0x0004
-#define MethodImplementationAttributes_Unmanaged                        0x0004
-#define MethodImplementationAttributes_Managed                          0x0000
-#define MethodImplementationAttributes_ForwardReference                 0x0010
-#define MethodImplementationAttributes_PreserveSignature                0x0080
-#define MethodImplementationAttributes_InternalCall                     0x1000
-#define MethodImplementationAttributes_Synchronized                     0x0020
-#define MethodImplementationAttributes_NoInlining                       0x0008
-#define MethodImplementationAttributes_MaxMethodImplementationValue     0xFFFF
-#define MethodImplementationAttributes_NoOptimization                   0x0040
+#define MethodImplAttributes_CodeTypeMask                     0x0003
+#define MethodImplAttributes_IL                               0x0000
+#define MethodImplAttributes_Native                           0x0001
+#define MethodImplAttributes_OPTIL                            0x0002
+#define MethodImplAttributes_Runtime                          0x0003
+#define MethodImplAttributes_ManagedMask                      0x0004
+#define MethodImplAttributes_Unmanaged                        0x0004
+#define MethodImplAttributes_Managed                          0x0000
+#define MethodImplAttributes_ForwardReference                 0x0010
+#define MethodImplAttributes_PreserveSignature                0x0080
+#define MethodImplAttributes_InternalCall                     0x1000
+#define MethodImplAttributes_Synchronized                     0x0020
+#define MethodImplAttributes_NoInlining                       0x0008
+#define MethodImplAttributes_MaxMethodImplementationValue     0xFFFF
+#define MethodImplAttributes_NoOptimization                   0x0040
 
 #define MethodSemanticsAttributes_Setter                                0x0001
 #define MethodSemanticsAttributes_Getter                                0x0002
