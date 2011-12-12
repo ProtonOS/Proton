@@ -87,12 +87,14 @@ typedef struct
 #define TypeDefOrRef_Type_TypeSpecification                 0x02
 #define TypeDefOrRef_Type_Bits                              0x02
 #define TypeDefOrRef_Type_Mask                              0x03
+#define TypeDefOrRef_Type_MaxRows16Bit                      (0xFFFF >> TypeDefOrRef_Type_Bits)
 
 #define HasConstant_Type_Field                              0x00
 #define HasConstant_Type_Parameter                          0x01
 #define HasConstant_Type_Property                           0x02
 #define HasConstant_Type_Bits                               0x02
 #define HasConstant_Type_Mask                               0x03
+#define HasConstant_Type_MaxRows16Bit                       (0xFFFF >> HasConstant_Type_Bits)
 
 #define HasCustomAttribute_Type_MethodDefinition            0x00
 #define HasCustomAttribute_Type_Field                       0x01
@@ -118,17 +120,20 @@ typedef struct
 #define HasCustomAttribute_Type_MethodSpecification         0x15
 #define HasCustomAttribute_Type_Bits                        0x05
 #define HasCustomAttribute_Type_Mask                        0x1F
+#define HasCustomAttribute_Type_MaxRows16Bit                (0xFFFF >> HasCustomAttribute_Type_Bits)
 
 #define HasFieldMarshal_Type_Field                          0x00
 #define HasFieldMarshal_Type_Parameter                      0x01
 #define HasFieldMarshal_Type_Bits                           0x01
 #define HasFieldMarshal_Type_Mask                           0x01
+#define HasFieldMarshal_Type_MaxRows16Bit                   (0xFFFF >> HasFieldMarshal_Type_Bits)
 
 #define HasDeclSecurity_Type_TypeDefinition                 0x00
 #define HasDeclSecurity_Type_MethodDefinition               0x01
 #define HasDeclSecurity_Type_AssemblyDefinition             0x02
 #define HasDeclSecurity_Type_Bits                           0x02
 #define HasDeclSecurity_Type_Mask                           0x03
+#define HasDeclSecurity_Type_MaxRows16Bit                   (0xFFFF >> HasDeclSecurity_Type_Bits)
 
 #define MemberRefParent_Type_TypeDefinition                 0x00
 #define MemberRefParent_Type_TypeReference                  0x01
@@ -137,32 +142,38 @@ typedef struct
 #define MemberRefParent_Type_TypeSpecification              0x04
 #define MemberRefParent_Type_Bits                           0x03
 #define MemberRefParent_Type_Mask                           0x07
+#define MemberRefParent_Type_MaxRows16Bit                   (0xFFFF >> MemberRefParent_Type_Bits)
 
 #define HasSemantics_Type_Event                             0x00
 #define HasSemantics_Type_Property                          0x01
 #define HasSemantics_Type_Bits                              0x01
 #define HasSemantics_Type_Mask                              0x01
+#define HasSemantics_Type_MaxRows16Bit                      (0xFFFF >> HasSemantics_Type_Bits)
 
 #define MethodDefOrRef_Type_MethodDefinition                0x00
 #define MethodDefOrRef_Type_MemberReference                 0x01
 #define MethodDefOrRef_Type_Bits                            0x01
 #define MethodDefOrRef_Type_Mask                            0x01
+#define MethodDefOrRef_Type_MaxRows16Bit                    (0xFFFF >> MethodDefOrRef_Type_Bits)
 
 #define MemberForwarded_Type_Field                          0x00
 #define MemberForwarded_Type_MethodDefinition               0x01
 #define MemberForwarded_Type_Bits                           0x01
 #define MemberForwarded_Type_Mask                           0x01
+#define MemberForwarded_Type_MaxRows16Bit                   (0xFFFF >> MemberForwarded_Type_Bits)
 
 #define Implementation_Type_File                            0x00
 #define Implementation_Type_AssemblyReference               0x01
 #define Implementation_Type_ExportedType                    0x02
 #define Implementation_Type_Bits                            0x02
 #define Implementation_Type_Mask                            0x03
+#define Implementation_Type_MaxRows16Bit                    (0xFFFF >> Implementation_Type_Bits)
 
 #define CustomAttributeType_Type_MethodDefinition           0x02
 #define CustomAttributeType_Type_MemberReference            0x03
 #define CustomAttributeType_Type_Bits                       0x03
 #define CustomAttributeType_Type_Mask                       0x07
+#define CustomAttributeType_Type_MaxRows16Bit               (0xFFFF >> CustomAttributeType_Type_Bits)
 
 #define ResolutionScope_Type_ModuleDefinition               0x00
 #define ResolutionScope_Type_ModuleReference                0x01
@@ -170,11 +181,13 @@ typedef struct
 #define ResolutionScope_Type_TypeReference                  0x03
 #define ResolutionScope_Type_Bits                           0x02
 #define ResolutionScope_Type_Mask                           0x03
+#define ResolutionScope_Type_MaxRows16Bit                   (0xFFFF >> ResolutionScope_Type_Bits)
 
 #define TypeOrMethodDef_Type_TypeDefinition                 0x00
 #define TypeOrMethodDef_Type_MethodDefinition               0x01
 #define TypeOrMethodDef_Type_Bits                           0x01
 #define TypeOrMethodDef_Type_Mask                           0x01
+#define TypeOrMethodDef_Type_MaxRows16Bit                   (0xFFFF >> TypeOrMethodDef_Type_Bits)
 
 
 #define AssemblyHashAlgorithm_None                                      0x0000

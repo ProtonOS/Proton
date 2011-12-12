@@ -458,49 +458,17 @@ const uint8_t* CLIFile_LoadModuleDefinitions(CLIFile* pFile, const uint8_t* pTab
     {
         pFile->ModuleDefinitions[index].Generation = *(uint16_t*)pTableData; 
 		pTableData += 2;
-        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit) != 0) 
-		{
-			heapIndex = *(uint32_t*)pTableData;
-			pTableData += 4;
-		}
-        else 
-		{
-			heapIndex = *((uint16_t*)pTableData);
-			pTableData += 2;
-		}
+        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit) != 0)  { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else  { heapIndex = *((uint16_t*)pTableData); pTableData += 2; }
         pFile->ModuleDefinitions[index].Name = CLIFile_GetString(pFile, heapIndex);
-        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_GUIDs32Bit) != 0)
-		{
-			heapIndex = *(uint32_t*)pTableData;
-			pTableData += 4;
-		}
-        else
-		{
-			heapIndex = *(uint16_t*)pTableData; 
-			pTableData += 2; 
-		}
+        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_GUIDs32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { heapIndex = *(uint16_t*)pTableData; pTableData += 2;  }
         pFile->ModuleDefinitions[index].ModuleVersionID = pFile->GUIDsHeap + heapIndex;
-        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_GUIDs32Bit) != 0)
-		{
-			heapIndex = *(uint32_t*)pTableData;
-			pTableData += 4;
-		}
-        else
-		{
-			heapIndex = *(uint16_t*)pTableData;
-			pTableData += 2; 
-		}
+        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_GUIDs32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { heapIndex = *(uint16_t*)pTableData; pTableData += 2;  }
         pFile->ModuleDefinitions[index].EncID = pFile->GUIDsHeap + heapIndex;
-        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_GUIDs32Bit) != 0)
-		{
-			heapIndex = *(uint32_t*)pTableData;
-			pTableData += 4;
-		}
-        else 
-		{
-			heapIndex = *(uint16_t*)pTableData; 
-			pTableData += 2;
-		}
+        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_GUIDs32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->ModuleDefinitions[index].EncBaseID = pFile->GUIDsHeap + heapIndex;
     }
     return pTableData;
@@ -513,7 +481,11 @@ const uint8_t* CLIFile_LoadTypeReferences(CLIFile* pFile, const uint8_t* pTableD
     uint32_t resolutionScopeRow = 0;
     for (uint32_t index = 0, heapIndex = 0; index < pFile->TypeReferenceCount; ++index)
     {
-        resolutionScopeIndex = *(uint16_t*)pTableData; pTableData += 2;
+        if (pFile->ModuleDefinitionCount > ResolutionScope_Type_MaxRows16Bit ||
+            pFile->ModuleReferenceCount > ResolutionScope_Type_MaxRows16Bit ||
+            pFile->AssemblyReferenceCount > ResolutionScope_Type_MaxRows16Bit ||
+            pFile->TypeReferenceCount > ResolutionScope_Type_MaxRows16Bit) { resolutionScopeIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { resolutionScopeIndex = *(uint16_t*)pTableData; pTableData += 2; }
         resolutionScopeTable = resolutionScopeIndex & ResolutionScope_Type_Mask;
         resolutionScopeRow = resolutionScopeIndex >> ResolutionScope_Type_Bits;
         switch (resolutionScopeTable)
@@ -550,7 +522,10 @@ const uint8_t* CLIFile_LoadTypeDefinitions(CLIFile* pFile, const uint8_t* pTable
         if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->TypeDefinitions[index].Namespace = (const char*)(pFile->StringsHeap + heapIndex);
-        extendsIndex = *(uint16_t*)pTableData; pTableData += 2;
+        if (pFile->TypeDefinitionCount > TypeDefOrRef_Type_MaxRows16Bit ||
+            pFile->TypeReferenceCount > TypeDefOrRef_Type_MaxRows16Bit ||
+            pFile->TypeSpecificationCount > TypeDefOrRef_Type_MaxRows16Bit) { extendsIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { extendsIndex = *(uint16_t*)pTableData; pTableData += 2; }
         extendsTable = extendsIndex & TypeDefOrRef_Type_Mask;
         extendsRow = extendsIndex >> TypeDefOrRef_Type_Bits;
         switch (extendsTable)
@@ -560,9 +535,11 @@ const uint8_t* CLIFile_LoadTypeDefinitions(CLIFile* pFile, const uint8_t* pTable
         case TypeDefOrRef_Type_TypeSpecification: pFile->TypeDefinitions[index].Extends.TypeSpecification = &pFile->TypeSpecifications[extendsRow]; break;
         default: break;
         }
-        fieldListIndex = *(uint16_t*)pTableData; pTableData += 2;
+        if (pFile->FieldCount > 0xFFFF) { fieldListIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { fieldListIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->TypeDefinitions[index].FieldList = &pFile->Fields[fieldListIndex];
-        methodDefinitionListIndex = *(uint16_t*)pTableData; pTableData += 2;
+        if (pFile->MethodDefinitionCount > 0xFFFF) { methodDefinitionListIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { methodDefinitionListIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->TypeDefinitions[index].MethodDefinitionList = &pFile->MethodDefinitions[methodDefinitionListIndex];
     }
     return pTableData;
@@ -597,7 +574,8 @@ const uint8_t* CLIFile_LoadMethodDefinitions(CLIFile* pFile, const uint8_t* pTab
         if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Blobs32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->MethodDefinitions[index].Signature = pFile->BlobsHeap + heapIndex;
-        parameterListIndex = *(uint16_t*)pTableData; pTableData += 2;
+        if (pFile->ParameterCount > 0xFFFF) { parameterListIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { parameterListIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->MethodDefinitions[index].ParameterList = &pFile->Parameters[parameterListIndex];
     }
     return pTableData;
@@ -624,10 +602,14 @@ const uint8_t* CLIFile_LoadInterfaceImplementations(CLIFile* pFile, const uint8_
     uint32_t interfaceRow = 0;
     for (uint32_t index = 0; index < pFile->InterfaceImplementationCount; ++index)
     {
-        implementorIndex = *(uint16_t*)pTableData; pTableData += 2;
+        if (pFile->TypeDefinitionCount > 0xFFFF) { implementorIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { implementorIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->InterfaceImplementations[index].Implementor = &pFile->TypeDefinitions[implementorIndex];
 
-        interfaceIndex = *(uint16_t*)pTableData; pTableData += 2;
+        if (pFile->TypeDefinitionCount > TypeDefOrRef_Type_MaxRows16Bit ||
+            pFile->TypeReferenceCount > TypeDefOrRef_Type_MaxRows16Bit ||
+            pFile->TypeSpecificationCount > TypeDefOrRef_Type_MaxRows16Bit) { interfaceIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { interfaceIndex = *(uint16_t*)pTableData; pTableData += 2; }
         interfaceTable = interfaceIndex & TypeDefOrRef_Type_Mask;
         interfaceRow = interfaceIndex >> TypeDefOrRef_Type_Bits;
         switch (interfaceTable)
@@ -648,7 +630,12 @@ const uint8_t* CLIFile_LoadMemberReferences(CLIFile* pFile, const uint8_t* pTabl
     uint32_t parentRow = 0;
     for (uint32_t index = 0, heapIndex = 0; index < pFile->MemberReferenceCount; ++index)
     {
-        parentIndex = *(uint16_t*)pTableData; pTableData += 2;
+        if (pFile->TypeDefinitionCount > MemberRefParent_Type_MaxRows16Bit ||
+            pFile->TypeReferenceCount > MemberRefParent_Type_MaxRows16Bit ||
+            pFile->ModuleReferenceCount > MemberRefParent_Type_MaxRows16Bit ||
+            pFile->MethodDefinitionCount > MemberRefParent_Type_MaxRows16Bit ||
+            pFile->TypeSpecificationCount > MemberRefParent_Type_MaxRows16Bit) { parentIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { parentIndex = *(uint16_t*)pTableData; pTableData += 2; }
         parentTable = parentIndex & MemberRefParent_Type_Mask;
         parentRow = parentIndex >> MemberRefParent_Type_Bits;
         switch (parentTable)
@@ -679,7 +666,10 @@ const uint8_t* CLIFile_LoadConstants(CLIFile* pFile, const uint8_t* pTableData)
     for (uint32_t index = 0, heapIndex = 0; index < pFile->ConstantCount; ++index)
     {
         pFile->Constants[index].Type = *pTableData; pTableData += 2; // 1 unused padding byte
-        parentIndex = *(uint16_t*)pTableData; pTableData += 2;
+        if (pFile->FieldCount > HasConstant_Type_MaxRows16Bit ||
+            pFile->ParameterCount > HasConstant_Type_MaxRows16Bit ||
+            pFile->PropertyCount > HasConstant_Type_MaxRows16Bit) { parentIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { parentIndex = *(uint16_t*)pTableData; pTableData += 2; }
         parentTable = parentIndex & HasConstant_Type_Mask;
         parentRow = parentIndex >> HasConstant_Type_Bits;
         switch (parentTable)
@@ -706,7 +696,29 @@ const uint8_t* CLIFile_LoadCustomAttributes(CLIFile* pFile, const uint8_t* pTabl
     uint32_t typeRow = 0;
     for (uint32_t index = 0, heapIndex = 0; index < pFile->CustomAttributeCount; ++index)
     {
-        parentIndex = *(uint16_t*)pTableData; pTableData += 2;
+        if (pFile->MethodDefinitionCount > HasCustomAttribute_Type_MaxRows16Bit ||
+            pFile->FieldCount > HasCustomAttribute_Type_MaxRows16Bit ||
+            pFile->TypeReferenceCount > HasCustomAttribute_Type_MaxRows16Bit ||
+            pFile->TypeDefinitionCount > HasCustomAttribute_Type_MaxRows16Bit ||
+            pFile->ParameterCount > HasCustomAttribute_Type_MaxRows16Bit ||
+            pFile->InterfaceImplementationCount > HasCustomAttribute_Type_MaxRows16Bit ||
+            pFile->MemberReferenceCount > HasCustomAttribute_Type_MaxRows16Bit ||
+            pFile->ModuleDefinitionCount > HasCustomAttribute_Type_MaxRows16Bit ||
+            pFile->DeclSecurityCount > HasCustomAttribute_Type_MaxRows16Bit ||
+            pFile->PropertyCount > HasCustomAttribute_Type_MaxRows16Bit ||
+            pFile->EventCount > HasCustomAttribute_Type_MaxRows16Bit ||
+            pFile->StandAloneSignatureCount > HasCustomAttribute_Type_MaxRows16Bit ||
+            pFile->ModuleReferenceCount > HasCustomAttribute_Type_MaxRows16Bit ||
+            pFile->TypeSpecificationCount > HasCustomAttribute_Type_MaxRows16Bit ||
+            pFile->AssemblyDefinitionCount > HasCustomAttribute_Type_MaxRows16Bit ||
+            pFile->AssemblyReferenceCount > HasCustomAttribute_Type_MaxRows16Bit ||
+            pFile->FileCount > HasCustomAttribute_Type_MaxRows16Bit ||
+            pFile->ExportedTypeCount > HasCustomAttribute_Type_MaxRows16Bit ||
+            pFile->ManifestResourceCount > HasCustomAttribute_Type_MaxRows16Bit ||
+            pFile->GenericParameterCount > HasCustomAttribute_Type_MaxRows16Bit ||
+            pFile->GenericParameterConstraintCount > HasCustomAttribute_Type_MaxRows16Bit ||
+            pFile->MethodSpecificationCount > HasCustomAttribute_Type_MaxRows16Bit) { parentIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { parentIndex = *(uint16_t*)pTableData; pTableData += 2; }
         parentTable = parentIndex & HasCustomAttribute_Type_Mask;
         parentRow = parentIndex >> HasCustomAttribute_Type_Bits;
         switch (parentTable)
@@ -735,7 +747,9 @@ const uint8_t* CLIFile_LoadCustomAttributes(CLIFile* pFile, const uint8_t* pTabl
         case HasCustomAttribute_Type_MethodSpecification: pFile->CustomAttributes[index].Parent.MethodSpecification = &pFile->MethodSpecifications[parentRow]; break;
         default: break;
         }
-        typeIndex = *(uint16_t*)pTableData; pTableData += 2;
+        if (pFile->MethodDefinitionCount > CustomAttributeType_Type_MaxRows16Bit ||
+            pFile->MemberReferenceCount > CustomAttributeType_Type_MaxRows16Bit) { typeIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { typeIndex = *(uint16_t*)pTableData; pTableData += 2; }
         typeTable = typeIndex & CustomAttributeType_Type_Mask;
         typeRow = typeIndex >> CustomAttributeType_Type_Bits;
         switch (typeTable)
@@ -758,7 +772,9 @@ const uint8_t* CLIFile_LoadFieldMarshals(CLIFile* pFile, const uint8_t* pTableDa
     uint32_t parentRow = 0;
     for (uint32_t index = 0, heapIndex = 0; index < pFile->FieldMarshalCount; ++index)
     {
-        parentIndex = *(uint16_t*)pTableData; pTableData += 2;
+        if (pFile->FieldCount > HasFieldMarshal_Type_MaxRows16Bit ||
+            pFile->ParameterCount > HasFieldMarshal_Type_MaxRows16Bit) { parentIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { parentIndex = *(uint16_t*)pTableData; pTableData += 2; }
         parentTable = parentIndex & HasFieldMarshal_Type_Mask;
         parentRow = parentIndex >> HasFieldMarshal_Type_Bits;
         switch (parentTable)
@@ -783,7 +799,10 @@ const uint8_t* CLIFile_LoadDeclSecurities(CLIFile* pFile, const uint8_t* pTableD
     {
         pFile->DeclSecurities[index].Action = *(uint16_t*)pTableData; pTableData += 2;
 
-        parentIndex = *(uint16_t*)pTableData; pTableData += 2;
+        if (pFile->TypeDefinitionCount > HasDeclSecurity_Type_MaxRows16Bit ||
+            pFile->MethodDefinitionCount > HasDeclSecurity_Type_MaxRows16Bit ||
+            pFile->AssemblyDefinitionCount > HasDeclSecurity_Type_MaxRows16Bit) { parentIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { parentIndex = *(uint16_t*)pTableData; pTableData += 2; }
         parentTable = parentIndex & HasDeclSecurity_Type_Mask;
         parentRow = parentIndex >> HasDeclSecurity_Type_Bits;
         switch (parentTable)
@@ -807,7 +826,8 @@ const uint8_t* CLIFile_LoadClassLayouts(CLIFile* pFile, const uint8_t* pTableDat
     {
         pFile->ClassLayouts[index].PackingSize = *(uint16_t*)pTableData; pTableData += 2;
         pFile->ClassLayouts[index].ClassSize = *(uint32_t*)pTableData; pTableData += 4;
-        parentIndex = *(uint16_t*)pTableData; pTableData += 2;
+        if (pFile->TypeDefinitionCount > 0xFFFF) { parentIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { parentIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->ClassLayouts[index].Parent = &pFile->TypeDefinitions[parentIndex];
     }
     return pTableData;
@@ -819,7 +839,8 @@ const uint8_t* CLIFile_LoadFieldLayouts(CLIFile* pFile, const uint8_t* pTableDat
     for (uint32_t index = 0; index < pFile->FieldLayoutCount; ++index)
     {
         pFile->FieldLayouts[index].Offset = *(uint32_t*)pTableData; pTableData += 4;
-        fieldIndex = *(uint16_t*)pTableData; pTableData += 2;
+        if (pFile->FieldCount > 0xFFFF) { fieldIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { fieldIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->FieldLayouts[index].Field = &pFile->Fields[fieldIndex];
     }
     return pTableData;
@@ -842,9 +863,11 @@ const uint8_t* CLIFile_LoadEventMaps(CLIFile* pFile, const uint8_t* pTableData)
     uint32_t eventListIndex = 0;
     for (uint32_t index = 0; index < pFile->EventMapCount; ++index)
     {
-        parentIndex = *(uint16_t*)pTableData; pTableData += 2;
+        if (pFile->TypeDefinitionCount > 0xFFFF) { parentIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { parentIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->EventMaps[index].Parent = &pFile->TypeDefinitions[parentIndex];
-        eventListIndex = *(uint16_t*)pTableData; pTableData += 2;
+        if (pFile->EventCount > 0xFFFF) { eventListIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { eventListIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->EventMaps[index].EventList = &pFile->Events[eventListIndex];
     }
     return pTableData;
@@ -861,7 +884,10 @@ const uint8_t* CLIFile_LoadEvents(CLIFile* pFile, const uint8_t* pTableData)
         if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->Events[index].Name = (const char*)(pFile->StringsHeap + heapIndex);
-        eventTypeIndex = *(uint16_t*)pTableData; pTableData += 2;
+        if (pFile->TypeDefinitionCount > TypeDefOrRef_Type_MaxRows16Bit ||
+            pFile->TypeReferenceCount > TypeDefOrRef_Type_MaxRows16Bit ||
+            pFile->TypeSpecificationCount > TypeDefOrRef_Type_MaxRows16Bit) { eventTypeIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { eventTypeIndex = *(uint16_t*)pTableData; pTableData += 2; }
         eventTypeTable = eventTypeIndex & TypeDefOrRef_Type_Mask;
         eventTypeRow = eventTypeIndex >> TypeDefOrRef_Type_Bits;
         switch (eventTypeTable)
@@ -881,9 +907,11 @@ const uint8_t* CLIFile_LoadPropertyMaps(CLIFile* pFile, const uint8_t* pTableDat
     uint32_t propertyListIndex = 0;
     for (uint32_t index = 0; index < pFile->PropertyMapCount; ++index)
     {
-        parentIndex = *(uint16_t*)pTableData; pTableData += 2;
+        if (pFile->TypeDefinitionCount > 0xFFFF) { parentIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { parentIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->PropertyMaps[index].Parent = &pFile->TypeDefinitions[parentIndex];
-        propertyListIndex = *(uint16_t*)pTableData; pTableData += 2;
+        if (pFile->PropertyCount > 0xFFFF) { propertyListIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { propertyListIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->PropertyMaps[index].PropertyList = &pFile->Properties[propertyListIndex];
     }
     return pTableData;
@@ -913,10 +941,13 @@ const uint8_t* CLIFile_LoadMethodSemantics(CLIFile* pFile, const uint8_t* pTable
     for (uint32_t index = 0; index < pFile->MethodSemanticsCount; ++index)
     {
         pFile->MethodSemantics[index].Semantics = *(uint16_t*)pTableData; pTableData += 2;
-        methodIndex = *(uint16_t*)pTableData; pTableData += 2;
+        if (pFile->MethodDefinitionCount > 0xFFFF) { methodIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { methodIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->MethodSemantics[index].Method = &pFile->MethodDefinitions[methodIndex];
 
-        associationIndex = *(uint16_t*)pTableData; pTableData += 2;
+        if (pFile->EventCount > HasSemantics_Type_MaxRows16Bit ||
+            pFile->PropertyCount > HasSemantics_Type_MaxRows16Bit) { associationIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { associationIndex = *(uint16_t*)pTableData; pTableData += 2; }
         associationTable = associationIndex & HasSemantics_Type_Mask;
         associationRow = associationIndex >> HasSemantics_Type_Bits;
         switch (associationTable)
@@ -937,10 +968,13 @@ const uint8_t* CLIFile_LoadMethodImplementations(CLIFile* pFile, const uint8_t* 
     uint32_t methodRow = 0;
     for (uint32_t index = 0; index < pFile->MethodImplementationCount; ++index)
     {
-        parentIndex = *(uint16_t*)pTableData; pTableData += 2;
+        if (pFile->TypeDefinitionCount > 0xFFFF) { parentIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { parentIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->MethodImplementations[index].Parent = &pFile->TypeDefinitions[parentIndex];
 
-        methodIndex = *(uint16_t*)pTableData; pTableData += 2;
+        if (pFile->MethodDefinitionCount > MethodDefOrRef_Type_MaxRows16Bit ||
+            pFile->MemberReferenceCount > MethodDefOrRef_Type_MaxRows16Bit) { methodIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { methodIndex = *(uint16_t*)pTableData; pTableData += 2; }
         methodTable = methodIndex & MethodDefOrRef_Type_Mask;
         methodRow = methodIndex >> MethodDefOrRef_Type_Bits;
         switch (methodTable)
@@ -950,7 +984,9 @@ const uint8_t* CLIFile_LoadMethodImplementations(CLIFile* pFile, const uint8_t* 
         default: break;
         }
 
-        methodIndex = *(uint16_t*)pTableData; pTableData += 2;
+        if (pFile->MethodDefinitionCount > MethodDefOrRef_Type_MaxRows16Bit ||
+            pFile->MemberReferenceCount > MethodDefOrRef_Type_MaxRows16Bit) { methodIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { methodIndex = *(uint16_t*)pTableData; pTableData += 2; }
         methodTable = methodIndex & MethodDefOrRef_Type_Mask;
         methodRow = methodIndex >> MethodDefOrRef_Type_Bits;
         switch (methodTable)
@@ -995,7 +1031,9 @@ const uint8_t* CLIFile_LoadImplementationMaps(CLIFile* pFile, const uint8_t* pTa
     {
         pFile->ImplementationMaps[index].MappingFlags = *(uint16_t*)pTableData; pTableData += 2;
 
-        memberForwardedIndex = *(uint16_t*)pTableData; pTableData += 2;
+        if (pFile->FieldCount > MemberForwarded_Type_MaxRows16Bit ||
+            pFile->MethodDefinitionCount > MemberForwarded_Type_MaxRows16Bit) { memberForwardedIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { memberForwardedIndex = *(uint16_t*)pTableData; pTableData += 2; }
         memberForwardedTable = memberForwardedIndex & MemberForwarded_Type_Mask;
         memberForwardedRow = memberForwardedIndex >> MemberForwarded_Type_Bits;
         switch (memberForwardedTable)
@@ -1009,7 +1047,8 @@ const uint8_t* CLIFile_LoadImplementationMaps(CLIFile* pFile, const uint8_t* pTa
         else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->ImplementationMaps[index].ImportName = (const char*)(pFile->StringsHeap + heapIndex);
 
-        importScopeIndex = *(uint16_t*)pTableData; pTableData += 2;
+        if (pFile->ModuleReferenceCount > 0xFFFF) { importScopeIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { importScopeIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->ImplementationMaps[index].ImportScope = &pFile->ModuleReferences[importScopeIndex];
     }
     return pTableData;
@@ -1022,7 +1061,8 @@ const uint8_t* CLIFile_LoadFieldRVAs(CLIFile* pFile, const uint8_t* pTableData)
     {
         pFile->FieldRVAs[index].VirtualAddress = *(uint32_t* )pTableData; pTableData += 4;
 
-        fieldIndex = *(uint16_t*)pTableData; pTableData += 2;
+        if (pFile->FieldCount > 0xFFFF) { fieldIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { fieldIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->FieldRVAs[index].Field = &pFile->Fields[fieldIndex];
     }
     return pTableData;
@@ -1102,7 +1142,8 @@ const uint8_t* CLIFile_LoadAssemblyReferenceProcessors(CLIFile* pFile, const uin
     for (uint32_t index = 0; index < pFile->AssemblyReferenceProcessorCount; ++index)
     {
         pFile->AssemblyReferenceProcessors[index].Processor = *(uint32_t* )pTableData; pTableData += 4;
-        assemblyReferenceIndex = *(uint16_t*)pTableData; pTableData += 2;
+        if (pFile->AssemblyReferenceCount > 0xFFFF) { assemblyReferenceIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { assemblyReferenceIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->AssemblyReferenceProcessors[index].AssemblyReference = &pFile->AssemblyReferences[assemblyReferenceIndex];
     }
     return pTableData;
@@ -1116,7 +1157,8 @@ const uint8_t* CLIFile_LoadAssemblyReferenceOperatingSystems(CLIFile* pFile, con
         pFile->AssemblyReferenceOperatingSystems[index].PlatformID = *(uint32_t* )pTableData; pTableData += 4;
         pFile->AssemblyReferenceOperatingSystems[index].MajorVersion = *(uint32_t* )pTableData; pTableData += 4;
         pFile->AssemblyReferenceOperatingSystems[index].MinorVersion = *(uint32_t* )pTableData; pTableData += 4;
-        assemblyReferenceIndex = *(uint16_t*)pTableData; pTableData += 2;
+        if (pFile->AssemblyReferenceCount > 0xFFFF) { assemblyReferenceIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { assemblyReferenceIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->AssemblyReferenceOperatingSystems[index].AssemblyReference = &pFile->AssemblyReferences[assemblyReferenceIndex];
     }
     return pTableData;
@@ -1146,7 +1188,8 @@ const uint8_t* CLIFile_LoadExportedTypes(CLIFile* pFile, const uint8_t* pTableDa
     for (uint32_t index = 0, heapIndex = 0; index < pFile->ExportedTypeCount; ++index)
     {
         pFile->ExportedTypes[index].Flags = *(uint32_t* )pTableData; pTableData += 4;
-        typeDefinitionIndex = *(uint16_t*)pTableData; pTableData += 2;
+        if (pFile->TypeDefinitionCount > 0xFFFF) { typeDefinitionIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { typeDefinitionIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->ExportedTypes[index].TypeDefinitionID = &pFile->TypeDefinitions[typeDefinitionIndex];
         if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
@@ -1155,7 +1198,10 @@ const uint8_t* CLIFile_LoadExportedTypes(CLIFile* pFile, const uint8_t* pTableDa
         else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->ExportedTypes[index].Namespace = (const char*)(pFile->StringsHeap + heapIndex);
 
-        implementationIndex = *(uint16_t*)pTableData; pTableData += 2;
+        if (pFile->FileCount > Implementation_Type_MaxRows16Bit ||
+            pFile->AssemblyReferenceCount > Implementation_Type_MaxRows16Bit ||
+            pFile->ExportedTypeCount > Implementation_Type_MaxRows16Bit) { implementationIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { implementationIndex = *(uint16_t*)pTableData; pTableData += 2; }
         implementationTable = implementationIndex & Implementation_Type_Mask;
         implementationRow = implementationIndex >> Implementation_Type_Bits;
         switch (implementationTable)
@@ -1182,7 +1228,10 @@ const uint8_t* CLIFile_LoadManifestResources(CLIFile* pFile, const uint8_t* pTab
         else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->ManifestResources[index].Name = (const char*)(pFile->StringsHeap + heapIndex);
 
-        implementationIndex = *(uint16_t*)pTableData; pTableData += 2;
+        if (pFile->FileCount > Implementation_Type_MaxRows16Bit ||
+            pFile->AssemblyReferenceCount > Implementation_Type_MaxRows16Bit ||
+            pFile->ExportedTypeCount > Implementation_Type_MaxRows16Bit) { implementationIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { implementationIndex = *(uint16_t*)pTableData; pTableData += 2; }
         implementationTable = implementationIndex & Implementation_Type_Mask;
         implementationRow = implementationIndex >> Implementation_Type_Bits;
         switch (implementationTable)
@@ -1202,9 +1251,11 @@ const uint8_t* CLIFile_LoadNestedClasses(CLIFile* pFile, const uint8_t* pTableDa
     uint32_t enclosingIndex = 0;
     for (uint32_t index = 0; index < pFile->NestedClassCount; ++index)
     {
-        nestedIndex = *(uint16_t*)pTableData; pTableData += 2;
+        if (pFile->TypeDefinitionCount > 0xFFFF) { nestedIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { nestedIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->NestedClasses[index].Nested = &pFile->TypeDefinitions[nestedIndex];
-        enclosingIndex = *(uint16_t*)pTableData; pTableData += 2;
+        if (pFile->TypeDefinitionCount > 0xFFFF) { enclosingIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { enclosingIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->NestedClasses[index].Enclosing = &pFile->TypeDefinitions[enclosingIndex];
     }
     return pTableData;
@@ -1219,7 +1270,9 @@ const uint8_t* CLIFile_LoadGenericParameters(CLIFile* pFile, const uint8_t* pTab
     {
         pFile->GenericParameters[index].Index = *(uint16_t* )pTableData; pTableData += 2;
         pFile->GenericParameters[index].Flags = *(uint16_t* )pTableData; pTableData += 2;
-        ownerIndex = *(uint16_t*)pTableData; pTableData += 2;
+        if (pFile->TypeDefinitionCount > TypeOrMethodDef_Type_MaxRows16Bit ||
+            pFile->MethodDefinitionCount > TypeOrMethodDef_Type_MaxRows16Bit) { ownerIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { ownerIndex = *(uint16_t*)pTableData; pTableData += 2; }
         ownerTable = ownerIndex & TypeOrMethodDef_Type_Mask;
         ownerRow = ownerIndex >> TypeOrMethodDef_Type_Bits;
         switch (ownerTable)
@@ -1242,7 +1295,9 @@ const uint8_t* CLIFile_LoadMethodSpecifications(CLIFile* pFile, const uint8_t* p
     uint32_t methodRow = 0;
     for (uint32_t index = 0, heapIndex = 0; index < pFile->MethodSpecificationCount; ++index)
     {
-        methodIndex = *(uint16_t*)pTableData; pTableData += 2;
+        if (pFile->MethodDefinitionCount > MethodDefOrRef_Type_MaxRows16Bit ||
+            pFile->MemberReferenceCount > MethodDefOrRef_Type_MaxRows16Bit) { methodIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { methodIndex = *(uint16_t*)pTableData; pTableData += 2; }
         methodTable = methodIndex & MethodDefOrRef_Type_Mask;
         methodRow = methodIndex >> MethodDefOrRef_Type_Bits;
         switch (methodTable)
@@ -1266,9 +1321,13 @@ const uint8_t* CLIFile_LoadGenericParameterConstraints(CLIFile* pFile, const uin
     uint32_t constraintRow = 0;
     for (uint32_t index = 0; index < pFile->GenericParameterConstraintCount; ++index)
     {
-        ownerIndex = *(uint16_t*)pTableData; pTableData += 2;
+        if (pFile->GenericParameterCount > 0xFFFF) { ownerIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { ownerIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->GenericParameterConstraints[index].Owner = &pFile->GenericParameters[ownerIndex];
-        constraintIndex = *(uint16_t*)pTableData; pTableData += 2;
+        if (pFile->TypeDefinitionCount > TypeDefOrRef_Type_MaxRows16Bit ||
+            pFile->TypeReferenceCount > TypeDefOrRef_Type_MaxRows16Bit ||
+            pFile->TypeSpecificationCount > TypeDefOrRef_Type_MaxRows16Bit) { constraintIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { constraintIndex = *(uint16_t*)pTableData; pTableData += 2; }
         constraintTable = constraintIndex & TypeDefOrRef_Type_Mask;
         constraintRow = constraintIndex >> TypeDefOrRef_Type_Bits;
         switch (constraintTable)
