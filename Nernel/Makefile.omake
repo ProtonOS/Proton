@@ -66,6 +66,7 @@
 	Source/Core/PIC.c
 	Source/Core/PIT.c
 	Source/Core/RTC.c
+	Source/Core/SerialWriter.c
 	Source/Core/SystemCalls.c
 	Source/Core/SystemClock.c
 	Source/CLR/PEFile.c

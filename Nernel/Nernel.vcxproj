@@ -27,6 +27,7 @@
     <ClCompile Include="Source\Core\Console.c" />
     <ClCompile Include="Source\Core\GDT.c" />
     <ClCompile Include="Source\Core\IDT.c" />
+    <ClCompile Include="Source\Core\SerialWriter.c" />
     <ClCompile Include="Source\Core\SystemClock.c" />
     <ClCompile Include="Source\Core\PIC.c" />
     <ClCompile Include="Source\Core\PIT.c" />
@@ -85,6 +86,7 @@
     <ClInclude Include="Include\Core\IDTExternalStubs.h" />
     <ClInclude Include="Include\Core\IDTInitializeStubs.h" />
     <ClInclude Include="Include\Core\InterruptRegisters.h" />
+    <ClInclude Include="Include\Core\SerialWriter.h" />
     <ClInclude Include="Include\Core\SystemClock.h" />
     <ClInclude Include="Include\Core\PIC.h" />
     <ClInclude Include="Include\Core\PIT.h" />

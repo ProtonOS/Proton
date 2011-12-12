@@ -14,6 +14,7 @@
 #include <Core/PIC.h>
 #include <Core/PIT.h>
 #include <Core/RTC.h>
+#include <Core/SerialWriter.h>
 #include <Core/SystemClock.h>
 #include <Runtime/CLIFile.h>
 #include <Runtime/MetaData.h>

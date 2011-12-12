@@ -31,6 +31,7 @@ bool_t Nernel_Startup(uint32_t pMultiBootMagic,
 {
     if (!MultiBoot_Startup(pMultiBootMagic, pMultiBootData)) return FALSE;
 
+    SerialWriter_Startup();
     Console_Startup();
     Console_WriteLine("Nernel: Starting Proton (" BRANCH ")...");
 
@@ -66,6 +67,7 @@ void Nernel_Shutdown()
     GDT_Shutdown();
 
     Console_Shutdown();
+    SerialWriter_Shutdown();
 
     MultiBoot_Shutdown();
 }

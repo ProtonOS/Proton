@@ -187,6 +187,9 @@
     <ClCompile Include="Source\CLR\MetaData.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Core\SerialWriter.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\PortIO.h">
@@ -379,6 +382,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Include\CLR\MetaData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Core\SerialWriter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

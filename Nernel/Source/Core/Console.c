@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <Core/Console.h>
+#include <Core/SerialWriter.h>
 
 uint8_t* gConsole_BaseMemory = (uint8_t*)Console_BaseMemory;
 uint8_t gConsole_Columns = Console_DefaultColumns;
@@ -54,8 +55,8 @@ void Console_WriteCharacter(char pCharacter)
     if (pCharacter == '\n')
     {
         Console_MoveToNextLine();
-    	//Core::DeviceManager::GetCOMPortLogger().WriteByte('\r');
-    	//Core::DeviceManager::GetCOMPortLogger().WriteByte('\n');
+    	SerialWriter_WriteByte('\r');
+    	SerialWriter_WriteByte('\n');
     }
     else
     {
@@ -63,7 +64,7 @@ void Console_WriteCharacter(char pCharacter)
 	    *cursor = pCharacter;
 	    *(cursor + 1) = gConsole_Attributes;
 	    Console_Advance();
-    	//Core::DeviceManager::GetCOMPortLogger().WriteByte(pCharacter);
+    	SerialWriter_WriteByte(pCharacter);
     }
 }
 
@@ -88,8 +89,8 @@ void Console_WriteLine(const char* pString)
 {
 	Console_WriteString(pString, 0);
 	if (gConsole_CursorColumn > 0) Console_MoveToNextLine();
-    //Core::DeviceManager::GetCOMPortLogger().WriteByte('\r');
-    //Core::DeviceManager::GetCOMPortLogger().WriteByte('\n');
+    SerialWriter_WriteByte('\r');
+    SerialWriter_WriteByte('\n');
 }
 
 uint8_t* Console_GetCursor() { return gConsole_BaseMemory + (((gConsole_CursorRow * gConsole_Columns) + gConsole_CursorColumn) * 2); }
