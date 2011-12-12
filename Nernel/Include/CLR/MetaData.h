@@ -67,6 +67,7 @@ const uint8_t* MetaData_GetStreamData(const uint8_t* pMetaDataHeader, uint16_t p
 #define MetaData_Table_ManifestResource                     0x28
 #define MetaData_Table_NestedClass                          0x29
 #define MetaData_Table_GenericParameter                     0x2A
+#define MetaData_Table_MethodSpecification                  0x2B
 #define MetaData_Table_GenericParameterConstraint           0x2C
 
 typedef struct
@@ -90,6 +91,8 @@ typedef struct
 #define HasConstant_Type_Field                              0x00
 #define HasConstant_Type_Parameter                          0x01
 #define HasConstant_Type_Property                           0x02
+#define HasConstant_Type_Bits                               0x02
+#define HasConstant_Type_Mask                               0x03
 
 #define HasCustomAttribute_Type_MethodDefinition            0x00
 #define HasCustomAttribute_Type_Field                       0x01
@@ -113,35 +116,53 @@ typedef struct
 #define HasCustomAttribute_Type_GenericParameter            0x13
 #define HasCustomAttribute_Type_GenericParameterConstraint  0x14
 #define HasCustomAttribute_Type_MethodSpecification         0x15
+#define HasCustomAttribute_Type_Bits                        0x05
+#define HasCustomAttribute_Type_Mask                        0x1F
 
 #define HasFieldMarshal_Type_Field                          0x00
 #define HasFieldMarshal_Type_Parameter                      0x01
+#define HasFieldMarshal_Type_Bits                           0x01
+#define HasFieldMarshal_Type_Mask                           0x01
 
 #define HasDeclSecurity_Type_TypeDefinition                 0x00
 #define HasDeclSecurity_Type_MethodDefinition               0x01
 #define HasDeclSecurity_Type_AssemblyDefinition             0x02
+#define HasDeclSecurity_Type_Bits                           0x02
+#define HasDeclSecurity_Type_Mask                           0x03
 
 #define MemberRefParent_Type_TypeDefinition                 0x00
 #define MemberRefParent_Type_TypeReference                  0x01
 #define MemberRefParent_Type_ModuleReference                0x02
 #define MemberRefParent_Type_MethodDefinition               0x03
 #define MemberRefParent_Type_TypeSpecification              0x04
+#define MemberRefParent_Type_Bits                           0x03
+#define MemberRefParent_Type_Mask                           0x07
 
 #define HasSemantics_Type_Event                             0x00
 #define HasSemantics_Type_Property                          0x01
+#define HasSemantics_Type_Bits                              0x01
+#define HasSemantics_Type_Mask                              0x01
 
 #define MethodDefOrRef_Type_MethodDefinition                0x00
 #define MethodDefOrRef_Type_MemberReference                 0x01
+#define MethodDefOrRef_Type_Bits                            0x01
+#define MethodDefOrRef_Type_Mask                            0x01
 
 #define MemberForwarded_Type_Field                          0x00
 #define MemberForwarded_Type_MethodDefinition               0x01
+#define MemberForwarded_Type_Bits                           0x01
+#define MemberForwarded_Type_Mask                           0x01
 
 #define Implementation_Type_File                            0x00
 #define Implementation_Type_AssemblyReference               0x01
 #define Implementation_Type_ExportedType                    0x02
+#define Implementation_Type_Bits                            0x02
+#define Implementation_Type_Mask                            0x03
 
 #define CustomAttributeType_Type_MethodDefinition           0x02
 #define CustomAttributeType_Type_MemberReference            0x03
+#define CustomAttributeType_Type_Bits                       0x03
+#define CustomAttributeType_Type_Mask                       0x07
 
 #define ResolutionScope_Type_ModuleDefinition               0x00
 #define ResolutionScope_Type_ModuleReference                0x01
@@ -152,6 +173,8 @@ typedef struct
 
 #define TypeOrMethodDef_Type_TypeDefinition                 0x00
 #define TypeOrMethodDef_Type_MethodDefinition               0x01
+#define TypeOrMethodDef_Type_Bits                           0x01
+#define TypeOrMethodDef_Type_Mask                           0x01
 
 
 #define AssemblyHashAlgorithm_None                                      0x0000
@@ -377,7 +400,7 @@ union \
     InterfaceImplementation* InterfaceImplementation; \
     MemberReference* MemberReference; \
     ModuleDefinition* ModuleDefinition; \
-    DeclSecurity* Permission; \
+    DeclSecurity* DeclSecurity; \
     Property* Property; \
     Event* Event; \
     StandAloneSignature* StandAloneSignature; \
@@ -520,11 +543,7 @@ struct _MethodDefinition
     uint16_t ImplFlags;
     uint16_t Flags;
     const char* Name;
-    uint8_t TypeOfSignature;
-    union
-    {
-        TypeDefinition* TypeDefinition;
-    } Signature;
+    const uint8_t* Signature;
     Parameter* ParameterList;
 };
 
@@ -545,11 +564,7 @@ struct _MemberReference
 {
     MemberRefParentUnion(Parent)
     const char* Name;
-    uint8_t TypeOfSignature;
-    union
-    {
-        TypeDefinition* TypeDefinition;
-    } Signature;
+    const uint8_t* Signature;
 };
 
 struct _Constant

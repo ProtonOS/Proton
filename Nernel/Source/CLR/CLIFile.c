@@ -256,6 +256,12 @@ CLIFile* CLIFile_Create(PEFile* pFile)
         cliFile->GenericParameters = (GenericParameter*)calloc(cliFile->GenericParameterCount, sizeof(GenericParameter));
         tableData += 4;
     }
+    if ((cliFile->TablesHeader->PresentTables & (1ull << MetaData_Table_MethodSpecification)) != 0)
+    {
+        cliFile->MethodSpecificationCount = *(uint32_t*)tableData;
+        cliFile->MethodSpecifications = (MethodSpecification*)calloc(cliFile->MethodSpecificationCount, sizeof(MethodSpecification));
+        tableData += 4;
+    }
     if ((cliFile->TablesHeader->PresentTables & (1ull << MetaData_Table_GenericParameterConstraint)) != 0)
     {
         cliFile->GenericParameterConstraintCount = *(uint32_t*)tableData;
@@ -265,27 +271,122 @@ CLIFile* CLIFile_Create(PEFile* pFile)
 
 	// Not quite sure why this is needed, but it's there,
 	// so we have to account for it.
-	tableData += 4;
+	//tableData += 4;
 
 
     tableData = CLIFile_LoadModuleDefinitions(cliFile, tableData);
     printf("Loaded %u ModuleDefinitions\n", (unsigned int)cliFile->ModuleDefinitionCount);
-    printf("Module 0: Name \"%s\"\n", cliFile->ModuleDefinitions[0].Name);
 
 	tableData = CLIFile_LoadTypeReferences(cliFile, tableData);
     printf("Loaded %u TypeReferences\n", (unsigned int)cliFile->TypeReferenceCount);
-	for (uint32_t mI = 0; mI < cliFile->TypeReferenceCount; mI++)
-	{
-		printf("TypeRef %u: Name '%s.%s'\n", (unsigned int)mI, cliFile->TypeReferences[mI].Namespace, cliFile->TypeReferences[mI].Name);
-	}
     
 	tableData = CLIFile_LoadTypeDefinitions(cliFile, tableData);
     printf("Loaded %u TypeDefinitions\n", (unsigned int)cliFile->TypeDefinitionCount);
-	printf("TypeDef 0: Name \"%s\"\n", cliFile->TypeDefinitions[0].Name); // this should be <Module>
     
 	tableData = CLIFile_LoadFields(cliFile, tableData);
     printf("Loaded %u Fields\n", (unsigned int)cliFile->FieldCount);
-	printf("FieldDef 0: Name \"%s\"\n", cliFile->Fields[0].Name);
+
+	tableData = CLIFile_LoadMethodDefinitions(cliFile, tableData);
+    printf("Loaded %u MethodDefinitions\n", (unsigned int)cliFile->MethodDefinitionCount);
+
+	tableData = CLIFile_LoadParameters(cliFile, tableData);
+    printf("Loaded %u Parameters\n", (unsigned int)cliFile->ParameterCount);
+
+	tableData = CLIFile_LoadInterfaceImplementations(cliFile, tableData);
+    printf("Loaded %u InterfaceImplementations\n", (unsigned int)cliFile->InterfaceImplementationCount);
+
+	tableData = CLIFile_LoadMemberReferences(cliFile, tableData);
+    printf("Loaded %u MemberReferences\n", (unsigned int)cliFile->MemberReferenceCount);
+
+	tableData = CLIFile_LoadConstants(cliFile, tableData);
+    printf("Loaded %u Constants\n", (unsigned int)cliFile->ConstantCount);
+
+	tableData = CLIFile_LoadCustomAttributes(cliFile, tableData);
+    printf("Loaded %u CustomAttributes\n", (unsigned int)cliFile->CustomAttributeCount);
+
+	tableData = CLIFile_LoadFieldMarshals(cliFile, tableData);
+    printf("Loaded %u FieldMarshals\n", (unsigned int)cliFile->FieldMarshalCount);
+
+	tableData = CLIFile_LoadDeclSecurities(cliFile, tableData);
+    printf("Loaded %u DeclSecurities\n", (unsigned int)cliFile->DeclSecurityCount);
+
+	tableData = CLIFile_LoadClassLayouts(cliFile, tableData);
+    printf("Loaded %u ClassLayouts\n", (unsigned int)cliFile->ClassLayoutCount);
+
+	tableData = CLIFile_LoadFieldLayouts(cliFile, tableData);
+    printf("Loaded %u FieldLayouts\n", (unsigned int)cliFile->FieldLayoutCount);
+
+	tableData = CLIFile_LoadStandAloneSignatures(cliFile, tableData);
+    printf("Loaded %u StandAloneSignatures\n", (unsigned int)cliFile->StandAloneSignatureCount);
+
+	tableData = CLIFile_LoadEventMaps(cliFile, tableData);
+    printf("Loaded %u EventMaps\n", (unsigned int)cliFile->EventMapCount);
+
+	tableData = CLIFile_LoadEvents(cliFile, tableData);
+    printf("Loaded %u Events\n", (unsigned int)cliFile->EventCount);
+
+	tableData = CLIFile_LoadPropertyMaps(cliFile, tableData);
+    printf("Loaded %u PropertyMaps\n", (unsigned int)cliFile->PropertyMapCount);
+
+	tableData = CLIFile_LoadProperties(cliFile, tableData);
+    printf("Loaded %u Properties\n", (unsigned int)cliFile->PropertyCount);
+
+	tableData = CLIFile_LoadMethodSemantics(cliFile, tableData);
+    printf("Loaded %u MethodSemantics\n", (unsigned int)cliFile->MethodSemanticsCount);
+
+	tableData = CLIFile_LoadMethodImplementations(cliFile, tableData);
+    printf("Loaded %u MethodImplementations\n", (unsigned int)cliFile->MethodImplementationCount);
+
+	tableData = CLIFile_LoadModuleReferences(cliFile, tableData);
+    printf("Loaded %u ModuleReferences\n", (unsigned int)cliFile->ModuleReferenceCount);
+
+	tableData = CLIFile_LoadTypeSpecifications(cliFile, tableData);
+    printf("Loaded %u TypeSpecifications\n", (unsigned int)cliFile->TypeSpecificationCount);
+
+	tableData = CLIFile_LoadImplementationMaps(cliFile, tableData);
+    printf("Loaded %u ImplementationMaps\n", (unsigned int)cliFile->ImplementationMapCount);
+
+	tableData = CLIFile_LoadFieldRVAs(cliFile, tableData);
+    printf("Loaded %u FieldRVAs\n", (unsigned int)cliFile->FieldRVACount);
+
+	tableData = CLIFile_LoadAssemblyDefinitions(cliFile, tableData);
+    printf("Loaded %u AssemblyDefinitions\n", (unsigned int)cliFile->AssemblyDefinitionCount);
+
+    tableData = CLIFile_LoadAssemblyProcessors(cliFile, tableData);
+    printf("Loaded %u AssemblyProcessors\n", (unsigned int)cliFile->AssemblyProcessorCount);
+
+    tableData = CLIFile_LoadAssemblyOperatingSystems(cliFile, tableData);
+    printf("Loaded %u AssemblyOperatingSystems\n", (unsigned int)cliFile->AssemblyOperatingSystemCount);
+
+    tableData = CLIFile_LoadAssemblyReferences(cliFile, tableData);
+    printf("Loaded %u AssemblyReferences\n", (unsigned int)cliFile->AssemblyReferenceCount);
+
+    tableData = CLIFile_LoadAssemblyReferenceProcessors(cliFile, tableData);
+    printf("Loaded %u AssemblyReferenceProcessors\n", (unsigned int)cliFile->AssemblyReferenceProcessorCount);
+
+    tableData = CLIFile_LoadAssemblyReferenceOperatingSystems(cliFile, tableData);
+    printf("Loaded %u AssemblyReferenceOperatingSystems\n", (unsigned int)cliFile->AssemblyReferenceOperatingSystemCount);
+
+    tableData = CLIFile_LoadFiles(cliFile, tableData);
+    printf("Loaded %u Files\n", (unsigned int)cliFile->FileCount);
+
+    tableData = CLIFile_LoadExportedTypes(cliFile, tableData);
+    printf("Loaded %u ExportedTypes\n", (unsigned int)cliFile->ExportedTypeCount);
+
+    tableData = CLIFile_LoadManifestResources(cliFile, tableData);
+    printf("Loaded %u ManifestResources\n", (unsigned int)cliFile->ManifestResourceCount);
+
+    tableData = CLIFile_LoadNestedClasses(cliFile, tableData);
+    printf("Loaded %u NestedClasses\n", (unsigned int)cliFile->NestedClassCount);
+
+    tableData = CLIFile_LoadGenericParameters(cliFile, tableData);
+    printf("Loaded %u GenericParameters\n", (unsigned int)cliFile->GenericParameterCount);
+
+    tableData = CLIFile_LoadMethodSpecifications(cliFile, tableData);
+    printf("Loaded %u MethodSpecifications\n", (unsigned int)cliFile->MethodSpecificationCount);
+
+    tableData = CLIFile_LoadGenericParameterConstraints(cliFile, tableData);
+    printf("Loaded %u GenericParameterConstraints\n", (unsigned int)cliFile->GenericParameterConstraintCount);
 
     printf("Loaded Assembly\n");
     return cliFile;
@@ -293,6 +394,44 @@ CLIFile* CLIFile_Create(PEFile* pFile)
 
 void CLIFile_Destroy(CLIFile* pFile)
 {
+    if (pFile->ModuleDefinitions) free(pFile->ModuleDefinitions);
+    if (pFile->TypeReferences) free(pFile->TypeReferences);
+    if (pFile->TypeDefinitions) free(pFile->TypeDefinitions);
+    if (pFile->Fields) free(pFile->Fields);
+    if (pFile->MethodDefinitions) free(pFile->MethodDefinitions);
+    if (pFile->Parameters) free(pFile->Parameters);
+    if (pFile->InterfaceImplementations) free(pFile->InterfaceImplementations);
+    if (pFile->MemberReferences) free(pFile->MemberReferences);
+    if (pFile->Constants) free(pFile->Constants);
+    if (pFile->CustomAttributes) free(pFile->CustomAttributes);
+    if (pFile->FieldMarshals) free(pFile->FieldMarshals);
+    if (pFile->DeclSecurities) free(pFile->DeclSecurities);
+    if (pFile->ClassLayouts) free(pFile->ClassLayouts);
+    if (pFile->FieldLayouts) free(pFile->FieldLayouts);
+    if (pFile->StandAloneSignatures) free(pFile->StandAloneSignatures);
+    if (pFile->EventMaps) free(pFile->EventMaps);
+    if (pFile->Events) free(pFile->Events);
+    if (pFile->PropertyMaps) free(pFile->PropertyMaps);
+    if (pFile->Properties) free(pFile->Properties);
+    if (pFile->MethodSemantics) free(pFile->MethodSemantics);
+    if (pFile->MethodImplementations) free(pFile->MethodImplementations);
+    if (pFile->ModuleReferences) free(pFile->ModuleReferences);
+    if (pFile->TypeSpecifications) free(pFile->TypeSpecifications);
+    if (pFile->ImplementationMaps) free(pFile->ImplementationMaps);
+    if (pFile->FieldRVAs) free(pFile->FieldRVAs);
+    if (pFile->AssemblyDefinitions) free(pFile->AssemblyDefinitions);
+    if (pFile->AssemblyProcessors) free(pFile->AssemblyProcessors);
+    if (pFile->AssemblyOperatingSystems) free(pFile->AssemblyOperatingSystems);
+    if (pFile->AssemblyReferences) free(pFile->AssemblyReferences);
+    if (pFile->AssemblyReferenceProcessors) free(pFile->AssemblyReferenceProcessors);
+    if (pFile->AssemblyReferenceOperatingSystems) free(pFile->AssemblyReferenceOperatingSystems);
+    if (pFile->Files) free(pFile->Files);
+    if (pFile->ExportedTypes) free(pFile->ExportedTypes);
+    if (pFile->ManifestResources) free(pFile->ManifestResources);
+    if (pFile->NestedClasses) free(pFile->NestedClasses);
+    if (pFile->GenericParameters) free(pFile->GenericParameters);
+    if (pFile->MethodSpecifications) free(pFile->MethodSpecifications);
+    if (pFile->GenericParameterConstraints) free(pFile->GenericParameterConstraints);
     free(pFile);
 }
 
@@ -437,10 +576,708 @@ const uint8_t* CLIFile_LoadFields(CLIFile* pFile, const uint8_t* pTableData)
         if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->Fields[index].Name = (const char*)(pFile->StringsHeap + heapIndex);
-        //if (index < 20) printf("%u, %s\n", (unsigned int)heapIndex, pFile->Fields[index].Name);
         if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Blobs32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->Fields[index].Signature = pFile->BlobsHeap + heapIndex;
+    }
+    return pTableData;
+}
+
+const uint8_t* CLIFile_LoadMethodDefinitions(CLIFile* pFile, const uint8_t* pTableData)
+{
+    uint32_t parameterListIndex = 0;
+    for (uint32_t index = 0, heapIndex = 0; index < pFile->MethodDefinitionCount; ++index)
+    {
+        pFile->MethodDefinitions[index].VirtualAddress = *(uint32_t*)pTableData; pTableData += 4;
+        pFile->MethodDefinitions[index].ImplFlags = *(uint16_t*)pTableData; pTableData += 2;
+        pFile->MethodDefinitions[index].Flags = *(uint16_t*)pTableData; pTableData += 2;
+        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        pFile->MethodDefinitions[index].Name = (const char*)(pFile->StringsHeap + heapIndex);
+        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Blobs32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        pFile->MethodDefinitions[index].Signature = pFile->BlobsHeap + heapIndex;
+        parameterListIndex = *(uint16_t*)pTableData; pTableData += 2;
+        pFile->MethodDefinitions[index].ParameterList = &pFile->Parameters[parameterListIndex];
+    }
+    return pTableData;
+}
+
+const uint8_t* CLIFile_LoadParameters(CLIFile* pFile, const uint8_t* pTableData)
+{
+    for (uint32_t index = 0, heapIndex = 0; index < pFile->ParameterCount; ++index)
+    {
+        pFile->Parameters[index].Flags = *(uint16_t*)pTableData; pTableData += 2;
+        pFile->Parameters[index].Sequence = *(uint16_t*)pTableData; pTableData += 2;
+        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        pFile->Parameters[index].Name = (const char*)(pFile->StringsHeap + heapIndex);
+    }
+    return pTableData;
+}
+
+const uint8_t* CLIFile_LoadInterfaceImplementations(CLIFile* pFile, const uint8_t* pTableData)
+{
+    uint32_t implementorIndex = 0;
+    uint32_t interfaceIndex = 0;
+    uint8_t interfaceTable = 0;
+    uint32_t interfaceRow = 0;
+    for (uint32_t index = 0; index < pFile->InterfaceImplementationCount; ++index)
+    {
+        implementorIndex = *(uint16_t*)pTableData; pTableData += 2;
+        pFile->InterfaceImplementations[index].Implementor = &pFile->TypeDefinitions[implementorIndex];
+
+        interfaceIndex = *(uint16_t*)pTableData; pTableData += 2;
+        interfaceTable = interfaceIndex & TypeDefOrRef_Type_Mask;
+        interfaceRow = interfaceIndex >> TypeDefOrRef_Type_Bits;
+        switch (interfaceTable)
+        {
+        case TypeDefOrRef_Type_TypeDefinition: pFile->InterfaceImplementations[index].Interface.TypeDefinition = &pFile->TypeDefinitions[interfaceRow]; break;
+        case TypeDefOrRef_Type_TypeReference: pFile->InterfaceImplementations[index].Interface.TypeReference = &pFile->TypeReferences[interfaceRow]; break;
+        case TypeDefOrRef_Type_TypeSpecification: pFile->InterfaceImplementations[index].Interface.TypeSpecification = &pFile->TypeSpecifications[interfaceRow]; break;
+        default: break;
+        }
+    }
+    return pTableData;
+}
+
+const uint8_t* CLIFile_LoadMemberReferences(CLIFile* pFile, const uint8_t* pTableData)
+{
+    uint32_t parentIndex = 0;
+    uint8_t parentTable = 0;
+    uint32_t parentRow = 0;
+    for (uint32_t index = 0, heapIndex = 0; index < pFile->MemberReferenceCount; ++index)
+    {
+        parentIndex = *(uint16_t*)pTableData; pTableData += 2;
+        parentTable = parentIndex & MemberRefParent_Type_Mask;
+        parentRow = parentIndex >> MemberRefParent_Type_Bits;
+        switch (parentTable)
+        {
+        case MemberRefParent_Type_TypeDefinition: pFile->MemberReferences[index].Parent.TypeDefinition = &pFile->TypeDefinitions[parentRow]; break;
+        case MemberRefParent_Type_TypeReference: pFile->MemberReferences[index].Parent.TypeReference = &pFile->TypeReferences[parentRow]; break;
+        case MemberRefParent_Type_ModuleReference: pFile->MemberReferences[index].Parent.ModuleReference = &pFile->ModuleReferences[parentRow]; break;
+        case MemberRefParent_Type_MethodDefinition: pFile->MemberReferences[index].Parent.MethodDefinition = &pFile->MethodDefinitions[parentRow]; break;
+        case MemberRefParent_Type_TypeSpecification: pFile->MemberReferences[index].Parent.TypeSpecification = &pFile->TypeSpecifications[parentRow]; break;
+        default: break;
+        }
+
+        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        pFile->MemberReferences[index].Name = (const char*)(pFile->StringsHeap + heapIndex);
+        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Blobs32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        pFile->MemberReferences[index].Signature = pFile->BlobsHeap + heapIndex;
+    }
+    return pTableData;
+}
+
+const uint8_t* CLIFile_LoadConstants(CLIFile* pFile, const uint8_t* pTableData)
+{
+    uint32_t parentIndex = 0;
+    uint8_t parentTable = 0;
+    uint32_t parentRow = 0;
+    for (uint32_t index = 0, heapIndex = 0; index < pFile->ConstantCount; ++index)
+    {
+        pFile->Constants[index].Type = *pTableData; pTableData += 2; // 1 unused padding byte
+        parentIndex = *(uint16_t*)pTableData; pTableData += 2;
+        parentTable = parentIndex & HasConstant_Type_Mask;
+        parentRow = parentIndex >> HasConstant_Type_Bits;
+        switch (parentTable)
+        {
+        case HasConstant_Type_Field: pFile->Constants[index].Parent.Field = &pFile->Fields[parentRow]; break;
+        case HasConstant_Type_Parameter: pFile->Constants[index].Parent.Parameter = &pFile->Parameters[parentRow]; break;
+        case HasConstant_Type_Property: pFile->Constants[index].Parent.Property = &pFile->Properties[parentRow]; break;
+        default: break;
+        }
+        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Blobs32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        pFile->Constants[index].Value = pFile->BlobsHeap + heapIndex;
+    }
+    return pTableData;
+}
+
+const uint8_t* CLIFile_LoadCustomAttributes(CLIFile* pFile, const uint8_t* pTableData)
+{
+    uint32_t parentIndex = 0;
+    uint8_t parentTable = 0;
+    uint32_t parentRow = 0;
+    uint32_t typeIndex = 0;
+    uint8_t typeTable = 0;
+    uint32_t typeRow = 0;
+    for (uint32_t index = 0, heapIndex = 0; index < pFile->CustomAttributeCount; ++index)
+    {
+        parentIndex = *(uint16_t*)pTableData; pTableData += 2;
+        parentTable = parentIndex & HasCustomAttribute_Type_Mask;
+        parentRow = parentIndex >> HasCustomAttribute_Type_Bits;
+        switch (parentTable)
+        {
+        case HasCustomAttribute_Type_MethodDefinition: pFile->CustomAttributes[index].Parent.MethodDefinition = &pFile->MethodDefinitions[parentRow]; break;
+        case HasCustomAttribute_Type_Field: pFile->CustomAttributes[index].Parent.Field = &pFile->Fields[parentRow]; break;
+        case HasCustomAttribute_Type_TypeReference: pFile->CustomAttributes[index].Parent.TypeReference = &pFile->TypeReferences[parentRow]; break;
+        case HasCustomAttribute_Type_TypeDefinition: pFile->CustomAttributes[index].Parent.TypeDefinition = &pFile->TypeDefinitions[parentRow]; break;
+        case HasCustomAttribute_Type_Parameter: pFile->CustomAttributes[index].Parent.Parameter = &pFile->Parameters[parentRow]; break;
+        case HasCustomAttribute_Type_InterfaceImplementation: pFile->CustomAttributes[index].Parent.InterfaceImplementation = &pFile->InterfaceImplementations[parentRow]; break;
+        case HasCustomAttribute_Type_MemberReference: pFile->CustomAttributes[index].Parent.MemberReference = &pFile->MemberReferences[parentRow]; break;
+        case HasCustomAttribute_Type_ModuleDefinition: pFile->CustomAttributes[index].Parent.ModuleDefinition = &pFile->ModuleDefinitions[parentRow]; break;
+        case HasCustomAttribute_Type_DeclSecurity: pFile->CustomAttributes[index].Parent.DeclSecurity = &pFile->DeclSecurities[parentRow]; break;
+        case HasCustomAttribute_Type_Property: pFile->CustomAttributes[index].Parent.Property = &pFile->Properties[parentRow]; break;
+        case HasCustomAttribute_Type_Event: pFile->CustomAttributes[index].Parent.Event = &pFile->Events[parentRow]; break;
+        case HasCustomAttribute_Type_StandAloneSignature: pFile->CustomAttributes[index].Parent.StandAloneSignature = &pFile->StandAloneSignatures[parentRow]; break;
+        case HasCustomAttribute_Type_ModuleReference: pFile->CustomAttributes[index].Parent.ModuleReference = &pFile->ModuleReferences[parentRow]; break;
+        case HasCustomAttribute_Type_TypeSpecification: pFile->CustomAttributes[index].Parent.TypeSpecification = &pFile->TypeSpecifications[parentRow]; break;
+        case HasCustomAttribute_Type_AssemblyDefinition: pFile->CustomAttributes[index].Parent.AssemblyDefinition = &pFile->AssemblyDefinitions[parentRow]; break;
+        case HasCustomAttribute_Type_AssemblyReference: pFile->CustomAttributes[index].Parent.AssemblyReference = &pFile->AssemblyReferences[parentRow]; break;
+        case HasCustomAttribute_Type_File: pFile->CustomAttributes[index].Parent.File = &pFile->Files[parentRow]; break;
+        case HasCustomAttribute_Type_ExportedType: pFile->CustomAttributes[index].Parent.ExportedType = &pFile->ExportedTypes[parentRow]; break;
+        case HasCustomAttribute_Type_ManifestResource: pFile->CustomAttributes[index].Parent.ManifestResource = &pFile->ManifestResources[parentRow]; break;
+        case HasCustomAttribute_Type_GenericParameter: pFile->CustomAttributes[index].Parent.GenericParameter = &pFile->GenericParameters[parentRow]; break;
+        case HasCustomAttribute_Type_GenericParameterConstraint: pFile->CustomAttributes[index].Parent.GenericParameterConstraint = &pFile->GenericParameterConstraints[parentRow]; break;
+        case HasCustomAttribute_Type_MethodSpecification: pFile->CustomAttributes[index].Parent.MethodSpecification = &pFile->MethodSpecifications[parentRow]; break;
+        default: break;
+        }
+        typeIndex = *(uint16_t*)pTableData; pTableData += 2;
+        typeTable = typeIndex & CustomAttributeType_Type_Mask;
+        typeRow = typeIndex >> CustomAttributeType_Type_Bits;
+        switch (typeTable)
+        {
+        case CustomAttributeType_Type_MethodDefinition: pFile->CustomAttributes[index].Type.MethodDefinition = &pFile->MethodDefinitions[typeRow]; break;
+        case CustomAttributeType_Type_MemberReference: pFile->CustomAttributes[index].Type.MemberReference = &pFile->MemberReferences[typeRow]; break;
+        default: break;
+        }
+        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Blobs32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        pFile->CustomAttributes[index].Value = pFile->BlobsHeap + heapIndex;
+    }
+    return pTableData;
+}
+
+const uint8_t* CLIFile_LoadFieldMarshals(CLIFile* pFile, const uint8_t* pTableData)
+{
+    uint32_t parentIndex = 0;
+    uint8_t parentTable = 0;
+    uint32_t parentRow = 0;
+    for (uint32_t index = 0, heapIndex = 0; index < pFile->FieldMarshalCount; ++index)
+    {
+        parentIndex = *(uint16_t*)pTableData; pTableData += 2;
+        parentTable = parentIndex & HasFieldMarshal_Type_Mask;
+        parentRow = parentIndex >> HasFieldMarshal_Type_Bits;
+        switch (parentTable)
+        {
+        case HasFieldMarshal_Type_Field: pFile->FieldMarshals[index].Parent.Field = &pFile->Fields[parentRow]; break;
+        case HasFieldMarshal_Type_Parameter: pFile->FieldMarshals[index].Parent.Parameter = &pFile->Parameters[parentRow]; break;
+        default: break;
+        }
+        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Blobs32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        pFile->FieldMarshals[index].NativeType = pFile->BlobsHeap + heapIndex;
+    }
+    return pTableData;
+}
+
+const uint8_t* CLIFile_LoadDeclSecurities(CLIFile* pFile, const uint8_t* pTableData)
+{
+    uint32_t parentIndex = 0;
+    uint8_t parentTable = 0;
+    uint32_t parentRow = 0;
+    for (uint32_t index = 0, heapIndex = 0; index < pFile->DeclSecurityCount; ++index)
+    {
+        pFile->DeclSecurities[index].Action = *(uint16_t*)pTableData; pTableData += 2;
+
+        parentIndex = *(uint16_t*)pTableData; pTableData += 2;
+        parentTable = parentIndex & HasDeclSecurity_Type_Mask;
+        parentRow = parentIndex >> HasDeclSecurity_Type_Bits;
+        switch (parentTable)
+        {
+        case HasDeclSecurity_Type_TypeDefinition: pFile->DeclSecurities[index].Parent.TypeDefinition = &pFile->TypeDefinitions[parentRow]; break;
+        case HasDeclSecurity_Type_MethodDefinition: pFile->DeclSecurities[index].Parent.MethodDefinition = &pFile->MethodDefinitions[parentRow]; break;
+        case HasDeclSecurity_Type_AssemblyDefinition: pFile->DeclSecurities[index].Parent.AssemblyDefinition = &pFile->AssemblyDefinitions[parentRow]; break;
+        default: break;
+        }
+        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Blobs32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        pFile->DeclSecurities[index].PermissionSet = pFile->BlobsHeap + heapIndex;
+    }
+    return pTableData;
+}
+
+const uint8_t* CLIFile_LoadClassLayouts(CLIFile* pFile, const uint8_t* pTableData)
+{
+    uint32_t parentIndex = 0;
+    for (uint32_t index = 0; index < pFile->ClassLayoutCount; ++index)
+    {
+        pFile->ClassLayouts[index].PackingSize = *(uint16_t*)pTableData; pTableData += 2;
+        pFile->ClassLayouts[index].ClassSize = *(uint32_t*)pTableData; pTableData += 4;
+        parentIndex = *(uint16_t*)pTableData; pTableData += 2;
+        pFile->ClassLayouts[index].Parent = &pFile->TypeDefinitions[parentIndex];
+    }
+    return pTableData;
+}
+
+const uint8_t* CLIFile_LoadFieldLayouts(CLIFile* pFile, const uint8_t* pTableData)
+{
+    uint32_t fieldIndex = 0;
+    for (uint32_t index = 0; index < pFile->FieldLayoutCount; ++index)
+    {
+        pFile->FieldLayouts[index].Offset = *(uint32_t*)pTableData; pTableData += 4;
+        fieldIndex = *(uint16_t*)pTableData; pTableData += 2;
+        pFile->FieldLayouts[index].Field = &pFile->Fields[fieldIndex];
+    }
+    return pTableData;
+}
+
+const uint8_t* CLIFile_LoadStandAloneSignatures(CLIFile* pFile, const uint8_t* pTableData)
+{
+    for (uint32_t index = 0, heapIndex = 0; index < pFile->StandAloneSignatureCount; ++index)
+    {
+        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Blobs32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        pFile->StandAloneSignatures[index].Signature = pFile->BlobsHeap + heapIndex;
+    }
+    return pTableData;
+}
+
+const uint8_t* CLIFile_LoadEventMaps(CLIFile* pFile, const uint8_t* pTableData)
+{
+    uint32_t parentIndex = 0;
+    uint32_t eventListIndex = 0;
+    for (uint32_t index = 0; index < pFile->EventMapCount; ++index)
+    {
+        parentIndex = *(uint16_t*)pTableData; pTableData += 2;
+        pFile->EventMaps[index].Parent = &pFile->TypeDefinitions[parentIndex];
+        eventListIndex = *(uint16_t*)pTableData; pTableData += 2;
+        pFile->EventMaps[index].EventList = &pFile->Events[eventListIndex];
+    }
+    return pTableData;
+}
+
+const uint8_t* CLIFile_LoadEvents(CLIFile* pFile, const uint8_t* pTableData)
+{
+    uint32_t eventTypeIndex = 0;
+    uint8_t eventTypeTable = 0;
+    uint32_t eventTypeRow = 0;
+    for (uint32_t index = 0, heapIndex = 0; index < pFile->EventCount; ++index)
+    {
+        pFile->Events[index].Flags = *(uint16_t*)pTableData; pTableData += 2;
+        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        pFile->Events[index].Name = (const char*)(pFile->StringsHeap + heapIndex);
+        eventTypeIndex = *(uint16_t*)pTableData; pTableData += 2;
+        eventTypeTable = eventTypeIndex & TypeDefOrRef_Type_Mask;
+        eventTypeRow = eventTypeIndex >> TypeDefOrRef_Type_Bits;
+        switch (eventTypeTable)
+        {
+        case TypeDefOrRef_Type_TypeDefinition: pFile->Events[index].EventType.TypeDefinition = &pFile->TypeDefinitions[eventTypeRow]; break;
+        case TypeDefOrRef_Type_TypeReference: pFile->Events[index].EventType.TypeReference = &pFile->TypeReferences[eventTypeRow]; break;
+        case TypeDefOrRef_Type_TypeSpecification: pFile->Events[index].EventType.TypeSpecification = &pFile->TypeSpecifications[eventTypeRow]; break;
+        default: break;
+        }
+    }
+    return pTableData;
+}
+
+const uint8_t* CLIFile_LoadPropertyMaps(CLIFile* pFile, const uint8_t* pTableData)
+{
+    uint32_t parentIndex = 0;
+    uint32_t propertyListIndex = 0;
+    for (uint32_t index = 0; index < pFile->PropertyMapCount; ++index)
+    {
+        parentIndex = *(uint16_t*)pTableData; pTableData += 2;
+        pFile->PropertyMaps[index].Parent = &pFile->TypeDefinitions[parentIndex];
+        propertyListIndex = *(uint16_t*)pTableData; pTableData += 2;
+        pFile->PropertyMaps[index].PropertyList = &pFile->Properties[propertyListIndex];
+    }
+    return pTableData;
+}
+
+const uint8_t* CLIFile_LoadProperties(CLIFile* pFile, const uint8_t* pTableData)
+{
+    for (uint32_t index = 0, heapIndex = 0; index < pFile->PropertyCount; ++index)
+    {
+        pFile->Properties[index].Flags = *(uint16_t*)pTableData; pTableData += 2;
+        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        pFile->Properties[index].Name = (const char*)(pFile->StringsHeap + heapIndex);
+        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Blobs32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        pFile->Properties[index].Signature = pFile->BlobsHeap + heapIndex;
+    }
+    return pTableData;
+}
+
+const uint8_t* CLIFile_LoadMethodSemantics(CLIFile* pFile, const uint8_t* pTableData)
+{
+    uint32_t methodIndex = 0;
+    uint32_t associationIndex = 0;
+    uint8_t associationTable = 0;
+    uint32_t associationRow = 0;
+    for (uint32_t index = 0; index < pFile->MethodSemanticsCount; ++index)
+    {
+        pFile->MethodSemantics[index].Semantics = *(uint16_t*)pTableData; pTableData += 2;
+        methodIndex = *(uint16_t*)pTableData; pTableData += 2;
+        pFile->MethodSemantics[index].Method = &pFile->MethodDefinitions[methodIndex];
+
+        associationIndex = *(uint16_t*)pTableData; pTableData += 2;
+        associationTable = associationIndex & HasSemantics_Type_Mask;
+        associationRow = associationIndex >> HasSemantics_Type_Bits;
+        switch (associationTable)
+        {
+        case HasSemantics_Type_Event: pFile->MethodSemantics[index].Association.Event = &pFile->Events[associationRow]; break;
+        case HasSemantics_Type_Property: pFile->MethodSemantics[index].Association.Property = &pFile->Properties[associationRow]; break;
+        default: break;
+        }
+    }
+    return pTableData;
+}
+
+const uint8_t* CLIFile_LoadMethodImplementations(CLIFile* pFile, const uint8_t* pTableData)
+{
+    uint32_t parentIndex = 0;
+    uint32_t methodIndex = 0;
+    uint8_t methodTable = 0;
+    uint32_t methodRow = 0;
+    for (uint32_t index = 0; index < pFile->MethodImplementationCount; ++index)
+    {
+        parentIndex = *(uint16_t*)pTableData; pTableData += 2;
+        pFile->MethodImplementations[index].Parent = &pFile->TypeDefinitions[parentIndex];
+
+        methodIndex = *(uint16_t*)pTableData; pTableData += 2;
+        methodTable = methodIndex & MethodDefOrRef_Type_Mask;
+        methodRow = methodIndex >> MethodDefOrRef_Type_Bits;
+        switch (methodTable)
+        {
+        case MethodDefOrRef_Type_MethodDefinition: pFile->MethodImplementations[index].MethodBody.MethodDefinition = &pFile->MethodDefinitions[methodRow]; break;
+        case MethodDefOrRef_Type_MemberReference: pFile->MethodImplementations[index].MethodBody.MemberReference = &pFile->MemberReferences[methodRow]; break;
+        default: break;
+        }
+
+        methodIndex = *(uint16_t*)pTableData; pTableData += 2;
+        methodTable = methodIndex & MethodDefOrRef_Type_Mask;
+        methodRow = methodIndex >> MethodDefOrRef_Type_Bits;
+        switch (methodTable)
+        {
+        case MethodDefOrRef_Type_MethodDefinition: pFile->MethodImplementations[index].MethodDeclaration.MethodDefinition = &pFile->MethodDefinitions[methodRow]; break;
+        case MethodDefOrRef_Type_MemberReference: pFile->MethodImplementations[index].MethodDeclaration.MemberReference = &pFile->MemberReferences[methodRow]; break;
+        default: break;
+        }
+    }
+    return pTableData;
+}
+
+const uint8_t* CLIFile_LoadModuleReferences(CLIFile* pFile, const uint8_t* pTableData)
+{
+    for (uint32_t index = 0, heapIndex = 0; index < pFile->ModuleReferenceCount; ++index)
+    {
+        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        pFile->ModuleReferences[index].Name = (const char*)(pFile->StringsHeap + heapIndex);
+    }
+    return pTableData;
+}
+
+const uint8_t* CLIFile_LoadTypeSpecifications(CLIFile* pFile, const uint8_t* pTableData)
+{
+    for (uint32_t index = 0, heapIndex = 0; index < pFile->TypeSpecificationCount; ++index)
+    {
+        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Blobs32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        pFile->TypeSpecifications[index].Signature = pFile->BlobsHeap + heapIndex;
+    }
+    return pTableData;
+}
+
+const uint8_t* CLIFile_LoadImplementationMaps(CLIFile* pFile, const uint8_t* pTableData)
+{
+    uint32_t memberForwardedIndex = 0;
+    uint8_t memberForwardedTable = 0;
+    uint32_t memberForwardedRow = 0;
+    uint32_t importScopeIndex = 0;
+    for (uint32_t index = 0, heapIndex = 0; index < pFile->ImplementationMapCount; ++index)
+    {
+        pFile->ImplementationMaps[index].MappingFlags = *(uint16_t*)pTableData; pTableData += 2;
+
+        memberForwardedIndex = *(uint16_t*)pTableData; pTableData += 2;
+        memberForwardedTable = memberForwardedIndex & MemberForwarded_Type_Mask;
+        memberForwardedRow = memberForwardedIndex >> MemberForwarded_Type_Bits;
+        switch (memberForwardedTable)
+        {
+        case MemberForwarded_Type_Field: pFile->ImplementationMaps[index].MemberForwarded.Field = &pFile->Fields[memberForwardedRow]; break;
+        case MemberForwarded_Type_MethodDefinition: pFile->ImplementationMaps[index].MemberForwarded.MethodDefinition = &pFile->MethodDefinitions[memberForwardedRow]; break;
+        default: break;
+        }
+
+        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        pFile->ImplementationMaps[index].ImportName = (const char*)(pFile->StringsHeap + heapIndex);
+
+        importScopeIndex = *(uint16_t*)pTableData; pTableData += 2;
+        pFile->ImplementationMaps[index].ImportScope = &pFile->ModuleReferences[importScopeIndex];
+    }
+    return pTableData;
+}
+
+const uint8_t* CLIFile_LoadFieldRVAs(CLIFile* pFile, const uint8_t* pTableData)
+{
+    uint32_t fieldIndex = 0;
+    for (uint32_t index = 0; index < pFile->FieldRVACount; ++index)
+    {
+        pFile->FieldRVAs[index].VirtualAddress = *(uint32_t* )pTableData; pTableData += 4;
+
+        fieldIndex = *(uint16_t*)pTableData; pTableData += 2;
+        pFile->FieldRVAs[index].Field = &pFile->Fields[fieldIndex];
+    }
+    return pTableData;
+}
+
+const uint8_t* CLIFile_LoadAssemblyDefinitions(CLIFile* pFile, const uint8_t* pTableData)
+{
+    for (uint32_t index = 0, heapIndex = 0; index < pFile->AssemblyDefinitionCount; ++index)
+    {
+        pFile->AssemblyDefinitions[index].HashAlgorithmID = *(uint32_t* )pTableData; pTableData += 4;
+        pFile->AssemblyDefinitions[index].MajorVersion = *(uint16_t* )pTableData; pTableData += 2;
+        pFile->AssemblyDefinitions[index].MinorVersion = *(uint16_t* )pTableData; pTableData += 2;
+        pFile->AssemblyDefinitions[index].Build = *(uint16_t* )pTableData; pTableData += 2;
+        pFile->AssemblyDefinitions[index].Revision = *(uint16_t* )pTableData; pTableData += 2;
+        pFile->AssemblyDefinitions[index].Flags = *(uint32_t* )pTableData; pTableData += 4;
+        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Blobs32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        pFile->AssemblyDefinitions[index].PublicKey = pFile->BlobsHeap + heapIndex;
+        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        pFile->AssemblyDefinitions[index].Name = (const char*)(pFile->StringsHeap + heapIndex);
+        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        pFile->AssemblyDefinitions[index].Culture = (const char*)(pFile->StringsHeap + heapIndex);
+    }
+    return pTableData;
+}
+
+const uint8_t* CLIFile_LoadAssemblyProcessors(CLIFile* pFile, const uint8_t* pTableData)
+{
+    for (uint32_t index = 0; index < pFile->AssemblyProcessorCount; ++index)
+    {
+        pFile->AssemblyProcessors[index].Processor = *(uint32_t* )pTableData; pTableData += 4;
+    }
+    return pTableData;
+}
+
+const uint8_t* CLIFile_LoadAssemblyOperatingSystems(CLIFile* pFile, const uint8_t* pTableData)
+{
+    for (uint32_t index = 0; index < pFile->AssemblyOperatingSystemCount; ++index)
+    {
+        pFile->AssemblyOperatingSystems[index].PlatformID = *(uint32_t* )pTableData; pTableData += 4;
+        pFile->AssemblyOperatingSystems[index].MajorVersion = *(uint32_t* )pTableData; pTableData += 4;
+        pFile->AssemblyOperatingSystems[index].MinorVersion = *(uint32_t* )pTableData; pTableData += 4;
+    }
+    return pTableData;
+}
+
+const uint8_t* CLIFile_LoadAssemblyReferences(CLIFile* pFile, const uint8_t* pTableData)
+{
+    for (uint32_t index = 0, heapIndex = 0; index < pFile->AssemblyReferenceCount; ++index)
+    {
+        pFile->AssemblyReferences[index].MajorVersion = *(uint16_t* )pTableData; pTableData += 2;
+        pFile->AssemblyReferences[index].MinorVersion = *(uint16_t* )pTableData; pTableData += 2;
+        pFile->AssemblyReferences[index].Build = *(uint16_t* )pTableData; pTableData += 2;
+        pFile->AssemblyReferences[index].Revision = *(uint16_t* )pTableData; pTableData += 2;
+        pFile->AssemblyReferences[index].Flags = *(uint32_t* )pTableData; pTableData += 4;
+        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Blobs32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        pFile->AssemblyReferences[index].PublicKeyOrToken = pFile->BlobsHeap + heapIndex;
+        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        pFile->AssemblyReferences[index].Name = (const char*)(pFile->StringsHeap + heapIndex);
+        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        pFile->AssemblyReferences[index].Culture = (const char*)(pFile->StringsHeap + heapIndex);
+        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Blobs32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        pFile->AssemblyReferences[index].HashValue = pFile->BlobsHeap + heapIndex;
+    }
+    return pTableData;
+}
+
+const uint8_t* CLIFile_LoadAssemblyReferenceProcessors(CLIFile* pFile, const uint8_t* pTableData)
+{
+    uint32_t assemblyReferenceIndex = 0;
+    for (uint32_t index = 0; index < pFile->AssemblyReferenceProcessorCount; ++index)
+    {
+        pFile->AssemblyReferenceProcessors[index].Processor = *(uint32_t* )pTableData; pTableData += 4;
+        assemblyReferenceIndex = *(uint16_t*)pTableData; pTableData += 2;
+        pFile->AssemblyReferenceProcessors[index].AssemblyReference = &pFile->AssemblyReferences[assemblyReferenceIndex];
+    }
+    return pTableData;
+}
+
+const uint8_t* CLIFile_LoadAssemblyReferenceOperatingSystems(CLIFile* pFile, const uint8_t* pTableData)
+{
+    uint32_t assemblyReferenceIndex = 0;
+    for (uint32_t index = 0; index < pFile->AssemblyReferenceOperatingSystemCount; ++index)
+    {
+        pFile->AssemblyReferenceOperatingSystems[index].PlatformID = *(uint32_t* )pTableData; pTableData += 4;
+        pFile->AssemblyReferenceOperatingSystems[index].MajorVersion = *(uint32_t* )pTableData; pTableData += 4;
+        pFile->AssemblyReferenceOperatingSystems[index].MinorVersion = *(uint32_t* )pTableData; pTableData += 4;
+        assemblyReferenceIndex = *(uint16_t*)pTableData; pTableData += 2;
+        pFile->AssemblyReferenceOperatingSystems[index].AssemblyReference = &pFile->AssemblyReferences[assemblyReferenceIndex];
+    }
+    return pTableData;
+}
+
+const uint8_t* CLIFile_LoadFiles(CLIFile* pFile, const uint8_t* pTableData)
+{
+    for (uint32_t index = 0, heapIndex = 0; index < pFile->FileCount; ++index)
+    {
+        pFile->Files[index].Flags = *(uint32_t* )pTableData; pTableData += 4;
+        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        pFile->Files[index].Name = (const char*)(pFile->StringsHeap + heapIndex);
+        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Blobs32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        pFile->Files[index].HashValue = pFile->BlobsHeap + heapIndex;
+    }
+    return pTableData;
+}
+
+const uint8_t* CLIFile_LoadExportedTypes(CLIFile* pFile, const uint8_t* pTableData)
+{
+    uint32_t typeDefinitionIndex = 0;
+    uint32_t implementationIndex = 0;
+    uint8_t implementationTable = 0;
+    uint32_t implementationRow = 0;
+    for (uint32_t index = 0, heapIndex = 0; index < pFile->ExportedTypeCount; ++index)
+    {
+        pFile->ExportedTypes[index].Flags = *(uint32_t* )pTableData; pTableData += 4;
+        typeDefinitionIndex = *(uint16_t*)pTableData; pTableData += 2;
+        pFile->ExportedTypes[index].TypeDefinitionID = &pFile->TypeDefinitions[typeDefinitionIndex];
+        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        pFile->ExportedTypes[index].Name = (const char*)(pFile->StringsHeap + heapIndex);
+        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        pFile->ExportedTypes[index].Namespace = (const char*)(pFile->StringsHeap + heapIndex);
+
+        implementationIndex = *(uint16_t*)pTableData; pTableData += 2;
+        implementationTable = implementationIndex & Implementation_Type_Mask;
+        implementationRow = implementationIndex >> Implementation_Type_Bits;
+        switch (implementationTable)
+        {
+        case Implementation_Type_File: pFile->ExportedTypes[index].Implementation.File = &pFile->Files[implementationRow]; break;
+        case Implementation_Type_AssemblyReference: pFile->ExportedTypes[index].Implementation.AssemblyReference = &pFile->AssemblyReferences[implementationRow]; break;
+        case Implementation_Type_ExportedType: pFile->ExportedTypes[index].Implementation.ExportedType = &pFile->ExportedTypes[implementationRow]; break;
+        default: break;
+        }
+    }
+    return pTableData;
+}
+
+const uint8_t* CLIFile_LoadManifestResources(CLIFile* pFile, const uint8_t* pTableData)
+{
+    uint32_t implementationIndex = 0;
+    uint8_t implementationTable = 0;
+    uint32_t implementationRow = 0;
+    for (uint32_t index = 0, heapIndex = 0; index < pFile->ManifestResourceCount; ++index)
+    {
+        pFile->ManifestResources[index].Offset = *(uint32_t* )pTableData; pTableData += 4;
+        pFile->ManifestResources[index].Flags = *(uint32_t* )pTableData; pTableData += 4;
+        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        pFile->ManifestResources[index].Name = (const char*)(pFile->StringsHeap + heapIndex);
+
+        implementationIndex = *(uint16_t*)pTableData; pTableData += 2;
+        implementationTable = implementationIndex & Implementation_Type_Mask;
+        implementationRow = implementationIndex >> Implementation_Type_Bits;
+        switch (implementationTable)
+        {
+        case Implementation_Type_File: pFile->ExportedTypes[index].Implementation.File = &pFile->Files[implementationRow]; break;
+        case Implementation_Type_AssemblyReference: pFile->ExportedTypes[index].Implementation.AssemblyReference = &pFile->AssemblyReferences[implementationRow]; break;
+        case Implementation_Type_ExportedType: pFile->ExportedTypes[index].Implementation.ExportedType = &pFile->ExportedTypes[implementationRow]; break;
+        default: break;
+        }
+    }
+    return pTableData;
+}
+
+const uint8_t* CLIFile_LoadNestedClasses(CLIFile* pFile, const uint8_t* pTableData)
+{
+    uint32_t nestedIndex = 0;
+    uint32_t enclosingIndex = 0;
+    for (uint32_t index = 0; index < pFile->NestedClassCount; ++index)
+    {
+        nestedIndex = *(uint16_t*)pTableData; pTableData += 2;
+        pFile->NestedClasses[index].Nested = &pFile->TypeDefinitions[nestedIndex];
+        enclosingIndex = *(uint16_t*)pTableData; pTableData += 2;
+        pFile->NestedClasses[index].Enclosing = &pFile->TypeDefinitions[enclosingIndex];
+    }
+    return pTableData;
+}
+
+const uint8_t* CLIFile_LoadGenericParameters(CLIFile* pFile, const uint8_t* pTableData)
+{
+    uint32_t ownerIndex = 0;
+    uint8_t ownerTable = 0;
+    uint32_t ownerRow = 0;
+    for (uint32_t index = 0, heapIndex = 0; index < pFile->GenericParameterCount; ++index)
+    {
+        pFile->GenericParameters[index].Index = *(uint16_t* )pTableData; pTableData += 2;
+        pFile->GenericParameters[index].Flags = *(uint16_t* )pTableData; pTableData += 2;
+        ownerIndex = *(uint16_t*)pTableData; pTableData += 2;
+        ownerTable = ownerIndex & TypeOrMethodDef_Type_Mask;
+        ownerRow = ownerIndex >> TypeOrMethodDef_Type_Bits;
+        switch (ownerTable)
+        {
+        case TypeOrMethodDef_Type_TypeDefinition: pFile->GenericParameters[index].Owner.TypeDefinition = &pFile->TypeDefinitions[ownerRow]; break;
+        case TypeOrMethodDef_Type_MethodDefinition: pFile->GenericParameters[index].Owner.MethodDefinition = &pFile->MethodDefinitions[ownerRow]; break;
+        default: break;
+        }
+        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        pFile->GenericParameters[index].Name = (const char*)(pFile->StringsHeap + heapIndex);
+    }
+    return pTableData;
+}
+
+const uint8_t* CLIFile_LoadMethodSpecifications(CLIFile* pFile, const uint8_t* pTableData)
+{
+    uint32_t methodIndex = 0;
+    uint8_t methodTable = 0;
+    uint32_t methodRow = 0;
+    for (uint32_t index = 0, heapIndex = 0; index < pFile->MethodSpecificationCount; ++index)
+    {
+        methodIndex = *(uint16_t*)pTableData; pTableData += 2;
+        methodTable = methodIndex & MethodDefOrRef_Type_Mask;
+        methodRow = methodIndex >> MethodDefOrRef_Type_Bits;
+        switch (methodTable)
+        {
+        case MethodDefOrRef_Type_MethodDefinition: pFile->MethodSpecifications[index].Method.MethodDefinition = &pFile->MethodDefinitions[methodRow]; break;
+        case MethodDefOrRef_Type_MemberReference: pFile->MethodSpecifications[index].Method.MemberReference = &pFile->MemberReferences[methodRow]; break;
+        default: break;
+        }
+        if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Blobs32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
+        else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        pFile->MethodSpecifications[index].Instantiation = pFile->BlobsHeap + heapIndex;
+    }
+    return pTableData;
+}
+
+const uint8_t* CLIFile_LoadGenericParameterConstraints(CLIFile* pFile, const uint8_t* pTableData)
+{
+    uint32_t ownerIndex = 0;
+    uint32_t constraintIndex = 0;
+    uint8_t constraintTable = 0;
+    uint32_t constraintRow = 0;
+    for (uint32_t index = 0; index < pFile->GenericParameterConstraintCount; ++index)
+    {
+        ownerIndex = *(uint16_t*)pTableData; pTableData += 2;
+        pFile->GenericParameterConstraints[index].Owner = &pFile->GenericParameters[ownerIndex];
+        constraintIndex = *(uint16_t*)pTableData; pTableData += 2;
+        constraintTable = constraintIndex & TypeDefOrRef_Type_Mask;
+        constraintRow = constraintIndex >> TypeDefOrRef_Type_Bits;
+        switch (constraintTable)
+        {
+        case TypeDefOrRef_Type_TypeDefinition: pFile->GenericParameterConstraints[index].Constraint.TypeDefinition = &pFile->TypeDefinitions[constraintRow]; break;
+        case TypeDefOrRef_Type_TypeReference: pFile->GenericParameterConstraints[index].Constraint.TypeReference = &pFile->TypeReferences[constraintRow]; break;
+        case TypeDefOrRef_Type_TypeSpecification: pFile->GenericParameterConstraints[index].Constraint.TypeSpecification = &pFile->TypeSpecifications[constraintRow]; break;
+        default: break;
+        }
     }
     return pTableData;
 }
