@@ -19,10 +19,17 @@ namespace SDKInstaller
         private static string[] sExperimentals = new string[0];
 
         private static string sExtractorFile = "";
-        private static string sDownloadFile = "";
-        private static ManualResetEvent sDownloadEvent = new ManualResetEvent(false);
-        private static object sDownloadLock = new object();
-        private static bool sDownloadResult = false;
+
+        private sealed class Download
+        {
+            public string DownloadFile = "";
+            public ManualResetEvent DownloadEvent = new ManualResetEvent(false);
+            public object DownloadLock = new object();
+            public bool DownloadResult = false;
+            public bool DownloadFinished = false;
+
+            public Download(string pDownloadFile) { DownloadFile = pDownloadFile; }
+        }
 
         [STAThread]
         private static void Main(string[] pCommandLine)
@@ -59,17 +66,17 @@ namespace SDKInstaller
                 return;
             }
 
-            if (!Download(string.Format("7za-{0}.exe", sHost))) return;
-            sExtractorFile = sDownloadFile;
-            sDownloadResult = false;
+            if (!DownloadFile(string.Format("7za-{0}.exe", sHost))) return;
+            sExtractorFile = string.Format("7za-{0}.exe", sHost);
 
-            if (!Download(string.Format("Common-{0}.7z", sHost))) return;
-            sDownloadResult = false;
-            Extract(sDownloadFile);
+            if (!DownloadFile(string.Format("SDK.7z"))) return;
+            Extract(string.Format("SDK.7z"));
 
-            if (!Download(string.Format("SDK-{0}-{1}.7z", sTarget, sHost))) return;
-            sDownloadResult = false;
-            Extract(sDownloadFile);
+            if (!DownloadFile(string.Format("SDK-{0}.7z", sHost))) return;
+            Extract(string.Format("SDK-{0}.7z", sHost));
+
+            if (!DownloadFile(string.Format("SDK-{0}-{1}.7z", sTarget, sHost))) return;
+            Extract(string.Format("SDK-{0}-{1}.7z", sTarget, sHost));
 
             Console.WriteLine();
             Console.WriteLine("Done, press any key to exit.");
@@ -79,37 +86,43 @@ namespace SDKInstaller
 
         private static void DownloadFileCompleted(object pSender, AsyncCompletedEventArgs pArgs)
         {
-            lock (sDownloadLock)
+            Download download = pArgs.UserState as Download;
+            lock (download.DownloadLock)
             {
-                sDownloadResult = !pArgs.Cancelled;
+                download.DownloadResult = !pArgs.Cancelled;
+                download.DownloadFinished = true;
                 Console.WriteLine();
-                sDownloadEvent.Set();
+                download.DownloadEvent.Set();
             }
         }
 
         private static void DownloadProgressChanged(object pSender, DownloadProgressChangedEventArgs pArgs)
         {
-            lock (sDownloadLock)
+            Download download = pArgs.UserState as Download;
+            lock (download.DownloadLock)
             {
-                Console.CursorLeft = 0;
-                Console.Write("Progress {0,3}% [{1,-50}]", pArgs.ProgressPercentage, new string('.', pArgs.ProgressPercentage / 2));
-                Console.Title = string.Format("SDKInstaller: Downloading {0}, {1}%", sDownloadFile, pArgs.ProgressPercentage);
+                if (!download.DownloadFinished)
+                {
+                    Console.CursorLeft = 0;
+                    Console.Write("Progress {0,3}% [{1,-50}]", pArgs.ProgressPercentage, new string('.', pArgs.ProgressPercentage / 2));
+                    Console.Title = string.Format("SDKInstaller: Downloading {0}, {1}%", download.DownloadFile, pArgs.ProgressPercentage);
+                }
             }
         }
 
-        private static bool Download(string pFilename)
+        private static bool DownloadFile(string pFilename)
         {
             WebClient client = new WebClient();
             client.DownloadFileCompleted += DownloadFileCompleted;
             client.DownloadProgressChanged += DownloadProgressChanged;
 
-            sDownloadFile = pFilename;
-            Console.WriteLine("Downloading {0}...", sDownloadFile);
-            sDownloadEvent.Reset();
-            client.DownloadFileAsync(new Uri(sURL + sDownloadFile), sDownloadFile);
-            sDownloadEvent.WaitOne();
+            Download download = new Download(pFilename);
+            Console.WriteLine("Downloading {0}...", download.DownloadFile);
+            download.DownloadEvent.Reset();
+            client.DownloadFileAsync(new Uri(sURL + download.DownloadFile), download.DownloadFile, download);
+            download.DownloadEvent.WaitOne();
 
-            return sDownloadResult;
+            return download.DownloadResult;
         }
 
         private static void Extract(string pFilename)
