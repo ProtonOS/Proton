@@ -387,5 +387,8 @@
     <ClInclude Include="Include\Core\SerialWriter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Include\CLR\OpCodes_IL.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

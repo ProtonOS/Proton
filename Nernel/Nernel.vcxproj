@@ -78,6 +78,7 @@
   <ItemGroup>
     <ClInclude Include="Include\CLR\CLIFile.h" />
     <ClInclude Include="Include\CLR\MetaData.h" />
+    <ClInclude Include="Include\CLR\OpCodes_IL.h" />
     <ClInclude Include="Include\CLR\PEFile.h" />
     <ClInclude Include="Include\Core\Config.h" />
     <ClInclude Include="Include\Core\Console.h" />
