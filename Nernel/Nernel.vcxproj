@@ -21,6 +21,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\CLR\CLIFile.c" />
+    <ClCompile Include="Source\CLR\ILReader.c" />
     <ClCompile Include="Source\CLR\MetaData.c" />
     <ClCompile Include="Source\CLR\PEFile.c" />
     <ClCompile Include="Source\Core\DLMalloc.c" />
@@ -76,7 +77,10 @@
     <ClCompile Include="Source\Runtime\Type.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Include\CLR\AppDomain.h" />
     <ClInclude Include="Include\CLR\CLIFile.h" />
+    <ClInclude Include="Include\CLR\ILReader.h" />
+    <ClInclude Include="Include\CLR\IRStructures.h" />
     <ClInclude Include="Include\CLR\MetaData.h" />
     <ClInclude Include="Include\CLR\OpCodes_IL.h" />
     <ClInclude Include="Include\CLR\PEFile.h" />

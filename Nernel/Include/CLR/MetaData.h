@@ -531,6 +531,8 @@ struct _TypeReference
     ResolutionScopeUnion(ResolutionScope)
     const char* Name;
     const char* Namespace;
+	bool_t IsResolved;
+	TypeDefinition* ResolvedType;
 };
 
 struct _TypeDefinition
@@ -538,9 +540,12 @@ struct _TypeDefinition
     uint32_t Flags;
     const char* Name;
     const char* Namespace;
-    TypeDefOrRefUnion(Extends)
+    TypeDefOrRefUnion(Extends);
+	uint32_t FieldCount;
     Field* FieldList;
     MethodDefinition* MethodDefinitionList;
+	bool_t HasStaticConstructor;
+	bool_t HasStaticConstructorBeenRun;
 };
 
 struct _Field
