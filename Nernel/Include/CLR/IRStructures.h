@@ -54,3 +54,5 @@ struct _IRInstruction
 	uint8_t* Arg3;
 	bool_t IsTargetOfBranch;
 };
+
+void IRAssembly_Destroy(IRAssembly* assembly);

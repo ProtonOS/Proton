@@ -193,6 +193,12 @@
     <ClCompile Include="Source\CLR\ILReader.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\CLR\AppDomain.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\CLR\IRStructures.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\PortIO.h">
@@ -400,6 +406,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Include\CLR\AppDomain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\CLR\OpCodes_IR.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -72,6 +72,9 @@
 	Source/CLR/PEFile.c
 	Source/CLR/CLIFile.c
 	Source/CLR/MetaData.c
+	Source/CLR/AppDomain.c
+	Source/CLR/ILReader.c
+	Source/CLR/IRStructures.c
 }
 
 #define SOURCE(RUNTIME_C_FILES)
