@@ -563,6 +563,7 @@ struct _MethodDefinition
     const char* Name;
     const uint8_t* Signature;
     Parameter* ParameterList;
+    uint8_t ParameterListCount;
 };
 
 struct _Parameter
