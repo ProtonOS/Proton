@@ -347,6 +347,7 @@ typedef struct _ModuleDefinition ModuleDefinition;
 typedef struct _TypeReference TypeReference;
 typedef struct _TypeDefinition TypeDefinition;
 typedef struct _Field Field;
+typedef struct _MethodDefinitionBodyHeader MethodDefinitionBodyHeader;
 typedef struct _MethodDefinition MethodDefinition;
 typedef struct _Parameter Parameter;
 typedef struct _InterfaceImplementation InterfaceImplementation;
@@ -555,9 +556,26 @@ struct _Field
     const uint8_t* Signature;
 };
 
+#define MethodDefinitionBodyHeader_Flags_HeaderType_Bits        0x02
+#define MethodDefinitionBodyHeader_Flags_HeaderType_Mask        0x03
+#define MethodDefinitionBodyHeader_Flags_HeaderType_Fat         0x03
+
+#define MethodDefinitionBodyHeader_Tiny_MaxStack                0x08
+#define MethodDefinitionBodyHeader_Fat_Flags_Bits               0x0C
+#define MethodDefinitionBodyHeader_Fat_Flags_Mask               0x0FFF
+
+struct _MethodDefinitionBodyHeader
+{
+    uint16_t Flags;
+    uint16_t MaxStack;
+    uint32_t CodeSize;
+    uint32_t LocalVariableSignatureToken;
+};
+
 struct _MethodDefinition
 {
-    uint32_t VirtualAddress;
+    MethodDefinitionBodyHeader BodyHeader;
+    const uint8_t* BodyCode;
     uint16_t ImplFlags;
     uint16_t Flags;
     const char* Name;

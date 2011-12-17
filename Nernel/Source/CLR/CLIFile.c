@@ -560,13 +560,57 @@ const uint8_t* CLIFile_LoadFields(CLIFile* pFile, const uint8_t* pTableData)
     return pTableData;
 }
 
+const uint8_t* ParseHeapEncodedLength(const uint8_t* pData, uint32_t* pLength)
+{
+    if ((pData[0] & 0x80) == 0)
+    {
+        *pLength = pData[0] & 0x7F;
+        return pData + 1;
+    }
+    if ((pData[0] & 0xC0) == 0x80)
+    {
+        *pLength = ((pData[0] & 0x3F) << 8) + pData[1];
+        return pData + 2;
+    }
+    if ((pData[0] & 0xE0) == 0xC0)
+    {
+        *pLength = ((pData[0] & 0x1F) << 24) + (pData[1] << 16) + (pData[2] << 8) + pData[3];
+        return pData + 4;
+    }
+    *pLength = 0;
+    return pData;
+}
+
 const uint8_t* CLIFile_LoadMethodDefinitions(CLIFile* pFile, const uint8_t* pTableData)
 {
+    uint32_t methodBodyVirtualAddress = 0;
+    PESectionHeader* methodBodySectionHeader = NULL;
+    const uint8_t* methodBodyHeader = NULL;
+    uint8_t methodBodyHeaderSize = 0;
     uint32_t parameterListIndex = 0;
     uint32_t* parameterListIndexes = (uint32_t*)calloc(pFile->MethodDefinitionCount, sizeof(uint32_t));
     for (uint32_t index = 0, heapIndex = 0; index < pFile->MethodDefinitionCount; ++index)
     {
-        pFile->MethodDefinitions[index].VirtualAddress = *(uint32_t*)pTableData; pTableData += 4;
+        methodBodyVirtualAddress = *(uint32_t*)pTableData; pTableData += 4;
+        if (methodBodyVirtualAddress != 0)
+        {
+            methodBodySectionHeader = PEFile_GetSection(pFile->PEFile->SectionHeaders, pFile->PEFile->PEHeader->NumberOfSections, methodBodyVirtualAddress);
+            methodBodyHeader = pFile->PEFile->Data + methodBodySectionHeader->PointerToRawData + (methodBodyVirtualAddress - methodBodySectionHeader->VirtualAddress);
+            methodBodyHeaderSize = 1;
+            pFile->MethodDefinitions[index].BodyHeader.Flags = methodBodyHeader[0] & MethodDefinitionBodyHeader_Flags_HeaderType_Mask;
+            pFile->MethodDefinitions[index].BodyHeader.MaxStack = MethodDefinitionBodyHeader_Tiny_MaxStack;
+            pFile->MethodDefinitions[index].BodyHeader.CodeSize = methodBodyHeader[0] >> MethodDefinitionBodyHeader_Flags_HeaderType_Bits;
+            pFile->MethodDefinitions[index].BodyHeader.LocalVariableSignatureToken = 0;
+            if (pFile->MethodDefinitions[index].BodyHeader.Flags == MethodDefinitionBodyHeader_Flags_HeaderType_Fat)
+            {
+                pFile->MethodDefinitions[index].BodyHeader.Flags = (*(uint16_t*)(methodBodyHeader + 0)) & MethodDefinitionBodyHeader_Fat_Flags_Mask;
+                methodBodyHeaderSize = ((*(uint16_t*)(methodBodyHeader + 0)) >> MethodDefinitionBodyHeader_Fat_Flags_Bits) * 4;
+                pFile->MethodDefinitions[index].BodyHeader.MaxStack = *(uint16_t*)(methodBodyHeader + 2);
+                pFile->MethodDefinitions[index].BodyHeader.CodeSize = *(uint32_t*)(methodBodyHeader + 4);
+                pFile->MethodDefinitions[index].BodyHeader.LocalVariableSignatureToken = *(uint32_t*)(methodBodyHeader + 8);
+            }
+            pFile->MethodDefinitions[index].BodyCode = methodBodyHeader + methodBodyHeaderSize;
+        }
         pFile->MethodDefinitions[index].ImplFlags = *(uint16_t*)pTableData; pTableData += 2;
         pFile->MethodDefinitions[index].Flags = *(uint16_t*)pTableData; pTableData += 2;
         if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
@@ -579,6 +623,7 @@ const uint8_t* CLIFile_LoadMethodDefinitions(CLIFile* pFile, const uint8_t* pTab
         else { parameterListIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->MethodDefinitions[index].ParameterList = &pFile->Parameters[parameterListIndex];
         parameterListIndexes[index] = parameterListIndex;
+        //if (methodBodyVirtualAddress != 0) printf("Method: %s, RVA: %u, HeaderSize: %u, CodeSize: %u\n", pFile->MethodDefinitions[index].Name, (unsigned int)methodBodyVirtualAddress, (unsigned int)methodBodyHeaderSize, (unsigned int)pFile->MethodDefinitions[index].BodyHeader.CodeSize);
     }
     uint8_t parameterListCount = 0;
     for (uint32_t index = 0, used = 0; index < pFile->MethodDefinitionCount; ++index, used += parameterListCount)
