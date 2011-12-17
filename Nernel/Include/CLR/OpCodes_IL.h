@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 
 typedef enum ILOpCode
@@ -82,8 +82,8 @@ typedef enum ILOpCode
 	ILOpCode_LdInd_I8 =			0x4C,
 	ILOpCode_LdInd_I =			0x4D,
 	ILOpCode_LdInd_R4 =			0x4E,
-	ILOpCode_LdInt_R8 =			0x4F,
-	ILOpCode_LdInt_Ref =		0x50,
+	ILOpCode_LdInd_R8 =			0x4F,
+	ILOpCode_LdInd_Ref =		0x50,
 	ILOpCode_StInd_Ref =		0x51,
 	ILOpCode_StInd_I1 =			0x52,
 	ILOpCode_StInd_I2 =			0x53,
@@ -259,7 +259,7 @@ typedef enum ILOpCode
 	// N/A =					0xFD,
 	ILOpCode_Extended =			0xFE,
 	// N/A =					0xFF,
-} ILOpCode;
+} ILOpCode; // 191 op-codes
 
 
 typedef enum ILOpCodes_Extended
@@ -283,7 +283,7 @@ typedef enum ILOpCodes_Extended
 	// N/A =							0x10,
 	ILOpCodes_Extended_EndFilter =		0x11,
 	ILOpCodes_Extended_Unaligned__ =	0x12,
-	ILOpCodes_Extended_Voltile__ =		0x13,
+	ILOpCodes_Extended_Volitile__ =		0x13,
 	ILOpCodes_Extended_Tail__ =			0x14,
 	ILOpCodes_Extended_InitObj =		0x15,
 	ILOpCodes_Extended_Constrained__ =	0x16,
@@ -295,4 +295,4 @@ typedef enum ILOpCodes_Extended
 	ILOpCodes_Extended_SizeOf =			0x1C,
 	ILOpCodes_Extended_RefAnyType =		0x1D,
 	ILOpCodes_Extended_ReadOnly__ =		0x1E,
-} ILOpCodes_Extended;
+} ILOpCodes_Extended; // 28 OpCodes
