@@ -33,7 +33,6 @@
 #define TOOL_WIN32(MKISOFS, ../SDK/bin/mkisofs.exe);
 
 #define CONST(GCC_ARGS, -I../SDK/include -I./Include -include types.h -g -Wall -Wextra -Werror -Wno-return-type -Wno-unused-parameter -fno-builtin -nostdlib -std=c99 -fpack-struct=1 -nostartfiles -nodefaultlibs -c);
-#define CONST(RUNTIME_GCC_ARGS, -I./Include/Runtime -Wno-pointer-sign -Wno-unused-but-set-variable -Wno-sign-compare -Wno-missing-field-initializers ${GCC_ARGS});
 #define CONST(LD_ARGS, -L../SDK/lib -T Source/Nernel.ld);
 #define CONST(LD_LIBS, -lc -lm -lgcc);
 #define CONST(RM_ARGS, -rf);
@@ -78,48 +77,6 @@
 	Source/CLR/SyntheticStack.c
 }
 
-#define SOURCE(RUNTIME_C_FILES)
-{
-    Source/Runtime/CLIFile.c
-    Source/Runtime/Delegate.c
-    Source/Runtime/Finalizer.c
-    Source/Runtime/Generics.c
-    Source/Runtime/Heap.c
-    Source/Runtime/InternalCall.c
-    Source/Runtime/JIT.c
-    Source/Runtime/JIT_Execute.c
-    Source/Runtime/MetaData.c
-    Source/Runtime/MetaData_Fill.c
-    Source/Runtime/MetaData_Search.c
-    Source/Runtime/MethodState.c
-#    Source/Runtime/PInvoke.c
-    Source/Runtime/RVA.c
-    Source/Runtime/Sys.c
-    Source/Runtime/System.Array.c
-    Source/Runtime/System.Char.c
-    Source/Runtime/System.Console.c
-    Source/Runtime/System.DateTime.c
-    Source/Runtime/System.Diagnostics.Debugger.c
-    Source/Runtime/System.Enum.c
-    Source/Runtime/System.Environment.c
-    Source/Runtime/System.GC.c
-    Source/Runtime/System.IO.FileInternal.c
-    Source/Runtime/System.Math.c
-    Source/Runtime/System.Object.c
-    Source/Runtime/System.Runtime.CompilerServices.RuntimeHelpers.c
-    Source/Runtime/System.RuntimeType.c
-    Source/Runtime/System.String.c
-    Source/Runtime/System.Threading.Interlocked.c
-    Source/Runtime/System.Threading.Monitor.c
-    Source/Runtime/System.Threading.Thread.c
-    Source/Runtime/System.Type.c
-    Source/Runtime/System.ValueType.c
-    Source/Runtime/System.WeakReference.c
-    Source/Runtime/Thread.c
-    Source/Runtime/Type.c
-	Source/Runtime/Proton.IO.PortIO.c
-	Source/Runtime/Proton.IO.MemoryIO.c
-}
 
 
 MKDIR ${MKDIR_ARGS} ${LOGS}
@@ -149,11 +106,6 @@ common TOOL(AS -o ) : ASM_FILES
 }
 
 common TOOL(GCC ${GCC_ARGS} -o ) : C_FILES
-{
-    #prefix{${OBJECT}/$(FILENAME.NO_EXTENSION.DIR_TO_FILENAME).o} : ALL
-}
-
-common TOOL(GCC ${RUNTIME_GCC_ARGS} -o ) : RUNTIME_C_FILES
 {
     #prefix{${OBJECT}/$(FILENAME.NO_EXTENSION.DIR_TO_FILENAME).o} : ALL
 }
