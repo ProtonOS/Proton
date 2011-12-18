@@ -1,4 +1,5 @@
 #include <Nernel.h>
+#include <CLR/ILReader.h>
 
 void Main(uint32_t pMultiBootMagic,
             void* pMultiBootData)
@@ -15,7 +16,8 @@ void Main(uint32_t pMultiBootMagic,
         CLIFile* cliFile = CLIFile_Create(peFile);
         if (cliFile)
         {
-
+            ILAssembly* asmb = ILReader_CreateAssembly(cliFile);
+            printf("Method Count: %u\r\n", (unsigned int)asmb->IRAssembly->MethodCount);
         }
     }
 

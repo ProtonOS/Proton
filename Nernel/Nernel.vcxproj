@@ -26,6 +26,7 @@
     <ClCompile Include="Source\CLR\IRStructures.c" />
     <ClCompile Include="Source\CLR\MetaData.c" />
     <ClCompile Include="Source\CLR\PEFile.c" />
+    <ClCompile Include="Source\CLR\SyntheticStack.c" />
     <ClCompile Include="Source\Core\DLMalloc.c" />
     <ClCompile Include="Source\Core\Console.c" />
     <ClCompile Include="Source\Core\GDT.c" />
@@ -87,6 +88,7 @@
     <ClInclude Include="Include\CLR\OpCodes_IL.h" />
     <ClInclude Include="Include\CLR\OpCodes_IR.h" />
     <ClInclude Include="Include\CLR\PEFile.h" />
+    <ClInclude Include="Include\CLR\SyntheticStack.h" />
     <ClInclude Include="Include\Core\Config.h" />
     <ClInclude Include="Include\Core\Console.h" />
     <ClInclude Include="Include\Core\GDT.h" />

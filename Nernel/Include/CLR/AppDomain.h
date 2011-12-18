@@ -8,7 +8,7 @@ typedef struct _AppDomain AppDomain;
 struct _AppDomain
 {
 	uint32_t ILAssemblyCount;
-	ILAssembly* ILAssemblies;
+	ILAssembly** ILAssemblies;
 };
 
 
