@@ -70,11 +70,49 @@
 	Source/Core/SystemClock.c
 	Source/CLR/PEFile.c
 	Source/CLR/CLIFile.c
-	Source/CLR/MetaData.c
 	Source/CLR/AppDomain.c
 	Source/CLR/ILReader.c
 	Source/CLR/IRStructures.c
 	Source/CLR/SyntheticStack.c
+	Source/CLR/MetaData/AssemblyDefinition.c
+	Source/CLR/MetaData/AssemblyOperatingSystem.c
+	Source/CLR/MetaData/AssemblyProcessor.c
+	Source/CLR/MetaData/AssemblyReference.c
+	Source/CLR/MetaData/AssemblyReferenceOperatingSystem.c
+	Source/CLR/MetaData/AssemblyReferenceProcessor.c
+	Source/CLR/MetaData/Constant.c
+	Source/CLR/MetaData/ClassLayout.c
+	Source/CLR/MetaData/CustomAttribute.c
+	Source/CLR/MetaData/DeclSecurity.c
+	Source/CLR/MetaData/ExportedType.c
+	Source/CLR/MetaData/Event.c
+	Source/CLR/MetaData/EventMap.c
+	Source/CLR/MetaData/Field.c
+	Source/CLR/MetaData/FieldLayout.c
+	Source/CLR/MetaData/FieldMarshal.c
+	Source/CLR/MetaData/FieldRVA.c
+	Source/CLR/MetaData/File.c
+	Source/CLR/MetaData/GenericParameter.c
+	Source/CLR/MetaData/GenericParameterConstraint.c
+	Source/CLR/MetaData/ImplementationMap.c
+	Source/CLR/MetaData/InterfaceImplementation.c
+	Source/CLR/MetaData/ManifestResource.c
+	Source/CLR/MetaData/MemberReference.c
+	Source/CLR/MetaData/MetaData.c
+	Source/CLR/MetaData/MethodDefinition.c
+	Source/CLR/MetaData/MethodImplementation.c
+	Source/CLR/MetaData/MethodSemantics.c
+	Source/CLR/MetaData/MethodSpecification.c
+	Source/CLR/MetaData/ModuleDefinition.c
+	Source/CLR/MetaData/ModuleReference.c
+	Source/CLR/MetaData/NestedClass.c
+	Source/CLR/MetaData/Parameter.c
+	Source/CLR/MetaData/Property.c
+	Source/CLR/MetaData/PropertyMap.c
+	Source/CLR/MetaData/StandAloneSignature.c
+	Source/CLR/MetaData/TypeDefinition.c
+	Source/CLR/MetaData/TypeReference.c
+	Source/CLR/MetaData/TypeSpecification.c
 }
 
 

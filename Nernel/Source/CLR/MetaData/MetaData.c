@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include <CLR/MetaData.h>
+#include <CLR/MetaData/MetaData.h>
 
 bool_t MetaData_IsValidSignature(const uint8_t* pMetaDataHeader) 
 {

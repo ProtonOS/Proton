@@ -1,5 +1,6 @@
 #pragma once
 
+
 #define MetaData_Signature                  0x424A5342
 
 #define MetaData_Offset_Signature           0x00
@@ -81,6 +82,47 @@ typedef struct
     uint64_t SortedTables;
 } MetaDataTablesHeader;
 
+
+typedef struct _ModuleDefinition ModuleDefinition;
+typedef struct _TypeReference TypeReference;
+typedef struct _TypeDefinition TypeDefinition;
+typedef struct _MethodDefinitionBody MethodDefinitionBody;
+typedef struct _MethodDefinitionException MethodDefinitionException;
+typedef struct _MethodDefinition MethodDefinition;
+typedef struct _Field Field;
+typedef struct _Parameter Parameter;
+typedef struct _InterfaceImplementation InterfaceImplementation;
+typedef struct _MemberReference MemberReference;
+typedef struct _Constant Constant;
+typedef struct _CustomAttribute CustomAttribute;
+typedef struct _FieldMarshal FieldMarshal;
+typedef struct _DeclSecurity DeclSecurity;
+typedef struct _ClassLayout ClassLayout;
+typedef struct _FieldLayout FieldLayout;
+typedef struct _StandAloneSignature StandAloneSignature;
+typedef struct _EventMap EventMap;
+typedef struct _Event Event;
+typedef struct _PropertyMap PropertyMap;
+typedef struct _Property Property;
+typedef struct _MethodSemantics MethodSemantics;
+typedef struct _MethodImplementation MethodImplementation;
+typedef struct _ModuleReference ModuleReference;
+typedef struct _TypeSpecification TypeSpecification;
+typedef struct _ImplementationMap ImplementationMap;
+typedef struct _FieldRVA FieldRVA;
+typedef struct _AssemblyDefinition AssemblyDefinition;
+typedef struct _AssemblyProcessor AssemblyProcessor;
+typedef struct _AssemblyOperatingSystem AssemblyOperatingSystem;
+typedef struct _AssemblyReference AssemblyReference;
+typedef struct _AssemblyReferenceProcessor AssemblyReferenceProcessor;
+typedef struct _AssemblyReferenceOperatingSystem AssemblyReferenceOperatingSystem;
+typedef struct _File File;
+typedef struct _ExportedType ExportedType;
+typedef struct _ManifestResource ManifestResource;
+typedef struct _NestedClass NestedClass;
+typedef struct _GenericParameter GenericParameter;
+typedef struct _MethodSpecification MethodSpecification;
+typedef struct _GenericParameterConstraint GenericParameterConstraint;
 
 #define TypeDefOrRef_Type_TypeDefinition                    0x00
 #define TypeDefOrRef_Type_TypeReference                     0x01
@@ -343,48 +385,6 @@ typedef struct
 #define TypeAttributes_IsTypeForwarder                                  0x00200000
 
 
-typedef struct _ModuleDefinition ModuleDefinition;
-typedef struct _TypeReference TypeReference;
-typedef struct _TypeDefinition TypeDefinition;
-typedef struct _Field Field;
-typedef struct _MethodDefinitionBody MethodDefinitionBody;
-typedef struct _MethodDefinitionException MethodDefinitionException;
-typedef struct _MethodDefinition MethodDefinition;
-typedef struct _Parameter Parameter;
-typedef struct _InterfaceImplementation InterfaceImplementation;
-typedef struct _MemberReference MemberReference;
-typedef struct _Constant Constant;
-typedef struct _CustomAttribute CustomAttribute;
-typedef struct _FieldMarshal FieldMarshal;
-typedef struct _DeclSecurity DeclSecurity;
-typedef struct _ClassLayout ClassLayout;
-typedef struct _FieldLayout FieldLayout;
-typedef struct _StandAloneSignature StandAloneSignature;
-typedef struct _EventMap EventMap;
-typedef struct _Event Event;
-typedef struct _PropertyMap PropertyMap;
-typedef struct _Property Property;
-typedef struct _MethodSemantics MethodSemantics;
-typedef struct _MethodImplementation MethodImplementation;
-typedef struct _ModuleReference ModuleReference;
-typedef struct _TypeSpecification TypeSpecification;
-typedef struct _ImplementationMap ImplementationMap;
-typedef struct _FieldRVA FieldRVA;
-typedef struct _AssemblyDefinition AssemblyDefinition;
-typedef struct _AssemblyProcessor AssemblyProcessor;
-typedef struct _AssemblyOperatingSystem AssemblyOperatingSystem;
-typedef struct _AssemblyReference AssemblyReference;
-typedef struct _AssemblyReferenceProcessor AssemblyReferenceProcessor;
-typedef struct _AssemblyReferenceOperatingSystem AssemblyReferenceOperatingSystem;
-typedef struct _File File;
-typedef struct _ExportedType ExportedType;
-typedef struct _ManifestResource ManifestResource;
-typedef struct _NestedClass NestedClass;
-typedef struct _GenericParameter GenericParameter;
-typedef struct _MethodSpecification MethodSpecification;
-typedef struct _GenericParameterConstraint GenericParameterConstraint;
-
-
 #define TypeDefOrRefUnion(n) \
 uint8_t TypeOf##n; \
 union \
@@ -517,355 +517,3 @@ union \
     TypeDefinition* TypeDefinition; \
     MethodDefinition* MethodDefinition; \
 } n;
-
-
-struct _ModuleDefinition
-{
-    uint16_t Generation;
-    const char* Name;
-    const uint8_t* ModuleVersionID;
-    const uint8_t* EncID;
-    const uint8_t* EncBaseID;
-};
-
-struct _TypeReference
-{
-    ResolutionScopeUnion(ResolutionScope)
-    const char* Name;
-    const char* Namespace;
-	bool_t IsResolved;
-	TypeDefinition* ResolvedType;
-};
-
-struct _TypeDefinition
-{
-    uint32_t Flags;
-    const char* Name;
-    const char* Namespace;
-    TypeDefOrRefUnion(Extends);
-	uint32_t FieldCount;
-    Field* FieldList;
-    MethodDefinition* MethodDefinitionList;
-	bool_t HasStaticConstructor;
-	bool_t HasStaticConstructorBeenRun;
-};
-
-struct _Field
-{
-    uint16_t Flags;
-    const char* Name;
-    const uint8_t* Signature;
-};
-
-#define MethodDefinitionBody_Offset_Flags                 0x00
-
-#define MethodDefinitionBody_Flags_HeaderType_Bits        0x02
-#define MethodDefinitionBody_Flags_HeaderType_Mask        0x03
-#define MethodDefinitionBody_Flags_HeaderType_Fat         0x03
-
-#define MethodDefinitionBody_Tiny_MaxStack                0x08
-
-#define MethodDefinitionBody_Offset_Fat_Flags                           0x00
-#define MethodDefinitionBody_Offset_Fat_MaxStack                        0x02
-#define MethodDefinitionBody_Offset_Fat_CodeSize                        0x04
-#define MethodDefinitionBody_Offset_Fat_LocalVariableSignatureToken     0x08
-
-#define MethodDefinitionBody_Fat_Flags_HasDataSection     0x08
-#define MethodDefinitionBody_Fat_Flags_InitializeLocals   0x10
-#define MethodDefinitionBody_Fat_Flags_Bits               0x0C
-#define MethodDefinitionBody_Fat_Flags_Mask               0x0FFF
-
-#define MethodDefinitionBody_Fat_BodySize_Multiplier      0x04
-
-struct _MethodDefinitionBody
-{
-    uint16_t Flags;
-    bool_t IsFat;
-    uint16_t MaxStack;
-    uint32_t CodeSize;
-    uint32_t LocalVariableSignatureToken;
-    const uint8_t* Code;
-};
-
-#define MethodDefinitionData_ByteAlignment                      0x04
-
-#define MethodDefinitionData_Offset_Flags                       0x00
-#define MethodDefinitionData_Offset_Size                        0x01
-#define MethodDefinitionData_HeaderLength                       0x04
-
-#define MethodDefinitionData_Flags_ExceptionTable               0x01
-#define MethodDefinitionData_Flags_OptionalILTable              0x02
-#define MethodDefinitionData_Flags_Fat                          0x40
-#define MethodDefinitionData_Flags_HasAnotherDataSection        0x80
-
-#define MethodDefinitionData_Fat_Size_Mask                      0x00FFFFFF
-
-#define MethodDefinitionException_Offset_Flags                      0x00
-#define MethodDefinitionException_Offset_TryOffset                  0x02
-#define MethodDefinitionException_Offset_TryLength                  0x04
-#define MethodDefinitionException_Offset_HandlerOffset              0x05
-#define MethodDefinitionException_Offset_HandlerLength              0x07
-#define MethodDefinitionException_Offset_ClassTokenOrFilterOffset   0x08
-#define MethodDefinitionException_HeaderLength                      0x0C
-
-#define MethodDefinitionException_Offset_Fat_Flags                      0x00
-#define MethodDefinitionException_Offset_Fat_TryOffset                  0x04
-#define MethodDefinitionException_Offset_Fat_TryLength                  0x08
-#define MethodDefinitionException_Offset_Fat_HandlerOffset              0x0C
-#define MethodDefinitionException_Offset_Fat_HandlerLength              0x10
-#define MethodDefinitionException_Offset_Fat_ClassTokenOrFilterOffset   0x14
-#define MethodDefinitionException_Fat_HeaderLength                      0x18
-
-struct _MethodDefinitionException
-{
-    uint32_t Flags;
-    uint32_t TryOffset;
-    uint32_t TryLength;
-    uint32_t HandlerOffset;
-    uint32_t HandlerLength;
-    uint32_t ClassTokenOrFilterOffset;
-};
-
-struct _MethodDefinition
-{
-    MethodDefinitionBody Body;
-    uint32_t ExceptionCount;
-    MethodDefinitionException* Exceptions;
-    uint16_t ImplFlags;
-    uint16_t Flags;
-    const char* Name;
-    const uint8_t* Signature;
-    Parameter* ParameterList;
-    uint8_t ParameterListCount;
-};
-
-struct _Parameter
-{
-    uint16_t Flags;
-    uint16_t Sequence;
-    const char* Name;
-};
-
-struct _InterfaceImplementation
-{
-    TypeDefinition* Implementor;
-    TypeDefOrRefUnion(Interface)
-};
-
-struct _MemberReference
-{
-    MemberRefParentUnion(Parent)
-    const char* Name;
-    const uint8_t* Signature;
-};
-
-struct _Constant
-{
-    uint8_t Type;
-    HasConstantUnion(Parent)
-    const uint8_t* Value;
-};
-
-struct _CustomAttribute
-{
-    HasCustomAttributeUnion(Parent)
-    CustomAttributeTypeUnion(Type)
-    const uint8_t* Value;
-};
-
-struct _FieldMarshal
-{
-    HasFieldMarshalUnion(Parent)
-    const uint8_t* NativeType;
-};
-
-struct _DeclSecurity
-{
-    uint16_t Action;
-    HasDeclSecurityUnion(Parent)
-    const uint8_t* PermissionSet;
-};
-
-struct _ClassLayout
-{
-    uint16_t PackingSize;
-    uint32_t ClassSize;
-    TypeDefinition* Parent;
-};
-
-struct _FieldLayout
-{
-    uint32_t Offset;
-    Field* Field;
-};
-
-struct _StandAloneSignature
-{
-    const uint8_t* Signature;
-};
-
-struct _EventMap
-{
-    TypeDefinition* Parent;
-    Event* EventList;
-};
-
-struct _Event
-{
-    uint16_t Flags;
-    const char* Name;
-    TypeDefOrRefUnion(EventType)
-};
-
-struct _PropertyMap
-{
-    TypeDefinition* Parent;
-    Property* PropertyList;
-};
-
-struct _Property
-{
-    uint16_t Flags;
-    const char* Name;
-    const uint8_t* Signature;
-};
-
-struct _MethodSemantics
-{
-    uint16_t Semantics;
-    MethodDefinition* Method;
-    HasSemanticsUnion(Association)
-};
-
-struct _MethodImplementation
-{
-    TypeDefinition* Parent;
-    MethodDefOrRefUnion(MethodBody)
-    MethodDefOrRefUnion(MethodDeclaration)
-};
-
-struct _ModuleReference
-{
-    const char* Name;
-};
-
-struct _TypeSpecification
-{
-    const uint8_t* Signature;
-};
-
-struct _ImplementationMap
-{
-    uint16_t MappingFlags;
-    MemberForwardedUnion(MemberForwarded)
-    const char* ImportName;
-    ModuleReference* ImportScope;
-};
-
-struct _FieldRVA
-{
-    uint32_t VirtualAddress;
-    Field* Field;
-};
-
-struct _AssemblyDefinition
-{
-    uint32_t HashAlgorithmID;
-    uint16_t MajorVersion;
-    uint16_t MinorVersion;
-    uint16_t Build;
-    uint16_t Revision;
-    uint32_t Flags;
-    const uint8_t* PublicKey;
-    const char* Name;
-    const char* Culture;
-};
-
-struct _AssemblyProcessor
-{
-    uint32_t Processor;
-};
-
-struct _AssemblyOperatingSystem
-{
-    uint32_t PlatformID;
-    uint32_t MajorVersion;
-    uint32_t MinorVersion;
-};
-
-struct _AssemblyReference
-{
-    uint16_t MajorVersion;
-    uint16_t MinorVersion;
-    uint16_t Build;
-    uint16_t Revision;
-    uint32_t Flags;
-    const uint8_t* PublicKeyOrToken;
-    const char* Name;
-    const char* Culture;
-    const uint8_t* HashValue;
-};
-
-struct _AssemblyReferenceProcessor
-{
-    uint32_t Processor;
-    AssemblyReference* AssemblyReference;
-};
-
-struct _AssemblyReferenceOperatingSystem
-{
-    uint32_t PlatformID;
-    uint32_t MajorVersion;
-    uint32_t MinorVersion;
-    AssemblyReference* AssemblyReference;
-};
-
-struct _File
-{
-    uint32_t Flags;
-    const char* Name;
-    const uint8_t* HashValue;
-};
-
-struct _ExportedType
-{
-    uint32_t Flags;
-    TypeDefinition* TypeDefinitionID;
-    const char* Name;
-    const char* Namespace;
-    ImplementationUnion(Implementation)
-};
-
-struct _ManifestResource
-{
-    uint32_t Offset;
-    uint32_t Flags;
-    const char* Name;
-    ImplementationUnion(Implementation)
-};
-
-struct _NestedClass
-{
-    TypeDefinition* Nested;
-    TypeDefinition* Enclosing;
-};
-
-struct _GenericParameter
-{
-    uint16_t Index;
-    uint16_t Flags;
-    TypeOrMethodDefUnion(Owner)
-    const char* Name;
-};
-
-struct _MethodSpecification
-{
-    MethodDefOrRefUnion(Method)
-    const uint8_t* Instantiation;
-};
-
-struct _GenericParameterConstraint
-{
-    GenericParameter* Owner;
-    TypeDefOrRefUnion(Constraint)
-};

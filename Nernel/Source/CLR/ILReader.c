@@ -1,8 +1,10 @@
+#include <stdlib.h>
+#include <stdio.h>
+
 #include <CLR/ILReader.h>
 #include <CLR/OpCodes_IL.h>
 #include <CLR/OpCodes_IR.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include <CLR/MetaData/MethodDefinition.h>
 
 
 uint8_t ReadUInt8(uint8_t** dat);

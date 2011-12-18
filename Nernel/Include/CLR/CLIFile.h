@@ -1,7 +1,7 @@
 #pragma once
 
 #include <CLR/PEFile.h>
-#include <CLR/MetaData.h>
+#include <CLR/MetaData/MetaData.h>
 
 #define CLIFile_Machine                             0x014C
 
@@ -125,41 +125,41 @@ const uint8_t* CLIFile_GetUserString(CLIFile* pFile, uint32_t pVirtualAddress);
 const uint8_t* CLIFile_GetBlob(CLIFile* pFile, uint32_t pVirtualAddress);
 const uint8_t* CLIFile_GetGUID(CLIFile* pFile, uint32_t pVirtualAddress);
 
-const uint8_t* CLIFile_LoadModuleDefinitions(CLIFile* pFile, const uint8_t* pTableData);
-const uint8_t* CLIFile_LoadTypeReferences(CLIFile* pFile, const uint8_t* pTableData);
-const uint8_t* CLIFile_LoadTypeDefinitions(CLIFile* pFile, const uint8_t* pTableData);
-const uint8_t* CLIFile_LoadFields(CLIFile* pFile, const uint8_t* pTableData);
-const uint8_t* CLIFile_LoadMethodDefinitions(CLIFile* pFile, const uint8_t* pTableData);
-const uint8_t* CLIFile_LoadParameters(CLIFile* pFile, const uint8_t* pTableData);
-const uint8_t* CLIFile_LoadInterfaceImplementations(CLIFile* pFile, const uint8_t* pTableData);
-const uint8_t* CLIFile_LoadMemberReferences(CLIFile* pFile, const uint8_t* pTableData);
-const uint8_t* CLIFile_LoadConstants(CLIFile* pFile, const uint8_t* pTableData);
-const uint8_t* CLIFile_LoadCustomAttributes(CLIFile* pFile, const uint8_t* pTableData);
-const uint8_t* CLIFile_LoadFieldMarshals(CLIFile* pFile, const uint8_t* pTableData);
-const uint8_t* CLIFile_LoadDeclSecurities(CLIFile* pFile, const uint8_t* pTableData);
-const uint8_t* CLIFile_LoadClassLayouts(CLIFile* pFile, const uint8_t* pTableData);
-const uint8_t* CLIFile_LoadFieldLayouts(CLIFile* pFile, const uint8_t* pTableData);
-const uint8_t* CLIFile_LoadStandAloneSignatures(CLIFile* pFile, const uint8_t* pTableData);
-const uint8_t* CLIFile_LoadEventMaps(CLIFile* pFile, const uint8_t* pTableData);
-const uint8_t* CLIFile_LoadEvents(CLIFile* pFile, const uint8_t* pTableData);
-const uint8_t* CLIFile_LoadPropertyMaps(CLIFile* pFile, const uint8_t* pTableData);
-const uint8_t* CLIFile_LoadProperties(CLIFile* pFile, const uint8_t* pTableData);
-const uint8_t* CLIFile_LoadMethodSemantics(CLIFile* pFile, const uint8_t* pTableData);
-const uint8_t* CLIFile_LoadMethodImplementations(CLIFile* pFile, const uint8_t* pTableData);
-const uint8_t* CLIFile_LoadModuleReferences(CLIFile* pFile, const uint8_t* pTableData);
-const uint8_t* CLIFile_LoadTypeSpecifications(CLIFile* pFile, const uint8_t* pTableData);
-const uint8_t* CLIFile_LoadImplementationMaps(CLIFile* pFile, const uint8_t* pTableData);
-const uint8_t* CLIFile_LoadFieldRVAs(CLIFile* pFile, const uint8_t* pTableData);
-const uint8_t* CLIFile_LoadAssemblyDefinitions(CLIFile* pFile, const uint8_t* pTableData);
-const uint8_t* CLIFile_LoadAssemblyProcessors(CLIFile* pFile, const uint8_t* pTableData);
-const uint8_t* CLIFile_LoadAssemblyOperatingSystems(CLIFile* pFile, const uint8_t* pTableData);
-const uint8_t* CLIFile_LoadAssemblyReferences(CLIFile* pFile, const uint8_t* pTableData);
-const uint8_t* CLIFile_LoadAssemblyReferenceProcessors(CLIFile* pFile, const uint8_t* pTableData);
-const uint8_t* CLIFile_LoadAssemblyReferenceOperatingSystems(CLIFile* pFile, const uint8_t* pTableData);
-const uint8_t* CLIFile_LoadFiles(CLIFile* pFile, const uint8_t* pTableData);
-const uint8_t* CLIFile_LoadExportedTypes(CLIFile* pFile, const uint8_t* pTableData);
-const uint8_t* CLIFile_LoadManifestResources(CLIFile* pFile, const uint8_t* pTableData);
-const uint8_t* CLIFile_LoadNestedClasses(CLIFile* pFile, const uint8_t* pTableData);
-const uint8_t* CLIFile_LoadGenericParameters(CLIFile* pFile, const uint8_t* pTableData);
-const uint8_t* CLIFile_LoadMethodSpecifications(CLIFile* pFile, const uint8_t* pTableData);
-const uint8_t* CLIFile_LoadGenericParameterConstraints(CLIFile* pFile, const uint8_t* pTableData);
+#include <CLR/MetaData/ModuleDefinition.h>
+#include <CLR/MetaData/TypeReference.h>
+#include <CLR/MetaData/TypeDefinition.h>
+#include <CLR/MetaData/Field.h>
+#include <CLR/MetaData/MethodDefinition.h>
+#include <CLR/MetaData/Parameter.h>
+#include <CLR/MetaData/InterfaceImplementation.h>
+#include <CLR/MetaData/MemberReference.h>
+#include <CLR/MetaData/Constant.h>
+#include <CLR/MetaData/CustomAttribute.h>
+#include <CLR/MetaData/FieldMarshal.h>
+#include <CLR/MetaData/DeclSecurity.h>
+#include <CLR/MetaData/ClassLayout.h>
+#include <CLR/MetaData/FieldLayout.h>
+#include <CLR/MetaData/StandAloneSignature.h>
+#include <CLR/MetaData/EventMap.h>
+#include <CLR/MetaData/Event.h>
+#include <CLR/MetaData/PropertyMap.h>
+#include <CLR/MetaData/Property.h>
+#include <CLR/MetaData/MethodSemantics.h>
+#include <CLR/MetaData/MethodImplementation.h>
+#include <CLR/MetaData/ModuleReference.h>
+#include <CLR/MetaData/TypeSpecification.h>
+#include <CLR/MetaData/ImplementationMap.h>
+#include <CLR/MetaData/FieldRVA.h>
+#include <CLR/MetaData/AssemblyDefinition.h>
+#include <CLR/MetaData/AssemblyProcessor.h>
+#include <CLR/MetaData/AssemblyOperatingSystem.h>
+#include <CLR/MetaData/AssemblyReference.h>
+#include <CLR/MetaData/AssemblyReferenceProcessor.h>
+#include <CLR/MetaData/AssemblyReferenceOperatingSystem.h>
+#include <CLR/MetaData/File.h>
+#include <CLR/MetaData/ExportedType.h>
+#include <CLR/MetaData/ManifestResource.h>
+#include <CLR/MetaData/NestedClass.h>
+#include <CLR/MetaData/GenericParameter.h>
+#include <CLR/MetaData/MethodSpecification.h>
+#include <CLR/MetaData/GenericParameterConstraint.h>
