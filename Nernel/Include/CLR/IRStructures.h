@@ -16,7 +16,7 @@ struct _ILAssembly
 struct _IRAssembly
 {
 	uint32_t MethodCount;
-	IRMethod* Methods;
+	IRMethod** Methods;
 };
 
 struct _IRMethod
@@ -40,7 +40,7 @@ struct _IRMethod
 	/*
 		
 	 */
-	IRInstruction* IRCodes;
+	IRInstruction** IRCodes;
 };
 
 /*
@@ -55,4 +55,11 @@ struct _IRInstruction
 	bool_t IsTargetOfBranch;
 };
 
-void IRAssembly_Destroy(IRAssembly* assembly);
+IRAssembly* IRAssembly_Create();
+IRMethod* IRMethod_Create();
+IRInstruction* IRInstruction_Create();
+
+void ILAssembly_Destroy(ILAssembly* assembly);
+
+void IRAssembly_AddMethod(IRAssembly* asmb, IRMethod* mth);
+void IRMethod_AddInstruction(IRMethod* mth, IRInstruction* instr);

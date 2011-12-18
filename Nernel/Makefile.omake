@@ -75,6 +75,7 @@
 	Source/CLR/AppDomain.c
 	Source/CLR/ILReader.c
 	Source/CLR/IRStructures.c
+	Source/CLR/SyntheticStack.c
 }
 
 #define SOURCE(RUNTIME_C_FILES)

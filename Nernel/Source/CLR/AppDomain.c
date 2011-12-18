@@ -31,8 +31,7 @@ void AppDomain_Destroy(AppDomain* domain)
 {
 	for (uint32_t i = 0; i < domain->ILAssemblyCount; i++)
 	{
-		CLIFile_Destroy(domain->ILAssemblies[i].CLIFile);
-		IRAssembly_Destroy(domain->ILAssemblies[i].IRAssembly);
+		ILAssembly_Destroy(domain->ILAssemblies[i]);
 	}
 	free(domain->ILAssemblies);
 	free(domain);
@@ -45,7 +44,7 @@ void AppDomain_AddAssembly(AppDomain* domain, ILAssembly* assembly)
 	// we haven't allocated for it yet, is because
 	// realloc acts like a normal malloc if the first
 	// argument is NULL.
-	domain->ILAssemblies = (ILAssembly*)realloc(domain->ILAssemblies, sizeof(ILAssembly) * domain->ILAssemblyCount);
-	domain->ILAssemblies[domain->ILAssemblyCount - 2] = *assembly;
+	domain->ILAssemblies = (ILAssembly**)realloc(domain->ILAssemblies, sizeof(ILAssembly*) * domain->ILAssemblyCount);
+	domain->ILAssemblies[domain->ILAssemblyCount - 1] = assembly;
 
 }
