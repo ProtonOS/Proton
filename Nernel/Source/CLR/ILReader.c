@@ -18,8 +18,8 @@ ILAssembly* ILReader_CreateAssembly(CLIFile* fil)
 
     for (uint32_t i = 0; i < fil->MethodDefinitionCount; i++)
     {
-        uint8_t* ilLoc = (uint8_t*)fil->MethodDefinitions[i].BodyCode;
-        IRAssembly_AddMethod(asmbly->IRAssembly, ReadIL(&ilLoc, fil->MethodDefinitions[i].BodyHeader.CodeSize));
+        uint8_t* ilLoc = (uint8_t*)fil->MethodDefinitions[i].Body.Code;
+        IRAssembly_AddMethod(asmbly->IRAssembly, ReadIL(&ilLoc, fil->MethodDefinitions[i].Body.CodeSize));
     }
 
 	return asmbly;
