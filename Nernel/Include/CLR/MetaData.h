@@ -347,7 +347,8 @@ typedef struct _ModuleDefinition ModuleDefinition;
 typedef struct _TypeReference TypeReference;
 typedef struct _TypeDefinition TypeDefinition;
 typedef struct _Field Field;
-typedef struct _MethodDefinitionBodyHeader MethodDefinitionBodyHeader;
+typedef struct _MethodDefinitionBody MethodDefinitionBody;
+typedef struct _MethodDefinitionException MethodDefinitionException;
 typedef struct _MethodDefinition MethodDefinition;
 typedef struct _Parameter Parameter;
 typedef struct _InterfaceImplementation InterfaceImplementation;
@@ -556,26 +557,42 @@ struct _Field
     const uint8_t* Signature;
 };
 
-#define MethodDefinitionBodyHeader_Flags_HeaderType_Bits        0x02
-#define MethodDefinitionBodyHeader_Flags_HeaderType_Mask        0x03
-#define MethodDefinitionBodyHeader_Flags_HeaderType_Fat         0x03
+#define MethodDefinitionBody_Flags_HeaderType_Bits        0x02
+#define MethodDefinitionBody_Flags_HeaderType_Mask        0x03
+#define MethodDefinitionBody_Flags_HeaderType_Fat         0x03
 
-#define MethodDefinitionBodyHeader_Tiny_MaxStack                0x08
-#define MethodDefinitionBodyHeader_Fat_Flags_Bits               0x0C
-#define MethodDefinitionBodyHeader_Fat_Flags_Mask               0x0FFF
+#define MethodDefinitionBody_Tiny_MaxStack                0x08
 
-struct _MethodDefinitionBodyHeader
+#define MethodDefinitionBody_Fat_Flags_HasDataSections    0x08
+#define MethodDefinitionBody_Fat_Flags_InitializeLocals   0x10
+#define MethodDefinitionBody_Fat_Flags_Bits               0x0C
+#define MethodDefinitionBody_Fat_Flags_Mask               0x0FFF
+
+struct _MethodDefinitionBody
 {
     uint16_t Flags;
+    bool_t IsFat;
     uint16_t MaxStack;
     uint32_t CodeSize;
     uint32_t LocalVariableSignatureToken;
+    const uint8_t* Code;
+};
+
+struct _MethodDefinitionException
+{
+    uint32_t Flags;
+    uint32_t TryOffset;
+    uint32_t TryLength;
+    uint32_t HandlerOffset;
+    uint32_t HandlerLength;
+    uint32_t ClassTokenOrFilterOffset;
 };
 
 struct _MethodDefinition
 {
-    MethodDefinitionBodyHeader BodyHeader;
-    const uint8_t* BodyCode;
+    MethodDefinitionBody Body;
+    uint32_t ExceptionCount;
+    MethodDefinitionException* Exceptions;
     uint16_t ImplFlags;
     uint16_t Flags;
     const char* Name;

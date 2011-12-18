@@ -585,32 +585,21 @@ const uint8_t* CLIFile_LoadMethodDefinitions(CLIFile* pFile, const uint8_t* pTab
 {
     uint32_t methodBodyVirtualAddress = 0;
     PESectionHeader* methodBodySectionHeader = NULL;
-    const uint8_t* methodBodyHeader = NULL;
-    uint8_t methodBodyHeaderSize = 0;
+    const uint8_t* methodBody = NULL;
+    uint8_t methodBodySize = 0;
     uint32_t parameterListIndex = 0;
     uint32_t* parameterListIndexes = (uint32_t*)calloc(pFile->MethodDefinitionCount, sizeof(uint32_t));
     for (uint32_t index = 0, heapIndex = 0; index < pFile->MethodDefinitionCount; ++index)
     {
         methodBodyVirtualAddress = *(uint32_t*)pTableData; pTableData += 4;
-        if (methodBodyVirtualAddress != 0)
-        {
-            methodBodySectionHeader = PEFile_GetSection(pFile->PEFile->SectionHeaders, pFile->PEFile->PEHeader->NumberOfSections, methodBodyVirtualAddress);
-            methodBodyHeader = pFile->PEFile->Data + methodBodySectionHeader->PointerToRawData + (methodBodyVirtualAddress - methodBodySectionHeader->VirtualAddress);
-            methodBodyHeaderSize = 1;
-            pFile->MethodDefinitions[index].BodyHeader.Flags = methodBodyHeader[0] & MethodDefinitionBodyHeader_Flags_HeaderType_Mask;
-            pFile->MethodDefinitions[index].BodyHeader.MaxStack = MethodDefinitionBodyHeader_Tiny_MaxStack;
-            pFile->MethodDefinitions[index].BodyHeader.CodeSize = methodBodyHeader[0] >> MethodDefinitionBodyHeader_Flags_HeaderType_Bits;
-            pFile->MethodDefinitions[index].BodyHeader.LocalVariableSignatureToken = 0;
-            if (pFile->MethodDefinitions[index].BodyHeader.Flags == MethodDefinitionBodyHeader_Flags_HeaderType_Fat)
-            {
-                pFile->MethodDefinitions[index].BodyHeader.Flags = (*(uint16_t*)(methodBodyHeader + 0)) & MethodDefinitionBodyHeader_Fat_Flags_Mask;
-                methodBodyHeaderSize = ((*(uint16_t*)(methodBodyHeader + 0)) >> MethodDefinitionBodyHeader_Fat_Flags_Bits) * 4;
-                pFile->MethodDefinitions[index].BodyHeader.MaxStack = *(uint16_t*)(methodBodyHeader + 2);
-                pFile->MethodDefinitions[index].BodyHeader.CodeSize = *(uint32_t*)(methodBodyHeader + 4);
-                pFile->MethodDefinitions[index].BodyHeader.LocalVariableSignatureToken = *(uint32_t*)(methodBodyHeader + 8);
-            }
-            pFile->MethodDefinitions[index].BodyCode = methodBodyHeader + methodBodyHeaderSize;
-        }
+        pFile->MethodDefinitions[index].Body.Flags = 0;
+        pFile->MethodDefinitions[index].Body.MaxStack = 0;
+        pFile->MethodDefinitions[index].Body.CodeSize = 0;
+        pFile->MethodDefinitions[index].Body.LocalVariableSignatureToken = 0;
+        pFile->MethodDefinitions[index].Body.Code = NULL;
+        pFile->MethodDefinitions[index].ExceptionCount = 0;
+        pFile->MethodDefinitions[index].Exceptions = NULL;
+
         pFile->MethodDefinitions[index].ImplFlags = *(uint16_t*)pTableData; pTableData += 2;
         pFile->MethodDefinitions[index].Flags = *(uint16_t*)pTableData; pTableData += 2;
         if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
@@ -623,7 +612,106 @@ const uint8_t* CLIFile_LoadMethodDefinitions(CLIFile* pFile, const uint8_t* pTab
         else { parameterListIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->MethodDefinitions[index].ParameterList = &pFile->Parameters[parameterListIndex];
         parameterListIndexes[index] = parameterListIndex;
-        //if (methodBodyVirtualAddress != 0) printf("Method: %s, RVA: %u, HeaderSize: %u, CodeSize: %u\n", pFile->MethodDefinitions[index].Name, (unsigned int)methodBodyVirtualAddress, (unsigned int)methodBodyHeaderSize, (unsigned int)pFile->MethodDefinitions[index].BodyHeader.CodeSize);
+
+        if (methodBodyVirtualAddress != 0)
+        {
+            methodBodySectionHeader = PEFile_GetSection(pFile->PEFile->SectionHeaders, pFile->PEFile->PEHeader->NumberOfSections, methodBodyVirtualAddress);
+            methodBody = pFile->PEFile->Data + methodBodySectionHeader->PointerToRawData + (methodBodyVirtualAddress - methodBodySectionHeader->VirtualAddress);
+            methodBodySize = 1;
+            pFile->MethodDefinitions[index].Body.Flags = methodBody[0] & MethodDefinitionBody_Flags_HeaderType_Mask;
+            pFile->MethodDefinitions[index].Body.IsFat = FALSE;
+            pFile->MethodDefinitions[index].Body.MaxStack = MethodDefinitionBody_Tiny_MaxStack;
+            pFile->MethodDefinitions[index].Body.CodeSize = methodBody[0] >> MethodDefinitionBody_Flags_HeaderType_Bits;
+            pFile->MethodDefinitions[index].Body.LocalVariableSignatureToken = 0;
+            if (pFile->MethodDefinitions[index].Body.Flags == MethodDefinitionBody_Flags_HeaderType_Fat)
+            {
+                pFile->MethodDefinitions[index].Body.Flags = (*(uint16_t*)(methodBody + 0)) & MethodDefinitionBody_Fat_Flags_Mask;
+                methodBodySize = ((*(uint16_t*)(methodBody + 0)) >> MethodDefinitionBody_Fat_Flags_Bits) * 4;
+                pFile->MethodDefinitions[index].Body.IsFat = TRUE;
+                pFile->MethodDefinitions[index].Body.MaxStack = *(uint16_t*)(methodBody + 2);
+                pFile->MethodDefinitions[index].Body.CodeSize = *(uint32_t*)(methodBody + 4);
+                pFile->MethodDefinitions[index].Body.LocalVariableSignatureToken = *(uint32_t*)(methodBody + 8);
+            }
+            pFile->MethodDefinitions[index].Body.Code = methodBody + methodBodySize;
+            //printf("Method: %s, RVA: %u, HeaderSize: %u, CodeSize: %u\n", pFile->MethodDefinitions[index].Name, (unsigned int)methodBodyVirtualAddress, (unsigned int)methodBodySize, (unsigned int)pFile->MethodDefinitions[index].Body.CodeSize);
+
+            if (pFile->MethodDefinitions[index].Body.IsFat && (pFile->MethodDefinitions[index].Body.Flags & MethodDefinitionBody_Fat_Flags_HasDataSections) != 0)
+            {
+                uint32_t methodDataVirtualAddress = methodBodyVirtualAddress + methodBodySize + pFile->MethodDefinitions[index].Body.CodeSize;
+                while ((methodDataVirtualAddress % 4) != 0) ++methodDataVirtualAddress;
+                const uint8_t* methodDataStart = pFile->PEFile->Data + methodBodySectionHeader->PointerToRawData + (methodDataVirtualAddress - methodBodySectionHeader->VirtualAddress);
+                const uint8_t* methodData = methodDataStart;
+                bool_t hasData = TRUE;
+                while (hasData)
+                {
+                    uint8_t methodDataFlags = methodData[0];
+                    uint32_t methodDataSize = methodData[1];
+                    if ((methodDataFlags & 0x40) != 0) methodDataSize = (*(uint32_t*)(methodData + 1)) & 0x00FFFFFF;
+
+                    if ((methodDataFlags & 0x01) != 0)
+                    {
+                        uint32_t methodDataExceptionCount = (methodDataSize - 4) / 12;
+                        if ((methodDataFlags & 0x40) != 0) methodDataExceptionCount = (methodDataSize - 4) / 24;
+                        pFile->MethodDefinitions[index].ExceptionCount += methodDataExceptionCount;
+
+                        //printf("  HasExceptions, RVA: %u, Flags: 0x%x, Size: %u, Count: %u\n", (unsigned int)methodDataVirtualAddress, (unsigned int)methodDataFlags, (unsigned int)methodDataSize, (unsigned int)pFile->MethodDefinitions[index].ExceptionCount);
+                    }
+
+                    hasData = (methodDataFlags & 0x80) != 0;
+                    if (hasData) methodData += methodDataSize;
+                }
+                if (pFile->MethodDefinitions[index].ExceptionCount > 0)
+                {
+                    uint32_t methodExceptionIndex = 0;
+                    pFile->MethodDefinitions[index].Exceptions = calloc(pFile->MethodDefinitions[index].ExceptionCount, sizeof(MethodDefinitionException));
+
+                    methodData = methodDataStart;
+                    hasData = TRUE;
+                    while (hasData)
+                    {
+                        uint8_t methodDataFlags = methodData[0];
+                        uint32_t methodDataSize = methodData[1];
+                        if ((methodDataFlags & 0x40) != 0) methodDataSize = (*(uint32_t*)(methodData + 1)) & 0x00FFFFFF;
+
+                        if ((methodDataFlags & 0x01) != 0)
+                        {
+                            uint32_t methodDataExceptionCount = (methodDataSize - 4) / 12;
+                            if ((methodDataFlags & 0x40) != 0) methodDataExceptionCount = (methodDataSize - 4) / 24;
+                            const uint8_t* methodDataException = methodData + 4;
+                            for (uint32_t exceptionIndex = 0; exceptionIndex < methodDataExceptionCount; ++exceptionIndex)
+                            {
+                                if ((methodDataFlags & 0x40) == 0)
+                                {
+                                    pFile->MethodDefinitions[index].Exceptions[methodExceptionIndex].Flags = *(uint16_t*)(methodDataException + (exceptionIndex * 12) + 0);
+                                    pFile->MethodDefinitions[index].Exceptions[methodExceptionIndex].TryOffset = *(uint16_t*)(methodDataException + (exceptionIndex * 12) + 2);
+                                    pFile->MethodDefinitions[index].Exceptions[methodExceptionIndex].TryLength = *(methodDataException + (exceptionIndex * 12) + 4);
+                                    pFile->MethodDefinitions[index].Exceptions[methodExceptionIndex].HandlerOffset = *(uint16_t*)(methodDataException + (exceptionIndex * 12) + 5);
+                                    pFile->MethodDefinitions[index].Exceptions[methodExceptionIndex].HandlerLength = *(methodDataException + (exceptionIndex * 12) + 7);
+                                    pFile->MethodDefinitions[index].Exceptions[methodExceptionIndex].ClassTokenOrFilterOffset = *(uint32_t*)(methodDataException + (exceptionIndex * 12) + 8);
+                                }
+                                else
+                                {
+                                    pFile->MethodDefinitions[index].Exceptions[methodExceptionIndex].Flags = *(uint16_t*)(methodDataException + (exceptionIndex * 24) + 0);
+                                    pFile->MethodDefinitions[index].Exceptions[methodExceptionIndex].TryOffset = *(uint16_t*)(methodDataException + (exceptionIndex * 24) + 4);
+                                    pFile->MethodDefinitions[index].Exceptions[methodExceptionIndex].TryLength = *(methodDataException + (exceptionIndex * 24) + 8);
+                                    pFile->MethodDefinitions[index].Exceptions[methodExceptionIndex].HandlerOffset = *(uint16_t*)(methodDataException + (exceptionIndex * 24) + 12);
+                                    pFile->MethodDefinitions[index].Exceptions[methodExceptionIndex].HandlerLength = *(methodDataException + (exceptionIndex * 24) + 16);
+                                    pFile->MethodDefinitions[index].Exceptions[methodExceptionIndex].ClassTokenOrFilterOffset = *(uint32_t*)(methodDataException + (exceptionIndex * 24) + 20);
+                                }
+                                //printf("    Exception, Flags: 0x%x, TryOffset: %u, TryLength: %u, HandlerOffset: %u, HandlerLength: %u, ClassTokenOrFilterOffset: %u\n", (unsigned int)pFile->MethodDefinitions[index].Exceptions[methodExceptionIndex].Flags, (unsigned int)pFile->MethodDefinitions[index].Exceptions[methodExceptionIndex].TryOffset, (unsigned int)pFile->MethodDefinitions[index].Exceptions[methodExceptionIndex].TryLength, (unsigned int)pFile->MethodDefinitions[index].Exceptions[methodExceptionIndex].HandlerOffset, (unsigned int)pFile->MethodDefinitions[index].Exceptions[methodExceptionIndex].HandlerLength, (unsigned int)pFile->MethodDefinitions[index].Exceptions[methodExceptionIndex].ClassTokenOrFilterOffset);
+                                ++methodExceptionIndex;
+                            }
+                        }
+
+                        hasData = (methodDataFlags & 0x80) != 0;
+                        if (hasData) methodData += methodDataSize;
+                    }
+
+                    //printf("  TotalExceptions: %u\n", (unsigned int)methodExceptionIndex);
+                }
+            }
+        }
+
     }
     uint8_t parameterListCount = 0;
     for (uint32_t index = 0, used = 0; index < pFile->MethodDefinitionCount; ++index, used += parameterListCount)
