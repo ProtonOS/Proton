@@ -4,7 +4,7 @@
 
 struct _FieldRVA
 {
-    uint32_t VirtualAddress;
+    const uint8_t* InitialValue;
     Field* Field;
 };
 
