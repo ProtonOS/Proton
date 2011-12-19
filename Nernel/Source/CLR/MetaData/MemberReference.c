@@ -55,7 +55,7 @@ const uint8_t* MemberReference_Load(CLIFile* pFile, const uint8_t* pTableData)
         pFile->MemberReferences[index].Name = (const char*)(pFile->StringsHeap + heapIndex);
         if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Blobs32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
-        pFile->MemberReferences[index].Signature = pFile->BlobsHeap + heapIndex;
+        pFile->MemberReferences[index].Signature = MetaData_GetCompressedUnsigned(pFile->BlobsHeap + heapIndex, &pFile->MemberReferences[index].SignatureLength);
     }
     return pTableData;
 }

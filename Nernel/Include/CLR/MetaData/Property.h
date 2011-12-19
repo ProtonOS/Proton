@@ -6,6 +6,7 @@ struct _Property
 {
     uint16_t Flags;
     const char* Name;
+    uint32_t SignatureLength;
     const uint8_t* Signature;
 };
 

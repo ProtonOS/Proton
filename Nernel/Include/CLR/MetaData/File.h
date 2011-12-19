@@ -6,6 +6,7 @@ struct _File
 {
     uint32_t Flags;
     const char* Name;
+    uint32_t HashValueLength;
     const uint8_t* HashValue;
 };
 

@@ -6,6 +6,7 @@ struct _Constant
 {
     uint8_t Type;
     HasConstantUnion(Parent)
+    uint32_t ValueLength;
     const uint8_t* Value;
 };
 

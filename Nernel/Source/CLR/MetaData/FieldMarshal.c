@@ -45,7 +45,7 @@ const uint8_t* FieldMarshal_Load(CLIFile* pFile, const uint8_t* pTableData)
         }
         if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Blobs32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
-        pFile->FieldMarshals[index].NativeType = pFile->BlobsHeap + heapIndex;
+        pFile->FieldMarshals[index].NativeType = MetaData_GetCompressedUnsigned(pFile->BlobsHeap + heapIndex, &pFile->FieldMarshals[index].NativeTypeLength);
     }
     return pTableData;
 }

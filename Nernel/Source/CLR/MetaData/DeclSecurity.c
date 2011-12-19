@@ -49,7 +49,7 @@ const uint8_t* DeclSecurity_Load(CLIFile* pFile, const uint8_t* pTableData)
         }
         if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Blobs32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
-        pFile->DeclSecurities[index].PermissionSet = pFile->BlobsHeap + heapIndex;
+        pFile->DeclSecurities[index].PermissionSet = MetaData_GetCompressedUnsigned(pFile->BlobsHeap + heapIndex, &pFile->DeclSecurities[index].PermissionSetLength);
     }
     return pTableData;
 }

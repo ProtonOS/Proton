@@ -37,7 +37,7 @@ const uint8_t* AssemblyDefinition_Load(CLIFile* pFile, const uint8_t* pTableData
         pFile->AssemblyDefinitions[index].Flags = *(uint32_t* )pTableData; pTableData += 4;
         if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Blobs32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
-        pFile->AssemblyDefinitions[index].PublicKey = pFile->BlobsHeap + heapIndex;
+        pFile->AssemblyDefinitions[index].PublicKey = MetaData_GetCompressedUnsigned(pFile->BlobsHeap + heapIndex, &pFile->AssemblyDefinitions[index].PublicKeyLength);
         if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->AssemblyDefinitions[index].Name = (const char*)(pFile->StringsHeap + heapIndex);

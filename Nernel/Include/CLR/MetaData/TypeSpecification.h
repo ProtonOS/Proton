@@ -4,6 +4,7 @@
 
 struct _TypeSpecification
 {
+    uint32_t SignatureLength;
     const uint8_t* Signature;
 };
 

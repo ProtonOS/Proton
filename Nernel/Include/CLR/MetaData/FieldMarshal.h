@@ -5,6 +5,7 @@
 struct _FieldMarshal
 {
     HasFieldMarshalUnion(Parent)
+    uint32_t NativeTypeLength;
     const uint8_t* NativeType;
 };
 

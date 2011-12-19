@@ -35,7 +35,7 @@ const uint8_t* File_Load(CLIFile* pFile, const uint8_t* pTableData)
         pFile->Files[index].Name = (const char*)(pFile->StringsHeap + heapIndex);
         if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Blobs32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
-        pFile->Files[index].HashValue = pFile->BlobsHeap + heapIndex;
+        pFile->Files[index].HashValue = MetaData_GetCompressedUnsigned(pFile->BlobsHeap + heapIndex, &pFile->Files[index].HashValueLength);
     }
     return pTableData;
 }

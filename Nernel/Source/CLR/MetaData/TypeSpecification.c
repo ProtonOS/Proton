@@ -31,7 +31,7 @@ const uint8_t* TypeSpecification_Load(CLIFile* pFile, const uint8_t* pTableData)
     {
         if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Blobs32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
-        pFile->TypeSpecifications[index].Signature = pFile->BlobsHeap + heapIndex;
+        pFile->TypeSpecifications[index].Signature = MetaData_GetCompressedUnsigned(pFile->BlobsHeap + heapIndex, &pFile->TypeSpecifications[index].SignatureLength);
     }
     return pTableData;
 }

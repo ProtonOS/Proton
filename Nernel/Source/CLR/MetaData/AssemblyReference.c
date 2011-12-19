@@ -36,7 +36,7 @@ const uint8_t* AssemblyReference_Load(CLIFile* pFile, const uint8_t* pTableData)
         pFile->AssemblyReferences[index].Flags = *(uint32_t* )pTableData; pTableData += 4;
         if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Blobs32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
-        pFile->AssemblyReferences[index].PublicKeyOrToken = pFile->BlobsHeap + heapIndex;
+        pFile->AssemblyReferences[index].PublicKeyOrToken = MetaData_GetCompressedUnsigned(pFile->BlobsHeap + heapIndex, &pFile->AssemblyReferences[index].PublicKeyOrTokenLength);
         if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->AssemblyReferences[index].Name = (const char*)(pFile->StringsHeap + heapIndex);
@@ -45,7 +45,7 @@ const uint8_t* AssemblyReference_Load(CLIFile* pFile, const uint8_t* pTableData)
         pFile->AssemblyReferences[index].Culture = (const char*)(pFile->StringsHeap + heapIndex);
         if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Blobs32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
-        pFile->AssemblyReferences[index].HashValue = pFile->BlobsHeap + heapIndex;
+        pFile->AssemblyReferences[index].HashValue = MetaData_GetCompressedUnsigned(pFile->BlobsHeap + heapIndex, &pFile->AssemblyReferences[index].HashValueLength);
     }
     return pTableData;
 }

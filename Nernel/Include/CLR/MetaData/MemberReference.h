@@ -6,6 +6,7 @@ struct _MemberReference
 {
     MemberRefParentUnion(Parent)
     const char* Name;
+    uint32_t SignatureLength;
     const uint8_t* Signature;
 };
 

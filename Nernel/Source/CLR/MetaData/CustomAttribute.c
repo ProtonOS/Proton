@@ -99,7 +99,7 @@ const uint8_t* CustomAttribute_Load(CLIFile* pFile, const uint8_t* pTableData)
         }
         if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Blobs32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
-        pFile->CustomAttributes[index].Value = pFile->BlobsHeap + heapIndex;
+        pFile->CustomAttributes[index].Value = MetaData_GetCompressedUnsigned(pFile->BlobsHeap + heapIndex, &pFile->CustomAttributes[index].ValueLength);
     }
     return pTableData;
 }

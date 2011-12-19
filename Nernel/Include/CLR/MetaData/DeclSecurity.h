@@ -6,6 +6,7 @@ struct _DeclSecurity
 {
     uint16_t Action;
     HasDeclSecurityUnion(Parent)
+    uint32_t PermissionSetLength;
     const uint8_t* PermissionSet;
 };
 

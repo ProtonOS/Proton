@@ -9,9 +9,11 @@ struct _AssemblyReference
     uint16_t Build;
     uint16_t Revision;
     uint32_t Flags;
+    uint32_t PublicKeyOrTokenLength;
     const uint8_t* PublicKeyOrToken;
     const char* Name;
     const char* Culture;
+    uint32_t HashValueLength;
     const uint8_t* HashValue;
 };
 

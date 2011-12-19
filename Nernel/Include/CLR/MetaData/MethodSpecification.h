@@ -5,6 +5,7 @@
 struct _MethodSpecification
 {
     MethodDefOrRefUnion(Method)
+    uint32_t InstantiationLength;
     const uint8_t* Instantiation;
 };
 

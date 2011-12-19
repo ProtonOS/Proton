@@ -45,7 +45,7 @@ const uint8_t* MethodSpecification_Load(CLIFile* pFile, const uint8_t* pTableDat
         }
         if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Blobs32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
-        pFile->MethodSpecifications[index].Instantiation = pFile->BlobsHeap + heapIndex;
+        pFile->MethodSpecifications[index].Instantiation = MetaData_GetCompressedUnsigned(pFile->BlobsHeap + heapIndex, &pFile->MethodSpecifications[index].InstantiationLength);
     }
     return pTableData;
 }

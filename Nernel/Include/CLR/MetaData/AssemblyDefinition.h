@@ -10,6 +10,7 @@ struct _AssemblyDefinition
     uint16_t Build;
     uint16_t Revision;
     uint32_t Flags;
+    uint32_t PublicKeyLength;
     const uint8_t* PublicKey;
     const char* Name;
     const char* Culture;

@@ -6,6 +6,7 @@ struct _CustomAttribute
 {
     HasCustomAttributeUnion(Parent)
     CustomAttributeTypeUnion(Type)
+    uint32_t ValueLength;
     const uint8_t* Value;
 };
 
