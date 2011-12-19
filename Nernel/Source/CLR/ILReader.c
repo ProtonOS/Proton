@@ -1,10 +1,9 @@
-#include <stdlib.h>
-#include <stdio.h>
-
 #include <CLR/ILReader.h>
 #include <CLR/OpCodes_IL.h>
 #include <CLR/OpCodes_IR.h>
-#include <CLR/MetaData/MethodDefinition.h>
+#include <CLR/SyntheticStack.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 
 uint8_t ReadUInt8(uint8_t** dat);
@@ -20,8 +19,8 @@ ILAssembly* ILReader_CreateAssembly(CLIFile* fil)
 
     for (uint32_t i = 0; i < fil->MethodDefinitionCount; i++)
     {
-        uint8_t* ilLoc = (uint8_t*)fil->MethodDefinitions[i].Body.Code;
-        IRAssembly_AddMethod(asmbly->IRAssembly, ReadIL(&ilLoc, fil->MethodDefinitions[i].Body.CodeSize));
+        uint8_t* ilLoc = (uint8_t*)fil->MethodDefinitions[i].BodyCode;
+        IRAssembly_AddMethod(asmbly->IRAssembly, ReadIL(&ilLoc, fil->MethodDefinitions[i].BodyHeader.CodeSize));
     }
 
 	return asmbly;
@@ -56,6 +55,7 @@ ILAssembly* ILReader_CreateAssembly(CLIFile* fil)
 
 IRMethod* ReadIL(uint8_t** dat, uint32_t len)
 {
+    //SyntheticStack* stack = SyntheticStack_Create();
 	uint32_t orig = (uint32_t)(*dat);
     uint8_t b;
     IRMethod* m = IRMethod_Create();
