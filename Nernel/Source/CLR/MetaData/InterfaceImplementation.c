@@ -52,3 +52,7 @@ const uint8_t* InterfaceImplementation_Load(CLIFile* pFile, const uint8_t* pTabl
     }
     return pTableData;
 }
+
+void InterfaceImplementation_Link(CLIFile* pFile)
+{
+}

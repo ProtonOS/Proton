@@ -13,3 +13,4 @@ struct _CustomAttribute
 const uint8_t* CustomAttribute_Initialize(CLIFile* pFile, const uint8_t* pTableData);
 void CustomAttribute_Cleanup(CLIFile* pFile);
 const uint8_t* CustomAttribute_Load(CLIFile* pFile, const uint8_t* pTableData);
+void CustomAttribute_Link(CLIFile* pFile);

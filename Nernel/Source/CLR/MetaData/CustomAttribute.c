@@ -101,3 +101,7 @@ const uint8_t* CustomAttribute_Load(CLIFile* pFile, const uint8_t* pTableData)
     }
     return pTableData;
 }
+
+void CustomAttribute_Link(CLIFile* pFile)
+{
+}

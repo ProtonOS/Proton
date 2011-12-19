@@ -56,3 +56,7 @@ const uint8_t* ImplementationMap_Load(CLIFile* pFile, const uint8_t* pTableData)
     }
     return pTableData;
 }
+
+void ImplementationMap_Link(CLIFile* pFile)
+{
+}

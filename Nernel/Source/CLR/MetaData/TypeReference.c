@@ -55,3 +55,7 @@ const uint8_t* TypeReference_Load(CLIFile* pFile, const uint8_t* pTableData)
     }
     return pTableData;
 }
+
+void TypeReference_Link(CLIFile* pFile)
+{
+}

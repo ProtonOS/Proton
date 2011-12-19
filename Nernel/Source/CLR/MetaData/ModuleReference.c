@@ -35,3 +35,7 @@ const uint8_t* ModuleReference_Load(CLIFile* pFile, const uint8_t* pTableData)
     }
     return pTableData;
 }
+
+void ModuleReference_Link(CLIFile* pFile)
+{
+}

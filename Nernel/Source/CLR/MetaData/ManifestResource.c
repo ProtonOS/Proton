@@ -53,3 +53,7 @@ const uint8_t* ManifestResource_Load(CLIFile* pFile, const uint8_t* pTableData)
     }
     return pTableData;
 }
+
+void ManifestResource_Link(CLIFile* pFile)
+{
+}

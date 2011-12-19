@@ -12,3 +12,4 @@ struct _AssemblyOperatingSystem
 const uint8_t* AssemblyOperatingSystem_Initialize(CLIFile* pFile, const uint8_t* pTableData);
 void AssemblyOperatingSystem_Cleanup(CLIFile* pFile);
 const uint8_t* AssemblyOperatingSystem_Load(CLIFile* pFile, const uint8_t* pTableData);
+void AssemblyOperatingSystem_Link(CLIFile* pFile);

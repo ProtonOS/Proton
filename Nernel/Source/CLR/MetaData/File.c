@@ -39,3 +39,7 @@ const uint8_t* File_Load(CLIFile* pFile, const uint8_t* pTableData)
     }
     return pTableData;
 }
+
+void File_Link(CLIFile* pFile)
+{
+}

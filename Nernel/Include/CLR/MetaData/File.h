@@ -13,3 +13,4 @@ struct _File
 const uint8_t* File_Initialize(CLIFile* pFile, const uint8_t* pTableData);
 void File_Cleanup(CLIFile* pFile);
 const uint8_t* File_Load(CLIFile* pFile, const uint8_t* pTableData);
+void File_Link(CLIFile* pFile);

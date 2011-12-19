@@ -62,3 +62,7 @@ const uint8_t* MethodImplementation_Load(CLIFile* pFile, const uint8_t* pTableDa
     }
     return pTableData;
 }
+
+void MethodImplementation_Link(CLIFile* pFile)
+{
+}

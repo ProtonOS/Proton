@@ -39,3 +39,7 @@ const uint8_t* AssemblyReferenceOperatingSystem_Load(CLIFile* pFile, const uint8
     }
     return pTableData;
 }
+
+void AssemblyReferenceOperatingSystem_Link(CLIFile* pFile)
+{
+}

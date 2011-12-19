@@ -51,3 +51,7 @@ const uint8_t* Constant_Load(CLIFile* pFile, const uint8_t* pTableData)
     }
     return pTableData;
 }
+
+void Constant_Link(CLIFile* pFile)
+{
+}

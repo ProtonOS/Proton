@@ -50,3 +50,7 @@ const uint8_t* GenericParameter_Load(CLIFile* pFile, const uint8_t* pTableData)
     }
     return pTableData;
 }
+
+void GenericParameter_Link(CLIFile* pFile)
+{
+}

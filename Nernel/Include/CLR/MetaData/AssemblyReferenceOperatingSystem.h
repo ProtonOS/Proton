@@ -13,3 +13,4 @@ struct _AssemblyReferenceOperatingSystem
 const uint8_t* AssemblyReferenceOperatingSystem_Initialize(CLIFile* pFile, const uint8_t* pTableData);
 void AssemblyReferenceOperatingSystem_Cleanup(CLIFile* pFile);
 const uint8_t* AssemblyReferenceOperatingSystem_Load(CLIFile* pFile, const uint8_t* pTableData);
+void AssemblyReferenceOperatingSystem_Link(CLIFile* pFile);

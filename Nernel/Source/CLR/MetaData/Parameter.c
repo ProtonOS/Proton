@@ -37,3 +37,7 @@ const uint8_t* Parameter_Load(CLIFile* pFile, const uint8_t* pTableData)
     }
     return pTableData;
 }
+
+void Parameter_Link(CLIFile* pFile)
+{
+}

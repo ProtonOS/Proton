@@ -39,3 +39,7 @@ const uint8_t* Field_Load(CLIFile* pFile, const uint8_t* pTableData)
     }
     return pTableData;
 }
+
+void Field_Link(CLIFile* pFile)
+{
+}

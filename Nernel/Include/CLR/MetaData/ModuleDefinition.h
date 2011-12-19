@@ -14,3 +14,4 @@ struct _ModuleDefinition
 const uint8_t* ModuleDefinition_Initialize(CLIFile* pFile, const uint8_t* pTableData);
 void ModuleDefinition_Cleanup(CLIFile* pFile);
 const uint8_t* ModuleDefinition_Load(CLIFile* pFile, const uint8_t* pTableData);
+void ModuleDefinition_Link(CLIFile* pFile);

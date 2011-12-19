@@ -19,3 +19,4 @@ struct _AssemblyDefinition
 const uint8_t* AssemblyDefinition_Initialize(CLIFile* pFile, const uint8_t* pTableData);
 void AssemblyDefinition_Cleanup(CLIFile* pFile);
 const uint8_t* AssemblyDefinition_Load(CLIFile* pFile, const uint8_t* pTableData);
+void AssemblyDefinition_Link(CLIFile* pFile);

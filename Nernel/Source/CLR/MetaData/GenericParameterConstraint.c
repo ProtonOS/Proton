@@ -51,3 +51,7 @@ const uint8_t* GenericParameterConstraint_Load(CLIFile* pFile, const uint8_t* pT
     }
     return pTableData;
 }
+
+void GenericParameterConstraint_Link(CLIFile* pFile)
+{
+}

@@ -4,6 +4,60 @@
 
 #include <CLR/CLIFile.h>
 
+typedef const uint8_t* (*CLIFile_MetaDataInitialize_Handler)(CLIFile* pFile, const uint8_t* pTableData);
+typedef const uint8_t* (*CLIFile_MetaDataLoad_Handler)(CLIFile* pFile, const uint8_t* pTableData);
+typedef void (*CLIFile_MetaDataLink_Handler)(CLIFile* pFile);
+typedef void (*CLIFile_MetaDataCleanup_Handler)(CLIFile* pFile);
+
+struct
+{
+    CLIFile_MetaDataInitialize_Handler Initialize;
+    CLIFile_MetaDataLoad_Handler Load;
+    CLIFile_MetaDataLink_Handler Link;
+    CLIFile_MetaDataCleanup_Handler Cleanup;
+} CLIFile_MetaDataTables[] =
+{
+    { &ModuleDefinition_Initialize,                     &ModuleDefinition_Load,                     &ModuleDefinition_Link,                     &ModuleDefinition_Cleanup },
+    { &TypeReference_Initialize,                        &TypeReference_Load,                        &TypeReference_Link,                        &TypeReference_Cleanup },
+    { &TypeDefinition_Initialize,                       &TypeDefinition_Load,                       &TypeDefinition_Link,                       &TypeDefinition_Cleanup },
+    { &Field_Initialize,                                &Field_Load,                                &Field_Link,                                &Field_Cleanup },
+    { &MethodDefinition_Initialize,                     &MethodDefinition_Load,                     &MethodDefinition_Link,                     &MethodDefinition_Cleanup },
+    { &Parameter_Initialize,                            &Parameter_Load,                            &Parameter_Link,                            &Parameter_Cleanup },
+    { &InterfaceImplementation_Initialize,              &InterfaceImplementation_Load,              &InterfaceImplementation_Link,              &InterfaceImplementation_Cleanup },
+    { &MemberReference_Initialize,                      &MemberReference_Load,                      &MemberReference_Link,                      &MemberReference_Cleanup },
+    { &Constant_Initialize,                             &Constant_Load,                             &Constant_Link,                             &Constant_Cleanup },
+    { &CustomAttribute_Initialize,                      &CustomAttribute_Load,                      &CustomAttribute_Link,                      &CustomAttribute_Cleanup },
+    { &FieldMarshal_Initialize,                         &FieldMarshal_Load,                         &FieldMarshal_Link,                         &FieldMarshal_Cleanup },
+    { &DeclSecurity_Initialize,                         &DeclSecurity_Load,                         &DeclSecurity_Link,                         &DeclSecurity_Cleanup },
+    { &ClassLayout_Initialize,                          &ClassLayout_Load,                          &ClassLayout_Link,                          &ClassLayout_Cleanup },
+    { &FieldLayout_Initialize,                          &FieldLayout_Load,                          &FieldLayout_Link,                          &FieldLayout_Cleanup },
+    { &StandAloneSignature_Initialize,                  &StandAloneSignature_Load,                  &StandAloneSignature_Link,                  &StandAloneSignature_Cleanup },
+    { &EventMap_Initialize,                             &EventMap_Load,                             &EventMap_Link,                             &EventMap_Cleanup },
+    { &Event_Initialize,                                &Event_Load,                                &Event_Link,                                &Event_Cleanup },
+    { &PropertyMap_Initialize,                          &PropertyMap_Load,                          &PropertyMap_Link,                          &PropertyMap_Cleanup },
+    { &Property_Initialize,                             &Property_Load,                             &Property_Link,                             &Property_Cleanup },
+    { &MethodSemantics_Initialize,                      &MethodSemantics_Load,                      &MethodSemantics_Link,                      &MethodSemantics_Cleanup },
+    { &MethodImplementation_Initialize,                 &MethodImplementation_Load,                 &MethodImplementation_Link,                 &MethodImplementation_Cleanup },
+    { &ModuleReference_Initialize,                      &ModuleReference_Load,                      &ModuleReference_Link,                      &ModuleReference_Cleanup },
+    { &TypeSpecification_Initialize,                    &TypeSpecification_Load,                    &TypeSpecification_Link,                    &TypeSpecification_Cleanup },
+    { &ImplementationMap_Initialize,                    &ImplementationMap_Load,                    &ImplementationMap_Link,                    &ImplementationMap_Cleanup },
+    { &FieldRVA_Initialize,                             &FieldRVA_Load,                             &FieldRVA_Link,                             &FieldRVA_Cleanup },
+    { &AssemblyDefinition_Initialize,                   &AssemblyDefinition_Load,                   &AssemblyDefinition_Link,                   &AssemblyDefinition_Cleanup },
+    { &AssemblyProcessor_Initialize,                    &AssemblyProcessor_Load,                    &AssemblyProcessor_Link,                    &AssemblyProcessor_Cleanup },
+    { &AssemblyOperatingSystem_Initialize,              &AssemblyOperatingSystem_Load,              &AssemblyOperatingSystem_Link,              &AssemblyOperatingSystem_Cleanup },
+    { &AssemblyReference_Initialize,                    &AssemblyReference_Load,                    &AssemblyReference_Link,                    &AssemblyReference_Cleanup },
+    { &AssemblyReferenceProcessor_Initialize,           &AssemblyReferenceProcessor_Load,           &AssemblyReferenceProcessor_Link,           &AssemblyReferenceProcessor_Cleanup },
+    { &AssemblyReferenceOperatingSystem_Initialize,     &AssemblyReferenceOperatingSystem_Load,     &AssemblyReferenceOperatingSystem_Link,     &AssemblyReferenceOperatingSystem_Cleanup },
+    { &File_Initialize,                                 &File_Load,                                 &File_Link,                                 &File_Cleanup },
+    { &ExportedType_Initialize,                         &ExportedType_Load,                         &ExportedType_Link,                         &ExportedType_Cleanup },
+    { &ManifestResource_Initialize,                     &ManifestResource_Load,                     &ManifestResource_Link,                     &ManifestResource_Cleanup },
+    { &NestedClass_Initialize,                          &NestedClass_Load,                          &NestedClass_Link,                          &NestedClass_Cleanup },
+    { &GenericParameter_Initialize,                     &GenericParameter_Load,                     &GenericParameter_Link,                     &GenericParameter_Cleanup },
+    { &MethodSpecification_Initialize,                  &MethodSpecification_Load,                  &MethodSpecification_Link,                  &MethodSpecification_Cleanup },
+    { &GenericParameterConstraint_Initialize,           &GenericParameterConstraint_Load,           &GenericParameterConstraint_Link,           &GenericParameterConstraint_Cleanup },
+    { NULL,                                             NULL,                                       NULL,                                       NULL }
+};
+
 CLIFile* CLIFile_Create(PEFile* pFile)
 {
     if (pFile->PEHeader->Machine != CLIFile_Machine) return NULL;
@@ -39,84 +93,12 @@ CLIFile* CLIFile_Create(PEFile* pFile)
 
     cliFile->TablesHeader = (MetaDataTablesHeader*)cliFile->Tables;
     const uint8_t* tableData = cliFile->Tables + sizeof(MetaDataTablesHeader);
+    uint32_t tableCount = 0;
+    while (CLIFile_MetaDataTables[tableCount].Initialize) ++tableCount;
 
-    tableData = ModuleDefinition_Initialize(cliFile, tableData);
-    tableData = TypeReference_Initialize(cliFile, tableData);
-    tableData = TypeDefinition_Initialize(cliFile, tableData);
-    tableData = Field_Initialize(cliFile, tableData);
-    tableData = MethodDefinition_Initialize(cliFile, tableData);
-    tableData = Parameter_Initialize(cliFile, tableData);
-    tableData = InterfaceImplementation_Initialize(cliFile, tableData);
-    tableData = MemberReference_Initialize(cliFile, tableData);
-    tableData = Constant_Initialize(cliFile, tableData);
-    tableData = CustomAttribute_Initialize(cliFile, tableData);
-    tableData = FieldMarshal_Initialize(cliFile, tableData);
-    tableData = DeclSecurity_Initialize(cliFile, tableData);
-    tableData = ClassLayout_Initialize(cliFile, tableData);
-    tableData = FieldLayout_Initialize(cliFile, tableData);
-    tableData = StandAloneSignature_Initialize(cliFile, tableData);
-    tableData = EventMap_Initialize(cliFile, tableData);
-    tableData = Event_Initialize(cliFile, tableData);
-    tableData = PropertyMap_Initialize(cliFile, tableData);
-    tableData = Property_Initialize(cliFile, tableData);
-    tableData = MethodSemantics_Initialize(cliFile, tableData);
-    tableData = MethodImplementation_Initialize(cliFile, tableData);
-    tableData = ModuleReference_Initialize(cliFile, tableData);
-    tableData = TypeSpecification_Initialize(cliFile, tableData);
-    tableData = ImplementationMap_Initialize(cliFile, tableData);
-    tableData = FieldRVA_Initialize(cliFile, tableData);
-    tableData = AssemblyDefinition_Initialize(cliFile, tableData);
-    tableData = AssemblyProcessor_Initialize(cliFile, tableData);
-    tableData = AssemblyOperatingSystem_Initialize(cliFile, tableData);
-    tableData = AssemblyReference_Initialize(cliFile, tableData);
-    tableData = AssemblyReferenceProcessor_Initialize(cliFile, tableData);
-    tableData = AssemblyReferenceOperatingSystem_Initialize(cliFile, tableData);
-    tableData = File_Initialize(cliFile, tableData);
-    tableData = ExportedType_Initialize(cliFile, tableData);
-    tableData = ManifestResource_Initialize(cliFile, tableData);
-    tableData = NestedClass_Initialize(cliFile, tableData);
-    tableData = GenericParameter_Initialize(cliFile, tableData);
-    tableData = MethodSpecification_Initialize(cliFile, tableData);
-    tableData = GenericParameterConstraint_Initialize(cliFile, tableData);
-
-	tableData = ModuleDefinition_Load(cliFile, tableData);
-	tableData = TypeReference_Load(cliFile, tableData);
-	tableData = TypeDefinition_Load(cliFile, tableData);
-	tableData = Field_Load(cliFile, tableData);
-	tableData = MethodDefinition_Load(cliFile, tableData);
-	tableData = Parameter_Load(cliFile, tableData);
-	tableData = InterfaceImplementation_Load(cliFile, tableData);
-	tableData = MemberReference_Load(cliFile, tableData);
-	tableData = Constant_Load(cliFile, tableData);
-	tableData = CustomAttribute_Load(cliFile, tableData);
-	tableData = FieldMarshal_Load(cliFile, tableData);
-	tableData = DeclSecurity_Load(cliFile, tableData);
-	tableData = ClassLayout_Load(cliFile, tableData);
-	tableData = FieldLayout_Load(cliFile, tableData);
-	tableData = StandAloneSignature_Load(cliFile, tableData);
-	tableData = EventMap_Load(cliFile, tableData);
-	tableData = Event_Load(cliFile, tableData);
-	tableData = PropertyMap_Load(cliFile, tableData);
-	tableData = Property_Load(cliFile, tableData);
-	tableData = MethodSemantics_Load(cliFile, tableData);
-	tableData = MethodImplementation_Load(cliFile, tableData);
-	tableData = ModuleReference_Load(cliFile, tableData);
-	tableData = TypeSpecification_Load(cliFile, tableData);
-	tableData = ImplementationMap_Load(cliFile, tableData);
-	tableData = FieldRVA_Load(cliFile, tableData);
-	tableData = AssemblyDefinition_Load(cliFile, tableData);
-    tableData = AssemblyProcessor_Load(cliFile, tableData);
-    tableData = AssemblyOperatingSystem_Load(cliFile, tableData);
-    tableData = AssemblyReference_Load(cliFile, tableData);
-    tableData = AssemblyReferenceProcessor_Load(cliFile, tableData);
-    tableData = AssemblyReferenceOperatingSystem_Load(cliFile, tableData);
-    tableData = File_Load(cliFile, tableData);
-    tableData = ExportedType_Load(cliFile, tableData);
-    tableData = ManifestResource_Load(cliFile, tableData);
-    tableData = NestedClass_Load(cliFile, tableData);
-    tableData = GenericParameter_Load(cliFile, tableData);
-    tableData = MethodSpecification_Load(cliFile, tableData);
-    tableData = GenericParameterConstraint_Load(cliFile, tableData);
+    for (uint32_t tableIndex = 0; tableIndex < tableCount; ++tableIndex) tableData = CLIFile_MetaDataTables[tableIndex].Initialize(cliFile, tableData);
+    for (uint32_t tableIndex = 0; tableIndex < tableCount; ++tableIndex) tableData = CLIFile_MetaDataTables[tableIndex].Load(cliFile, tableData);
+    for (uint32_t tableIndex = 0; tableIndex < tableCount; ++tableIndex) CLIFile_MetaDataTables[tableIndex].Link(cliFile);
 
     printf("Loaded MetaData\n");
     return cliFile;
@@ -124,44 +106,10 @@ CLIFile* CLIFile_Create(PEFile* pFile)
 
 void CLIFile_Destroy(CLIFile* pFile)
 {
-    ModuleDefinition_Cleanup(pFile);
-    TypeReference_Cleanup(pFile);
-    TypeDefinition_Cleanup(pFile);
-    Field_Cleanup(pFile);
-    MethodDefinition_Cleanup(pFile);
-    Parameter_Cleanup(pFile);
-    InterfaceImplementation_Cleanup(pFile);
-    MemberReference_Cleanup(pFile);
-    Constant_Cleanup(pFile);
-    CustomAttribute_Cleanup(pFile);
-    FieldMarshal_Cleanup(pFile);
-    DeclSecurity_Cleanup(pFile);
-    ClassLayout_Cleanup(pFile);
-    FieldLayout_Cleanup(pFile);
-    StandAloneSignature_Cleanup(pFile);
-    EventMap_Cleanup(pFile);
-    Event_Cleanup(pFile);
-    PropertyMap_Cleanup(pFile);
-    Property_Cleanup(pFile);
-    MethodSemantics_Cleanup(pFile);
-    MethodImplementation_Cleanup(pFile);
-    ModuleReference_Cleanup(pFile);
-    TypeSpecification_Cleanup(pFile);
-    ImplementationMap_Cleanup(pFile);
-    FieldRVA_Cleanup(pFile);
-    AssemblyDefinition_Cleanup(pFile);
-    AssemblyProcessor_Cleanup(pFile);
-    AssemblyOperatingSystem_Cleanup(pFile);
-    AssemblyReference_Cleanup(pFile);
-    AssemblyReferenceProcessor_Cleanup(pFile);
-    AssemblyReferenceOperatingSystem_Cleanup(pFile);
-    File_Cleanup(pFile);
-    ExportedType_Cleanup(pFile);
-    ManifestResource_Cleanup(pFile);
-    NestedClass_Cleanup(pFile);
-    GenericParameter_Cleanup(pFile);
-    MethodSpecification_Cleanup(pFile);
-    GenericParameterConstraint_Cleanup(pFile);
+    uint32_t tableCount = 0;
+    while (CLIFile_MetaDataTables[tableCount].Initialize) ++tableCount;
+    for (uint32_t tableIndex = 0; tableIndex < tableCount; ++tableIndex) CLIFile_MetaDataTables[tableIndex].Cleanup(pFile);
+
     free(pFile);
 }
 

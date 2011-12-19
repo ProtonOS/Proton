@@ -44,3 +44,7 @@ const uint8_t* FieldRVA_Load(CLIFile* pFile, const uint8_t* pTableData)
     }
     return pTableData;
 }
+
+void FieldRVA_Link(CLIFile* pFile)
+{
+}

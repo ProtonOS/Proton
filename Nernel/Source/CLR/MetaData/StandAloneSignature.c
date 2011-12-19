@@ -35,3 +35,7 @@ const uint8_t* StandAloneSignature_Load(CLIFile* pFile, const uint8_t* pTableDat
     }
     return pTableData;
 }
+
+void StandAloneSignature_Link(CLIFile* pFile)
+{
+}

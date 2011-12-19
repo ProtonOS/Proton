@@ -20,3 +20,4 @@ struct _AssemblyReference
 const uint8_t* AssemblyReference_Initialize(CLIFile* pFile, const uint8_t* pTableData);
 void AssemblyReference_Cleanup(CLIFile* pFile);
 const uint8_t* AssemblyReference_Load(CLIFile* pFile, const uint8_t* pTableData);
+void AssemblyReference_Link(CLIFile* pFile);

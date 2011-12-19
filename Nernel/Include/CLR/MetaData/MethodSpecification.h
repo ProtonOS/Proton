@@ -12,3 +12,4 @@ struct _MethodSpecification
 const uint8_t* MethodSpecification_Initialize(CLIFile* pFile, const uint8_t* pTableData);
 void MethodSpecification_Cleanup(CLIFile* pFile);
 const uint8_t* MethodSpecification_Load(CLIFile* pFile, const uint8_t* pTableData);
+void MethodSpecification_Link(CLIFile* pFile);

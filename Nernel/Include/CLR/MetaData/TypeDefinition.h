@@ -20,3 +20,4 @@ struct _TypeDefinition
 const uint8_t* TypeDefinition_Initialize(CLIFile* pFile, const uint8_t* pTableData);
 void TypeDefinition_Cleanup(CLIFile* pFile);
 const uint8_t* TypeDefinition_Load(CLIFile* pFile, const uint8_t* pTableData);
+void TypeDefinition_Link(CLIFile* pFile);

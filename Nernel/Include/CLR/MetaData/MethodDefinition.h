@@ -88,4 +88,4 @@ struct _MethodDefinition
 const uint8_t* MethodDefinition_Initialize(CLIFile* pFile, const uint8_t* pTableData);
 void MethodDefinition_Cleanup(CLIFile* pFile);
 const uint8_t* MethodDefinition_Load(CLIFile* pFile, const uint8_t* pTableData);
-
+void MethodDefinition_Link(CLIFile* pFile);

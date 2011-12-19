@@ -35,3 +35,7 @@ const uint8_t* TypeSpecification_Load(CLIFile* pFile, const uint8_t* pTableData)
     }
     return pTableData;
 }
+
+void TypeSpecification_Link(CLIFile* pFile)
+{
+}

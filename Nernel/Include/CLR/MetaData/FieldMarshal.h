@@ -12,3 +12,4 @@ struct _FieldMarshal
 const uint8_t* FieldMarshal_Initialize(CLIFile* pFile, const uint8_t* pTableData);
 void FieldMarshal_Cleanup(CLIFile* pFile);
 const uint8_t* FieldMarshal_Load(CLIFile* pFile, const uint8_t* pTableData);
+void FieldMarshal_Link(CLIFile* pFile);

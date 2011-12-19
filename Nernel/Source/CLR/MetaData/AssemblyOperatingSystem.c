@@ -35,3 +35,7 @@ const uint8_t* AssemblyOperatingSystem_Load(CLIFile* pFile, const uint8_t* pTabl
     }
     return pTableData;
 }
+
+void AssemblyOperatingSystem_Link(CLIFile* pFile)
+{
+}

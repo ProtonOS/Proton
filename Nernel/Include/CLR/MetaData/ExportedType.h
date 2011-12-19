@@ -14,3 +14,4 @@ struct _ExportedType
 const uint8_t* ExportedType_Initialize(CLIFile* pFile, const uint8_t* pTableData);
 void ExportedType_Cleanup(CLIFile* pFile);
 const uint8_t* ExportedType_Load(CLIFile* pFile, const uint8_t* pTableData);
+void ExportedType_Link(CLIFile* pFile);

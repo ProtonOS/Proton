@@ -58,3 +58,7 @@ const uint8_t* MemberReference_Load(CLIFile* pFile, const uint8_t* pTableData)
     }
     return pTableData;
 }
+
+void MemberReference_Link(CLIFile* pFile)
+{
+}

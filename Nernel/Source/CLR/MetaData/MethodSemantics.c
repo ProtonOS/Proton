@@ -51,3 +51,7 @@ const uint8_t* MethodSemantics_Load(CLIFile* pFile, const uint8_t* pTableData)
     }
     return pTableData;
 }
+
+void MethodSemantics_Link(CLIFile* pFile)
+{
+}

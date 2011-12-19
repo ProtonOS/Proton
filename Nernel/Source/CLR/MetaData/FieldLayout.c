@@ -38,3 +38,7 @@ const uint8_t* FieldLayout_Load(CLIFile* pFile, const uint8_t* pTableData)
     return pTableData;
 
 }
+
+void FieldLayout_Link(CLIFile* pFile)
+{
+}

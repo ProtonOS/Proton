@@ -13,3 +13,4 @@ struct _ManifestResource
 const uint8_t* ManifestResource_Initialize(CLIFile* pFile, const uint8_t* pTableData);
 void ManifestResource_Cleanup(CLIFile* pFile);
 const uint8_t* ManifestResource_Load(CLIFile* pFile, const uint8_t* pTableData);
+void ManifestResource_Link(CLIFile* pFile);

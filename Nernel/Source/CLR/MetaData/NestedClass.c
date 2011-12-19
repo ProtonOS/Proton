@@ -40,3 +40,7 @@ const uint8_t* NestedClass_Load(CLIFile* pFile, const uint8_t* pTableData)
     }
     return pTableData;
 }
+
+void NestedClass_Link(CLIFile* pFile)
+{
+}

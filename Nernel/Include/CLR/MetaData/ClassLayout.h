@@ -12,3 +12,4 @@ struct _ClassLayout
 const uint8_t* ClassLayout_Initialize(CLIFile* pFile, const uint8_t* pTableData);
 void ClassLayout_Cleanup(CLIFile* pFile);
 const uint8_t* ClassLayout_Load(CLIFile* pFile, const uint8_t* pTableData);
+void ClassLayout_Link(CLIFile* pFile);

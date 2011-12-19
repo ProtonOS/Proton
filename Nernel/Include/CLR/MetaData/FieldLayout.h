@@ -11,3 +11,4 @@ struct _FieldLayout
 const uint8_t* FieldLayout_Initialize(CLIFile* pFile, const uint8_t* pTableData);
 void FieldLayout_Cleanup(CLIFile* pFile);
 const uint8_t* FieldLayout_Load(CLIFile* pFile, const uint8_t* pTableData);
+void FieldLayout_Link(CLIFile* pFile);

@@ -52,3 +52,7 @@ const uint8_t* DeclSecurity_Load(CLIFile* pFile, const uint8_t* pTableData)
     }
     return pTableData;
 }
+
+void DeclSecurity_Link(CLIFile* pFile)
+{
+}

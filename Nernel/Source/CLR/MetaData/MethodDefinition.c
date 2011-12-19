@@ -173,3 +173,7 @@ const uint8_t* MethodDefinition_Load(CLIFile* pFile, const uint8_t* pTableData)
     free(parameterListIndexes);
     return pTableData;
 }
+
+void MethodDefinition_Link(CLIFile* pFile)
+{
+}

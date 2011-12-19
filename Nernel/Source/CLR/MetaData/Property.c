@@ -39,3 +39,7 @@ const uint8_t* Property_Load(CLIFile* pFile, const uint8_t* pTableData)
     }
     return pTableData;
 }
+
+void Property_Link(CLIFile* pFile)
+{
+}

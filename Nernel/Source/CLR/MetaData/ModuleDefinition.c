@@ -46,3 +46,7 @@ const uint8_t* ModuleDefinition_Load(CLIFile* pFile, const uint8_t* pTableData)
     }
     return pTableData;
 }
+
+void ModuleDefinition_Link(CLIFile* pFile)
+{
+}

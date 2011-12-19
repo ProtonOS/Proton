@@ -12,3 +12,4 @@ struct _MethodSemantics
 const uint8_t* MethodSemantics_Initialize(CLIFile* pFile, const uint8_t* pTableData);
 void MethodSemantics_Cleanup(CLIFile* pFile);
 const uint8_t* MethodSemantics_Load(CLIFile* pFile, const uint8_t* pTableData);
+void MethodSemantics_Link(CLIFile* pFile);

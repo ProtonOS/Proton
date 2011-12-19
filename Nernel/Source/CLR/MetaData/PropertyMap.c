@@ -50,3 +50,7 @@ const uint8_t* PropertyMap_Load(CLIFile* pFile, const uint8_t* pTableData)
     free(propertyListIndexes);
     return pTableData;
 }
+
+void PropertyMap_Link(CLIFile* pFile)
+{
+}

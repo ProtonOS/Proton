@@ -50,3 +50,7 @@ const uint8_t* EventMap_Load(CLIFile* pFile, const uint8_t* pTableData)
     free(eventListIndexes);
     return pTableData;
 }
+
+void EventMap_Link(CLIFile* pFile)
+{
+}

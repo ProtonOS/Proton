@@ -13,3 +13,4 @@ struct _ImplementationMap
 const uint8_t* ImplementationMap_Initialize(CLIFile* pFile, const uint8_t* pTableData);
 void ImplementationMap_Cleanup(CLIFile* pFile);
 const uint8_t* ImplementationMap_Load(CLIFile* pFile, const uint8_t* pTableData);
+void ImplementationMap_Link(CLIFile* pFile);

@@ -11,3 +11,4 @@ struct _GenericParameterConstraint
 const uint8_t* GenericParameterConstraint_Initialize(CLIFile* pFile, const uint8_t* pTableData);
 void GenericParameterConstraint_Cleanup(CLIFile* pFile);
 const uint8_t* GenericParameterConstraint_Load(CLIFile* pFile, const uint8_t* pTableData);
+void GenericParameterConstraint_Link(CLIFile* pFile);

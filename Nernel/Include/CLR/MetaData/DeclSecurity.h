@@ -14,3 +14,4 @@ struct _DeclSecurity
 const uint8_t* DeclSecurity_Initialize(CLIFile* pFile, const uint8_t* pTableData);
 void DeclSecurity_Cleanup(CLIFile* pFile);
 const uint8_t* DeclSecurity_Load(CLIFile* pFile, const uint8_t* pTableData);
+void DeclSecurity_Link(CLIFile* pFile);

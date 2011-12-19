@@ -48,3 +48,7 @@ const uint8_t* FieldMarshal_Load(CLIFile* pFile, const uint8_t* pTableData)
     }
     return pTableData;
 }
+
+void FieldMarshal_Link(CLIFile* pFile)
+{
+}

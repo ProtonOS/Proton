@@ -82,3 +82,7 @@ const uint8_t* TypeDefinition_Load(CLIFile* pFile, const uint8_t* pTableData)
     free(methodDefinitionListIndexes);
     return pTableData;
 }
+
+void TypeDefinition_Link(CLIFile* pFile)
+{
+}

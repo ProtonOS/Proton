@@ -59,3 +59,7 @@ const uint8_t* ExportedType_Load(CLIFile* pFile, const uint8_t* pTableData)
     }
     return pTableData;
 }
+
+void ExportedType_Link(CLIFile* pFile)
+{
+}

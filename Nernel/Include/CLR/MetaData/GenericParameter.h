@@ -13,3 +13,4 @@ struct _GenericParameter
 const uint8_t* GenericParameter_Initialize(CLIFile* pFile, const uint8_t* pTableData);
 void GenericParameter_Cleanup(CLIFile* pFile);
 const uint8_t* GenericParameter_Load(CLIFile* pFile, const uint8_t* pTableData);
+void GenericParameter_Link(CLIFile* pFile);

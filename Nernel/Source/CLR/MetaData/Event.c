@@ -51,3 +51,7 @@ const uint8_t* Event_Load(CLIFile* pFile, const uint8_t* pTableData)
     }
     return pTableData;
 }
+
+void Event_Link(CLIFile* pFile)
+{
+}

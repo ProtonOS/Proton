@@ -11,3 +11,4 @@ struct _InterfaceImplementation
 const uint8_t* InterfaceImplementation_Initialize(CLIFile* pFile, const uint8_t* pTableData);
 void InterfaceImplementation_Cleanup(CLIFile* pFile);
 const uint8_t* InterfaceImplementation_Load(CLIFile* pFile, const uint8_t* pTableData);
+void InterfaceImplementation_Link(CLIFile* pFile);

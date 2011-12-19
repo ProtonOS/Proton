@@ -12,3 +12,4 @@ struct _MethodImplementation
 const uint8_t* MethodImplementation_Initialize(CLIFile* pFile, const uint8_t* pTableData);
 void MethodImplementation_Cleanup(CLIFile* pFile);
 const uint8_t* MethodImplementation_Load(CLIFile* pFile, const uint8_t* pTableData);
+void MethodImplementation_Link(CLIFile* pFile);

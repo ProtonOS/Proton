@@ -33,3 +33,7 @@ const uint8_t* AssemblyProcessor_Load(CLIFile* pFile, const uint8_t* pTableData)
     }
     return pTableData;
 }
+
+void AssemblyProcessor_Link(CLIFile* pFile)
+{
+}

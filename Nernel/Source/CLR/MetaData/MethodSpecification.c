@@ -48,3 +48,7 @@ const uint8_t* MethodSpecification_Load(CLIFile* pFile, const uint8_t* pTableDat
     }
     return pTableData;
 }
+
+void MethodSpecification_Link(CLIFile* pFile)
+{
+}
