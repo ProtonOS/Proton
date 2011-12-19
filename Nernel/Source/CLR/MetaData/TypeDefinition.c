@@ -32,6 +32,8 @@ const uint8_t* TypeDefinition_Load(CLIFile* pFile, const uint8_t* pTableData)
     uint32_t extendsRow = 0;
     uint32_t fieldListIndex = 0;
     uint32_t methodDefinitionListIndex = 0;
+    uint32_t* fieldListIndexes = (uint32_t*)calloc(pFile->TypeDefinitionCount, sizeof(uint32_t));
+    uint32_t* methodDefinitionListIndexes = (uint32_t*)calloc(pFile->TypeDefinitionCount, sizeof(uint32_t));
     for (uint32_t index = 0, heapIndex = 0; index < pFile->TypeDefinitionCount; ++index)
     {
         pFile->TypeDefinitions[index].Flags = *(uint32_t*)pTableData; pTableData += 4;
@@ -57,9 +59,27 @@ const uint8_t* TypeDefinition_Load(CLIFile* pFile, const uint8_t* pTableData)
         if (pFile->FieldCount > 0xFFFF) { fieldListIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { fieldListIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->TypeDefinitions[index].FieldList = &pFile->Fields[fieldListIndex];
+        fieldListIndexes[index] = fieldListIndex;
         if (pFile->MethodDefinitionCount > 0xFFFF) { methodDefinitionListIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { methodDefinitionListIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->TypeDefinitions[index].MethodDefinitionList = &pFile->MethodDefinitions[methodDefinitionListIndex];
+        methodDefinitionListIndexes[index] = methodDefinitionListIndex;
     }
+    uint8_t fieldListCount = 0;
+    for (uint32_t index = 0, used = 0; index < pFile->TypeDefinitionCount; ++index, used += fieldListCount)
+    {
+        if (index == (pFile->TypeDefinitionCount - 1)) fieldListCount = pFile->FieldCount - used;
+        else fieldListCount = fieldListIndexes[index + 1] - fieldListIndexes[index];
+        pFile->TypeDefinitions[index].FieldListCount = fieldListCount;
+    }
+    free(fieldListIndexes);
+    uint8_t methodDefinitionListCount = 0;
+    for (uint32_t index = 0, used = 0; index < pFile->TypeDefinitionCount; ++index, used += methodDefinitionListCount)
+    {
+        if (index == (pFile->TypeDefinitionCount - 1)) methodDefinitionListCount = pFile->MethodDefinitionCount - used;
+        else methodDefinitionListCount = methodDefinitionListIndexes[index + 1] - methodDefinitionListIndexes[index];
+        pFile->TypeDefinitions[index].MethodDefinitionListCount = methodDefinitionListCount;
+    }
+    free(methodDefinitionListIndexes);
     return pTableData;
 }

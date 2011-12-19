@@ -8,9 +8,10 @@ struct _TypeDefinition
     const char* Name;
     const char* Namespace;
     TypeDefOrRefUnion(Extends);
-	uint32_t FieldCount;
     Field* FieldList;
+	uint32_t FieldListCount;
     MethodDefinition* MethodDefinitionList;
+	uint32_t MethodDefinitionListCount;
 	bool_t HasStaticConstructor;
 	bool_t HasStaticConstructorBeenRun;
 };

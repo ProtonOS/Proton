@@ -6,6 +6,7 @@ struct _PropertyMap
 {
     TypeDefinition* Parent;
     Property* PropertyList;
+    uint8_t PropertyListCount;
 };
 
 const uint8_t* PropertyMap_Initialize(CLIFile* pFile, const uint8_t* pTableData);

@@ -29,6 +29,7 @@ const uint8_t* EventMap_Load(CLIFile* pFile, const uint8_t* pTableData)
 {
     uint32_t parentIndex = 0;
     uint32_t eventListIndex = 0;
+    uint32_t* eventListIndexes = (uint32_t*)calloc(pFile->EventMapCount, sizeof(uint32_t));
     for (uint32_t index = 0; index < pFile->EventMapCount; ++index)
     {
         if (pFile->TypeDefinitionCount > 0xFFFF) { parentIndex = *(uint32_t*)pTableData; pTableData += 4; }
@@ -37,6 +38,15 @@ const uint8_t* EventMap_Load(CLIFile* pFile, const uint8_t* pTableData)
         if (pFile->EventCount > 0xFFFF) { eventListIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { eventListIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->EventMaps[index].EventList = &pFile->Events[eventListIndex];
+        eventListIndexes[index] = eventListIndex;
     }
+    uint8_t eventListCount = 0;
+    for (uint32_t index = 0, used = 0; index < pFile->EventMapCount; ++index, used += eventListCount)
+    {
+        if (index == (pFile->EventMapCount - 1)) eventListCount = pFile->EventCount - used;
+        else eventListCount = eventListIndexes[index + 1] - eventListIndexes[index];
+        pFile->EventMaps[index].EventListCount = eventListCount;
+    }
+    free(eventListIndexes);
     return pTableData;
 }

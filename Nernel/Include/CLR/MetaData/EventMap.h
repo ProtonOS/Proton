@@ -6,6 +6,7 @@ struct _EventMap
 {
     TypeDefinition* Parent;
     Event* EventList;
+    uint8_t EventListCount;
 };
 
 const uint8_t* EventMap_Initialize(CLIFile* pFile, const uint8_t* pTableData);
