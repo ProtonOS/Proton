@@ -12,6 +12,7 @@ struct _TypeDefinition
 	uint32_t FieldListCount;
     MethodDefinition* MethodDefinitionList;
 	uint32_t MethodDefinitionListCount;
+
 	bool_t HasStaticConstructor;
 	bool_t HasStaticConstructorBeenRun;
 };

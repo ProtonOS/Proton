@@ -28,7 +28,6 @@ void ImplementationMap_Cleanup(CLIFile* pFile)
 const uint8_t* ImplementationMap_Load(CLIFile* pFile, const uint8_t* pTableData)
 {
     uint32_t memberForwardedIndex = 0;
-    uint8_t memberForwardedTable = 0;
     uint32_t memberForwardedRow = 0;
     uint32_t importScopeIndex = 0;
     for (uint32_t index = 0, heapIndex = 0; index < pFile->ImplementationMapCount; ++index)
@@ -38,9 +37,9 @@ const uint8_t* ImplementationMap_Load(CLIFile* pFile, const uint8_t* pTableData)
         if (pFile->FieldCount > MemberForwarded_Type_MaxRows16Bit ||
             pFile->MethodDefinitionCount > MemberForwarded_Type_MaxRows16Bit) { memberForwardedIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { memberForwardedIndex = *(uint16_t*)pTableData; pTableData += 2; }
-        memberForwardedTable = memberForwardedIndex & MemberForwarded_Type_Mask;
+        pFile->ImplementationMaps[index].TypeOfMemberForwarded = memberForwardedIndex & MemberForwarded_Type_Mask;
         memberForwardedRow = memberForwardedIndex >> MemberForwarded_Type_Bits;
-        switch (memberForwardedTable)
+        switch (pFile->ImplementationMaps[index].TypeOfMemberForwarded)
         {
         case MemberForwarded_Type_Field: pFile->ImplementationMaps[index].MemberForwarded.Field = &pFile->Fields[memberForwardedRow]; break;
         case MemberForwarded_Type_MethodDefinition: pFile->ImplementationMaps[index].MemberForwarded.MethodDefinition = &pFile->MethodDefinitions[memberForwardedRow]; break;

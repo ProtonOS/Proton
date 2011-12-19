@@ -163,7 +163,7 @@ const uint8_t* MethodDefinition_Load(CLIFile* pFile, const uint8_t* pTableData)
         }
 
     }
-    uint8_t parameterListCount = 0;
+    uint32_t parameterListCount = 0;
     for (uint32_t index = 0, used = 0; index < pFile->MethodDefinitionCount; ++index, used += parameterListCount)
     {
         if (index == (pFile->MethodDefinitionCount - 1)) parameterListCount = pFile->ParameterCount - used;

@@ -28,7 +28,6 @@ void TypeReference_Cleanup(CLIFile* pFile)
 const uint8_t* TypeReference_Load(CLIFile* pFile, const uint8_t* pTableData)
 {
     uint32_t resolutionScopeIndex = 0;
-    uint8_t resolutionScopeTable = 0;
     uint32_t resolutionScopeRow = 0;
     for (uint32_t index = 0, heapIndex = 0; index < pFile->TypeReferenceCount; ++index)
     {
@@ -37,9 +36,9 @@ const uint8_t* TypeReference_Load(CLIFile* pFile, const uint8_t* pTableData)
             pFile->AssemblyReferenceCount > ResolutionScope_Type_MaxRows16Bit ||
             pFile->TypeReferenceCount > ResolutionScope_Type_MaxRows16Bit) { resolutionScopeIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { resolutionScopeIndex = *(uint16_t*)pTableData; pTableData += 2; }
-        resolutionScopeTable = resolutionScopeIndex & ResolutionScope_Type_Mask;
+        pFile->TypeReferences[index].TypeOfResolutionScope = resolutionScopeIndex & ResolutionScope_Type_Mask;
         resolutionScopeRow = resolutionScopeIndex >> ResolutionScope_Type_Bits;
-        switch (resolutionScopeTable)
+        switch (pFile->TypeReferences[index].TypeOfResolutionScope)
         {
         case ResolutionScope_Type_ModuleDefinition: pFile->TypeReferences[index].ResolutionScope.ModuleDefinition = &pFile->ModuleDefinitions[resolutionScopeRow]; break;
         case ResolutionScope_Type_ModuleReference: pFile->TypeReferences[index].ResolutionScope.ModuleReference = &pFile->ModuleReferences[resolutionScopeRow]; break;

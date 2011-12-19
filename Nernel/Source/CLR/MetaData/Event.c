@@ -28,7 +28,6 @@ void Event_Cleanup(CLIFile* pFile)
 const uint8_t* Event_Load(CLIFile* pFile, const uint8_t* pTableData)
 {
     uint32_t eventTypeIndex = 0;
-    uint8_t eventTypeTable = 0;
     uint32_t eventTypeRow = 0;
     for (uint32_t index = 0, heapIndex = 0; index < pFile->EventCount; ++index)
     {
@@ -40,9 +39,9 @@ const uint8_t* Event_Load(CLIFile* pFile, const uint8_t* pTableData)
             pFile->TypeReferenceCount > TypeDefOrRef_Type_MaxRows16Bit ||
             pFile->TypeSpecificationCount > TypeDefOrRef_Type_MaxRows16Bit) { eventTypeIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { eventTypeIndex = *(uint16_t*)pTableData; pTableData += 2; }
-        eventTypeTable = eventTypeIndex & TypeDefOrRef_Type_Mask;
+        pFile->Events[index].TypeOfEventType = eventTypeIndex & TypeDefOrRef_Type_Mask;
         eventTypeRow = eventTypeIndex >> TypeDefOrRef_Type_Bits;
-        switch (eventTypeTable)
+        switch (pFile->Events[index].TypeOfEventType)
         {
         case TypeDefOrRef_Type_TypeDefinition: pFile->Events[index].EventType.TypeDefinition = &pFile->TypeDefinitions[eventTypeRow]; break;
         case TypeDefOrRef_Type_TypeReference: pFile->Events[index].EventType.TypeReference = &pFile->TypeReferences[eventTypeRow]; break;

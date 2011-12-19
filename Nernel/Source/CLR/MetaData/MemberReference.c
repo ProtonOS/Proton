@@ -28,7 +28,6 @@ void MemberReference_Cleanup(CLIFile* pFile)
 const uint8_t* MemberReference_Load(CLIFile* pFile, const uint8_t* pTableData)
 {
     uint32_t parentIndex = 0;
-    uint8_t parentTable = 0;
     uint32_t parentRow = 0;
     for (uint32_t index = 0, heapIndex = 0; index < pFile->MemberReferenceCount; ++index)
     {
@@ -38,9 +37,9 @@ const uint8_t* MemberReference_Load(CLIFile* pFile, const uint8_t* pTableData)
             pFile->MethodDefinitionCount > MemberRefParent_Type_MaxRows16Bit ||
             pFile->TypeSpecificationCount > MemberRefParent_Type_MaxRows16Bit) { parentIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { parentIndex = *(uint16_t*)pTableData; pTableData += 2; }
-        parentTable = parentIndex & MemberRefParent_Type_Mask;
+        pFile->MemberReferences[index].TypeOfParent = parentIndex & MemberRefParent_Type_Mask;
         parentRow = parentIndex >> MemberRefParent_Type_Bits;
-        switch (parentTable)
+        switch (pFile->MemberReferences[index].TypeOfParent)
         {
         case MemberRefParent_Type_TypeDefinition: pFile->MemberReferences[index].Parent.TypeDefinition = &pFile->TypeDefinitions[parentRow]; break;
         case MemberRefParent_Type_TypeReference: pFile->MemberReferences[index].Parent.TypeReference = &pFile->TypeReferences[parentRow]; break;

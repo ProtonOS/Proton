@@ -28,7 +28,6 @@ void GenericParameter_Cleanup(CLIFile* pFile)
 const uint8_t* GenericParameter_Load(CLIFile* pFile, const uint8_t* pTableData)
 {
     uint32_t ownerIndex = 0;
-    uint8_t ownerTable = 0;
     uint32_t ownerRow = 0;
     for (uint32_t index = 0, heapIndex = 0; index < pFile->GenericParameterCount; ++index)
     {
@@ -37,9 +36,9 @@ const uint8_t* GenericParameter_Load(CLIFile* pFile, const uint8_t* pTableData)
         if (pFile->TypeDefinitionCount > TypeOrMethodDef_Type_MaxRows16Bit ||
             pFile->MethodDefinitionCount > TypeOrMethodDef_Type_MaxRows16Bit) { ownerIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { ownerIndex = *(uint16_t*)pTableData; pTableData += 2; }
-        ownerTable = ownerIndex & TypeOrMethodDef_Type_Mask;
+        pFile->GenericParameters[index].TypeOfOwner = ownerIndex & TypeOrMethodDef_Type_Mask;
         ownerRow = ownerIndex >> TypeOrMethodDef_Type_Bits;
-        switch (ownerTable)
+        switch (pFile->GenericParameters[index].TypeOfOwner)
         {
         case TypeOrMethodDef_Type_TypeDefinition: pFile->GenericParameters[index].Owner.TypeDefinition = &pFile->TypeDefinitions[ownerRow]; break;
         case TypeOrMethodDef_Type_MethodDefinition: pFile->GenericParameters[index].Owner.MethodDefinition = &pFile->MethodDefinitions[ownerRow]; break;

@@ -28,7 +28,6 @@ void TypeDefinition_Cleanup(CLIFile* pFile)
 const uint8_t* TypeDefinition_Load(CLIFile* pFile, const uint8_t* pTableData)
 {
     uint32_t extendsIndex = 0;
-    uint8_t extendsTable = 0;
     uint32_t extendsRow = 0;
     uint32_t fieldListIndex = 0;
     uint32_t methodDefinitionListIndex = 0;
@@ -47,9 +46,9 @@ const uint8_t* TypeDefinition_Load(CLIFile* pFile, const uint8_t* pTableData)
             pFile->TypeReferenceCount > TypeDefOrRef_Type_MaxRows16Bit ||
             pFile->TypeSpecificationCount > TypeDefOrRef_Type_MaxRows16Bit) { extendsIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { extendsIndex = *(uint16_t*)pTableData; pTableData += 2; }
-        extendsTable = extendsIndex & TypeDefOrRef_Type_Mask;
+        pFile->TypeDefinitions[index].TypeOfExtends = extendsIndex & TypeDefOrRef_Type_Mask;
         extendsRow = extendsIndex >> TypeDefOrRef_Type_Bits;
-        switch (extendsTable)
+        switch (pFile->TypeDefinitions[index].TypeOfExtends)
         {
         case TypeDefOrRef_Type_TypeDefinition: pFile->TypeDefinitions[index].Extends.TypeDefinition = &pFile->TypeDefinitions[extendsRow]; break;
         case TypeDefOrRef_Type_TypeReference: pFile->TypeDefinitions[index].Extends.TypeReference = &pFile->TypeReferences[extendsRow]; break;
@@ -65,7 +64,7 @@ const uint8_t* TypeDefinition_Load(CLIFile* pFile, const uint8_t* pTableData)
         pFile->TypeDefinitions[index].MethodDefinitionList = &pFile->MethodDefinitions[methodDefinitionListIndex];
         methodDefinitionListIndexes[index] = methodDefinitionListIndex;
     }
-    uint8_t fieldListCount = 0;
+    uint32_t fieldListCount = 0;
     for (uint32_t index = 0, used = 0; index < pFile->TypeDefinitionCount; ++index, used += fieldListCount)
     {
         if (index == (pFile->TypeDefinitionCount - 1)) fieldListCount = pFile->FieldCount - used;
@@ -73,7 +72,7 @@ const uint8_t* TypeDefinition_Load(CLIFile* pFile, const uint8_t* pTableData)
         pFile->TypeDefinitions[index].FieldListCount = fieldListCount;
     }
     free(fieldListIndexes);
-    uint8_t methodDefinitionListCount = 0;
+    uint32_t methodDefinitionListCount = 0;
     for (uint32_t index = 0, used = 0; index < pFile->TypeDefinitionCount; ++index, used += methodDefinitionListCount)
     {
         if (index == (pFile->TypeDefinitionCount - 1)) methodDefinitionListCount = pFile->MethodDefinitionCount - used;

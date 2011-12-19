@@ -28,7 +28,6 @@ void ManifestResource_Cleanup(CLIFile* pFile)
 const uint8_t* ManifestResource_Load(CLIFile* pFile, const uint8_t* pTableData)
 {
     uint32_t implementationIndex = 0;
-    uint8_t implementationTable = 0;
     uint32_t implementationRow = 0;
     for (uint32_t index = 0, heapIndex = 0; index < pFile->ManifestResourceCount; ++index)
     {
@@ -42,9 +41,9 @@ const uint8_t* ManifestResource_Load(CLIFile* pFile, const uint8_t* pTableData)
             pFile->AssemblyReferenceCount > Implementation_Type_MaxRows16Bit ||
             pFile->ExportedTypeCount > Implementation_Type_MaxRows16Bit) { implementationIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { implementationIndex = *(uint16_t*)pTableData; pTableData += 2; }
-        implementationTable = implementationIndex & Implementation_Type_Mask;
+        pFile->ExportedTypes[index].TypeOfImplementation = implementationIndex & Implementation_Type_Mask;
         implementationRow = implementationIndex >> Implementation_Type_Bits;
-        switch (implementationTable)
+        switch (pFile->ExportedTypes[index].TypeOfImplementation)
         {
         case Implementation_Type_File: pFile->ExportedTypes[index].Implementation.File = &pFile->Files[implementationRow]; break;
         case Implementation_Type_AssemblyReference: pFile->ExportedTypes[index].Implementation.AssemblyReference = &pFile->AssemblyReferences[implementationRow]; break;

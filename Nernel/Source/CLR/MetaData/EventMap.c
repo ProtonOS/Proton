@@ -40,7 +40,7 @@ const uint8_t* EventMap_Load(CLIFile* pFile, const uint8_t* pTableData)
         pFile->EventMaps[index].EventList = &pFile->Events[eventListIndex];
         eventListIndexes[index] = eventListIndex;
     }
-    uint8_t eventListCount = 0;
+    uint32_t eventListCount = 0;
     for (uint32_t index = 0, used = 0; index < pFile->EventMapCount; ++index, used += eventListCount)
     {
         if (index == (pFile->EventMapCount - 1)) eventListCount = pFile->EventCount - used;

@@ -28,7 +28,6 @@ void Constant_Cleanup(CLIFile* pFile)
 const uint8_t* Constant_Load(CLIFile* pFile, const uint8_t* pTableData)
 {
     uint32_t parentIndex = 0;
-    uint8_t parentTable = 0;
     uint32_t parentRow = 0;
     for (uint32_t index = 0, heapIndex = 0; index < pFile->ConstantCount; ++index)
     {
@@ -37,9 +36,9 @@ const uint8_t* Constant_Load(CLIFile* pFile, const uint8_t* pTableData)
             pFile->ParameterCount > HasConstant_Type_MaxRows16Bit ||
             pFile->PropertyCount > HasConstant_Type_MaxRows16Bit) { parentIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { parentIndex = *(uint16_t*)pTableData; pTableData += 2; }
-        parentTable = parentIndex & HasConstant_Type_Mask;
+        pFile->Constants[index].TypeOfParent = parentIndex & HasConstant_Type_Mask;
         parentRow = parentIndex >> HasConstant_Type_Bits;
-        switch (parentTable)
+        switch (pFile->Constants[index].TypeOfParent)
         {
         case HasConstant_Type_Field: pFile->Constants[index].Parent.Field = &pFile->Fields[parentRow]; break;
         case HasConstant_Type_Parameter: pFile->Constants[index].Parent.Parameter = &pFile->Parameters[parentRow]; break;

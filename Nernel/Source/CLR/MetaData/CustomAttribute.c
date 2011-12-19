@@ -28,10 +28,8 @@ void CustomAttribute_Cleanup(CLIFile* pFile)
 const uint8_t* CustomAttribute_Load(CLIFile* pFile, const uint8_t* pTableData)
 {
     uint32_t parentIndex = 0;
-    uint8_t parentTable = 0;
     uint32_t parentRow = 0;
     uint32_t typeIndex = 0;
-    uint8_t typeTable = 0;
     uint32_t typeRow = 0;
     for (uint32_t index = 0, heapIndex = 0; index < pFile->CustomAttributeCount; ++index)
     {
@@ -58,9 +56,9 @@ const uint8_t* CustomAttribute_Load(CLIFile* pFile, const uint8_t* pTableData)
             pFile->GenericParameterConstraintCount > HasCustomAttribute_Type_MaxRows16Bit ||
             pFile->MethodSpecificationCount > HasCustomAttribute_Type_MaxRows16Bit) { parentIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { parentIndex = *(uint16_t*)pTableData; pTableData += 2; }
-        parentTable = parentIndex & HasCustomAttribute_Type_Mask;
+        pFile->CustomAttributes[index].TypeOfParent = parentIndex & HasCustomAttribute_Type_Mask;
         parentRow = parentIndex >> HasCustomAttribute_Type_Bits;
-        switch (parentTable)
+        switch (pFile->CustomAttributes[index].TypeOfParent)
         {
         case HasCustomAttribute_Type_MethodDefinition: pFile->CustomAttributes[index].Parent.MethodDefinition = &pFile->MethodDefinitions[parentRow]; break;
         case HasCustomAttribute_Type_Field: pFile->CustomAttributes[index].Parent.Field = &pFile->Fields[parentRow]; break;
@@ -89,9 +87,9 @@ const uint8_t* CustomAttribute_Load(CLIFile* pFile, const uint8_t* pTableData)
         if (pFile->MethodDefinitionCount > CustomAttributeType_Type_MaxRows16Bit ||
             pFile->MemberReferenceCount > CustomAttributeType_Type_MaxRows16Bit) { typeIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { typeIndex = *(uint16_t*)pTableData; pTableData += 2; }
-        typeTable = typeIndex & CustomAttributeType_Type_Mask;
+        pFile->CustomAttributes[index].TypeOfType = typeIndex & CustomAttributeType_Type_Mask;
         typeRow = typeIndex >> CustomAttributeType_Type_Bits;
-        switch (typeTable)
+        switch (pFile->CustomAttributes[index].TypeOfType)
         {
         case CustomAttributeType_Type_MethodDefinition: pFile->CustomAttributes[index].Type.MethodDefinition = &pFile->MethodDefinitions[typeRow]; break;
         case CustomAttributeType_Type_MemberReference: pFile->CustomAttributes[index].Type.MemberReference = &pFile->MemberReferences[typeRow]; break;

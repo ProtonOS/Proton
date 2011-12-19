@@ -82,7 +82,7 @@ struct _MethodDefinition
     uint32_t SignatureLength;
     const uint8_t* Signature;
     Parameter* ParameterList;
-    uint8_t ParameterListCount;
+    uint32_t ParameterListCount;
 };
 
 const uint8_t* MethodDefinition_Initialize(CLIFile* pFile, const uint8_t* pTableData);

@@ -29,7 +29,6 @@ const uint8_t* MethodImplementation_Load(CLIFile* pFile, const uint8_t* pTableDa
 {
     uint32_t parentIndex = 0;
     uint32_t methodIndex = 0;
-    uint8_t methodTable = 0;
     uint32_t methodRow = 0;
     for (uint32_t index = 0; index < pFile->MethodImplementationCount; ++index)
     {
@@ -40,9 +39,9 @@ const uint8_t* MethodImplementation_Load(CLIFile* pFile, const uint8_t* pTableDa
         if (pFile->MethodDefinitionCount > MethodDefOrRef_Type_MaxRows16Bit ||
             pFile->MemberReferenceCount > MethodDefOrRef_Type_MaxRows16Bit) { methodIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { methodIndex = *(uint16_t*)pTableData; pTableData += 2; }
-        methodTable = methodIndex & MethodDefOrRef_Type_Mask;
+        pFile->MethodImplementations[index].TypeOfMethodBody = methodIndex & MethodDefOrRef_Type_Mask;
         methodRow = methodIndex >> MethodDefOrRef_Type_Bits;
-        switch (methodTable)
+        switch (pFile->MethodImplementations[index].TypeOfMethodBody)
         {
         case MethodDefOrRef_Type_MethodDefinition: pFile->MethodImplementations[index].MethodBody.MethodDefinition = &pFile->MethodDefinitions[methodRow]; break;
         case MethodDefOrRef_Type_MemberReference: pFile->MethodImplementations[index].MethodBody.MemberReference = &pFile->MemberReferences[methodRow]; break;
@@ -52,9 +51,9 @@ const uint8_t* MethodImplementation_Load(CLIFile* pFile, const uint8_t* pTableDa
         if (pFile->MethodDefinitionCount > MethodDefOrRef_Type_MaxRows16Bit ||
             pFile->MemberReferenceCount > MethodDefOrRef_Type_MaxRows16Bit) { methodIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { methodIndex = *(uint16_t*)pTableData; pTableData += 2; }
-        methodTable = methodIndex & MethodDefOrRef_Type_Mask;
+        pFile->MethodImplementations[index].TypeOfMethodDeclaration = methodIndex & MethodDefOrRef_Type_Mask;
         methodRow = methodIndex >> MethodDefOrRef_Type_Bits;
-        switch (methodTable)
+        switch (pFile->MethodImplementations[index].TypeOfMethodDeclaration)
         {
         case MethodDefOrRef_Type_MethodDefinition: pFile->MethodImplementations[index].MethodDeclaration.MethodDefinition = &pFile->MethodDefinitions[methodRow]; break;
         case MethodDefOrRef_Type_MemberReference: pFile->MethodImplementations[index].MethodDeclaration.MemberReference = &pFile->MemberReferences[methodRow]; break;

@@ -28,16 +28,15 @@ void MethodSpecification_Cleanup(CLIFile* pFile)
 const uint8_t* MethodSpecification_Load(CLIFile* pFile, const uint8_t* pTableData)
 {
     uint32_t methodIndex = 0;
-    uint8_t methodTable = 0;
     uint32_t methodRow = 0;
     for (uint32_t index = 0, heapIndex = 0; index < pFile->MethodSpecificationCount; ++index)
     {
         if (pFile->MethodDefinitionCount > MethodDefOrRef_Type_MaxRows16Bit ||
             pFile->MemberReferenceCount > MethodDefOrRef_Type_MaxRows16Bit) { methodIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { methodIndex = *(uint16_t*)pTableData; pTableData += 2; }
-        methodTable = methodIndex & MethodDefOrRef_Type_Mask;
+        pFile->MethodSpecifications[index].TypeOfMethod = methodIndex & MethodDefOrRef_Type_Mask;
         methodRow = methodIndex >> MethodDefOrRef_Type_Bits;
-        switch (methodTable)
+        switch (pFile->MethodSpecifications[index].TypeOfMethod)
         {
         case MethodDefOrRef_Type_MethodDefinition: pFile->MethodSpecifications[index].Method.MethodDefinition = &pFile->MethodDefinitions[methodRow]; break;
         case MethodDefOrRef_Type_MemberReference: pFile->MethodSpecifications[index].Method.MemberReference = &pFile->MemberReferences[methodRow]; break;

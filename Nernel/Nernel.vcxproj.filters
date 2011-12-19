@@ -315,9 +315,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Include\PortIO.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Include\Core\MultiBoot.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -646,6 +643,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Include\CLR\MetaData\Signature.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\PortIO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
