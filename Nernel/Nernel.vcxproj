@@ -156,6 +156,7 @@
     <ClInclude Include="Include\CLR\MetaData\Parameter.h" />
     <ClInclude Include="Include\CLR\MetaData\Property.h" />
     <ClInclude Include="Include\CLR\MetaData\PropertyMap.h" />
+    <ClInclude Include="Include\CLR\MetaData\Signature.h" />
     <ClInclude Include="Include\CLR\MetaData\StandAloneSignature.h" />
     <ClInclude Include="Include\CLR\MetaData\TypeDefinition.h" />
     <ClInclude Include="Include\CLR\MetaData\TypeReference.h" />

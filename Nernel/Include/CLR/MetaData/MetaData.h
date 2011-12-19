@@ -1,6 +1,5 @@
 #pragma once
 
-
 #define MetaData_Signature                  0x424A5342
 
 #define MetaData_Offset_Signature           0x00
@@ -27,6 +26,7 @@ uint32_t MetaData_GetStreamRVA(const uint8_t* pMetaDataHeader, uint16_t pStreamI
 uint32_t MetaData_GetStreamSize(const uint8_t* pMetaDataHeader, uint16_t pStreamIndex);
 const char* MetaData_GetStreamName(const uint8_t* pMetaDataHeader, uint16_t pStreamIndex);
 const uint8_t* MetaData_GetStreamData(const uint8_t* pMetaDataHeader, uint16_t pStreamIndex);
+const uint8_t* MetaData_GetCompressedUnsigned(const uint8_t* pData, uint32_t* pValue);
 
 #define MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit   0x01
 #define MetaDataTablesHeader_HeapOffsetSizes_GUIDs32Bit     0x02
@@ -88,6 +88,7 @@ typedef struct _TypeReference TypeReference;
 typedef struct _TypeDefinition TypeDefinition;
 typedef struct _MethodDefinitionBody MethodDefinitionBody;
 typedef struct _MethodDefinitionException MethodDefinitionException;
+typedef struct _MethodDefinitionSignature MethodDefinitionSignature;
 typedef struct _MethodDefinition MethodDefinition;
 typedef struct _Field Field;
 typedef struct _Parameter Parameter;

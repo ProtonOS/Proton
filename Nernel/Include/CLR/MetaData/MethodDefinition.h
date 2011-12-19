@@ -79,6 +79,7 @@ struct _MethodDefinition
     uint16_t ImplFlags;
     uint16_t Flags;
     const char* Name;
+    uint32_t SignatureLength;
     const uint8_t* Signature;
     Parameter* ParameterList;
     uint8_t ParameterListCount;

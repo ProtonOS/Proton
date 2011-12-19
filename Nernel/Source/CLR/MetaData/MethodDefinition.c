@@ -52,7 +52,7 @@ const uint8_t* MethodDefinition_Load(CLIFile* pFile, const uint8_t* pTableData)
         pFile->MethodDefinitions[index].Name = (const char*)(pFile->StringsHeap + heapIndex);
         if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Blobs32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
-        pFile->MethodDefinitions[index].Signature = pFile->BlobsHeap + heapIndex;
+        pFile->MethodDefinitions[index].Signature = MetaData_GetCompressedUnsigned(pFile->BlobsHeap + heapIndex, &pFile->MethodDefinitions[index].SignatureLength);
         if (pFile->ParameterCount > 0xFFFF) { parameterListIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { parameterListIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->MethodDefinitions[index].ParameterList = &pFile->Parameters[parameterListIndex];

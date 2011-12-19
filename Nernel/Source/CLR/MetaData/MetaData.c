@@ -61,4 +61,23 @@ const uint8_t* MetaData_GetStreamData(const uint8_t* pMetaDataHeader, uint16_t p
     return data;
 }
 
-
+const uint8_t* MetaData_GetCompressedUnsigned(const uint8_t* pData, uint32_t* pValue)
+{
+    if ((*pData & 0x80) == 0)
+    {
+        *pValue = pData[0] & 0x7F;
+        return pData + 1;
+    }
+    if ((*pData & 0xC0) == 0x80)
+    {
+        *pValue = ((pData[0] & 0x3F) << 8) + pData[1];
+        return pData + 2;
+    }
+    if ((*pData & 0xE0) == 0xC0)
+    {
+        *pValue = ((pData[0] & 0x1F) << 24) + (pData[1] << 16) + (pData[2] << 8) + pData[3];
+        return pData + 4;
+    }
+    *pValue = 0;
+    return pData;
+}

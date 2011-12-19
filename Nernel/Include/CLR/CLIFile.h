@@ -2,6 +2,7 @@
 
 #include <CLR/PEFile.h>
 #include <CLR/MetaData/MetaData.h>
+#include <CLR/MetaData/Signature.h>
 
 #define CLIFile_Machine                             0x014C
 

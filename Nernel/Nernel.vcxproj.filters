@@ -645,5 +645,8 @@
     <ClInclude Include="Include\CLR\MetaData\GenericParameterConstraint.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Include\CLR\MetaData\Signature.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
