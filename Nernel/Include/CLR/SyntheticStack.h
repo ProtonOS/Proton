@@ -40,7 +40,7 @@ struct _StackObject
     void* Data;
 };
 
-StackObject* StackObject_Create(StackObjectType tp);
+StackObject* StackObject_Create();
 void StackObject_Destroy(StackObject* obj);
 
 struct _SyntheticStack
@@ -54,3 +54,10 @@ void SyntheticStack_Destroy(SyntheticStack* stack);
 void SyntheticStack_Push(SyntheticStack* stack, StackObject* obj);
 StackObject* SyntheticStack_Pop(SyntheticStack* stack);
 StackObject* SyntheticStack_Peek(SyntheticStack* stack);
+
+
+
+void StackObjectPool_Initialize();
+void StackObjectPool_Destroy();
+StackObject* StackObjectPool_Allocate();
+void StackObjectPool_Release(StackObject* obj);

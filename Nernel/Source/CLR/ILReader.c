@@ -1,10 +1,9 @@
-#include <stdlib.h>
-#include <stdio.h>
-
 #include <CLR/ILReader.h>
 #include <CLR/OpCodes_IL.h>
 #include <CLR/OpCodes_IR.h>
-#include <CLR/MetaData/MethodDefinition.h>
+#include <CLR/SyntheticStack.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 
 uint8_t ReadUInt8(uint8_t** dat);
@@ -26,6 +25,14 @@ ILAssembly* ILReader_CreateAssembly(CLIFile* fil)
 
 	return asmbly;
 }
+
+#define ClearFlags() \
+    { Constrained = FALSE; \
+    No = FALSE; \
+    ReadOnly = FALSE; \
+    Tail = FALSE; \
+    UnAligned = FALSE; \
+    Volatile = FALSE; }
 
 #define EMIT_IR(instrType) \
     { IRInstruction* instr = IRInstruction_Create(); \
@@ -56,6 +63,13 @@ ILAssembly* ILReader_CreateAssembly(CLIFile* fil)
 
 IRMethod* ReadIL(uint8_t** dat, uint32_t len)
 {
+    SyntheticStack* stack = SyntheticStack_Create();
+    bool_t Constrained = FALSE;
+    bool_t No = FALSE;
+    bool_t ReadOnly = FALSE;
+    bool_t Tail = FALSE;
+    bool_t UnAligned = FALSE;
+    bool_t Volatile = FALSE;
 	uint32_t orig = (uint32_t)(*dat);
     uint8_t b;
     IRMethod* m = IRMethod_Create();
@@ -67,495 +81,762 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
         {
             case ILOpCode_Nop:				// 0x00
                 EMIT_IR(IROpCode_Nop);
+                ClearFlags();
                 break;
             case ILOpCode_Break:			// 0x01
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_LdArg_0:			// 0x02
                 
+                ClearFlags();
                 break;
             case ILOpCode_LdArg_1:			// 0x03
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_LdArg_2:			// 0x04
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_LdArg_3:			// 0x05
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_LdLoc_0:			// 0x06
                  
+                ClearFlags();
                 break;
             case ILOpCode_LdLoc_1:			// 0x07
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_LdLoc_2:			// 0x08
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_LdLoc_3:			// 0x09
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_StLoc_0:			// 0x0A
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_StLoc_1:			// 0x0B
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_StLoc_2:			// 0x0C
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_StLoc_3:			// 0x0D
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_LdArg_S:			// 0x0E
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_LdArgA_S:			// 0x0F
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_StArg_S:			// 0x10
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_LdLoc_S:			// 0x11
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_LdLocA_S:			// 0x12
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_StLoc_S:			// 0x13
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_LdNull:			// 0x14
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Ldc_I4_M1:		// 0x15
-
+                {
+                    StackObject* s = StackObjectPool_Allocate();
+                    int* dat = (int*)malloc(sizeof(int));
+                    *dat = (int)-1;
+                    s->Data = dat; 
+                    s->Type = StackObjectType_Int32;
+                    s->NumericType = StackObjectNumericType_Int32;
+                    SyntheticStack_Push(stack, s);
+                }
+                ClearFlags();
                 break;
 			case ILOpCode_Ldc_I4_0:			// 0x16
-
+                {
+                    StackObject* s = StackObjectPool_Allocate();
+                    int* dt = (int*)malloc(sizeof(int));
+                    *dt = (int)0;
+                    s->Data = dt; 
+                    s->Type = StackObjectType_Int32;
+                    s->NumericType = StackObjectNumericType_Int32;
+                    SyntheticStack_Push(stack, s);
+                }
+                ClearFlags();
                 break;
 			case ILOpCode_Ldc_I4_1:			// 0x17
-
+                {
+                    StackObject* s = StackObjectPool_Allocate();
+                    int* dt = (int*)malloc(sizeof(int));
+                    *dt = (int)1;
+                    s->Data = dt; 
+                    s->Type = StackObjectType_Int32;
+                    s->NumericType = StackObjectNumericType_Int32;
+                    SyntheticStack_Push(stack, s);
+                }
+                ClearFlags();
                 break;
 			case ILOpCode_Ldc_I4_2:			// 0x18
-
+                {
+                    StackObject* s = StackObjectPool_Allocate();
+                    int* dt = (int*)malloc(sizeof(int));
+                    *dt = (int)2;
+                    s->Data = dt; 
+                    s->Type = StackObjectType_Int32;
+                    s->NumericType = StackObjectNumericType_Int32;
+                    SyntheticStack_Push(stack, s);
+                }
+                ClearFlags();
                 break;
 			case ILOpCode_Ldc_I4_3:			// 0x19
-
+                {
+                    StackObject* s = StackObjectPool_Allocate();
+                    int* dt = (int*)malloc(sizeof(int));
+                    *dt = (int)3;
+                    s->Data = dt; 
+                    s->Type = StackObjectType_Int32;
+                    s->NumericType = StackObjectNumericType_Int32;
+                    SyntheticStack_Push(stack, s);
+                }
+                ClearFlags();
                 break;
 			case ILOpCode_Ldc_I4_4:			// 0x1A
-
+                {
+                    StackObject* s = StackObjectPool_Allocate();
+                    int* dt = (int*)malloc(sizeof(int));
+                    *dt = (int)4;
+                    s->Data = dt; 
+                    s->Type = StackObjectType_Int32;
+                    s->NumericType = StackObjectNumericType_Int32;
+                    SyntheticStack_Push(stack, s);
+                }
+                ClearFlags();
                 break;
 			case ILOpCode_Ldc_I4_5:			// 0x1B
-
+                {
+                    StackObject* s = StackObjectPool_Allocate();
+                    int* dt = (int*)malloc(sizeof(int));
+                    *dt = (int)5;
+                    s->Data = dt; 
+                    s->Type = StackObjectType_Int32;
+                    s->NumericType = StackObjectNumericType_Int32;
+                    SyntheticStack_Push(stack, s);
+                }
+                ClearFlags();
                 break;
 			case ILOpCode_Ldc_I4_6:			// 0x1C
-
+                {
+                    StackObject* s = StackObjectPool_Allocate();
+                    int* dt = (int*)malloc(sizeof(int));
+                    *dt = (int)6;
+                    s->Data = dt; 
+                    s->Type = StackObjectType_Int32;
+                    s->NumericType = StackObjectNumericType_Int32;
+                    SyntheticStack_Push(stack, s);
+                }
+                ClearFlags();
                 break;
 			case ILOpCode_Ldc_I4_7:			// 0x1D
-
+                {
+                    StackObject* s = StackObjectPool_Allocate();
+                    int* dt = (int*)malloc(sizeof(int));
+                    *dt = (int)7;
+                    s->Data = dt; 
+                    s->Type = StackObjectType_Int32;
+                    s->NumericType = StackObjectNumericType_Int32;
+                    SyntheticStack_Push(stack, s);
+                }
+                ClearFlags();
                 break;
 			case ILOpCode_Ldc_I4_8:			// 0x1E
-
+                {
+                    StackObject* s = StackObjectPool_Allocate();
+                    int* dt = (int*)malloc(sizeof(int));
+                    *dt = (int)8;
+                    s->Data = dt; 
+                    s->Type = StackObjectType_Int32;
+                    s->NumericType = StackObjectNumericType_Int32;
+                    SyntheticStack_Push(stack, s);
+                }
+                ClearFlags();
                 break;
 			case ILOpCode_Ldc_I4_S:			// 0x1F
-
+                {
+                    StackObject* s = StackObjectPool_Allocate();
+                    int* dt = (int*)malloc(sizeof(int));
+                    *dt = (int)ReadUInt8(dat);
+                    s->Data = dt; 
+                    s->Type = StackObjectType_Int32;
+                    s->NumericType = StackObjectNumericType_Int32;
+                    SyntheticStack_Push(stack, s);
+                }
+                ClearFlags();
                 break;
 			case ILOpCode_Ldc_I4:			// 0x20
-
+                {
+                    StackObject* s = StackObjectPool_Allocate();
+                    int* dt = (int*)malloc(sizeof(int));
+                    *dt = (int)ReadUInt32(dat);
+                    s->Data = dt; 
+                    s->Type = StackObjectType_Int32;
+                    s->NumericType = StackObjectNumericType_Int32;
+                    SyntheticStack_Push(stack, s);
+                }
+                ClearFlags();
                 break;
 			case ILOpCode_Ldc_I8:			// 0x21
-
+                {
+                    StackObject* s = StackObjectPool_Allocate();
+                    int* dt = (int*)malloc(sizeof(int));
+                    *dt = (int)ReadUInt8(dat);
+                    s->Data = dt; 
+                    s->Type = StackObjectType_Int32;
+                    s->NumericType = StackObjectNumericType_Int32;
+                    SyntheticStack_Push(stack, s);
+                }
+                ClearFlags();
                 break;
 			case ILOpCode_Ldc_R4:			// 0x22
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_Ldc_R8:			// 0x23
-
+                
+                ClearFlags();
                 break;
 			// 0x24 Doesn't exist
             case ILOpCode_Dup:				// 0x25
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Pop:				// 0x26
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Jmp:				// 0x27
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Call:				// 0x28
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_CallI:			// 0x29
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Ret:				// 0x2A
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Br_S:				// 0x2B
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_BrFalse_S:		// 0x2C
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_BrTrue_S:			// 0x2D
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Beq_S:			// 0x2E
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Bge_S:			// 0x2F
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Bgt_S:			// 0x30
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Ble_S:			// 0x31
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Blt_S:			// 0x32
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Bne_Un_S:			// 0x33
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Bge_Un_S:			// 0x34
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Bgt_Un_S:			// 0x35
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Ble_Un_S:			// 0x36
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Blt_Un_S:			// 0x37
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Br:				// 0x38
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_BrFalse:			// 0x39
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_BrTrue:			// 0x3A
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Beq:				// 0x3B
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Bge:				// 0x3C
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Bgt:				// 0x3D
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Ble:				// 0x3E
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Blt:				// 0x3F
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Bne_Un:			// 0x40
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Bge_Un:			// 0x41
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Bgt_Un:			// 0x42
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Ble_Un:			// 0x43
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Blt_Un:			// 0x44
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Switch:			// 0x45
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_LdInd_I1:			// 0x46
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_LdInd_U1:			// 0x47
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_LdInd_I2:			// 0x48
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_LdInd_U2:			// 0x49
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_LdInd_I4:			// 0x4A
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_LdInd_U4:			// 0x4B
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_LdInd_I8:			// 0x4C
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_LdInd_I:			// 0x4D
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_LdInd_R4:			// 0x4D
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_LdInd_R8:			// 0x4F
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_LdInd_Ref:		// 0x50
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_StInd_Ref:		// 0x51
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_StInd_I1:			// 0x52
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_StInd_I2:			// 0x53
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_StInd_I4:			// 0x54
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_StInd_I8:			// 0x55
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_StInd_R4:			// 0x56
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_StInd_R8:			// 0x57
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Add:				// 0x58
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Sub:				// 0x59
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Mul:				// 0x5A
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Div:				// 0x5B
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Div_Un:			// 0x5C
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Rem:				// 0x5D
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Rem_Un:			// 0x5E
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_And:				// 0x5F
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Or:				// 0x60
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Xor:				// 0x61
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Shl:				// 0x62
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Shr:				// 0x63
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Shr_Un:			// 0x64
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Neg:				// 0x65
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Not:				// 0x66
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Conv_I1:			// 0x67
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_Conv_I2:			// 0x68
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_Conv_I4:			// 0x69
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_Conv_I8:			// 0x6A
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_Conv_R4:			// 0x6B
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_Conv_R8:			// 0x6C
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_Conv_U4:			// 0x6D
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_Conv_U8:			// 0x6E
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_CallVirt:			// 0x6F
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_CpObj:			// 0x70
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_LdObj:			// 0x71
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_LdStr:			// 0x72
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_NewObj:			// 0x73
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_CastClass:		// 0x74
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_IsInst:			// 0x75
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Conv_R_Un:		// 0x76
-
+                
+                ClearFlags();
                 break;
 			// 0x77 Doesn't exist
 			// 0x78 Doesn't exist
             case ILOpCode_UnBox:			// 0x79
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Throw:			// 0x7A
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_LdFld:			// 0x7B
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_LdFldA:			// 0x7C
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_StFld:			// 0x7D
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_LdSFld:			// 0x7E
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_LdSFldA:			// 0x7F
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_StSFld:			// 0x80
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_StObj:			// 0x81
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Conv_Ovf_I1_Un:	// 0x82
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_Conv_Ovf_I2_Un:	// 0x83
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_Conv_Ovf_I4_Un:	// 0x84
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_Conv_Ovf_I8_Un:	// 0x85
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_Conv_Ovf_U1_Un:	// 0x86
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_Conv_Ovf_U2_Un:	// 0x87
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_Conv_Ovf_U4_Un:	// 0x88
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_Conv_Ovf_U8_Un:	// 0x89
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_Conv_Ovf_I_Un:	// 0x8A
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_Conv_Ovf_U_Un:	// 0x8B
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Box:				// 0x8C
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_NewArr:			// 0x8D
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_LdLen:			// 0x8E
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_LdElemA:			// 0x8F
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_LdElem_I1:		// 0x90
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_LdElem_U1:		// 0x91
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_LdElem_I2:		// 0x92
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_LdElem_U2:		// 0x93
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_LdElem_I4:		// 0x94
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_LdElem_U4:		// 0x95
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_LdElem_I8:		// 0x96
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_LdElem_I:			// 0x97
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_LdElem_R4:		// 0x98
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_LdElem_R8:		// 0x99
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_LdElem_Ref:		// 0x9A
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_StElem_I:			// 0x9B
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_StElem_I1:		// 0x9C
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_StElem_I2:		// 0x9D
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_StElem_I4:		// 0x9E
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_StElem_I8:		// 0x9F
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_StElem_R4:		// 0xA0
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_StElem_R8:		// 0xA1
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_StElem_Ref:		// 0xA2
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_LdElem:			// 0xA3
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_StElem:			// 0xA4
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Unbox_Any:		// 0xA5
-
+                
+                ClearFlags();
                 break;
     		// 0xA6 Doesn't exist
 			// 0xA7 Doesn't exist
@@ -571,28 +852,36 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
 			// 0xB1 Doesn't exist
 			// 0xB2 Doesn't exist
             case ILOpCode_Conv_Ovf_I1:		// 0xB3
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_Conv_Ovf_U1:		// 0xB4
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_Conv_Ovf_I2:		// 0xB5
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_Conv_Ovf_U2:		// 0xB6
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_Conv_Ovf_I4:		// 0xB7
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_Conv_Ovf_U4:		// 0xB8
-
+                
+                ClearFlags();
                 break;
 			case ILOpCode_Conv_Ovf_I8:		// 0xB9
-
+                
+                ClearFlags();
                 break;
     		case ILOpCode_Conv_Ovf_U8:		// 0xBA
-
+                
+                ClearFlags();
 				break;
 			// 0xBB Doesn't exist
 			// 0xBC Doesn't exist
@@ -602,15 +891,18 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
 			// 0xC0 Doesn't exist
 			// 0xC1 Doesn't exist
             case ILOpCode_RefAnyVal:		// 0xC2
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_CkFinite:			// 0xC3
-
+                
+                ClearFlags();
 				break;
 			// 0xC4 Doesn't exist
 			// 0xC5 Doesn't exist
             case ILOpCode_MkRefAny:			// 0xC6
-
+                
+                ClearFlags();
                 break;
 			// 0xC7 Doesn't exist
 			// 0xC8 Doesn't exist
@@ -622,55 +914,72 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
 			// 0xCE Doesn't exist
 			// 0xCF Doesn't exist
             case ILOpCode_LdToken:			// 0xD0
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Conv_U2:			// 0xD1
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Conv_U1:			// 0xD2
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Conv_I:			// 0xD3
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Conv_Ovf_I:		// 0xD4
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Conv_Ovf_U:		// 0xD5
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Add_Ovf:			// 0xD6
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Add_Ovf_Un:		// 0xD7
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Mul_Ovf:			// 0xD8
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Mul_Ovf_Un:		// 0xD9
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Sub_Ovf:			// 0xDA
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Sub_Ovf_Un:		// 0xDB
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_EndFinally:		// 0xDC
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Leave:			// 0xDD
-
+                
+                ClearFlags();
                 break;
             case ILOpCode_Leave_S:			// 0xDE
-
+                
+                ClearFlags();
 				break;
     		case ILOpCode_StInd_I:			// 0xDF
-
+                
+                ClearFlags();
 				break;
 			case ILOpCode_Conv_U:			// 0xE0
-
+                
+                ClearFlags();
 				break;
 			// 0xE1 Doesn't Exist
 			// 0xE2 Doesn't Exist
@@ -707,91 +1016,111 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 switch (b)
                 {
                     case ILOpCodes_Extended_ArgList:		// 0x00
-
+                        
+                        ClearFlags();
                         break;
                     case ILOpCodes_Extended_Ceq:			// 0x01
-
+                        
+                        ClearFlags();
                         break;
                     case ILOpCodes_Extended_Cgt:			// 0x02
-
+                        
+                        ClearFlags();
                         break;
                     case ILOpCodes_Extended_Cgt_Un:			// 0x03
-
+                        
+                        ClearFlags();
                         break;
                     case ILOpCodes_Extended_Clt:			// 0x04
-
+                        
+                        ClearFlags();
                         break;
                     case ILOpCodes_Extended_Clt_Un:			// 0x05
-
+                        
+                        ClearFlags();
                         break;
                     case ILOpCodes_Extended_LdFtn:			// 0x06
-
+                        
+                        ClearFlags();
                         break;
                     case ILOpCodes_Extended_LdVirtFtn:		// 0x07
-
+                        
+                        ClearFlags();
                         break;
                     // 0x08 Doesn't exist
                     case ILOpCodes_Extended_LdArg:			// 0x09
 
                         break;
                     case ILOpCodes_Extended_LdArgA:			// 0x0A
-
+                        
+                        ClearFlags();
                         break;
                     case ILOpCodes_Extended_StArg:			// 0x0B
-
+                        
+                        ClearFlags();
                         break;
                     case ILOpCodes_Extended_LdLoc:			// 0x0C
-
+                        
+                        ClearFlags();
                         break;
                     case ILOpCodes_Extended_LdLocA:			// 0x0D
-
+                        
+                        ClearFlags();
                         break;
                     case ILOpCodes_Extended_StLoc:			// 0x0E
-
+                        
+                        ClearFlags();
                         break;
                     case ILOpCodes_Extended_LocAlloc:		// 0x0F
-
+                        
+                        ClearFlags();
                         break;
 					// 0x10 Doesn't exist
                     case ILOpCodes_Extended_EndFilter:		// 0x11
-
+                        
+                        ClearFlags();
                         break;
                     case ILOpCodes_Extended_Unaligned__:	// 0x12
-
+                        UnAligned = TRUE;
                         break;
-                    case ILOpCodes_Extended_Volitile__:		// 0x13
-
+                    case ILOpCodes_Extended_Volatile__:		// 0x13
+                        Volatile = TRUE;
                         break;
                     case ILOpCodes_Extended_Tail__:			// 0x14
-
+                        Tail = TRUE;
                         break;
                     case ILOpCodes_Extended_InitObj:		// 0x15
-
+                        
+                        ClearFlags();
                         break;
                     case ILOpCodes_Extended_Constrained__:	// 0x16
-
+                        Constrained = TRUE;
                         break;
                     case ILOpCodes_Extended_CpBlk:			// 0x17
-
+                        
+                        ClearFlags();
                         break;
                     case ILOpCodes_Extended_InitBlk:		// 0x18
-
+                        
+                        ClearFlags();
                         break;
                     case ILOpCodes_Extended_No__:			// 0x19
-
+                        No = TRUE;
                         break;
                     case ILOpCodes_Extended_ReThrow:		// 0x1A
 
                         break;
 					// 0x1B Doesn't exist
                     case ILOpCodes_Extended_SizeOf:			// 0x1C
-
+                        
+                        ClearFlags();
                         break;
                     case ILOpCodes_Extended_RefAnyType:		// 0x1D
-
+                        
+                        ClearFlags();
                         break;
                     case ILOpCodes_Extended_ReadOnly__:		// 0x1E
-
+                        ReadOnly = TRUE;
                         break;
 
                 }
