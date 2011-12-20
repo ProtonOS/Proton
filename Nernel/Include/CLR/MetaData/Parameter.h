@@ -7,6 +7,11 @@ struct _Parameter
     uint16_t Flags;
     uint16_t Sequence;
     const char* Name;
+
+    Constant* Constant;
+    uint32_t CustomAttributeCount;
+    CustomAttribute** CustomAttributes;
+    FieldMarshal* FieldMarshal;
 };
 
 const uint8_t* Parameter_Initialize(CLIFile* pFile, const uint8_t* pTableData);

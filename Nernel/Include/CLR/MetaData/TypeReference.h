@@ -9,6 +9,9 @@ struct _TypeReference
     const char* Namespace;
 	bool_t IsResolved;
 	TypeDefinition* ResolvedType;
+
+    uint32_t CustomAttributeCount;
+    CustomAttribute** CustomAttributes;
 };
 
 const uint8_t* TypeReference_Initialize(CLIFile* pFile, const uint8_t* pTableData);

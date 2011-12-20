@@ -20,6 +20,8 @@ void MethodDefinition_Cleanup(CLIFile* pFile)
         for (uint32_t index = 0; index < pFile->MethodDefinitionCount; ++index)
         {
             if (pFile->MethodDefinitions[index].Exceptions) free(pFile->MethodDefinitions[index].Exceptions);
+            if (pFile->MethodDefinitions[index].CustomAttributes) free(pFile->MethodDefinitions[index].CustomAttributes);
+            if (pFile->MethodDefinitions[index].GenericParameters) free(pFile->MethodDefinitions[index].GenericParameters);
         }
         free(pFile->MethodDefinitions);
         pFile->MethodDefinitions = NULL;
@@ -161,7 +163,6 @@ const uint8_t* MethodDefinition_Load(CLIFile* pFile, const uint8_t* pTableData)
                 }
             }
         }
-
     }
     uint32_t parameterListCount = 0;
     for (uint32_t index = 0, used = 0; index < pFile->MethodDefinitionCount; ++index, used += parameterListCount)
@@ -176,4 +177,52 @@ const uint8_t* MethodDefinition_Load(CLIFile* pFile, const uint8_t* pTableData)
 
 void MethodDefinition_Link(CLIFile* pFile)
 {
+    for (uint32_t index = 0; index < pFile->CustomAttributeCount; ++index)
+    {
+        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttribute_Type_MethodDefinition) ++pFile->CustomAttributes[index].Parent.MethodDefinition->CustomAttributeCount;
+    }
+    for (uint32_t index = 0; index < pFile->MethodDefinitionCount; ++index)
+    {
+        if (pFile->MethodDefinitions[index].CustomAttributeCount > 0)
+        {
+            pFile->MethodDefinitions[index].CustomAttributes = (CustomAttribute**)calloc(pFile->MethodDefinitions[index].CustomAttributeCount, sizeof(CustomAttribute*));
+            for (uint32_t searchIndex = 0, customAttributeIndex = 0; searchIndex < pFile->CustomAttributeCount; ++searchIndex)
+            {
+                if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttribute_Type_MethodDefinition &&
+                    pFile->CustomAttributes[searchIndex].Parent.MethodDefinition == &pFile->MethodDefinitions[index])
+                {
+                    pFile->MethodDefinitions[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
+                    ++customAttributeIndex;
+                }
+            }
+        }
+    }
+    for (uint32_t index = 0; index < pFile->DeclSecurityCount; ++index)
+    {
+        if (pFile->DeclSecurities[index].TypeOfParent == HasDeclSecurity_Type_MethodDefinition) pFile->DeclSecurities[index].Parent.MethodDefinition->DeclSecurity = &pFile->DeclSecurities[index];
+    }
+    for (uint32_t index = 0; index < pFile->GenericParameterCount; ++index)
+    {
+        if (pFile->GenericParameters[index].TypeOfOwner == TypeOrMethodDef_Type_MethodDefinition) ++pFile->GenericParameters[index].Owner.MethodDefinition->GenericParameterCount;
+    }
+    for (uint32_t index = 0; index < pFile->MethodDefinitionCount; ++index)
+    {
+        if (pFile->MethodDefinitions[index].GenericParameterCount > 0)
+        {
+            pFile->MethodDefinitions[index].GenericParameters = (GenericParameter**)calloc(pFile->MethodDefinitions[index].GenericParameterCount, sizeof(GenericParameter*));
+            for (uint32_t searchIndex = 0, genericParameterIndex = 0; searchIndex < pFile->GenericParameterCount; ++searchIndex)
+            {
+                if (pFile->GenericParameters[searchIndex].TypeOfOwner == TypeOrMethodDef_Type_MethodDefinition &&
+                    pFile->GenericParameters[searchIndex].Owner.MethodDefinition == &pFile->MethodDefinitions[index])
+                {
+                    pFile->MethodDefinitions[index].GenericParameters[genericParameterIndex] = &pFile->GenericParameters[searchIndex];
+                    ++genericParameterIndex;
+                }
+            }
+        }
+    }
+    for (uint32_t index = 0; index < pFile->ImplementationMapCount; ++index)
+    {
+        if (pFile->ImplementationMaps[index].TypeOfMemberForwarded == MemberForwarded_Type_MethodDefinition) pFile->ImplementationMaps[index].MemberForwarded.MethodDefinition->ImplementationMap = &pFile->ImplementationMaps[index];
+    }
 }

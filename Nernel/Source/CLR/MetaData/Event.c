@@ -19,6 +19,7 @@ void Event_Cleanup(CLIFile* pFile)
     {
         for (uint32_t index = 0; index < pFile->EventCount; ++index)
         {
+            if (pFile->Events[index].CustomAttributes) free(pFile->Events[index].CustomAttributes);
         }
         free(pFile->Events);
         pFile->Events = NULL;
@@ -54,4 +55,24 @@ const uint8_t* Event_Load(CLIFile* pFile, const uint8_t* pTableData)
 
 void Event_Link(CLIFile* pFile)
 {
+    for (uint32_t index = 0; index < pFile->CustomAttributeCount; ++index)
+    {
+        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttribute_Type_Event) ++pFile->CustomAttributes[index].Parent.Event->CustomAttributeCount;
+    }
+    for (uint32_t index = 0; index < pFile->EventCount; ++index)
+    {
+        if (pFile->Events[index].CustomAttributeCount > 0)
+        {
+            pFile->Events[index].CustomAttributes = (CustomAttribute**)calloc(pFile->Events[index].CustomAttributeCount, sizeof(CustomAttribute*));
+            for (uint32_t searchIndex = 0, customAttributeIndex = 0; searchIndex < pFile->CustomAttributeCount; ++searchIndex)
+            {
+                if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttribute_Type_Event &&
+                    pFile->CustomAttributes[searchIndex].Parent.Event == &pFile->Events[index])
+                {
+                    pFile->Events[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
+                    ++customAttributeIndex;
+                }
+            }
+        }
+    }
 }

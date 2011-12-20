@@ -19,6 +19,7 @@ void AssemblyDefinition_Cleanup(CLIFile* pFile)
     {
         for (uint32_t index = 0; index < pFile->AssemblyDefinitionCount; ++index)
         {
+            if (pFile->AssemblyDefinitions[index].CustomAttributes) free(pFile->AssemblyDefinitions[index].CustomAttributes);
         }
         free(pFile->AssemblyDefinitions);
         pFile->AssemblyDefinitions = NULL;
@@ -50,4 +51,28 @@ const uint8_t* AssemblyDefinition_Load(CLIFile* pFile, const uint8_t* pTableData
 
 void AssemblyDefinition_Link(CLIFile* pFile)
 {
+    for (uint32_t index = 0; index < pFile->CustomAttributeCount; ++index)
+    {
+        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttribute_Type_AssemblyDefinition) ++pFile->CustomAttributes[index].Parent.AssemblyDefinition->CustomAttributeCount;
+    }
+    for (uint32_t index = 0; index < pFile->AssemblyDefinitionCount; ++index)
+    {
+        if (pFile->AssemblyDefinitions[index].CustomAttributeCount > 0)
+        {
+            pFile->AssemblyDefinitions[index].CustomAttributes = (CustomAttribute**)calloc(pFile->AssemblyDefinitions[index].CustomAttributeCount, sizeof(CustomAttribute*));
+            for (uint32_t searchIndex = 0, customAttributeIndex = 0; searchIndex < pFile->CustomAttributeCount; ++searchIndex)
+            {
+                if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttribute_Type_AssemblyDefinition &&
+                    pFile->CustomAttributes[searchIndex].Parent.AssemblyDefinition == &pFile->AssemblyDefinitions[index])
+                {
+                    pFile->AssemblyDefinitions[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
+                    ++customAttributeIndex;
+                }
+            }
+        }
+    }
+    for (uint32_t index = 0; index < pFile->DeclSecurityCount; ++index)
+    {
+        if (pFile->DeclSecurities[index].TypeOfParent == HasDeclSecurity_Type_AssemblyDefinition) pFile->DeclSecurities[index].Parent.AssemblyDefinition->DeclSecurity = &pFile->DeclSecurities[index];
+    }
 }

@@ -9,6 +9,9 @@ struct _ExportedType
     const char* Name;
     const char* Namespace;
     ImplementationUnion(Implementation)
+
+    uint32_t CustomAttributeCount;
+    CustomAttribute** CustomAttributes;
 };
 
 const uint8_t* ExportedType_Initialize(CLIFile* pFile, const uint8_t* pTableData);

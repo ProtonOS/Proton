@@ -7,6 +7,9 @@ struct _Event
     uint16_t Flags;
     const char* Name;
     TypeDefOrRefUnion(EventType)
+
+    uint32_t CustomAttributeCount;
+    CustomAttribute** CustomAttributes;
 };
 
 const uint8_t* Event_Initialize(CLIFile* pFile, const uint8_t* pTableData);

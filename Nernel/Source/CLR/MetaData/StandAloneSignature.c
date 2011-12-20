@@ -19,6 +19,7 @@ void StandAloneSignature_Cleanup(CLIFile* pFile)
     {
         for (uint32_t index = 0; index < pFile->StandAloneSignatureCount; ++index)
         {
+            if (pFile->StandAloneSignatures[index].CustomAttributes) free(pFile->StandAloneSignatures[index].CustomAttributes);
         }
         free(pFile->StandAloneSignatures);
         pFile->StandAloneSignatures = NULL;
@@ -38,4 +39,24 @@ const uint8_t* StandAloneSignature_Load(CLIFile* pFile, const uint8_t* pTableDat
 
 void StandAloneSignature_Link(CLIFile* pFile)
 {
+    for (uint32_t index = 0; index < pFile->CustomAttributeCount; ++index)
+    {
+        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttribute_Type_StandAloneSignature) ++pFile->CustomAttributes[index].Parent.StandAloneSignature->CustomAttributeCount;
+    }
+    for (uint32_t index = 0; index < pFile->StandAloneSignatureCount; ++index)
+    {
+        if (pFile->StandAloneSignatures[index].CustomAttributeCount > 0)
+        {
+            pFile->StandAloneSignatures[index].CustomAttributes = (CustomAttribute**)calloc(pFile->StandAloneSignatures[index].CustomAttributeCount, sizeof(CustomAttribute*));
+            for (uint32_t searchIndex = 0, customAttributeIndex = 0; searchIndex < pFile->CustomAttributeCount; ++searchIndex)
+            {
+                if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttribute_Type_StandAloneSignature &&
+                    pFile->CustomAttributes[searchIndex].Parent.StandAloneSignature == &pFile->StandAloneSignatures[index])
+                {
+                    pFile->StandAloneSignatures[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
+                    ++customAttributeIndex;
+                }
+            }
+        }
+    }
 }

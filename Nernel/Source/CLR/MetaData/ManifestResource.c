@@ -19,6 +19,7 @@ void ManifestResource_Cleanup(CLIFile* pFile)
     {
         for (uint32_t index = 0; index < pFile->ManifestResourceCount; ++index)
         {
+            if (pFile->ManifestResources[index].CustomAttributes) free(pFile->ManifestResources[index].CustomAttributes);
         }
         free(pFile->ManifestResources);
         pFile->ManifestResources = NULL;
@@ -56,4 +57,24 @@ const uint8_t* ManifestResource_Load(CLIFile* pFile, const uint8_t* pTableData)
 
 void ManifestResource_Link(CLIFile* pFile)
 {
+    for (uint32_t index = 0; index < pFile->CustomAttributeCount; ++index)
+    {
+        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttribute_Type_ManifestResource) ++pFile->CustomAttributes[index].Parent.ManifestResource->CustomAttributeCount;
+    }
+    for (uint32_t index = 0; index < pFile->ManifestResourceCount; ++index)
+    {
+        if (pFile->ManifestResources[index].CustomAttributeCount > 0)
+        {
+            pFile->ManifestResources[index].CustomAttributes = (CustomAttribute**)calloc(pFile->ManifestResources[index].CustomAttributeCount, sizeof(CustomAttribute*));
+            for (uint32_t searchIndex = 0, customAttributeIndex = 0; searchIndex < pFile->CustomAttributeCount; ++searchIndex)
+            {
+                if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttribute_Type_ManifestResource &&
+                    pFile->CustomAttributes[searchIndex].Parent.ManifestResource == &pFile->ManifestResources[index])
+                {
+                    pFile->ManifestResources[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
+                    ++customAttributeIndex;
+                }
+            }
+        }
+    }
 }

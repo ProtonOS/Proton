@@ -19,6 +19,7 @@ void ModuleReference_Cleanup(CLIFile* pFile)
     {
         for (uint32_t index = 0; index < pFile->ModuleReferenceCount; ++index)
         {
+            if (pFile->ModuleReferences[index].CustomAttributes) free(pFile->ModuleReferences[index].CustomAttributes);
         }
         free(pFile->ModuleReferences);
         pFile->ModuleReferences = NULL;
@@ -38,4 +39,24 @@ const uint8_t* ModuleReference_Load(CLIFile* pFile, const uint8_t* pTableData)
 
 void ModuleReference_Link(CLIFile* pFile)
 {
+    for (uint32_t index = 0; index < pFile->CustomAttributeCount; ++index)
+    {
+        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttribute_Type_ModuleReference) ++pFile->CustomAttributes[index].Parent.ModuleReference->CustomAttributeCount;
+    }
+    for (uint32_t index = 0; index < pFile->ModuleReferenceCount; ++index)
+    {
+        if (pFile->ModuleReferences[index].CustomAttributeCount > 0)
+        {
+            pFile->ModuleReferences[index].CustomAttributes = (CustomAttribute**)calloc(pFile->ModuleReferences[index].CustomAttributeCount, sizeof(CustomAttribute*));
+            for (uint32_t searchIndex = 0, customAttributeIndex = 0; searchIndex < pFile->CustomAttributeCount; ++searchIndex)
+            {
+                if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttribute_Type_ModuleReference &&
+                    pFile->CustomAttributes[searchIndex].Parent.ModuleReference == &pFile->ModuleReferences[index])
+                {
+                    pFile->ModuleReferences[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
+                    ++customAttributeIndex;
+                }
+            }
+        }
+    }
 }

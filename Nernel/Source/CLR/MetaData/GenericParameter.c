@@ -19,6 +19,8 @@ void GenericParameter_Cleanup(CLIFile* pFile)
     {
         for (uint32_t index = 0; index < pFile->GenericParameterCount; ++index)
         {
+            if (pFile->GenericParameters[index].CustomAttributes) free(pFile->GenericParameters[index].CustomAttributes);
+            if (pFile->GenericParameters[index].GenericParameterConstraints) free(pFile->GenericParameters[index].GenericParameterConstraints);
         }
         free(pFile->GenericParameters);
         pFile->GenericParameters = NULL;
@@ -53,4 +55,40 @@ const uint8_t* GenericParameter_Load(CLIFile* pFile, const uint8_t* pTableData)
 
 void GenericParameter_Link(CLIFile* pFile)
 {
+    for (uint32_t index = 0; index < pFile->CustomAttributeCount; ++index)
+    {
+        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttribute_Type_GenericParameter) ++pFile->CustomAttributes[index].Parent.GenericParameter->CustomAttributeCount;
+    }
+    for (uint32_t index = 0; index < pFile->GenericParameterCount; ++index)
+    {
+        if (pFile->GenericParameters[index].CustomAttributeCount > 0)
+        {
+            pFile->GenericParameters[index].CustomAttributes = (CustomAttribute**)calloc(pFile->GenericParameters[index].CustomAttributeCount, sizeof(CustomAttribute*));
+            for (uint32_t searchIndex = 0, customAttributeIndex = 0; searchIndex < pFile->CustomAttributeCount; ++searchIndex)
+            {
+                if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttribute_Type_GenericParameter &&
+                    pFile->CustomAttributes[searchIndex].Parent.GenericParameter == &pFile->GenericParameters[index])
+                {
+                    pFile->GenericParameters[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
+                    ++customAttributeIndex;
+                }
+            }
+        }
+    }
+    for (uint32_t index = 0; index < pFile->GenericParameterConstraintCount; ++index) ++pFile->GenericParameterConstraints[index].Owner->GenericParameterConstraintCount;
+    for (uint32_t index = 0; index < pFile->GenericParameterCount; ++index)
+    {
+        if (pFile->GenericParameters[index].GenericParameterConstraintCount > 0)
+        {
+            pFile->GenericParameters[index].GenericParameterConstraints = (GenericParameterConstraint**)calloc(pFile->GenericParameters[index].GenericParameterConstraintCount, sizeof(GenericParameterConstraint*));
+            for (uint32_t searchIndex = 0, genericParameterConstraintIndex = 0; searchIndex < pFile->GenericParameterConstraintCount; ++searchIndex)
+            {
+                if (pFile->GenericParameterConstraints[searchIndex].Owner == &pFile->GenericParameters[index])
+                {
+                    pFile->GenericParameters[index].GenericParameterConstraints[genericParameterConstraintIndex] = &pFile->GenericParameterConstraints[searchIndex];
+                    ++genericParameterConstraintIndex;
+                }
+            }
+        }
+    }
 }

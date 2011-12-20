@@ -19,6 +19,7 @@ void ExportedType_Cleanup(CLIFile* pFile)
     {
         for (uint32_t index = 0; index < pFile->ExportedTypeCount; ++index)
         {
+            if (pFile->ExportedTypes[index].CustomAttributes) free(pFile->ExportedTypes[index].CustomAttributes);
         }
         free(pFile->ExportedTypes);
         pFile->ExportedTypes = NULL;
@@ -62,4 +63,24 @@ const uint8_t* ExportedType_Load(CLIFile* pFile, const uint8_t* pTableData)
 
 void ExportedType_Link(CLIFile* pFile)
 {
+    for (uint32_t index = 0; index < pFile->CustomAttributeCount; ++index)
+    {
+        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttribute_Type_ExportedType) ++pFile->CustomAttributes[index].Parent.ExportedType->CustomAttributeCount;
+    }
+    for (uint32_t index = 0; index < pFile->ExportedTypeCount; ++index)
+    {
+        if (pFile->ExportedTypes[index].CustomAttributeCount > 0)
+        {
+            pFile->ExportedTypes[index].CustomAttributes = (CustomAttribute**)calloc(pFile->ExportedTypes[index].CustomAttributeCount, sizeof(CustomAttribute*));
+            for (uint32_t searchIndex = 0, customAttributeIndex = 0; searchIndex < pFile->CustomAttributeCount; ++searchIndex)
+            {
+                if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttribute_Type_ExportedType &&
+                    pFile->CustomAttributes[searchIndex].Parent.ExportedType == &pFile->ExportedTypes[index])
+                {
+                    pFile->ExportedTypes[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
+                    ++customAttributeIndex;
+                }
+            }
+        }
+    }
 }

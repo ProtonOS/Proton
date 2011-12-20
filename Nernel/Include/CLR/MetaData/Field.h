@@ -8,6 +8,12 @@ struct _Field
     const char* Name;
     uint32_t SignatureLength;
     const uint8_t* Signature;
+
+    Constant* Constant;
+    uint32_t CustomAttributeCount;
+    CustomAttribute** CustomAttributes;
+    FieldMarshal* FieldMarshal;
+    ImplementationMap* ImplementationMap;
 };
 
 const uint8_t* Field_Initialize(CLIFile* pFile, const uint8_t* pTableData);

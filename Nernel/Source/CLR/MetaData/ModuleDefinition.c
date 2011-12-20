@@ -19,6 +19,7 @@ void ModuleDefinition_Cleanup(CLIFile* pFile)
     {
         for (uint32_t index = 0; index < pFile->ModuleDefinitionCount; ++index)
         {
+            if (pFile->ModuleDefinitions[index].CustomAttributes) free(pFile->ModuleDefinitions[index].CustomAttributes);
         }
         free(pFile->ModuleDefinitions);
         pFile->ModuleDefinitions = NULL;
@@ -49,4 +50,24 @@ const uint8_t* ModuleDefinition_Load(CLIFile* pFile, const uint8_t* pTableData)
 
 void ModuleDefinition_Link(CLIFile* pFile)
 {
+    for (uint32_t index = 0; index < pFile->CustomAttributeCount; ++index)
+    {
+        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttribute_Type_ModuleDefinition) ++pFile->CustomAttributes[index].Parent.ModuleDefinition->CustomAttributeCount;
+    }
+    for (uint32_t index = 0; index < pFile->ModuleDefinitionCount; ++index)
+    {
+        if (pFile->ModuleDefinitions[index].CustomAttributeCount > 0)
+        {
+            pFile->ModuleDefinitions[index].CustomAttributes = (CustomAttribute**)calloc(pFile->ModuleDefinitions[index].CustomAttributeCount, sizeof(CustomAttribute*));
+            for (uint32_t searchIndex = 0, customAttributeIndex = 0; searchIndex < pFile->CustomAttributeCount; ++searchIndex)
+            {
+                if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttribute_Type_ModuleDefinition &&
+                    pFile->CustomAttributes[searchIndex].Parent.ModuleDefinition == &pFile->ModuleDefinitions[index])
+                {
+                    pFile->ModuleDefinitions[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
+                    ++customAttributeIndex;
+                }
+            }
+        }
+    }
 }

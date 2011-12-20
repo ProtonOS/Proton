@@ -19,6 +19,9 @@ void TypeDefinition_Cleanup(CLIFile* pFile)
     {
         for (uint32_t index = 0; index < pFile->TypeDefinitionCount; ++index)
         {
+            if (pFile->TypeDefinitions[index].CustomAttributes) free(pFile->TypeDefinitions[index].CustomAttributes);
+            if (pFile->TypeDefinitions[index].GenericParameters) free(pFile->TypeDefinitions[index].GenericParameters);
+            if (pFile->TypeDefinitions[index].InterfaceImplementations) free(pFile->TypeDefinitions[index].InterfaceImplementations);
         }
         free(pFile->TypeDefinitions);
         pFile->TypeDefinitions = NULL;
@@ -63,6 +66,7 @@ const uint8_t* TypeDefinition_Load(CLIFile* pFile, const uint8_t* pTableData)
         else { methodDefinitionListIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->TypeDefinitions[index].MethodDefinitionList = &pFile->MethodDefinitions[methodDefinitionListIndex];
         methodDefinitionListIndexes[index] = methodDefinitionListIndex;
+        printf("TypeDefinition: %u/%u %s.%s\n", (unsigned int)index, (unsigned int)pFile->TypeDefinitionCount, pFile->TypeDefinitions[index].Namespace, pFile->TypeDefinitions[index].Name);
     }
     uint32_t fieldListCount = 0;
     for (uint32_t index = 0, used = 0; index < pFile->TypeDefinitionCount; ++index, used += fieldListCount)
@@ -85,4 +89,77 @@ const uint8_t* TypeDefinition_Load(CLIFile* pFile, const uint8_t* pTableData)
 
 void TypeDefinition_Link(CLIFile* pFile)
 {
+    for (uint32_t index = 0; index < pFile->ClassLayoutCount; ++index)
+    {
+        printf("194: %u, %s\n", (unsigned int)pFile->TypeDefinitions[194].GenericParameterCount, pFile->ClassLayouts[index].Parent->Name);
+        pFile->ClassLayouts[index].Parent->ClassLayout = &pFile->ClassLayouts[index];
+    }
+        
+    for (uint32_t index = 0; index < pFile->CustomAttributeCount; ++index)
+    {
+        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttribute_Type_TypeDefinition) ++pFile->CustomAttributes[index].Parent.TypeDefinition->CustomAttributeCount;
+    }
+    for (uint32_t index = 0; index < pFile->TypeDefinitionCount; ++index)
+    {
+        if (pFile->TypeDefinitions[index].CustomAttributeCount > 0)
+        {
+            pFile->TypeDefinitions[index].CustomAttributes = (CustomAttribute**)calloc(pFile->TypeDefinitions[index].CustomAttributeCount, sizeof(CustomAttribute*));
+            for (uint32_t searchIndex = 0, customAttributeIndex = 0; searchIndex < pFile->CustomAttributeCount; ++searchIndex)
+            {
+                if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttribute_Type_TypeDefinition &&
+                    pFile->CustomAttributes[searchIndex].Parent.TypeDefinition == &pFile->TypeDefinitions[index])
+                {
+                    pFile->TypeDefinitions[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
+                    ++customAttributeIndex;
+                }
+            }
+        }
+    }
+    for (uint32_t index = 0; index < pFile->DeclSecurityCount; ++index)
+    {
+        if (pFile->DeclSecurities[index].TypeOfParent == HasDeclSecurity_Type_TypeDefinition) pFile->DeclSecurities[index].Parent.TypeDefinition->DeclSecurity = &pFile->DeclSecurities[index];
+    }
+    for (uint32_t index = 0; index < pFile->EventMapCount; ++index) pFile->EventMaps[index].Parent->EventMap = &pFile->EventMaps[index];
+    for (uint32_t index = 0; index < pFile->GenericParameterCount; ++index)
+    {
+        if (pFile->GenericParameters[index].TypeOfOwner == TypeOrMethodDef_Type_TypeDefinition)
+        {
+            ++pFile->GenericParameters[index].Owner.TypeDefinition->GenericParameterCount;
+            printf("Incremented GenericParameterCount for %s, %u\n", pFile->GenericParameters[index].Owner.TypeDefinition->Name, (unsigned int)pFile->GenericParameters[index].Owner.TypeDefinition->GenericParameterCount);
+        }
+    }
+    for (uint32_t index = 0; index < pFile->TypeDefinitionCount; ++index)
+    {
+        if (pFile->TypeDefinitions[index].GenericParameterCount > 0)
+        {
+            printf("index %u, %s has %u generic parameters\n", (unsigned int)index, pFile->TypeDefinitions[index].Name, (unsigned int)pFile->TypeDefinitions[index].GenericParameterCount);
+            pFile->TypeDefinitions[index].GenericParameters = (GenericParameter**)calloc(pFile->TypeDefinitions[index].GenericParameterCount, sizeof(GenericParameter*));
+            for (uint32_t searchIndex = 0, genericParameterIndex = 0; searchIndex < pFile->GenericParameterCount; ++searchIndex)
+            {
+                if (pFile->GenericParameters[searchIndex].TypeOfOwner == TypeOrMethodDef_Type_TypeDefinition &&
+                    pFile->GenericParameters[searchIndex].Owner.TypeDefinition == &pFile->TypeDefinitions[index])
+                {
+                    pFile->TypeDefinitions[index].GenericParameters[genericParameterIndex] = &pFile->GenericParameters[searchIndex];
+                    ++genericParameterIndex;
+                }
+            }
+        }
+    }
+    for (uint32_t index = 0; index < pFile->InterfaceImplementationCount; ++index) ++pFile->InterfaceImplementations[index].Implementor->InterfaceImplementationCount;
+    for (uint32_t index = 0; index < pFile->TypeDefinitionCount; ++index)
+    {
+        if (pFile->TypeDefinitions[index].InterfaceImplementationCount > 0)
+        {
+            printf("%s implements %u interfaces\n", pFile->TypeDefinitions[index].Name, (unsigned int)pFile->TypeDefinitions[index].InterfaceImplementationCount);
+            pFile->TypeDefinitions[index].InterfaceImplementations = (InterfaceImplementation**)calloc(pFile->TypeDefinitions[index].InterfaceImplementationCount, sizeof(InterfaceImplementation*));
+            for (uint32_t searchIndex = 0, interfaceImplementationIndex = 0; searchIndex < pFile->InterfaceImplementationCount; ++searchIndex)
+            {
+                if (pFile->InterfaceImplementations[searchIndex].Implementor == &pFile->TypeDefinitions[index])
+                {
+                    pFile->TypeDefinitions[index].InterfaceImplementations[interfaceImplementationIndex] = &pFile->InterfaceImplementations[searchIndex];
+                    ++interfaceImplementationIndex;
+                }
+            }
+        }
+    }
 }

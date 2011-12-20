@@ -9,6 +9,9 @@ struct _ModuleDefinition
     const uint8_t* ModuleVersionID;
     const uint8_t* EncID;
     const uint8_t* EncBaseID;
+
+    uint32_t CustomAttributeCount;
+    CustomAttribute** CustomAttributes;
 };
 
 const uint8_t* ModuleDefinition_Initialize(CLIFile* pFile, const uint8_t* pTableData);

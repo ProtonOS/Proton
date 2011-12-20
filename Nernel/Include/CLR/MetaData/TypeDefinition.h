@@ -13,6 +13,16 @@ struct _TypeDefinition
     MethodDefinition* MethodDefinitionList;
 	uint32_t MethodDefinitionListCount;
 
+    ClassLayout* ClassLayout;
+    uint32_t CustomAttributeCount;
+    CustomAttribute** CustomAttributes;
+    DeclSecurity* DeclSecurity;
+    EventMap* EventMap;
+    uint32_t GenericParameterCount;
+    GenericParameter** GenericParameters;
+    uint32_t InterfaceImplementationCount;
+    InterfaceImplementation** InterfaceImplementations;
+
 	bool_t HasStaticConstructor;
 	bool_t HasStaticConstructorBeenRun;
 };

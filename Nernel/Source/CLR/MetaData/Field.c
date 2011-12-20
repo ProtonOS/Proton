@@ -19,6 +19,7 @@ void Field_Cleanup(CLIFile* pFile)
     {
         for (uint32_t index = 0; index < pFile->FieldCount; ++index)
         {
+            if (pFile->Fields[index].CustomAttributes) free(pFile->Fields[index].CustomAttributes);
         }
         free(pFile->Fields);
         pFile->Fields = NULL;
@@ -42,4 +43,36 @@ const uint8_t* Field_Load(CLIFile* pFile, const uint8_t* pTableData)
 
 void Field_Link(CLIFile* pFile)
 {
+    for (uint32_t index = 0; index < pFile->ConstantCount; ++index)
+    {
+        if (pFile->Constants[index].TypeOfParent == HasConstant_Type_Field) pFile->Constants[index].Parent.Field->Constant = &pFile->Constants[index];
+    }
+    for (uint32_t index = 0; index < pFile->CustomAttributeCount; ++index)
+    {
+        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttribute_Type_Field) ++pFile->CustomAttributes[index].Parent.Field->CustomAttributeCount;
+    }
+    for (uint32_t index = 0; index < pFile->FieldCount; ++index)
+    {
+        if (pFile->Fields[index].CustomAttributeCount > 0)
+        {
+            pFile->Fields[index].CustomAttributes = (CustomAttribute**)calloc(pFile->Fields[index].CustomAttributeCount, sizeof(CustomAttribute*));
+            for (uint32_t searchIndex = 0, customAttributeIndex = 0; searchIndex < pFile->CustomAttributeCount; ++searchIndex)
+            {
+                if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttribute_Type_Field &&
+                    pFile->CustomAttributes[searchIndex].Parent.Field == &pFile->Fields[index])
+                {
+                    pFile->Fields[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
+                    ++customAttributeIndex;
+                }
+            }
+        }
+    }
+    for (uint32_t index = 0; index < pFile->FieldMarshalCount; ++index)
+    {
+        if (pFile->FieldMarshals[index].TypeOfParent == HasConstant_Type_Field) pFile->FieldMarshals[index].Parent.Field->FieldMarshal = &pFile->FieldMarshals[index];
+    }
+    for (uint32_t index = 0; index < pFile->ImplementationMapCount; ++index)
+    {
+        if (pFile->ImplementationMaps[index].TypeOfMemberForwarded == MemberForwarded_Type_Field) pFile->ImplementationMaps[index].MemberForwarded.Field->ImplementationMap = &pFile->ImplementationMaps[index];
+    }
 }

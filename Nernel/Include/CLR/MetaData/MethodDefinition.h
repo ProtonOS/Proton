@@ -83,6 +83,13 @@ struct _MethodDefinition
     const uint8_t* Signature;
     Parameter* ParameterList;
     uint32_t ParameterListCount;
+
+    uint32_t CustomAttributeCount;
+    CustomAttribute** CustomAttributes;
+    DeclSecurity* DeclSecurity;
+    uint32_t GenericParameterCount;
+    GenericParameter** GenericParameters;
+    ImplementationMap* ImplementationMap;
 };
 
 const uint8_t* MethodDefinition_Initialize(CLIFile* pFile, const uint8_t* pTableData);

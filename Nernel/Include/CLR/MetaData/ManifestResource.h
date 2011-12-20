@@ -8,6 +8,9 @@ struct _ManifestResource
     uint32_t Flags;
     const char* Name;
     ImplementationUnion(Implementation)
+
+    uint32_t CustomAttributeCount;
+    CustomAttribute** CustomAttributes;
 };
 
 const uint8_t* ManifestResource_Initialize(CLIFile* pFile, const uint8_t* pTableData);

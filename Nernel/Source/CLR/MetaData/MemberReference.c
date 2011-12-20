@@ -19,6 +19,7 @@ void MemberReference_Cleanup(CLIFile* pFile)
     {
         for (uint32_t index = 0; index < pFile->MemberReferenceCount; ++index)
         {
+            if (pFile->MemberReferences[index].CustomAttributes) free(pFile->MemberReferences[index].CustomAttributes);
         }
         free(pFile->MemberReferences);
         pFile->MemberReferences = NULL;
@@ -61,4 +62,24 @@ const uint8_t* MemberReference_Load(CLIFile* pFile, const uint8_t* pTableData)
 
 void MemberReference_Link(CLIFile* pFile)
 {
+    for (uint32_t index = 0; index < pFile->CustomAttributeCount; ++index)
+    {
+        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttribute_Type_MemberReference) ++pFile->CustomAttributes[index].Parent.MemberReference->CustomAttributeCount;
+    }
+    for (uint32_t index = 0; index < pFile->MemberReferenceCount; ++index)
+    {
+        if (pFile->MemberReferences[index].CustomAttributeCount > 0)
+        {
+            pFile->MemberReferences[index].CustomAttributes = (CustomAttribute**)calloc(pFile->MemberReferences[index].CustomAttributeCount, sizeof(CustomAttribute*));
+            for (uint32_t searchIndex = 0, customAttributeIndex = 0; searchIndex < pFile->CustomAttributeCount; ++searchIndex)
+            {
+                if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttribute_Type_MemberReference &&
+                    pFile->CustomAttributes[searchIndex].Parent.MemberReference == &pFile->MemberReferences[index])
+                {
+                    pFile->MemberReferences[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
+                    ++customAttributeIndex;
+                }
+            }
+        }
+    }
 }

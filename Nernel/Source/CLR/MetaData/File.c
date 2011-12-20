@@ -19,6 +19,7 @@ void File_Cleanup(CLIFile* pFile)
     {
         for (uint32_t index = 0; index < pFile->FileCount; ++index)
         {
+            if (pFile->Files[index].CustomAttributes) free(pFile->Files[index].CustomAttributes);
         }
         free(pFile->Files);
         pFile->Files = NULL;
@@ -42,4 +43,24 @@ const uint8_t* File_Load(CLIFile* pFile, const uint8_t* pTableData)
 
 void File_Link(CLIFile* pFile)
 {
+    for (uint32_t index = 0; index < pFile->CustomAttributeCount; ++index)
+    {
+        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttribute_Type_File) ++pFile->CustomAttributes[index].Parent.File->CustomAttributeCount;
+    }
+    for (uint32_t index = 0; index < pFile->FileCount; ++index)
+    {
+        if (pFile->Files[index].CustomAttributeCount > 0)
+        {
+            pFile->Files[index].CustomAttributes = (CustomAttribute**)calloc(pFile->Files[index].CustomAttributeCount, sizeof(CustomAttribute*));
+            for (uint32_t searchIndex = 0, customAttributeIndex = 0; searchIndex < pFile->CustomAttributeCount; ++searchIndex)
+            {
+                if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttribute_Type_File &&
+                    pFile->CustomAttributes[searchIndex].Parent.File == &pFile->Files[index])
+                {
+                    pFile->Files[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
+                    ++customAttributeIndex;
+                }
+            }
+        }
+    }
 }

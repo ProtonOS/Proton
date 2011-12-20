@@ -5,6 +5,9 @@
 struct _ModuleReference
 {
     const char* Name;
+
+    uint32_t CustomAttributeCount;
+    CustomAttribute** CustomAttributes;
 };
 
 const uint8_t* ModuleReference_Initialize(CLIFile* pFile, const uint8_t* pTableData);

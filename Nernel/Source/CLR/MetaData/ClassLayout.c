@@ -34,7 +34,9 @@ const uint8_t* ClassLayout_Load(CLIFile* pFile, const uint8_t* pTableData)
         pFile->ClassLayouts[index].ClassSize = *(uint32_t*)pTableData; pTableData += 4;
         if (pFile->TypeDefinitionCount > 0xFFFF) { parentIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { parentIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        parentIndex -= 1;
         pFile->ClassLayouts[index].Parent = &pFile->TypeDefinitions[parentIndex];
+        printf("ClassLayout Parent: %u/%u %s.%s, %u %u\n", (unsigned int)parentIndex, (unsigned int)pFile->TypeDefinitionCount, pFile->ClassLayouts[index].Parent->Namespace, pFile->ClassLayouts[index].Parent->Name, (unsigned int)pFile->ClassLayouts[index].PackingSize, (unsigned int)pFile->ClassLayouts[index].ClassSize);
     }
     return pTableData;
 }

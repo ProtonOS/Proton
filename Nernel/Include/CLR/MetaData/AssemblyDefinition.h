@@ -14,6 +14,10 @@ struct _AssemblyDefinition
     const uint8_t* PublicKey;
     const char* Name;
     const char* Culture;
+
+    uint32_t CustomAttributeCount;
+    CustomAttribute** CustomAttributes;
+    DeclSecurity* DeclSecurity;
 };
 
 const uint8_t* AssemblyDefinition_Initialize(CLIFile* pFile, const uint8_t* pTableData);

@@ -19,6 +19,7 @@ void Property_Cleanup(CLIFile* pFile)
     {
         for (uint32_t index = 0; index < pFile->PropertyCount; ++index)
         {
+            if (pFile->Properties[index].CustomAttributes) free(pFile->Properties[index].CustomAttributes);
         }
         free(pFile->Properties);
         pFile->Properties = NULL;
@@ -42,4 +43,28 @@ const uint8_t* Property_Load(CLIFile* pFile, const uint8_t* pTableData)
 
 void Property_Link(CLIFile* pFile)
 {
+    for (uint32_t index = 0; index < pFile->ConstantCount; ++index)
+    {
+        if (pFile->Constants[index].TypeOfParent == HasConstant_Type_Property) pFile->Constants[index].Parent.Property->Constant = &pFile->Constants[index];
+    }
+    for (uint32_t index = 0; index < pFile->CustomAttributeCount; ++index)
+    {
+        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttribute_Type_Property) ++pFile->CustomAttributes[index].Parent.Property->CustomAttributeCount;
+    }
+    for (uint32_t index = 0; index < pFile->PropertyCount; ++index)
+    {
+        if (pFile->Properties[index].CustomAttributeCount > 0)
+        {
+            pFile->Properties[index].CustomAttributes = (CustomAttribute**)calloc(pFile->Properties[index].CustomAttributeCount, sizeof(CustomAttribute*));
+            for (uint32_t searchIndex = 0, customAttributeIndex = 0; searchIndex < pFile->CustomAttributeCount; ++searchIndex)
+            {
+                if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttribute_Type_Property &&
+                    pFile->CustomAttributes[searchIndex].Parent.Property == &pFile->Properties[index])
+                {
+                    pFile->Properties[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
+                    ++customAttributeIndex;
+                }
+            }
+        }
+    }
 }

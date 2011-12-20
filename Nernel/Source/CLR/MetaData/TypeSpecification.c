@@ -19,6 +19,7 @@ void TypeSpecification_Cleanup(CLIFile* pFile)
     {
         for (uint32_t index = 0; index < pFile->TypeSpecificationCount; ++index)
         {
+            if (pFile->TypeSpecifications[index].CustomAttributes) free(pFile->TypeSpecifications[index].CustomAttributes);
         }
         free(pFile->TypeSpecifications);
         pFile->TypeSpecifications = NULL;
@@ -38,4 +39,24 @@ const uint8_t* TypeSpecification_Load(CLIFile* pFile, const uint8_t* pTableData)
 
 void TypeSpecification_Link(CLIFile* pFile)
 {
+    for (uint32_t index = 0; index < pFile->CustomAttributeCount; ++index)
+    {
+        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttribute_Type_TypeSpecification) ++pFile->CustomAttributes[index].Parent.TypeSpecification->CustomAttributeCount;
+    }
+    for (uint32_t index = 0; index < pFile->TypeSpecificationCount; ++index)
+    {
+        if (pFile->TypeSpecifications[index].CustomAttributeCount > 0)
+        {
+            pFile->TypeSpecifications[index].CustomAttributes = (CustomAttribute**)calloc(pFile->TypeSpecifications[index].CustomAttributeCount, sizeof(CustomAttribute*));
+            for (uint32_t searchIndex = 0, customAttributeIndex = 0; searchIndex < pFile->CustomAttributeCount; ++searchIndex)
+            {
+                if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttribute_Type_TypeSpecification &&
+                    pFile->CustomAttributes[searchIndex].Parent.TypeSpecification == &pFile->TypeSpecifications[index])
+                {
+                    pFile->TypeSpecifications[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
+                    ++customAttributeIndex;
+                }
+            }
+        }
+    }
 }

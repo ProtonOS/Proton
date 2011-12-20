@@ -19,6 +19,7 @@ void MethodSpecification_Cleanup(CLIFile* pFile)
     {
         for (uint32_t index = 0; index < pFile->MethodSpecificationCount; ++index)
         {
+            if (pFile->MethodSpecifications[index].CustomAttributes) free(pFile->MethodSpecifications[index].CustomAttributes);
         }
         free(pFile->MethodSpecifications);
         pFile->MethodSpecifications = NULL;
@@ -51,4 +52,24 @@ const uint8_t* MethodSpecification_Load(CLIFile* pFile, const uint8_t* pTableDat
 
 void MethodSpecification_Link(CLIFile* pFile)
 {
+    for (uint32_t index = 0; index < pFile->CustomAttributeCount; ++index)
+    {
+        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttribute_Type_MethodSpecification) ++pFile->CustomAttributes[index].Parent.MethodSpecification->CustomAttributeCount;
+    }
+    for (uint32_t index = 0; index < pFile->MethodSpecificationCount; ++index)
+    {
+        if (pFile->MethodSpecifications[index].CustomAttributeCount > 0)
+        {
+            pFile->MethodSpecifications[index].CustomAttributes = (CustomAttribute**)calloc(pFile->MethodSpecifications[index].CustomAttributeCount, sizeof(CustomAttribute*));
+            for (uint32_t searchIndex = 0, customAttributeIndex = 0; searchIndex < pFile->CustomAttributeCount; ++searchIndex)
+            {
+                if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttribute_Type_MethodSpecification &&
+                    pFile->CustomAttributes[searchIndex].Parent.MethodSpecification == &pFile->MethodSpecifications[index])
+                {
+                    pFile->MethodSpecifications[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
+                    ++customAttributeIndex;
+                }
+            }
+        }
+    }
 }

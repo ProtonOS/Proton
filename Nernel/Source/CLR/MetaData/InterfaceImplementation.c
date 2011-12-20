@@ -19,6 +19,7 @@ void InterfaceImplementation_Cleanup(CLIFile* pFile)
     {
         for (uint32_t index = 0; index < pFile->InterfaceImplementationCount; ++index)
         {
+            if (pFile->InterfaceImplementations[index].CustomAttributes) free(pFile->InterfaceImplementations[index].CustomAttributes);
         }
         free(pFile->InterfaceImplementations);
         pFile->InterfaceImplementations = NULL;
@@ -55,4 +56,24 @@ const uint8_t* InterfaceImplementation_Load(CLIFile* pFile, const uint8_t* pTabl
 
 void InterfaceImplementation_Link(CLIFile* pFile)
 {
+    for (uint32_t index = 0; index < pFile->CustomAttributeCount; ++index)
+    {
+        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttribute_Type_InterfaceImplementation) ++pFile->CustomAttributes[index].Parent.InterfaceImplementation->CustomAttributeCount;
+    }
+    for (uint32_t index = 0; index < pFile->InterfaceImplementationCount; ++index)
+    {
+        if (pFile->InterfaceImplementations[index].CustomAttributeCount > 0)
+        {
+            pFile->InterfaceImplementations[index].CustomAttributes = (CustomAttribute**)calloc(pFile->InterfaceImplementations[index].CustomAttributeCount, sizeof(CustomAttribute*));
+            for (uint32_t searchIndex = 0, customAttributeIndex = 0; searchIndex < pFile->CustomAttributeCount; ++searchIndex)
+            {
+                if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttribute_Type_InterfaceImplementation &&
+                    pFile->CustomAttributes[searchIndex].Parent.InterfaceImplementation == &pFile->InterfaceImplementations[index])
+                {
+                    pFile->InterfaceImplementations[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
+                    ++customAttributeIndex;
+                }
+            }
+        }
+    }
 }

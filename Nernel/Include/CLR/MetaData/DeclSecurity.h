@@ -8,6 +8,9 @@ struct _DeclSecurity
     HasDeclSecurityUnion(Parent)
     uint32_t PermissionSetLength;
     const uint8_t* PermissionSet;
+
+    uint32_t CustomAttributeCount;
+    CustomAttribute** CustomAttributes;
 };
 
 

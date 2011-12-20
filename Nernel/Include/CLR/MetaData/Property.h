@@ -8,6 +8,10 @@ struct _Property
     const char* Name;
     uint32_t SignatureLength;
     const uint8_t* Signature;
+
+    Constant* Constant;
+    uint32_t CustomAttributeCount;
+    CustomAttribute** CustomAttributes;
 };
 
 const uint8_t* Property_Initialize(CLIFile* pFile, const uint8_t* pTableData);
