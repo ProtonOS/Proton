@@ -283,7 +283,7 @@ typedef enum ILOpCodes_Extended
 	// N/A =							0x10,
 	ILOpCodes_Extended_EndFilter =		0x11,
 	ILOpCodes_Extended_Unaligned__ =	0x12,
-	ILOpCodes_Extended_Volitile__ =		0x13,
+	ILOpCodes_Extended_Volatile__ =		0x13,
 	ILOpCodes_Extended_Tail__ =			0x14,
 	ILOpCodes_Extended_InitObj =		0x15,
 	ILOpCodes_Extended_Constrained__ =	0x16,
