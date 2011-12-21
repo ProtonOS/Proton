@@ -1,5 +1,6 @@
 #include <Nernel.h>
 #include <CLR/ILReader.h>
+#include <CLR/Log.h>
 
 void Main(uint32_t pMultiBootMagic,
             void* pMultiBootData)
@@ -9,6 +10,11 @@ void Main(uint32_t pMultiBootMagic,
         Nernel_Shutdown();
         return;
     }
+    Log_Initialize((LogFlags)(
+        LogFlags_ILReading
+        | LogFlags_IREmitting
+        //| LogFlags_MetaDataLoading
+        ));
     MultiBoot_LoadedModule* loadedModule = MultiBoot_GetLoadedModuleByFileName("corlib.dll");
     PEFile* peFile = PEFile_Create((uint8_t*)loadedModule->Address, loadedModule->Length);
     if (peFile)

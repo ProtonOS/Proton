@@ -2,6 +2,7 @@
 #include <CLR/OpCodes_IL.h>
 #include <CLR/OpCodes_IR.h>
 #include <CLR/SyntheticStack.h>
+#include <CLR/Log.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -9,6 +10,7 @@
 uint8_t ReadUInt8(uint8_t** dat);
 uint16_t ReadUInt16(uint8_t** dat);
 uint32_t ReadUInt32(uint8_t** dat);
+uint64_t ReadUInt64(uint8_t** dat);
 IRMethod* ReadIL(uint8_t** dat, uint32_t len);
 
 ILAssembly* ILReader_CreateAssembly(CLIFile* fil)
@@ -20,6 +22,7 @@ ILAssembly* ILReader_CreateAssembly(CLIFile* fil)
     for (uint32_t i = 0; i < fil->MethodDefinitionCount; i++)
     {
         uint8_t* ilLoc = (uint8_t*)fil->MethodDefinitions[i].Body.Code;
+        Log_WriteLine(LogFlags_ILReading, "Reading Method %s.%s.%s", fil->MethodDefinitions[i].Name);
         IRAssembly_AddMethod(asmbly->IRAssembly, ReadIL(&ilLoc, fil->MethodDefinitions[i].Body.CodeSize));
     }
 
@@ -37,20 +40,20 @@ ILAssembly* ILReader_CreateAssembly(CLIFile* fil)
 #define EMIT_IR(instrType) \
     { IRInstruction* instr = IRInstruction_Create(); \
     instr->OpCode = (uint32_t)(instrType); \
-    printf("Emitting " #instrType "\n"); \
+    Log_WriteLine(LogFlags_IREmitting, "Emitting " #instrType); \
     IRMethod_AddInstruction(m, instr); }
 #define EMIT_IR_1ARG(instrType, arg1) \
     { IRInstruction* instr = IRInstruction_Create(); \
     instr->Arg1 = arg1; \
     instr->OpCode = (uint32_t)(instrType); \
-    printf("Emitting " #instrType "\n"); \
+    Log_WriteLine(LogFlags_IREmitting, "Emitting " #instrType); \
     IRMethod_AddInstruction(m, instr); }
 #define EMIT_IR_2ARG(instrType, arg1, arg2) \
     { IRInstruction* instr = IRInstruction_Create(); \
     instr->Arg1 = arg1; \
     instr->Arg2 = arg2; \
     instr->OpCode = (uint32_t)(instrType); \
-    printf("Emitting " #instrType "\n"); \
+    Log_WriteLine(LogFlags_IREmitting, "Emitting " #instrType); \
     IRMethod_AddInstruction(m, instr); }
 #define EMIT_IR_3ARG(instrType, arg1, arg2, arg3) \
     { IRInstruction* instr = IRInstruction_Create(); \
@@ -58,7 +61,7 @@ ILAssembly* ILReader_CreateAssembly(CLIFile* fil)
     instr->Arg2 = arg2; \
     instr->Arg3 = arg3; \
     instr->OpCode = (uint32_t)(instrType); \
-    printf("Emitting " #instrType "\n"); \
+    Log_WriteLine(LogFlags_IREmitting, "Emitting " #instrType); \
     IRMethod_AddInstruction(m, instr); }
 
 IRMethod* ReadIL(uint8_t** dat, uint32_t len)
@@ -80,6 +83,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
         switch (b)
         {
             case ILOpCode_Nop:				// 0x00
+                Log_WriteLine(LogFlags_ILReading, "Read Nop");
                 EMIT_IR(IROpCode_Nop);
                 ClearFlags();
                 break;
@@ -165,9 +169,10 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 break;
             case ILOpCode_Ldc_I4_M1:		// 0x15
                 {
+                    Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.M1");
                     StackObject* s = StackObjectPool_Allocate();
-                    int* dat = (int*)malloc(sizeof(int));
-                    *dat = (int)-1;
+                    uint32_t* dat = (uint32_t*)malloc(sizeof(uint32_t));
+                    *dat = (uint32_t)-1;
                     s->Data = dat; 
                     s->Type = StackObjectType_Int32;
                     s->NumericType = StackObjectNumericType_Int32;
@@ -177,9 +182,10 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 break;
 			case ILOpCode_Ldc_I4_0:			// 0x16
                 {
+                    Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.0");
                     StackObject* s = StackObjectPool_Allocate();
-                    int* dt = (int*)malloc(sizeof(int));
-                    *dt = (int)0;
+                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
+                    *dt = (uint32_t)0;
                     s->Data = dt; 
                     s->Type = StackObjectType_Int32;
                     s->NumericType = StackObjectNumericType_Int32;
@@ -189,9 +195,10 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 break;
 			case ILOpCode_Ldc_I4_1:			// 0x17
                 {
+                    Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.1");
                     StackObject* s = StackObjectPool_Allocate();
-                    int* dt = (int*)malloc(sizeof(int));
-                    *dt = (int)1;
+                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
+                    *dt = (uint32_t)1;
                     s->Data = dt; 
                     s->Type = StackObjectType_Int32;
                     s->NumericType = StackObjectNumericType_Int32;
@@ -201,9 +208,10 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 break;
 			case ILOpCode_Ldc_I4_2:			// 0x18
                 {
+                    Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.2");
                     StackObject* s = StackObjectPool_Allocate();
-                    int* dt = (int*)malloc(sizeof(int));
-                    *dt = (int)2;
+                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
+                    *dt = (uint32_t)2;
                     s->Data = dt; 
                     s->Type = StackObjectType_Int32;
                     s->NumericType = StackObjectNumericType_Int32;
@@ -213,9 +221,10 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 break;
 			case ILOpCode_Ldc_I4_3:			// 0x19
                 {
+                    Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.3");
                     StackObject* s = StackObjectPool_Allocate();
-                    int* dt = (int*)malloc(sizeof(int));
-                    *dt = (int)3;
+                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
+                    *dt = (uint32_t)3;
                     s->Data = dt; 
                     s->Type = StackObjectType_Int32;
                     s->NumericType = StackObjectNumericType_Int32;
@@ -225,9 +234,10 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 break;
 			case ILOpCode_Ldc_I4_4:			// 0x1A
                 {
+                    Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.4");
                     StackObject* s = StackObjectPool_Allocate();
-                    int* dt = (int*)malloc(sizeof(int));
-                    *dt = (int)4;
+                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
+                    *dt = (uint32_t)4;
                     s->Data = dt; 
                     s->Type = StackObjectType_Int32;
                     s->NumericType = StackObjectNumericType_Int32;
@@ -237,9 +247,10 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 break;
 			case ILOpCode_Ldc_I4_5:			// 0x1B
                 {
+                    Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.5");
                     StackObject* s = StackObjectPool_Allocate();
-                    int* dt = (int*)malloc(sizeof(int));
-                    *dt = (int)5;
+                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
+                    *dt = (uint32_t)5;
                     s->Data = dt; 
                     s->Type = StackObjectType_Int32;
                     s->NumericType = StackObjectNumericType_Int32;
@@ -249,9 +260,10 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 break;
 			case ILOpCode_Ldc_I4_6:			// 0x1C
                 {
+                    Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.6");
                     StackObject* s = StackObjectPool_Allocate();
-                    int* dt = (int*)malloc(sizeof(int));
-                    *dt = (int)6;
+                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
+                    *dt = (uint32_t)6;
                     s->Data = dt; 
                     s->Type = StackObjectType_Int32;
                     s->NumericType = StackObjectNumericType_Int32;
@@ -261,9 +273,10 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 break;
 			case ILOpCode_Ldc_I4_7:			// 0x1D
                 {
+                    Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.7");
                     StackObject* s = StackObjectPool_Allocate();
-                    int* dt = (int*)malloc(sizeof(int));
-                    *dt = (int)7;
+                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
+                    *dt = (uint32_t)7;
                     s->Data = dt; 
                     s->Type = StackObjectType_Int32;
                     s->NumericType = StackObjectNumericType_Int32;
@@ -273,9 +286,10 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 break;
 			case ILOpCode_Ldc_I4_8:			// 0x1E
                 {
+                    Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.8");
                     StackObject* s = StackObjectPool_Allocate();
-                    int* dt = (int*)malloc(sizeof(int));
-                    *dt = (int)8;
+                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
+                    *dt = (uint32_t)8;
                     s->Data = dt; 
                     s->Type = StackObjectType_Int32;
                     s->NumericType = StackObjectNumericType_Int32;
@@ -285,9 +299,10 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 break;
 			case ILOpCode_Ldc_I4_S:			// 0x1F
                 {
+                    Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.S");
                     StackObject* s = StackObjectPool_Allocate();
-                    int* dt = (int*)malloc(sizeof(int));
-                    *dt = (int)ReadUInt8(dat);
+                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
+                    *dt = (uint32_t)ReadUInt8(dat);
                     s->Data = dt; 
                     s->Type = StackObjectType_Int32;
                     s->NumericType = StackObjectNumericType_Int32;
@@ -297,9 +312,10 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 break;
 			case ILOpCode_Ldc_I4:			// 0x20
                 {
+                    Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4");
                     StackObject* s = StackObjectPool_Allocate();
-                    int* dt = (int*)malloc(sizeof(int));
-                    *dt = (int)ReadUInt32(dat);
+                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
+                    *dt = (uint32_t)ReadUInt32(dat);
                     s->Data = dt; 
                     s->Type = StackObjectType_Int32;
                     s->NumericType = StackObjectNumericType_Int32;
@@ -309,12 +325,13 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 break;
 			case ILOpCode_Ldc_I8:			// 0x21
                 {
+                    Log_WriteLine(LogFlags_ILReading, "Read Ldc.I8");
                     StackObject* s = StackObjectPool_Allocate();
-                    int* dt = (int*)malloc(sizeof(int));
-                    *dt = (int)ReadUInt8(dat);
+                    uint64_t* dt = (uint64_t*)malloc(sizeof(uint64_t));
+                    *dt = (uint64_t)ReadUInt64(dat);
                     s->Data = dt; 
-                    s->Type = StackObjectType_Int32;
-                    s->NumericType = StackObjectNumericType_Int32;
+                    s->Type = StackObjectType_Int64;
+                    s->NumericType = StackObjectNumericType_Int64;
                     SyntheticStack_Push(stack, s);
                 }
                 ClearFlags();
@@ -624,6 +641,10 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 
                 ClearFlags();
                 break;
+            case ILOpCode_Conv_R_Un:		// 0x76
+                
+                ClearFlags();
+                break;
             case ILOpCode_CallVirt:			// 0x6F
                 
                 ClearFlags();
@@ -649,10 +670,6 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 ClearFlags();
                 break;
             case ILOpCode_IsInst:			// 0x75
-                
-                ClearFlags();
-                break;
-            case ILOpCode_Conv_R_Un:		// 0x76
                 
                 ClearFlags();
                 break;
@@ -694,19 +711,17 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 
                 ClearFlags();
                 break;
+
+
+            case ILOpCode_Conv_Ovf_I1:		// 0xB3
+                
+                ClearFlags();
+                break;
             case ILOpCode_Conv_Ovf_I1_Un:	// 0x82
                 
                 ClearFlags();
                 break;
-			case ILOpCode_Conv_Ovf_I2_Un:	// 0x83
-                
-                ClearFlags();
-                break;
-			case ILOpCode_Conv_Ovf_I4_Un:	// 0x84
-                
-                ClearFlags();
-                break;
-			case ILOpCode_Conv_Ovf_I8_Un:	// 0x85
+			case ILOpCode_Conv_Ovf_U1:		// 0xB4
                 
                 ClearFlags();
                 break;
@@ -714,7 +729,35 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 
                 ClearFlags();
                 break;
+
+
+			case ILOpCode_Conv_Ovf_I2:		// 0xB5
+                
+                ClearFlags();
+                break;
+			case ILOpCode_Conv_Ovf_I2_Un:	// 0x83
+                
+                ClearFlags();
+                break;
+			case ILOpCode_Conv_Ovf_U2:		// 0xB6
+                
+                ClearFlags();
+                break;
 			case ILOpCode_Conv_Ovf_U2_Un:	// 0x87
+                
+                ClearFlags();
+                break;
+
+
+			case ILOpCode_Conv_Ovf_I4:		// 0xB7
+                
+                ClearFlags();
+                break;
+			case ILOpCode_Conv_Ovf_I4_Un:	// 0x84
+                
+                ClearFlags();
+                break;
+			case ILOpCode_Conv_Ovf_U4:		// 0xB8
                 
                 ClearFlags();
                 break;
@@ -722,10 +765,26 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 
                 ClearFlags();
                 break;
+                
+
+			case ILOpCode_Conv_Ovf_I8:		// 0xB9
+                
+                ClearFlags();
+                break;
+			case ILOpCode_Conv_Ovf_I8_Un:	// 0x85
+                
+                ClearFlags();
+                break;
+    		case ILOpCode_Conv_Ovf_U8:		// 0xBA
+                
+                ClearFlags();
+				break;
 			case ILOpCode_Conv_Ovf_U8_Un:	// 0x89
                 
                 ClearFlags();
                 break;
+
+
 			case ILOpCode_Conv_Ovf_I_Un:	// 0x8A
                 
                 ClearFlags();
@@ -734,6 +793,8 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 
                 ClearFlags();
                 break;
+
+
             case ILOpCode_Box:				// 0x8C
                 
                 ClearFlags();
@@ -851,38 +912,6 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
 			// 0xB0 Doesn't exist
 			// 0xB1 Doesn't exist
 			// 0xB2 Doesn't exist
-            case ILOpCode_Conv_Ovf_I1:		// 0xB3
-                
-                ClearFlags();
-                break;
-			case ILOpCode_Conv_Ovf_U1:		// 0xB4
-                
-                ClearFlags();
-                break;
-			case ILOpCode_Conv_Ovf_I2:		// 0xB5
-                
-                ClearFlags();
-                break;
-			case ILOpCode_Conv_Ovf_U2:		// 0xB6
-                
-                ClearFlags();
-                break;
-			case ILOpCode_Conv_Ovf_I4:		// 0xB7
-                
-                ClearFlags();
-                break;
-			case ILOpCode_Conv_Ovf_U4:		// 0xB8
-                
-                ClearFlags();
-                break;
-			case ILOpCode_Conv_Ovf_I8:		// 0xB9
-                
-                ClearFlags();
-                break;
-    		case ILOpCode_Conv_Ovf_U8:		// 0xBA
-                
-                ClearFlags();
-				break;
 			// 0xBB Doesn't exist
 			// 0xBC Doesn't exist
 			// 0xBD Doesn't exist
@@ -1138,15 +1167,23 @@ uint8_t ReadUInt8(uint8_t** dat)
     return b;
 }
 
-uint32_t ReadUInt32(uint8_t** dat)
-{
-    uint32_t i = *((uint32_t*)*dat);
-    *dat += 4;
-    return i;
-}
 uint16_t ReadUInt16(uint8_t** dat)
 {
 	uint16_t i = *((uint16_t*)*dat);
     *dat += 2;
+    return i;
+}
+
+uint32_t ReadUInt32(uint8_t** dat)
+{
+	uint32_t i = *((uint32_t*)*dat);
+    *dat += 4;
+    return i;
+}
+
+uint64_t ReadUInt64(uint8_t** dat)
+{
+    uint64_t i = *((uint64_t*)*dat);
+    *dat += 8;
     return i;
 }

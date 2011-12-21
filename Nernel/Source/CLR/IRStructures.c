@@ -17,6 +17,9 @@ IRMethod* IRMethod_Create()
 IRInstruction* IRInstruction_Create()
 {
     IRInstruction* instr = (IRInstruction*)calloc(1, sizeof(IRInstruction));
+    instr->Arg1NeedsDisposing = TRUE;
+    instr->Arg2NeedsDisposing = TRUE;
+    instr->Arg3NeedsDisposing = TRUE;
     return instr;
 }
 
@@ -81,11 +84,17 @@ void IRMethod_Destroy(IRMethod* method)
 
 void IRInstruction_Destroy(IRInstruction* instr)
 {
-    if (instr->Arg1)
+    if (instr->Arg1NeedsDisposing && instr->Arg1)
+    {
         free(instr->Arg1);
-    if (instr->Arg2)
+    }
+    if (instr->Arg2NeedsDisposing && instr->Arg2)
+    {
         free(instr->Arg2);
-    if (instr->Arg3)
+    }
+    if (instr->Arg3NeedsDisposing && instr->Arg3)
+    {
         free(instr->Arg3);
+    }
     free(instr);
 }
