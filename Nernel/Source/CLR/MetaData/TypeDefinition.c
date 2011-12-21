@@ -237,4 +237,14 @@ void TypeDefinition_Link(CLIFile* pFile)
         }
     }
     for (uint32_t index = 1; index <= pFile->PropertyMapCount; ++index) pFile->PropertyMaps[index].Parent->PropertyMap = &pFile->PropertyMaps[index];
+    for (uint32_t index = 1; index <= pFile->TypeDefinitionCount; ++index)
+    {
+        if (pFile->TypeDefinitions[index].MethodDefinitionListCount > 0)
+        {
+            for (uint32_t searchIndex = 1; searchIndex <= pFile->TypeDefinitions[index].MethodDefinitionListCount; ++searchIndex)
+            {
+                pFile->TypeDefinitions[index].MethodDefinitionList[searchIndex].TypeDefinition = &pFile->TypeDefinitions[index];
+            }
+        }
+    }
 }

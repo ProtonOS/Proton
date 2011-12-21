@@ -92,6 +92,7 @@ struct _MethodDefinition
     ImplementationMap* ImplementationMap;
     uint32_t MemberReferenceCount;
     MemberReference** MemberReferences;
+    TypeDefinition* TypeDefinition;
 };
 
 const uint8_t* MethodDefinition_Initialize(CLIFile* pFile, const uint8_t* pTableData);
