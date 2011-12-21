@@ -8,7 +8,7 @@ const uint8_t* Event_Initialize(CLIFile* pFile, const uint8_t* pTableData)
     if ((pFile->TablesHeader->PresentTables & (1ull << MetaData_Table_Event)) != 0)
     {
         pFile->EventCount = *(uint32_t*)pTableData; pTableData += 4;
-        pFile->Events = (Event*)calloc(pFile->EventCount, sizeof(Event));
+        pFile->Events = (Event*)calloc(pFile->EventCount + 1, sizeof(Event));
     }
     return pTableData;
 }
@@ -17,7 +17,7 @@ void Event_Cleanup(CLIFile* pFile)
 {
     if (pFile->Events)
     {
-        for (uint32_t index = 0; index < pFile->EventCount; ++index)
+        for (uint32_t index = 1; index <= pFile->EventCount; ++index)
         {
             if (pFile->Events[index].CustomAttributes) free(pFile->Events[index].CustomAttributes);
         }
@@ -30,7 +30,7 @@ const uint8_t* Event_Load(CLIFile* pFile, const uint8_t* pTableData)
 {
     uint32_t eventTypeIndex = 0;
     uint32_t eventTypeRow = 0;
-    for (uint32_t index = 0, heapIndex = 0; index < pFile->EventCount; ++index)
+    for (uint32_t index = 1, heapIndex = 0; index <= pFile->EventCount; ++index)
     {
         pFile->Events[index].Flags = *(uint16_t*)pTableData; pTableData += 2;
         if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
@@ -55,16 +55,16 @@ const uint8_t* Event_Load(CLIFile* pFile, const uint8_t* pTableData)
 
 void Event_Link(CLIFile* pFile)
 {
-    for (uint32_t index = 0; index < pFile->CustomAttributeCount; ++index)
+    for (uint32_t index = 1; index <= pFile->CustomAttributeCount; ++index)
     {
         if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttribute_Type_Event) ++pFile->CustomAttributes[index].Parent.Event->CustomAttributeCount;
     }
-    for (uint32_t index = 0; index < pFile->EventCount; ++index)
+    for (uint32_t index = 1; index <= pFile->EventCount; ++index)
     {
         if (pFile->Events[index].CustomAttributeCount > 0)
         {
             pFile->Events[index].CustomAttributes = (CustomAttribute**)calloc(pFile->Events[index].CustomAttributeCount, sizeof(CustomAttribute*));
-            for (uint32_t searchIndex = 0, customAttributeIndex = 0; searchIndex < pFile->CustomAttributeCount; ++searchIndex)
+            for (uint32_t searchIndex = 1, customAttributeIndex = 0; searchIndex <= pFile->CustomAttributeCount; ++searchIndex)
             {
                 if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttribute_Type_Event &&
                     pFile->CustomAttributes[searchIndex].Parent.Event == &pFile->Events[index])

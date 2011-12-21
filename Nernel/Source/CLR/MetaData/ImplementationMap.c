@@ -8,7 +8,7 @@ const uint8_t* ImplementationMap_Initialize(CLIFile* pFile, const uint8_t* pTabl
     if ((pFile->TablesHeader->PresentTables & (1ull << MetaData_Table_ImplementationMap)) != 0)
     {
         pFile->ImplementationMapCount = *(uint32_t*)pTableData; pTableData += 4;
-        pFile->ImplementationMaps = (ImplementationMap*)calloc(pFile->ImplementationMapCount, sizeof(ImplementationMap));
+        pFile->ImplementationMaps = (ImplementationMap*)calloc(pFile->ImplementationMapCount + 1, sizeof(ImplementationMap));
     }
     return pTableData;
 }
@@ -17,7 +17,7 @@ void ImplementationMap_Cleanup(CLIFile* pFile)
 {
     if (pFile->ImplementationMaps)
     {
-        for (uint32_t index = 0; index < pFile->ImplementationMapCount; ++index)
+        for (uint32_t index = 1; index <= pFile->ImplementationMapCount; ++index)
         {
         }
         free(pFile->ImplementationMaps);
@@ -30,7 +30,7 @@ const uint8_t* ImplementationMap_Load(CLIFile* pFile, const uint8_t* pTableData)
     uint32_t memberForwardedIndex = 0;
     uint32_t memberForwardedRow = 0;
     uint32_t importScopeIndex = 0;
-    for (uint32_t index = 0, heapIndex = 0; index < pFile->ImplementationMapCount; ++index)
+    for (uint32_t index = 1, heapIndex = 0; index <= pFile->ImplementationMapCount; ++index)
     {
         pFile->ImplementationMaps[index].MappingFlags = *(uint16_t*)pTableData; pTableData += 2;
 

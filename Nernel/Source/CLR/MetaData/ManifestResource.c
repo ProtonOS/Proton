@@ -8,7 +8,7 @@ const uint8_t* ManifestResource_Initialize(CLIFile* pFile, const uint8_t* pTable
     if ((pFile->TablesHeader->PresentTables & (1ull << MetaData_Table_ManifestResource)) != 0)
     {
         pFile->ManifestResourceCount = *(uint32_t*)pTableData; pTableData += 4;
-        pFile->ManifestResources = (ManifestResource*)calloc(pFile->ManifestResourceCount, sizeof(ManifestResource));
+        pFile->ManifestResources = (ManifestResource*)calloc(pFile->ManifestResourceCount + 1, sizeof(ManifestResource));
     }
     return pTableData;
 }
@@ -17,7 +17,7 @@ void ManifestResource_Cleanup(CLIFile* pFile)
 {
     if (pFile->ManifestResources)
     {
-        for (uint32_t index = 0; index < pFile->ManifestResourceCount; ++index)
+        for (uint32_t index = 1; index <= pFile->ManifestResourceCount; ++index)
         {
             if (pFile->ManifestResources[index].CustomAttributes) free(pFile->ManifestResources[index].CustomAttributes);
         }
@@ -30,7 +30,7 @@ const uint8_t* ManifestResource_Load(CLIFile* pFile, const uint8_t* pTableData)
 {
     uint32_t implementationIndex = 0;
     uint32_t implementationRow = 0;
-    for (uint32_t index = 0, heapIndex = 0; index < pFile->ManifestResourceCount; ++index)
+    for (uint32_t index = 1, heapIndex = 0; index <= pFile->ManifestResourceCount; ++index)
     {
         pFile->ManifestResources[index].Offset = *(uint32_t* )pTableData; pTableData += 4;
         pFile->ManifestResources[index].Flags = *(uint32_t* )pTableData; pTableData += 4;
@@ -57,16 +57,16 @@ const uint8_t* ManifestResource_Load(CLIFile* pFile, const uint8_t* pTableData)
 
 void ManifestResource_Link(CLIFile* pFile)
 {
-    for (uint32_t index = 0; index < pFile->CustomAttributeCount; ++index)
+    for (uint32_t index = 1; index <= pFile->CustomAttributeCount; ++index)
     {
         if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttribute_Type_ManifestResource) ++pFile->CustomAttributes[index].Parent.ManifestResource->CustomAttributeCount;
     }
-    for (uint32_t index = 0; index < pFile->ManifestResourceCount; ++index)
+    for (uint32_t index = 1; index <= pFile->ManifestResourceCount; ++index)
     {
         if (pFile->ManifestResources[index].CustomAttributeCount > 0)
         {
             pFile->ManifestResources[index].CustomAttributes = (CustomAttribute**)calloc(pFile->ManifestResources[index].CustomAttributeCount, sizeof(CustomAttribute*));
-            for (uint32_t searchIndex = 0, customAttributeIndex = 0; searchIndex < pFile->CustomAttributeCount; ++searchIndex)
+            for (uint32_t searchIndex = 1, customAttributeIndex = 0; searchIndex <= pFile->CustomAttributeCount; ++searchIndex)
             {
                 if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttribute_Type_ManifestResource &&
                     pFile->CustomAttributes[searchIndex].Parent.ManifestResource == &pFile->ManifestResources[index])

@@ -8,7 +8,7 @@ const uint8_t* TypeDefinition_Initialize(CLIFile* pFile, const uint8_t* pTableDa
     if ((pFile->TablesHeader->PresentTables & (1ull << MetaData_Table_TypeDefinition)) != 0)
     {
         pFile->TypeDefinitionCount = *(uint32_t*)pTableData; pTableData += 4;
-        pFile->TypeDefinitions = (TypeDefinition*)calloc(pFile->TypeDefinitionCount, sizeof(TypeDefinition));
+        pFile->TypeDefinitions = (TypeDefinition*)calloc(pFile->TypeDefinitionCount + 1, sizeof(TypeDefinition));
     }
     return pTableData;
 }
@@ -17,7 +17,7 @@ void TypeDefinition_Cleanup(CLIFile* pFile)
 {
     if (pFile->TypeDefinitions)
     {
-        for (uint32_t index = 0; index < pFile->TypeDefinitionCount; ++index)
+        for (uint32_t index = 1; index <= pFile->TypeDefinitionCount; ++index)
         {
             if (pFile->TypeDefinitions[index].CustomAttributes) free(pFile->TypeDefinitions[index].CustomAttributes);
             if (pFile->TypeDefinitions[index].GenericParameters) free(pFile->TypeDefinitions[index].GenericParameters);
@@ -34,9 +34,9 @@ const uint8_t* TypeDefinition_Load(CLIFile* pFile, const uint8_t* pTableData)
     uint32_t extendsRow = 0;
     uint32_t fieldListIndex = 0;
     uint32_t methodDefinitionListIndex = 0;
-    uint32_t* fieldListIndexes = (uint32_t*)calloc(pFile->TypeDefinitionCount, sizeof(uint32_t));
-    uint32_t* methodDefinitionListIndexes = (uint32_t*)calloc(pFile->TypeDefinitionCount, sizeof(uint32_t));
-    for (uint32_t index = 0, heapIndex = 0; index < pFile->TypeDefinitionCount; ++index)
+    uint32_t* fieldListIndexes = (uint32_t*)calloc(pFile->TypeDefinitionCount + 1, sizeof(uint32_t));
+    uint32_t* methodDefinitionListIndexes = (uint32_t*)calloc(pFile->TypeDefinitionCount + 1, sizeof(uint32_t));
+    for (uint32_t index = 1, heapIndex = 0; index <= pFile->TypeDefinitionCount; ++index)
     {
         pFile->TypeDefinitions[index].Flags = *(uint32_t*)pTableData; pTableData += 4;
         if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
@@ -66,20 +66,19 @@ const uint8_t* TypeDefinition_Load(CLIFile* pFile, const uint8_t* pTableData)
         else { methodDefinitionListIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->TypeDefinitions[index].MethodDefinitionList = &pFile->MethodDefinitions[methodDefinitionListIndex];
         methodDefinitionListIndexes[index] = methodDefinitionListIndex;
-        printf("TypeDefinition: %u/%u %s.%s\n", (unsigned int)index, (unsigned int)pFile->TypeDefinitionCount, pFile->TypeDefinitions[index].Namespace, pFile->TypeDefinitions[index].Name);
     }
     uint32_t fieldListCount = 0;
-    for (uint32_t index = 0, used = 0; index < pFile->TypeDefinitionCount; ++index, used += fieldListCount)
+    for (uint32_t index = 1, used = 0; index <= pFile->TypeDefinitionCount; ++index, used += fieldListCount)
     {
-        if (index == (pFile->TypeDefinitionCount - 1)) fieldListCount = pFile->FieldCount - used;
+        if (index == pFile->TypeDefinitionCount) fieldListCount = pFile->FieldCount - used;
         else fieldListCount = fieldListIndexes[index + 1] - fieldListIndexes[index];
         pFile->TypeDefinitions[index].FieldListCount = fieldListCount;
     }
     free(fieldListIndexes);
     uint32_t methodDefinitionListCount = 0;
-    for (uint32_t index = 0, used = 0; index < pFile->TypeDefinitionCount; ++index, used += methodDefinitionListCount)
+    for (uint32_t index = 1, used = 0; index <= pFile->TypeDefinitionCount; ++index, used += methodDefinitionListCount)
     {
-        if (index == (pFile->TypeDefinitionCount - 1)) methodDefinitionListCount = pFile->MethodDefinitionCount - used;
+        if (index == pFile->TypeDefinitionCount) methodDefinitionListCount = pFile->MethodDefinitionCount - used;
         else methodDefinitionListCount = methodDefinitionListIndexes[index + 1] - methodDefinitionListIndexes[index];
         pFile->TypeDefinitions[index].MethodDefinitionListCount = methodDefinitionListCount;
     }
@@ -89,22 +88,18 @@ const uint8_t* TypeDefinition_Load(CLIFile* pFile, const uint8_t* pTableData)
 
 void TypeDefinition_Link(CLIFile* pFile)
 {
-    for (uint32_t index = 0; index < pFile->ClassLayoutCount; ++index)
-    {
-        printf("194: %u, %s\n", (unsigned int)pFile->TypeDefinitions[194].GenericParameterCount, pFile->ClassLayouts[index].Parent->Name);
-        pFile->ClassLayouts[index].Parent->ClassLayout = &pFile->ClassLayouts[index];
-    }
+    for (uint32_t index = 1; index <= pFile->ClassLayoutCount; ++index) pFile->ClassLayouts[index].Parent->ClassLayout = &pFile->ClassLayouts[index];
         
-    for (uint32_t index = 0; index < pFile->CustomAttributeCount; ++index)
+    for (uint32_t index = 1; index <= pFile->CustomAttributeCount; ++index)
     {
         if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttribute_Type_TypeDefinition) ++pFile->CustomAttributes[index].Parent.TypeDefinition->CustomAttributeCount;
     }
-    for (uint32_t index = 0; index < pFile->TypeDefinitionCount; ++index)
+    for (uint32_t index = 1; index <= pFile->TypeDefinitionCount; ++index)
     {
         if (pFile->TypeDefinitions[index].CustomAttributeCount > 0)
         {
             pFile->TypeDefinitions[index].CustomAttributes = (CustomAttribute**)calloc(pFile->TypeDefinitions[index].CustomAttributeCount, sizeof(CustomAttribute*));
-            for (uint32_t searchIndex = 0, customAttributeIndex = 0; searchIndex < pFile->CustomAttributeCount; ++searchIndex)
+            for (uint32_t searchIndex = 1, customAttributeIndex = 0; searchIndex <= pFile->CustomAttributeCount; ++searchIndex)
             {
                 if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttribute_Type_TypeDefinition &&
                     pFile->CustomAttributes[searchIndex].Parent.TypeDefinition == &pFile->TypeDefinitions[index])
@@ -115,26 +110,21 @@ void TypeDefinition_Link(CLIFile* pFile)
             }
         }
     }
-    for (uint32_t index = 0; index < pFile->DeclSecurityCount; ++index)
+    for (uint32_t index = 1; index <= pFile->DeclSecurityCount; ++index)
     {
         if (pFile->DeclSecurities[index].TypeOfParent == HasDeclSecurity_Type_TypeDefinition) pFile->DeclSecurities[index].Parent.TypeDefinition->DeclSecurity = &pFile->DeclSecurities[index];
     }
-    for (uint32_t index = 0; index < pFile->EventMapCount; ++index) pFile->EventMaps[index].Parent->EventMap = &pFile->EventMaps[index];
-    for (uint32_t index = 0; index < pFile->GenericParameterCount; ++index)
+    for (uint32_t index = 1; index <= pFile->EventMapCount; ++index) pFile->EventMaps[index].Parent->EventMap = &pFile->EventMaps[index];
+    for (uint32_t index = 1; index <= pFile->GenericParameterCount; ++index)
     {
-        if (pFile->GenericParameters[index].TypeOfOwner == TypeOrMethodDef_Type_TypeDefinition)
-        {
-            ++pFile->GenericParameters[index].Owner.TypeDefinition->GenericParameterCount;
-            printf("Incremented GenericParameterCount for %s, %u\n", pFile->GenericParameters[index].Owner.TypeDefinition->Name, (unsigned int)pFile->GenericParameters[index].Owner.TypeDefinition->GenericParameterCount);
-        }
+        if (pFile->GenericParameters[index].TypeOfOwner == TypeOrMethodDef_Type_TypeDefinition) ++pFile->GenericParameters[index].Owner.TypeDefinition->GenericParameterCount;
     }
-    for (uint32_t index = 0; index < pFile->TypeDefinitionCount; ++index)
+    for (uint32_t index = 1; index <= pFile->TypeDefinitionCount; ++index)
     {
         if (pFile->TypeDefinitions[index].GenericParameterCount > 0)
         {
-            printf("index %u, %s has %u generic parameters\n", (unsigned int)index, pFile->TypeDefinitions[index].Name, (unsigned int)pFile->TypeDefinitions[index].GenericParameterCount);
             pFile->TypeDefinitions[index].GenericParameters = (GenericParameter**)calloc(pFile->TypeDefinitions[index].GenericParameterCount, sizeof(GenericParameter*));
-            for (uint32_t searchIndex = 0, genericParameterIndex = 0; searchIndex < pFile->GenericParameterCount; ++searchIndex)
+            for (uint32_t searchIndex = 1, genericParameterIndex = 0; searchIndex <= pFile->GenericParameterCount; ++searchIndex)
             {
                 if (pFile->GenericParameters[searchIndex].TypeOfOwner == TypeOrMethodDef_Type_TypeDefinition &&
                     pFile->GenericParameters[searchIndex].Owner.TypeDefinition == &pFile->TypeDefinitions[index])
@@ -145,14 +135,13 @@ void TypeDefinition_Link(CLIFile* pFile)
             }
         }
     }
-    for (uint32_t index = 0; index < pFile->InterfaceImplementationCount; ++index) ++pFile->InterfaceImplementations[index].Implementor->InterfaceImplementationCount;
-    for (uint32_t index = 0; index < pFile->TypeDefinitionCount; ++index)
+    for (uint32_t index = 1; index <= pFile->InterfaceImplementationCount; ++index) ++pFile->InterfaceImplementations[index].Implementor->InterfaceImplementationCount;
+    for (uint32_t index = 1; index <= pFile->TypeDefinitionCount; ++index)
     {
         if (pFile->TypeDefinitions[index].InterfaceImplementationCount > 0)
         {
-            printf("%s implements %u interfaces\n", pFile->TypeDefinitions[index].Name, (unsigned int)pFile->TypeDefinitions[index].InterfaceImplementationCount);
             pFile->TypeDefinitions[index].InterfaceImplementations = (InterfaceImplementation**)calloc(pFile->TypeDefinitions[index].InterfaceImplementationCount, sizeof(InterfaceImplementation*));
-            for (uint32_t searchIndex = 0, interfaceImplementationIndex = 0; searchIndex < pFile->InterfaceImplementationCount; ++searchIndex)
+            for (uint32_t searchIndex = 1, interfaceImplementationIndex = 0; searchIndex <= pFile->InterfaceImplementationCount; ++searchIndex)
             {
                 if (pFile->InterfaceImplementations[searchIndex].Implementor == &pFile->TypeDefinitions[index])
                 {

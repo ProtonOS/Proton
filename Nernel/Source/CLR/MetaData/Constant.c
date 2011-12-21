@@ -8,7 +8,7 @@ const uint8_t* Constant_Initialize(CLIFile* pFile, const uint8_t* pTableData)
     if ((pFile->TablesHeader->PresentTables & (1ull << MetaData_Table_Constant)) != 0)
     {
         pFile->ConstantCount = *(uint32_t*)pTableData; pTableData += 4;
-        pFile->Constants = (Constant*)calloc(pFile->ConstantCount, sizeof(Constant));
+        pFile->Constants = (Constant*)calloc(pFile->ConstantCount + 1, sizeof(Constant));
     }
     return pTableData;
 }
@@ -17,7 +17,7 @@ void Constant_Cleanup(CLIFile* pFile)
 {
     if (pFile->Constants)
     {
-        for (uint32_t index = 0; index < pFile->ConstantCount; ++index)
+        for (uint32_t index = 1; index <= pFile->ConstantCount; ++index)
         {
         }
         free(pFile->Constants);
@@ -29,7 +29,7 @@ const uint8_t* Constant_Load(CLIFile* pFile, const uint8_t* pTableData)
 {
     uint32_t parentIndex = 0;
     uint32_t parentRow = 0;
-    for (uint32_t index = 0, heapIndex = 0; index < pFile->ConstantCount; ++index)
+    for (uint32_t index = 1, heapIndex = 0; index <= pFile->ConstantCount; ++index)
     {
         pFile->Constants[index].Type = *pTableData; pTableData += 2; // 1 unused padding byte
         if (pFile->FieldCount > HasConstant_Type_MaxRows16Bit ||

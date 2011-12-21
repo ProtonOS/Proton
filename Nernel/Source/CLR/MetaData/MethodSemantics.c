@@ -8,7 +8,7 @@ const uint8_t* MethodSemantics_Initialize(CLIFile* pFile, const uint8_t* pTableD
     if ((pFile->TablesHeader->PresentTables & (1ull << MetaData_Table_MethodSemantics)) != 0)
     {
         pFile->MethodSemanticsCount = *(uint32_t*)pTableData; pTableData += 4;
-        pFile->MethodSemantics = (MethodSemantics*)calloc(pFile->MethodSemanticsCount, sizeof(MethodSemantics));
+        pFile->MethodSemantics = (MethodSemantics*)calloc(pFile->MethodSemanticsCount + 1, sizeof(MethodSemantics));
     }
     return pTableData;
 }
@@ -17,7 +17,7 @@ void MethodSemantics_Cleanup(CLIFile* pFile)
 {
     if (pFile->MethodSemantics)
     {
-        for (uint32_t index = 0; index < pFile->MethodSemanticsCount; ++index)
+        for (uint32_t index = 1; index <= pFile->MethodSemanticsCount; ++index)
         {
         }
         free(pFile->MethodSemantics);
@@ -30,7 +30,7 @@ const uint8_t* MethodSemantics_Load(CLIFile* pFile, const uint8_t* pTableData)
     uint32_t methodIndex = 0;
     uint32_t associationIndex = 0;
     uint32_t associationRow = 0;
-    for (uint32_t index = 0; index < pFile->MethodSemanticsCount; ++index)
+    for (uint32_t index = 1; index <= pFile->MethodSemanticsCount; ++index)
     {
         pFile->MethodSemantics[index].Semantics = *(uint16_t*)pTableData; pTableData += 2;
         if (pFile->MethodDefinitionCount > 0xFFFF) { methodIndex = *(uint32_t*)pTableData; pTableData += 4; }

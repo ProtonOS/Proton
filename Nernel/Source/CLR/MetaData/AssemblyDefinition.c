@@ -8,7 +8,7 @@ const uint8_t* AssemblyDefinition_Initialize(CLIFile* pFile, const uint8_t* pTab
     if ((pFile->TablesHeader->PresentTables & (1ull << MetaData_Table_AssemblyDefinition)) != 0)
     {
         pFile->AssemblyDefinitionCount = *(uint32_t*)pTableData; pTableData += 4;
-        pFile->AssemblyDefinitions = (AssemblyDefinition*)calloc(pFile->AssemblyDefinitionCount, sizeof(AssemblyDefinition));
+        pFile->AssemblyDefinitions = (AssemblyDefinition*)calloc(pFile->AssemblyDefinitionCount + 1, sizeof(AssemblyDefinition));
     }
     return pTableData;
 }
@@ -17,7 +17,7 @@ void AssemblyDefinition_Cleanup(CLIFile* pFile)
 {
     if (pFile->AssemblyDefinitions)
     {
-        for (uint32_t index = 0; index < pFile->AssemblyDefinitionCount; ++index)
+        for (uint32_t index = 1; index <= pFile->AssemblyDefinitionCount; ++index)
         {
             if (pFile->AssemblyDefinitions[index].CustomAttributes) free(pFile->AssemblyDefinitions[index].CustomAttributes);
         }
@@ -28,7 +28,7 @@ void AssemblyDefinition_Cleanup(CLIFile* pFile)
 
 const uint8_t* AssemblyDefinition_Load(CLIFile* pFile, const uint8_t* pTableData)
 {
-    for (uint32_t index = 0, heapIndex = 0; index < pFile->AssemblyDefinitionCount; ++index)
+    for (uint32_t index = 1, heapIndex = 0; index <= pFile->AssemblyDefinitionCount; ++index)
     {
         pFile->AssemblyDefinitions[index].HashAlgorithmID = *(uint32_t* )pTableData; pTableData += 4;
         pFile->AssemblyDefinitions[index].MajorVersion = *(uint16_t* )pTableData; pTableData += 2;
@@ -51,16 +51,16 @@ const uint8_t* AssemblyDefinition_Load(CLIFile* pFile, const uint8_t* pTableData
 
 void AssemblyDefinition_Link(CLIFile* pFile)
 {
-    for (uint32_t index = 0; index < pFile->CustomAttributeCount; ++index)
+    for (uint32_t index = 1; index <= pFile->CustomAttributeCount; ++index)
     {
         if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttribute_Type_AssemblyDefinition) ++pFile->CustomAttributes[index].Parent.AssemblyDefinition->CustomAttributeCount;
     }
-    for (uint32_t index = 0; index < pFile->AssemblyDefinitionCount; ++index)
+    for (uint32_t index = 1; index <= pFile->AssemblyDefinitionCount; ++index)
     {
         if (pFile->AssemblyDefinitions[index].CustomAttributeCount > 0)
         {
             pFile->AssemblyDefinitions[index].CustomAttributes = (CustomAttribute**)calloc(pFile->AssemblyDefinitions[index].CustomAttributeCount, sizeof(CustomAttribute*));
-            for (uint32_t searchIndex = 0, customAttributeIndex = 0; searchIndex < pFile->CustomAttributeCount; ++searchIndex)
+            for (uint32_t searchIndex = 1, customAttributeIndex = 0; searchIndex <= pFile->CustomAttributeCount; ++searchIndex)
             {
                 if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttribute_Type_AssemblyDefinition &&
                     pFile->CustomAttributes[searchIndex].Parent.AssemblyDefinition == &pFile->AssemblyDefinitions[index])
@@ -71,7 +71,7 @@ void AssemblyDefinition_Link(CLIFile* pFile)
             }
         }
     }
-    for (uint32_t index = 0; index < pFile->DeclSecurityCount; ++index)
+    for (uint32_t index = 1; index <= pFile->DeclSecurityCount; ++index)
     {
         if (pFile->DeclSecurities[index].TypeOfParent == HasDeclSecurity_Type_AssemblyDefinition) pFile->DeclSecurities[index].Parent.AssemblyDefinition->DeclSecurity = &pFile->DeclSecurities[index];
     }

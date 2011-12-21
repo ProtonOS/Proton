@@ -8,7 +8,7 @@ const uint8_t* NestedClass_Initialize(CLIFile* pFile, const uint8_t* pTableData)
     if ((pFile->TablesHeader->PresentTables & (1ull << MetaData_Table_NestedClass)) != 0)
     {
         pFile->NestedClassCount = *(uint32_t*)pTableData; pTableData += 4;
-        pFile->NestedClasses = (NestedClass*)calloc(pFile->NestedClassCount, sizeof(NestedClass));
+        pFile->NestedClasses = (NestedClass*)calloc(pFile->NestedClassCount + 1, sizeof(NestedClass));
     }
     return pTableData;
 }
@@ -17,7 +17,7 @@ void NestedClass_Cleanup(CLIFile* pFile)
 {
     if (pFile->NestedClasses)
     {
-        for (uint32_t index = 0; index < pFile->NestedClassCount; ++index)
+        for (uint32_t index = 1; index <= pFile->NestedClassCount; ++index)
         {
         }
         free(pFile->NestedClasses);
@@ -29,7 +29,7 @@ const uint8_t* NestedClass_Load(CLIFile* pFile, const uint8_t* pTableData)
 {
     uint32_t nestedIndex = 0;
     uint32_t enclosingIndex = 0;
-    for (uint32_t index = 0; index < pFile->NestedClassCount; ++index)
+    for (uint32_t index = 1; index <= pFile->NestedClassCount; ++index)
     {
         if (pFile->TypeDefinitionCount > 0xFFFF) { nestedIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { nestedIndex = *(uint16_t*)pTableData; pTableData += 2; }

@@ -8,7 +8,7 @@ const uint8_t* MethodSpecification_Initialize(CLIFile* pFile, const uint8_t* pTa
     if ((pFile->TablesHeader->PresentTables & (1ull << MetaData_Table_MethodSpecification)) != 0)
     {
         pFile->MethodSpecificationCount = *(uint32_t*)pTableData; pTableData += 4;
-        pFile->MethodSpecifications = (MethodSpecification*)calloc(pFile->MethodSpecificationCount, sizeof(MethodSpecification));
+        pFile->MethodSpecifications = (MethodSpecification*)calloc(pFile->MethodSpecificationCount + 1, sizeof(MethodSpecification));
     }
     return pTableData;
 }
@@ -17,7 +17,7 @@ void MethodSpecification_Cleanup(CLIFile* pFile)
 {
     if (pFile->MethodSpecifications)
     {
-        for (uint32_t index = 0; index < pFile->MethodSpecificationCount; ++index)
+        for (uint32_t index = 1; index <= pFile->MethodSpecificationCount; ++index)
         {
             if (pFile->MethodSpecifications[index].CustomAttributes) free(pFile->MethodSpecifications[index].CustomAttributes);
         }
@@ -30,7 +30,7 @@ const uint8_t* MethodSpecification_Load(CLIFile* pFile, const uint8_t* pTableDat
 {
     uint32_t methodIndex = 0;
     uint32_t methodRow = 0;
-    for (uint32_t index = 0, heapIndex = 0; index < pFile->MethodSpecificationCount; ++index)
+    for (uint32_t index = 1, heapIndex = 0; index <= pFile->MethodSpecificationCount; ++index)
     {
         if (pFile->MethodDefinitionCount > MethodDefOrRef_Type_MaxRows16Bit ||
             pFile->MemberReferenceCount > MethodDefOrRef_Type_MaxRows16Bit) { methodIndex = *(uint32_t*)pTableData; pTableData += 4; }
@@ -52,16 +52,16 @@ const uint8_t* MethodSpecification_Load(CLIFile* pFile, const uint8_t* pTableDat
 
 void MethodSpecification_Link(CLIFile* pFile)
 {
-    for (uint32_t index = 0; index < pFile->CustomAttributeCount; ++index)
+    for (uint32_t index = 1; index <= pFile->CustomAttributeCount; ++index)
     {
         if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttribute_Type_MethodSpecification) ++pFile->CustomAttributes[index].Parent.MethodSpecification->CustomAttributeCount;
     }
-    for (uint32_t index = 0; index < pFile->MethodSpecificationCount; ++index)
+    for (uint32_t index = 1; index <= pFile->MethodSpecificationCount; ++index)
     {
         if (pFile->MethodSpecifications[index].CustomAttributeCount > 0)
         {
             pFile->MethodSpecifications[index].CustomAttributes = (CustomAttribute**)calloc(pFile->MethodSpecifications[index].CustomAttributeCount, sizeof(CustomAttribute*));
-            for (uint32_t searchIndex = 0, customAttributeIndex = 0; searchIndex < pFile->CustomAttributeCount; ++searchIndex)
+            for (uint32_t searchIndex = 1, customAttributeIndex = 0; searchIndex <= pFile->CustomAttributeCount; ++searchIndex)
             {
                 if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttribute_Type_MethodSpecification &&
                     pFile->CustomAttributes[searchIndex].Parent.MethodSpecification == &pFile->MethodSpecifications[index])

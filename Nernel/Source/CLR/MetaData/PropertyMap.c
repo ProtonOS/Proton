@@ -8,7 +8,7 @@ const uint8_t* PropertyMap_Initialize(CLIFile* pFile, const uint8_t* pTableData)
     if ((pFile->TablesHeader->PresentTables & (1ull << MetaData_Table_PropertyMap)) != 0)
     {
         pFile->PropertyMapCount = *(uint32_t*)pTableData; pTableData += 4;
-        pFile->PropertyMaps = (PropertyMap*)calloc(pFile->PropertyMapCount, sizeof(PropertyMap));
+        pFile->PropertyMaps = (PropertyMap*)calloc(pFile->PropertyMapCount + 1, sizeof(PropertyMap));
     }
     return pTableData;
 }
@@ -17,7 +17,7 @@ void PropertyMap_Cleanup(CLIFile* pFile)
 {
     if (pFile->PropertyMaps)
     {
-        for (uint32_t index = 0; index < pFile->PropertyMapCount; ++index)
+        for (uint32_t index = 1; index <= pFile->PropertyMapCount; ++index)
         {
         }
         free(pFile->PropertyMaps);
@@ -29,8 +29,8 @@ const uint8_t* PropertyMap_Load(CLIFile* pFile, const uint8_t* pTableData)
 {
     uint32_t parentIndex = 0;
     uint32_t propertyListIndex = 0;
-    uint32_t* propertyListIndexes = (uint32_t*)calloc(pFile->PropertyMapCount, sizeof(uint32_t));
-    for (uint32_t index = 0; index < pFile->PropertyMapCount; ++index)
+    uint32_t* propertyListIndexes = (uint32_t*)calloc(pFile->PropertyMapCount + 1, sizeof(uint32_t));
+    for (uint32_t index = 1; index <= pFile->PropertyMapCount; ++index)
     {
         if (pFile->TypeDefinitionCount > 0xFFFF) { parentIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { parentIndex = *(uint16_t*)pTableData; pTableData += 2; }
@@ -41,9 +41,9 @@ const uint8_t* PropertyMap_Load(CLIFile* pFile, const uint8_t* pTableData)
         propertyListIndexes[index] = propertyListIndex;
     }
     uint32_t propertyListCount = 0;
-    for (uint32_t index = 0, used = 0; index < pFile->PropertyMapCount; ++index, used += propertyListCount)
+    for (uint32_t index = 1, used = 0; index <= pFile->PropertyMapCount; ++index, used += propertyListCount)
     {
-        if (index == (pFile->PropertyMapCount - 1)) propertyListCount = pFile->PropertyCount - used;
+        if (index == pFile->PropertyMapCount) propertyListCount = pFile->PropertyCount - used;
         else propertyListCount = propertyListIndexes[index + 1] - propertyListIndexes[index];
         pFile->PropertyMaps[index].PropertyListCount = propertyListCount;
     }

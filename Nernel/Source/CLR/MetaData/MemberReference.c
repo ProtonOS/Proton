@@ -8,7 +8,7 @@ const uint8_t* MemberReference_Initialize(CLIFile* pFile, const uint8_t* pTableD
     if ((pFile->TablesHeader->PresentTables & (1ull << MetaData_Table_MemberReference)) != 0)
     {
         pFile->MemberReferenceCount = *(uint32_t*)pTableData; pTableData += 4;
-        pFile->MemberReferences = (MemberReference*)calloc(pFile->MemberReferenceCount, sizeof(MemberReference));
+        pFile->MemberReferences = (MemberReference*)calloc(pFile->MemberReferenceCount + 1, sizeof(MemberReference));
     }
     return pTableData;
 }
@@ -17,7 +17,7 @@ void MemberReference_Cleanup(CLIFile* pFile)
 {
     if (pFile->MemberReferences)
     {
-        for (uint32_t index = 0; index < pFile->MemberReferenceCount; ++index)
+        for (uint32_t index = 1; index <= pFile->MemberReferenceCount; ++index)
         {
             if (pFile->MemberReferences[index].CustomAttributes) free(pFile->MemberReferences[index].CustomAttributes);
         }
@@ -30,7 +30,7 @@ const uint8_t* MemberReference_Load(CLIFile* pFile, const uint8_t* pTableData)
 {
     uint32_t parentIndex = 0;
     uint32_t parentRow = 0;
-    for (uint32_t index = 0, heapIndex = 0; index < pFile->MemberReferenceCount; ++index)
+    for (uint32_t index = 1, heapIndex = 0; index <= pFile->MemberReferenceCount; ++index)
     {
         if (pFile->TypeDefinitionCount > MemberRefParent_Type_MaxRows16Bit ||
             pFile->TypeReferenceCount > MemberRefParent_Type_MaxRows16Bit ||
@@ -62,16 +62,16 @@ const uint8_t* MemberReference_Load(CLIFile* pFile, const uint8_t* pTableData)
 
 void MemberReference_Link(CLIFile* pFile)
 {
-    for (uint32_t index = 0; index < pFile->CustomAttributeCount; ++index)
+    for (uint32_t index = 1; index <= pFile->CustomAttributeCount; ++index)
     {
         if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttribute_Type_MemberReference) ++pFile->CustomAttributes[index].Parent.MemberReference->CustomAttributeCount;
     }
-    for (uint32_t index = 0; index < pFile->MemberReferenceCount; ++index)
+    for (uint32_t index = 1; index <= pFile->MemberReferenceCount; ++index)
     {
         if (pFile->MemberReferences[index].CustomAttributeCount > 0)
         {
             pFile->MemberReferences[index].CustomAttributes = (CustomAttribute**)calloc(pFile->MemberReferences[index].CustomAttributeCount, sizeof(CustomAttribute*));
-            for (uint32_t searchIndex = 0, customAttributeIndex = 0; searchIndex < pFile->CustomAttributeCount; ++searchIndex)
+            for (uint32_t searchIndex = 1, customAttributeIndex = 0; searchIndex <= pFile->CustomAttributeCount; ++searchIndex)
             {
                 if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttribute_Type_MemberReference &&
                     pFile->CustomAttributes[searchIndex].Parent.MemberReference == &pFile->MemberReferences[index])

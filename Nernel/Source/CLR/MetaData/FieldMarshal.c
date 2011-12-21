@@ -8,7 +8,7 @@ const uint8_t* FieldMarshal_Initialize(CLIFile* pFile, const uint8_t* pTableData
     if ((pFile->TablesHeader->PresentTables & (1ull << MetaData_Table_FieldMarshal)) != 0)
     {
         pFile->FieldMarshalCount = *(uint32_t*)pTableData; pTableData += 4;
-        pFile->FieldMarshals = (FieldMarshal*)calloc(pFile->FieldMarshalCount, sizeof(FieldMarshal));
+        pFile->FieldMarshals = (FieldMarshal*)calloc(pFile->FieldMarshalCount + 1, sizeof(FieldMarshal));
     }
     return pTableData;
 }
@@ -17,7 +17,7 @@ void FieldMarshal_Cleanup(CLIFile* pFile)
 {
     if (pFile->FieldMarshals)
     {
-        for (uint32_t index = 0; index < pFile->FieldMarshalCount; ++index)
+        for (uint32_t index = 1; index <= pFile->FieldMarshalCount; ++index)
         {
         }
         free(pFile->FieldMarshals);
@@ -29,7 +29,7 @@ const uint8_t* FieldMarshal_Load(CLIFile* pFile, const uint8_t* pTableData)
 {
     uint32_t parentIndex = 0;
     uint32_t parentRow = 0;
-    for (uint32_t index = 0, heapIndex = 0; index < pFile->FieldMarshalCount; ++index)
+    for (uint32_t index = 1, heapIndex = 0; index <= pFile->FieldMarshalCount; ++index)
     {
         if (pFile->FieldCount > HasFieldMarshal_Type_MaxRows16Bit ||
             pFile->ParameterCount > HasFieldMarshal_Type_MaxRows16Bit) { parentIndex = *(uint32_t*)pTableData; pTableData += 4; }

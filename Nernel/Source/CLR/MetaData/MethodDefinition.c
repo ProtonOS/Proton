@@ -8,7 +8,7 @@ const uint8_t* MethodDefinition_Initialize(CLIFile* pFile, const uint8_t* pTable
     if ((pFile->TablesHeader->PresentTables & (1ull << MetaData_Table_MethodDefinition)) != 0)
     {
         pFile->MethodDefinitionCount = *(uint32_t*)pTableData; pTableData += 4;
-        pFile->MethodDefinitions = (MethodDefinition*)calloc(pFile->MethodDefinitionCount, sizeof(MethodDefinition));
+        pFile->MethodDefinitions = (MethodDefinition*)calloc(pFile->MethodDefinitionCount + 1, sizeof(MethodDefinition));
     }
     return pTableData;
 }
@@ -17,7 +17,7 @@ void MethodDefinition_Cleanup(CLIFile* pFile)
 {
     if (pFile->MethodDefinitions)
     {
-        for (uint32_t index = 0; index < pFile->MethodDefinitionCount; ++index)
+        for (uint32_t index = 1; index <= pFile->MethodDefinitionCount; ++index)
         {
             if (pFile->MethodDefinitions[index].Exceptions) free(pFile->MethodDefinitions[index].Exceptions);
             if (pFile->MethodDefinitions[index].CustomAttributes) free(pFile->MethodDefinitions[index].CustomAttributes);
@@ -35,8 +35,8 @@ const uint8_t* MethodDefinition_Load(CLIFile* pFile, const uint8_t* pTableData)
     const uint8_t* methodBody = NULL;
     uint8_t methodBodySize = 0;
     uint32_t parameterListIndex = 0;
-    uint32_t* parameterListIndexes = (uint32_t*)calloc(pFile->MethodDefinitionCount, sizeof(uint32_t));
-    for (uint32_t index = 0, heapIndex = 0; index < pFile->MethodDefinitionCount; ++index)
+    uint32_t* parameterListIndexes = (uint32_t*)calloc(pFile->MethodDefinitionCount + 1, sizeof(uint32_t));
+    for (uint32_t index = 1, heapIndex = 0; index <= pFile->MethodDefinitionCount; ++index)
     {
         methodBodyVirtualAddress = *(uint32_t*)pTableData; pTableData += 4;
         pFile->MethodDefinitions[index].Body.Flags = 0;
@@ -165,9 +165,9 @@ const uint8_t* MethodDefinition_Load(CLIFile* pFile, const uint8_t* pTableData)
         }
     }
     uint32_t parameterListCount = 0;
-    for (uint32_t index = 0, used = 0; index < pFile->MethodDefinitionCount; ++index, used += parameterListCount)
+    for (uint32_t index = 1, used = 0; index <= pFile->MethodDefinitionCount; ++index, used += parameterListCount)
     {
-        if (index == (pFile->MethodDefinitionCount - 1)) parameterListCount = pFile->ParameterCount - used;
+        if (index == pFile->MethodDefinitionCount) parameterListCount = pFile->ParameterCount - used;
         else parameterListCount = parameterListIndexes[index + 1] - parameterListIndexes[index];
         pFile->MethodDefinitions[index].ParameterListCount = parameterListCount;
     }
@@ -177,16 +177,16 @@ const uint8_t* MethodDefinition_Load(CLIFile* pFile, const uint8_t* pTableData)
 
 void MethodDefinition_Link(CLIFile* pFile)
 {
-    for (uint32_t index = 0; index < pFile->CustomAttributeCount; ++index)
+    for (uint32_t index = 1; index <= pFile->CustomAttributeCount; ++index)
     {
         if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttribute_Type_MethodDefinition) ++pFile->CustomAttributes[index].Parent.MethodDefinition->CustomAttributeCount;
     }
-    for (uint32_t index = 0; index < pFile->MethodDefinitionCount; ++index)
+    for (uint32_t index = 1; index <= pFile->MethodDefinitionCount; ++index)
     {
         if (pFile->MethodDefinitions[index].CustomAttributeCount > 0)
         {
             pFile->MethodDefinitions[index].CustomAttributes = (CustomAttribute**)calloc(pFile->MethodDefinitions[index].CustomAttributeCount, sizeof(CustomAttribute*));
-            for (uint32_t searchIndex = 0, customAttributeIndex = 0; searchIndex < pFile->CustomAttributeCount; ++searchIndex)
+            for (uint32_t searchIndex = 1, customAttributeIndex = 0; searchIndex <= pFile->CustomAttributeCount; ++searchIndex)
             {
                 if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttribute_Type_MethodDefinition &&
                     pFile->CustomAttributes[searchIndex].Parent.MethodDefinition == &pFile->MethodDefinitions[index])
@@ -197,20 +197,20 @@ void MethodDefinition_Link(CLIFile* pFile)
             }
         }
     }
-    for (uint32_t index = 0; index < pFile->DeclSecurityCount; ++index)
+    for (uint32_t index = 1; index <= pFile->DeclSecurityCount; ++index)
     {
         if (pFile->DeclSecurities[index].TypeOfParent == HasDeclSecurity_Type_MethodDefinition) pFile->DeclSecurities[index].Parent.MethodDefinition->DeclSecurity = &pFile->DeclSecurities[index];
     }
-    for (uint32_t index = 0; index < pFile->GenericParameterCount; ++index)
+    for (uint32_t index = 1; index <= pFile->GenericParameterCount; ++index)
     {
         if (pFile->GenericParameters[index].TypeOfOwner == TypeOrMethodDef_Type_MethodDefinition) ++pFile->GenericParameters[index].Owner.MethodDefinition->GenericParameterCount;
     }
-    for (uint32_t index = 0; index < pFile->MethodDefinitionCount; ++index)
+    for (uint32_t index = 1; index <= pFile->MethodDefinitionCount; ++index)
     {
         if (pFile->MethodDefinitions[index].GenericParameterCount > 0)
         {
             pFile->MethodDefinitions[index].GenericParameters = (GenericParameter**)calloc(pFile->MethodDefinitions[index].GenericParameterCount, sizeof(GenericParameter*));
-            for (uint32_t searchIndex = 0, genericParameterIndex = 0; searchIndex < pFile->GenericParameterCount; ++searchIndex)
+            for (uint32_t searchIndex = 1, genericParameterIndex = 0; searchIndex <= pFile->GenericParameterCount; ++searchIndex)
             {
                 if (pFile->GenericParameters[searchIndex].TypeOfOwner == TypeOrMethodDef_Type_MethodDefinition &&
                     pFile->GenericParameters[searchIndex].Owner.MethodDefinition == &pFile->MethodDefinitions[index])
@@ -221,7 +221,7 @@ void MethodDefinition_Link(CLIFile* pFile)
             }
         }
     }
-    for (uint32_t index = 0; index < pFile->ImplementationMapCount; ++index)
+    for (uint32_t index = 1; index <= pFile->ImplementationMapCount; ++index)
     {
         if (pFile->ImplementationMaps[index].TypeOfMemberForwarded == MemberForwarded_Type_MethodDefinition) pFile->ImplementationMaps[index].MemberForwarded.MethodDefinition->ImplementationMap = &pFile->ImplementationMaps[index];
     }

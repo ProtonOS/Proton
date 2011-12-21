@@ -8,7 +8,7 @@ const uint8_t* CustomAttribute_Initialize(CLIFile* pFile, const uint8_t* pTableD
     if ((pFile->TablesHeader->PresentTables & (1ull << MetaData_Table_CustomAttribute)) != 0)
     {
         pFile->CustomAttributeCount = *(uint32_t*)pTableData; pTableData += 4;
-        pFile->CustomAttributes = (CustomAttribute*)calloc(pFile->CustomAttributeCount, sizeof(CustomAttribute));
+        pFile->CustomAttributes = (CustomAttribute*)calloc(pFile->CustomAttributeCount + 1, sizeof(CustomAttribute));
     }
     return pTableData;
 }
@@ -17,7 +17,7 @@ void CustomAttribute_Cleanup(CLIFile* pFile)
 {
     if (pFile->CustomAttributes)
     {
-        for (uint32_t index = 0; index < pFile->CustomAttributeCount; ++index)
+        for (uint32_t index = 1; index <= pFile->CustomAttributeCount; ++index)
         {
         }
         free(pFile->CustomAttributes);
@@ -31,7 +31,7 @@ const uint8_t* CustomAttribute_Load(CLIFile* pFile, const uint8_t* pTableData)
     uint32_t parentRow = 0;
     uint32_t typeIndex = 0;
     uint32_t typeRow = 0;
-    for (uint32_t index = 0, heapIndex = 0; index < pFile->CustomAttributeCount; ++index)
+    for (uint32_t index = 1, heapIndex = 0; index <= pFile->CustomAttributeCount; ++index)
     {
         if (pFile->MethodDefinitionCount > HasCustomAttribute_Type_MaxRows16Bit ||
             pFile->FieldCount > HasCustomAttribute_Type_MaxRows16Bit ||

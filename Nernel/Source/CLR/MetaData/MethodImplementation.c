@@ -8,7 +8,7 @@ const uint8_t* MethodImplementation_Initialize(CLIFile* pFile, const uint8_t* pT
     if ((pFile->TablesHeader->PresentTables & (1ull << MetaData_Table_MethodImplementation)) != 0)
     {
         pFile->MethodImplementationCount = *(uint32_t*)pTableData; pTableData += 4;
-        pFile->MethodImplementations = (MethodImplementation*)calloc(pFile->MethodImplementationCount, sizeof(MethodImplementation));
+        pFile->MethodImplementations = (MethodImplementation*)calloc(pFile->MethodImplementationCount + 1, sizeof(MethodImplementation));
     }
     return pTableData;
 }
@@ -17,7 +17,7 @@ void MethodImplementation_Cleanup(CLIFile* pFile)
 {
     if (pFile->MethodImplementations)
     {
-        for (uint32_t index = 0; index < pFile->MethodImplementationCount; ++index)
+        for (uint32_t index = 1; index <= pFile->MethodImplementationCount; ++index)
         {
         }
         free(pFile->MethodImplementations);
@@ -30,7 +30,7 @@ const uint8_t* MethodImplementation_Load(CLIFile* pFile, const uint8_t* pTableDa
     uint32_t parentIndex = 0;
     uint32_t methodIndex = 0;
     uint32_t methodRow = 0;
-    for (uint32_t index = 0; index < pFile->MethodImplementationCount; ++index)
+    for (uint32_t index = 1; index <= pFile->MethodImplementationCount; ++index)
     {
         if (pFile->TypeDefinitionCount > 0xFFFF) { parentIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { parentIndex = *(uint16_t*)pTableData; pTableData += 2; }

@@ -8,7 +8,7 @@ const uint8_t* AssemblyReferenceProcessor_Initialize(CLIFile* pFile, const uint8
     if ((pFile->TablesHeader->PresentTables & (1ull << MetaData_Table_AssemblyReferenceProcessor)) != 0)
     {
         pFile->AssemblyReferenceProcessorCount = *(uint32_t*)pTableData; pTableData += 4;
-        pFile->AssemblyReferenceProcessors = (AssemblyReferenceProcessor*)calloc(pFile->AssemblyReferenceProcessorCount, sizeof(AssemblyReferenceProcessor));
+        pFile->AssemblyReferenceProcessors = (AssemblyReferenceProcessor*)calloc(pFile->AssemblyReferenceProcessorCount + 1, sizeof(AssemblyReferenceProcessor));
     }
     return pTableData;
 }
@@ -17,7 +17,7 @@ void AssemblyReferenceProcessor_Cleanup(CLIFile* pFile)
 {
     if (pFile->AssemblyReferenceProcessors)
     {
-        for (uint32_t index = 0; index < pFile->AssemblyReferenceProcessorCount; ++index)
+        for (uint32_t index = 1; index <= pFile->AssemblyReferenceProcessorCount; ++index)
         {
         }
         free(pFile->AssemblyReferenceProcessors);
@@ -28,7 +28,7 @@ void AssemblyReferenceProcessor_Cleanup(CLIFile* pFile)
 const uint8_t* AssemblyReferenceProcessor_Load(CLIFile* pFile, const uint8_t* pTableData)
 {
     uint32_t assemblyReferenceIndex = 0;
-    for (uint32_t index = 0; index < pFile->AssemblyReferenceProcessorCount; ++index)
+    for (uint32_t index = 1; index <= pFile->AssemblyReferenceProcessorCount; ++index)
     {
         pFile->AssemblyReferenceProcessors[index].Processor = *(uint32_t* )pTableData; pTableData += 4;
         if (pFile->AssemblyReferenceCount > 0xFFFF) { assemblyReferenceIndex = *(uint32_t*)pTableData; pTableData += 4; }

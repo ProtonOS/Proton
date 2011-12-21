@@ -8,7 +8,7 @@ const uint8_t* ExportedType_Initialize(CLIFile* pFile, const uint8_t* pTableData
     if ((pFile->TablesHeader->PresentTables & (1ull << MetaData_Table_ExportedType)) != 0)
     {
         pFile->ExportedTypeCount = *(uint32_t*)pTableData; pTableData += 4;
-        pFile->ExportedTypes = (ExportedType*)calloc(pFile->ExportedTypeCount, sizeof(ExportedType));
+        pFile->ExportedTypes = (ExportedType*)calloc(pFile->ExportedTypeCount + 1, sizeof(ExportedType));
     }
     return pTableData;
 }
@@ -17,7 +17,7 @@ void ExportedType_Cleanup(CLIFile* pFile)
 {
     if (pFile->ExportedTypes)
     {
-        for (uint32_t index = 0; index < pFile->ExportedTypeCount; ++index)
+        for (uint32_t index = 1; index <= pFile->ExportedTypeCount; ++index)
         {
             if (pFile->ExportedTypes[index].CustomAttributes) free(pFile->ExportedTypes[index].CustomAttributes);
         }
@@ -31,7 +31,7 @@ const uint8_t* ExportedType_Load(CLIFile* pFile, const uint8_t* pTableData)
     uint32_t typeDefinitionIndex = 0;
     uint32_t implementationIndex = 0;
     uint32_t implementationRow = 0;
-    for (uint32_t index = 0, heapIndex = 0; index < pFile->ExportedTypeCount; ++index)
+    for (uint32_t index = 1, heapIndex = 0; index <= pFile->ExportedTypeCount; ++index)
     {
         pFile->ExportedTypes[index].Flags = *(uint32_t* )pTableData; pTableData += 4;
         if (pFile->TypeDefinitionCount > 0xFFFF) { typeDefinitionIndex = *(uint32_t*)pTableData; pTableData += 4; }
@@ -63,16 +63,16 @@ const uint8_t* ExportedType_Load(CLIFile* pFile, const uint8_t* pTableData)
 
 void ExportedType_Link(CLIFile* pFile)
 {
-    for (uint32_t index = 0; index < pFile->CustomAttributeCount; ++index)
+    for (uint32_t index = 1; index <= pFile->CustomAttributeCount; ++index)
     {
         if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttribute_Type_ExportedType) ++pFile->CustomAttributes[index].Parent.ExportedType->CustomAttributeCount;
     }
-    for (uint32_t index = 0; index < pFile->ExportedTypeCount; ++index)
+    for (uint32_t index = 1; index <= pFile->ExportedTypeCount; ++index)
     {
         if (pFile->ExportedTypes[index].CustomAttributeCount > 0)
         {
             pFile->ExportedTypes[index].CustomAttributes = (CustomAttribute**)calloc(pFile->ExportedTypes[index].CustomAttributeCount, sizeof(CustomAttribute*));
-            for (uint32_t searchIndex = 0, customAttributeIndex = 0; searchIndex < pFile->CustomAttributeCount; ++searchIndex)
+            for (uint32_t searchIndex = 1, customAttributeIndex = 0; searchIndex <= pFile->CustomAttributeCount; ++searchIndex)
             {
                 if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttribute_Type_ExportedType &&
                     pFile->CustomAttributes[searchIndex].Parent.ExportedType == &pFile->ExportedTypes[index])

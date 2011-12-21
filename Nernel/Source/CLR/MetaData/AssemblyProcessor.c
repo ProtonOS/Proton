@@ -8,7 +8,7 @@ const uint8_t* AssemblyProcessor_Initialize(CLIFile* pFile, const uint8_t* pTabl
     if ((pFile->TablesHeader->PresentTables & (1ull << MetaData_Table_AssemblyProcessor)) != 0)
     {
         pFile->AssemblyProcessorCount = *(uint32_t*)pTableData; pTableData += 4;
-        pFile->AssemblyProcessors = (AssemblyProcessor*)calloc(pFile->AssemblyProcessorCount, sizeof(AssemblyProcessor));
+        pFile->AssemblyProcessors = (AssemblyProcessor*)calloc(pFile->AssemblyProcessorCount + 1, sizeof(AssemblyProcessor));
     }
     return pTableData;
 }
@@ -17,7 +17,7 @@ void AssemblyProcessor_Cleanup(CLIFile* pFile)
 {
     if (pFile->AssemblyProcessors)
     {
-        for (uint32_t index = 0; index < pFile->AssemblyProcessorCount; ++index)
+        for (uint32_t index = 1; index <= pFile->AssemblyProcessorCount; ++index)
         {
         }
         free(pFile->AssemblyProcessors);
@@ -27,7 +27,7 @@ void AssemblyProcessor_Cleanup(CLIFile* pFile)
 
 const uint8_t* AssemblyProcessor_Load(CLIFile* pFile, const uint8_t* pTableData)
 {
-    for (uint32_t index = 0; index < pFile->AssemblyProcessorCount; ++index)
+    for (uint32_t index = 1; index <= pFile->AssemblyProcessorCount; ++index)
     {
         pFile->AssemblyProcessors[index].Processor = *(uint32_t* )pTableData; pTableData += 4;
     }

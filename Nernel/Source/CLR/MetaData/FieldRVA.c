@@ -8,7 +8,7 @@ const uint8_t* FieldRVA_Initialize(CLIFile* pFile, const uint8_t* pTableData)
     if ((pFile->TablesHeader->PresentTables & (1ull << MetaData_Table_FieldRVA)) != 0)
     {
         pFile->FieldRVACount = *(uint32_t*)pTableData; pTableData += 4;
-        pFile->FieldRVAs = (FieldRVA*)calloc(pFile->FieldRVACount, sizeof(FieldRVA));
+        pFile->FieldRVAs = (FieldRVA*)calloc(pFile->FieldRVACount + 1, sizeof(FieldRVA));
     }
     return pTableData;
 }
@@ -17,7 +17,7 @@ void FieldRVA_Cleanup(CLIFile* pFile)
 {
     if (pFile->FieldRVAs)
     {
-        for (uint32_t index = 0; index < pFile->FieldRVACount; ++index)
+        for (uint32_t index = 1; index <= pFile->FieldRVACount; ++index)
         {
         }
         free(pFile->FieldRVAs);
@@ -31,7 +31,7 @@ const uint8_t* FieldRVA_Load(CLIFile* pFile, const uint8_t* pTableData)
     PESectionHeader* fieldInitialValueSectionHeader = NULL;
     const uint8_t* fieldInitialValue = NULL;
     uint32_t fieldIndex = 0;
-    for (uint32_t index = 0; index < pFile->FieldRVACount; ++index)
+    for (uint32_t index = 1; index <= pFile->FieldRVACount; ++index)
     {
         fieldInitialValueVirtualAddress = *(uint32_t*)pTableData; pTableData += 4;
         fieldInitialValueSectionHeader = PEFile_GetSection(pFile->PEFile->SectionHeaders, pFile->PEFile->PEHeader->NumberOfSections, fieldInitialValueVirtualAddress);
