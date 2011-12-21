@@ -19,10 +19,10 @@ ILAssembly* ILReader_CreateAssembly(CLIFile* fil)
     asmbly->CLIFile = fil;
     asmbly->IRAssembly = IRAssembly_Create();;
 
-    for (uint32_t i = 0; i < fil->MethodDefinitionCount; i++)
+    for (uint32_t i = 1; i <= fil->MethodDefinitionCount; i++)
     {
         uint8_t* ilLoc = (uint8_t*)fil->MethodDefinitions[i].Body.Code;
-        Log_WriteLine(LogFlags_ILReading, "Reading Method %s.%s.%s", fil->MethodDefinitions[i].Name);
+        Log_WriteLine(LogFlags_ILReading, "Reading Method %s.%s.%s", fil->MethodDefinitions[i].TypeDefinition->Namespace, fil->MethodDefinitions[i].TypeDefinition->Name, fil->MethodDefinitions[i].Name);
         IRAssembly_AddMethod(asmbly->IRAssembly, ReadIL(&ilLoc, fil->MethodDefinitions[i].Body.CodeSize));
     }
 

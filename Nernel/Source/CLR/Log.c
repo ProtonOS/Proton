@@ -19,7 +19,7 @@ void Log_WriteLine(LogFlags logCondition, char* fmt, ...)
         va_start( args, fmt );
         vsnprintf( buf, 1024, fmt, args );
         va_end( args );
-        printf(buf);
+        printf(fmt);
         printf("\n");
     }
 }
