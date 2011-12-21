@@ -12,4 +12,4 @@ typedef enum LogFlags
 
 void Log_Initialize(LogFlags logFlags);
 
-void Log_WriteLine(LogFlags logType, const char* msg);
+void Log_WriteLine(LogFlags logCondition, char* fmt, ...);

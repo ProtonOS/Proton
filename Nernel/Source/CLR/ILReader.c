@@ -22,7 +22,7 @@ ILAssembly* ILReader_CreateAssembly(CLIFile* fil)
     for (uint32_t i = 0; i < fil->MethodDefinitionCount; i++)
     {
         uint8_t* ilLoc = (uint8_t*)fil->MethodDefinitions[i].Body.Code;
-        //Log_WriteLine(LogFlags_ILReading, "Reading Method %s.%s.%s"
+        Log_WriteLine(LogFlags_ILReading, "Reading Method %s.%s.%s", fil->MethodDefinitions[i].Name);
         IRAssembly_AddMethod(asmbly->IRAssembly, ReadIL(&ilLoc, fil->MethodDefinitions[i].Body.CodeSize));
     }
 
@@ -169,6 +169,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 break;
             case ILOpCode_Ldc_I4_M1:		// 0x15
                 {
+                    Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.M1");
                     StackObject* s = StackObjectPool_Allocate();
                     uint32_t* dat = (uint32_t*)malloc(sizeof(uint32_t));
                     *dat = (uint32_t)-1;
@@ -181,6 +182,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 break;
 			case ILOpCode_Ldc_I4_0:			// 0x16
                 {
+                    Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.0");
                     StackObject* s = StackObjectPool_Allocate();
                     uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
                     *dt = (uint32_t)0;
@@ -193,6 +195,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 break;
 			case ILOpCode_Ldc_I4_1:			// 0x17
                 {
+                    Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.1");
                     StackObject* s = StackObjectPool_Allocate();
                     uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
                     *dt = (uint32_t)1;
@@ -205,6 +208,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 break;
 			case ILOpCode_Ldc_I4_2:			// 0x18
                 {
+                    Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.2");
                     StackObject* s = StackObjectPool_Allocate();
                     uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
                     *dt = (uint32_t)2;
@@ -217,6 +221,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 break;
 			case ILOpCode_Ldc_I4_3:			// 0x19
                 {
+                    Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.3");
                     StackObject* s = StackObjectPool_Allocate();
                     uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
                     *dt = (uint32_t)3;
@@ -229,6 +234,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 break;
 			case ILOpCode_Ldc_I4_4:			// 0x1A
                 {
+                    Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.4");
                     StackObject* s = StackObjectPool_Allocate();
                     uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
                     *dt = (uint32_t)4;
@@ -241,6 +247,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 break;
 			case ILOpCode_Ldc_I4_5:			// 0x1B
                 {
+                    Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.5");
                     StackObject* s = StackObjectPool_Allocate();
                     uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
                     *dt = (uint32_t)5;
@@ -253,6 +260,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 break;
 			case ILOpCode_Ldc_I4_6:			// 0x1C
                 {
+                    Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.6");
                     StackObject* s = StackObjectPool_Allocate();
                     uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
                     *dt = (uint32_t)6;
@@ -265,6 +273,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 break;
 			case ILOpCode_Ldc_I4_7:			// 0x1D
                 {
+                    Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.7");
                     StackObject* s = StackObjectPool_Allocate();
                     uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
                     *dt = (uint32_t)7;
@@ -277,6 +286,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 break;
 			case ILOpCode_Ldc_I4_8:			// 0x1E
                 {
+                    Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.8");
                     StackObject* s = StackObjectPool_Allocate();
                     uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
                     *dt = (uint32_t)8;
@@ -289,6 +299,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 break;
 			case ILOpCode_Ldc_I4_S:			// 0x1F
                 {
+                    Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.S");
                     StackObject* s = StackObjectPool_Allocate();
                     uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
                     *dt = (uint32_t)ReadUInt8(dat);
@@ -301,6 +312,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 break;
 			case ILOpCode_Ldc_I4:			// 0x20
                 {
+                    Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4");
                     StackObject* s = StackObjectPool_Allocate();
                     uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
                     *dt = (uint32_t)ReadUInt32(dat);
@@ -313,6 +325,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 break;
 			case ILOpCode_Ldc_I8:			// 0x21
                 {
+                    Log_WriteLine(LogFlags_ILReading, "Read Ldc.I8");
                     StackObject* s = StackObjectPool_Allocate();
                     uint64_t* dt = (uint64_t*)malloc(sizeof(uint64_t));
                     *dt = (uint64_t)ReadUInt64(dat);
@@ -628,6 +641,10 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 
                 ClearFlags();
                 break;
+            case ILOpCode_Conv_R_Un:		// 0x76
+                
+                ClearFlags();
+                break;
             case ILOpCode_CallVirt:			// 0x6F
                 
                 ClearFlags();
@@ -653,10 +670,6 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 ClearFlags();
                 break;
             case ILOpCode_IsInst:			// 0x75
-                
-                ClearFlags();
-                break;
-            case ILOpCode_Conv_R_Un:		// 0x76
                 
                 ClearFlags();
                 break;
@@ -698,19 +711,17 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 
                 ClearFlags();
                 break;
+
+
+            case ILOpCode_Conv_Ovf_I1:		// 0xB3
+                
+                ClearFlags();
+                break;
             case ILOpCode_Conv_Ovf_I1_Un:	// 0x82
                 
                 ClearFlags();
                 break;
-			case ILOpCode_Conv_Ovf_I2_Un:	// 0x83
-                
-                ClearFlags();
-                break;
-			case ILOpCode_Conv_Ovf_I4_Un:	// 0x84
-                
-                ClearFlags();
-                break;
-			case ILOpCode_Conv_Ovf_I8_Un:	// 0x85
+			case ILOpCode_Conv_Ovf_U1:		// 0xB4
                 
                 ClearFlags();
                 break;
@@ -718,7 +729,35 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 
                 ClearFlags();
                 break;
+
+
+			case ILOpCode_Conv_Ovf_I2:		// 0xB5
+                
+                ClearFlags();
+                break;
+			case ILOpCode_Conv_Ovf_I2_Un:	// 0x83
+                
+                ClearFlags();
+                break;
+			case ILOpCode_Conv_Ovf_U2:		// 0xB6
+                
+                ClearFlags();
+                break;
 			case ILOpCode_Conv_Ovf_U2_Un:	// 0x87
+                
+                ClearFlags();
+                break;
+
+
+			case ILOpCode_Conv_Ovf_I4:		// 0xB7
+                
+                ClearFlags();
+                break;
+			case ILOpCode_Conv_Ovf_I4_Un:	// 0x84
+                
+                ClearFlags();
+                break;
+			case ILOpCode_Conv_Ovf_U4:		// 0xB8
                 
                 ClearFlags();
                 break;
@@ -726,10 +765,26 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 
                 ClearFlags();
                 break;
+                
+
+			case ILOpCode_Conv_Ovf_I8:		// 0xB9
+                
+                ClearFlags();
+                break;
+			case ILOpCode_Conv_Ovf_I8_Un:	// 0x85
+                
+                ClearFlags();
+                break;
+    		case ILOpCode_Conv_Ovf_U8:		// 0xBA
+                
+                ClearFlags();
+				break;
 			case ILOpCode_Conv_Ovf_U8_Un:	// 0x89
                 
                 ClearFlags();
                 break;
+
+
 			case ILOpCode_Conv_Ovf_I_Un:	// 0x8A
                 
                 ClearFlags();
@@ -738,6 +793,8 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 
                 ClearFlags();
                 break;
+
+
             case ILOpCode_Box:				// 0x8C
                 
                 ClearFlags();
@@ -855,38 +912,6 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
 			// 0xB0 Doesn't exist
 			// 0xB1 Doesn't exist
 			// 0xB2 Doesn't exist
-            case ILOpCode_Conv_Ovf_I1:		// 0xB3
-                
-                ClearFlags();
-                break;
-			case ILOpCode_Conv_Ovf_U1:		// 0xB4
-                
-                ClearFlags();
-                break;
-			case ILOpCode_Conv_Ovf_I2:		// 0xB5
-                
-                ClearFlags();
-                break;
-			case ILOpCode_Conv_Ovf_U2:		// 0xB6
-                
-                ClearFlags();
-                break;
-			case ILOpCode_Conv_Ovf_I4:		// 0xB7
-                
-                ClearFlags();
-                break;
-			case ILOpCode_Conv_Ovf_U4:		// 0xB8
-                
-                ClearFlags();
-                break;
-			case ILOpCode_Conv_Ovf_I8:		// 0xB9
-                
-                ClearFlags();
-                break;
-    		case ILOpCode_Conv_Ovf_U8:		// 0xBA
-                
-                ClearFlags();
-				break;
 			// 0xBB Doesn't exist
 			// 0xBC Doesn't exist
 			// 0xBD Doesn't exist
