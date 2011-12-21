@@ -77,7 +77,8 @@ StackObject* StackObject_Create()
 
 void StackObject_Destroy(StackObject* obj)
 {
-    free(obj->Data);
+    if (obj->Data)
+        free(obj->Data);
     free(obj);
 }
 

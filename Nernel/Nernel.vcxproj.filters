@@ -313,6 +313,9 @@
     <ClCompile Include="Source\CLR\MetaData\MetaData.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\CLR\Log.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\Core\MultiBoot.h">
@@ -646,6 +649,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Include\PortIO.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\CLR\Log.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

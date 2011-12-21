@@ -57,6 +57,7 @@
 #define SOURCE(C_FILES)
 {
     Source/Nernel.c
+#
 	Source/Core/Console.c
 	Source/Core/DLMalloc.c
 	Source/Core/GDT.c
@@ -68,12 +69,15 @@
 	Source/Core/SerialWriter.c
 	Source/Core/SystemCalls.c
 	Source/Core/SystemClock.c
-	Source/CLR/PEFile.c
-	Source/CLR/CLIFile.c
+#
 	Source/CLR/AppDomain.c
+	Source/CLR/CLIFile.c
 	Source/CLR/ILReader.c
 	Source/CLR/IRStructures.c
+	Source/CLR/Log.c
+	Source/CLR/PEFile.c
 	Source/CLR/SyntheticStack.c
+#
 	Source/CLR/MetaData/AssemblyDefinition.c
 	Source/CLR/MetaData/AssemblyOperatingSystem.c
 	Source/CLR/MetaData/AssemblyProcessor.c

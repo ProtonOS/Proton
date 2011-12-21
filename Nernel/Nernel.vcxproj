@@ -24,6 +24,7 @@
     <ClCompile Include="Source\CLR\CLIFile.c" />
     <ClCompile Include="Source\CLR\ILReader.c" />
     <ClCompile Include="Source\CLR\IRStructures.c" />
+    <ClCompile Include="Source\CLR\Log.c" />
     <ClCompile Include="Source\CLR\MetaData\MetaData.c" />
     <ClCompile Include="Source\CLR\MetaData\AssemblyDefinition.c" />
     <ClCompile Include="Source\CLR\MetaData\AssemblyOperatingSystem.c" />
@@ -121,6 +122,7 @@
     <ClInclude Include="Include\CLR\CLIFile.h" />
     <ClInclude Include="Include\CLR\ILReader.h" />
     <ClInclude Include="Include\CLR\IRStructures.h" />
+    <ClInclude Include="Include\CLR\Log.h" />
     <ClInclude Include="Include\CLR\MetaData\AssemblyDefinition.h" />
     <ClInclude Include="Include\CLR\MetaData\AssemblyOperatingSystem.h" />
     <ClInclude Include="Include\CLR\MetaData\AssemblyProcessor.h" />
