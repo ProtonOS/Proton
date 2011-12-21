@@ -34,6 +34,7 @@ const uint8_t* ClassLayout_Load(CLIFile* pFile, const uint8_t* pTableData)
         pFile->ClassLayouts[index].ClassSize = *(uint32_t*)pTableData; pTableData += 4;
         if (pFile->TypeDefinitionCount > 0xFFFF) { parentIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { parentIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        if (parentIndex == 0 || parentIndex > pFile->TypeDefinitionCount) Panic("ClassLayout_Load");
         pFile->ClassLayouts[index].Parent = &pFile->TypeDefinitions[parentIndex];
     }
     return pTableData;

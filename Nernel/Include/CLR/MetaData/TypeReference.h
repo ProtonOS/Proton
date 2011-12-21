@@ -12,6 +12,8 @@ struct _TypeReference
 
     uint32_t CustomAttributeCount;
     CustomAttribute** CustomAttributes;
+    uint32_t MemberReferenceCount;
+    MemberReference** MemberReferences;
 };
 
 const uint8_t* TypeReference_Initialize(CLIFile* pFile, const uint8_t* pTableData);

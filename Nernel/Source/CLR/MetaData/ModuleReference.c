@@ -20,6 +20,7 @@ void ModuleReference_Cleanup(CLIFile* pFile)
         for (uint32_t index = 1; index <= pFile->ModuleReferenceCount; ++index)
         {
             if (pFile->ModuleReferences[index].CustomAttributes) free(pFile->ModuleReferences[index].CustomAttributes);
+            if (pFile->ModuleReferences[index].MemberReferences) free(pFile->ModuleReferences[index].MemberReferences);
         }
         free(pFile->ModuleReferences);
         pFile->ModuleReferences = NULL;
@@ -55,6 +56,26 @@ void ModuleReference_Link(CLIFile* pFile)
                 {
                     pFile->ModuleReferences[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
                     ++customAttributeIndex;
+                }
+            }
+        }
+    }
+    for (uint32_t index = 1; index <= pFile->MemberReferenceCount; ++index)
+    {
+        if (pFile->MemberReferences[index].TypeOfParent == MemberRefParent_Type_ModuleReference) ++pFile->MemberReferences[index].Parent.ModuleReference->MemberReferenceCount;
+    }
+    for (uint32_t index = 1; index <= pFile->ModuleReferenceCount; ++index)
+    {
+        if (pFile->ModuleReferences[index].MemberReferenceCount > 0)
+        {
+            pFile->ModuleReferences[index].MemberReferences = (MemberReference**)calloc(pFile->ModuleReferences[index].MemberReferenceCount, sizeof(MemberReference*));
+            for (uint32_t searchIndex = 1, memberReferenceIndex = 0; searchIndex <= pFile->MemberReferenceCount; ++searchIndex)
+            {
+                if (pFile->MemberReferences[searchIndex].TypeOfParent == MemberRefParent_Type_ModuleReference &&
+                    pFile->MemberReferences[searchIndex].Parent.ModuleReference == &pFile->ModuleReferences[index])
+                {
+                    pFile->ModuleReferences[index].MemberReferences[memberReferenceIndex] = &pFile->MemberReferences[searchIndex];
+                    ++memberReferenceIndex;
                 }
             }
         }

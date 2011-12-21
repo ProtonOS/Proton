@@ -34,6 +34,7 @@ const uint8_t* MethodImplementation_Load(CLIFile* pFile, const uint8_t* pTableDa
     {
         if (pFile->TypeDefinitionCount > 0xFFFF) { parentIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { parentIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        if (parentIndex == 0 || parentIndex > pFile->TypeDefinitionCount) Panic("MethodImplementation_Load TypeDefinition");
         pFile->MethodImplementations[index].Parent = &pFile->TypeDefinitions[parentIndex];
 
         if (pFile->MethodDefinitionCount > MethodDefOrRef_Type_MaxRows16Bit ||
@@ -43,8 +44,14 @@ const uint8_t* MethodImplementation_Load(CLIFile* pFile, const uint8_t* pTableDa
         methodRow = methodIndex >> MethodDefOrRef_Type_Bits;
         switch (pFile->MethodImplementations[index].TypeOfMethodBody)
         {
-        case MethodDefOrRef_Type_MethodDefinition: pFile->MethodImplementations[index].MethodBody.MethodDefinition = &pFile->MethodDefinitions[methodRow]; break;
-        case MethodDefOrRef_Type_MemberReference: pFile->MethodImplementations[index].MethodBody.MemberReference = &pFile->MemberReferences[methodRow]; break;
+        case MethodDefOrRef_Type_MethodDefinition:
+            if (methodRow == 0 || methodRow > pFile->MethodDefinitionCount) Panic("MethodImplementation_Load MethodDefinition");
+            pFile->MethodImplementations[index].MethodBody.MethodDefinition = &pFile->MethodDefinitions[methodRow];
+            break;
+        case MethodDefOrRef_Type_MemberReference:
+            if (methodRow == 0 || methodRow > pFile->MemberReferenceCount) Panic("MethodImplementation_Load MemberReference");
+            pFile->MethodImplementations[index].MethodBody.MemberReference = &pFile->MemberReferences[methodRow];
+            break;
         default: break;
         }
 
@@ -55,8 +62,14 @@ const uint8_t* MethodImplementation_Load(CLIFile* pFile, const uint8_t* pTableDa
         methodRow = methodIndex >> MethodDefOrRef_Type_Bits;
         switch (pFile->MethodImplementations[index].TypeOfMethodDeclaration)
         {
-        case MethodDefOrRef_Type_MethodDefinition: pFile->MethodImplementations[index].MethodDeclaration.MethodDefinition = &pFile->MethodDefinitions[methodRow]; break;
-        case MethodDefOrRef_Type_MemberReference: pFile->MethodImplementations[index].MethodDeclaration.MemberReference = &pFile->MemberReferences[methodRow]; break;
+        case MethodDefOrRef_Type_MethodDefinition:
+            if (methodRow == 0 || methodRow > pFile->MethodDefinitionCount) Panic("MethodImplementation_Load MethodDefinition");
+            pFile->MethodImplementations[index].MethodDeclaration.MethodDefinition = &pFile->MethodDefinitions[methodRow];
+            break;
+        case MethodDefOrRef_Type_MemberReference:
+            if (methodRow == 0 || methodRow > pFile->MemberReferenceCount) Panic("MethodImplementation_Load MemberReference");
+            pFile->MethodImplementations[index].MethodDeclaration.MemberReference = &pFile->MemberReferences[methodRow];
+            break;
         default: break;
         }
     }

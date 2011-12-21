@@ -42,9 +42,18 @@ const uint8_t* DeclSecurity_Load(CLIFile* pFile, const uint8_t* pTableData)
         parentRow = parentIndex >> HasDeclSecurity_Type_Bits;
         switch (pFile->DeclSecurities[index].TypeOfParent)
         {
-        case HasDeclSecurity_Type_TypeDefinition: pFile->DeclSecurities[index].Parent.TypeDefinition = &pFile->TypeDefinitions[parentRow]; break;
-        case HasDeclSecurity_Type_MethodDefinition: pFile->DeclSecurities[index].Parent.MethodDefinition = &pFile->MethodDefinitions[parentRow]; break;
-        case HasDeclSecurity_Type_AssemblyDefinition: pFile->DeclSecurities[index].Parent.AssemblyDefinition = &pFile->AssemblyDefinitions[parentRow]; break;
+        case HasDeclSecurity_Type_TypeDefinition:
+            if (parentRow == 0 || parentRow > pFile->TypeDefinitionCount) Panic("DeclSecurity_Load TypeDefinition");
+            pFile->DeclSecurities[index].Parent.TypeDefinition = &pFile->TypeDefinitions[parentRow];
+            break;
+        case HasDeclSecurity_Type_MethodDefinition:
+            if (parentRow == 0 || parentRow > pFile->MethodDefinitionCount) Panic("DeclSecurity_Load MethodDefinition");
+            pFile->DeclSecurities[index].Parent.MethodDefinition = &pFile->MethodDefinitions[parentRow];
+            break;
+        case HasDeclSecurity_Type_AssemblyDefinition:
+            if (parentRow == 0 || parentRow > pFile->AssemblyDefinitionCount) Panic("DeclSecurity_Load AssemblyDefinition");
+            pFile->DeclSecurities[index].Parent.AssemblyDefinition = &pFile->AssemblyDefinitions[parentRow];
+            break;
         default: break;
         }
         if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Blobs32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }

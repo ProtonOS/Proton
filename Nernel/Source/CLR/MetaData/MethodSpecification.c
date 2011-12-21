@@ -39,8 +39,14 @@ const uint8_t* MethodSpecification_Load(CLIFile* pFile, const uint8_t* pTableDat
         methodRow = methodIndex >> MethodDefOrRef_Type_Bits;
         switch (pFile->MethodSpecifications[index].TypeOfMethod)
         {
-        case MethodDefOrRef_Type_MethodDefinition: pFile->MethodSpecifications[index].Method.MethodDefinition = &pFile->MethodDefinitions[methodRow]; break;
-        case MethodDefOrRef_Type_MemberReference: pFile->MethodSpecifications[index].Method.MemberReference = &pFile->MemberReferences[methodRow]; break;
+        case MethodDefOrRef_Type_MethodDefinition:
+            if (methodRow == 0 || methodRow > pFile->MethodDefinitionCount) Panic("MethodSpecification_Load MethodDefinition");
+            pFile->MethodSpecifications[index].Method.MethodDefinition = &pFile->MethodDefinitions[methodRow];
+            break;
+        case MethodDefOrRef_Type_MemberReference:
+            if (methodRow == 0 || methodRow > pFile->MemberReferenceCount) Panic("MethodSpecification_Load MemberReference");
+            pFile->MethodSpecifications[index].Method.MemberReference = &pFile->MemberReferences[methodRow];
+            break;
         default: break;
         }
         if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Blobs32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }

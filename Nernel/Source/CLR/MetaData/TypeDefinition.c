@@ -22,6 +22,9 @@ void TypeDefinition_Cleanup(CLIFile* pFile)
             if (pFile->TypeDefinitions[index].CustomAttributes) free(pFile->TypeDefinitions[index].CustomAttributes);
             if (pFile->TypeDefinitions[index].GenericParameters) free(pFile->TypeDefinitions[index].GenericParameters);
             if (pFile->TypeDefinitions[index].InterfaceImplementations) free(pFile->TypeDefinitions[index].InterfaceImplementations);
+            if (pFile->TypeDefinitions[index].MemberReferences) free(pFile->TypeDefinitions[index].MemberReferences);
+            if (pFile->TypeDefinitions[index].MethodImplementations) free(pFile->TypeDefinitions[index].MethodImplementations);
+            if (pFile->TypeDefinitions[index].NestedClasses) free(pFile->TypeDefinitions[index].NestedClasses);
         }
         free(pFile->TypeDefinitions);
         pFile->TypeDefinitions = NULL;
@@ -53,19 +56,36 @@ const uint8_t* TypeDefinition_Load(CLIFile* pFile, const uint8_t* pTableData)
         extendsRow = extendsIndex >> TypeDefOrRef_Type_Bits;
         switch (pFile->TypeDefinitions[index].TypeOfExtends)
         {
-        case TypeDefOrRef_Type_TypeDefinition: pFile->TypeDefinitions[index].Extends.TypeDefinition = &pFile->TypeDefinitions[extendsRow]; break;
-        case TypeDefOrRef_Type_TypeReference: pFile->TypeDefinitions[index].Extends.TypeReference = &pFile->TypeReferences[extendsRow]; break;
-        case TypeDefOrRef_Type_TypeSpecification: pFile->TypeDefinitions[index].Extends.TypeSpecification = &pFile->TypeSpecifications[extendsRow]; break;
+        case TypeDefOrRef_Type_TypeDefinition:
+            if (extendsRow > pFile->TypeDefinitionCount) Panic("TypeDefinition_Load TypeDefinition");
+            if (extendsRow > 0) pFile->TypeDefinitions[index].Extends.TypeDefinition = &pFile->TypeDefinitions[extendsRow];
+            break;
+        case TypeDefOrRef_Type_TypeReference:
+            if (extendsRow > pFile->TypeReferenceCount) Panic("TypeDefinition_Load TypeReference");
+            if (extendsRow > 0) pFile->TypeDefinitions[index].Extends.TypeReference = &pFile->TypeReferences[extendsRow];
+            break;
+        case TypeDefOrRef_Type_TypeSpecification:
+            if (extendsRow > pFile->TypeSpecificationCount) Panic("TypeDefinition_Load TypeSpecification");
+            if (extendsRow > 0) pFile->TypeDefinitions[index].Extends.TypeSpecification = &pFile->TypeSpecifications[extendsRow];
+            break;
         default: break;
         }
         if (pFile->FieldCount > 0xFFFF) { fieldListIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { fieldListIndex = *(uint16_t*)pTableData; pTableData += 2; }
-        pFile->TypeDefinitions[index].FieldList = &pFile->Fields[fieldListIndex];
-        fieldListIndexes[index] = fieldListIndex;
+        if (fieldListIndex == 0 || fieldListIndex > pFile->FieldCount + 1) Panic("TypeDefinition_Load Field");
+        if (fieldListIndex <= pFile->FieldCount)
+        {
+            pFile->TypeDefinitions[index].FieldList = &pFile->Fields[fieldListIndex];
+            fieldListIndexes[index] = fieldListIndex;
+        }
         if (pFile->MethodDefinitionCount > 0xFFFF) { methodDefinitionListIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { methodDefinitionListIndex = *(uint16_t*)pTableData; pTableData += 2; }
-        pFile->TypeDefinitions[index].MethodDefinitionList = &pFile->MethodDefinitions[methodDefinitionListIndex];
-        methodDefinitionListIndexes[index] = methodDefinitionListIndex;
+        if (methodDefinitionListIndex == 0 || methodDefinitionListIndex > pFile->MethodDefinitionCount + 1) Panic("TypeDefinition_Load MethodDefinition");
+        if (methodDefinitionListIndex <= pFile->MethodDefinitionCount)
+        {
+            pFile->TypeDefinitions[index].MethodDefinitionList = &pFile->MethodDefinitions[methodDefinitionListIndex];
+            methodDefinitionListIndexes[index] = methodDefinitionListIndex;
+        }
     }
     uint32_t fieldListCount = 0;
     for (uint32_t index = 1, used = 0; index <= pFile->TypeDefinitionCount; ++index, used += fieldListCount)
@@ -92,7 +112,10 @@ void TypeDefinition_Link(CLIFile* pFile)
         
     for (uint32_t index = 1; index <= pFile->CustomAttributeCount; ++index)
     {
-        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttribute_Type_TypeDefinition) ++pFile->CustomAttributes[index].Parent.TypeDefinition->CustomAttributeCount;
+        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttribute_Type_TypeDefinition)
+        {
+            ++pFile->CustomAttributes[index].Parent.TypeDefinition->CustomAttributeCount;
+        }
     }
     for (uint32_t index = 1; index <= pFile->TypeDefinitionCount; ++index)
     {
@@ -117,7 +140,10 @@ void TypeDefinition_Link(CLIFile* pFile)
     for (uint32_t index = 1; index <= pFile->EventMapCount; ++index) pFile->EventMaps[index].Parent->EventMap = &pFile->EventMaps[index];
     for (uint32_t index = 1; index <= pFile->GenericParameterCount; ++index)
     {
-        if (pFile->GenericParameters[index].TypeOfOwner == TypeOrMethodDef_Type_TypeDefinition) ++pFile->GenericParameters[index].Owner.TypeDefinition->GenericParameterCount;
+        if (pFile->GenericParameters[index].TypeOfOwner == TypeOrMethodDef_Type_TypeDefinition)
+        {
+            ++pFile->GenericParameters[index].Owner.TypeDefinition->GenericParameterCount;
+        }
     }
     for (uint32_t index = 1; index <= pFile->TypeDefinitionCount; ++index)
     {
@@ -151,4 +177,64 @@ void TypeDefinition_Link(CLIFile* pFile)
             }
         }
     }
+    for (uint32_t index = 1; index <= pFile->MemberReferenceCount; ++index)
+    {
+        if (pFile->MemberReferences[index].TypeOfParent == MemberRefParent_Type_TypeDefinition) ++pFile->MemberReferences[index].Parent.TypeDefinition->MemberReferenceCount;
+    }
+    for (uint32_t index = 1; index <= pFile->TypeDefinitionCount; ++index)
+    {
+        if (pFile->TypeDefinitions[index].MemberReferenceCount > 0)
+        {
+            pFile->TypeDefinitions[index].MemberReferences = (MemberReference**)calloc(pFile->TypeDefinitions[index].MemberReferenceCount, sizeof(MemberReference*));
+            for (uint32_t searchIndex = 1, memberReferenceIndex = 0; searchIndex <= pFile->MemberReferenceCount; ++searchIndex)
+            {
+                if (pFile->MemberReferences[searchIndex].TypeOfParent == MemberRefParent_Type_TypeDefinition &&
+                    pFile->MemberReferences[searchIndex].Parent.TypeDefinition == &pFile->TypeDefinitions[index])
+                {
+                    pFile->TypeDefinitions[index].MemberReferences[memberReferenceIndex] = &pFile->MemberReferences[searchIndex];
+                    ++memberReferenceIndex;
+                }
+            }
+        }
+    }
+    for (uint32_t index = 1; index <= pFile->MethodImplementationCount; ++index)
+    {
+        ++pFile->MethodImplementations[index].Parent->MethodImplementationCount;
+    }
+    for (uint32_t index = 1; index <= pFile->TypeDefinitionCount; ++index)
+    {
+        if (pFile->TypeDefinitions[index].MethodImplementationCount > 0)
+        {
+            //printf("MethodImplementations: %u %s.%s %u\n", (unsigned int)index, pFile->TypeDefinitions[index].Namespace, pFile->TypeDefinitions[index].Name, (unsigned int)pFile->TypeDefinitions[index].MethodImplementationCount);
+            pFile->TypeDefinitions[index].MethodImplementations = (MethodImplementation**)calloc(pFile->TypeDefinitions[index].MethodImplementationCount, sizeof(MethodImplementation*));
+            for (uint32_t searchIndex = 1, methodImplementationIndex = 0; searchIndex <= pFile->MethodImplementationCount; ++searchIndex)
+            {
+                if (pFile->MethodImplementations[searchIndex].Parent == &pFile->TypeDefinitions[index])
+                {
+                    pFile->TypeDefinitions[index].MethodImplementations[methodImplementationIndex] = &pFile->MethodImplementations[searchIndex];
+                    ++methodImplementationIndex;
+                }
+            }
+        }
+    }
+    for (uint32_t index = 1; index <= pFile->NestedClassCount; ++index)
+    {
+        ++pFile->NestedClasses[index].Enclosing->NestedClassCount;
+    }
+    for (uint32_t index = 1; index <= pFile->TypeDefinitionCount; ++index)
+    {
+        if (pFile->TypeDefinitions[index].NestedClassCount > 0)
+        {
+            pFile->TypeDefinitions[index].NestedClasses = (NestedClass**)calloc(pFile->TypeDefinitions[index].NestedClassCount, sizeof(NestedClass*));
+            for (uint32_t searchIndex = 1, nestedClassIndex = 0; searchIndex <= pFile->NestedClassCount; ++searchIndex)
+            {
+                if (pFile->NestedClasses[searchIndex].Enclosing == &pFile->TypeDefinitions[index])
+                {
+                    pFile->TypeDefinitions[index].NestedClasses[nestedClassIndex] = &pFile->NestedClasses[searchIndex];
+                    ++nestedClassIndex;
+                }
+            }
+        }
+    }
+    for (uint32_t index = 1; index <= pFile->PropertyMapCount; ++index) pFile->PropertyMaps[index].Parent->PropertyMap = &pFile->PropertyMaps[index];
 }

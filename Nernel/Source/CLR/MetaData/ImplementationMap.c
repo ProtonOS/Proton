@@ -41,8 +41,14 @@ const uint8_t* ImplementationMap_Load(CLIFile* pFile, const uint8_t* pTableData)
         memberForwardedRow = memberForwardedIndex >> MemberForwarded_Type_Bits;
         switch (pFile->ImplementationMaps[index].TypeOfMemberForwarded)
         {
-        case MemberForwarded_Type_Field: pFile->ImplementationMaps[index].MemberForwarded.Field = &pFile->Fields[memberForwardedRow]; break;
-        case MemberForwarded_Type_MethodDefinition: pFile->ImplementationMaps[index].MemberForwarded.MethodDefinition = &pFile->MethodDefinitions[memberForwardedRow]; break;
+        case MemberForwarded_Type_Field:
+            if (memberForwardedRow == 0 || memberForwardedRow > pFile->FieldCount) Panic("ImplementationMap_Load Field");
+            pFile->ImplementationMaps[index].MemberForwarded.Field = &pFile->Fields[memberForwardedRow];
+            break;
+        case MemberForwarded_Type_MethodDefinition:
+            if (memberForwardedRow == 0 || memberForwardedRow > pFile->MethodDefinitionCount) Panic("ImplementationMap_Load MethodDefinition");
+            pFile->ImplementationMaps[index].MemberForwarded.MethodDefinition = &pFile->MethodDefinitions[memberForwardedRow];
+            break;
         default: break;
         }
 
@@ -52,6 +58,7 @@ const uint8_t* ImplementationMap_Load(CLIFile* pFile, const uint8_t* pTableData)
 
         if (pFile->ModuleReferenceCount > 0xFFFF) { importScopeIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { importScopeIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        if (importScopeIndex == 0 || importScopeIndex > pFile->ModuleReferenceCount) Panic("ImplementationMap_Load ModuleReference");
         pFile->ImplementationMaps[index].ImportScope = &pFile->ModuleReferences[importScopeIndex];
     }
     return pTableData;

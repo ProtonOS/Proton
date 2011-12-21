@@ -35,6 +35,7 @@ const uint8_t* AssemblyReferenceOperatingSystem_Load(CLIFile* pFile, const uint8
         pFile->AssemblyReferenceOperatingSystems[index].MinorVersion = *(uint32_t* )pTableData; pTableData += 4;
         if (pFile->AssemblyReferenceCount > 0xFFFF) { assemblyReferenceIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { assemblyReferenceIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        if (assemblyReferenceIndex == 0 || assemblyReferenceIndex > pFile->AssemblyReferenceCount) Panic("AssemblyReferenceOperatingSystem_Load");
         pFile->AssemblyReferenceOperatingSystems[index].AssemblyReference = &pFile->AssemblyReferences[assemblyReferenceIndex];
     }
     return pTableData;

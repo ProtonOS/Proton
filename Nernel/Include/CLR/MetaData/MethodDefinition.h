@@ -90,6 +90,8 @@ struct _MethodDefinition
     uint32_t GenericParameterCount;
     GenericParameter** GenericParameters;
     ImplementationMap* ImplementationMap;
+    uint32_t MemberReferenceCount;
+    MemberReference** MemberReferences;
 };
 
 const uint8_t* MethodDefinition_Initialize(CLIFile* pFile, const uint8_t* pTableData);

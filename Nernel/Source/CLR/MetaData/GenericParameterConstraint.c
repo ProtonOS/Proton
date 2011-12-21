@@ -35,6 +35,7 @@ const uint8_t* GenericParameterConstraint_Load(CLIFile* pFile, const uint8_t* pT
     {
         if (pFile->GenericParameterCount > 0xFFFF) { ownerIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { ownerIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        if (ownerIndex == 0 || ownerIndex > pFile->GenericParameterCount) Panic("GenericParameterConstraint_Load GenericParameter");
         pFile->GenericParameterConstraints[index].Owner = &pFile->GenericParameters[ownerIndex];
         if (pFile->TypeDefinitionCount > TypeDefOrRef_Type_MaxRows16Bit ||
             pFile->TypeReferenceCount > TypeDefOrRef_Type_MaxRows16Bit ||
@@ -44,9 +45,18 @@ const uint8_t* GenericParameterConstraint_Load(CLIFile* pFile, const uint8_t* pT
         constraintRow = constraintIndex >> TypeDefOrRef_Type_Bits;
         switch (pFile->GenericParameterConstraints[index].TypeOfConstraint)
         {
-        case TypeDefOrRef_Type_TypeDefinition: pFile->GenericParameterConstraints[index].Constraint.TypeDefinition = &pFile->TypeDefinitions[constraintRow]; break;
-        case TypeDefOrRef_Type_TypeReference: pFile->GenericParameterConstraints[index].Constraint.TypeReference = &pFile->TypeReferences[constraintRow]; break;
-        case TypeDefOrRef_Type_TypeSpecification: pFile->GenericParameterConstraints[index].Constraint.TypeSpecification = &pFile->TypeSpecifications[constraintRow]; break;
+        case TypeDefOrRef_Type_TypeDefinition:
+            if (constraintRow == 0 || constraintRow > pFile->TypeDefinitionCount) Panic("GenericParameterConstraint_Load TypeDefinition");
+            pFile->GenericParameterConstraints[index].Constraint.TypeDefinition = &pFile->TypeDefinitions[constraintRow];
+            break;
+        case TypeDefOrRef_Type_TypeReference:
+            if (constraintRow == 0 || constraintRow > pFile->TypeReferenceCount) Panic("GenericParameterConstraint_Load TypeReference");
+            pFile->GenericParameterConstraints[index].Constraint.TypeReference = &pFile->TypeReferences[constraintRow];
+            break;
+        case TypeDefOrRef_Type_TypeSpecification:
+            if (constraintRow == 0 || constraintRow > pFile->TypeSpecificationCount) Panic("GenericParameterConstraint_Load TypeSpecification");
+            pFile->GenericParameterConstraints[index].Constraint.TypeSpecification = &pFile->TypeSpecifications[constraintRow];
+            break;
         default: break;
         }
     }

@@ -33,9 +33,11 @@ const uint8_t* NestedClass_Load(CLIFile* pFile, const uint8_t* pTableData)
     {
         if (pFile->TypeDefinitionCount > 0xFFFF) { nestedIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { nestedIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        if (nestedIndex == 0 || nestedIndex > pFile->TypeDefinitionCount) Panic("NestedClass_Load TypeDefinition");
         pFile->NestedClasses[index].Nested = &pFile->TypeDefinitions[nestedIndex];
         if (pFile->TypeDefinitionCount > 0xFFFF) { enclosingIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { enclosingIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        if (enclosingIndex == 0 || enclosingIndex > pFile->TypeDefinitionCount) Panic("NestedClass_Load TypeDefinition");
         pFile->NestedClasses[index].Enclosing = &pFile->TypeDefinitions[enclosingIndex];
     }
     return pTableData;

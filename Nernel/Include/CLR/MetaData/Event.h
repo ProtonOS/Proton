@@ -10,6 +10,7 @@ struct _Event
 
     uint32_t CustomAttributeCount;
     CustomAttribute** CustomAttributes;
+    MethodSemantics* MethodSemantics;
 };
 
 const uint8_t* Event_Initialize(CLIFile* pFile, const uint8_t* pTableData);

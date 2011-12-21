@@ -35,6 +35,7 @@ const uint8_t* MethodSemantics_Load(CLIFile* pFile, const uint8_t* pTableData)
         pFile->MethodSemantics[index].Semantics = *(uint16_t*)pTableData; pTableData += 2;
         if (pFile->MethodDefinitionCount > 0xFFFF) { methodIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { methodIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        if (methodIndex == 0 || methodIndex > pFile->MethodDefinitionCount) Panic("MethodSemantics_Load MethodDefinition");
         pFile->MethodSemantics[index].Method = &pFile->MethodDefinitions[methodIndex];
 
         if (pFile->EventCount > HasSemantics_Type_MaxRows16Bit ||
@@ -44,8 +45,14 @@ const uint8_t* MethodSemantics_Load(CLIFile* pFile, const uint8_t* pTableData)
         associationRow = associationIndex >> HasSemantics_Type_Bits;
         switch (pFile->MethodSemantics[index].TypeOfAssociation)
         {
-        case HasSemantics_Type_Event: pFile->MethodSemantics[index].Association.Event = &pFile->Events[associationRow]; break;
-        case HasSemantics_Type_Property: pFile->MethodSemantics[index].Association.Property = &pFile->Properties[associationRow]; break;
+        case HasSemantics_Type_Event:
+            if (associationRow == 0 || associationRow > pFile->EventCount) Panic("MethodSemantics_Load Event");
+            pFile->MethodSemantics[index].Association.Event = &pFile->Events[associationRow];
+            break;
+        case HasSemantics_Type_Property:
+            if (associationRow == 0 || associationRow > pFile->PropertyCount) Panic("MethodSemantics_Load Property");
+            pFile->MethodSemantics[index].Association.Property = &pFile->Properties[associationRow];
+            break;
         default: break;
         }
     }

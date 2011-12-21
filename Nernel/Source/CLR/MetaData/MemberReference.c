@@ -42,11 +42,26 @@ const uint8_t* MemberReference_Load(CLIFile* pFile, const uint8_t* pTableData)
         parentRow = parentIndex >> MemberRefParent_Type_Bits;
         switch (pFile->MemberReferences[index].TypeOfParent)
         {
-        case MemberRefParent_Type_TypeDefinition: pFile->MemberReferences[index].Parent.TypeDefinition = &pFile->TypeDefinitions[parentRow]; break;
-        case MemberRefParent_Type_TypeReference: pFile->MemberReferences[index].Parent.TypeReference = &pFile->TypeReferences[parentRow]; break;
-        case MemberRefParent_Type_ModuleReference: pFile->MemberReferences[index].Parent.ModuleReference = &pFile->ModuleReferences[parentRow]; break;
-        case MemberRefParent_Type_MethodDefinition: pFile->MemberReferences[index].Parent.MethodDefinition = &pFile->MethodDefinitions[parentRow]; break;
-        case MemberRefParent_Type_TypeSpecification: pFile->MemberReferences[index].Parent.TypeSpecification = &pFile->TypeSpecifications[parentRow]; break;
+        case MemberRefParent_Type_TypeDefinition:
+            if (parentRow == 0 || parentRow > pFile->TypeDefinitionCount) Panic("MemberReference_Load TypeDefinition");
+            pFile->MemberReferences[index].Parent.TypeDefinition = &pFile->TypeDefinitions[parentRow];
+            break;
+        case MemberRefParent_Type_TypeReference:
+            if (parentRow == 0 || parentRow > pFile->TypeReferenceCount) Panic("MemberReference_Load TypeReference");
+            pFile->MemberReferences[index].Parent.TypeReference = &pFile->TypeReferences[parentRow];
+            break;
+        case MemberRefParent_Type_ModuleReference:
+            if (parentRow == 0 || parentRow > pFile->ModuleReferenceCount) Panic("MemberReference_Load ModuleReference");
+            pFile->MemberReferences[index].Parent.ModuleReference = &pFile->ModuleReferences[parentRow];
+            break;
+        case MemberRefParent_Type_MethodDefinition:
+            if (parentRow == 0 || parentRow > pFile->MethodDefinitionCount) Panic("MemberReference_Load MethodDefinition");
+            pFile->MemberReferences[index].Parent.MethodDefinition = &pFile->MethodDefinitions[parentRow];
+            break;
+        case MemberRefParent_Type_TypeSpecification:
+            if (parentRow == 0 || parentRow > pFile->TypeSpecificationCount) Panic("MemberReference_Load TypeSpecification");
+            pFile->MemberReferences[index].Parent.TypeSpecification = &pFile->TypeSpecifications[parentRow];
+            break;
         default: break;
         }
 

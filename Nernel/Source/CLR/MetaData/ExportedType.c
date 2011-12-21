@@ -36,6 +36,7 @@ const uint8_t* ExportedType_Load(CLIFile* pFile, const uint8_t* pTableData)
         pFile->ExportedTypes[index].Flags = *(uint32_t* )pTableData; pTableData += 4;
         if (pFile->TypeDefinitionCount > 0xFFFF) { typeDefinitionIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { typeDefinitionIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        if (typeDefinitionIndex == 0 || typeDefinitionIndex > pFile->TypeDefinitionCount) Panic("ExportedType_Load TypeDefinition");
         pFile->ExportedTypes[index].TypeDefinitionID = &pFile->TypeDefinitions[typeDefinitionIndex];
         if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
@@ -52,9 +53,18 @@ const uint8_t* ExportedType_Load(CLIFile* pFile, const uint8_t* pTableData)
         implementationRow = implementationIndex >> Implementation_Type_Bits;
         switch (pFile->ExportedTypes[index].TypeOfImplementation)
         {
-        case Implementation_Type_File: pFile->ExportedTypes[index].Implementation.File = &pFile->Files[implementationRow]; break;
-        case Implementation_Type_AssemblyReference: pFile->ExportedTypes[index].Implementation.AssemblyReference = &pFile->AssemblyReferences[implementationRow]; break;
-        case Implementation_Type_ExportedType: pFile->ExportedTypes[index].Implementation.ExportedType = &pFile->ExportedTypes[implementationRow]; break;
+        case Implementation_Type_File:
+            if (implementationRow == 0 || implementationRow > pFile->FileCount) Panic("ExportedType_Load File");
+            pFile->ExportedTypes[index].Implementation.File = &pFile->Files[implementationRow];
+            break;
+        case Implementation_Type_AssemblyReference:
+            if (implementationRow == 0 || implementationRow > pFile->AssemblyReferenceCount) Panic("ExportedType_Load AssemblyReference");
+            pFile->ExportedTypes[index].Implementation.AssemblyReference = &pFile->AssemblyReferences[implementationRow];
+            break;
+        case Implementation_Type_ExportedType:
+            if (implementationRow == 0 || implementationRow > pFile->ExportedTypeCount) Panic("ExportedType_Load ExportedType");
+            pFile->ExportedTypes[index].Implementation.ExportedType = &pFile->ExportedTypes[implementationRow];
+            break;
         default: break;
         }
     }

@@ -12,6 +12,7 @@ struct _Property
     Constant* Constant;
     uint32_t CustomAttributeCount;
     CustomAttribute** CustomAttributes;
+    MethodSemantics* MethodSemantics;
 };
 
 const uint8_t* Property_Initialize(CLIFile* pFile, const uint8_t* pTableData);

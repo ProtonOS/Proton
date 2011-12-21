@@ -38,8 +38,14 @@ const uint8_t* FieldMarshal_Load(CLIFile* pFile, const uint8_t* pTableData)
         parentRow = parentIndex >> HasFieldMarshal_Type_Bits;
         switch (pFile->FieldMarshals[index].TypeOfParent)
         {
-        case HasFieldMarshal_Type_Field: pFile->FieldMarshals[index].Parent.Field = &pFile->Fields[parentRow]; break;
-        case HasFieldMarshal_Type_Parameter: pFile->FieldMarshals[index].Parent.Parameter = &pFile->Parameters[parentRow]; break;
+        case HasFieldMarshal_Type_Field:
+            if (parentRow == 0 || parentRow > pFile->FieldCount) Panic("FieldMarshal_Load Field");
+            pFile->FieldMarshals[index].Parent.Field = &pFile->Fields[parentRow];
+            break;
+        case HasFieldMarshal_Type_Parameter:
+            if (parentRow == 0 || parentRow > pFile->ParameterCount) Panic("FieldMarshal_Load Parameter");
+            pFile->FieldMarshals[index].Parent.Parameter = &pFile->Parameters[parentRow];
+            break;
         default: break;
         }
         if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Blobs32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }

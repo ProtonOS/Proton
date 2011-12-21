@@ -67,4 +67,8 @@ void Property_Link(CLIFile* pFile)
             }
         }
     }
+    for (uint32_t index = 1; index <= pFile->MethodSemanticsCount; ++index)
+    {
+        if (pFile->MethodSemantics[index].TypeOfAssociation == HasSemantics_Type_Property) pFile->MethodSemantics[index].Association.Property->MethodSemantics = &pFile->MethodSemantics[index];
+    }
 }

@@ -164,3 +164,5 @@ const uint8_t* CLIFile_GetGUID(CLIFile* pFile, uint32_t pVirtualAddress);
 #include <CLR/MetaData/GenericParameter.h>
 #include <CLR/MetaData/MethodSpecification.h>
 #include <CLR/MetaData/GenericParameterConstraint.h>
+
+void Panic(const char* pMessage);

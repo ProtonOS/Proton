@@ -20,6 +20,7 @@ void TypeReference_Cleanup(CLIFile* pFile)
         for (uint32_t index = 1; index <= pFile->TypeReferenceCount; ++index)
         {
             if (pFile->TypeReferences[index].CustomAttributes) free(pFile->TypeReferences[index].CustomAttributes);
+            if (pFile->TypeReferences[index].MemberReferences) free(pFile->TypeReferences[index].MemberReferences);
         }
         free(pFile->TypeReferences);
         pFile->TypeReferences = NULL;
@@ -41,10 +42,22 @@ const uint8_t* TypeReference_Load(CLIFile* pFile, const uint8_t* pTableData)
         resolutionScopeRow = resolutionScopeIndex >> ResolutionScope_Type_Bits;
         switch (pFile->TypeReferences[index].TypeOfResolutionScope)
         {
-        case ResolutionScope_Type_ModuleDefinition: pFile->TypeReferences[index].ResolutionScope.ModuleDefinition = &pFile->ModuleDefinitions[resolutionScopeRow]; break;
-        case ResolutionScope_Type_ModuleReference: pFile->TypeReferences[index].ResolutionScope.ModuleReference = &pFile->ModuleReferences[resolutionScopeRow]; break;
-        case ResolutionScope_Type_AssemblyReference: pFile->TypeReferences[index].ResolutionScope.AssemblyReference = &pFile->AssemblyReferences[resolutionScopeRow]; break;
-        case ResolutionScope_Type_TypeReference: pFile->TypeReferences[index].ResolutionScope.TypeReference = &pFile->TypeReferences[resolutionScopeRow]; break;
+        case ResolutionScope_Type_ModuleDefinition:
+            if (resolutionScopeRow == 0 || resolutionScopeRow > pFile->ModuleDefinitionCount) Panic("TypeReference_Load ModuleDefinition");
+            pFile->TypeReferences[index].ResolutionScope.ModuleDefinition = &pFile->ModuleDefinitions[resolutionScopeRow];
+            break;
+        case ResolutionScope_Type_ModuleReference:
+            if (resolutionScopeRow == 0 || resolutionScopeRow > pFile->ModuleReferenceCount) Panic("TypeReference_Load ModuleReference");
+            pFile->TypeReferences[index].ResolutionScope.ModuleReference = &pFile->ModuleReferences[resolutionScopeRow];
+            break;
+        case ResolutionScope_Type_AssemblyReference:
+            if (resolutionScopeRow == 0 || resolutionScopeRow > pFile->AssemblyReferenceCount) Panic("TypeReference_Load AssemblyReference");
+            pFile->TypeReferences[index].ResolutionScope.AssemblyReference = &pFile->AssemblyReferences[resolutionScopeRow];
+            break;
+        case ResolutionScope_Type_TypeReference:
+            if (resolutionScopeRow == 0 || resolutionScopeRow > pFile->TypeReferenceCount) Panic("TypeReference_Load TypeReference");
+            pFile->TypeReferences[index].ResolutionScope.TypeReference = &pFile->TypeReferences[resolutionScopeRow];
+            break;
         default: break;
         }
         if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
@@ -75,6 +88,26 @@ void TypeReference_Link(CLIFile* pFile)
                 {
                     pFile->TypeReferences[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
                     ++customAttributeIndex;
+                }
+            }
+        }
+    }
+    for (uint32_t index = 1; index <= pFile->MemberReferenceCount; ++index)
+    {
+        if (pFile->MemberReferences[index].TypeOfParent == MemberRefParent_Type_TypeReference) ++pFile->MemberReferences[index].Parent.TypeReference->MemberReferenceCount;
+    }
+    for (uint32_t index = 1; index <= pFile->TypeReferenceCount; ++index)
+    {
+        if (pFile->TypeReferences[index].MemberReferenceCount > 0)
+        {
+            pFile->TypeReferences[index].MemberReferences = (MemberReference**)calloc(pFile->TypeReferences[index].MemberReferenceCount, sizeof(MemberReference*));
+            for (uint32_t searchIndex = 1, memberReferenceIndex = 0; searchIndex <= pFile->MemberReferenceCount; ++searchIndex)
+            {
+                if (pFile->MemberReferences[searchIndex].TypeOfParent == MemberRefParent_Type_TypeReference &&
+                    pFile->MemberReferences[searchIndex].Parent.TypeReference == &pFile->TypeReferences[index])
+                {
+                    pFile->TypeReferences[index].MemberReferences[memberReferenceIndex] = &pFile->MemberReferences[searchIndex];
+                    ++memberReferenceIndex;
                 }
             }
         }

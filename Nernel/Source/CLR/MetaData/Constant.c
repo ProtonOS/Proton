@@ -40,9 +40,18 @@ const uint8_t* Constant_Load(CLIFile* pFile, const uint8_t* pTableData)
         parentRow = parentIndex >> HasConstant_Type_Bits;
         switch (pFile->Constants[index].TypeOfParent)
         {
-        case HasConstant_Type_Field: pFile->Constants[index].Parent.Field = &pFile->Fields[parentRow]; break;
-        case HasConstant_Type_Parameter: pFile->Constants[index].Parent.Parameter = &pFile->Parameters[parentRow]; break;
-        case HasConstant_Type_Property: pFile->Constants[index].Parent.Property = &pFile->Properties[parentRow]; break;
+        case HasConstant_Type_Field:
+            if (parentRow == 0 || parentRow > pFile->FieldCount) Panic("Constant_Load Field");
+            pFile->Constants[index].Parent.Field = &pFile->Fields[parentRow];
+            break;
+        case HasConstant_Type_Parameter:
+            if (parentRow == 0 || parentRow > pFile->ParameterCount) Panic("Constant_Load Parameter");
+            pFile->Constants[index].Parent.Parameter = &pFile->Parameters[parentRow];
+            break;
+        case HasConstant_Type_Property:
+            if (parentRow == 0 || parentRow > pFile->PropertyCount) Panic("Constant_Load Property");
+            pFile->Constants[index].Parent.Property = &pFile->Properties[parentRow];
+            break;
         default: break;
         }
         if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Blobs32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }

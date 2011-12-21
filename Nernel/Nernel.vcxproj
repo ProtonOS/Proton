@@ -263,13 +263,13 @@
     <NMakeReBuildCommandLine>"$(SolutionDir)SDK\bin\omake"</NMakeReBuildCommandLine>
     <NMakePreprocessorDefinitions>
     </NMakePreprocessorDefinitions>
-    <NMakeIncludeSearchPath>.\Include;..\SDK\include;..\SDK\include\c++</NMakeIncludeSearchPath>
-    <IncludePath>..\SDK\include;..\SDK\include\c++;.\Include;.\Include\Runtime</IncludePath>
+    <NMakeIncludeSearchPath>.\Include;..\SDK\include</NMakeIncludeSearchPath>
+    <IncludePath>..\SDK\include;.\Include</IncludePath>
     <ReferencePath />
     <LibraryPath />
     <SourcePath />
     <ExcludePath />
-    <NMakeForcedIncludes>types.h;cstdint</NMakeForcedIncludes>
+    <NMakeForcedIncludes>types.h</NMakeForcedIncludes>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <NMakeBuildCommandLine>"$(SolutionDir)SDK\bin\omake"</NMakeBuildCommandLine>
@@ -278,13 +278,13 @@
     <NMakeReBuildCommandLine>"$(SolutionDir)SDK\bin\omake"</NMakeReBuildCommandLine>
     <NMakePreprocessorDefinitions>
     </NMakePreprocessorDefinitions>
-    <NMakeIncludeSearchPath>.\Include;..\SDK\include;..\SDK\include\c++</NMakeIncludeSearchPath>
-    <IncludePath>..\SDK\include;..\SDK\include\c++;.\Include;.\Include\Runtime</IncludePath>
+    <NMakeIncludeSearchPath>.\Include;..\SDK\include</NMakeIncludeSearchPath>
+    <IncludePath>..\SDK\include;.\Include</IncludePath>
     <ReferencePath />
     <LibraryPath />
     <SourcePath />
     <ExcludePath />
-    <NMakeForcedIncludes>types.h;cstdint</NMakeForcedIncludes>
+    <NMakeForcedIncludes>types.h</NMakeForcedIncludes>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <BuildLog>

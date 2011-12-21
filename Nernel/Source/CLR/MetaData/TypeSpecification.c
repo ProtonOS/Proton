@@ -20,6 +20,7 @@ void TypeSpecification_Cleanup(CLIFile* pFile)
         for (uint32_t index = 1; index <= pFile->TypeSpecificationCount; ++index)
         {
             if (pFile->TypeSpecifications[index].CustomAttributes) free(pFile->TypeSpecifications[index].CustomAttributes);
+            if (pFile->TypeSpecifications[index].MemberReferences) free(pFile->TypeSpecifications[index].MemberReferences);
         }
         free(pFile->TypeSpecifications);
         pFile->TypeSpecifications = NULL;
@@ -55,6 +56,26 @@ void TypeSpecification_Link(CLIFile* pFile)
                 {
                     pFile->TypeSpecifications[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
                     ++customAttributeIndex;
+                }
+            }
+        }
+    }
+    for (uint32_t index = 1; index <= pFile->MemberReferenceCount; ++index)
+    {
+        if (pFile->MemberReferences[index].TypeOfParent == MemberRefParent_Type_TypeSpecification) ++pFile->MemberReferences[index].Parent.TypeSpecification->MemberReferenceCount;
+    }
+    for (uint32_t index = 1; index <= pFile->TypeSpecificationCount; ++index)
+    {
+        if (pFile->TypeSpecifications[index].MemberReferenceCount > 0)
+        {
+            pFile->TypeSpecifications[index].MemberReferences = (MemberReference**)calloc(pFile->TypeSpecifications[index].MemberReferenceCount, sizeof(MemberReference*));
+            for (uint32_t searchIndex = 1, memberReferenceIndex = 0; searchIndex <= pFile->MemberReferenceCount; ++searchIndex)
+            {
+                if (pFile->MemberReferences[searchIndex].TypeOfParent == MemberRefParent_Type_TypeSpecification &&
+                    pFile->MemberReferences[searchIndex].Parent.TypeSpecification == &pFile->TypeSpecifications[index])
+                {
+                    pFile->TypeSpecifications[index].MemberReferences[memberReferenceIndex] = &pFile->MemberReferences[searchIndex];
+                    ++memberReferenceIndex;
                 }
             }
         }

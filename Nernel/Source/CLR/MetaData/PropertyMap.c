@@ -34,11 +34,16 @@ const uint8_t* PropertyMap_Load(CLIFile* pFile, const uint8_t* pTableData)
     {
         if (pFile->TypeDefinitionCount > 0xFFFF) { parentIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { parentIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        if (parentIndex == 0 || parentIndex > pFile->TypeDefinitionCount) Panic("PropertyMap_Load TypeDefinition");
         pFile->PropertyMaps[index].Parent = &pFile->TypeDefinitions[parentIndex];
         if (pFile->PropertyCount > 0xFFFF) { propertyListIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { propertyListIndex = *(uint16_t*)pTableData; pTableData += 2; }
-        pFile->PropertyMaps[index].PropertyList = &pFile->Properties[propertyListIndex];
-        propertyListIndexes[index] = propertyListIndex;
+        if (propertyListIndex == 0 || propertyListIndex > pFile->PropertyCount + 1) Panic("PropertyMap_Load Property");
+        if (propertyListIndex <= pFile->PropertyCount)
+        {
+            pFile->PropertyMaps[index].PropertyList = &pFile->Properties[propertyListIndex];
+            propertyListIndexes[index] = propertyListIndex;
+        }
     }
     uint32_t propertyListCount = 0;
     for (uint32_t index = 1, used = 0; index <= pFile->PropertyMapCount; ++index, used += propertyListCount)

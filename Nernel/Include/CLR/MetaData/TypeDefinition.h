@@ -22,6 +22,13 @@ struct _TypeDefinition
     GenericParameter** GenericParameters;
     uint32_t InterfaceImplementationCount;
     InterfaceImplementation** InterfaceImplementations;
+    uint32_t MemberReferenceCount;
+    MemberReference** MemberReferences;
+    uint32_t MethodImplementationCount;
+    MethodImplementation** MethodImplementations;
+    uint32_t NestedClassCount;
+    NestedClass** NestedClasses;
+    PropertyMap* PropertyMap;
 
 	bool_t HasStaticConstructor;
 	bool_t HasStaticConstructorBeenRun;

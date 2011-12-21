@@ -42,8 +42,14 @@ const uint8_t* GenericParameter_Load(CLIFile* pFile, const uint8_t* pTableData)
         ownerRow = ownerIndex >> TypeOrMethodDef_Type_Bits;
         switch (pFile->GenericParameters[index].TypeOfOwner)
         {
-        case TypeOrMethodDef_Type_TypeDefinition: pFile->GenericParameters[index].Owner.TypeDefinition = &pFile->TypeDefinitions[ownerRow]; break;
-        case TypeOrMethodDef_Type_MethodDefinition: pFile->GenericParameters[index].Owner.MethodDefinition = &pFile->MethodDefinitions[ownerRow]; break;
+        case TypeOrMethodDef_Type_TypeDefinition:
+            if (ownerRow == 0 || ownerRow > pFile->TypeDefinitionCount) Panic("GenericParameter_Load TypeDefinition");
+            pFile->GenericParameters[index].Owner.TypeDefinition = &pFile->TypeDefinitions[ownerRow];
+            break;
+        case TypeOrMethodDef_Type_MethodDefinition:
+            if (ownerRow == 0 || ownerRow > pFile->MethodDefinitionCount) Panic("GenericParameter_Load MethodDefinition");
+            pFile->GenericParameters[index].Owner.MethodDefinition = &pFile->MethodDefinitions[ownerRow];
+            break;
         default: break;
         }
         if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }

@@ -22,6 +22,7 @@ void MethodDefinition_Cleanup(CLIFile* pFile)
             if (pFile->MethodDefinitions[index].Exceptions) free(pFile->MethodDefinitions[index].Exceptions);
             if (pFile->MethodDefinitions[index].CustomAttributes) free(pFile->MethodDefinitions[index].CustomAttributes);
             if (pFile->MethodDefinitions[index].GenericParameters) free(pFile->MethodDefinitions[index].GenericParameters);
+            if (pFile->MethodDefinitions[index].MemberReferences) free(pFile->MethodDefinitions[index].MemberReferences);
         }
         free(pFile->MethodDefinitions);
         pFile->MethodDefinitions = NULL;
@@ -57,8 +58,12 @@ const uint8_t* MethodDefinition_Load(CLIFile* pFile, const uint8_t* pTableData)
         pFile->MethodDefinitions[index].Signature = MetaData_GetCompressedUnsigned(pFile->BlobsHeap + heapIndex, &pFile->MethodDefinitions[index].SignatureLength);
         if (pFile->ParameterCount > 0xFFFF) { parameterListIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { parameterListIndex = *(uint16_t*)pTableData; pTableData += 2; }
-        pFile->MethodDefinitions[index].ParameterList = &pFile->Parameters[parameterListIndex];
-        parameterListIndexes[index] = parameterListIndex;
+        if (parameterListIndex == 0 || parameterListIndex > pFile->ParameterCount + 1) Panic("MethodDefinition_Load Parameter");
+        if (parameterListIndex <= pFile->ParameterCount)
+        {
+            pFile->MethodDefinitions[index].ParameterList = &pFile->Parameters[parameterListIndex];
+            parameterListIndexes[index] = parameterListIndex;
+        }
 
         if (methodBodyVirtualAddress != 0)
         {
@@ -224,5 +229,25 @@ void MethodDefinition_Link(CLIFile* pFile)
     for (uint32_t index = 1; index <= pFile->ImplementationMapCount; ++index)
     {
         if (pFile->ImplementationMaps[index].TypeOfMemberForwarded == MemberForwarded_Type_MethodDefinition) pFile->ImplementationMaps[index].MemberForwarded.MethodDefinition->ImplementationMap = &pFile->ImplementationMaps[index];
+    }
+    for (uint32_t index = 1; index <= pFile->MemberReferenceCount; ++index)
+    {
+        if (pFile->MemberReferences[index].TypeOfParent == MemberRefParent_Type_MethodDefinition) ++pFile->MemberReferences[index].Parent.MethodDefinition->MemberReferenceCount;
+    }
+    for (uint32_t index = 1; index <= pFile->MethodDefinitionCount; ++index)
+    {
+        if (pFile->MethodDefinitions[index].MemberReferenceCount > 0)
+        {
+            pFile->MethodDefinitions[index].MemberReferences = (MemberReference**)calloc(pFile->MethodDefinitions[index].MemberReferenceCount, sizeof(MemberReference*));
+            for (uint32_t searchIndex = 1, memberReferenceIndex = 0; searchIndex <= pFile->MemberReferenceCount; ++searchIndex)
+            {
+                if (pFile->MemberReferences[searchIndex].TypeOfParent == MemberRefParent_Type_MethodDefinition &&
+                    pFile->MemberReferences[searchIndex].Parent.MethodDefinition == &pFile->MethodDefinitions[index])
+                {
+                    pFile->MethodDefinitions[index].MemberReferences[memberReferenceIndex] = &pFile->MemberReferences[searchIndex];
+                    ++memberReferenceIndex;
+                }
+            }
+        }
     }
 }

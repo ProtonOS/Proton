@@ -33,6 +33,7 @@ const uint8_t* FieldLayout_Load(CLIFile* pFile, const uint8_t* pTableData)
         pFile->FieldLayouts[index].Offset = *(uint32_t*)pTableData; pTableData += 4;
         if (pFile->FieldCount > 0xFFFF) { fieldIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { fieldIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        if (fieldIndex == 0 || fieldIndex > pFile->FieldCount) Panic("FieldLayout_Load Field");
         pFile->FieldLayouts[index].Field = &pFile->Fields[fieldIndex];
     }
     return pTableData;

@@ -44,9 +44,18 @@ const uint8_t* Event_Load(CLIFile* pFile, const uint8_t* pTableData)
         eventTypeRow = eventTypeIndex >> TypeDefOrRef_Type_Bits;
         switch (pFile->Events[index].TypeOfEventType)
         {
-        case TypeDefOrRef_Type_TypeDefinition: pFile->Events[index].EventType.TypeDefinition = &pFile->TypeDefinitions[eventTypeRow]; break;
-        case TypeDefOrRef_Type_TypeReference: pFile->Events[index].EventType.TypeReference = &pFile->TypeReferences[eventTypeRow]; break;
-        case TypeDefOrRef_Type_TypeSpecification: pFile->Events[index].EventType.TypeSpecification = &pFile->TypeSpecifications[eventTypeRow]; break;
+        case TypeDefOrRef_Type_TypeDefinition:
+            if (eventTypeRow == 0 || eventTypeRow > pFile->TypeDefinitionCount) Panic("Event_Load TypeDefinition");
+            pFile->Events[index].EventType.TypeDefinition = &pFile->TypeDefinitions[eventTypeRow];
+            break;
+        case TypeDefOrRef_Type_TypeReference:
+            if (eventTypeRow == 0 || eventTypeRow > pFile->TypeReferenceCount) Panic("Event_Load TypeReference");
+            pFile->Events[index].EventType.TypeReference = &pFile->TypeReferences[eventTypeRow];
+            break;
+        case TypeDefOrRef_Type_TypeSpecification:
+            if (eventTypeRow == 0 || eventTypeRow > pFile->TypeSpecificationCount) Panic("Event_Load TypeSpecification");
+            pFile->Events[index].EventType.TypeSpecification = &pFile->TypeSpecifications[eventTypeRow];
+            break;
         default: break;
         }
     }
@@ -74,5 +83,9 @@ void Event_Link(CLIFile* pFile)
                 }
             }
         }
+    }
+    for (uint32_t index = 1; index <= pFile->MethodSemanticsCount; ++index)
+    {
+        if (pFile->MethodSemantics[index].TypeOfAssociation == HasSemantics_Type_Event) pFile->MethodSemantics[index].Association.Event->MethodSemantics = &pFile->MethodSemantics[index];
     }
 }

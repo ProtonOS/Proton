@@ -35,6 +35,7 @@ const uint8_t* InterfaceImplementation_Load(CLIFile* pFile, const uint8_t* pTabl
     {
         if (pFile->TypeDefinitionCount > 0xFFFF) { implementorIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { implementorIndex = *(uint16_t*)pTableData; pTableData += 2; }
+        if (implementorIndex == 0 || implementorIndex > pFile->TypeDefinitionCount) Panic("InterfaceImplementation_Load TypeDefinition");
         pFile->InterfaceImplementations[index].Implementor = &pFile->TypeDefinitions[implementorIndex];
 
         if (pFile->TypeDefinitionCount > TypeDefOrRef_Type_MaxRows16Bit ||
@@ -45,9 +46,18 @@ const uint8_t* InterfaceImplementation_Load(CLIFile* pFile, const uint8_t* pTabl
         interfaceRow = interfaceIndex >> TypeDefOrRef_Type_Bits;
         switch (pFile->InterfaceImplementations[index].TypeOfInterface)
         {
-        case TypeDefOrRef_Type_TypeDefinition: pFile->InterfaceImplementations[index].Interface.TypeDefinition = &pFile->TypeDefinitions[interfaceRow]; break;
-        case TypeDefOrRef_Type_TypeReference: pFile->InterfaceImplementations[index].Interface.TypeReference = &pFile->TypeReferences[interfaceRow]; break;
-        case TypeDefOrRef_Type_TypeSpecification: pFile->InterfaceImplementations[index].Interface.TypeSpecification = &pFile->TypeSpecifications[interfaceRow]; break;
+        case TypeDefOrRef_Type_TypeDefinition:
+            if (interfaceRow == 0 || interfaceRow > pFile->TypeDefinitionCount) Panic("InterfaceImplementation_Load TypeDefinition");
+            pFile->InterfaceImplementations[index].Interface.TypeDefinition = &pFile->TypeDefinitions[interfaceRow];
+            break;
+        case TypeDefOrRef_Type_TypeReference:
+            if (interfaceRow == 0 || interfaceRow > pFile->TypeReferenceCount) Panic("InterfaceImplementation_Load TypeReference");
+            pFile->InterfaceImplementations[index].Interface.TypeReference = &pFile->TypeReferences[interfaceRow];
+            break;
+        case TypeDefOrRef_Type_TypeSpecification:
+            if (interfaceRow == 0 || interfaceRow > pFile->TypeSpecificationCount) Panic("InterfaceImplementation_Load TypeSpecification");
+            pFile->InterfaceImplementations[index].Interface.TypeSpecification = &pFile->TypeSpecifications[interfaceRow];
+            break;
         default: break;
         }
     }
