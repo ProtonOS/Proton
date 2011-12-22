@@ -24,7 +24,9 @@ ILAssembly* ILReader_CreateAssembly(CLIFile* fil)
     {
         uint8_t* ilLoc = (uint8_t*)fil->MethodDefinitions[i].Body.Code;
         Log_WriteLine(LogFlags_ILReading, "Reading Method %s.%s.%s", fil->MethodDefinitions[i].TypeDefinition->Namespace, fil->MethodDefinitions[i].TypeDefinition->Name, fil->MethodDefinitions[i].Name);
-        IRAssembly_AddMethod(asmbly->IRAssembly, ReadIL(&ilLoc, fil->MethodDefinitions[i].Body.CodeSize));
+        IRMethod* irMeth = ReadIL(&ilLoc, fil->MethodDefinitions[i].Body.CodeSize);
+        fil->MethodDefinitions[i].LoadedMethod = irMeth;
+        IRAssembly_AddMethod(asmbly->IRAssembly, irMeth);
     }
 
     StackObjectPool_Destroy();
@@ -408,7 +410,19 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 
                 ClearFlags();
                 break;
+
+
+            case ILOpCode_Br:				// 0x38
+                
+                ClearFlags();
+                break;
             case ILOpCode_Br_S:				// 0x2B
+                
+                ClearFlags();
+                break;
+
+
+            case ILOpCode_BrFalse:			// 0x39
                 
                 ClearFlags();
                 break;
@@ -416,7 +430,19 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 
                 ClearFlags();
                 break;
+
+
+            case ILOpCode_BrTrue:			// 0x3A
+                
+                ClearFlags();
+                break;
             case ILOpCode_BrTrue_S:			// 0x2D
+                
+                ClearFlags();
+                break;
+
+
+            case ILOpCode_Beq:				// 0x3B
                 
                 ClearFlags();
                 break;
@@ -424,19 +450,9 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 
                 ClearFlags();
                 break;
-            case ILOpCode_Bge_S:			// 0x2F
-                
-                ClearFlags();
-                break;
-            case ILOpCode_Bgt_S:			// 0x30
-                
-                ClearFlags();
-                break;
-            case ILOpCode_Ble_S:			// 0x31
-                
-                ClearFlags();
-                break;
-            case ILOpCode_Blt_S:			// 0x32
+
+
+            case ILOpCode_Bne_Un:			// 0x40
                 
                 ClearFlags();
                 break;
@@ -444,55 +460,13 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 
                 ClearFlags();
                 break;
-            case ILOpCode_Bge_Un_S:			// 0x34
-                
-                ClearFlags();
-                break;
-            case ILOpCode_Bgt_Un_S:			// 0x35
-                
-                ClearFlags();
-                break;
-            case ILOpCode_Ble_Un_S:			// 0x36
-                
-                ClearFlags();
-                break;
-            case ILOpCode_Blt_Un_S:			// 0x37
-                
-                ClearFlags();
-                break;
-            case ILOpCode_Br:				// 0x38
-                
-                ClearFlags();
-                break;
-            case ILOpCode_BrFalse:			// 0x39
-                
-                ClearFlags();
-                break;
-            case ILOpCode_BrTrue:			// 0x3A
-                
-                ClearFlags();
-                break;
-            case ILOpCode_Beq:				// 0x3B
-                
-                ClearFlags();
-                break;
+
+
             case ILOpCode_Bge:				// 0x3C
                 
                 ClearFlags();
                 break;
-            case ILOpCode_Bgt:				// 0x3D
-                
-                ClearFlags();
-                break;
-            case ILOpCode_Ble:				// 0x3E
-                
-                ClearFlags();
-                break;
-            case ILOpCode_Blt:				// 0x3F
-                
-                ClearFlags();
-                break;
-            case ILOpCode_Bne_Un:			// 0x40
+            case ILOpCode_Bge_S:			// 0x2F
                 
                 ClearFlags();
                 break;
@@ -500,7 +474,35 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 
                 ClearFlags();
                 break;
+            case ILOpCode_Bge_Un_S:			// 0x34
+                
+                ClearFlags();
+                break;
+
+
+            case ILOpCode_Bgt:				// 0x3D
+                
+                ClearFlags();
+                break;
+            case ILOpCode_Bgt_S:			// 0x30
+                
+                ClearFlags();
+                break;
             case ILOpCode_Bgt_Un:			// 0x42
+                
+                ClearFlags();
+                break;
+            case ILOpCode_Bgt_Un_S:			// 0x35
+                
+                ClearFlags();
+                break;
+
+
+            case ILOpCode_Ble:				// 0x3E
+                
+                ClearFlags();
+                break;
+            case ILOpCode_Ble_S:			// 0x31
                 
                 ClearFlags();
                 break;
@@ -508,10 +510,30 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 
                 ClearFlags();
                 break;
+            case ILOpCode_Ble_Un_S:			// 0x36
+                
+                ClearFlags();
+                break;
+
+
+            case ILOpCode_Blt:				// 0x3F
+                
+                ClearFlags();
+                break;
+            case ILOpCode_Blt_S:			// 0x32
+                
+                ClearFlags();
+                break;
             case ILOpCode_Blt_Un:			// 0x44
                 
                 ClearFlags();
                 break;
+            case ILOpCode_Blt_Un_S:			// 0x37
+                
+                ClearFlags();
+                break;
+
+
             case ILOpCode_Switch:			// 0x45
                 
                 ClearFlags();
@@ -648,22 +670,48 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 
                 ClearFlags();
                 break;
+
+
             case ILOpCode_Conv_I1:			// 0x67
                 
                 ClearFlags();
                 break;
+            case ILOpCode_Conv_U1:			// 0xD2
+                
+                ClearFlags();
+                break;
+
+
 			case ILOpCode_Conv_I2:			// 0x68
                 
                 ClearFlags();
                 break;
+            case ILOpCode_Conv_U2:			// 0xD1
+                
+                ClearFlags();
+                break;
+
+
 			case ILOpCode_Conv_I4:			// 0x69
                 
                 ClearFlags();
                 break;
+			case ILOpCode_Conv_U4:			// 0x6D
+                
+                ClearFlags();
+                break;
+
+
 			case ILOpCode_Conv_I8:			// 0x6A
                 
                 ClearFlags();
                 break;
+			case ILOpCode_Conv_U8:			// 0x6E
+                
+                ClearFlags();
+                break;
+
+
 			case ILOpCode_Conv_R4:			// 0x6B
                 
                 ClearFlags();
@@ -672,18 +720,22 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 
                 ClearFlags();
                 break;
-			case ILOpCode_Conv_U4:			// 0x6D
-                
-                ClearFlags();
-                break;
-			case ILOpCode_Conv_U8:			// 0x6E
-                
-                ClearFlags();
-                break;
             case ILOpCode_Conv_R_Un:		// 0x76
                 
                 ClearFlags();
                 break;
+
+
+            case ILOpCode_Conv_I:			// 0xD3
+                
+                ClearFlags();
+                break;
+			case ILOpCode_Conv_U:			// 0xE0
+                
+                ClearFlags();
+				break;
+
+
             case ILOpCode_CallVirt:			// 0x6F
                 
                 ClearFlags();
@@ -823,8 +875,16 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 ClearFlags();
                 break;
 
-
+                
+            case ILOpCode_Conv_Ovf_I:		// 0xD4
+                
+                ClearFlags();
+                break;
 			case ILOpCode_Conv_Ovf_I_Un:	// 0x8A
+                
+                ClearFlags();
+                break;
+            case ILOpCode_Conv_Ovf_U:		// 0xD5
                 
                 ClearFlags();
                 break;
@@ -985,26 +1045,6 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 
                 ClearFlags();
                 break;
-            case ILOpCode_Conv_U2:			// 0xD1
-                
-                ClearFlags();
-                break;
-            case ILOpCode_Conv_U1:			// 0xD2
-                
-                ClearFlags();
-                break;
-            case ILOpCode_Conv_I:			// 0xD3
-                
-                ClearFlags();
-                break;
-            case ILOpCode_Conv_Ovf_I:		// 0xD4
-                
-                ClearFlags();
-                break;
-            case ILOpCode_Conv_Ovf_U:		// 0xD5
-                
-                ClearFlags();
-                break;
             case ILOpCode_Add_Ovf:			// 0xD6
                 
                 ClearFlags();
@@ -1042,10 +1082,6 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 ClearFlags();
 				break;
     		case ILOpCode_StInd_I:			// 0xDF
-                
-                ClearFlags();
-				break;
-			case ILOpCode_Conv_U:			// 0xE0
                 
                 ClearFlags();
 				break;

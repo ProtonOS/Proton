@@ -1,6 +1,7 @@
 #pragma once
 
 #include <CLR/MetaData/MetaData.h>
+#include <CLR/IRStructures.h>
 
 #define MethodDefinitionBody_Offset_Flags                 0x00
 
@@ -93,6 +94,8 @@ struct _MethodDefinition
     uint32_t MemberReferenceCount;
     MemberReference** MemberReferences;
     TypeDefinition* TypeDefinition;
+
+    IRMethod* LoadedMethod;
 };
 
 const uint8_t* MethodDefinition_Initialize(CLIFile* pFile, const uint8_t* pTableData);
