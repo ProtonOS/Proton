@@ -17,6 +17,13 @@
 #define MetaData_Stream_Offset_Size         0x04;
 #define MetaData_Stream_Offset_Name         0x08;
 
+typedef struct
+{
+    uint8_t Table;
+    bool_t IsUserString;
+    const void* Data;
+} MetaDataToken;
+
 bool_t MetaData_IsValidSignature(const uint8_t* pMetaDataHeader);
 uint32_t MetaData_GetVersionLength(const uint8_t* pMetaDataHeader);
 const char* MetaData_GetVersion(const uint8_t* pMetaDataHeader);
@@ -27,6 +34,7 @@ uint32_t MetaData_GetStreamSize(const uint8_t* pMetaDataHeader, uint16_t pStream
 const char* MetaData_GetStreamName(const uint8_t* pMetaDataHeader, uint16_t pStreamIndex);
 const uint8_t* MetaData_GetStreamData(const uint8_t* pMetaDataHeader, uint16_t pStreamIndex);
 const uint8_t* MetaData_GetCompressedUnsigned(const uint8_t* pData, uint32_t* pValue);
+
 
 #define MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit   0x01
 #define MetaDataTablesHeader_HeapOffsetSizes_GUIDs32Bit     0x02
@@ -70,6 +78,8 @@ const uint8_t* MetaData_GetCompressedUnsigned(const uint8_t* pData, uint32_t* pV
 #define MetaData_Table_GenericParameter                     0x2A
 #define MetaData_Table_MethodSpecification                  0x2B
 #define MetaData_Table_GenericParameterConstraint           0x2C
+
+#define MetaData_Table_UserStrings                          0x70
 
 typedef struct
 {
