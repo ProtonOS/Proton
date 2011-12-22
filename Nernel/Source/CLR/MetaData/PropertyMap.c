@@ -48,7 +48,7 @@ const uint8_t* PropertyMap_Load(CLIFile* pFile, const uint8_t* pTableData)
     uint32_t propertyListCount = 0;
     for (uint32_t index = 1, used = 0; index <= pFile->PropertyMapCount; ++index, used += propertyListCount)
     {
-        if (index == pFile->PropertyMapCount) propertyListCount = pFile->PropertyCount - used;
+        if (index == pFile->PropertyMapCount || propertyListIndexes[index + 1] == 0) propertyListCount = pFile->PropertyCount - used;
         else propertyListCount = propertyListIndexes[index + 1] - propertyListIndexes[index];
         pFile->PropertyMaps[index].PropertyListCount = propertyListCount;
     }

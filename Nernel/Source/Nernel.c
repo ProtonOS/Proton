@@ -15,18 +15,15 @@ void Main(uint32_t pMultiBootMagic,
         | LogFlags_IREmitting
         //| LogFlags_MetaDataLoading
         ));
-    printf("Finished Initializing");
     MultiBoot_LoadedModule* loadedModule = MultiBoot_GetLoadedModuleByFileName("corlib.dll");
     PEFile* peFile = PEFile_Create((uint8_t*)loadedModule->Address, loadedModule->Length);
-    printf("PE Created");
     if (peFile)
     {
         CLIFile* cliFile = CLIFile_Create(peFile);
-        printf("CLI Created");
         if (cliFile)
         {
             ILAssembly* asmb = ILReader_CreateAssembly(cliFile);
-            printf("Method Count: %u\r\n", (unsigned int)asmb->IRAssembly->MethodCount);
+            printf("Method Count: %u\n", (unsigned int)asmb->IRAssembly->MethodCount);
         }
     }
 

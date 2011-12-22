@@ -90,7 +90,7 @@ const uint8_t* TypeDefinition_Load(CLIFile* pFile, const uint8_t* pTableData)
     uint32_t fieldListCount = 0;
     for (uint32_t index = 1, used = 0; index <= pFile->TypeDefinitionCount; ++index, used += fieldListCount)
     {
-        if (index == pFile->TypeDefinitionCount) fieldListCount = pFile->FieldCount - used;
+        if (index == pFile->TypeDefinitionCount || fieldListIndexes[index + 1] == 0) fieldListCount = pFile->FieldCount - used;
         else fieldListCount = fieldListIndexes[index + 1] - fieldListIndexes[index];
         pFile->TypeDefinitions[index].FieldListCount = fieldListCount;
     }
@@ -98,7 +98,7 @@ const uint8_t* TypeDefinition_Load(CLIFile* pFile, const uint8_t* pTableData)
     uint32_t methodDefinitionListCount = 0;
     for (uint32_t index = 1, used = 0; index <= pFile->TypeDefinitionCount; ++index, used += methodDefinitionListCount)
     {
-        if (index == pFile->TypeDefinitionCount) methodDefinitionListCount = pFile->MethodDefinitionCount - used;
+        if (index == pFile->TypeDefinitionCount || methodDefinitionListIndexes[index + 1] == 0) methodDefinitionListCount = pFile->MethodDefinitionCount - used;
         else methodDefinitionListCount = methodDefinitionListIndexes[index + 1] - methodDefinitionListIndexes[index];
         pFile->TypeDefinitions[index].MethodDefinitionListCount = methodDefinitionListCount;
     }
@@ -241,9 +241,11 @@ void TypeDefinition_Link(CLIFile* pFile)
     {
         if (pFile->TypeDefinitions[index].MethodDefinitionListCount > 0)
         {
-            for (uint32_t searchIndex = 1; searchIndex <= pFile->TypeDefinitions[index].MethodDefinitionListCount; ++searchIndex)
+            //printf("TypeDefinition[%u]: %s.%s, %u methods\n", (unsigned int)index, pFile->TypeDefinitions[index].Namespace, pFile->TypeDefinitions[index].Name, (unsigned int)pFile->TypeDefinitions[index].MethodDefinitionListCount);
+            for (uint32_t searchIndex = 0; searchIndex < pFile->TypeDefinitions[index].MethodDefinitionListCount; ++searchIndex)
             {
-                pFile->TypeDefinitions[index].MethodDefinitionList[searchIndex].TypeDefinition = &pFile->TypeDefinitions[index];
+                //printf("    %s\n", pFile->TypeDefinitions[index].MethodDefinitionList[searchIndex].Name);
+                //pFile->TypeDefinitions[index].MethodDefinitionList[searchIndex].TypeDefinition = &pFile->TypeDefinitions[index];
             }
         }
     }
