@@ -55,11 +55,11 @@ typedef enum BranchCondition
 
 
 #define DefineBranchTarget(brnchType) \
-    branch_Condition = ##brnchType; \
+    branch_Condition = brnchType; \
     branch_Target = (uint32_t)ReadUInt32(dat); \
     goto Branch_Common; 
 #define DefineBranchTarget_Short(brnchType) \
-    branch_Condition = ##brnchType; \
+    branch_Condition = brnchType; \
     branch_Target = (uint32_t)ReadUInt8(dat); \
     goto Branch_Common; 
 
