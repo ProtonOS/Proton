@@ -1,4 +1,5 @@
 #include <Nernel.h>
+#include <CLR/Log.h>
 #include <CLR/AppDomain.h>
 #include <CLR/ILReader.h>
 
@@ -13,17 +14,19 @@ AppDomain* AppDomain_CreateDomain()
         if (cliFile)
         {
 			AppDomain* domain = (AppDomain*)malloc(sizeof(AppDomain));
-			AppDomain_AddAssembly(domain, ILReader_CreateAssembly(cliFile));
+            ILAssembly* asmb = ILReader_CreateAssembly(cliFile);
+            Log_WriteLine(LogFlags_AppDomain_Loading, "Method Count: %u\n", (unsigned int)asmb->IRAssembly->MethodCount);
+			AppDomain_AddAssembly(domain, asmb);
 			return domain;
         }
 		else
 		{
-			Panic("An error occured while loading the corlib!");
+			Panic("An error occured while loading corlib!");
 		}
     }
 	else
 	{
-		Panic("An error occured while loading the corlib!");
+		Panic("An error occured while loading corlib!");
 	}
 }
 

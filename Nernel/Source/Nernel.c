@@ -1,6 +1,9 @@
 #include <Nernel.h>
+#include <CLR/AppDomain.h>
 #include <CLR/ILReader.h>
 #include <CLR/Log.h>
+
+static AppDomain* global_baseMernelDomain;
 
 void Main(uint32_t pMultiBootMagic,
             void* pMultiBootData)
@@ -10,22 +13,9 @@ void Main(uint32_t pMultiBootMagic,
         Nernel_Shutdown();
         return;
     }
-    Log_Initialize((LogFlags)(
-        LogFlags_ILReading
-        | LogFlags_IREmitting
-        //| LogFlags_MetaDataLoading
-        ));
-    MultiBoot_LoadedModule* loadedModule = MultiBoot_GetLoadedModuleByFileName("corlib.dll");
-    PEFile* peFile = PEFile_Create((uint8_t*)loadedModule->Address, loadedModule->Length);
-    if (peFile)
-    {
-        CLIFile* cliFile = CLIFile_Create(peFile);
-        if (cliFile)
-        {
-            ILAssembly* asmb = ILReader_CreateAssembly(cliFile);
-            printf("Method Count: %u\n", (unsigned int)asmb->IRAssembly->MethodCount);
-        }
-    }
+
+    global_baseMernelDomain = AppDomain_CreateDomain();
+
 
     /*
 	tCLIFile* cliFile;

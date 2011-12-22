@@ -37,7 +37,6 @@ struct _StackObject
     StackObject* PrevObj;
     StackObject* NextObj;
     const char* Name;
-    void* Data;
 };
 
 StackObject* StackObject_Create();

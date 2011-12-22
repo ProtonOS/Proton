@@ -2,24 +2,34 @@
 #include <stdio.h>
 #include <stdarg.h>
 
+// To disable logging, all
+// you have to do is uncomment
+// this line.
+//#define NO_LOG
 
-static LogFlags lgFlags = LogFlags_NoLog;
+#ifdef NO_LOG
+const LogFlags global_lgFlags = LogFlags_NoLog;
+#undef NO_LOG
+#else
+const LogFlags global_lgFlags = (LogFlags)(
+        LogFlags_ILReading
+        | LogFlags_IREmitting
+        //| LogFlags_SyntheticStack
+        //| LogFlags_MetaData_Loading
+        //| LogFlags_AppDomain_Loading
+        );
+#endif
 
-void Log_Initialize(LogFlags flags)
-{
-    lgFlags = flags;
-}
+
 
 void Log_WriteLine(LogFlags logCondition, char* fmt, ...)
 {
-    if (lgFlags & logCondition)
+    if (global_lgFlags & logCondition)
     {
-        char buf[1024];
         va_list args;
         va_start( args, fmt );
-        vsnprintf( buf, 1024, fmt, args );
+        vprintf( fmt, args );
         va_end( args );
-        printf(fmt);
         printf("\n");
     }
 }

@@ -63,6 +63,7 @@
     <ClCompile Include="Source\CLR\MetaData\TypeDefinition.c" />
     <ClCompile Include="Source\CLR\MetaData\TypeReference.c" />
     <ClCompile Include="Source\CLR\MetaData\TypeSpecification.c" />
+    <ClCompile Include="Source\CLR\Metadata_Search.c" />
     <ClCompile Include="Source\CLR\PEFile.c" />
     <ClCompile Include="Source\CLR\SyntheticStack.c" />
     <ClCompile Include="Source\Core\DLMalloc.c" />
@@ -163,6 +164,7 @@
     <ClInclude Include="Include\CLR\MetaData\TypeDefinition.h" />
     <ClInclude Include="Include\CLR\MetaData\TypeReference.h" />
     <ClInclude Include="Include\CLR\MetaData\TypeSpecification.h" />
+    <ClInclude Include="Include\CLR\Metadata_Search.h" />
     <ClInclude Include="Include\CLR\OpCodes_IL.h" />
     <ClInclude Include="Include\CLR\OpCodes_IR.h" />
     <ClInclude Include="Include\CLR\PEFile.h" />

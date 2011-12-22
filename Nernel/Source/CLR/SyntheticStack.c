@@ -1,4 +1,5 @@
 #include <CLR/SyntheticStack.h>
+#include <CLR/Log.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -43,8 +44,6 @@ StackObject* StackObjectPool_Allocate()
 
 void StackObjectPool_Release(StackObject* obj)
 {
-    if (obj->Data)
-        free(obj->Data);
     obj->Name = "Default Name";
     obj->NextObj = (StackObject*)0;
     obj->PrevObj = (StackObject*)0;
@@ -77,14 +76,13 @@ StackObject* StackObject_Create()
 
 void StackObject_Destroy(StackObject* obj)
 {
-    if (obj->Data)
-        free(obj->Data);
     free(obj);
 }
 
 
 SyntheticStack* SyntheticStack_Create()
 {
+    Log_WriteLine(LogFlags_SyntheticStack, "Created a Synthetic Stack");
     SyntheticStack* stack = (SyntheticStack*)calloc(1, sizeof(SyntheticStack));
     StackObject* obj = StackObject_Create();
     obj->Type = (StackObjectType)0xFF;
@@ -95,7 +93,7 @@ SyntheticStack* SyntheticStack_Create()
 
 void SyntheticStack_Destroy(SyntheticStack* stack)
 {
-    printf("On Stack Destruction: %i Object(s) left on stack\n", (int)stack->StackDepth);
+    Log_WriteLine(LogFlags_SyntheticStack, "On Stack Destruction: %i Object(s) left on stack", (int)stack->StackDepth);
     while (stack->TopObject->PrevObj)
     {
         StackObject_Destroy(SyntheticStack_Pop(stack));
@@ -111,6 +109,7 @@ void SyntheticStack_Push(SyntheticStack* stack, StackObject* obj)
     stack->TopObject->NextObj = obj;
     stack->StackDepth++;
     stack->TopObject = obj;
+    Log_WriteLine(LogFlags_SyntheticStack, "Pushed object to stack. Current number on stack: %i", (int)stack->StackDepth);
 }
 
 StackObject* SyntheticStack_Pop(SyntheticStack* stack)
@@ -120,10 +119,12 @@ StackObject* SyntheticStack_Pop(SyntheticStack* stack)
     stack->StackDepth--;
     obj->NextObj = (StackObject*)0;
     obj->PrevObj = (StackObject*)0;
+    Log_WriteLine(LogFlags_SyntheticStack, "Popped object from stack. Current number on stack: %i", (int)stack->StackDepth);
     return obj;
 }
 
 StackObject* SyntheticStack_Peek(SyntheticStack* stack)
 {
+    Log_WriteLine(LogFlags_SyntheticStack, "Peeked at top object on stack. Current number on stack: %i", (int)stack->StackDepth);
     return stack->TopObject;
 }

@@ -245,7 +245,7 @@ void TypeDefinition_Link(CLIFile* pFile)
             for (uint32_t searchIndex = 0; searchIndex < pFile->TypeDefinitions[index].MethodDefinitionListCount; ++searchIndex)
             {
                 //printf("    %s\n", pFile->TypeDefinitions[index].MethodDefinitionList[searchIndex].Name);
-                //pFile->TypeDefinitions[index].MethodDefinitionList[searchIndex].TypeDefinition = &pFile->TypeDefinitions[index];
+                pFile->TypeDefinitions[index].MethodDefinitionList[searchIndex].TypeDefinition = &pFile->TypeDefinitions[index];
             }
         }
     }

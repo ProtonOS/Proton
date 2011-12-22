@@ -48,13 +48,14 @@ struct _IRMethod
  */
 struct _IRInstruction
 {
+    uint32_t InstructionLocation;
 	uint32_t OpCode;
     bool_t Arg1NeedsDisposing;
-	uint8_t* Arg1;
+	void* Arg1;
     bool_t Arg2NeedsDisposing;
-	uint8_t* Arg2;
+	void* Arg2;
     bool_t Arg3NeedsDisposing;
-	uint8_t* Arg3;
+	void* Arg3;
 	bool_t IsTargetOfBranch;
 };
 

@@ -75,6 +75,7 @@
 	Source/CLR/ILReader.c
 	Source/CLR/IRStructures.c
 	Source/CLR/Log.c
+	Source/CLR/Metadata_Search.c
 	Source/CLR/PEFile.c
 	Source/CLR/SyntheticStack.c
 #

@@ -15,6 +15,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len);
 
 ILAssembly* ILReader_CreateAssembly(CLIFile* fil)
 {
+    StackObjectPool_Initialize();
 	ILAssembly* asmbly = (ILAssembly*)calloc(1, sizeof(ILAssembly));
     asmbly->CLIFile = fil;
     asmbly->IRAssembly = IRAssembly_Create();;
@@ -26,6 +27,7 @@ ILAssembly* ILReader_CreateAssembly(CLIFile* fil)
         IRAssembly_AddMethod(asmbly->IRAssembly, ReadIL(&ilLoc, fil->MethodDefinitions[i].Body.CodeSize));
     }
 
+    StackObjectPool_Destroy();
 	return asmbly;
 }
 
@@ -88,9 +90,12 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 ClearFlags();
                 break;
             case ILOpCode_Break:			// 0x01
-                
+                Log_WriteLine(LogFlags_ILReading, "Read Break");
+                EMIT_IR(IROpCode_BreakForDebugger);
                 ClearFlags();
                 break;
+
+
             case ILOpCode_LdArg_0:			// 0x02
                 
                 ClearFlags();
@@ -107,6 +112,22 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 
                 ClearFlags();
                 break;
+            case ILOpCode_LdArg_S:			// 0x0E
+                
+                ClearFlags();
+                break;
+            case ILOpCode_LdArgA_S:			// 0x0F
+                
+                ClearFlags();
+                break;
+                
+
+            case ILOpCode_StArg_S:			// 0x10
+                
+                ClearFlags();
+                break;
+
+
             case ILOpCode_LdLoc_0:			// 0x06
                  
                 ClearFlags();
@@ -123,6 +144,16 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 
                 ClearFlags();
                 break;
+            case ILOpCode_LdLoc_S:			// 0x11
+                
+                ClearFlags();
+                break;
+            case ILOpCode_LdLocA_S:			// 0x12
+                
+                ClearFlags();
+                break;
+
+
             case ILOpCode_StLoc_0:			// 0x0A
                 
                 ClearFlags();
@@ -139,30 +170,12 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 
                 ClearFlags();
                 break;
-            case ILOpCode_LdArg_S:			// 0x0E
-                
-                ClearFlags();
-                break;
-            case ILOpCode_LdArgA_S:			// 0x0F
-                
-                ClearFlags();
-                break;
-            case ILOpCode_StArg_S:			// 0x10
-                
-                ClearFlags();
-                break;
-            case ILOpCode_LdLoc_S:			// 0x11
-                
-                ClearFlags();
-                break;
-            case ILOpCode_LdLocA_S:			// 0x12
-                
-                ClearFlags();
-                break;
             case ILOpCode_StLoc_S:			// 0x13
                 
                 ClearFlags();
                 break;
+
+
             case ILOpCode_LdNull:			// 0x14
                 
                 ClearFlags();
@@ -170,10 +183,12 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
             case ILOpCode_Ldc_I4_M1:		// 0x15
                 {
                     Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.M1");
+
+                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
+                    *dt = (uint32_t)-1;
+                    EMIT_IR_1ARG(IROpCode_LoadInt32_Val, dt);
+
                     StackObject* s = StackObjectPool_Allocate();
-                    uint32_t* dat = (uint32_t*)malloc(sizeof(uint32_t));
-                    *dat = (uint32_t)-1;
-                    s->Data = dat; 
                     s->Type = StackObjectType_Int32;
                     s->NumericType = StackObjectNumericType_Int32;
                     SyntheticStack_Push(stack, s);
@@ -183,10 +198,12 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
 			case ILOpCode_Ldc_I4_0:			// 0x16
                 {
                     Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.0");
-                    StackObject* s = StackObjectPool_Allocate();
+
                     uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
                     *dt = (uint32_t)0;
-                    s->Data = dt; 
+                    EMIT_IR_1ARG(IROpCode_LoadInt32_Val, dt);
+
+                    StackObject* s = StackObjectPool_Allocate();
                     s->Type = StackObjectType_Int32;
                     s->NumericType = StackObjectNumericType_Int32;
                     SyntheticStack_Push(stack, s);
@@ -196,10 +213,12 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
 			case ILOpCode_Ldc_I4_1:			// 0x17
                 {
                     Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.1");
-                    StackObject* s = StackObjectPool_Allocate();
+
                     uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
                     *dt = (uint32_t)1;
-                    s->Data = dt; 
+                    EMIT_IR_1ARG(IROpCode_LoadInt32_Val, dt);
+
+                    StackObject* s = StackObjectPool_Allocate();
                     s->Type = StackObjectType_Int32;
                     s->NumericType = StackObjectNumericType_Int32;
                     SyntheticStack_Push(stack, s);
@@ -209,10 +228,12 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
 			case ILOpCode_Ldc_I4_2:			// 0x18
                 {
                     Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.2");
-                    StackObject* s = StackObjectPool_Allocate();
+
                     uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
                     *dt = (uint32_t)2;
-                    s->Data = dt; 
+                    EMIT_IR_1ARG(IROpCode_LoadInt32_Val, dt);
+
+                    StackObject* s = StackObjectPool_Allocate();
                     s->Type = StackObjectType_Int32;
                     s->NumericType = StackObjectNumericType_Int32;
                     SyntheticStack_Push(stack, s);
@@ -222,10 +243,12 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
 			case ILOpCode_Ldc_I4_3:			// 0x19
                 {
                     Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.3");
-                    StackObject* s = StackObjectPool_Allocate();
+
                     uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
                     *dt = (uint32_t)3;
-                    s->Data = dt; 
+                    EMIT_IR_1ARG(IROpCode_LoadInt32_Val, dt);
+
+                    StackObject* s = StackObjectPool_Allocate();
                     s->Type = StackObjectType_Int32;
                     s->NumericType = StackObjectNumericType_Int32;
                     SyntheticStack_Push(stack, s);
@@ -235,10 +258,12 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
 			case ILOpCode_Ldc_I4_4:			// 0x1A
                 {
                     Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.4");
-                    StackObject* s = StackObjectPool_Allocate();
+
                     uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
                     *dt = (uint32_t)4;
-                    s->Data = dt; 
+                    EMIT_IR_1ARG(IROpCode_LoadInt32_Val, dt);
+
+                    StackObject* s = StackObjectPool_Allocate();
                     s->Type = StackObjectType_Int32;
                     s->NumericType = StackObjectNumericType_Int32;
                     SyntheticStack_Push(stack, s);
@@ -248,10 +273,12 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
 			case ILOpCode_Ldc_I4_5:			// 0x1B
                 {
                     Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.5");
-                    StackObject* s = StackObjectPool_Allocate();
+
                     uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
                     *dt = (uint32_t)5;
-                    s->Data = dt; 
+                    EMIT_IR_1ARG(IROpCode_LoadInt32_Val, dt);
+
+                    StackObject* s = StackObjectPool_Allocate();
                     s->Type = StackObjectType_Int32;
                     s->NumericType = StackObjectNumericType_Int32;
                     SyntheticStack_Push(stack, s);
@@ -261,10 +288,12 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
 			case ILOpCode_Ldc_I4_6:			// 0x1C
                 {
                     Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.6");
-                    StackObject* s = StackObjectPool_Allocate();
+
                     uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
                     *dt = (uint32_t)6;
-                    s->Data = dt; 
+                    EMIT_IR_1ARG(IROpCode_LoadInt32_Val, dt);
+
+                    StackObject* s = StackObjectPool_Allocate();
                     s->Type = StackObjectType_Int32;
                     s->NumericType = StackObjectNumericType_Int32;
                     SyntheticStack_Push(stack, s);
@@ -274,10 +303,12 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
 			case ILOpCode_Ldc_I4_7:			// 0x1D
                 {
                     Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.7");
-                    StackObject* s = StackObjectPool_Allocate();
+
                     uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
                     *dt = (uint32_t)7;
-                    s->Data = dt; 
+                    EMIT_IR_1ARG(IROpCode_LoadInt32_Val, dt);
+
+                    StackObject* s = StackObjectPool_Allocate();
                     s->Type = StackObjectType_Int32;
                     s->NumericType = StackObjectNumericType_Int32;
                     SyntheticStack_Push(stack, s);
@@ -287,10 +318,12 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
 			case ILOpCode_Ldc_I4_8:			// 0x1E
                 {
                     Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.8");
-                    StackObject* s = StackObjectPool_Allocate();
+
                     uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
                     *dt = (uint32_t)8;
-                    s->Data = dt; 
+                    EMIT_IR_1ARG(IROpCode_LoadInt32_Val, dt);
+
+                    StackObject* s = StackObjectPool_Allocate();
                     s->Type = StackObjectType_Int32;
                     s->NumericType = StackObjectNumericType_Int32;
                     SyntheticStack_Push(stack, s);
@@ -300,10 +333,12 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
 			case ILOpCode_Ldc_I4_S:			// 0x1F
                 {
                     Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.S");
-                    StackObject* s = StackObjectPool_Allocate();
+                    
                     uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
                     *dt = (uint32_t)ReadUInt8(dat);
-                    s->Data = dt; 
+                    EMIT_IR_1ARG(IROpCode_LoadInt32_Val, dt);
+
+                    StackObject* s = StackObjectPool_Allocate();
                     s->Type = StackObjectType_Int32;
                     s->NumericType = StackObjectNumericType_Int32;
                     SyntheticStack_Push(stack, s);
@@ -313,10 +348,12 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
 			case ILOpCode_Ldc_I4:			// 0x20
                 {
                     Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4");
-                    StackObject* s = StackObjectPool_Allocate();
+                    
                     uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
                     *dt = (uint32_t)ReadUInt32(dat);
-                    s->Data = dt; 
+                    EMIT_IR_1ARG(IROpCode_LoadInt32_Val, dt);
+
+                    StackObject* s = StackObjectPool_Allocate();
                     s->Type = StackObjectType_Int32;
                     s->NumericType = StackObjectNumericType_Int32;
                     SyntheticStack_Push(stack, s);
@@ -326,10 +363,12 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
 			case ILOpCode_Ldc_I8:			// 0x21
                 {
                     Log_WriteLine(LogFlags_ILReading, "Read Ldc.I8");
-                    StackObject* s = StackObjectPool_Allocate();
+                    
                     uint64_t* dt = (uint64_t*)malloc(sizeof(uint64_t));
                     *dt = (uint64_t)ReadUInt64(dat);
-                    s->Data = dt; 
+                    EMIT_IR_1ARG(IROpCode_LoadInt64_Val, dt);
+
+                    StackObject* s = StackObjectPool_Allocate();
                     s->Type = StackObjectType_Int64;
                     s->NumericType = StackObjectNumericType_Int64;
                     SyntheticStack_Push(stack, s);
