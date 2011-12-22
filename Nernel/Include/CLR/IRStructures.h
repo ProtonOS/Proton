@@ -1,11 +1,14 @@
 #pragma once
 
-#include <CLR/CLIFile.h>
-
 typedef struct _ILAssembly ILAssembly;
 typedef struct _IRAssembly IRAssembly;
 typedef struct _IRMethod IRMethod;
 typedef struct _IRInstruction IRInstruction;
+
+// DO NOT put this include above the typedefs,
+// the typedefs are needed to be able to resolve
+// circular inclusions.
+#include <CLR/CLIFile.h>
 
 struct _ILAssembly
 {
