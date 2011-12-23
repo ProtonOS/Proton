@@ -9,6 +9,7 @@ typedef struct _IRInstruction IRInstruction;
 // the typedefs are needed to be able to resolve
 // circular inclusions.
 #include <CLR/CLIFile.h>
+#include <CLR/OpCodes_IR.h>
 
 struct _ILAssembly
 {
@@ -52,7 +53,7 @@ struct _IRMethod
 struct _IRInstruction
 {
     uint32_t InstructionLocation;
-	uint32_t OpCode;
+	IROpCode OpCode;
     bool_t Arg1NeedsDisposing;
 	void* Arg1;
     bool_t Arg2NeedsDisposing;

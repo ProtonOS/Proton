@@ -17,6 +17,7 @@ const LogFlags global_lgFlags = (LogFlags)(
         //| LogFlags_SyntheticStack
         //| LogFlags_MetaData_Loading
         //| LogFlags_AppDomain_Loading
+        | LogFlags_ILReading_BranchLinker
         );
 #endif
 

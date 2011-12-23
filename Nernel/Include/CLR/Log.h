@@ -12,6 +12,7 @@ typedef enum LogFlags
     LogFlags_SyntheticStack =			1 << 2,
     LogFlags_MetaData_Loading =			1 << 3,
     LogFlags_AppDomain_Loading =		1 << 4,
+    LogFlags_ILReading_BranchLinker =	1 << 5,
 
 } LogFlags;
 

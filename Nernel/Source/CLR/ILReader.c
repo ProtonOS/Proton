@@ -2,6 +2,8 @@
 #include <CLR/OpCodes_IL.h>
 #include <CLR/OpCodes_IR.h>
 #include <CLR/SyntheticStack.h>
+#include <CLR/IROptimizer.h>
+#include <CLR/IRMethod_BranchLinker.h>
 #include <CLR/Log.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -25,33 +27,18 @@ ILAssembly* ILReader_CreateAssembly(CLIFile* fil)
         uint8_t* ilLoc = (uint8_t*)fil->MethodDefinitions[i].Body.Code;
         Log_WriteLine(LogFlags_ILReading, "Reading Method %s.%s.%s", fil->MethodDefinitions[i].TypeDefinition->Namespace, fil->MethodDefinitions[i].TypeDefinition->Name, fil->MethodDefinitions[i].Name);
         IRMethod* irMeth = ReadIL(&ilLoc, fil->MethodDefinitions[i].Body.CodeSize);
+        IRMethod_BranchLinker_LinkMethod(irMeth);
         fil->MethodDefinitions[i].LoadedMethod = irMeth;
+        irMeth->MethodIndex = i - 1;
         IRAssembly_AddMethod(asmbly->IRAssembly, irMeth);
     }
 
     StackObjectPool_Destroy();
+
+    IROptimizer_Optimize(asmbly);
+
 	return asmbly;
 }
-
-typedef enum BranchCondition
-{
-    BranchCondition_Always,
-    BranchCondition_Equal,
-    BranchCondition_False,
-    BranchCondition_Greater_Or_Equal,
-    BranchCondition_Greater_Or_Equal_Unsigned,
-    BranchCondition_Greater,
-    BranchCondition_Greater_Unsigned,
-    BranchCondition_Less_Or_Equal,
-    BranchCondition_Less_Or_Equal_Unsigned,
-    BranchCondition_Less,
-    BranchCondition_Less_Unsigned,
-    BranchCondition_NotEqual_Unsigned,
-    BranchCondition_True,
-
-} BranchCondition;
-
-#define GetBranchTarget() ((((size_t)(*dat)) - orig) + ((int32_t)branch_Target) )
 
 
 #define DefineBranchTarget(brnchType) \
@@ -72,34 +59,50 @@ typedef enum BranchCondition
     UnAligned = FALSE; \
     Volatile = FALSE; }
 
+#define GetInstrOffset() \
+    if (Constrained) { instr->InstructionLocation -= 2; } \
+    if (No) { instr->InstructionLocation -= 2; } \
+    if (ReadOnly) { instr->InstructionLocation -= 2; } \
+    if (Tail) { instr->InstructionLocation -= 2; } \
+    if (UnAligned) { instr->InstructionLocation -= 2; } \
+    if (Volatile) { instr->InstructionLocation -= 2; } \
+
 #define EMIT_IR(instrType) \
     { IRInstruction* instr = IRInstruction_Create(); \
-    instr->InstructionLocation = ((uint32_t)(*dat) - orig); \
-    instr->OpCode = (uint32_t)(instrType); \
+    instr->InstructionLocation = (CurInstructionBase - orig); \
+    printf("instr->InstructionLocation = %i\n", (int)instr->InstructionLocation); \
+    GetInstrOffset(); \
+    instr->OpCode = instrType; \
     Log_WriteLine(LogFlags_IREmitting, "Emitting " #instrType); \
     IRMethod_AddInstruction(m, instr); }
 #define EMIT_IR_1ARG(instrType, arg1) \
     { IRInstruction* instr = IRInstruction_Create(); \
-    instr->InstructionLocation = ((uint32_t)(*dat) - orig); \
+    instr->InstructionLocation = (CurInstructionBase - orig); \
+    printf("instr->InstructionLocation = %i\n", (int)instr->InstructionLocation); \
+    GetInstrOffset(); \
     instr->Arg1 = arg1; \
-    instr->OpCode = (uint32_t)(instrType); \
+    instr->OpCode = instrType; \
     Log_WriteLine(LogFlags_IREmitting, "Emitting " #instrType); \
     IRMethod_AddInstruction(m, instr); }
 #define EMIT_IR_2ARG(instrType, arg1, arg2) \
     { IRInstruction* instr = IRInstruction_Create(); \
-    instr->InstructionLocation = ((uint32_t)(*dat) - orig); \
+    instr->InstructionLocation = (CurInstructionBase - orig); \
+    printf("instr->InstructionLocation = %i\n", (int)instr->InstructionLocation); \
+    GetInstrOffset(); \
     instr->Arg1 = arg1; \
     instr->Arg2 = arg2; \
-    instr->OpCode = (uint32_t)(instrType); \
+    instr->OpCode = instrType; \
     Log_WriteLine(LogFlags_IREmitting, "Emitting " #instrType); \
     IRMethod_AddInstruction(m, instr); }
 #define EMIT_IR_3ARG(instrType, arg1, arg2, arg3) \
     { IRInstruction* instr = IRInstruction_Create(); \
-    instr->InstructionLocation = ((uint32_t)(*dat) - orig); \
+    instr->InstructionLocation = (CurInstructionBase - orig); \
+    printf("instr->InstructionLocation = %i\n", (int)instr->InstructionLocation); \
+    GetInstrOffset(); \
     instr->Arg1 = arg1; \
     instr->Arg2 = arg2; \
     instr->Arg3 = arg3; \
-    instr->OpCode = (uint32_t)(instrType); \
+    instr->OpCode = instrType; \
     Log_WriteLine(LogFlags_IREmitting, "Emitting " #instrType); \
     IRMethod_AddInstruction(m, instr); }
 
@@ -115,11 +118,14 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
     BranchCondition branch_Condition = (BranchCondition)0;
     uint32_t branch_Target;
 	size_t orig = (size_t)(*dat);
+    size_t CurInstructionBase;
     uint8_t b;
     IRMethod* m = IRMethod_Create();
 
     while ((size_t)(*dat) - orig < len)
     {
+        CurInstructionBase = ((size_t)*dat);
+        printf("CurInstructionBase: %i\n", (int)CurInstructionBase);
         b = ReadUInt8(dat);
         switch (b)
         {
@@ -168,25 +174,52 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
 
 
             case ILOpCode_LdLoc_0:			// 0x06
-                 
+                {
+                    Log_WriteLine(LogFlags_ILReading, "Read LdLoc.0");
+                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
+                    *dt = (uint32_t)0;
+                    EMIT_IR_1ARG(IROpCode_Load_LocalVar, dt);
+                }
                 ClearFlags();
                 break;
             case ILOpCode_LdLoc_1:			// 0x07
-                
+                {
+                    Log_WriteLine(LogFlags_ILReading, "Read LdLoc.1");
+                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
+                    *dt = (uint32_t)1;
+                    EMIT_IR_1ARG(IROpCode_Load_LocalVar, dt);
+                }
                 ClearFlags();
                 break;
             case ILOpCode_LdLoc_2:			// 0x08
-                
+                {
+                    Log_WriteLine(LogFlags_ILReading, "Read LdLoc.2");
+                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
+                    *dt = (uint32_t)2;
+                    EMIT_IR_1ARG(IROpCode_Load_LocalVar, dt);
+                }
                 ClearFlags();
                 break;
             case ILOpCode_LdLoc_3:			// 0x09
-                
+                {
+                    Log_WriteLine(LogFlags_ILReading, "Read LdLoc.3");
+                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
+                    *dt = (uint32_t)3;
+                    EMIT_IR_1ARG(IROpCode_Load_LocalVar, dt);
+                }
                 ClearFlags();
                 break;
             case ILOpCode_LdLoc_S:			// 0x11
-                
+                {
+                    Log_WriteLine(LogFlags_ILReading, "Read LdLoc.S");
+                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
+                    *dt = (uint32_t)ReadUInt8(dat);
+                    EMIT_IR_1ARG(IROpCode_Load_LocalVar, dt);
+                }
                 ClearFlags();
                 break;
+
+
             case ILOpCode_LdLocA_S:			// 0x12
                 
                 ClearFlags();
@@ -194,23 +227,48 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
 
 
             case ILOpCode_StLoc_0:			// 0x0A
-                
+                {
+                    Log_WriteLine(LogFlags_ILReading, "Read StLoc.0");
+                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
+                    *dt = (uint32_t)0;
+                    EMIT_IR_1ARG(IROpCode_Store_LocalVar, dt);
+                }
                 ClearFlags();
                 break;
             case ILOpCode_StLoc_1:			// 0x0B
-                
+                {
+                    Log_WriteLine(LogFlags_ILReading, "Read StLoc.1");
+                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
+                    *dt = (uint32_t)1;
+                    EMIT_IR_1ARG(IROpCode_Store_LocalVar, dt);
+                }
                 ClearFlags();
                 break;
             case ILOpCode_StLoc_2:			// 0x0C
-                
+                {
+                    Log_WriteLine(LogFlags_ILReading, "Read StLoc.2");
+                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
+                    *dt = (uint32_t)2;
+                    EMIT_IR_1ARG(IROpCode_Store_LocalVar, dt);
+                }
                 ClearFlags();
                 break;
             case ILOpCode_StLoc_3:			// 0x0D
-                
+                {
+                    Log_WriteLine(LogFlags_ILReading, "Read StLoc.3");
+                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
+                    *dt = (uint32_t)3;
+                    EMIT_IR_1ARG(IROpCode_Store_LocalVar, dt);
+                }
                 ClearFlags();
                 break;
             case ILOpCode_StLoc_S:			// 0x13
-                
+                {
+                    Log_WriteLine(LogFlags_ILReading, "Read StLoc.S");
+                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
+                    *dt = (uint32_t)ReadUInt8(dat);
+                    EMIT_IR_1ARG(IROpCode_Store_LocalVar, dt);
+                }
                 ClearFlags();
                 break;
 
@@ -219,6 +277,16 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 
                 ClearFlags();
                 break;
+            case ILOpCode_LdStr:			// 0x72
+                
+                ClearFlags();
+                break;
+            case ILOpCode_LdObj:			// 0x71
+                
+                ClearFlags();
+                break;
+
+
             case ILOpCode_Ldc_I4_M1:		// 0x15
                 {
                     Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.M1");
@@ -415,23 +483,43 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 ClearFlags();
                 break;
 			case ILOpCode_Ldc_R4:			// 0x22
-                
+                {
+                    Log_WriteLine(LogFlags_ILReading, "Read Ldc.R4");
+                    
+                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
+                    *dt = (uint32_t)ReadUInt32(dat);
+                    EMIT_IR_1ARG(IROpCode_LoadFloat32_Val, dt);
+
+                    StackObject* s = StackObjectPool_Allocate();
+                    s->Type = StackObjectType_Float;
+                    s->NumericType = StackObjectNumericType_Float32;
+                    SyntheticStack_Push(stack, s);
+                }
                 ClearFlags();
                 break;
 			case ILOpCode_Ldc_R8:			// 0x23
-                
+                {
+                    Log_WriteLine(LogFlags_ILReading, "Read Ldc.R8");
+                    
+                    uint64_t* dt = (uint64_t*)malloc(sizeof(uint64_t));
+                    *dt = (uint64_t)ReadUInt64(dat);
+                    EMIT_IR_1ARG(IROpCode_LoadFloat64_Val, dt);
+
+                    StackObject* s = StackObjectPool_Allocate();
+                    s->Type = StackObjectType_Float;
+                    s->NumericType = StackObjectNumericType_Float64;
+                    SyntheticStack_Push(stack, s);
+                }
                 ClearFlags();
                 break;
+
+
 			// 0x24 Doesn't exist
             case ILOpCode_Dup:				// 0x25
                 
                 ClearFlags();
                 break;
             case ILOpCode_Pop:				// 0x26
-                
-                ClearFlags();
-                break;
-            case ILOpCode_Jmp:				// 0x27
                 
                 ClearFlags();
                 break;
@@ -445,6 +533,14 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
                 
                 ClearFlags();
                 break;
+            case ILOpCode_CallVirt:			// 0x6F
+                
+                ClearFlags();
+                break;
+            case ILOpCode_Jmp:				// 0x27
+                
+                ClearFlags();
+                break;
 
 
             case ILOpCode_Ret:				// 0x2A
@@ -454,69 +550,99 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len)
 
 
             case ILOpCode_Br:				// 0x38
+                Log_WriteLine(LogFlags_ILReading, "Read Br");
                 DefineBranchTarget(BranchCondition_Always);
             case ILOpCode_Br_S:				// 0x2B
+                Log_WriteLine(LogFlags_ILReading, "Read Br.S");
                 DefineBranchTarget_Short(BranchCondition_Always);
 
             case ILOpCode_BrFalse:			// 0x39
+                Log_WriteLine(LogFlags_ILReading, "Read BrFalse");
                 DefineBranchTarget(BranchCondition_False);
             case ILOpCode_BrFalse_S:		// 0x2C
+                Log_WriteLine(LogFlags_ILReading, "Read BrFalse.S");
                 DefineBranchTarget_Short(BranchCondition_False);
 
             case ILOpCode_BrTrue:			// 0x3A
+                Log_WriteLine(LogFlags_ILReading, "Read BrTrue");
                 DefineBranchTarget(BranchCondition_True);
             case ILOpCode_BrTrue_S:			// 0x2D
+                Log_WriteLine(LogFlags_ILReading, "Read BrTrue.S");
                 DefineBranchTarget_Short(BranchCondition_True);
 
             case ILOpCode_Beq:				// 0x3B
+                Log_WriteLine(LogFlags_ILReading, "Read Beq");
                 DefineBranchTarget(BranchCondition_Equal);
             case ILOpCode_Beq_S:			// 0x2E
+                Log_WriteLine(LogFlags_ILReading, "Read Beq.S");
                 DefineBranchTarget_Short(BranchCondition_Equal);
 
             case ILOpCode_Bne_Un:			// 0x40
+                Log_WriteLine(LogFlags_ILReading, "Read Bne.Un");
                 DefineBranchTarget(BranchCondition_NotEqual_Unsigned);
             case ILOpCode_Bne_Un_S:			// 0x33
+                Log_WriteLine(LogFlags_ILReading, "Read Bne.Un.S");
                 DefineBranchTarget_Short(BranchCondition_NotEqual_Unsigned);
 
             case ILOpCode_Bge:				// 0x3C
+                Log_WriteLine(LogFlags_ILReading, "Read Bge");
                 DefineBranchTarget(BranchCondition_Greater_Or_Equal);
             case ILOpCode_Bge_S:			// 0x2F
+                Log_WriteLine(LogFlags_ILReading, "Read Bge.S");
                 DefineBranchTarget_Short(BranchCondition_Greater_Or_Equal);
             case ILOpCode_Bge_Un:			// 0x41
+                Log_WriteLine(LogFlags_ILReading, "Read Bge.Un");
                 DefineBranchTarget(BranchCondition_Greater_Or_Equal_Unsigned);
             case ILOpCode_Bge_Un_S:			// 0x34
+                Log_WriteLine(LogFlags_ILReading, "Read Bge.Un.S");
                 DefineBranchTarget_Short(BranchCondition_Greater_Or_Equal_Unsigned);
 
             case ILOpCode_Bgt:				// 0x3D
+                Log_WriteLine(LogFlags_ILReading, "Read Bgt");
                 DefineBranchTarget(BranchCondition_Greater);
             case ILOpCode_Bgt_S:			// 0x30
+                Log_WriteLine(LogFlags_ILReading, "Read Bgt.S");
                 DefineBranchTarget_Short(BranchCondition_Greater);
             case ILOpCode_Bgt_Un:			// 0x42
+                Log_WriteLine(LogFlags_ILReading, "Read Bgt.Un");
                 DefineBranchTarget(BranchCondition_Greater_Unsigned);
             case ILOpCode_Bgt_Un_S:			// 0x35
+                Log_WriteLine(LogFlags_ILReading, "Read Bgt.Un.S");
                 DefineBranchTarget_Short(BranchCondition_Greater_Unsigned);
 
             case ILOpCode_Ble:				// 0x3E
+                Log_WriteLine(LogFlags_ILReading, "Read Ble");
                 DefineBranchTarget(BranchCondition_Less_Or_Equal);
             case ILOpCode_Ble_S:			// 0x31
+                Log_WriteLine(LogFlags_ILReading, "Read Ble.S");
                 DefineBranchTarget_Short(BranchCondition_Less_Or_Equal);
             case ILOpCode_Ble_Un:			// 0x43
+                Log_WriteLine(LogFlags_ILReading, "Read Ble.Un");
                 DefineBranchTarget(BranchCondition_Less_Or_Equal_Unsigned);
             case ILOpCode_Ble_Un_S:			// 0x36
+                Log_WriteLine(LogFlags_ILReading, "Read Ble.Un.S");
                 DefineBranchTarget_Short(BranchCondition_Less_Or_Equal_Unsigned);
 
             case ILOpCode_Blt:				// 0x3F
+                Log_WriteLine(LogFlags_ILReading, "Read Blt");
                 DefineBranchTarget(BranchCondition_Less);
             case ILOpCode_Blt_S:			// 0x32
+                Log_WriteLine(LogFlags_ILReading, "Read Blt.S");
                 DefineBranchTarget_Short(BranchCondition_Less);
             case ILOpCode_Blt_Un:			// 0x44
+                Log_WriteLine(LogFlags_ILReading, "Read Blt.Un");
                 DefineBranchTarget(BranchCondition_Less_Unsigned);
             case ILOpCode_Blt_Un_S:			// 0x37
+                Log_WriteLine(LogFlags_ILReading, "Read Blt.Un.S");
                 DefineBranchTarget_Short(BranchCondition_Less_Unsigned);
 
 Branch_Common:
                 {
-
+                    uint32_t* targt = (uint32_t*)malloc(sizeof(uint32_t));
+                    *targt = ((((size_t)(*dat)) - orig) + ((int32_t)branch_Target));
+                    BranchCondition* condtn = (BranchCondition*)malloc(sizeof(BranchCondition));
+                    *condtn = branch_Condition;
+                    EMIT_IR_2ARG(IROpCode_Branch, condtn, targt);
                 }
                 ClearFlags();
                 break;
@@ -526,6 +652,8 @@ Branch_Common:
                 
                 ClearFlags();
                 break;
+
+
             case ILOpCode_LdInd_I1:			// 0x46
                 
                 ClearFlags();
@@ -570,6 +698,8 @@ Branch_Common:
                 
                 ClearFlags();
                 break;
+
+
 			case ILOpCode_StInd_Ref:		// 0x51
                 
                 ClearFlags();
@@ -598,6 +728,8 @@ Branch_Common:
                 
                 ClearFlags();
                 break;
+
+
             case ILOpCode_Add:				// 0x58
                 
                 ClearFlags();
@@ -724,19 +856,7 @@ Branch_Common:
 				break;
 
 
-            case ILOpCode_CallVirt:			// 0x6F
-                
-                ClearFlags();
-                break;
             case ILOpCode_CpObj:			// 0x70
-                
-                ClearFlags();
-                break;
-            case ILOpCode_LdObj:			// 0x71
-                
-                ClearFlags();
-                break;
-            case ILOpCode_LdStr:			// 0x72
                 
                 ClearFlags();
                 break;
@@ -1152,7 +1272,12 @@ Branch_Common:
                         ClearFlags();
                         break;
                     case ILOpCodes_Extended_LdLoc:			// 0x0C
-                        
+                        {
+                            Log_WriteLine(LogFlags_ILReading, "Read LdLoc");
+                            uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
+                            *dt = (uint32_t)ReadUInt32(dat);
+                            EMIT_IR_1ARG(IROpCode_Load_LocalVar, dt);
+                        }
                         ClearFlags();
                         break;
                     case ILOpCodes_Extended_LdLocA:			// 0x0D
@@ -1160,7 +1285,12 @@ Branch_Common:
                         ClearFlags();
                         break;
                     case ILOpCodes_Extended_StLoc:			// 0x0E
-                        
+                        {
+                            Log_WriteLine(LogFlags_ILReading, "Read StLoc");
+                            uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
+                            *dt = (uint32_t)ReadUInt32(dat);
+                            EMIT_IR_1ARG(IROpCode_Store_LocalVar, dt);
+                        }
                         ClearFlags();
                         break;
                     case ILOpCodes_Extended_LocAlloc:		// 0x0F
@@ -1172,21 +1302,9 @@ Branch_Common:
                         
                         ClearFlags();
                         break;
-                    case ILOpCodes_Extended_Unaligned__:	// 0x12
-                        UnAligned = TRUE;
-                        break;
-                    case ILOpCodes_Extended_Volatile__:		// 0x13
-                        Volatile = TRUE;
-                        break;
-                    case ILOpCodes_Extended_Tail__:			// 0x14
-                        Tail = TRUE;
-                        break;
                     case ILOpCodes_Extended_InitObj:		// 0x15
                         
                         ClearFlags();
-                        break;
-                    case ILOpCodes_Extended_Constrained__:	// 0x16
-                        Constrained = TRUE;
                         break;
                     case ILOpCodes_Extended_CpBlk:			// 0x17
                         
@@ -1195,9 +1313,6 @@ Branch_Common:
                     case ILOpCodes_Extended_InitBlk:		// 0x18
                         
                         ClearFlags();
-                        break;
-                    case ILOpCodes_Extended_No__:			// 0x19
-                        No = TRUE;
                         break;
                     case ILOpCodes_Extended_ReThrow:		// 0x1A
 
@@ -1211,8 +1326,25 @@ Branch_Common:
                         
                         ClearFlags();
                         break;
+
+
+                    case ILOpCodes_Extended_Constrained__:	// 0x16
+                        Constrained = TRUE;
+                        break;
+                    case ILOpCodes_Extended_No__:			// 0x19
+                        No = TRUE;
+                        break;
                     case ILOpCodes_Extended_ReadOnly__:		// 0x1E
                         ReadOnly = TRUE;
+                        break;
+                    case ILOpCodes_Extended_Tail__:			// 0x14
+                        Tail = TRUE;
+                        break;
+                    case ILOpCodes_Extended_Unaligned__:	// 0x12
+                        UnAligned = TRUE;
+                        break;
+                    case ILOpCodes_Extended_Volatile__:		// 0x13
+                        Volatile = TRUE;
                         break;
 
                 }

@@ -319,6 +319,15 @@
     <ClCompile Include="Source\CLR\Metadata_Search.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\CLR\IROptimizer.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\CLR\Optimizations\UnconditionalBranchTransform.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\CLR\IRMethod_BranchLinker.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\Core\MultiBoot.h">
@@ -658,6 +667,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Include\CLR\Metadata_Search.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\CLR\IROptimizer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\CLR\Optimizations\UnconditionalBranchTransform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\CLR\IRMethod_BranchLinker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
