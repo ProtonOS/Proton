@@ -32,7 +32,8 @@ struct _IRMethod
 	/*
 		The actual assembled method.
 	 */
-	void* AssembledMethod;
+	//void* AssembledMethod;
+    void(*AssembledMethod)();
 	/*
 		The parent assembly for this method.
 	 */

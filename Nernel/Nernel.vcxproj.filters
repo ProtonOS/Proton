@@ -102,6 +102,9 @@
     <ClCompile Include="Source\Runtime\Thread.c" />
     <ClCompile Include="Source\Runtime\Type.c" />
     <ClCompile Include="Source\CLR\GC.c" />
+    <ClCompile Include="Source\CLR\InternalCalls\Proton.IO.MemoryIO.c" />
+    <ClCompile Include="Source\CLR\InternalCalls\Proton.IO.PortIO.c" />
+    <ClCompile Include="Source\CLR\InternalCalls.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\CLR\AppDomain.h" />
@@ -222,6 +225,10 @@
     <ClInclude Include="Include\Runtime\Type.h" />
     <ClInclude Include="Include\Runtime\Types.h" />
     <ClInclude Include="Source\CLR\MetaData\MethodDefinition.c" />
+    <ClInclude Include="Include\CLR\InternalCalls.h" />
+    <ClInclude Include="Include\CLR\InternalCalls\Proton.IO.MemoryIO.h" />
+    <ClInclude Include="Include\CLR\InternalCalls\Proton.IO.PortIO.h" />
+    <ClInclude Include="Include\CLR\InternalCalls\Helpers.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Makefile.omake" />

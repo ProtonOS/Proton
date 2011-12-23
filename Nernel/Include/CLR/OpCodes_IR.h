@@ -175,6 +175,23 @@ typedef enum IROpCode
 
      */
     IROpCode_Load_LocalVar,
+    /*
+        Loads the address of the specified 
+        local variable and pushes it to 
+        the top of the stack.
+
+        Arg1:
+            The index of the local variable
+            to load the address of.
+
+        Arg2:
+            N/A
+
+        Arg3:
+            N/A
+
+     */
+    IROpCode_Load_LocalVar_Address,
 } IROpCode;
 
 

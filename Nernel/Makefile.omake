@@ -10,7 +10,6 @@
 #define PLATFORM_ALIAS(MAC_OSX_X32, MAC_OSX_32);
 #define PLATFORM_ALIAS(MAC_OSX_X32, MAC32);
 
-
 #define TOOL(GCC, ../SDK/bin/i686-elf-gcc);
 #define TOOL_WIN32(GCC, ../SDK/bin/i686-elf-gcc.exe);
 
@@ -74,6 +73,7 @@
 	Source/CLR/CLIFile.c
 	Source/CLR/GC.c
 	Source/CLR/ILReader.c
+	Source/CLR/InternalCalls.c
 	Source/CLR/IRMethod_BranchLinker.c
 	Source/CLR/IROptimizer.c
 	Source/CLR/IRStructures.c
@@ -81,6 +81,9 @@
 	Source/CLR/Metadata_Search.c
 	Source/CLR/PEFile.c
 	Source/CLR/SyntheticStack.c
+#
+	Source/CLR/InternalCalls/Proton.IO.MemoryIO.c
+	Source/CLR/InternalCalls/Proton.IO.PortIO.c
 #
 	Source/CLR/Optimizations/UnconditionalBranchTransform.c
 #
