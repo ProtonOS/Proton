@@ -1,0 +1,5 @@
+This code is currently considered Unlicensed.
+The code is copyrighted by default to the authors, Shane Bryldt and Orvid King.
+People can read the code for educational purposes, but they have no legal right to use it in any way.
+To use the code, you must contact the authors directly and ask permission.
+The authors maintain the right to collectively change the license at any time.

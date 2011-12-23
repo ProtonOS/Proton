@@ -72,6 +72,7 @@
 #
 	Source/CLR/AppDomain.c
 	Source/CLR/CLIFile.c
+	Source/CLR/GC.c
 	Source/CLR/ILReader.c
 	Source/CLR/IRMethod_BranchLinker.c
 	Source/CLR/IROptimizer.c

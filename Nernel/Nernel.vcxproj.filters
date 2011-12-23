@@ -1,682 +1,236 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
+    <ClCompile Include="Source\CLR\AppDomain.c" />
+    <ClCompile Include="Source\CLR\CLIFile.c" />
+    <ClCompile Include="Source\CLR\ILReader.c" />
+    <ClCompile Include="Source\CLR\IRMethod_BranchLinker.c" />
+    <ClCompile Include="Source\CLR\IROptimizer.c" />
+    <ClCompile Include="Source\CLR\IRStructures.c" />
+    <ClCompile Include="Source\CLR\Log.c" />
+    <ClCompile Include="Source\CLR\MetaData\MetaData.c" />
+    <ClCompile Include="Source\CLR\MetaData\AssemblyDefinition.c" />
+    <ClCompile Include="Source\CLR\MetaData\AssemblyOperatingSystem.c" />
+    <ClCompile Include="Source\CLR\MetaData\AssemblyProcessor.c" />
+    <ClCompile Include="Source\CLR\MetaData\AssemblyReference.c" />
+    <ClCompile Include="Source\CLR\MetaData\AssemblyReferenceOperatingSystem.c" />
+    <ClCompile Include="Source\CLR\MetaData\AssemblyReferenceProcessor.c" />
+    <ClCompile Include="Source\CLR\MetaData\ClassLayout.c" />
+    <ClCompile Include="Source\CLR\MetaData\Constant.c" />
+    <ClCompile Include="Source\CLR\MetaData\CustomAttribute.c" />
+    <ClCompile Include="Source\CLR\MetaData\DeclSecurity.c" />
+    <ClCompile Include="Source\CLR\MetaData\Event.c" />
+    <ClCompile Include="Source\CLR\MetaData\EventMap.c" />
+    <ClCompile Include="Source\CLR\MetaData\ExportedType.c" />
+    <ClCompile Include="Source\CLR\MetaData\Field.c" />
+    <ClCompile Include="Source\CLR\MetaData\FieldLayout.c" />
+    <ClCompile Include="Source\CLR\MetaData\FieldMarshal.c" />
+    <ClCompile Include="Source\CLR\MetaData\FieldRVA.c" />
+    <ClCompile Include="Source\CLR\MetaData\File.c" />
+    <ClCompile Include="Source\CLR\MetaData\GenericParameter.c" />
+    <ClCompile Include="Source\CLR\MetaData\GenericParameterConstraint.c" />
+    <ClCompile Include="Source\CLR\MetaData\ImplementationMap.c" />
+    <ClCompile Include="Source\CLR\MetaData\InterfaceImplementation.c" />
+    <ClCompile Include="Source\CLR\MetaData\ManifestResource.c" />
+    <ClCompile Include="Source\CLR\MetaData\MemberReference.c" />
+    <ClCompile Include="Source\CLR\MetaData\MethodImplementation.c" />
+    <ClCompile Include="Source\CLR\MetaData\MethodSemantics.c" />
+    <ClCompile Include="Source\CLR\MetaData\MethodSpecification.c" />
+    <ClCompile Include="Source\CLR\MetaData\ModuleDefinition.c" />
+    <ClCompile Include="Source\CLR\MetaData\ModuleReference.c" />
+    <ClCompile Include="Source\CLR\MetaData\NestedClass.c" />
+    <ClCompile Include="Source\CLR\MetaData\Parameter.c" />
+    <ClCompile Include="Source\CLR\MetaData\Property.c" />
+    <ClCompile Include="Source\CLR\MetaData\PropertyMap.c" />
+    <ClCompile Include="Source\CLR\MetaData\StandAloneSignature.c" />
+    <ClCompile Include="Source\CLR\MetaData\TypeDefinition.c" />
+    <ClCompile Include="Source\CLR\MetaData\TypeReference.c" />
+    <ClCompile Include="Source\CLR\MetaData\TypeSpecification.c" />
+    <ClCompile Include="Source\CLR\Metadata_Search.c" />
+    <ClCompile Include="Source\CLR\Optimizations\UnconditionalBranchTransform.c" />
+    <ClCompile Include="Source\CLR\PEFile.c" />
+    <ClCompile Include="Source\CLR\SyntheticStack.c" />
+    <ClCompile Include="Source\Core\DLMalloc.c" />
+    <ClCompile Include="Source\Core\Console.c" />
+    <ClCompile Include="Source\Core\GDT.c" />
+    <ClCompile Include="Source\Core\IDT.c" />
+    <ClCompile Include="Source\Core\SerialWriter.c" />
+    <ClCompile Include="Source\Core\SystemClock.c" />
+    <ClCompile Include="Source\Core\PIC.c" />
+    <ClCompile Include="Source\Core\PIT.c" />
+    <ClCompile Include="Source\Core\RTC.c" />
+    <ClCompile Include="Source\Nernel.c" />
+    <ClCompile Include="Source\Core\MultiBoot.c" />
+    <ClCompile Include="Source\Core\SystemCalls.c" />
+    <ClCompile Include="Source\Runtime\CLIFile.c" />
+    <ClCompile Include="Source\Runtime\Delegate.c" />
+    <ClCompile Include="Source\Runtime\Finalizer.c" />
+    <ClCompile Include="Source\Runtime\Generics.c" />
+    <ClCompile Include="Source\Runtime\Heap.c" />
+    <ClCompile Include="Source\Runtime\InternalCall.c" />
+    <ClCompile Include="Source\Runtime\JIT.c" />
+    <ClCompile Include="Source\Runtime\JIT_Execute.c" />
+    <ClCompile Include="Source\Runtime\MetaData.c" />
+    <ClCompile Include="Source\Runtime\MetaData_Fill.c" />
+    <ClCompile Include="Source\Runtime\MetaData_Search.c" />
+    <ClCompile Include="Source\Runtime\MethodState.c" />
+    <ClCompile Include="Source\Runtime\PInvoke.c" />
+    <ClCompile Include="Source\Runtime\Proton.IO.MemoryIO.c" />
+    <ClCompile Include="Source\Runtime\Proton.IO.PortIO.c" />
+    <ClCompile Include="Source\Runtime\RVA.c" />
+    <ClCompile Include="Source\Runtime\Sys.c" />
+    <ClCompile Include="Source\Runtime\System.Array.c" />
+    <ClCompile Include="Source\Runtime\System.Char.c" />
+    <ClCompile Include="Source\Runtime\System.Console.c" />
+    <ClCompile Include="Source\Runtime\System.DateTime.c" />
+    <ClCompile Include="Source\Runtime\System.Diagnostics.Debugger.c" />
+    <ClCompile Include="Source\Runtime\System.Enum.c" />
+    <ClCompile Include="Source\Runtime\System.Environment.c" />
+    <ClCompile Include="Source\Runtime\System.GC.c" />
+    <ClCompile Include="Source\Runtime\System.IO.FileInternal.c" />
+    <ClCompile Include="Source\Runtime\System.Math.c" />
+    <ClCompile Include="Source\Runtime\System.Object.c" />
+    <ClCompile Include="Source\Runtime\System.Runtime.CompilerServices.RuntimeHelpers.c" />
+    <ClCompile Include="Source\Runtime\System.RuntimeType.c" />
+    <ClCompile Include="Source\Runtime\System.String.c" />
+    <ClCompile Include="Source\Runtime\System.Threading.Interlocked.c" />
+    <ClCompile Include="Source\Runtime\System.Threading.Monitor.c" />
+    <ClCompile Include="Source\Runtime\System.Threading.Thread.c" />
+    <ClCompile Include="Source\Runtime\System.Type.c" />
+    <ClCompile Include="Source\Runtime\System.ValueType.c" />
+    <ClCompile Include="Source\Runtime\System.WeakReference.c" />
+    <ClCompile Include="Source\Runtime\Thread.c" />
+    <ClCompile Include="Source\Runtime\Type.c" />
+    <ClCompile Include="Source\CLR\GC.c" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Source\Core\Boot.asm">
-      <Filter>Source Files</Filter>
-    </None>
+    <ClInclude Include="Include\CLR\AppDomain.h" />
+    <ClInclude Include="Include\CLR\CLIFile.h" />
+    <ClInclude Include="Include\CLR\GC.h" />
+    <ClInclude Include="Include\CLR\ILReader.h" />
+    <ClInclude Include="Include\CLR\IRMethod_BranchLinker.h" />
+    <ClInclude Include="Include\CLR\IROptimizer.h" />
+    <ClInclude Include="Include\CLR\IRStructures.h" />
+    <ClInclude Include="Include\CLR\Log.h" />
+    <ClInclude Include="Include\CLR\MetaData\AssemblyDefinition.h" />
+    <ClInclude Include="Include\CLR\MetaData\AssemblyOperatingSystem.h" />
+    <ClInclude Include="Include\CLR\MetaData\AssemblyProcessor.h" />
+    <ClInclude Include="Include\CLR\MetaData\AssemblyReference.h" />
+    <ClInclude Include="Include\CLR\MetaData\AssemblyReferenceOperatingSystem.h" />
+    <ClInclude Include="Include\CLR\MetaData\AssemblyReferenceProcessor.h" />
+    <ClInclude Include="Include\CLR\MetaData\ClassLayout.h" />
+    <ClInclude Include="Include\CLR\MetaData\Constant.h" />
+    <ClInclude Include="Include\CLR\MetaData\CustomAttribute.h" />
+    <ClInclude Include="Include\CLR\MetaData\DeclSecurity.h" />
+    <ClInclude Include="Include\CLR\MetaData\Event.h" />
+    <ClInclude Include="Include\CLR\MetaData\EventMap.h" />
+    <ClInclude Include="Include\CLR\MetaData\ExportedType.h" />
+    <ClInclude Include="Include\CLR\MetaData\Field.h" />
+    <ClInclude Include="Include\CLR\MetaData\FieldLayout.h" />
+    <ClInclude Include="Include\CLR\MetaData\FieldMarshal.h" />
+    <ClInclude Include="Include\CLR\MetaData\FieldRVA.h" />
+    <ClInclude Include="Include\CLR\MetaData\File.h" />
+    <ClInclude Include="Include\CLR\MetaData\GenericParameter.h" />
+    <ClInclude Include="Include\CLR\MetaData\GenericParameterConstraint.h" />
+    <ClInclude Include="Include\CLR\MetaData\ImplementationMap.h" />
+    <ClInclude Include="Include\CLR\MetaData\InterfaceImplementation.h" />
+    <ClInclude Include="Include\CLR\MetaData\ManifestResource.h" />
+    <ClInclude Include="Include\CLR\MetaData\MemberReference.h" />
+    <ClInclude Include="Include\CLR\MetaData\MetaData.h" />
+    <ClInclude Include="Include\CLR\MetaData\MethodDefinition.h" />
+    <ClInclude Include="Include\CLR\MetaData\MethodImplementation.h" />
+    <ClInclude Include="Include\CLR\MetaData\MethodSemantics.h" />
+    <ClInclude Include="Include\CLR\MetaData\MethodSpecification.h" />
+    <ClInclude Include="Include\CLR\MetaData\ModuleDefinition.h" />
+    <ClInclude Include="Include\CLR\MetaData\ModuleReference.h" />
+    <ClInclude Include="Include\CLR\MetaData\NestedClass.h" />
+    <ClInclude Include="Include\CLR\MetaData\Parameter.h" />
+    <ClInclude Include="Include\CLR\MetaData\Property.h" />
+    <ClInclude Include="Include\CLR\MetaData\PropertyMap.h" />
+    <ClInclude Include="Include\CLR\MetaData\Signature.h" />
+    <ClInclude Include="Include\CLR\MetaData\StandAloneSignature.h" />
+    <ClInclude Include="Include\CLR\MetaData\TypeDefinition.h" />
+    <ClInclude Include="Include\CLR\MetaData\TypeReference.h" />
+    <ClInclude Include="Include\CLR\MetaData\TypeSpecification.h" />
+    <ClInclude Include="Include\CLR\Metadata_Search.h" />
+    <ClInclude Include="Include\CLR\OpCodes_IL.h" />
+    <ClInclude Include="Include\CLR\OpCodes_IR.h" />
+    <ClInclude Include="Include\CLR\Optimizations\UnconditionalBranchTransform.h" />
+    <ClInclude Include="Include\CLR\PEFile.h" />
+    <ClInclude Include="Include\CLR\ReferenceTypeObject.h" />
+    <ClInclude Include="Include\CLR\SyntheticStack.h" />
+    <ClInclude Include="Include\Core\Config.h" />
+    <ClInclude Include="Include\Core\Console.h" />
+    <ClInclude Include="Include\Core\GDT.h" />
+    <ClInclude Include="Include\Core\IDT.h" />
+    <ClInclude Include="Include\Core\IDTExternalStubs.h" />
+    <ClInclude Include="Include\Core\IDTInitializeStubs.h" />
+    <ClInclude Include="Include\Core\InterruptRegisters.h" />
+    <ClInclude Include="Include\Core\SerialWriter.h" />
+    <ClInclude Include="Include\Core\SystemClock.h" />
+    <ClInclude Include="Include\Core\PIC.h" />
+    <ClInclude Include="Include\Core\PIT.h" />
+    <ClInclude Include="Include\Core\RTC.h" />
+    <ClInclude Include="Include\Nernel.h" />
+    <ClInclude Include="Include\Core\MultiBoot.h" />
+    <ClInclude Include="Include\PortIO.h" />
+    <ClInclude Include="Include\Runtime\CIL_OpCodes.h" />
+    <ClInclude Include="Include\Runtime\CLIFile.h" />
+    <ClInclude Include="Include\Runtime\Compat.h" />
+    <ClInclude Include="Include\Runtime\Config.h" />
+    <ClInclude Include="Include\Runtime\Delegate.h" />
+    <ClInclude Include="Include\Runtime\EvalStack.h" />
+    <ClInclude Include="Include\Runtime\Finalizer.h" />
+    <ClInclude Include="Include\Runtime\Generics.h" />
+    <ClInclude Include="Include\Runtime\Heap.h" />
+    <ClInclude Include="Include\Runtime\InternalCall.h" />
+    <ClInclude Include="Include\Runtime\JIT.h" />
+    <ClInclude Include="Include\Runtime\JIT_OpCodes.h" />
+    <ClInclude Include="Include\Runtime\MetaData.h" />
+    <ClInclude Include="Include\Runtime\MetaDataTables.h" />
+    <ClInclude Include="Include\Runtime\MethodState.h" />
+    <ClInclude Include="Include\Runtime\PInvoke.h" />
+    <ClInclude Include="Include\Runtime\PInvoke_CaseCode.h" />
+    <ClInclude Include="Include\Runtime\PInvoke_TypeDef.h" />
+    <ClInclude Include="Include\Runtime\Proton.IO.MemoryIO.h" />
+    <ClInclude Include="Include\Runtime\Proton.IO.PortIO.h" />
+    <ClInclude Include="Include\Runtime\RVA.h" />
+    <ClInclude Include="Include\Runtime\Sys.h" />
+    <ClInclude Include="Include\Runtime\System.Array.h" />
+    <ClInclude Include="Include\Runtime\System.Char.CaseConversion.h" />
+    <ClInclude Include="Include\Runtime\System.Char.h" />
+    <ClInclude Include="Include\Runtime\System.Char.UC_IndexRuns.h" />
+    <ClInclude Include="Include\Runtime\System.Console.h" />
+    <ClInclude Include="Include\Runtime\System.DateTime.h" />
+    <ClInclude Include="Include\Runtime\System.Diagnostics.Debugger.h" />
+    <ClInclude Include="Include\Runtime\System.Enum.h" />
+    <ClInclude Include="Include\Runtime\System.Environment.h" />
+    <ClInclude Include="Include\Runtime\System.GC.h" />
+    <ClInclude Include="Include\Runtime\System.IO.FileInternal.h" />
+    <ClInclude Include="Include\Runtime\System.Math.h" />
+    <ClInclude Include="Include\Runtime\System.Object.h" />
+    <ClInclude Include="Include\Runtime\System.Runtime.CompilerServices.RuntimeHelpers.h" />
+    <ClInclude Include="Include\Runtime\System.RuntimeType.h" />
+    <ClInclude Include="Include\Runtime\System.String.h" />
+    <ClInclude Include="Include\Runtime\System.Threading.Interlocked.h" />
+    <ClInclude Include="Include\Runtime\System.Threading.Monitor.h" />
+    <ClInclude Include="Include\Runtime\System.Threading.Thread.h" />
+    <ClInclude Include="Include\Runtime\System.Type.h" />
+    <ClInclude Include="Include\Runtime\System.ValueType.h" />
+    <ClInclude Include="Include\Runtime\System.WeakReference.h" />
+    <ClInclude Include="Include\Runtime\Thread.h" />
+    <ClInclude Include="Include\Runtime\Type.h" />
+    <ClInclude Include="Include\Runtime\Types.h" />
+    <ClInclude Include="Source\CLR\MetaData\MethodDefinition.c" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="Makefile.omake" />
-    <None Include="Source\Core\GDTUpdate.asm">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="Source\Core\IDTUpdate.asm">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="Source\Core\IDTStubs.asm">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="Source\Runtime\Bugs.txt" />
+    <None Include="Source\Core\Boot.asm" />
+    <None Include="Source\Core\GDTUpdate.asm" />
+    <None Include="Source\Core\IDTStubs.asm" />
+    <None Include="Source\Core\IDTUpdate.asm" />
     <None Include="Source\Nernel.ld" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="Source\Runtime\Type.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Runtime\CLIFile.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Runtime\Delegate.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Runtime\Finalizer.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Runtime\Generics.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Runtime\Heap.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Runtime\InternalCall.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Runtime\JIT.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Runtime\JIT_Execute.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Runtime\MetaData.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Runtime\MetaData_Fill.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Runtime\MetaData_Search.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Runtime\MethodState.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Runtime\PInvoke.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Runtime\RVA.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Runtime\Sys.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Runtime\System.Array.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Runtime\System.Char.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Runtime\System.Console.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Runtime\System.DateTime.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Runtime\System.Diagnostics.Debugger.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Runtime\System.Enum.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Runtime\System.Environment.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Runtime\System.GC.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Runtime\System.IO.FileInternal.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Runtime\System.Math.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Runtime\System.Object.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Runtime\System.Runtime.CompilerServices.RuntimeHelpers.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Runtime\System.RuntimeType.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Runtime\System.String.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Runtime\System.Threading.Interlocked.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Runtime\System.Threading.Monitor.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Runtime\System.Threading.Thread.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Runtime\System.Type.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Runtime\System.ValueType.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Runtime\System.WeakReference.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Runtime\Thread.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Core\MultiBoot.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Core\DLMalloc.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Core\Console.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Core\GDT.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Core\IDT.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Core\PIC.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Core\RTC.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Core\PIT.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Core\SystemClock.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Core\SystemCalls.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Nernel.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Runtime\Proton.IO.PortIO.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Runtime\Proton.IO.MemoryIO.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\PEFile.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\CLIFile.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Core\SerialWriter.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\ILReader.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\AppDomain.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\IRStructures.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\SyntheticStack.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\MetaData\ModuleDefinition.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\MetaData\TypeReference.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\MetaData\TypeDefinition.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\MetaData\Field.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\MetaData\Parameter.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\MetaData\InterfaceImplementation.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\MetaData\MemberReference.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\MetaData\Constant.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\MetaData\CustomAttribute.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\MetaData\FieldMarshal.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\MetaData\DeclSecurity.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\MetaData\ClassLayout.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\MetaData\FieldLayout.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\MetaData\StandAloneSignature.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\MetaData\EventMap.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\MetaData\Event.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\MetaData\PropertyMap.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\MetaData\Property.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\MetaData\MethodSemantics.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\MetaData\MethodImplementation.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\MetaData\ModuleReference.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\MetaData\TypeSpecification.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\MetaData\ImplementationMap.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\MetaData\FieldRVA.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\MetaData\AssemblyDefinition.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\MetaData\AssemblyProcessor.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\MetaData\AssemblyOperatingSystem.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\MetaData\AssemblyReference.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\MetaData\AssemblyReferenceProcessor.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\MetaData\AssemblyReferenceOperatingSystem.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\MetaData\File.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\MetaData\ExportedType.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\MetaData\ManifestResource.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\MetaData\NestedClass.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\MetaData\GenericParameter.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\MetaData\MethodSpecification.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\MetaData\GenericParameterConstraint.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\MetaData\MetaData.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\Log.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\Metadata_Search.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\IROptimizer.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\Optimizations\UnconditionalBranchTransform.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\IRMethod_BranchLinker.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Include\Core\MultiBoot.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Core\Config.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Core\GDT.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Core\IDT.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Core\IDTExternalStubs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Core\IDTInitializeStubs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Core\SystemClock.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\CIL_OpCodes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\Types.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\CLIFile.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\Compat.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\Config.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\Delegate.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\EvalStack.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\Finalizer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\Generics.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\Heap.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\InternalCall.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\JIT.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\JIT_OpCodes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\MetaData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\MetaDataTables.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\MethodState.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\PInvoke.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\PInvoke_CaseCode.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\PInvoke_TypeDef.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\RVA.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\Sys.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\System.Array.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\System.Char.CaseConversion.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\System.Char.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\System.Char.UC_IndexRuns.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\System.Console.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\System.DateTime.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\System.Diagnostics.Debugger.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\System.Enum.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\System.Environment.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\System.GC.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\System.IO.FileInternal.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\System.Math.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\System.Object.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\System.Runtime.CompilerServices.RuntimeHelpers.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\System.RuntimeType.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\System.String.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\System.Threading.Interlocked.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\System.Threading.Monitor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\System.Threading.Thread.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\System.Type.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\System.ValueType.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\System.WeakReference.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\Thread.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\Type.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Core\Console.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Core\RTC.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Core\PIC.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Core\PIT.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Core\InterruptRegisters.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Nernel.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\Proton.IO.PortIO.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Runtime\Proton.IO.MemoryIO.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\PEFile.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\CLIFile.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Core\SerialWriter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\OpCodes_IL.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\ILReader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\IRStructures.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\AppDomain.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\OpCodes_IR.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\SyntheticStack.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\CLR\MetaData\MethodDefinition.c">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\MetaData\MethodDefinition.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\MetaData\MetaData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\MetaData\ModuleDefinition.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\MetaData\TypeReference.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\MetaData\TypeDefinition.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\MetaData\Field.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\MetaData\Parameter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\MetaData\InterfaceImplementation.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\MetaData\MemberReference.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\MetaData\Constant.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\MetaData\CustomAttribute.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\MetaData\FieldMarshal.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\MetaData\DeclSecurity.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\MetaData\ClassLayout.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\MetaData\FieldLayout.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\MetaData\StandAloneSignature.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\MetaData\EventMap.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\MetaData\Event.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\MetaData\PropertyMap.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\MetaData\Property.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\MetaData\MethodSemantics.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\MetaData\MethodImplementation.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\MetaData\ModuleReference.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\MetaData\TypeSpecification.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\MetaData\ImplementationMap.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\MetaData\FieldRVA.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\MetaData\AssemblyDefinition.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\MetaData\AssemblyProcessor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\MetaData\AssemblyOperatingSystem.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\MetaData\AssemblyReference.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\MetaData\AssemblyReferenceProcessor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\MetaData\AssemblyReferenceOperatingSystem.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\MetaData\File.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\MetaData\ExportedType.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\MetaData\ManifestResource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\MetaData\NestedClass.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\MetaData\GenericParameter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\MetaData\MethodSpecification.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\MetaData\GenericParameterConstraint.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\MetaData\Signature.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\PortIO.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\Log.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\Metadata_Search.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\IROptimizer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\Optimizations\UnconditionalBranchTransform.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\CLR\IRMethod_BranchLinker.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
+    <None Include="Source\Runtime\Bugs.txt" />
+    <None Include="License.txt" />
   </ItemGroup>
 </Project>

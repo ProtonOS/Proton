@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <None Include="License.txt" />
     <None Include="Makefile.omake" />
     <None Include="Source\Core\Boot.asm" />
     <None Include="Source\Core\GDTUpdate.asm" />
@@ -22,6 +23,7 @@
   <ItemGroup>
     <ClCompile Include="Source\CLR\AppDomain.c" />
     <ClCompile Include="Source\CLR\CLIFile.c" />
+    <ClCompile Include="Source\CLR\GC.c" />
     <ClCompile Include="Source\CLR\ILReader.c" />
     <ClCompile Include="Source\CLR\IRMethod_BranchLinker.c" />
     <ClCompile Include="Source\CLR\IROptimizer.c" />
@@ -124,6 +126,7 @@
   <ItemGroup>
     <ClInclude Include="Include\CLR\AppDomain.h" />
     <ClInclude Include="Include\CLR\CLIFile.h" />
+    <ClInclude Include="Include\CLR\GC.h" />
     <ClInclude Include="Include\CLR\ILReader.h" />
     <ClInclude Include="Include\CLR\IRMethod_BranchLinker.h" />
     <ClInclude Include="Include\CLR\IROptimizer.h" />
@@ -174,6 +177,7 @@
     <ClInclude Include="Include\CLR\OpCodes_IR.h" />
     <ClInclude Include="Include\CLR\Optimizations\UnconditionalBranchTransform.h" />
     <ClInclude Include="Include\CLR\PEFile.h" />
+    <ClInclude Include="Include\CLR\ReferenceTypeObject.h" />
     <ClInclude Include="Include\CLR\SyntheticStack.h" />
     <ClInclude Include="Include\Core\Config.h" />
     <ClInclude Include="Include\Core\Console.h" />
