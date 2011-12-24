@@ -2,7 +2,11 @@
 #include <CLR/Log.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
+
+// For some insane reason, gcc doesn't
+// want me to use strdup, because it refuses
+// to find it, so we declare it here
+char* strdup(const char* msg);
 
 
 void StackObjectPool_PushSet();

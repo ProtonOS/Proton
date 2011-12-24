@@ -37,7 +37,7 @@ struct _StackObject
     StackObjectNumericType NumericType;
     StackObject* PrevObj;
     StackObject* NextObj;
-    const char* Name;
+    char* Name;
 };
 
 StackObject* StackObject_Create();

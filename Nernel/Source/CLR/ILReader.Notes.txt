@@ -1,6 +1,4 @@
 
 
-ILOpCode_Ldc_I4_S:			            (Needs To Be Checked)
-    This needs to be sign extended conversion, otherwise the
-    relative location won't be correct.
+
 

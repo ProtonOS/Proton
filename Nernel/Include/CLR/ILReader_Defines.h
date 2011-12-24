@@ -147,7 +147,7 @@
 #define DefineBranchTarget_Short(brnchType, opCode) \
     Log_WriteLine(LogFlags_ILReading, "Read " #opCode ".S"); \
     branch_Condition = brnchType; \
-    branch_Target = (uint32_t)ReadUInt8(dat); \
+    branch_Target = (uint32_t)((int32_t)((int8_t)ReadUInt8(dat))); \
     goto Branch_Common; 
 
 

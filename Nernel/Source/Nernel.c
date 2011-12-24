@@ -4,7 +4,7 @@
 #include <CLR/ILReader.h>
 #include <CLR/Log.h>
 
-//static AppDomain* global_baseMernelDomain;
+static AppDomain* global_baseMernelDomain;
 
 void Main(uint32_t pMultiBootMagic,
             void* pMultiBootData)
@@ -15,23 +15,23 @@ void Main(uint32_t pMultiBootMagic,
         return;
     }
 
-    ReferenceTypeObject* root = (ReferenceTypeObject*)calloc(1, sizeof(ReferenceTypeObject));
-    GC* gc = GC_Create(root);
-    ReferenceTypeObject* objA = GC_Allocate(gc, 2048); // Allocate, data should be from Stack 0
-    ReferenceTypeObject* objB = GC_Allocate(gc, 1024); // Allocate, data should be from Stack 0
-    ReferenceTypeObject* objC = GC_Allocate(gc, 1024); // Allocate, data should be from Stack 0
-    ReferenceTypeObject* objD = GC_Allocate(gc, 1024); // Allocate, data should be from Stack 1
-    ReferenceTypeObject* objE = GC_Allocate(gc, 4096); // Allocate, data should be from Stack 2
-    objB->Flags &= ~ReferenceTypeObject_Flags_Active; // Set inactive, ready for collection
-    GC_Collect(gc); // Collect, to reduce reference count on inactive refcount 1 objects
-    objA->Flags &= ~ReferenceTypeObject_Flags_Active; // Set inactive, ready for collection
-    objC->Flags &= ~ReferenceTypeObject_Flags_Active; // Set inactive, ready for collection
-    GC_Collect(gc); // Collect, to reduce reference count on inactive refcount 1 objects
-    objD->Flags &= ~ReferenceTypeObject_Flags_Active; // Set inactive, ready for collection
-    objE->Flags &= ~ReferenceTypeObject_Flags_Active; // Set inactive, ready for collection
-    GC_Collect(gc); // Collect, to reduce reference count on inactive refcount 1 objects
+    //ReferenceTypeObject* root = (ReferenceTypeObject*)calloc(1, sizeof(ReferenceTypeObject));
+    //GC* gc = GC_Create(root);
+    //ReferenceTypeObject* objA = GC_Allocate(gc, 2048); // Allocate, data should be from Stack 0
+    //ReferenceTypeObject* objB = GC_Allocate(gc, 1024); // Allocate, data should be from Stack 0
+    //ReferenceTypeObject* objC = GC_Allocate(gc, 1024); // Allocate, data should be from Stack 0
+    //ReferenceTypeObject* objD = GC_Allocate(gc, 1024); // Allocate, data should be from Stack 1
+    //ReferenceTypeObject* objE = GC_Allocate(gc, 4096); // Allocate, data should be from Stack 2
+    //objB->Flags &= ~ReferenceTypeObject_Flags_Active; // Set inactive, ready for collection
+    //GC_Collect(gc); // Collect, to reduce reference count on inactive refcount 1 objects
+    //objA->Flags &= ~ReferenceTypeObject_Flags_Active; // Set inactive, ready for collection
+    //objC->Flags &= ~ReferenceTypeObject_Flags_Active; // Set inactive, ready for collection
+    //GC_Collect(gc); // Collect, to reduce reference count on inactive refcount 1 objects
+    //objD->Flags &= ~ReferenceTypeObject_Flags_Active; // Set inactive, ready for collection
+    //objE->Flags &= ~ReferenceTypeObject_Flags_Active; // Set inactive, ready for collection
+    //GC_Collect(gc); // Collect, to reduce reference count on inactive refcount 1 objects
 
-    //global_baseMernelDomain = AppDomain_CreateDomain();
+    global_baseMernelDomain = AppDomain_CreateDomain();
 
     /*
 	tCLIFile* cliFile;

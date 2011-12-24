@@ -130,172 +130,172 @@ const uint8_t* CLIFile_GetGUID(CLIFile* pFile, uint32_t pVirtualAddress)
 	return (const uint8_t*)(pFile->GUIDsHeap + pVirtualAddress);
 }
 
-MetaDataToken CLIFile_ResolveToken(CLIFile* pFile, uint32_t pToken)
+MetaDataToken* CLIFile_ResolveToken(CLIFile* pFile, uint32_t pToken)
 {
-    MetaDataToken token;
-    token.Table = pToken >> 24;
-    token.Data = NULL;
+    MetaDataToken* token = (MetaDataToken*)calloc(1, sizeof(MetaDataToken));
+    token->Table = pToken >> 24;
+    token->Data = NULL;
     uint32_t index = pToken & 0x00FFFFFF;
     if (index == 0) return token;
-    if (token.Table == MetaData_Table_UserStrings)
+    if (token->Table == MetaData_Table_UserStrings)
     {
-        token.IsUserString = TRUE;
-        token.Data = pFile->UserStringsHeap + index;
+        token->IsUserString = TRUE;
+        token->Data = pFile->UserStringsHeap + index;
         return token;
     }
-    switch (token.Table)
+    switch (token->Table)
     {
     case MetaData_Table_ModuleDefinition:
         if (index > pFile->ModuleDefinitionCount) Panic("CLIFile_ResolveToken ModuleDefinition");
-        token.Data = &pFile->ModuleDefinitions[index];
+        token->Data = &pFile->ModuleDefinitions[index];
         break;
     case MetaData_Table_TypeReference:
         if (index > pFile->TypeReferenceCount) Panic("CLIFile_ResolveToken TypeReference");
-        token.Data = &pFile->TypeReferences[index];
+        token->Data = &pFile->TypeReferences[index];
         break;
     case MetaData_Table_TypeDefinition:
         if (index > pFile->TypeDefinitionCount) Panic("CLIFile_ResolveToken TypeDefinition");
-        token.Data = &pFile->TypeDefinitions[index];
+        token->Data = &pFile->TypeDefinitions[index];
         break;
     case MetaData_Table_Field:
         if (index > pFile->FieldCount) Panic("CLIFile_ResolveToken Field");
-        token.Data = &pFile->Fields[index];
+        token->Data = &pFile->Fields[index];
         break;
     case MetaData_Table_MethodDefinition:
         if (index > pFile->MethodDefinitionCount) Panic("CLIFile_ResolveToken MethodDefinition");
-        token.Data = &pFile->MethodDefinitions[index];
+        token->Data = &pFile->MethodDefinitions[index];
         break;
     case MetaData_Table_Parameter:
         if (index > pFile->ParameterCount) Panic("CLIFile_ResolveToken Parameter");
-        token.Data = &pFile->Parameters[index];
+        token->Data = &pFile->Parameters[index];
         break;
     case MetaData_Table_InterfaceImplementation:
         if (index > pFile->InterfaceImplementationCount) Panic("CLIFile_ResolveToken InterfaceImplementation");
-        token.Data = &pFile->InterfaceImplementations[index];
+        token->Data = &pFile->InterfaceImplementations[index];
         break;
     case MetaData_Table_MemberReference:
         if (index > pFile->MemberReferenceCount) Panic("CLIFile_ResolveToken MemberReference");
-        token.Data = &pFile->MemberReferences[index];
+        token->Data = &pFile->MemberReferences[index];
         break;
     case MetaData_Table_Constant:
         if (index > pFile->ConstantCount) Panic("CLIFile_ResolveToken Constant");
-        token.Data = &pFile->Constants[index];
+        token->Data = &pFile->Constants[index];
         break;
     case MetaData_Table_CustomAttribute:
         if (index > pFile->CustomAttributeCount) Panic("CLIFile_ResolveToken CustomAttribute");
-        token.Data = &pFile->CustomAttributes[index];
+        token->Data = &pFile->CustomAttributes[index];
         break;
     case MetaData_Table_FieldMarshal:
         if (index > pFile->FieldMarshalCount) Panic("CLIFile_ResolveToken FieldMarshal");
-        token.Data = &pFile->FieldMarshals[index];
+        token->Data = &pFile->FieldMarshals[index];
         break;
     case MetaData_Table_DeclSecurity:
         if (index > pFile->DeclSecurityCount) Panic("CLIFile_ResolveToken DeclSecurity");
-        token.Data = &pFile->DeclSecurities[index];
+        token->Data = &pFile->DeclSecurities[index];
         break;
     case MetaData_Table_ClassLayout:
         if (index > pFile->ClassLayoutCount) Panic("CLIFile_ResolveToken ClassLayout");
-        token.Data = &pFile->ClassLayouts[index];
+        token->Data = &pFile->ClassLayouts[index];
         break;
     case MetaData_Table_FieldLayout:
         if (index > pFile->FieldLayoutCount) Panic("CLIFile_ResolveToken FieldLayout");
-        token.Data = &pFile->FieldLayouts[index];
+        token->Data = &pFile->FieldLayouts[index];
         break;
     case MetaData_Table_StandAloneSignature:
         if (index > pFile->StandAloneSignatureCount) Panic("CLIFile_ResolveToken StandAloneSignature");
-        token.Data = &pFile->StandAloneSignatures[index];
+        token->Data = &pFile->StandAloneSignatures[index];
         break;
     case MetaData_Table_EventMap:
         if (index > pFile->EventMapCount) Panic("CLIFile_ResolveToken EventMap");
-        token.Data = &pFile->EventMaps[index];
+        token->Data = &pFile->EventMaps[index];
         break;
     case MetaData_Table_Event:
         if (index > pFile->EventCount) Panic("CLIFile_ResolveToken Event");
-        token.Data = &pFile->Events[index];
+        token->Data = &pFile->Events[index];
         break;
     case MetaData_Table_PropertyMap:
         if (index > pFile->PropertyMapCount) Panic("CLIFile_ResolveToken PropertyMap");
-        token.Data = &pFile->PropertyMaps[index];
+        token->Data = &pFile->PropertyMaps[index];
         break;
     case MetaData_Table_Property:
         if (index > pFile->PropertyCount) Panic("CLIFile_ResolveToken Property");
-        token.Data = &pFile->Properties[index];
+        token->Data = &pFile->Properties[index];
         break;
     case MetaData_Table_MethodSemantics:
         if (index > pFile->MethodSemanticsCount) Panic("CLIFile_ResolveToken MethodSemantics");
-        token.Data = &pFile->MethodSemantics[index];
+        token->Data = &pFile->MethodSemantics[index];
         break;
     case MetaData_Table_MethodImplementation:
         if (index > pFile->MethodImplementationCount) Panic("CLIFile_ResolveToken MethodImplementation");
-        token.Data = &pFile->MethodImplementations[index];
+        token->Data = &pFile->MethodImplementations[index];
         break;
     case MetaData_Table_ModuleReference:
         if (index > pFile->ModuleReferenceCount) Panic("CLIFile_ResolveToken ModuleReference");
-        token.Data = &pFile->ModuleReferences[index];
+        token->Data = &pFile->ModuleReferences[index];
         break;
     case MetaData_Table_TypeSpecification:
         if (index > pFile->TypeSpecificationCount) Panic("CLIFile_ResolveToken TypeSpecification");
-        token.Data = &pFile->TypeSpecifications[index];
+        token->Data = &pFile->TypeSpecifications[index];
         break;
     case MetaData_Table_ImplementationMap:
         if (index > pFile->ImplementationMapCount) Panic("CLIFile_ResolveToken ImplementationMap");
-        token.Data = &pFile->ImplementationMaps[index];
+        token->Data = &pFile->ImplementationMaps[index];
         break;
     case MetaData_Table_FieldRVA:
         if (index > pFile->FieldRVACount) Panic("CLIFile_ResolveToken FieldRVA");
-        token.Data = &pFile->FieldRVAs[index];
+        token->Data = &pFile->FieldRVAs[index];
         break;
     case MetaData_Table_AssemblyDefinition:
         if (index > pFile->AssemblyDefinitionCount) Panic("CLIFile_ResolveToken AssemblyDefinition");
-        token.Data = &pFile->AssemblyDefinitions[index];
+        token->Data = &pFile->AssemblyDefinitions[index];
         break;
     case MetaData_Table_AssemblyProcessor:
         if (index > pFile->AssemblyProcessorCount) Panic("CLIFile_ResolveToken AssemblyProcessor");
-        token.Data = &pFile->AssemblyProcessors[index];
+        token->Data = &pFile->AssemblyProcessors[index];
         break;
     case MetaData_Table_AssemblyOperatingSystem:
         if (index > pFile->AssemblyOperatingSystemCount) Panic("CLIFile_ResolveToken AssemblyOperatingSystem");
-        token.Data = &pFile->AssemblyOperatingSystems[index];
+        token->Data = &pFile->AssemblyOperatingSystems[index];
         break;
     case MetaData_Table_AssemblyReference:
         if (index > pFile->AssemblyReferenceCount) Panic("CLIFile_ResolveToken AssemblyReference");
-        token.Data = &pFile->AssemblyReferences[index];
+        token->Data = &pFile->AssemblyReferences[index];
         break;
     case MetaData_Table_AssemblyReferenceProcessor:
         if (index > pFile->AssemblyReferenceProcessorCount) Panic("CLIFile_ResolveToken AssemblyReferenceProcessor");
-        token.Data = &pFile->AssemblyReferenceProcessors[index];
+        token->Data = &pFile->AssemblyReferenceProcessors[index];
         break;
     case MetaData_Table_AssemblyReferenceOperatingSystem:
         if (index > pFile->AssemblyReferenceOperatingSystemCount) Panic("CLIFile_ResolveToken AssemblyReferenceOperatingSystem");
-        token.Data = &pFile->AssemblyReferenceOperatingSystems[index];
+        token->Data = &pFile->AssemblyReferenceOperatingSystems[index];
         break;
     case MetaData_Table_File:
         if (index > pFile->FileCount) Panic("CLIFile_ResolveToken File");
-        token.Data = &pFile->Files[index];
+        token->Data = &pFile->Files[index];
         break;
     case MetaData_Table_ExportedType:
         if (index > pFile->ExportedTypeCount) Panic("CLIFile_ResolveToken ExportedType");
-        token.Data = &pFile->ExportedTypes[index];
+        token->Data = &pFile->ExportedTypes[index];
         break;
     case MetaData_Table_ManifestResource:
         if (index > pFile->ManifestResourceCount) Panic("CLIFile_ResolveToken ManifestResource");
-        token.Data = &pFile->ManifestResources[index];
+        token->Data = &pFile->ManifestResources[index];
         break;
     case MetaData_Table_NestedClass:
         if (index > pFile->NestedClassCount) Panic("CLIFile_ResolveToken NestedClass");
-        token.Data = &pFile->NestedClasses[index];
+        token->Data = &pFile->NestedClasses[index];
         break;
     case MetaData_Table_GenericParameter:
         if (index > pFile->GenericParameterCount) Panic("CLIFile_ResolveToken GenericParameter");
-        token.Data = &pFile->GenericParameters[index];
+        token->Data = &pFile->GenericParameters[index];
         break;
     case MetaData_Table_MethodSpecification:
         if (index > pFile->MethodSpecificationCount) Panic("CLIFile_ResolveToken MethodSpecification");
-        token.Data = &pFile->MethodSpecifications[index];
+        token->Data = &pFile->MethodSpecifications[index];
         break;
     case MetaData_Table_GenericParameterConstraint:
         if (index > pFile->GenericParameterConstraintCount) Panic("CLIFile_ResolveToken GenericParameterConstraint");
-        token.Data = &pFile->GenericParameterConstraints[index];
+        token->Data = &pFile->GenericParameterConstraints[index];
         break;
     default:
         Panic("CLIFile_ResolveToken Unknown Table Type");

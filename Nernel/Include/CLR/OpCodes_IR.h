@@ -228,6 +228,55 @@ typedef enum IROpCode
 
      */
     IROpCode_Convert_Unchecked,
+    /*
+        Loads the value in the specified 
+        argument to the top of the stack.
+
+        Arg1:
+            The index of the parameter to
+            load to the top of the stack.
+
+        Arg2:
+            N/A
+
+        Arg3:
+            N/A
+
+     */
+    IROpCode_Load_Parameter,
+    /*
+        Loads the specified string to the
+        top of the stack.
+
+        Arg1:
+            The string to load to the top
+            of the stack. ( char* )
+
+        Arg2:
+            N/A
+
+        Arg3:
+            N/A
+
+     */
+    IROpCode_Load_String,
+    /*
+        Shifts the object almost on the top of the stack
+        in the specified way, by an amount specified
+        by the value at the top of the stack.
+
+        Arg1:
+            The type of shift to perform.
+            Of the type ShiftType
+
+        Arg2:
+            N/A
+
+        Arg3:
+            N/A
+
+     */
+    IROpCode_Shift,
 } IROpCode;
 
 
@@ -265,3 +314,10 @@ typedef enum ConversionArgumentType
     ConversionArgumentType_R8,
 
 } ConversionArgumentType;
+
+typedef enum ShiftType
+{
+    ShiftType_Right,
+    ShiftType_Right_Sign_Extended,
+    ShiftType_Left,
+} ShiftType;

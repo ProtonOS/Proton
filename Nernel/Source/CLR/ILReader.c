@@ -15,7 +15,7 @@ uint8_t ReadUInt8(uint8_t** dat);
 uint16_t ReadUInt16(uint8_t** dat);
 uint32_t ReadUInt32(uint8_t** dat);
 uint64_t ReadUInt64(uint8_t** dat);
-IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef);
+IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* fil);
 
 ILAssembly* ILReader_CreateAssembly(CLIFile* fil)
 {
@@ -28,7 +28,7 @@ ILAssembly* ILReader_CreateAssembly(CLIFile* fil)
     {
         uint8_t* ilLoc = (uint8_t*)fil->MethodDefinitions[i].Body.Code;
         Log_WriteLine(LogFlags_ILReading, "Reading Method %s.%s.%s", fil->MethodDefinitions[i].TypeDefinition->Namespace, fil->MethodDefinitions[i].TypeDefinition->Name, fil->MethodDefinitions[i].Name);
-        IRMethod* irMeth = ReadIL(&ilLoc, fil->MethodDefinitions[i].Body.CodeSize, &fil->MethodDefinitions[i]);
+        IRMethod* irMeth = ReadIL(&ilLoc, fil->MethodDefinitions[i].Body.CodeSize, &fil->MethodDefinitions[i], fil);
         IRMethod_BranchLinker_LinkMethod(irMeth);
         fil->MethodDefinitions[i].LoadedMethod = irMeth;
         irMeth->MethodIndex = i - 1;
@@ -43,7 +43,7 @@ ILAssembly* ILReader_CreateAssembly(CLIFile* fil)
 }
 
 
-IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef)
+IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* fil)
 {
     SyntheticStack* stack = SyntheticStack_Create();
     bool_t Constrained = FALSE;
@@ -83,7 +83,15 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef)
                 ClearFlags();
                 break;
             case ILOpCode_LdArg_1:			// 0x03
-                
+                {
+                    Log_WriteLine(LogFlags_ILReading, "Read LdArg.1");
+
+                    methodDef->ParameterList[1].
+
+                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
+                    *dt = (uint32_t)1;
+                    EMIT_IR_1ARG(IROpCode_Load_LocalVar, dt);
+                }
                 ClearFlags();
                 break;
             case ILOpCode_LdArg_2:			// 0x04
@@ -251,7 +259,13 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef)
                 ClearFlags();
                 break;
             case ILOpCode_LdStr:			// 0x72
-                
+                {
+                    Log_WriteLine(LogFlags_ILReading, "Read LdStr");
+                    MetaDataToken* tkn = CLIFile_ResolveToken(fil, ReadUInt32(dat));
+                    if (!tkn->IsUserString)
+                        Panic("Invalid token after LdStr!");
+
+                }
                 ClearFlags();
                 break;
             case ILOpCode_LdObj:			// 0x71
@@ -765,6 +779,10 @@ Branch_Common:
                 
                 ClearFlags();
                 break;
+            // The only language I know of that 
+            // emits this currently is J#.
+            // (This is a sign-extended right shift,
+            // aka. the >>> operator)
             case ILOpCode_Shr_Un:			// 0x64
                 
                 ClearFlags();
@@ -786,63 +804,37 @@ Branch_Common:
             case ILOpCode_Conv_I1:			// 0x67
                 DEFINE_CONV_UNCHECKED(I1, Int32, Int8);
             case ILOpCode_Conv_U1:			// 0xD2
-                
-                ClearFlags();
-                break;
-
-
+                DEFINE_CONV_UNCHECKED(U1, Int32, UInt8);
 			case ILOpCode_Conv_I2:			// 0x68
-                
-                ClearFlags();
-                break;
+                DEFINE_CONV_UNCHECKED(I2, Int32, Int16);
             case ILOpCode_Conv_U2:			// 0xD1
-                
-                ClearFlags();
-                break;
-
-
+                DEFINE_CONV_UNCHECKED(U2, Int32, UInt16);
 			case ILOpCode_Conv_I4:			// 0x69
-                
-                ClearFlags();
-                break;
+                DEFINE_CONV_UNCHECKED(I4, Int32, Int32);
 			case ILOpCode_Conv_U4:			// 0x6D
-                
-                ClearFlags();
-                break;
-
-
+                DEFINE_CONV_UNCHECKED(U4, Int32, UInt32);
 			case ILOpCode_Conv_I8:			// 0x6A
-                
-                ClearFlags();
-                break;
+                DEFINE_CONV_UNCHECKED(I8, Int64, Int64);
 			case ILOpCode_Conv_U8:			// 0x6E
-                
-                ClearFlags();
-                break;
-
-
+                DEFINE_CONV_UNCHECKED(U8, Int64, UInt64);
 			case ILOpCode_Conv_R4:			// 0x6B
-                
-                ClearFlags();
-                break;
+                DEFINE_CONV_UNCHECKED(R4, Float, Float32);
 			case ILOpCode_Conv_R8:			// 0x6C
-                
-                ClearFlags();
-                break;
+                DEFINE_CONV_UNCHECKED(R8, Float, Float64);
+            case ILOpCode_Conv_I:			// 0xD3
+                DEFINE_CONV_UNCHECKED(I, NativeInt, Pointer);
+			case ILOpCode_Conv_U:			// 0xE0
+                DEFINE_CONV_UNCHECKED(U, NativeInt, UPointer);
+
+
+
+
             case ILOpCode_Conv_R_Un:		// 0x76
                 
                 ClearFlags();
                 break;
 
 
-            case ILOpCode_Conv_I:			// 0xD3
-                
-                ClearFlags();
-                break;
-			case ILOpCode_Conv_U:			// 0xE0
-                
-                ClearFlags();
-				break;
 
 
             case ILOpCode_CpObj:			// 0x70
@@ -916,84 +908,44 @@ Branch_Common:
 
             case ILOpCode_Conv_Ovf_I1:		// 0xB3
                 DEFINE_CONV_OVF(I1, Int32, Int8);
-                ClearFlags();
-                break;
             case ILOpCode_Conv_Ovf_I1_Un:	// 0x82
                 DEFINE_CONV_OVF_UN(I1, Int32, Int8);
-                ClearFlags();
-                break;
 			case ILOpCode_Conv_Ovf_U1:		// 0xB4
                 DEFINE_CONV_OVF(U1, Int32, UInt8);
-                ClearFlags();
-                break;
 			case ILOpCode_Conv_Ovf_U1_Un:	// 0x86
                 DEFINE_CONV_OVF_UN(U1, Int32, UInt8);
-                ClearFlags();
-                break;
 			case ILOpCode_Conv_Ovf_I2:		// 0xB5
                 DEFINE_CONV_OVF(I2, Int32, Int16);
-                ClearFlags();
-                break;
 			case ILOpCode_Conv_Ovf_I2_Un:	// 0x83
                 DEFINE_CONV_OVF_UN(I2, Int32, Int16);
-                ClearFlags();
-                break;
 			case ILOpCode_Conv_Ovf_U2:		// 0xB6
                 DEFINE_CONV_OVF(U2, Int32, UInt16);
-                ClearFlags();
-                break;
 			case ILOpCode_Conv_Ovf_U2_Un:	// 0x87
                 DEFINE_CONV_OVF_UN(U2, Int32, UInt16);
-                ClearFlags();
-                break;
 			case ILOpCode_Conv_Ovf_I4:		// 0xB7
                 DEFINE_CONV_OVF(I4, Int32, Int32);
-                ClearFlags();
-                break;
 			case ILOpCode_Conv_Ovf_I4_Un:	// 0x84
                 DEFINE_CONV_OVF_UN(I4, Int32, Int32);
-                ClearFlags();
-                break;
 			case ILOpCode_Conv_Ovf_U4:		// 0xB8
                 DEFINE_CONV_OVF(U4, Int32, UInt32);
-                ClearFlags();
-                break;
 			case ILOpCode_Conv_Ovf_U4_Un:	// 0x88
                 DEFINE_CONV_OVF_UN(U4, Int32, UInt32);
-                ClearFlags();
-                break;
 			case ILOpCode_Conv_Ovf_I8:		// 0xB9
                 DEFINE_CONV_OVF(I8, Int64, Int64);
-                ClearFlags();
-                break;
 			case ILOpCode_Conv_Ovf_I8_Un:	// 0x85
                 DEFINE_CONV_OVF_UN(I8, Int64, Int64);
-                ClearFlags();
-                break;
     		case ILOpCode_Conv_Ovf_U8:		// 0xBA
                 DEFINE_CONV_OVF(U8, Int64, UInt64);
-                ClearFlags();
-				break;
 			case ILOpCode_Conv_Ovf_U8_Un:	// 0x89
                 DEFINE_CONV_OVF_UN(U8, Int64, UInt64);
-                ClearFlags();
-                break;
             case ILOpCode_Conv_Ovf_I:		// 0xD4
                 DEFINE_CONV_OVF(I, NativeInt, Pointer);
-                ClearFlags();
-                break;
 			case ILOpCode_Conv_Ovf_I_Un:	// 0x8A
                 DEFINE_CONV_OVF_UN(I, NativeInt, Pointer);
-                ClearFlags();
-                break;
             case ILOpCode_Conv_Ovf_U:		// 0xD5
                 DEFINE_CONV_OVF(U, NativeInt, UPointer);
-                ClearFlags();
-                break;
 			case ILOpCode_Conv_Ovf_U_Un:	// 0x8B
                 DEFINE_CONV_OVF_UN(U, NativeInt, UPointer);
-                ClearFlags();
-                break;
 
 
             case ILOpCode_Box:				// 0x8C
@@ -1259,9 +1211,7 @@ Branch_Common:
                             EMIT_IR_1ARG(IROpCode_Load_LocalVar_Address, dt);
 
                             StackObject* obj = StackObjectPool_Allocate();
-                            // TODO: Give this the correct name,
-                            // identifying which local var this is.
-                            obj->Name = "Local Variable";
+                            obj->Name = String_Format("Address of Local Variable #%i", (int)*dt);
                             obj->Type = StackObjectType_ManagedPointer;
                             SyntheticStack_Push(stack, obj);
                         }
@@ -1273,6 +1223,8 @@ Branch_Common:
                             uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
                             *dt = (uint32_t)ReadUInt16(dat);
                             EMIT_IR_1ARG(IROpCode_Store_LocalVar, dt);
+
+                            StackObjectPool_Release(SyntheticStack_Pop(stack));
                         }
                         ClearFlags();
                         break;
