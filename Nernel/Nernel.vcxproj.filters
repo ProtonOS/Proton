@@ -105,6 +105,7 @@
     <ClCompile Include="Source\CLR\InternalCalls\Proton.IO.MemoryIO.c" />
     <ClCompile Include="Source\CLR\InternalCalls\Proton.IO.PortIO.c" />
     <ClCompile Include="Source\CLR\InternalCalls.c" />
+    <ClCompile Include="Source\Utils\String_Format.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\CLR\AppDomain.h" />
@@ -229,6 +230,8 @@
     <ClInclude Include="Include\CLR\InternalCalls\Proton.IO.MemoryIO.h" />
     <ClInclude Include="Include\CLR\InternalCalls\Proton.IO.PortIO.h" />
     <ClInclude Include="Include\CLR\InternalCalls\Helpers.h" />
+    <ClInclude Include="Include\CLR\ILReader_Defines.h" />
+    <ClInclude Include="Include\String_Format.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Makefile.omake" />
@@ -239,5 +242,6 @@
     <None Include="Source\Nernel.ld" />
     <None Include="Source\Runtime\Bugs.txt" />
     <None Include="License.txt" />
+    <None Include="Source\CLR\ILReader.Notes.txt" />
   </ItemGroup>
 </Project>

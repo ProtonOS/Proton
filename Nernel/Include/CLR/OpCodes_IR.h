@@ -192,6 +192,42 @@ typedef enum IROpCode
 
      */
     IROpCode_Load_LocalVar_Address,
+    /*
+        Converts the object on the top of
+        the stack from one type to another,
+        and performs overflow checks before
+        doing the actual conversion.
+
+        Arg1:
+            The type to convert from.
+            Of the type ConversionArgumentType.
+
+        Arg2:
+            The type to convert to.
+            Of the type ConversionArgumentType.
+
+        Arg3:
+            N/A
+
+     */
+    IROpCode_Convert_OverflowCheck,
+    /*
+        Converts the object on the top of
+        the stack from one type to another.
+
+        Arg1:
+            The type to convert from.
+            Of the type ConversionArgumentType.
+
+        Arg2:
+            The type to convert to.
+            Of the type ConversionArgumentType.
+
+        Arg3:
+            N/A
+
+     */
+    IROpCode_Convert_Unchecked,
 } IROpCode;
 
 
@@ -212,3 +248,20 @@ typedef enum BranchCondition
     BranchCondition_True,
 
 } BranchCondition;
+
+typedef enum ConversionArgumentType
+{
+    ConversionArgumentType_I1,
+    ConversionArgumentType_U1,
+    ConversionArgumentType_I2,
+    ConversionArgumentType_U2,
+    ConversionArgumentType_I4,
+    ConversionArgumentType_U4,
+    ConversionArgumentType_I8,
+    ConversionArgumentType_U8,
+    ConversionArgumentType_I,
+    ConversionArgumentType_U,
+    ConversionArgumentType_R4,
+    ConversionArgumentType_R8,
+
+} ConversionArgumentType;

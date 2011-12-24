@@ -13,6 +13,7 @@
   <ItemGroup>
     <None Include="License.txt" />
     <None Include="Makefile.omake" />
+    <None Include="Source\CLR\ILReader.Notes.txt" />
     <None Include="Source\Core\Boot.asm" />
     <None Include="Source\Core\GDTUpdate.asm" />
     <None Include="Source\Core\IDTStubs.asm" />
@@ -125,12 +126,14 @@
     <ClCompile Include="Source\Runtime\System.WeakReference.c" />
     <ClCompile Include="Source\Runtime\Thread.c" />
     <ClCompile Include="Source\Runtime\Type.c" />
+    <ClCompile Include="Source\Utils\String_Format.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\CLR\AppDomain.h" />
     <ClInclude Include="Include\CLR\CLIFile.h" />
     <ClInclude Include="Include\CLR\GC.h" />
     <ClInclude Include="Include\CLR\ILReader.h" />
+    <ClInclude Include="Include\CLR\ILReader_Defines.h" />
     <ClInclude Include="Include\CLR\InternalCalls.h" />
     <ClInclude Include="Include\CLR\InternalCalls\Helpers.h" />
     <ClInclude Include="Include\CLR\InternalCalls\Proton.IO.MemoryIO.h" />
@@ -248,6 +251,7 @@
     <ClInclude Include="Include\Runtime\Thread.h" />
     <ClInclude Include="Include\Runtime\Type.h" />
     <ClInclude Include="Include\Runtime\Types.h" />
+    <ClInclude Include="Include\String_Format.h" />
     <ClInclude Include="Source\CLR\MetaData\MethodDefinition.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
