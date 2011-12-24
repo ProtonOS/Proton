@@ -2,21 +2,20 @@
 
 #include <CLR/ReferenceTypeObject.h>
 
-#define GC_Generation0_CollectCount                 25
-#define GC_Generation1_CollectCount                 200
+#define GC_Generation0_CollectCount                     25
+#define GC_Generation1_CollectCount                     200
 
-#define GCHeapStack_SmallHeap_Size                  (4 * 1024)
-#define GCHeapStack_LargeHeap_Size                  (GCHeapStack_SmallHeap_Size * 1024)
-
-#define GCHeap_SmallHeap_MinimumStacks              1
-#define GCHeap_LargeHeap_MinimumStacks              1
-
-
-#define GC_SmallHeap_MaxAllocationSize              (GCHeapStack_SmallHeap_Size - sizeof(ReferenceTypeObject))
+#define GCHeapStack_SmallHeap_Size                      (4 * 1024)
+#define GCHeapStack_LargeHeap_Size                      (GCHeapStack_SmallHeap_Size * 1024)
 
 typedef struct
 {
+    uint32_t ObjectPoolSize;
+    ReferenceTypeObject** ObjectPool;
     uint32_t Size;
+    uint32_t Available;
+    uint32_t Active;
+    uint32_t Inactive;
     uint8_t* Bottom;
     uint8_t* Top;
 } GCHeapStack;
