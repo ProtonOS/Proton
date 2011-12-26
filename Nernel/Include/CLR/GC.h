@@ -8,38 +8,41 @@
 #define GCHeapStack_SmallHeap_Size                      (4 * 1024)
 #define GCHeapStack_LargeHeap_Size                      (GCHeapStack_SmallHeap_Size * 1024)
 
-typedef struct
+typedef struct _GC GC;
+typedef struct _GCHeap GCHeap;
+typedef struct _GCHeapStack GCHeapStack;
+
+struct _GCHeapStack
 {
     uint32_t ObjectPoolSize;
     ReferenceTypeObject** ObjectPool;
     uint32_t Size;
     uint32_t Available;
-    uint32_t Active;
-    uint32_t Inactive;
+    uint32_t Allocated;
+    uint32_t Disposed;
     uint8_t* Bottom;
     uint8_t* Top;
-} GCHeapStack;
+};
 
-typedef struct
+struct _GCHeap
 {
     uint32_t StackCount;
     GCHeapStack** Stacks;
-} GCHeap;
+};
 
-typedef struct
+struct _GC
 {
-    ReferenceTypeObject* Root;
     uint32_t SmallGeneration0CollectCount;
     uint32_t SmallGeneration1CollectCount;
     GCHeap SmallGeneration0Heap;
     GCHeap SmallGeneration1Heap;
     GCHeap SmallGeneration2Heap;
     GCHeap LargeHeap;
-} GC;
+};
 
 void Panic(const char* pMessage);
 
-GC* GC_Create(ReferenceTypeObject* pRoot);
+GC* GC_Create();
 void GC_Destroy(GC* pGC);
-ReferenceTypeObject* GC_Allocate(GC* pGC, uint32_t pSize);
+ReferenceTypeObject* GC_Allocate(GC* pGC, ReferenceTypeObject* pInitialReference, uint32_t pSize);
 void GC_Collect(GC* pGC);

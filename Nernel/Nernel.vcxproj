@@ -73,6 +73,7 @@
     <ClCompile Include="Source\CLR\Metadata_Search.c" />
     <ClCompile Include="Source\CLR\Optimizations\UnconditionalBranchTransform.c" />
     <ClCompile Include="Source\CLR\PEFile.c" />
+    <ClCompile Include="Source\CLR\ReferenceTypeObject.c" />
     <ClCompile Include="Source\CLR\SyntheticStack.c" />
     <ClCompile Include="Source\Core\DLMalloc.c" />
     <ClCompile Include="Source\Core\Console.c" />

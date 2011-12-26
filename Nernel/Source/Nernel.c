@@ -17,19 +17,19 @@ void Main(uint32_t pMultiBootMagic,
 
     ReferenceTypeObject* root = (ReferenceTypeObject*)calloc(1, sizeof(ReferenceTypeObject));
     GC* gc = GC_Create(root);
-    ReferenceTypeObject* objA = GC_Allocate(gc, 2048); // Allocate, data should be from Stack 0
-    ReferenceTypeObject* objB = GC_Allocate(gc, 1024); // Allocate, data should be from Stack 0
-    ReferenceTypeObject* objC = GC_Allocate(gc, 1024); // Allocate, data should be from Stack 0
-    ReferenceTypeObject* objD = GC_Allocate(gc, 1024); // Allocate, data should be from Stack 1
-    ReferenceTypeObject* objE = GC_Allocate(gc, 4096); // Allocate, data should be from Stack 2
-    objB->Flags &= ~ReferenceTypeObject_Flags_Active; // Set inactive, ready for collection
-    GC_Collect(gc); // Collect, to reduce reference count on inactive refcount 1 objects
-    objA->Flags &= ~ReferenceTypeObject_Flags_Active; // Set inactive, ready for collection
-    objC->Flags &= ~ReferenceTypeObject_Flags_Active; // Set inactive, ready for collection
-    GC_Collect(gc); // Collect, to reduce reference count on inactive refcount 1 objects
-    objD->Flags &= ~ReferenceTypeObject_Flags_Active; // Set inactive, ready for collection
-    objE->Flags &= ~ReferenceTypeObject_Flags_Active; // Set inactive, ready for collection
-    GC_Collect(gc); // Collect, to reduce reference count on inactive refcount 1 objects
+    ReferenceTypeObject* objA = GC_Allocate(gc, root, 2048); // Allocate, data should be from Stack 0
+    ReferenceTypeObject* objB = GC_Allocate(gc, objA, 1024); // Allocate, data should be from Stack 0
+    ReferenceTypeObject* objC = GC_Allocate(gc, objB, 1024); // Allocate, data should be from Stack 0
+    ReferenceTypeObject* objD = GC_Allocate(gc, objC, 1024); // Allocate, data should be from Stack 1
+    ReferenceTypeObject* objE = GC_Allocate(gc, objD, 4096); // Allocate, data should be from Stack 2
+    ReferenceTypeObject_RemoveReference(objA, objB); // A and B should be unlinked, B, C, D, and E should get disposed
+    GC_Collect(gc);
+    // At this point B, C, D, and E should all be disposed, they each used at least 25% of their stack
+    // And A should still be allocated, with one reference to the root, note that when you DO remove the
+    // last reference to the root object, it will be flagged Disposing, but it is never handled by the
+    // GC, so it should not matter as the GC only really looks at dependancies, but needs the root so
+    // real static and local objects have at least 1 reference to prevent being collected
+    if (objA || objB || objC || objD || objE) { }
 
     //global_baseMernelDomain = AppDomain_CreateDomain();
 
