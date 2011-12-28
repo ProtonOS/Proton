@@ -233,6 +233,36 @@ void GCHeap_Compact(GCHeap* pGCHeap)
     }
 }
 
+void GCHeap_Migrate(GCHeap* pSourceHeap, GCHeap* pDestinationHeap, uint32_t pStackSize)
+{
+    ReferenceTypeObject* object = NULL;
+    GCHeapStack* stack = NULL;
+    for (uint32_t index = 0; index < pSourceHeap->StackCount; ++index)
+    {
+        stack = pSourceHeap->Stacks[index];
+        for (uint32_t objectIndex = 0; objectIndex < stack->ObjectPoolSize; ++objectIndex)
+        {
+            if ((stack->ObjectPool[objectIndex]->Flags & (ReferenceTypeObject_Flags_Allocated | ReferenceTypeObject_Flags_Disposed)) == ReferenceTypeObject_Flags_Allocated)
+            {
+                object = stack->ObjectPool[objectIndex];
+                ReferenceTypeObject_Dispose(object);
+                ReferenceTypeObject* migrated = GCHeap_Allocate(pDestinationHeap, pStackSize, object->Size);
+                migrated->ReferenceCount = object->ReferenceCount;
+                migrated->DependancyPoolSize = object->DependancyPoolSize;
+                migrated->DependancyPoolCount = object->DependancyPoolCount;
+                migrated->DependancyPool = object->DependancyPool;
+                object->DependancyPool = NULL;
+                memcpy(migrated->Object, object->Object, object->Size);
+            }
+            ReferenceTypeObject_Reset(object);
+        }
+        stack->Available = stack->Size;
+        stack->Allocated = 0;
+        stack->Disposed = 0;
+        stack->Top = stack->Bottom;
+    }
+}
+
 void GC_Collect(GC* pGC)
 {
     GCHeap_Collect(&pGC->SmallGeneration0Heap);
@@ -249,13 +279,13 @@ void GC_Collect(GC* pGC)
     if (pGC->SmallGeneration1CollectCount == GC_Generation1_CollectCount)
     {
         pGC->SmallGeneration1CollectCount = 0;
-        // Migrate objects in SmallGeneration1Heap to SmallGeneration2Heap
+        GCHeap_Migrate(&pGC->SmallGeneration1Heap, &pGC->SmallGeneration2Heap, GCHeapStack_SmallHeap_Size);
     }
     ++pGC->SmallGeneration0CollectCount;
     if (pGC->SmallGeneration0CollectCount == GC_Generation0_CollectCount)
     {
         pGC->SmallGeneration0CollectCount = 0;
-        // Migrate objects in SmallGeneration0Heap to SmallGeneration1Heap
+        GCHeap_Migrate(&pGC->SmallGeneration0Heap, &pGC->SmallGeneration1Heap, GCHeapStack_SmallHeap_Size);
     }
 }
 
