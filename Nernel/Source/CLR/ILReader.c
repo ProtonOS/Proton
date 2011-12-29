@@ -289,7 +289,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
                 }
                 ClearFlags();
                 break;
-			case ILOpCode_Ldc_I4_0:			// 0x16
+            case ILOpCode_Ldc_I4_0:			// 0x16
                 {
                     Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.0");
 
@@ -304,7 +304,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
                 }
                 ClearFlags();
                 break;
-			case ILOpCode_Ldc_I4_1:			// 0x17
+            case ILOpCode_Ldc_I4_1:			// 0x17
                 {
                     Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.1");
 
@@ -319,7 +319,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
                 }
                 ClearFlags();
                 break;
-			case ILOpCode_Ldc_I4_2:			// 0x18
+            case ILOpCode_Ldc_I4_2:			// 0x18
                 {
                     Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.2");
 
@@ -334,7 +334,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
                 }
                 ClearFlags();
                 break;
-			case ILOpCode_Ldc_I4_3:			// 0x19
+            case ILOpCode_Ldc_I4_3:			// 0x19
                 {
                     Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.3");
 
@@ -349,7 +349,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
                 }
                 ClearFlags();
                 break;
-			case ILOpCode_Ldc_I4_4:			// 0x1A
+            case ILOpCode_Ldc_I4_4:			// 0x1A
                 {
                     Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.4");
 
@@ -364,7 +364,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
                 }
                 ClearFlags();
                 break;
-			case ILOpCode_Ldc_I4_5:			// 0x1B
+            case ILOpCode_Ldc_I4_5:			// 0x1B
                 {
                     Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.5");
 
@@ -379,7 +379,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
                 }
                 ClearFlags();
                 break;
-			case ILOpCode_Ldc_I4_6:			// 0x1C
+            case ILOpCode_Ldc_I4_6:			// 0x1C
                 {
                     Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.6");
 
@@ -394,7 +394,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
                 }
                 ClearFlags();
                 break;
-			case ILOpCode_Ldc_I4_7:			// 0x1D
+            case ILOpCode_Ldc_I4_7:			// 0x1D
                 {
                     Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.7");
 
@@ -409,7 +409,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
                 }
                 ClearFlags();
                 break;
-			case ILOpCode_Ldc_I4_8:			// 0x1E
+            case ILOpCode_Ldc_I4_8:			// 0x1E
                 {
                     Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.8");
 
@@ -424,7 +424,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
                 }
                 ClearFlags();
                 break;
-			case ILOpCode_Ldc_I4_S:			// 0x1F
+            case ILOpCode_Ldc_I4_S:			// 0x1F
                 {
                     Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.S");
                     
@@ -439,7 +439,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
                 }
                 ClearFlags();
                 break;
-			case ILOpCode_Ldc_I4:			// 0x20
+            case ILOpCode_Ldc_I4:			// 0x20
                 {
                     Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4");
                     
@@ -454,7 +454,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
                 }
                 ClearFlags();
                 break;
-			case ILOpCode_Ldc_I8:			// 0x21
+            case ILOpCode_Ldc_I8:			// 0x21
                 {
                     Log_WriteLine(LogFlags_ILReading, "Read Ldc.I8");
                     
@@ -469,7 +469,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
                 }
                 ClearFlags();
                 break;
-			case ILOpCode_Ldc_R4:			// 0x22
+            case ILOpCode_Ldc_R4:			// 0x22
                 {
                     Log_WriteLine(LogFlags_ILReading, "Read Ldc.R4");
                     
@@ -484,7 +484,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
                 }
                 ClearFlags();
                 break;
-			case ILOpCode_Ldc_R8:			// 0x23
+            case ILOpCode_Ldc_R8:			// 0x23
                 {
                     Log_WriteLine(LogFlags_ILReading, "Read Ldc.R8");
                     
@@ -501,7 +501,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
                 break;
 
 
-			// 0x24 Doesn't exist
+            // 0x24 Doesn't exist
             case ILOpCode_Dup:				// 0x25
                 
                 ClearFlags();
@@ -621,73 +621,73 @@ Branch_Common:
                 
                 ClearFlags();
                 break;
-			case ILOpCode_LdInd_U1:			// 0x47
+            case ILOpCode_LdInd_U1:			// 0x47
                 
                 ClearFlags();
                 break;
-			case ILOpCode_LdInd_I2:			// 0x48
+            case ILOpCode_LdInd_I2:			// 0x48
                 
                 ClearFlags();
                 break;
-			case ILOpCode_LdInd_U2:			// 0x49
+            case ILOpCode_LdInd_U2:			// 0x49
                 
                 ClearFlags();
                 break;
-			case ILOpCode_LdInd_I4:			// 0x4A
+            case ILOpCode_LdInd_I4:			// 0x4A
                 
                 ClearFlags();
                 break;
-			case ILOpCode_LdInd_U4:			// 0x4B
+            case ILOpCode_LdInd_U4:			// 0x4B
                 
                 ClearFlags();
                 break;
-			case ILOpCode_LdInd_I8:			// 0x4C
+            case ILOpCode_LdInd_I8:			// 0x4C
                 
                 ClearFlags();
                 break;
-			case ILOpCode_LdInd_I:			// 0x4D
+            case ILOpCode_LdInd_I:			// 0x4D
                 
                 ClearFlags();
                 break;
-			case ILOpCode_LdInd_R4:			// 0x4D
+            case ILOpCode_LdInd_R4:			// 0x4D
                 
                 ClearFlags();
                 break;
-			case ILOpCode_LdInd_R8:			// 0x4F
+            case ILOpCode_LdInd_R8:			// 0x4F
                 
                 ClearFlags();
                 break;
-			case ILOpCode_LdInd_Ref:		// 0x50
+            case ILOpCode_LdInd_Ref:		// 0x50
                 
                 ClearFlags();
                 break;
 
 
-			case ILOpCode_StInd_Ref:		// 0x51
+            case ILOpCode_StInd_Ref:		// 0x51
                 
                 ClearFlags();
                 break;
-			case ILOpCode_StInd_I1:			// 0x52
+            case ILOpCode_StInd_I1:			// 0x52
                 
                 ClearFlags();
                 break;
-			case ILOpCode_StInd_I2:			// 0x53
+            case ILOpCode_StInd_I2:			// 0x53
                 
                 ClearFlags();
                 break;
-			case ILOpCode_StInd_I4:			// 0x54
+            case ILOpCode_StInd_I4:			// 0x54
                 
                 ClearFlags();
                 break;
-			case ILOpCode_StInd_I8:			// 0x55
+            case ILOpCode_StInd_I8:			// 0x55
                 
                 ClearFlags();
                 break;
-			case ILOpCode_StInd_R4:			// 0x56
+            case ILOpCode_StInd_R4:			// 0x56
                 
                 ClearFlags();
                 break;
-			case ILOpCode_StInd_R8:			// 0x57
+            case ILOpCode_StInd_R8:			// 0x57
                 
                 ClearFlags();
                 break;
@@ -805,25 +805,25 @@ Branch_Common:
                 DEFINE_CONV_UNCHECKED(I1, Int32, Int8);
             case ILOpCode_Conv_U1:			// 0xD2
                 DEFINE_CONV_UNCHECKED(U1, Int32, UInt8);
-			case ILOpCode_Conv_I2:			// 0x68
+            case ILOpCode_Conv_I2:			// 0x68
                 DEFINE_CONV_UNCHECKED(I2, Int32, Int16);
             case ILOpCode_Conv_U2:			// 0xD1
                 DEFINE_CONV_UNCHECKED(U2, Int32, UInt16);
-			case ILOpCode_Conv_I4:			// 0x69
+            case ILOpCode_Conv_I4:			// 0x69
                 DEFINE_CONV_UNCHECKED(I4, Int32, Int32);
-			case ILOpCode_Conv_U4:			// 0x6D
+            case ILOpCode_Conv_U4:			// 0x6D
                 DEFINE_CONV_UNCHECKED(U4, Int32, UInt32);
-			case ILOpCode_Conv_I8:			// 0x6A
+            case ILOpCode_Conv_I8:			// 0x6A
                 DEFINE_CONV_UNCHECKED(I8, Int64, Int64);
-			case ILOpCode_Conv_U8:			// 0x6E
+            case ILOpCode_Conv_U8:			// 0x6E
                 DEFINE_CONV_UNCHECKED(U8, Int64, UInt64);
-			case ILOpCode_Conv_R4:			// 0x6B
+            case ILOpCode_Conv_R4:			// 0x6B
                 DEFINE_CONV_UNCHECKED(R4, Float, Float32);
-			case ILOpCode_Conv_R8:			// 0x6C
+            case ILOpCode_Conv_R8:			// 0x6C
                 DEFINE_CONV_UNCHECKED(R8, Float, Float64);
             case ILOpCode_Conv_I:			// 0xD3
                 DEFINE_CONV_UNCHECKED(I, NativeInt, Pointer);
-			case ILOpCode_Conv_U:			// 0xE0
+            case ILOpCode_Conv_U:			// 0xE0
                 DEFINE_CONV_UNCHECKED(U, NativeInt, UPointer);
 
 
@@ -864,8 +864,8 @@ Branch_Common:
                 break;
 
 
-			// 0x77 Doesn't exist
-			// 0x78 Doesn't exist
+            // 0x77 Doesn't exist
+            // 0x78 Doesn't exist
             case ILOpCode_UnBox:			// 0x79
                 
                 ClearFlags();
@@ -910,41 +910,41 @@ Branch_Common:
                 DEFINE_CONV_OVF(I1, Int32, Int8);
             case ILOpCode_Conv_Ovf_I1_Un:	// 0x82
                 DEFINE_CONV_OVF_UN(I1, Int32, Int8);
-			case ILOpCode_Conv_Ovf_U1:		// 0xB4
+            case ILOpCode_Conv_Ovf_U1:		// 0xB4
                 DEFINE_CONV_OVF(U1, Int32, UInt8);
-			case ILOpCode_Conv_Ovf_U1_Un:	// 0x86
+            case ILOpCode_Conv_Ovf_U1_Un:	// 0x86
                 DEFINE_CONV_OVF_UN(U1, Int32, UInt8);
-			case ILOpCode_Conv_Ovf_I2:		// 0xB5
+            case ILOpCode_Conv_Ovf_I2:		// 0xB5
                 DEFINE_CONV_OVF(I2, Int32, Int16);
-			case ILOpCode_Conv_Ovf_I2_Un:	// 0x83
+            case ILOpCode_Conv_Ovf_I2_Un:	// 0x83
                 DEFINE_CONV_OVF_UN(I2, Int32, Int16);
-			case ILOpCode_Conv_Ovf_U2:		// 0xB6
+            case ILOpCode_Conv_Ovf_U2:		// 0xB6
                 DEFINE_CONV_OVF(U2, Int32, UInt16);
-			case ILOpCode_Conv_Ovf_U2_Un:	// 0x87
+            case ILOpCode_Conv_Ovf_U2_Un:	// 0x87
                 DEFINE_CONV_OVF_UN(U2, Int32, UInt16);
-			case ILOpCode_Conv_Ovf_I4:		// 0xB7
+            case ILOpCode_Conv_Ovf_I4:		// 0xB7
                 DEFINE_CONV_OVF(I4, Int32, Int32);
-			case ILOpCode_Conv_Ovf_I4_Un:	// 0x84
+            case ILOpCode_Conv_Ovf_I4_Un:	// 0x84
                 DEFINE_CONV_OVF_UN(I4, Int32, Int32);
-			case ILOpCode_Conv_Ovf_U4:		// 0xB8
+            case ILOpCode_Conv_Ovf_U4:		// 0xB8
                 DEFINE_CONV_OVF(U4, Int32, UInt32);
-			case ILOpCode_Conv_Ovf_U4_Un:	// 0x88
+            case ILOpCode_Conv_Ovf_U4_Un:	// 0x88
                 DEFINE_CONV_OVF_UN(U4, Int32, UInt32);
-			case ILOpCode_Conv_Ovf_I8:		// 0xB9
+            case ILOpCode_Conv_Ovf_I8:		// 0xB9
                 DEFINE_CONV_OVF(I8, Int64, Int64);
-			case ILOpCode_Conv_Ovf_I8_Un:	// 0x85
+            case ILOpCode_Conv_Ovf_I8_Un:	// 0x85
                 DEFINE_CONV_OVF_UN(I8, Int64, Int64);
-    		case ILOpCode_Conv_Ovf_U8:		// 0xBA
+            case ILOpCode_Conv_Ovf_U8:		// 0xBA
                 DEFINE_CONV_OVF(U8, Int64, UInt64);
-			case ILOpCode_Conv_Ovf_U8_Un:	// 0x89
+            case ILOpCode_Conv_Ovf_U8_Un:	// 0x89
                 DEFINE_CONV_OVF_UN(U8, Int64, UInt64);
             case ILOpCode_Conv_Ovf_I:		// 0xD4
                 DEFINE_CONV_OVF(I, NativeInt, Pointer);
-			case ILOpCode_Conv_Ovf_I_Un:	// 0x8A
+            case ILOpCode_Conv_Ovf_I_Un:	// 0x8A
                 DEFINE_CONV_OVF_UN(I, NativeInt, Pointer);
             case ILOpCode_Conv_Ovf_U:		// 0xD5
                 DEFINE_CONV_OVF(U, NativeInt, UPointer);
-			case ILOpCode_Conv_Ovf_U_Un:	// 0x8B
+            case ILOpCode_Conv_Ovf_U_Un:	// 0x8B
                 DEFINE_CONV_OVF_UN(U, NativeInt, UPointer);
 
 
@@ -960,79 +960,79 @@ Branch_Common:
                 
                 ClearFlags();
                 break;
-			case ILOpCode_LdElem_I1:		// 0x90
+            case ILOpCode_LdElem_I1:		// 0x90
                 
                 ClearFlags();
                 break;
-			case ILOpCode_LdElem_U1:		// 0x91
+            case ILOpCode_LdElem_U1:		// 0x91
                 
                 ClearFlags();
                 break;
-			case ILOpCode_LdElem_I2:		// 0x92
+            case ILOpCode_LdElem_I2:		// 0x92
                 
                 ClearFlags();
                 break;
-			case ILOpCode_LdElem_U2:		// 0x93
+            case ILOpCode_LdElem_U2:		// 0x93
                 
                 ClearFlags();
                 break;
-			case ILOpCode_LdElem_I4:		// 0x94
+            case ILOpCode_LdElem_I4:		// 0x94
                 
                 ClearFlags();
                 break;
-			case ILOpCode_LdElem_U4:		// 0x95
+            case ILOpCode_LdElem_U4:		// 0x95
                 
                 ClearFlags();
                 break;
-			case ILOpCode_LdElem_I8:		// 0x96
+            case ILOpCode_LdElem_I8:		// 0x96
                 
                 ClearFlags();
                 break;
-			case ILOpCode_LdElem_I:			// 0x97
+            case ILOpCode_LdElem_I:			// 0x97
                 
                 ClearFlags();
                 break;
-			case ILOpCode_LdElem_R4:		// 0x98
+            case ILOpCode_LdElem_R4:		// 0x98
                 
                 ClearFlags();
                 break;
-			case ILOpCode_LdElem_R8:		// 0x99
+            case ILOpCode_LdElem_R8:		// 0x99
                 
                 ClearFlags();
                 break;
-			case ILOpCode_LdElem_Ref:		// 0x9A
+            case ILOpCode_LdElem_Ref:		// 0x9A
                 
                 ClearFlags();
                 break;
-			case ILOpCode_StElem_I:			// 0x9B
+            case ILOpCode_StElem_I:			// 0x9B
                 
                 ClearFlags();
                 break;
-			case ILOpCode_StElem_I1:		// 0x9C
+            case ILOpCode_StElem_I1:		// 0x9C
                 
                 ClearFlags();
                 break;
-			case ILOpCode_StElem_I2:		// 0x9D
+            case ILOpCode_StElem_I2:		// 0x9D
                 
                 ClearFlags();
                 break;
-			case ILOpCode_StElem_I4:		// 0x9E
+            case ILOpCode_StElem_I4:		// 0x9E
                 
                 ClearFlags();
                 break;
-			case ILOpCode_StElem_I8:		// 0x9F
+            case ILOpCode_StElem_I8:		// 0x9F
                 
                 ClearFlags();
                 break;
-			case ILOpCode_StElem_R4:		// 0xA0
+            case ILOpCode_StElem_R4:		// 0xA0
                 
                 ClearFlags();
                 break;
-			case ILOpCode_StElem_R8:		// 0xA1
+            case ILOpCode_StElem_R8:		// 0xA1
                 
                 ClearFlags();
                 break;
-			case ILOpCode_StElem_Ref:		// 0xA2
+            case ILOpCode_StElem_Ref:		// 0xA2
                 
                 ClearFlags();
                 break;
@@ -1048,26 +1048,26 @@ Branch_Common:
                 
                 ClearFlags();
                 break;
-    		// 0xA6 Doesn't exist
-			// 0xA7 Doesn't exist
-			// 0xA8 Doesn't exist
-			// 0xA9 Doesn't exist
-			// 0xAA Doesn't exist
-			// 0xAB Doesn't exist
-			// 0xAC Doesn't exist
-			// 0xAD Doesn't exist
-			// 0xAE Doesn't exist
-			// 0xAF Doesn't exist
-			// 0xB0 Doesn't exist
-			// 0xB1 Doesn't exist
-			// 0xB2 Doesn't exist
-			// 0xBB Doesn't exist
-			// 0xBC Doesn't exist
-			// 0xBD Doesn't exist
-			// 0xBE Doesn't exist
-			// 0xBF Doesn't exist
-			// 0xC0 Doesn't exist
-			// 0xC1 Doesn't exist
+            // 0xA6 Doesn't exist
+            // 0xA7 Doesn't exist
+            // 0xA8 Doesn't exist
+            // 0xA9 Doesn't exist
+            // 0xAA Doesn't exist
+            // 0xAB Doesn't exist
+            // 0xAC Doesn't exist
+            // 0xAD Doesn't exist
+            // 0xAE Doesn't exist
+            // 0xAF Doesn't exist
+            // 0xB0 Doesn't exist
+            // 0xB1 Doesn't exist
+            // 0xB2 Doesn't exist
+            // 0xBB Doesn't exist
+            // 0xBC Doesn't exist
+            // 0xBD Doesn't exist
+            // 0xBE Doesn't exist
+            // 0xBF Doesn't exist
+            // 0xC0 Doesn't exist
+            // 0xC1 Doesn't exist
             case ILOpCode_RefAnyVal:		// 0xC2
                 
                 ClearFlags();
@@ -1076,21 +1076,21 @@ Branch_Common:
                 
                 ClearFlags();
 				break;
-			// 0xC4 Doesn't exist
-			// 0xC5 Doesn't exist
+            // 0xC4 Doesn't exist
+            // 0xC5 Doesn't exist
             case ILOpCode_MkRefAny:			// 0xC6
                 
                 ClearFlags();
                 break;
-			// 0xC7 Doesn't exist
-			// 0xC8 Doesn't exist
-			// 0xC9 Doesn't exist
-			// 0xCA Doesn't exist
-			// 0xCB Doesn't exist
-			// 0xCC Doesn't exist
-			// 0xCD Doesn't exist
-			// 0xCE Doesn't exist
-			// 0xCF Doesn't exist
+            // 0xC7 Doesn't exist
+            // 0xC8 Doesn't exist
+            // 0xC9 Doesn't exist
+            // 0xCA Doesn't exist
+            // 0xCB Doesn't exist
+            // 0xCC Doesn't exist
+            // 0xCD Doesn't exist
+            // 0xCE Doesn't exist
+            // 0xCF Doesn't exist
             case ILOpCode_LdToken:			// 0xD0
                 
                 ClearFlags();
@@ -1110,40 +1110,40 @@ Branch_Common:
             case ILOpCode_Leave_S:			// 0xDE
                 
                 ClearFlags();
-				break;
-    		case ILOpCode_StInd_I:			// 0xDF
+                break;
+            case ILOpCode_StInd_I:			// 0xDF
                 
                 ClearFlags();
-				break;
-			// 0xE1 Doesn't Exist
-			// 0xE2 Doesn't Exist
-			// 0xE3 Doesn't Exist
-			// 0xE4 Doesn't Exist
-			// 0xE5 Doesn't Exist
-			// 0xE6 Doesn't Exist
-			// 0xE7 Doesn't Exist
-			// 0xE8 Doesn't Exist
-			// 0xE9 Doesn't Exist
-			// 0xEA Doesn't Exist
-			// 0xEB Doesn't Exist
-			// 0xEC Doesn't Exist
-			// 0xED Doesn't Exist
-			// 0xEE Doesn't Exist
-			// 0xEF Doesn't Exist
-			// 0xF0 Doesn't Exist
-			// 0xF1 Doesn't Exist
-			// 0xF2 Doesn't Exist
-			// 0xF3 Doesn't Exist
-			// 0xF4 Doesn't Exist
-			// 0xF5 Doesn't Exist
-			// 0xF6 Doesn't Exist
-			// 0xF7 Doesn't Exist
-			// 0xF8 Doesn't Exist
-			// 0xF9 Doesn't Exist
-			// 0xFA Doesn't Exist
-			// 0xFB Doesn't Exist
-			// 0xFC Doesn't Exist
-			// 0xFD Doesn't Exist
+                break;
+            // 0xE1 Doesn't Exist
+            // 0xE2 Doesn't Exist
+            // 0xE3 Doesn't Exist
+            // 0xE4 Doesn't Exist
+            // 0xE5 Doesn't Exist
+            // 0xE6 Doesn't Exist
+            // 0xE7 Doesn't Exist
+            // 0xE8 Doesn't Exist
+            // 0xE9 Doesn't Exist
+            // 0xEA Doesn't Exist
+            // 0xEB Doesn't Exist
+            // 0xEC Doesn't Exist
+            // 0xED Doesn't Exist
+            // 0xEE Doesn't Exist
+            // 0xEF Doesn't Exist
+            // 0xF0 Doesn't Exist
+            // 0xF1 Doesn't Exist
+            // 0xF2 Doesn't Exist
+            // 0xF3 Doesn't Exist
+            // 0xF4 Doesn't Exist
+            // 0xF5 Doesn't Exist
+            // 0xF6 Doesn't Exist
+            // 0xF7 Doesn't Exist
+            // 0xF8 Doesn't Exist
+            // 0xF9 Doesn't Exist
+            // 0xFA Doesn't Exist
+            // 0xFB Doesn't Exist
+            // 0xFC Doesn't Exist
+            // 0xFD Doesn't Exist
             case ILOpCode_Extended:         // 0xFE
                 b = ReadUInt8(dat);
 
@@ -1252,7 +1252,7 @@ Branch_Common:
                     case ILOpCodes_Extended_ReThrow:		// 0x1A
 
                         break;
-					// 0x1B Doesn't exist
+                    // 0x1B Doesn't exist
                     case ILOpCodes_Extended_SizeOf:			// 0x1C
                         
                         ClearFlags();
