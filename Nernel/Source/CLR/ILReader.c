@@ -775,14 +775,14 @@ Branch_Common:
                 break;
 
 
-            case ILOpCode_Shr:				// 0x63
-                
-                ClearFlags();
-                break;
             // The only language I know of that 
             // emits this currently is J#.
             // (This is a sign-extended right shift,
             // aka. the >>> operator)
+            case ILOpCode_Shr:				// 0x63
+                
+                ClearFlags();
+                break;
             case ILOpCode_Shr_Un:			// 0x64
                 
                 ClearFlags();
