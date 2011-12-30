@@ -2,8 +2,8 @@
 
 #include <CLR/ReferenceTypeObject.h>
 
-#define GC_Generation0_CollectCount                     25
-#define GC_Generation1_CollectCount                     200
+#define GC_Generation0ToGeneration1_RequiredAge         25
+#define GC_Generation1ToGeneration2_RequiredAge         200
 
 #define GCHeapStack_SmallHeap_Size                      (4 * 1024)
 #define GCHeapStack_LargeHeap_Size                      (GCHeapStack_SmallHeap_Size * 1024)
@@ -32,8 +32,6 @@ struct _GCHeap
 
 struct _GC
 {
-    uint32_t SmallGeneration0CollectCount;
-    uint32_t SmallGeneration1CollectCount;
     GCHeap SmallGeneration0Heap;
     GCHeap SmallGeneration1Heap;
     GCHeap SmallGeneration2Heap;

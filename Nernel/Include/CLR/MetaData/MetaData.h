@@ -34,6 +34,7 @@ uint32_t MetaData_GetStreamSize(const uint8_t* pMetaDataHeader, uint16_t pStream
 const char* MetaData_GetStreamName(const uint8_t* pMetaDataHeader, uint16_t pStreamIndex);
 const uint8_t* MetaData_GetStreamData(const uint8_t* pMetaDataHeader, uint16_t pStreamIndex);
 const uint8_t* MetaData_GetCompressedUnsigned(const uint8_t* pData, uint32_t* pValue);
+const uint8_t* MetaData_GetCompressedSigned(const uint8_t* pData, int32_t* pValue);
 
 
 #define MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit   0x01

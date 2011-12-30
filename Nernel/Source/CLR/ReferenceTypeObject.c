@@ -83,6 +83,7 @@ void ReferenceTypeObject_Reset(ReferenceTypeObject* pObject)
     pObject->Size = 0;
     pObject->Object = NULL;
     pObject->Stack = NULL;
+    pObject->Age = 0;
     pObject->ReferenceCount = 0;
     pObject->DependancyPoolSize = 0;
     pObject->DependancyPoolCount = 0;

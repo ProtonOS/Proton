@@ -14,6 +14,11 @@ void Main(uint32_t pMultiBootMagic,
         Nernel_Shutdown();
         return;
     }
+    uint8_t data[] = { 0x7B };
+    const uint8_t* ptr = data;
+    int32_t value = 0;
+    ptr = MetaData_GetCompressedSigned(ptr, &value);
+    printf("value = %d\n", (int)value);
 
     ReferenceTypeObject* root = (ReferenceTypeObject*)calloc(1, sizeof(ReferenceTypeObject));
     GC* gc = GC_Create(root);

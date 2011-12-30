@@ -81,3 +81,28 @@ const uint8_t* MetaData_GetCompressedUnsigned(const uint8_t* pData, uint32_t* pV
     *pValue = 0;
     return pData;
 }
+
+int32_t MetaData_RotateRightAndCompliment(int32_t pValue, uint8_t pBits)
+{
+    bool_t bit = (pValue & (1 << (pBits - 1))) != 0;
+    pValue >>= 1;
+    if (bit) pValue |= (1 << (pBits - 1));
+    pValue = -pValue;
+    //bit = (pValue & (1 << (pBits - 1))) != 0;
+    pValue &= ~(1 << (pBits - 1));
+    //if (bit) pValue *= -1;
+    return pValue;
+}
+
+const uint8_t* MetaData_GetCompressedSigned(const uint8_t* pData, int32_t* pValue)
+{
+    if ((*pData & 0x80) == 0)
+    {
+        *pValue = pData[0] & 0x7F;
+        *pValue = MetaData_RotateRightAndCompliment(*pValue, 7);
+        return pData + 1;
+    }
+    *pValue = 0;
+    return pData;
+}
+
