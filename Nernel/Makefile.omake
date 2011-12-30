@@ -127,6 +127,8 @@
 	Source/CLR/MetaData/TypeDefinition.c
 	Source/CLR/MetaData/TypeReference.c
 	Source/CLR/MetaData/TypeSpecification.c
+#
+	Source/Utils/String_Format.c
 }
 
 

@@ -4,7 +4,7 @@
 #include <CLR/ILReader.h>
 #include <CLR/Log.h>
 
-//static AppDomain* global_baseMernelDomain;
+static AppDomain* global_baseMernelDomain;
 
 void Main(uint32_t pMultiBootMagic,
             void* pMultiBootData)
@@ -36,7 +36,7 @@ void Main(uint32_t pMultiBootMagic,
     // real static and local objects have at least 1 reference to prevent being collected
     if (objA || objB || objC || objD || objE) { }
 
-    //global_baseMernelDomain = AppDomain_CreateDomain();
+    global_baseMernelDomain = AppDomain_CreateDomain();
 
     /*
 	tCLIFile* cliFile;

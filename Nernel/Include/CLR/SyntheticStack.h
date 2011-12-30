@@ -28,6 +28,7 @@ typedef enum StackObjectNumericType
     StackObjectNumericType_Float32,
     StackObjectNumericType_Float64,
     StackObjectNumericType_Pointer,
+    StackObjectNumericType_UPointer,
 } StackObjectNumericType;
 
 struct _StackObject
@@ -36,7 +37,7 @@ struct _StackObject
     StackObjectNumericType NumericType;
     StackObject* PrevObj;
     StackObject* NextObj;
-    const char* Name;
+    char* Name;
 };
 
 StackObject* StackObject_Create();

@@ -3,6 +3,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+// For some insane reason, gcc doesn't
+// want me to use strdup, because it refuses
+// to find it, so we declare it here
+char* strdup(const char* msg);
+
 
 void StackObjectPool_PushSet();
 void StackObjectPool_TrimPool();
@@ -27,7 +32,7 @@ void StackObjectPool_PushSet()
     for (uint32_t i = 0; i < STACK_OBJECT_POOL_INIT_SIZE; i++)
     {
         StackObject* obj = StackObject_Create();
-        obj->Name = "Default Name";
+        obj->Name = strdup("Default Name");
         obj->Type = STACK_OBJECT_NO_TYPE;
         SyntheticStack_Push(&stackObjPool, obj);
     }
@@ -44,7 +49,8 @@ StackObject* StackObjectPool_Allocate()
 
 void StackObjectPool_Release(StackObject* obj)
 {
-    obj->Name = "Default Name";
+    free(obj->Name);
+    obj->Name = strdup("Default Name");
     obj->NextObj = (StackObject*)0;
     obj->PrevObj = (StackObject*)0;
     obj->Type = STACK_OBJECT_NO_TYPE;
@@ -70,12 +76,13 @@ StackObject* StackObject_Create()
 {
     StackObject* obj = (StackObject*)calloc(1, sizeof(StackObject));
     obj->Type = STACK_OBJECT_NO_TYPE;
-    obj->Name = "Default Name";
+    obj->Name = strdup("Default Name");
     return obj;
 }
 
 void StackObject_Destroy(StackObject* obj)
 {
+    free(obj->Name);
     free(obj);
 }
 
@@ -86,7 +93,7 @@ SyntheticStack* SyntheticStack_Create()
     SyntheticStack* stack = (SyntheticStack*)calloc(1, sizeof(SyntheticStack));
     StackObject* obj = StackObject_Create();
     obj->Type = (StackObjectType)0xFF;
-    obj->Name = "Root Stack Object";
+    obj->Name = strdup("Root Stack Object");
     stack->TopObject = obj;
     return stack;
 }

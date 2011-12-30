@@ -192,6 +192,91 @@ typedef enum IROpCode
 
      */
     IROpCode_Load_LocalVar_Address,
+    /*
+        Converts the object on the top of
+        the stack from one type to another,
+        and performs overflow checks before
+        doing the actual conversion.
+
+        Arg1:
+            The type to convert from.
+            Of the type ConversionArgumentType.
+
+        Arg2:
+            The type to convert to.
+            Of the type ConversionArgumentType.
+
+        Arg3:
+            N/A
+
+     */
+    IROpCode_Convert_OverflowCheck,
+    /*
+        Converts the object on the top of
+        the stack from one type to another.
+
+        Arg1:
+            The type to convert from.
+            Of the type ConversionArgumentType.
+
+        Arg2:
+            The type to convert to.
+            Of the type ConversionArgumentType.
+
+        Arg3:
+            N/A
+
+     */
+    IROpCode_Convert_Unchecked,
+    /*
+        Loads the value in the specified 
+        argument to the top of the stack.
+
+        Arg1:
+            The index of the parameter to
+            load to the top of the stack.
+
+        Arg2:
+            N/A
+
+        Arg3:
+            N/A
+
+     */
+    IROpCode_Load_Parameter,
+    /*
+        Loads the specified string to the
+        top of the stack.
+
+        Arg1:
+            The string to load to the top
+            of the stack. ( char* )
+
+        Arg2:
+            N/A
+
+        Arg3:
+            N/A
+
+     */
+    IROpCode_Load_String,
+    /*
+        Shifts the object almost on the top of the stack
+        in the specified way, by an amount specified
+        by the value at the top of the stack.
+
+        Arg1:
+            The type of shift to perform.
+            Of the type ShiftType
+
+        Arg2:
+            N/A
+
+        Arg3:
+            N/A
+
+     */
+    IROpCode_Shift,
 } IROpCode;
 
 
@@ -212,3 +297,27 @@ typedef enum BranchCondition
     BranchCondition_True,
 
 } BranchCondition;
+
+typedef enum ConversionArgumentType
+{
+    ConversionArgumentType_I1,
+    ConversionArgumentType_U1,
+    ConversionArgumentType_I2,
+    ConversionArgumentType_U2,
+    ConversionArgumentType_I4,
+    ConversionArgumentType_U4,
+    ConversionArgumentType_I8,
+    ConversionArgumentType_U8,
+    ConversionArgumentType_I,
+    ConversionArgumentType_U,
+    ConversionArgumentType_R4,
+    ConversionArgumentType_R8,
+
+} ConversionArgumentType;
+
+typedef enum ShiftType
+{
+    ShiftType_Right,
+    ShiftType_Right_Sign_Extended,
+    ShiftType_Left,
+} ShiftType;
