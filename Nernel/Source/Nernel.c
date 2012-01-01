@@ -14,30 +14,43 @@ void Main(uint32_t pMultiBootMagic,
         Nernel_Shutdown();
         return;
     }
+
+    /*
+  	MultiBoot_LoadedModule* loadedModule = MultiBoot_GetLoadedModuleByFileName("corlib.dll");
+    PEFile* peFile = PEFile_Create((uint8_t*)loadedModule->Address, loadedModule->Length);
+    if (peFile)
+    {
+        CLIFile* cliFile = CLIFile_Create(peFile);
+        if (cliFile)
+        {
+            printf("MethodDefinition[4]: %s SignatureLength = %u\n", cliFile->MethodDefinitions[4].Name, (unsigned int)cliFile->MethodDefinitions[4].SignatureLength);
+            MethodSignature* methodSignature = MethodSignature_Expand(cliFile->MethodDefinitions[4].Signature, cliFile->MethodDefinitions[4].SignatureLength);
+            printf("MethodDefinition[4]: MethodSignature\n");
+            printf("    HasThis = %s, ExplicitThis = %s\n", methodSignature->HasThis ? "TRUE" : "FALSE", methodSignature->ExplicitThis ? "TRUE" : "FALSE");
+            printf("    ParameterCount = %u\n", (unsigned int)methodSignature->ParameterCount);
+            printf("    Default = %s, VarArgs = %s, Generic = %s (Count: %u)\n", methodSignature->Default ? "TRUE" : "FALSE", methodSignature->VarArgs ? "TRUE" : "FALSE", methodSignature->Generic ? "TRUE" : "FALSE", (unsigned int)methodSignature->GenericParameterCount);
+            printf("    ReturnType\n");
+            printf("        Void = %s\n", methodSignature->ReturnType->Void ? "TRUE" : "FALSE");
+            printf("        TypedByReference = %s\n", methodSignature->ReturnType->TypedByReference ? "TRUE" : "FALSE");
+            if (methodSignature->ReturnType->Type) printf("        Type = 0x%x\n", methodSignature->ReturnType->Type->ElementType);
+        }
+    }
+    */
+    /*
     ReferenceTypeObject* root = (ReferenceTypeObject*)calloc(1, sizeof(ReferenceTypeObject));
     GC* gc = GC_Create(root);
-    ReferenceTypeObject* objA = GC_Allocate(gc, root, 2048); // Allocate, data should be from Stack 0
-    ReferenceTypeObject* objB = GC_Allocate(gc, objA, 1024); // Allocate, data should be from Stack 0
-    ReferenceTypeObject* objC = GC_Allocate(gc, objB, 1024); // Allocate, data should be from Stack 0
-    ReferenceTypeObject* objD = GC_Allocate(gc, objC, 1024); // Allocate, data should be from Stack 1
-    ReferenceTypeObject* objE = GC_Allocate(gc, objD, 4096); // Allocate, data should be from Stack 2
-    ReferenceTypeObject_RemoveReference(objA, objB); // A and B should be unlinked, B, C, D, and E should get disposed
+    ReferenceTypeObject* objA = GC_Allocate(gc, root, 2048);
+    ReferenceTypeObject* objB = GC_Allocate(gc, objA, 1024);
+    ReferenceTypeObject* objC = GC_Allocate(gc, objB, 1024);
+    ReferenceTypeObject* objD = GC_Allocate(gc, objC, 1024);
+    ReferenceTypeObject* objE = GC_Allocate(gc, objD, 4096);
+    ReferenceTypeObject_RemoveReference(objA, objB);
     GC_Collect(gc);
-    // At this point B, C, D, and E should all be disposed, they each used at least 25% of their stack
-    // And A should still be allocated, with one reference to the root, note that when you DO remove the
-    // last reference to the root object, it will be flagged Disposing, but it is never handled by the
-    // GC, so it should not matter as the GC only really looks at dependancies, but needs the root so
-    // real static and local objects have at least 1 reference to prevent being collected
     if (objA || objB || objC || objD || objE) { }
+    */
 
     //global_baseMernelDomain = AppDomain_CreateDomain();
 
-    /*
-	tCLIFile* cliFile;
-	const char* args = "";
-	cliFile = CLIFile_Load("mernel.exe");
-	CLIFile_Execute(cliFile, 0, &args);
-    */
     while (TRUE) ;
 }
 
@@ -61,13 +74,6 @@ bool_t Nernel_Startup(uint32_t pMultiBootMagic,
 	time_t startupTime = time(NULL);
     printf("Nernel: Startup @ %s", ctime(&startupTime));
 
-    /*
-	JIT_Execute_Init();
-	MetaData_Init();
-	Type_Init();
-	Heap_Init();
-	Finalizer_Init();
-    */
     return TRUE;
 }
 

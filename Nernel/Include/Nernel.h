@@ -16,11 +16,6 @@
 #include <Core/RTC.h>
 #include <Core/SerialWriter.h>
 #include <Core/SystemClock.h>
-#include <Runtime/CLIFile.h>
-#include <Runtime/MetaData.h>
-#include <Runtime/Type.h>
-#include <Runtime/Heap.h>
-#include <Runtime/Finalizer.h>
 
 #include <CLR/CLIFile.h>
 
