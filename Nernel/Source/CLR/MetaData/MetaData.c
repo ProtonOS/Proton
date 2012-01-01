@@ -82,15 +82,11 @@ const uint8_t* MetaData_GetCompressedUnsigned(const uint8_t* pData, uint32_t* pV
     return pData;
 }
 
-int32_t MetaData_RotateRightAndCompliment(int32_t pValue, uint8_t pBits)
+int32_t MetaData_RotateRight(int32_t pValue, uint8_t pBits)
 {
-    bool_t bit = (pValue & (1 << (pBits - 1))) != 0;
+    bool_t bit = (pValue & 0x01) != 0;
     pValue >>= 1;
     if (bit) pValue |= (1 << (pBits - 1));
-    pValue = -pValue;
-    //bit = (pValue & (1 << (pBits - 1))) != 0;
-    pValue &= ~(1 << (pBits - 1));
-    //if (bit) pValue *= -1;
     return pValue;
 }
 
@@ -99,8 +95,23 @@ const uint8_t* MetaData_GetCompressedSigned(const uint8_t* pData, int32_t* pValu
     if ((*pData & 0x80) == 0)
     {
         *pValue = pData[0] & 0x7F;
-        *pValue = MetaData_RotateRightAndCompliment(*pValue, 7);
+        *pValue = MetaData_RotateRight(*pValue, 7);
+        if ((*pValue & 0x40) != 0) *pValue |= 0xFFFFFF80;
         return pData + 1;
+    }
+    if ((*pData & 0xC0) == 0x80)
+    {
+        *pValue = ((pData[0] & 0x3F) << 8) + pData[1];
+        *pValue = MetaData_RotateRight(*pValue, 14);
+        if ((*pValue & 0x2000) != 0) *pValue |= 0xFFFFC000;
+        return pData + 2;
+    }
+    if ((*pData & 0xE0) == 0xC0)
+    {
+        *pValue = ((pData[0] & 0x1F) << 24) + (pData[1] << 16) + (pData[2] << 8) + pData[3];
+        *pValue = MetaData_RotateRight(*pValue, 29);
+        if ((*pValue & 0x10000000) != 0) *pValue |= 0xE0000000;
+        return pData + 4;
     }
     *pValue = 0;
     return pData;
