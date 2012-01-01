@@ -245,6 +245,22 @@ typedef enum IROpCode
      */
     IROpCode_Load_Parameter,
     /*
+        Stores the value on the top of the
+		stack in the specified parameter.
+
+        Arg1:
+            The index of the parameter to 
+			store the value into.
+
+        Arg2:
+            N/A
+
+        Arg3:
+            N/A
+
+     */
+    IROpCode_Store_Parameter,
+    /*
         Loads the specified string to the
         top of the stack.
 
@@ -267,7 +283,27 @@ typedef enum IROpCode
 
         Arg1:
             The type of shift to perform.
-            Of the type ShiftType
+            Of the type ShiftType.
+
+        Arg2:
+            The type of object to shift.
+			Of the type StackObjectType.
+
+        Arg3:
+            The type of object to shift by.
+			Of the type StackObjectType.
+
+     */
+    IROpCode_Shift,
+    /*
+        Loads the element in the array almost
+		on the top of the stack, at the index
+		on the top of the stack, to the top of
+		the stack.
+
+        Arg1:
+            The type of object to load.
+			Of the type StackObjectType.
 
         Arg2:
             N/A
@@ -276,7 +312,7 @@ typedef enum IROpCode
             N/A
 
      */
-    IROpCode_Shift,
+    IROpCode_Load_Element,
 } IROpCode;
 
 

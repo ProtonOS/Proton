@@ -113,7 +113,14 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
                 
 
             case ILOpCode_StArg_S:			// 0x10
-                
+				{
+					Log_WriteLine(LogFlags_ILReading, "Read StArg.S");
+					uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
+                    *dt = (uint32_t)ReadUInt8(dat);
+                    EMIT_IR_1ARG(IROpCode_Store_Parameter, dt);
+
+                    StackObjectPool_Release(SyntheticStack_Pop(stack));
+				}
                 ClearFlags();
                 break;
 
@@ -198,49 +205,13 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 
 
             case ILOpCode_StLoc_0:			// 0x0A
-                {
-                    Log_WriteLine(LogFlags_ILReading, "Read StLoc.0");
-                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
-                    *dt = (uint32_t)0;
-                    EMIT_IR_1ARG(IROpCode_Store_LocalVar, dt);
-
-                    StackObjectPool_Release(SyntheticStack_Pop(stack));
-                }
-                ClearFlags();
-                break;
+                DefineStLoc(0);
             case ILOpCode_StLoc_1:			// 0x0B
-                {
-                    Log_WriteLine(LogFlags_ILReading, "Read StLoc.1");
-                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
-                    *dt = (uint32_t)1;
-                    EMIT_IR_1ARG(IROpCode_Store_LocalVar, dt);
-
-                    StackObjectPool_Release(SyntheticStack_Pop(stack));
-                }
-                ClearFlags();
-                break;
+                DefineStLoc(1);
             case ILOpCode_StLoc_2:			// 0x0C
-                {
-                    Log_WriteLine(LogFlags_ILReading, "Read StLoc.2");
-                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
-                    *dt = (uint32_t)2;
-                    EMIT_IR_1ARG(IROpCode_Store_LocalVar, dt);
-
-                    StackObjectPool_Release(SyntheticStack_Pop(stack));
-                }
-                ClearFlags();
-                break;
+                DefineStLoc(2);
             case ILOpCode_StLoc_3:			// 0x0D
-                {
-                    Log_WriteLine(LogFlags_ILReading, "Read StLoc.3");
-                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
-                    *dt = (uint32_t)3;
-                    EMIT_IR_1ARG(IROpCode_Store_LocalVar, dt);
-
-                    StackObjectPool_Release(SyntheticStack_Pop(stack));
-                }
-                ClearFlags();
-                break;
+                DefineStLoc(3);
             case ILOpCode_StLoc_S:			// 0x13
                 {
                     Log_WriteLine(LogFlags_ILReading, "Read StLoc.S");
@@ -290,140 +261,23 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
                 ClearFlags();
                 break;
             case ILOpCode_Ldc_I4_0:			// 0x16
-                {
-                    Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.0");
-
-                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
-                    *dt = (uint32_t)0;
-                    EMIT_IR_1ARG(IROpCode_LoadInt32_Val, dt);
-
-                    StackObject* s = StackObjectPool_Allocate();
-                    s->Type = StackObjectType_Int32;
-                    s->NumericType = StackObjectNumericType_Int32;
-                    SyntheticStack_Push(stack, s);
-                }
-                ClearFlags();
-                break;
+                DefineLdcI4(0);
             case ILOpCode_Ldc_I4_1:			// 0x17
-                {
-                    Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.1");
-
-                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
-                    *dt = (uint32_t)1;
-                    EMIT_IR_1ARG(IROpCode_LoadInt32_Val, dt);
-
-                    StackObject* s = StackObjectPool_Allocate();
-                    s->Type = StackObjectType_Int32;
-                    s->NumericType = StackObjectNumericType_Int32;
-                    SyntheticStack_Push(stack, s);
-                }
-                ClearFlags();
-                break;
+                DefineLdcI4(1);
             case ILOpCode_Ldc_I4_2:			// 0x18
-                {
-                    Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.2");
-
-                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
-                    *dt = (uint32_t)2;
-                    EMIT_IR_1ARG(IROpCode_LoadInt32_Val, dt);
-
-                    StackObject* s = StackObjectPool_Allocate();
-                    s->Type = StackObjectType_Int32;
-                    s->NumericType = StackObjectNumericType_Int32;
-                    SyntheticStack_Push(stack, s);
-                }
-                ClearFlags();
-                break;
+                DefineLdcI4(2);
             case ILOpCode_Ldc_I4_3:			// 0x19
-                {
-                    Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.3");
-
-                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
-                    *dt = (uint32_t)3;
-                    EMIT_IR_1ARG(IROpCode_LoadInt32_Val, dt);
-
-                    StackObject* s = StackObjectPool_Allocate();
-                    s->Type = StackObjectType_Int32;
-                    s->NumericType = StackObjectNumericType_Int32;
-                    SyntheticStack_Push(stack, s);
-                }
-                ClearFlags();
-                break;
+                DefineLdcI4(3);
             case ILOpCode_Ldc_I4_4:			// 0x1A
-                {
-                    Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.4");
-
-                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
-                    *dt = (uint32_t)4;
-                    EMIT_IR_1ARG(IROpCode_LoadInt32_Val, dt);
-
-                    StackObject* s = StackObjectPool_Allocate();
-                    s->Type = StackObjectType_Int32;
-                    s->NumericType = StackObjectNumericType_Int32;
-                    SyntheticStack_Push(stack, s);
-                }
-                ClearFlags();
-                break;
+                DefineLdcI4(4);
             case ILOpCode_Ldc_I4_5:			// 0x1B
-                {
-                    Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.5");
-
-                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
-                    *dt = (uint32_t)5;
-                    EMIT_IR_1ARG(IROpCode_LoadInt32_Val, dt);
-
-                    StackObject* s = StackObjectPool_Allocate();
-                    s->Type = StackObjectType_Int32;
-                    s->NumericType = StackObjectNumericType_Int32;
-                    SyntheticStack_Push(stack, s);
-                }
-                ClearFlags();
-                break;
+                DefineLdcI4(5);
             case ILOpCode_Ldc_I4_6:			// 0x1C
-                {
-                    Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.6");
-
-                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
-                    *dt = (uint32_t)6;
-                    EMIT_IR_1ARG(IROpCode_LoadInt32_Val, dt);
-
-                    StackObject* s = StackObjectPool_Allocate();
-                    s->Type = StackObjectType_Int32;
-                    s->NumericType = StackObjectNumericType_Int32;
-                    SyntheticStack_Push(stack, s);
-                }
-                ClearFlags();
-                break;
+                DefineLdcI4(6);
             case ILOpCode_Ldc_I4_7:			// 0x1D
-                {
-                    Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.7");
-
-                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
-                    *dt = (uint32_t)7;
-                    EMIT_IR_1ARG(IROpCode_LoadInt32_Val, dt);
-
-                    StackObject* s = StackObjectPool_Allocate();
-                    s->Type = StackObjectType_Int32;
-                    s->NumericType = StackObjectNumericType_Int32;
-                    SyntheticStack_Push(stack, s);
-                }
-                ClearFlags();
-                break;
+                DefineLdcI4(7);
             case ILOpCode_Ldc_I4_8:			// 0x1E
-                {
-                    Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.8");
-
-                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
-                    *dt = (uint32_t)8;
-                    EMIT_IR_1ARG(IROpCode_LoadInt32_Val, dt);
-
-                    StackObject* s = StackObjectPool_Allocate();
-                    s->Type = StackObjectType_Int32;
-                    s->NumericType = StackObjectNumericType_Int32;
-                    SyntheticStack_Push(stack, s);
-                }
-                ClearFlags();
-                break;
+                DefineLdcI4(8);
             case ILOpCode_Ldc_I4_S:			// 0x1F
                 {
                     Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.S");
@@ -616,7 +470,11 @@ Branch_Common:
                 ClearFlags();
                 break;
 
-
+				
+            case ILOpCode_LdInd_I:			// 0x4D
+                
+                ClearFlags();
+                break;
             case ILOpCode_LdInd_I1:			// 0x46
                 
                 ClearFlags();
@@ -645,10 +503,6 @@ Branch_Common:
                 
                 ClearFlags();
                 break;
-            case ILOpCode_LdInd_I:			// 0x4D
-                
-                ClearFlags();
-                break;
             case ILOpCode_LdInd_R4:			// 0x4D
                 
                 ClearFlags();
@@ -664,6 +518,10 @@ Branch_Common:
 
 
             case ILOpCode_StInd_Ref:		// 0x51
+                
+                ClearFlags();
+                break;
+            case ILOpCode_StInd_I:			// 0xDF
                 
                 ClearFlags();
                 break;
@@ -694,6 +552,10 @@ Branch_Common:
                 
 
             case ILOpCode_Add:				// 0x58
+                
+                ClearFlags();
+                break;
+            case ILOpCode_Add_Ovf:			// 0xD6
                 
                 ClearFlags();
                 break;
@@ -770,23 +632,15 @@ Branch_Common:
 
 
             case ILOpCode_Shl:				// 0x62
-                
-                ClearFlags();
-                break;
-
-
+				DefineShift(Left, Shl);
             // The only language I know of that 
             // emits this currently is J#.
             // (This is a sign-extended right shift,
             // aka. the >>> operator)
             case ILOpCode_Shr:				// 0x63
-                
-                ClearFlags();
-                break;
+				DefineShift(Right_Sign_Extended, Shr);
             case ILOpCode_Shr_Un:			// 0x64
-                
-                ClearFlags();
-                break;
+				DefineShift(Right, Shr.Un);
 
 
             case ILOpCode_Neg:				// 0x65
@@ -961,7 +815,9 @@ Branch_Common:
                 ClearFlags();
                 break;
             case ILOpCode_LdElem_I1:		// 0x90
-                
+				{
+
+				}
                 ClearFlags();
                 break;
             case ILOpCode_LdElem_U1:		// 0x91
@@ -984,6 +840,7 @@ Branch_Common:
                 
                 ClearFlags();
                 break;
+			// This is also known as LdElem.U8
             case ILOpCode_LdElem_I8:		// 0x96
                 
                 ClearFlags();
@@ -1004,6 +861,12 @@ Branch_Common:
                 
                 ClearFlags();
                 break;
+            case ILOpCode_LdElem:			// 0xA3
+                
+                ClearFlags();
+                break;
+
+
             case ILOpCode_StElem_I:			// 0x9B
                 
                 ClearFlags();
@@ -1036,14 +899,12 @@ Branch_Common:
                 
                 ClearFlags();
                 break;
-            case ILOpCode_LdElem:			// 0xA3
-                
-                ClearFlags();
-                break;
             case ILOpCode_StElem:			// 0xA4
                 
                 ClearFlags();
                 break;
+
+
             case ILOpCode_Unbox_Any:		// 0xA5
                 
                 ClearFlags();
@@ -1095,10 +956,6 @@ Branch_Common:
                 
                 ClearFlags();
                 break;
-            case ILOpCode_Add_Ovf:			// 0xD6
-                
-                ClearFlags();
-                break;
             case ILOpCode_EndFinally:		// 0xDC
                 
                 ClearFlags();
@@ -1108,10 +965,6 @@ Branch_Common:
                 ClearFlags();
                 break;
             case ILOpCode_Leave_S:			// 0xDE
-                
-                ClearFlags();
-                break;
-            case ILOpCode_StInd_I:			// 0xDF
                 
                 ClearFlags();
                 break;
