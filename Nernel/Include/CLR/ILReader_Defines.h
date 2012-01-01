@@ -273,5 +273,6 @@
 	} \
 	StackObjectPool_Release(obj); \
 	EMIT_IR_3ARG(IROpCode_Shift, sType, sValType, sAmntType); \
+	/* STILL NEED TO PUSH OBJECT TO STACK!!! */ \
 	ClearFlags(); \
 	break; }
