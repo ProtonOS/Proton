@@ -44,6 +44,7 @@
 #define CONST(BUILD, ../Build);
 #define CONST(OUT, ${BUILD}/boot/nernel.bin);
 #define CONST(ISO, ../Proton.iso);
+#define CONST(CACHE, ./Makefile.omake.cache);
 
 #define SOURCE(ASM_FILES)
 {
@@ -123,6 +124,7 @@
 	Source/CLR/MetaData/Parameter.c
 	Source/CLR/MetaData/Property.c
 	Source/CLR/MetaData/PropertyMap.c
+	Source/CLR/MetaData/Signature.c
 	Source/CLR/MetaData/StandAloneSignature.c
 	Source/CLR/MetaData/TypeDefinition.c
 	Source/CLR/MetaData/TypeReference.c
@@ -132,38 +134,45 @@
 }
 
 
-
-MKDIR ${MKDIR_ARGS} ${LOGS}
-MKDIR ${MKDIR_ARGS} ${OBJECT}
-MKDIR ${MKDIR_ARGS} ${BUILD}/boot/grub
-
-CP ${CP_ARGS} ../SDK/grub/stage2_eltorito ${BUILD}/boot/grub
-
-file CREATE_OR_TRUNCATE(${BUILD}/boot/grub/menu.lst)
+#define TARGET(build)
 {
-	timeout 0
-	default 0
-	title Proton
-	kernel /boot/nernel.bin
-	module /boot/mernel.exe
-	module /gac/corlib.dll
-	module /gac/system.dll
-	module /gac/proton/proton.io.dll
-	module /gac/proton/proton.devices.dll
-	module /gac/proton/proton.filesystems.dll
-	module /gac/proton/proton.diagnostics.dll
+	MKDIR ${MKDIR_ARGS} ${LOGS}
+	MKDIR ${MKDIR_ARGS} ${OBJECT}
+	MKDIR ${MKDIR_ARGS} ${BUILD}/boot/grub
+
+	CP ${CP_ARGS} ../SDK/grub/stage2_eltorito ${BUILD}/boot/grub
+
+	file CREATE_OR_TRUNCATE(${BUILD}/boot/grub/menu.lst)
+	{
+		timeout 0
+		default 0
+		title Proton
+		kernel /boot/nernel.bin
+		module /boot/mernel.exe
+		module /gac/corlib.dll
+		module /gac/system.dll
+		module /gac/proton/proton.io.dll
+		module /gac/proton/proton.devices.dll
+		module /gac/proton/proton.filesystems.dll
+		module /gac/proton/proton.diagnostics.dll
+	}
+
+	common TOOL(AS -o ) : ASM_FILES
+	{
+		#prefix{${OBJECT}/$(FILENAME.NO_EXTENSION.DIR_TO_FILENAME).o} : ALL
+	}
+
+	common TOOL(GCC ${GCC_ARGS} -o ) : C_FILES
+	{
+		#prefix{${OBJECT}/$(FILENAME.NO_EXTENSION.DIR_TO_FILENAME).o} : ALL
+	}
+
+	LD ${LD_ARGS} -o ${OUT} ${${OBJECT}/&([ASM_FILES].NO_EXTENSION.DIR_TO_FILENAME).o} ${${OBJECT}/&([C_FILES].NO_EXTENSION.DIR_TO_FILENAME).o} ${LD_LIBS}
+
+	MKISOFS ${MKISOFS_ARGS} -o ${ISO} ${BUILD}
 }
 
-common TOOL(AS -o ) : ASM_FILES
+#define TARGET(clean)
 {
-    #prefix{${OBJECT}/$(FILENAME.NO_EXTENSION.DIR_TO_FILENAME).o} : ALL
+	RM ${RM_ARGS} ${LOGS} ${BUILD} ${OBJECT} ${CACHE}
 }
-
-common TOOL(GCC ${GCC_ARGS} -o ) : C_FILES
-{
-    #prefix{${OBJECT}/$(FILENAME.NO_EXTENSION.DIR_TO_FILENAME).o} : ALL
-}
-
-LD ${LD_ARGS} -o ${OUT} ${${OBJECT}/&([ASM_FILES].NO_EXTENSION.DIR_TO_FILENAME).o} ${${OBJECT}/&([C_FILES].NO_EXTENSION.DIR_TO_FILENAME).o} ${LD_LIBS}
-
-MKISOFS ${MKISOFS_ARGS} -o ${ISO} ${BUILD}

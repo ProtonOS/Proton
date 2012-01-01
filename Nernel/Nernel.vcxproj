@@ -67,6 +67,7 @@
     <ClCompile Include="Source\CLR\MetaData\Parameter.c" />
     <ClCompile Include="Source\CLR\MetaData\Property.c" />
     <ClCompile Include="Source\CLR\MetaData\PropertyMap.c" />
+    <ClCompile Include="Source\CLR\MetaData\Signature.c" />
     <ClCompile Include="Source\CLR\MetaData\StandAloneSignature.c" />
     <ClCompile Include="Source\CLR\MetaData\TypeDefinition.c" />
     <ClCompile Include="Source\CLR\MetaData\TypeReference.c" />
@@ -283,10 +284,10 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <NMakeBuildCommandLine>"$(SolutionDir)SDK\bin\omake"</NMakeBuildCommandLine>
+    <NMakeBuildCommandLine>"$(SolutionDir)SDK\bin\omake" build</NMakeBuildCommandLine>
     <NMakeOutput>Nernel.bin</NMakeOutput>
-    <NMakeCleanCommandLine>"$(SolutionDir)SDK\bin\omake"</NMakeCleanCommandLine>
-    <NMakeReBuildCommandLine>"$(SolutionDir)SDK\bin\omake"</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>"$(SolutionDir)SDK\bin\omake" clean</NMakeCleanCommandLine>
+    <NMakeReBuildCommandLine>"$(SolutionDir)SDK\bin\omake" rebuild</NMakeReBuildCommandLine>
     <NMakePreprocessorDefinitions>
     </NMakePreprocessorDefinitions>
     <NMakeIncludeSearchPath>.\Include;..\SDK\include</NMakeIncludeSearchPath>
@@ -298,10 +299,10 @@
     <NMakeForcedIncludes>types.h</NMakeForcedIncludes>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <NMakeBuildCommandLine>"$(SolutionDir)SDK\bin\omake"</NMakeBuildCommandLine>
+    <NMakeBuildCommandLine>"$(SolutionDir)SDK\bin\omake" build</NMakeBuildCommandLine>
     <NMakeOutput>Nernel.bin</NMakeOutput>
-    <NMakeCleanCommandLine>"$(SolutionDir)SDK\bin\omake"</NMakeCleanCommandLine>
-    <NMakeReBuildCommandLine>"$(SolutionDir)SDK\bin\omake"</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>"$(SolutionDir)SDK\bin\omake" clean</NMakeCleanCommandLine>
+    <NMakeReBuildCommandLine>"$(SolutionDir)SDK\bin\omake" rebuild</NMakeReBuildCommandLine>
     <NMakePreprocessorDefinitions>
     </NMakePreprocessorDefinitions>
     <NMakeIncludeSearchPath>.\Include;..\SDK\include</NMakeIncludeSearchPath>
