@@ -10,6 +10,10 @@
     Volatile = FALSE; }
 
 
+#define DefineUnSupportedOpCode(ilOpCode) \
+	{ Panic("Encountered unsupported Op-Code '" #ilOpCode "'! Cannot continue!"); \
+	break; }
+
 
 #define GetInstrOffset() \
     if (Constrained) { instr->InstructionLocation -= 2; } \
@@ -241,7 +245,9 @@
 	*sType = ShiftType_##SftType; \
 	StackObjectType* sValType = (StackObjectType*)malloc(sizeof(StackObjectType)); \
 	StackObjectType* sAmntType = (StackObjectType*)malloc(sizeof(StackObjectType)); \
-	StackObject* obj = SyntheticStack_Pop(stack); /* pop the ammount to shift by */ \
+	StackObject* obj = SyntheticStack_Pop(stack); /* pop the amount to shift by */ \
+	/* We use a switch statement rather than directly assigning it, \
+	   so that we have a form of error checking in place. */ \
 	switch(obj->Type) \
 	{ \
 		case StackObjectType_Int32: \
@@ -272,7 +278,25 @@
 			break; \
 	} \
 	StackObjectPool_Release(obj); \
+	obj = StackObjectPool_Allocate(); \
+	obj->Type = *sValType; \
+	switch (obj->Type) \
+	{ \
+		case StackObjectType_Int32: \
+			obj->NumericType = StackObjectNumericType_Int32; \
+			break; \
+		case StackObjectType_Int64: \
+			obj->NumericType = StackObjectNumericType_Int64; \
+			break; \
+		case StackObjectType_NativeInt: \
+			obj->NumericType = StackObjectNumericType_Pointer; \
+			break; \
+		default: \
+			Panic("Something went very very wrong, because this point should never be reached!"); \
+			break; \
+	} \
+	SyntheticStack_Push(stack, obj); \
+	obj = NULL; \
 	EMIT_IR_3ARG(IROpCode_Shift, sType, sValType, sAmntType); \
-	/* STILL NEED TO PUSH OBJECT TO STACK!!! */ \
 	ClearFlags(); \
 	break; }

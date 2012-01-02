@@ -467,88 +467,50 @@ Branch_Common:
 
             case ILOpCode_Switch:			// 0x45
                 
+
                 ClearFlags();
                 break;
 
 				
             case ILOpCode_LdInd_I:			// 0x4D
-                
-                ClearFlags();
-                break;
+				DefineUnSupportedOpCode(LdInd.I);
             case ILOpCode_LdInd_I1:			// 0x46
-                
-                ClearFlags();
-                break;
+				DefineUnSupportedOpCode(LdInd.I1);
             case ILOpCode_LdInd_U1:			// 0x47
-                
-                ClearFlags();
-                break;
+				DefineUnSupportedOpCode(LdInd.U1);
             case ILOpCode_LdInd_I2:			// 0x48
-                
-                ClearFlags();
-                break;
+				DefineUnSupportedOpCode(LdInd.I2);
             case ILOpCode_LdInd_U2:			// 0x49
-                
-                ClearFlags();
-                break;
+				DefineUnSupportedOpCode(LdInd.U2);
             case ILOpCode_LdInd_I4:			// 0x4A
-                
-                ClearFlags();
-                break;
+				DefineUnSupportedOpCode(LdInd.I4);
             case ILOpCode_LdInd_U4:			// 0x4B
-                
-                ClearFlags();
-                break;
+				DefineUnSupportedOpCode(LdInd.U4);
             case ILOpCode_LdInd_I8:			// 0x4C
-                
-                ClearFlags();
-                break;
+				DefineUnSupportedOpCode(LdInd.I8);
             case ILOpCode_LdInd_R4:			// 0x4D
-                
-                ClearFlags();
-                break;
+				DefineUnSupportedOpCode(LdInd.R4);
             case ILOpCode_LdInd_R8:			// 0x4F
-                
-                ClearFlags();
-                break;
+				DefineUnSupportedOpCode(LdInd.R8);
             case ILOpCode_LdInd_Ref:		// 0x50
-                
-                ClearFlags();
-                break;
+				DefineUnSupportedOpCode(LdInd.Ref);
 
-
-            case ILOpCode_StInd_Ref:		// 0x51
-                
-                ClearFlags();
-                break;
             case ILOpCode_StInd_I:			// 0xDF
-                
-                ClearFlags();
-                break;
+				DefineUnSupportedOpCode(StInd.I);
             case ILOpCode_StInd_I1:			// 0x52
-                
-                ClearFlags();
-                break;
+				DefineUnSupportedOpCode(StInd.I1);
             case ILOpCode_StInd_I2:			// 0x53
-                
-                ClearFlags();
-                break;
+				DefineUnSupportedOpCode(StInd.I2);
             case ILOpCode_StInd_I4:			// 0x54
-                
-                ClearFlags();
-                break;
+				DefineUnSupportedOpCode(StInd.I4);
             case ILOpCode_StInd_I8:			// 0x55
-                
-                ClearFlags();
-                break;
+				DefineUnSupportedOpCode(StInd.I8);
             case ILOpCode_StInd_R4:			// 0x56
-                
-                ClearFlags();
-                break;
+				DefineUnSupportedOpCode(StInd.R4);
             case ILOpCode_StInd_R8:			// 0x57
-                
-                ClearFlags();
-                break;
+				DefineUnSupportedOpCode(StInd.R8);
+            case ILOpCode_StInd_Ref:		// 0x51
+				DefineUnSupportedOpCode(StInd.Ref);
                 
 
             case ILOpCode_Add:				// 0x58

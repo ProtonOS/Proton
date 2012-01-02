@@ -1,4 +1,25 @@
 
 
+The following Op-Codes are considered un-needed, and as such, haven't been implemented:
+	LdInd.I
+	LdInd.I1
+	LdInd.I2
+	LdInd.I4
+	LdInd.I8
+	LdInd.U1
+	LdInd.U2
+	LdInd.U4
+	LdInd.R4
+	LdInd.R8
+	LdInd.Ref
+	StInd.I
+	StInd.I1
+	StInd.I2
+	StInd.I4
+	StInd.I8
+	StInd.R4
+	StInd.R8
+	StInd.Ref
+
 
 
