@@ -52,13 +52,19 @@
 #define Signature_CallConvention_HasThis                0x20
 #define Signature_CallConvention_ExplicitThis           0x40
 
+typedef struct _CLIFile CLIFile;
+
 typedef struct _MethodSignature MethodSignature;
+typedef struct _FieldSignature FieldSignature;
+typedef struct _PropertySignature PropertySignature;
+typedef struct _LocalsSignature LocalsSignature;
 
 typedef struct _SignatureReturnType SignatureReturnType;
 typedef struct _SignatureParameter SignatureParameter;
 typedef struct _SignatureCustomModifier SignatureCustomModifier;
 typedef struct _SignatureType SignatureType;
 typedef struct _SignatureArrayShape SignatureArrayShape;
+typedef struct _SignatureLocalVariable SignatureLocalVariable;
 
 struct _MethodSignature
 {
@@ -67,6 +73,10 @@ struct _MethodSignature
     bool_t Default;
     bool_t VarArgs;
     bool_t Generic;
+    bool_t CCall;
+    bool_t STDCall;
+    bool_t ThisCall;
+    bool_t FastCall;
     uint32_t GenericParameterCount;
     SignatureReturnType* ReturnType;
     uint32_t ParameterCount;
@@ -74,6 +84,30 @@ struct _MethodSignature
     bool_t HasSentinel;
     uint32_t SentinelIndex;
 };
+
+struct _FieldSignature
+{
+    uint32_t CustomModifierCount;
+    SignatureCustomModifier** CustomModifiers;
+    SignatureType* Type;
+};
+
+struct _PropertySignature
+{
+    bool_t HasThis;
+    uint32_t CustomModifierCount;
+    SignatureCustomModifier** CustomModifiers;
+    SignatureType* Type;
+    uint32_t ParameterCount;
+    SignatureParameter** Parameters;
+};
+
+struct _LocalsSignature
+{
+    uint32_t LocalVariableCount;
+    SignatureLocalVariable** LocalVariables;
+};
+
 
 struct _SignatureReturnType
 {
@@ -98,6 +132,7 @@ struct _SignatureCustomModifier
 {
     bool_t Optional;
     uint32_t TypeDefOrRefOrSpecToken;
+    bool_t Pinned;
 };
 
 struct _SignatureType
@@ -133,27 +168,55 @@ struct _SignatureArrayShape
     int32_t* LowerBounds;
 };
 
+struct _SignatureLocalVariable
+{
+    uint32_t CustomModifierCount;
+    SignatureCustomModifier** CustomModifiers;
+    bool_t ByReference;
+    SignatureType* Type;
+    bool_t TypedByReference;
+};
+
 MethodSignature* MethodSignature_Create();
 void MethodSignature_Destroy(MethodSignature* pMethodSignature);
-const uint8_t* MethodSignature_Parse(const uint8_t* pCursor, MethodSignature** pMethodSignature);
-MethodSignature* MethodSignature_Expand(const uint8_t* pSignature, uint32_t pSignatureLength);
+const uint8_t* MethodSignature_Parse(const uint8_t* pCursor, MethodSignature** pMethodSignature, CLIFile* pCLIFile);
+MethodSignature* MethodSignature_Expand(const uint8_t* pSignature, uint32_t pSignatureLength, CLIFile* pCLIFile);
+
+FieldSignature* FieldSignature_Create();
+void FieldSignature_Destroy(FieldSignature* pFieldSignature);
+const uint8_t* FieldSignature_Parse(const uint8_t* pCursor, FieldSignature** pFieldSignature, CLIFile* pCLIFile);
+FieldSignature* FieldSignature_Expand(const uint8_t* pSignature, uint32_t pSignatureLength, CLIFile* pCLIFile);
+
+PropertySignature* PropertySignature_Create();
+void PropertySignature_Destroy(PropertySignature* pPropertySignature);
+const uint8_t* PropertySignature_Parse(const uint8_t* pCursor, PropertySignature** pPropertySignature, CLIFile* pCLIFile);
+PropertySignature* PropertySignature_Expand(const uint8_t* pSignature, uint32_t pSignatureLength, CLIFile* pCLIFile);
+
+LocalsSignature* LocalsSignature_Create();
+void LocalsSignature_Destroy(LocalsSignature* pLocalsSignature);
+const uint8_t* LocalsSignature_Parse(const uint8_t* pCursor, LocalsSignature** pLocalsSignature, CLIFile* pCLIFile);
+LocalsSignature* LocalsSignature_Expand(const uint8_t* pSignature, uint32_t pSignatureLength, CLIFile* pCLIFile);
 
 SignatureReturnType* SignatureReturnType_Create();
 void SignatureReturnType_Destroy(SignatureReturnType* pReturnType);
-const uint8_t* SignatureReturnType_Parse(const uint8_t* pCursor, SignatureReturnType** pReturnType);
+const uint8_t* SignatureReturnType_Parse(const uint8_t* pCursor, SignatureReturnType** pReturnType, CLIFile* pCLIFile);
 
 SignatureParameter* SignatureParameter_Create();
 void SignatureParameter_Destroy(SignatureParameter* pParameter);
-const uint8_t* SignatureParameter_Parse(const uint8_t* pCursor, SignatureParameter** pParameter);
+const uint8_t* SignatureParameter_Parse(const uint8_t* pCursor, SignatureParameter** pParameter, CLIFile* pCLIFile);
 
 SignatureCustomModifier* SignatureCustomModifier_Create();
 void SignatureCustomModifier_Destroy(SignatureCustomModifier* pCustomModifier);
-const uint8_t* SignatureCustomModifier_Parse(const uint8_t* pCursor, SignatureCustomModifier** pCustomModifier);
+const uint8_t* SignatureCustomModifier_Parse(const uint8_t* pCursor, SignatureCustomModifier** pCustomModifier, CLIFile* pCLIFile);
 
 SignatureType* SignatureType_Create();
 void SignatureType_Destroy(SignatureType* pType);
-const uint8_t* SignatureType_Parse(const uint8_t* pCursor, SignatureType** pType);
+const uint8_t* SignatureType_Parse(const uint8_t* pCursor, SignatureType** pType, CLIFile* pCLIFile);
 
 SignatureArrayShape* SignatureArrayShape_Create();
 void SignatureArrayShape_Destroy(SignatureArrayShape* pArrayShape);
-const uint8_t* SignatureArrayShape_Parse(const uint8_t* pCursor, SignatureArrayShape** pArrayShape);
+const uint8_t* SignatureArrayShape_Parse(const uint8_t* pCursor, SignatureArrayShape** pArrayShape, CLIFile* pCLIFile);
+
+SignatureLocalVariable* SignatureLocalVariable_Create();
+void SignatureLocalVariable_Destroy(SignatureLocalVariable* pLocalVariable);
+const uint8_t* SignatureLocalVariable_Parse(const uint8_t* pCursor, SignatureLocalVariable** pLocalVariable, CLIFile* pCLIFile);

@@ -18,16 +18,16 @@ void MethodSignature_Destroy(MethodSignature* pMethodSignature)
     free(pMethodSignature);
 }
 
-MethodSignature* MethodSignature_Expand(const uint8_t* pSignature, uint32_t pSignatureLength)
+MethodSignature* MethodSignature_Expand(const uint8_t* pSignature, uint32_t pSignatureLength, CLIFile* pCLIFile)
 {
     if (pSignatureLength == 0) Panic("MethodSignature_Expand pSignatureLength == 0");
     MethodSignature* methodSignature = NULL;
-    const uint8_t* cursor = MethodSignature_Parse(pSignature, &methodSignature);
+    const uint8_t* cursor = MethodSignature_Parse(pSignature, &methodSignature, pCLIFile);
     if ((uint32_t)(cursor - pSignature) != pSignatureLength) Panic("MethodSignature_Expand used != pSignatureLength");
     return methodSignature;
 }
 
-const uint8_t* MethodSignature_Parse(const uint8_t* pCursor, MethodSignature** pMethodSignature)
+const uint8_t* MethodSignature_Parse(const uint8_t* pCursor, MethodSignature** pMethodSignature, CLIFile* pCLIFile)
 {
     *pMethodSignature = MethodSignature_Create();
     MethodSignature* methodSignature = *pMethodSignature;
@@ -36,11 +36,15 @@ const uint8_t* MethodSignature_Parse(const uint8_t* pCursor, MethodSignature** p
     methodSignature->ExplicitThis = (callingConvention & Signature_CallConvention_ExplicitThis) != 0;
     callingConvention &= ~(Signature_CallConvention_HasThis | Signature_CallConvention_ExplicitThis);
     methodSignature->Default = callingConvention == Signature_CallConvention_Default;
+    methodSignature->CCall = callingConvention == Signature_CallConvention_C;
+    methodSignature->STDCall = callingConvention == Signature_CallConvention_STDCall;
+    methodSignature->ThisCall = callingConvention == Signature_CallConvention_ThisCall;
+    methodSignature->FastCall = callingConvention == Signature_CallConvention_FastCall;
     methodSignature->VarArgs = callingConvention == Signature_CallConvention_VarArgs;
     methodSignature->Generic = callingConvention == Signature_CallConvention_Generic;
     if (methodSignature->Generic) pCursor = MetaData_GetCompressedUnsigned(pCursor, &methodSignature->GenericParameterCount);
     pCursor = MetaData_GetCompressedUnsigned(pCursor, &methodSignature->ParameterCount);
-    pCursor = SignatureReturnType_Parse(pCursor, &methodSignature->ReturnType);
+    pCursor = SignatureReturnType_Parse(pCursor, &methodSignature->ReturnType, pCLIFile);
     if (methodSignature->ParameterCount > 0)
     {
         methodSignature->Parameters = (SignatureParameter**)calloc(methodSignature->ParameterCount, sizeof(SignatureParameter*));
@@ -52,11 +56,147 @@ const uint8_t* MethodSignature_Parse(const uint8_t* pCursor, MethodSignature** p
                 methodSignature->SentinelIndex = index;
                 ++pCursor;
             }
-            pCursor = SignatureParameter_Parse(pCursor, &methodSignature->Parameters[index]);
+            pCursor = SignatureParameter_Parse(pCursor, &methodSignature->Parameters[index], pCLIFile);
         }
     }
     return pCursor;
 }
+
+FieldSignature* FieldSignature_Create()
+{
+    return (FieldSignature*)calloc(1, sizeof(FieldSignature));
+}
+
+void FieldSignature_Destroy(FieldSignature* pFieldSignature)
+{
+    if (pFieldSignature->CustomModifiers)
+    {
+        for (uint32_t index = 0; index < pFieldSignature->CustomModifierCount; ++index) SignatureCustomModifier_Destroy(pFieldSignature->CustomModifiers[index]);
+        free(pFieldSignature->CustomModifiers);
+    }
+    if (pFieldSignature->Type) SignatureType_Destroy(pFieldSignature->Type);
+    free(pFieldSignature);
+}
+
+FieldSignature* FieldSignature_Expand(const uint8_t* pSignature, uint32_t pSignatureLength, CLIFile* pCLIFile)
+{
+    if (pSignatureLength == 0) Panic("FieldSignature_Expand pSignatureLength == 0");
+    FieldSignature* fieldSignature = NULL;
+    const uint8_t* cursor = FieldSignature_Parse(pSignature, &fieldSignature, pCLIFile);
+    if ((uint32_t)(cursor - pSignature) != pSignatureLength) Panic("FieldSignature_Expand used != pSignatureLength");
+    return fieldSignature;
+}
+
+const uint8_t* FieldSignature_Parse(const uint8_t* pCursor, FieldSignature** pFieldSignature, CLIFile* pCLIFile)
+{
+    *pFieldSignature = FieldSignature_Create();
+    FieldSignature* fieldSignature = *pFieldSignature;
+    ++pCursor;
+    while (*pCursor == Signature_ElementType_CustomModifier_Required ||
+           *pCursor == Signature_ElementType_CustomModifier_Optional)
+    {
+        ++fieldSignature->CustomModifierCount;
+        fieldSignature->CustomModifiers = (SignatureCustomModifier**)realloc(fieldSignature->CustomModifiers, sizeof(SignatureCustomModifier*) * fieldSignature->CustomModifierCount);
+        pCursor = SignatureCustomModifier_Parse(pCursor, &fieldSignature->CustomModifiers[fieldSignature->CustomModifierCount - 1], pCLIFile);
+    }
+    pCursor = SignatureType_Parse(pCursor, &fieldSignature->Type, pCLIFile);
+    return pCursor;
+}
+
+PropertySignature* PropertySignature_Create()
+{
+    return (PropertySignature*)calloc(1, sizeof(PropertySignature));
+}
+
+void PropertySignature_Destroy(PropertySignature* pPropertySignature)
+{
+    if (pPropertySignature->CustomModifiers)
+    {
+        for (uint32_t index = 0; index < pPropertySignature->CustomModifierCount; ++index) SignatureCustomModifier_Destroy(pPropertySignature->CustomModifiers[index]);
+        free(pPropertySignature->CustomModifiers);
+    }
+    if (pPropertySignature->Parameters)
+    {
+        for (uint32_t index = 0; index < pPropertySignature->ParameterCount; ++index) SignatureParameter_Destroy(pPropertySignature->Parameters[index]);
+        free(pPropertySignature->Parameters);
+    }
+    if (pPropertySignature->Type) SignatureType_Destroy(pPropertySignature->Type);
+    free(pPropertySignature);
+}
+
+PropertySignature* PropertySignature_Expand(const uint8_t* pSignature, uint32_t pSignatureLength, CLIFile* pCLIFile)
+{
+    if (pSignatureLength == 0) Panic("PropertySignature_Expand pSignatureLength == 0");
+    PropertySignature* propertySignature = NULL;
+    const uint8_t* cursor = PropertySignature_Parse(pSignature, &propertySignature, pCLIFile);
+    if ((uint32_t)(cursor - pSignature) != pSignatureLength) Panic("PropertySignature_Expand used != pSignatureLength");
+    return propertySignature;
+}
+
+const uint8_t* PropertySignature_Parse(const uint8_t* pCursor, PropertySignature** pPropertySignature, CLIFile* pCLIFile)
+{
+    *pPropertySignature = PropertySignature_Create();
+    PropertySignature* propertySignature = *pPropertySignature;
+    propertySignature->HasThis = (*pCursor & Signature_CallConvention_HasThis) != 0;
+    ++pCursor;
+
+    pCursor = MetaData_GetCompressedUnsigned(pCursor, &propertySignature->ParameterCount);
+    while (*pCursor == Signature_ElementType_CustomModifier_Required ||
+           *pCursor == Signature_ElementType_CustomModifier_Optional)
+    {
+        ++propertySignature->CustomModifierCount;
+        propertySignature->CustomModifiers = (SignatureCustomModifier**)realloc(propertySignature->CustomModifiers, sizeof(SignatureCustomModifier*) * propertySignature->CustomModifierCount);
+        pCursor = SignatureCustomModifier_Parse(pCursor, &propertySignature->CustomModifiers[propertySignature->CustomModifierCount - 1], pCLIFile);
+    }
+    pCursor = SignatureType_Parse(pCursor, &propertySignature->Type, pCLIFile);
+    if (propertySignature->ParameterCount > 0)
+    {
+        propertySignature->Parameters = (SignatureParameter**)calloc(propertySignature->ParameterCount, sizeof(SignatureParameter*));
+        for (uint32_t index = 0; index < propertySignature->ParameterCount; ++index) pCursor = SignatureParameter_Parse(pCursor, &propertySignature->Parameters[index], pCLIFile);
+    }
+    return pCursor;
+}
+
+LocalsSignature* LocalsSignature_Create()
+{
+    return (LocalsSignature*)calloc(1, sizeof(LocalsSignature));
+}
+
+void LocalsSignature_Destroy(LocalsSignature* pLocalsSignature)
+{
+    if (pLocalsSignature->LocalVariables)
+    {
+        for (uint32_t index = 0; index < pLocalsSignature->LocalVariableCount; ++index) SignatureLocalVariable_Destroy(pLocalsSignature->LocalVariables[index]);
+        free(pLocalsSignature->LocalVariables);
+    }
+    free(pLocalsSignature);
+}
+
+LocalsSignature* LocalsSignature_Expand(const uint8_t* pSignature, uint32_t pSignatureLength, CLIFile* pCLIFile)
+{
+    if (pSignatureLength == 0) Panic("LocalsSignature_Expand pSignatureLength == 0");
+    LocalsSignature* localsSignature = NULL;
+    const uint8_t* cursor = LocalsSignature_Parse(pSignature, &localsSignature, pCLIFile);
+    if ((uint32_t)(cursor - pSignature) != pSignatureLength) Panic("LocalsSignature_Expand used != pSignatureLength");
+    return localsSignature;
+}
+
+const uint8_t* LocalsSignature_Parse(const uint8_t* pCursor, LocalsSignature** pLocalsSignature, CLIFile* pCLIFile)
+{
+    *pLocalsSignature = LocalsSignature_Create();
+    LocalsSignature* localsSignature = *pLocalsSignature;
+    ++pCursor;
+
+    pCursor = MetaData_GetCompressedUnsigned(pCursor, &localsSignature->LocalVariableCount);
+    if (localsSignature->LocalVariableCount > 0)
+    {
+        localsSignature->LocalVariables = (SignatureLocalVariable**)calloc(localsSignature->LocalVariableCount, sizeof(SignatureLocalVariable*));
+        for (uint32_t index = 0; index < localsSignature->LocalVariableCount; ++index) pCursor = SignatureLocalVariable_Parse(pCursor, &localsSignature->LocalVariables[index], pCLIFile);
+    }
+    return pCursor;
+}
+
+
 
 SignatureReturnType* SignatureReturnType_Create()
 {
@@ -74,7 +214,7 @@ void SignatureReturnType_Destroy(SignatureReturnType* pReturnType)
     free(pReturnType);
 }
 
-const uint8_t* SignatureReturnType_Parse(const uint8_t* pCursor, SignatureReturnType** pReturnType)
+const uint8_t* SignatureReturnType_Parse(const uint8_t* pCursor, SignatureReturnType** pReturnType, CLIFile* pCLIFile)
 {
     *pReturnType = SignatureReturnType_Create();
     SignatureReturnType* returnType = *pReturnType;
@@ -83,7 +223,7 @@ const uint8_t* SignatureReturnType_Parse(const uint8_t* pCursor, SignatureReturn
     {
         ++returnType->CustomModifierCount;
         returnType->CustomModifiers = (SignatureCustomModifier**)realloc(returnType->CustomModifiers, sizeof(SignatureCustomModifier*) * returnType->CustomModifierCount);
-        pCursor = SignatureCustomModifier_Parse(pCursor, &returnType->CustomModifiers[returnType->CustomModifierCount - 1]);
+        pCursor = SignatureCustomModifier_Parse(pCursor, &returnType->CustomModifiers[returnType->CustomModifierCount - 1], pCLIFile);
     }
     if (*pCursor == Signature_ElementType_TypedByReference)
     {
@@ -100,7 +240,7 @@ const uint8_t* SignatureReturnType_Parse(const uint8_t* pCursor, SignatureReturn
         returnType->ByReference = TRUE;
         ++pCursor;
     }
-    pCursor = SignatureType_Parse(pCursor, &returnType->Type);
+    pCursor = SignatureType_Parse(pCursor, &returnType->Type, pCLIFile);
     return pCursor;
 }
 
@@ -120,7 +260,7 @@ void SignatureParameter_Destroy(SignatureParameter* pParameter)
     free(pParameter);
 }
 
-const uint8_t* SignatureParameter_Parse(const uint8_t* pCursor, SignatureParameter** pParameter)
+const uint8_t* SignatureParameter_Parse(const uint8_t* pCursor, SignatureParameter** pParameter, CLIFile* pCLIFile)
 {
     *pParameter = SignatureParameter_Create();
     SignatureParameter* parameter = *pParameter;
@@ -129,7 +269,7 @@ const uint8_t* SignatureParameter_Parse(const uint8_t* pCursor, SignatureParamet
     {
         ++parameter->CustomModifierCount;
         parameter->CustomModifiers = (SignatureCustomModifier**)realloc(parameter->CustomModifiers, sizeof(SignatureCustomModifier*) * parameter->CustomModifierCount);
-        pCursor = SignatureCustomModifier_Parse(pCursor, &parameter->CustomModifiers[parameter->CustomModifierCount - 1]);
+        pCursor = SignatureCustomModifier_Parse(pCursor, &parameter->CustomModifiers[parameter->CustomModifierCount - 1], pCLIFile);
     }
     if (*pCursor == Signature_ElementType_TypedByReference)
     {
@@ -141,7 +281,7 @@ const uint8_t* SignatureParameter_Parse(const uint8_t* pCursor, SignatureParamet
         parameter->ByReference = TRUE;
         ++pCursor;
     }
-    pCursor = SignatureType_Parse(pCursor, &parameter->Type);
+    pCursor = SignatureType_Parse(pCursor, &parameter->Type, pCLIFile);
     return pCursor;
 }
 
@@ -155,7 +295,7 @@ void SignatureCustomModifier_Destroy(SignatureCustomModifier* pCustomModifier)
     free(pCustomModifier);
 }
 
-const uint8_t* SignatureCustomModifier_Parse(const uint8_t* pCursor, SignatureCustomModifier** pCustomModifier)
+const uint8_t* SignatureCustomModifier_Parse(const uint8_t* pCursor, SignatureCustomModifier** pCustomModifier, CLIFile* pCLIFile)
 {
     *pCustomModifier = SignatureCustomModifier_Create();
     SignatureCustomModifier* customModifier = *pCustomModifier;
@@ -195,7 +335,7 @@ void SignatureType_Destroy(SignatureType* pType)
     free(pType);
 }
 
-const uint8_t* SignatureType_Parse(const uint8_t* pCursor, SignatureType** pType)
+const uint8_t* SignatureType_Parse(const uint8_t* pCursor, SignatureType** pType, CLIFile* pCLIFile)
 {
     *pType = SignatureType_Create();
     SignatureType* type = *pType;
@@ -203,14 +343,14 @@ const uint8_t* SignatureType_Parse(const uint8_t* pCursor, SignatureType** pType
     switch (type->ElementType)
     {
     case Signature_ElementType_Array:
-        pCursor = SignatureType_Parse(pCursor, &type->ArrayType);
-        pCursor = SignatureArrayShape_Parse(pCursor, &type->ArrayShape);
+        pCursor = SignatureType_Parse(pCursor, &type->ArrayType, pCLIFile);
+        pCursor = SignatureArrayShape_Parse(pCursor, &type->ArrayShape, pCLIFile);
         break;
     case Signature_ElementType_Class:
         pCursor = MetaData_GetCompressedUnsigned(pCursor, &type->ClassTypeDefOrRefOrSpecToken);
         break;
     case Signature_ElementType_FunctionPointer:
-        pCursor = MethodSignature_Parse(pCursor, &type->FnPtrMethodSignature);
+        pCursor = MethodSignature_Parse(pCursor, &type->FnPtrMethodSignature, pCLIFile);
         break;
     case Signature_ElementType_GenericInstantiation:
         type->GenericInstClass = *pCursor == Signature_ElementType_Class;
@@ -221,7 +361,7 @@ const uint8_t* SignatureType_Parse(const uint8_t* pCursor, SignatureType** pType
         if (type->GenericInstGenericArgumentCount > 0)
         {
             type->GenericInstGenericArguments = (SignatureType**)calloc(type->GenericInstGenericArgumentCount, sizeof(SignatureCustomModifier*) * type->GenericInstGenericArgumentCount);
-            for (uint32_t index = 0; index < type->GenericInstGenericArgumentCount; ++index) pCursor = SignatureType_Parse(pCursor, &type->GenericInstGenericArguments[index]);
+            for (uint32_t index = 0; index < type->GenericInstGenericArgumentCount; ++index) pCursor = SignatureType_Parse(pCursor, &type->GenericInstGenericArguments[index], pCLIFile);
         }
         break;
     case Signature_ElementType_MethodVar:
@@ -233,14 +373,14 @@ const uint8_t* SignatureType_Parse(const uint8_t* pCursor, SignatureType** pType
         {
             ++type->PtrCustomModifierCount;
             type->PtrCustomModifiers = (SignatureCustomModifier**)realloc(type->PtrCustomModifiers, sizeof(SignatureCustomModifier*) * type->PtrCustomModifierCount);
-            pCursor = SignatureCustomModifier_Parse(pCursor, &type->PtrCustomModifiers[type->PtrCustomModifierCount - 1]);
+            pCursor = SignatureCustomModifier_Parse(pCursor, &type->PtrCustomModifiers[type->PtrCustomModifierCount - 1], pCLIFile);
         }
         if (*pCursor == Signature_ElementType_Void)
         {
             type->PtrVoid = TRUE;
             ++pCursor;
         }
-        else pCursor = SignatureType_Parse(pCursor, &type->PtrType);
+        else pCursor = SignatureType_Parse(pCursor, &type->PtrType, pCLIFile);
         break;
     case Signature_ElementType_SingleDimensionArray:
         while (*pCursor == Signature_ElementType_CustomModifier_Required ||
@@ -248,9 +388,9 @@ const uint8_t* SignatureType_Parse(const uint8_t* pCursor, SignatureType** pType
         {
             ++type->SZArrayCustomModifierCount;
             type->SZArrayCustomModifiers = (SignatureCustomModifier**)realloc(type->SZArrayCustomModifiers, sizeof(SignatureCustomModifier*) * type->SZArrayCustomModifierCount);
-            pCursor = SignatureCustomModifier_Parse(pCursor, &type->SZArrayCustomModifiers[type->SZArrayCustomModifierCount - 1]);
+            pCursor = SignatureCustomModifier_Parse(pCursor, &type->SZArrayCustomModifiers[type->SZArrayCustomModifierCount - 1], pCLIFile);
         }
-        pCursor = SignatureType_Parse(pCursor, &type->SZArrayType);
+        pCursor = SignatureType_Parse(pCursor, &type->SZArrayType, pCLIFile);
         break;
     case Signature_ElementType_ValueType:
         pCursor = MetaData_GetCompressedUnsigned(pCursor, &type->ValueTypeDefOrRefOrSpecToken);
@@ -275,7 +415,7 @@ void SignatureArrayShape_Destroy(SignatureArrayShape* pArrayShape)
     free(pArrayShape);
 }
 
-const uint8_t* SignatureArrayShape_Parse(const uint8_t* pCursor, SignatureArrayShape** pArrayShape)
+const uint8_t* SignatureArrayShape_Parse(const uint8_t* pCursor, SignatureArrayShape** pArrayShape, CLIFile* pCLIFile)
 {
     *pArrayShape = SignatureArrayShape_Create();
     SignatureArrayShape* arrayShape = *pArrayShape;
@@ -291,6 +431,55 @@ const uint8_t* SignatureArrayShape_Parse(const uint8_t* pCursor, SignatureArrayS
     {
         arrayShape->LowerBounds = (int32_t*)calloc(arrayShape->LowerBoundCount, sizeof(int32_t));
         for (uint32_t index = 0; index < arrayShape->LowerBoundCount; ++index) pCursor = MetaData_GetCompressedSigned(pCursor, &arrayShape->LowerBounds[index]);
+    }
+    return pCursor;
+}
+
+SignatureLocalVariable* SignatureLocalVariable_Create()
+{
+    return (SignatureLocalVariable*)calloc(1, sizeof(SignatureLocalVariable));
+}
+
+void SignatureLocalVariable_Destroy(SignatureLocalVariable* pLocalVariable)
+{
+    if (pLocalVariable->CustomModifiers)
+    {
+        for (uint32_t index = 0; index < pLocalVariable->CustomModifierCount; ++index) SignatureCustomModifier_Destroy(pLocalVariable->CustomModifiers[index]);
+        free(pLocalVariable->CustomModifiers);
+    }
+    if (pLocalVariable->Type) SignatureType_Destroy(pLocalVariable->Type);
+    free(pLocalVariable);
+}
+
+const uint8_t* SignatureLocalVariable_Parse(const uint8_t* pCursor, SignatureLocalVariable** pLocalVariable, CLIFile* pCLIFile)
+{
+    *pLocalVariable = SignatureLocalVariable_Create();
+    SignatureLocalVariable* localVariable = *pLocalVariable;
+    if (*pCursor == Signature_ElementType_TypedByReference)
+    {
+        localVariable->TypedByReference = TRUE;
+        ++pCursor;
+    }
+    else
+    {
+        while (*pCursor == Signature_ElementType_CustomModifier_Required ||
+               *pCursor == Signature_ElementType_CustomModifier_Optional)
+        {
+            ++localVariable->CustomModifierCount;
+            localVariable->CustomModifiers = (SignatureCustomModifier**)realloc(localVariable->CustomModifiers, sizeof(SignatureCustomModifier*) * localVariable->CustomModifierCount);
+            pCursor = SignatureCustomModifier_Parse(pCursor, &localVariable->CustomModifiers[localVariable->CustomModifierCount - 1], pCLIFile);
+            if (*pCursor == Signature_ElementType_Pinned)
+            {
+                localVariable->CustomModifiers[localVariable->CustomModifierCount - 1]->Pinned = TRUE;
+                ++pCursor;
+            }
+        }
+        if (*pCursor == Signature_ElementType_ByReference)
+        {
+            localVariable->ByReference = TRUE;
+            ++pCursor;
+        }
+        pCursor = SignatureType_Parse(pCursor, &localVariable->Type, pCLIFile);
     }
     return pCursor;
 }

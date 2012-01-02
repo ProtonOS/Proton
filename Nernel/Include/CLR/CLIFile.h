@@ -6,7 +6,10 @@
 
 #define CLIFile_Machine                             0x014C
 
-typedef struct
+typedef struct _CLIHeader CLIHeader;
+typedef struct _CLIFile CLIFile;
+
+struct _CLIHeader
 {
     uint32_t SizeOfHeader;
     uint16_t MajorRuntimeVersion;
@@ -27,9 +30,9 @@ typedef struct
     PEDataDirectory ExportAddressTableJumps;
 
     PEDataDirectory ManagedNativeHeader;
-} CLIHeader;
+};
 
-typedef struct
+struct _CLIFile
 {
     const PEFile* PEFile;
     const CLIHeader* CLIHeader;
@@ -117,7 +120,7 @@ typedef struct
     GenericParameterConstraint* GenericParameterConstraints;
     uint32_t MethodSpecificationCount;
     MethodSpecification* MethodSpecifications;
-} CLIFile;
+};
 
 CLIFile* CLIFile_Create(PEFile* pFile);
 void CLIFile_Destroy(CLIFile* pFile);
