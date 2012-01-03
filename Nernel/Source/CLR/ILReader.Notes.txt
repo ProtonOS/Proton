@@ -1,4 +1,12 @@
 
+Total number of OpCodes:
+	219
+
+Number of OpCodes implemented currently:
+	107
+
+Number of OpCodes considered un-needed, and as such, aren't included in the above count:
+	19
 
 The following Op-Codes are considered un-needed, and as such, haven't been implemented:
 	LdInd.I

@@ -303,16 +303,39 @@ typedef enum IROpCode
 
         Arg1:
             The type of object to load.
-			Of the type StackObjectType.
+			Of the type ElementType.
 
         Arg2:
-            N/A
+            The type of object that represents
+			the index at which to get the element
+			from.
+			Of the type StackObjectType.
 
         Arg3:
             N/A
 
      */
     IROpCode_Load_Element,
+    /*
+        Stores the element on the top of the 
+		stack, in the array about to be almost
+		on the top of the stack, at the index
+		almost on the top of the stack.
+
+        Arg1:
+            The type of object to store.
+			Of the type ElementType.
+
+        Arg2:
+            The type of object that represents
+			the index at which to set the element.
+			Of the type StackObjectType.
+
+        Arg3:
+            N/A
+
+     */
+    IROpCode_Store_Element,
 } IROpCode;
 
 
@@ -357,3 +380,20 @@ typedef enum ShiftType
     ShiftType_Right_Sign_Extended,
     ShiftType_Left,
 } ShiftType;
+
+typedef enum ElementType
+{
+	ElementType_I,
+	ElementType_I1,
+	ElementType_I2,
+	ElementType_I4,
+	ElementType_I8,
+	ElementType_U1,
+	ElementType_U2,
+	ElementType_U4,
+	ElementType_U8,
+	ElementType_R4,
+	ElementType_R8,
+	ElementType_Ref,
+	ElementType_DataType,
+} ElementType;

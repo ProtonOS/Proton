@@ -29,6 +29,7 @@ typedef enum StackObjectNumericType
     StackObjectNumericType_Float64,
     StackObjectNumericType_Pointer,
     StackObjectNumericType_UPointer,
+	StackObjectNumericType_Ref,
 } StackObjectNumericType;
 
 struct _StackObject

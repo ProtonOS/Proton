@@ -776,53 +776,33 @@ Branch_Common:
                 
                 ClearFlags();
                 break;
-            case ILOpCode_LdElem_I1:		// 0x90
-				{
 
-				}
-                ClearFlags();
-                break;
+
+            case ILOpCode_LdElem_I1:		// 0x90
+				DefineLdElem(I1, Int32, Int8);
             case ILOpCode_LdElem_U1:		// 0x91
-                
-                ClearFlags();
-                break;
+				DefineLdElem(U1, Int32, UInt8);
             case ILOpCode_LdElem_I2:		// 0x92
-                
-                ClearFlags();
-                break;
+				DefineLdElem(I2, Int32, Int16);
             case ILOpCode_LdElem_U2:		// 0x93
-                
-                ClearFlags();
-                break;
+				DefineLdElem(U2, Int32, UInt16);
             case ILOpCode_LdElem_I4:		// 0x94
-                
-                ClearFlags();
-                break;
+				DefineLdElem(I4, Int32, Int32);
             case ILOpCode_LdElem_U4:		// 0x95
-                
-                ClearFlags();
-                break;
+				DefineLdElem(U4, Int32, UInt32);
 			// This is also known as LdElem.U8
             case ILOpCode_LdElem_I8:		// 0x96
-                
-                ClearFlags();
-                break;
+				DefineLdElem(I8, Int64, Int64);
             case ILOpCode_LdElem_I:			// 0x97
-                
-                ClearFlags();
-                break;
+				DefineLdElem(I, NativeInt, Pointer);
             case ILOpCode_LdElem_R4:		// 0x98
-                
-                ClearFlags();
-                break;
+				DefineLdElem(R4, Float, Float32);
             case ILOpCode_LdElem_R8:		// 0x99
-                
-                ClearFlags();
-                break;
+				DefineLdElem(R8, Float, Float64);
             case ILOpCode_LdElem_Ref:		// 0x9A
-                
-                ClearFlags();
-                break;
+				DefineLdElem(Ref, ReferenceType, Ref);
+
+
             case ILOpCode_LdElem:			// 0xA3
                 
                 ClearFlags();
@@ -830,37 +810,23 @@ Branch_Common:
 
 
             case ILOpCode_StElem_I:			// 0x9B
-                
-                ClearFlags();
-                break;
+				DefineStElem(I);
             case ILOpCode_StElem_I1:		// 0x9C
-                
-                ClearFlags();
-                break;
+				DefineStElem(I1);
             case ILOpCode_StElem_I2:		// 0x9D
-                
-                ClearFlags();
-                break;
+				DefineStElem(I2);
             case ILOpCode_StElem_I4:		// 0x9E
-                
-                ClearFlags();
-                break;
+				DefineStElem(I4);
             case ILOpCode_StElem_I8:		// 0x9F
-                
-                ClearFlags();
-                break;
+				DefineStElem(I8);
             case ILOpCode_StElem_R4:		// 0xA0
-                
-                ClearFlags();
-                break;
+				DefineStElem(R4);
             case ILOpCode_StElem_R8:		// 0xA1
-                
-                ClearFlags();
-                break;
+				DefineStElem(R8);
             case ILOpCode_StElem_Ref:		// 0xA2
-                
-                ClearFlags();
-                break;
+				DefineStElem(Ref);
+
+
             case ILOpCode_StElem:			// 0xA4
                 
                 ClearFlags();

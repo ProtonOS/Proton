@@ -300,3 +300,61 @@
 	EMIT_IR_3ARG(IROpCode_Shift, sType, sValType, sAmntType); \
 	ClearFlags(); \
 	break; }
+
+#define DefineLdElem(elemType, sObjType, sObjNumType) \
+	{ Log_WriteLine(LogFlags_ILReading, "Read LdElem." #elemType); \
+	StackObjectType* indxType = (StackObjectType*)malloc(sizeof(StackObjectType)); \
+	StackObject* obj = SyntheticStack_Pop(stack); \
+	switch(obj->Type) \
+	{ \
+		case StackObjectType_Int32: \
+			*indxType = StackObjectType_Int32; \
+			break; \
+		case StackObjectType_NativeInt: \
+			*indxType = StackObjectType_NativeInt; \
+			break; \
+		default: \
+			Panic("Invalid index type!"); \
+			break; \
+	} \
+	StackObjectPool_Release(obj); \
+	obj = NULL; \
+	StackObjectPool_Release(SyntheticStack_Pop(stack)); /* Pop the array off the top of the stack. */ \
+	ElementType* elmntType = (ElementType*)malloc(sizeof(ElementType)); \
+	*elmntType = ElementType_##elemType; \
+	EMIT_IR_2ARG(IROpCode_Load_Element, elmntType, indxType); \
+	\
+	obj = StackObjectPool_Allocate(); \
+	obj->Type = StackObjectType_##sObjType; \
+	obj->NumericType = StackObjectNumericType_##sObjNumType; \
+	SyntheticStack_Push(stack, obj); \
+	ClearFlags(); \
+	break; }
+
+#define DefineStElem(elemType) \
+	{ Log_WriteLine(LogFlags_ILReading, "Read StElem." #elemType); \
+	StackObjectPool_Release(SyntheticStack_Pop(stack)); /* Pop the value off the top of the stack. */ \
+	StackObjectType* indxType = (StackObjectType*)malloc(sizeof(StackObjectType)); \
+	StackObject* obj = SyntheticStack_Pop(stack); \
+	switch(obj->Type) \
+	{ \
+		case StackObjectType_Int32: \
+			*indxType = StackObjectType_Int32; \
+			break; \
+		case StackObjectType_NativeInt: \
+			*indxType = StackObjectType_NativeInt; \
+			break; \
+		default: \
+			Panic("Invalid index type!"); \
+			break; \
+	} \
+	StackObjectPool_Release(obj); \
+	obj = NULL; \
+	StackObjectPool_Release(SyntheticStack_Pop(stack)); /* Pop the array off the top of the stack. */ \
+	ElementType* elmntType = (ElementType*)malloc(sizeof(ElementType)); \
+	*elmntType = ElementType_##elemType; \
+	EMIT_IR_2ARG(IROpCode_Store_Element, elmntType, indxType); \
+	ClearFlags(); \
+	break; }
+
+
