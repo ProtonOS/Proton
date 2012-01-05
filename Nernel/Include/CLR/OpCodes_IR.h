@@ -336,6 +336,24 @@ typedef enum IROpCode
 
      */
     IROpCode_Store_Element,
+    /*
+        Pushes the size of the type represented
+		by the specified MetaDataToken to the
+		top of the stack.
+
+        Arg1:
+            The token representing the type to
+			push the size of.
+			Of the type MetaDataToken.
+
+        Arg2:
+            N/A
+
+        Arg3:
+            N/A
+
+     */
+    IROpCode_SizeOf,
 } IROpCode;
 
 

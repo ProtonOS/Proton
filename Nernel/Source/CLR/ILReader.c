@@ -129,7 +129,8 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
                 {
                     Log_WriteLine(LogFlags_ILReading, "Read LdLoc.0");
 
-                    //methodDef->Body.LocalVariableSignatureToken
+                    MetaDataToken* tok = CLIFile_ResolveToken(fil, methodDef->Body.LocalVariableSignatureToken);
+					//Local
 
                     uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
                     *dt = (uint32_t)0;
@@ -1035,9 +1036,12 @@ Branch_Common:
                         break;
                     // 0x1B Doesn't exist
                     case ILOpCodes_Extended_SizeOf:			// 0x1C
-                        
-                        ClearFlags();
-                        break;
+                        {	
+							MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
+							EMIT_IR_1ARG(IROpCode_SizeOf, tok);
+							ClearFlags();
+							break;
+						}
                     case ILOpCodes_Extended_RefAnyType:		// 0x1D
                         
                         ClearFlags();
