@@ -108,6 +108,8 @@
     <ClCompile Include="Source\CLR\ReferenceTypeObject.c" />
     <ClCompile Include="Source\Utils\String_Format.c" />
     <ClCompile Include="Source\CLR\MetaData\Signature.c" />
+    <ClCompile Include="Source\CLR\JIT\JIT.c" />
+    <ClCompile Include="Source\CLR\JIT\JIT-x86.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\CLR\AppDomain.h" />
@@ -234,6 +236,9 @@
     <ClInclude Include="Include\CLR\InternalCalls\Helpers.h" />
     <ClInclude Include="Include\CLR\ILReader_Defines.h" />
     <ClInclude Include="Include\String_Format.h" />
+    <ClInclude Include="Include\CLR\JIT\x86\x86-codegen-extra.h" />
+    <ClInclude Include="Include\CLR\JIT\x86\x86-codegen.h" />
+    <ClInclude Include="Include\CLR\JIT\JIT.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Makefile.omake" />

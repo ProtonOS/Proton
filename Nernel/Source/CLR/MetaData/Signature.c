@@ -18,12 +18,10 @@ void MethodSignature_Destroy(MethodSignature* pMethodSignature)
     free(pMethodSignature);
 }
 
-MethodSignature* MethodSignature_Expand(const uint8_t* pSignature, uint32_t pSignatureLength, CLIFile* pCLIFile)
+MethodSignature* MethodSignature_Expand(const uint8_t* pSignature, CLIFile* pCLIFile)
 {
-    if (pSignatureLength == 0) Panic("MethodSignature_Expand pSignatureLength == 0");
     MethodSignature* methodSignature = NULL;
-    const uint8_t* cursor = MethodSignature_Parse(pSignature, &methodSignature, pCLIFile);
-    if ((uint32_t)(cursor - pSignature) != pSignatureLength) Panic("MethodSignature_Expand used != pSignatureLength");
+	MethodSignature_Parse(pSignature, &methodSignature, pCLIFile);
     return methodSignature;
 }
 
@@ -78,12 +76,10 @@ void FieldSignature_Destroy(FieldSignature* pFieldSignature)
     free(pFieldSignature);
 }
 
-FieldSignature* FieldSignature_Expand(const uint8_t* pSignature, uint32_t pSignatureLength, CLIFile* pCLIFile)
+FieldSignature* FieldSignature_Expand(const uint8_t* pSignature, CLIFile* pCLIFile)
 {
-    if (pSignatureLength == 0) Panic("FieldSignature_Expand pSignatureLength == 0");
     FieldSignature* fieldSignature = NULL;
-    const uint8_t* cursor = FieldSignature_Parse(pSignature, &fieldSignature, pCLIFile);
-    if ((uint32_t)(cursor - pSignature) != pSignatureLength) Panic("FieldSignature_Expand used != pSignatureLength");
+	FieldSignature_Parse(pSignature, &fieldSignature, pCLIFile);
     return fieldSignature;
 }
 
@@ -124,12 +120,10 @@ void PropertySignature_Destroy(PropertySignature* pPropertySignature)
     free(pPropertySignature);
 }
 
-PropertySignature* PropertySignature_Expand(const uint8_t* pSignature, uint32_t pSignatureLength, CLIFile* pCLIFile)
+PropertySignature* PropertySignature_Expand(const uint8_t* pSignature, CLIFile* pCLIFile)
 {
-    if (pSignatureLength == 0) Panic("PropertySignature_Expand pSignatureLength == 0");
     PropertySignature* propertySignature = NULL;
-    const uint8_t* cursor = PropertySignature_Parse(pSignature, &propertySignature, pCLIFile);
-    if ((uint32_t)(cursor - pSignature) != pSignatureLength) Panic("PropertySignature_Expand used != pSignatureLength");
+	PropertySignature_Parse(pSignature, &propertySignature, pCLIFile);
     return propertySignature;
 }
 
@@ -172,12 +166,10 @@ void LocalsSignature_Destroy(LocalsSignature* pLocalsSignature)
     free(pLocalsSignature);
 }
 
-LocalsSignature* LocalsSignature_Expand(const uint8_t* pSignature, uint32_t pSignatureLength, CLIFile* pCLIFile)
+LocalsSignature* LocalsSignature_Expand(const uint8_t* pSignature, CLIFile* pCLIFile)
 {
-    if (pSignatureLength == 0) Panic("LocalsSignature_Expand pSignatureLength == 0");
     LocalsSignature* localsSignature = NULL;
-    const uint8_t* cursor = LocalsSignature_Parse(pSignature, &localsSignature, pCLIFile);
-    if ((uint32_t)(cursor - pSignature) != pSignatureLength) Panic("LocalsSignature_Expand used != pSignatureLength");
+	LocalsSignature_Parse(pSignature, &localsSignature, pCLIFile);
     return localsSignature;
 }
 

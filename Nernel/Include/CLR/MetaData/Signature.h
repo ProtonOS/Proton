@@ -180,22 +180,22 @@ struct _SignatureLocalVariable
 MethodSignature* MethodSignature_Create();
 void MethodSignature_Destroy(MethodSignature* pMethodSignature);
 const uint8_t* MethodSignature_Parse(const uint8_t* pCursor, MethodSignature** pMethodSignature, CLIFile* pCLIFile);
-MethodSignature* MethodSignature_Expand(const uint8_t* pSignature, uint32_t pSignatureLength, CLIFile* pCLIFile);
+MethodSignature* MethodSignature_Expand(const uint8_t* pSignature, CLIFile* pCLIFile);
 
 FieldSignature* FieldSignature_Create();
 void FieldSignature_Destroy(FieldSignature* pFieldSignature);
 const uint8_t* FieldSignature_Parse(const uint8_t* pCursor, FieldSignature** pFieldSignature, CLIFile* pCLIFile);
-FieldSignature* FieldSignature_Expand(const uint8_t* pSignature, uint32_t pSignatureLength, CLIFile* pCLIFile);
+FieldSignature* FieldSignature_Expand(const uint8_t* pSignature, CLIFile* pCLIFile);
 
 PropertySignature* PropertySignature_Create();
 void PropertySignature_Destroy(PropertySignature* pPropertySignature);
 const uint8_t* PropertySignature_Parse(const uint8_t* pCursor, PropertySignature** pPropertySignature, CLIFile* pCLIFile);
-PropertySignature* PropertySignature_Expand(const uint8_t* pSignature, uint32_t pSignatureLength, CLIFile* pCLIFile);
+PropertySignature* PropertySignature_Expand(const uint8_t* pSignature, CLIFile* pCLIFile);
 
 LocalsSignature* LocalsSignature_Create();
 void LocalsSignature_Destroy(LocalsSignature* pLocalsSignature);
 const uint8_t* LocalsSignature_Parse(const uint8_t* pCursor, LocalsSignature** pLocalsSignature, CLIFile* pCLIFile);
-LocalsSignature* LocalsSignature_Expand(const uint8_t* pSignature, uint32_t pSignatureLength, CLIFile* pCLIFile);
+LocalsSignature* LocalsSignature_Expand(const uint8_t* pSignature, CLIFile* pCLIFile);
 
 SignatureReturnType* SignatureReturnType_Create();
 void SignatureReturnType_Destroy(SignatureReturnType* pReturnType);

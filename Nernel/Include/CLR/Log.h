@@ -1,5 +1,25 @@
 #pragma once
 
+// To disable logging, all
+// you have to do is uncomment
+// this line.
+//#define NO_LOG
+
+#ifdef NO_LOG
+#define ActiveLogFlags (LogFlags_NoLog)
+#undef NO_LOG
+#else
+#define ActiveLogFlags ((LogFlags)( \
+        LogFlags_ILReading \
+        | LogFlags_IREmitting \
+        /*| LogFlags_SyntheticStack */ \
+        /*| LogFlags_MetaData_Loading */ \
+        /*| LogFlags_AppDomain_Loading  */\
+        | LogFlags_ILReading_BranchLinker \
+        | LogFlags_ILReading_ElementTypes  \
+        ))
+#endif
+
 
 typedef enum LogFlags
 {
@@ -13,6 +33,7 @@ typedef enum LogFlags
     LogFlags_MetaData_Loading =			1 << 3,
     LogFlags_AppDomain_Loading =		1 << 4,
     LogFlags_ILReading_BranchLinker =	1 << 5,
+    LogFlags_ILReading_ElementTypes =	1 << 6,
 
 } LogFlags;
 

@@ -354,6 +354,22 @@ typedef enum IROpCode
 
      */
     IROpCode_SizeOf,
+    /*
+        Pushes the length of the array on the top
+		of the stack, to the top of the stack.
+
+        Arg1:
+            N/A
+
+        Arg2:
+            N/A
+
+        Arg3:
+            N/A
+
+     */
+    IROpCode_Load_Array_Length,
+	
 } IROpCode;
 
 

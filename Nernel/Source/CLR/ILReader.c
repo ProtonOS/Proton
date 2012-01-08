@@ -9,6 +9,7 @@
 #include <String_Format.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <CLR/JIT/x86/x86-codegen.h>
 
 
 uint8_t ReadUInt8(uint8_t** dat);
@@ -22,7 +23,29 @@ ILAssembly* ILReader_CreateAssembly(CLIFile* fil)
     StackObjectPool_Initialize();
 	ILAssembly* asmbly = (ILAssembly*)calloc(1, sizeof(ILAssembly));
     asmbly->CLIFile = fil;
-    asmbly->IRAssembly = IRAssembly_Create();;
+    asmbly->IRAssembly = IRAssembly_Create();
+	char* code = calloc(1, 1024);
+	char* mth = code;
+	x86_mov_reg_imm(code, X86_EDX, 0);
+	x86_mov_reg_imm(code, X86_EDX, 0x02F8);
+	x86_mov_reg_imm(code, X86_EAX, 0);
+	x86_mov_reg_imm(code, X86_EAX, ((unsigned char)'H'));
+	x86_out_byte(code);
+	x86_mov_reg_imm(code, X86_EAX, ((unsigned char)'E'));
+	x86_out_byte(code);
+	x86_mov_reg_imm(code, X86_EAX, ((unsigned char)'L'));
+	x86_out_byte(code);
+	x86_mov_reg_imm(code, X86_EAX, ((unsigned char)'L'));
+	x86_out_byte(code);
+	x86_mov_reg_imm(code, X86_EAX, ((unsigned char)'O'));
+	x86_out_byte(code);
+	x86_mov_reg_imm(code, X86_EAX, ((unsigned char)'\r'));
+	x86_out_byte(code);
+	x86_mov_reg_imm(code, X86_EAX, ((unsigned char)'\n'));
+	x86_out_byte(code);
+	x86_ret(code);
+
+	((void(*)())mth)();
 
     for (uint32_t i = 1; i <= fil->MethodDefinitionCount; i++)
     {
@@ -79,31 +102,83 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 
 
             case ILOpCode_LdArg_0:			// 0x02
-                
+                {
+                    Log_WriteLine(LogFlags_ILReading, "Read LdArg.0");
+                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
+                    *dt = (uint32_t)0;
+                    EMIT_IR_1ARG(IROpCode_Load_Parameter, dt);
+					
+                    MethodSignature* mthSig = MethodSignature_Expand(methodDef->Signature, fil);
+					StackObject* obj = StackObjectPool_Allocate();
+					SetTypeOfStackObjectFromElementType(obj, mthSig->Parameters[0]->Type->ElementType);
+					MethodSignature_Destroy(mthSig);
+					obj->Name = String_Format("Parameter %i", (int)1);
+					SyntheticStack_Push(stack, obj);
+                }
                 ClearFlags();
                 break;
             case ILOpCode_LdArg_1:			// 0x03
                 {
                     Log_WriteLine(LogFlags_ILReading, "Read LdArg.1");
-
-                    //methodDef->ParameterList[1].
-
                     uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
                     *dt = (uint32_t)1;
-                    EMIT_IR_1ARG(IROpCode_Load_LocalVar, dt);
+                    EMIT_IR_1ARG(IROpCode_Load_Parameter, dt);
+					
+                    MethodSignature* mthSig = MethodSignature_Expand(methodDef->Signature, fil);
+					StackObject* obj = StackObjectPool_Allocate();
+					SetTypeOfStackObjectFromElementType(obj, mthSig->Parameters[1]->Type->ElementType);
+					MethodSignature_Destroy(mthSig);
+					obj->Name = String_Format("Parameter %i", (int)2);
+					SyntheticStack_Push(stack, obj);
                 }
                 ClearFlags();
                 break;
             case ILOpCode_LdArg_2:			// 0x04
-                
+                {
+                    Log_WriteLine(LogFlags_ILReading, "Read LdArg.2");
+                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
+                    *dt = (uint32_t)2;
+                    EMIT_IR_1ARG(IROpCode_Load_Parameter, dt);
+					
+                    MethodSignature* mthSig = MethodSignature_Expand(methodDef->Signature, fil);
+					StackObject* obj = StackObjectPool_Allocate();
+					SetTypeOfStackObjectFromElementType(obj, mthSig->Parameters[2]->Type->ElementType);
+					MethodSignature_Destroy(mthSig);
+					obj->Name = String_Format("Parameter %i", (int)3);
+					SyntheticStack_Push(stack, obj);
+                }
                 ClearFlags();
                 break;
             case ILOpCode_LdArg_3:			// 0x05
-                
+                {
+                    Log_WriteLine(LogFlags_ILReading, "Read LdArg.3");
+                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
+                    *dt = (uint32_t)3;
+                    EMIT_IR_1ARG(IROpCode_Load_Parameter, dt);
+					
+                    MethodSignature* mthSig = MethodSignature_Expand(methodDef->Signature, fil);
+					StackObject* obj = StackObjectPool_Allocate();
+					SetTypeOfStackObjectFromElementType(obj, mthSig->Parameters[3]->Type->ElementType);
+					MethodSignature_Destroy(mthSig);
+					obj->Name = String_Format("Parameter %i", (int)4);
+					SyntheticStack_Push(stack, obj);
+                }
                 ClearFlags();
                 break;
             case ILOpCode_LdArg_S:			// 0x0E
-                
+                {
+                    Log_WriteLine(LogFlags_ILReading, "Read LdArg.S");
+                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
+                    *dt = (uint32_t)ReadUInt8(dat);
+                    EMIT_IR_1ARG(IROpCode_Load_Parameter, dt);
+					
+                    MethodSignature* mthSig = MethodSignature_Expand(methodDef->Signature, fil);
+					StackObject* obj = StackObjectPool_Allocate();
+					SetTypeOfStackObjectFromElementType(obj, mthSig->Parameters[*dt]->Type->ElementType);
+					MethodSignature_Destroy(mthSig);
+					obj->Name = String_Format("Parameter %i", (int)(((int32_t)(int8_t)(uint8_t)*dt) + 1));
+					SyntheticStack_Push(stack, obj);
+                }
                 ClearFlags();
                 break;
             case ILOpCode_LdArgA_S:			// 0x0F
@@ -128,61 +203,92 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
             case ILOpCode_LdLoc_0:			// 0x06
                 {
                     Log_WriteLine(LogFlags_ILReading, "Read LdLoc.0");
-
-                    MetaDataToken* tok = CLIFile_ResolveToken(fil, methodDef->Body.LocalVariableSignatureToken);
-					//Local
-
                     uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
                     *dt = (uint32_t)0;
                     EMIT_IR_1ARG(IROpCode_Load_LocalVar, dt);
+					
+                    MetaDataToken* tok = CLIFile_ResolveToken(fil, methodDef->Body.LocalVariableSignatureToken);
+					LocalsSignature* sig = LocalsSignature_Expand((uint8_t*)tok->Data, fil); 
+					StackObject* obj = StackObjectPool_Allocate();
+					SetTypeOfStackObjectFromElementType(obj, sig->LocalVariables[0]->Type->ElementType);
+					LocalsSignature_Destroy(sig);
+					free(tok);
+					obj->Name = String_Format("Local %i", (int)1);
+					SyntheticStack_Push(stack, obj);
                 }
                 ClearFlags();
                 break;
             case ILOpCode_LdLoc_1:			// 0x07
                 {
                     Log_WriteLine(LogFlags_ILReading, "Read LdLoc.1");
-
-
-
                     uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
                     *dt = (uint32_t)1;
                     EMIT_IR_1ARG(IROpCode_Load_LocalVar, dt);
+					
+                    MetaDataToken* tok = CLIFile_ResolveToken(fil, methodDef->Body.LocalVariableSignatureToken);
+					LocalsSignature* sig = LocalsSignature_Expand((uint8_t*)tok->Data, fil); 
+					StackObject* obj = StackObjectPool_Allocate();
+					SetTypeOfStackObjectFromElementType(obj, sig->LocalVariables[1]->Type->ElementType);
+					LocalsSignature_Destroy(sig);
+					free(tok);
+					obj->Name = String_Format("Local %i", (int)2);
+					SyntheticStack_Push(stack, obj);
                 }
                 ClearFlags();
                 break;
             case ILOpCode_LdLoc_2:			// 0x08
                 {
                     Log_WriteLine(LogFlags_ILReading, "Read LdLoc.2");
-
-
-
                     uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
                     *dt = (uint32_t)2;
                     EMIT_IR_1ARG(IROpCode_Load_LocalVar, dt);
+					
+                    MetaDataToken* tok = CLIFile_ResolveToken(fil, methodDef->Body.LocalVariableSignatureToken);
+					LocalsSignature* sig = LocalsSignature_Expand((uint8_t*)tok->Data, fil); 
+					StackObject* obj = StackObjectPool_Allocate();
+					printf("VarNumber: %i\n", (int)sig->LocalVariables[2]->Type->MVarNumber);
+					SetTypeOfStackObjectFromElementType(obj, sig->LocalVariables[2]->Type->ElementType);
+					LocalsSignature_Destroy(sig);
+					free(tok);
+					obj->Name = String_Format("Local %i", (int)3);
+					SyntheticStack_Push(stack, obj);
                 }
                 ClearFlags();
                 break;
             case ILOpCode_LdLoc_3:			// 0x09
                 {
                     Log_WriteLine(LogFlags_ILReading, "Read LdLoc.3");
-
-
-
                     uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
                     *dt = (uint32_t)3;
                     EMIT_IR_1ARG(IROpCode_Load_LocalVar, dt);
+					
+                    MetaDataToken* tok = CLIFile_ResolveToken(fil, methodDef->Body.LocalVariableSignatureToken);
+					LocalsSignature* sig = LocalsSignature_Expand((uint8_t*)tok->Data, fil); 
+					StackObject* obj = StackObjectPool_Allocate();
+					SetTypeOfStackObjectFromElementType(obj, sig->LocalVariables[3]->Type->ElementType);
+					LocalsSignature_Destroy(sig);
+					free(tok);
+					obj->Name = String_Format("Local %i", (int)4);
+					SyntheticStack_Push(stack, obj);
                 }
                 ClearFlags();
                 break;
             case ILOpCode_LdLoc_S:			// 0x11
                 {
                     Log_WriteLine(LogFlags_ILReading, "Read LdLoc.S");
-
-
-
                     uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
                     *dt = (uint32_t)ReadUInt8(dat);
                     EMIT_IR_1ARG(IROpCode_Load_LocalVar, dt);
+					
+                    MetaDataToken* tok = CLIFile_ResolveToken(fil, methodDef->Body.LocalVariableSignatureToken);
+					LocalsSignature* sig = LocalsSignature_Expand((uint8_t*)tok->Data, fil); 
+					StackObject* obj = StackObjectPool_Allocate();
+					printf("VarNumber: %i\n", (int)sig->LocalVariables[*dt]->Type->VarNumber);
+					SetTypeOfStackObjectFromElementType(obj, sig->LocalVariables[*dt]->Type->ElementType);
+					LocalsSignature_Destroy(sig);
+					free(tok);
+					obj->Name = String_Format("Local %i", (int)(((int32_t)(int8_t)(uint8_t)*dt) + 1));
+					SyntheticStack_Push(stack, obj);
                 }
                 ClearFlags();
                 break;
@@ -368,15 +474,67 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 
 
             case ILOpCode_Call:				// 0x28
-                
+				{
+					Log_WriteLine(LogFlags_ILReading, "Read Call");
+					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
+					MethodSignature* sig = MethodSignature_Expand((uint8_t*)tok->Data, fil);
+					if (sig->HasThis)
+						StackObjectPool_Release(SyntheticStack_Pop(stack));
+					for (uint32_t i = 0; i < sig->ParameterCount; i++)
+					{
+						StackObjectPool_Release(SyntheticStack_Pop(stack));
+					}
+					if (!(sig->ReturnType->Void))
+					{
+						StackObject* obj = StackObjectPool_Allocate();
+						SetTypeOfStackObjectFromElementType(obj, sig->ReturnType->Type->ElementType);
+						SyntheticStack_Push(stack, obj);
+					}
+					free(tok);
+				}
                 ClearFlags();
                 break;
             case ILOpCode_CallI:			// 0x29
+				{
+					Log_WriteLine(LogFlags_ILReading, "Read CallI");
+					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
+					MethodSignature* sig = MethodSignature_Expand((uint8_t*)tok->Data, fil);
+					if (sig->HasThis)
+						StackObjectPool_Release(SyntheticStack_Pop(stack));
+					for (uint32_t i = 0; i < sig->ParameterCount; i++)
+					{
+						StackObjectPool_Release(SyntheticStack_Pop(stack));
+					}
+					if (!(sig->ReturnType->Void))
+					{
+						StackObject* obj = StackObjectPool_Allocate();
+						SetTypeOfStackObjectFromElementType(obj, sig->ReturnType->Type->ElementType);
+						SyntheticStack_Push(stack, obj);
+					}
+					free(tok);
+				}
                 
                 ClearFlags();
                 break;
             case ILOpCode_CallVirt:			// 0x6F
-                
+				{
+					Log_WriteLine(LogFlags_ILReading, "Read CallVirt");
+					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
+					MethodSignature* sig = MethodSignature_Expand((uint8_t*)tok->Data, fil);
+					if (sig->HasThis)
+						StackObjectPool_Release(SyntheticStack_Pop(stack));
+					for (uint32_t i = 0; i < sig->ParameterCount; i++)
+					{
+						StackObjectPool_Release(SyntheticStack_Pop(stack));
+					}
+					if (!(sig->ReturnType->Void))
+					{
+						StackObject* obj = StackObjectPool_Allocate();
+						SetTypeOfStackObjectFromElementType(obj, sig->ReturnType->Type->ElementType);
+						SyntheticStack_Push(stack, obj);
+					}
+					free(tok);
+				}
                 ClearFlags();
                 break;
             case ILOpCode_Jmp:				// 0x27
@@ -770,7 +928,15 @@ Branch_Common:
                 ClearFlags();
                 break;
             case ILOpCode_LdLen:			// 0x8E
-                
+				{
+					Log_WriteLine(LogFlags_ILReading, "Read LdLen");
+					StackObjectPool_Release(SyntheticStack_Pop(stack));
+					StackObject* obj = StackObjectPool_Allocate();
+					obj->Type = StackObjectType_NativeInt;
+					obj->NumericType = StackObjectNumericType_UPointer;
+					SyntheticStack_Push(stack, obj);
+					EMIT_IR(IROpCode_Load_Array_Length);
+				} 
                 ClearFlags();
                 break;
             case ILOpCode_LdElemA:			// 0x8F
@@ -965,22 +1131,51 @@ Branch_Common:
                         break;
                     // 0x08 Doesn't exist
                     case ILOpCodes_Extended_LdArg:			// 0x09
-
+						{
+							Log_WriteLine(LogFlags_ILReading, "Read LdArg");
+							uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
+							*dt = (uint32_t)ReadUInt16(dat);
+							EMIT_IR_1ARG(IROpCode_Load_Parameter, dt);
+							
+							MethodSignature* mthSig = MethodSignature_Expand(methodDef->Signature, fil);
+							StackObject* obj = StackObjectPool_Allocate();
+							SetTypeOfStackObjectFromElementType(obj, mthSig->Parameters[*dt]->Type->ElementType);
+							MethodSignature_Destroy(mthSig);
+							obj->Name = String_Format("Parameter %i", (int)(((int32_t)(int16_t)(uint16_t)*dt) + 1));
+							SyntheticStack_Push(stack, obj);
+						}
+                        ClearFlags();
                         break;
                     case ILOpCodes_Extended_LdArgA:			// 0x0A
                         
                         ClearFlags();
                         break;
                     case ILOpCodes_Extended_StArg:			// 0x0B
-                        
+						{
+							Log_WriteLine(LogFlags_ILReading, "Read StArg");
+							uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
+							*dt = (uint32_t)ReadUInt16(dat);
+							EMIT_IR_1ARG(IROpCode_Store_Parameter, dt);
+
+							StackObjectPool_Release(SyntheticStack_Pop(stack));
+						}
                         ClearFlags();
                         break;
                     case ILOpCodes_Extended_LdLoc:			// 0x0C
                         {
-                            Log_WriteLine(LogFlags_ILReading, "Read LdLoc");
-                            uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
-                            *dt = (uint32_t)ReadUInt16(dat);
-                            EMIT_IR_1ARG(IROpCode_Load_LocalVar, dt);
+							Log_WriteLine(LogFlags_ILReading, "Read LdLoc");
+							uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
+							*dt = (uint32_t)ReadUInt16(dat);
+							EMIT_IR_1ARG(IROpCode_Load_LocalVar, dt);
+
+							MetaDataToken* tok = CLIFile_ResolveToken(fil, methodDef->Body.LocalVariableSignatureToken);
+							LocalsSignature* sig = LocalsSignature_Expand((uint8_t*)tok->Data, fil); 
+							StackObject* obj = StackObjectPool_Allocate();
+							SetTypeOfStackObjectFromElementType(obj, sig->LocalVariables[*dt]->Type->ElementType);
+							LocalsSignature_Destroy(sig);
+							free(tok);
+							obj->Name = String_Format("Local %i", (int)(((int32_t)(int16_t)(uint16_t)*dt) + 1));
+							SyntheticStack_Push(stack, obj);
                         }
                         ClearFlags();
                         break;

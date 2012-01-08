@@ -32,6 +32,8 @@
     <ClCompile Include="Source\CLR\IRMethod_BranchLinker.c" />
     <ClCompile Include="Source\CLR\IROptimizer.c" />
     <ClCompile Include="Source\CLR\IRStructures.c" />
+    <ClCompile Include="Source\CLR\JIT\JIT.c" />
+    <ClCompile Include="Source\CLR\JIT\JIT-x86.c" />
     <ClCompile Include="Source\CLR\Log.c" />
     <ClCompile Include="Source\CLR\MetaData\MetaData.c" />
     <ClCompile Include="Source\CLR\MetaData\AssemblyDefinition.c" />
@@ -143,6 +145,9 @@
     <ClInclude Include="Include\CLR\IRMethod_BranchLinker.h" />
     <ClInclude Include="Include\CLR\IROptimizer.h" />
     <ClInclude Include="Include\CLR\IRStructures.h" />
+    <ClInclude Include="Include\CLR\JIT\JIT.h" />
+    <ClInclude Include="Include\CLR\JIT\x86\x86-codegen-extra.h" />
+    <ClInclude Include="Include\CLR\JIT\x86\x86-codegen.h" />
     <ClInclude Include="Include\CLR\Log.h" />
     <ClInclude Include="Include\CLR\MetaData\AssemblyDefinition.h" />
     <ClInclude Include="Include\CLR\MetaData\AssemblyOperatingSystem.h" />
