@@ -1,11 +1,11 @@
-Sizeof still needs to push it's result to the top of the stack!!
+
 CallVirt, Call, and CallI still need to emit actual Call IR codes.
 
 Total number of OpCodes:
 	219
 
 Number of OpCodes implemented currently:
-	125
+	140
 
 Number of OpCodes considered un-needed, and as such, aren't included in the above count:
 	19

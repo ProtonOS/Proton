@@ -369,6 +369,106 @@ typedef enum IROpCode
 
      */
     IROpCode_Load_Array_Length,
+    /*
+        Pops an object off of the top of the stack.
+
+        Arg1:
+            N/A
+
+        Arg2:
+            N/A
+
+        Arg3:
+            N/A
+
+     */
+    IROpCode_Pop,
+    /*
+        Adds the 2 items on the top of the stack,
+		and pushes the result to the top of the stack.
+
+        Arg1:
+            The type of overflow checks to perform.
+
+        Arg2:
+            The type of the first argument.
+			Of the type ElementType.
+
+        Arg3:
+            The type of the second argument.
+			Of the type ElementType.
+
+     */
+    IROpCode_Add,
+    /*
+        Subtracts the 2 items on the top of the stack,
+		and pushes the result to the top of the stack.
+
+        Arg1:
+            The type of overflow checks to perform.
+
+        Arg2:
+            The type of the first argument.
+			Of the type ElementType.
+
+        Arg3:
+            The type of the second argument.
+			Of the type ElementType.
+
+     */
+    IROpCode_Sub,
+    /*
+        Multiplies the 2 items on the top of the stack,
+		and pushes the result to the top of the stack.
+
+        Arg1:
+            The type of overflow checks to perform.
+
+        Arg2:
+            The type of the first argument.
+			Of the type ElementType.
+
+        Arg3:
+            The type of the second argument.
+			Of the type ElementType.
+
+     */
+    IROpCode_Mul,
+    /*
+        Divides the 2 items on the top of the stack,
+		and pushes the result to the top of the stack.
+
+        Arg1:
+            The type of overflow checks to perform.
+
+        Arg2:
+            The type of the first argument.
+			Of the type ElementType.
+
+        Arg3:
+            The type of the second argument.
+			Of the type ElementType.
+
+     */
+    IROpCode_Div,
+    /*
+        Divides the 2 items on the top of the stack,
+		and pushes the remainder from this operation
+		to the top of the stack.
+
+        Arg1:
+            The type of overflow checks to perform.
+
+        Arg2:
+            The type of the first argument.
+			Of the type ElementType.
+
+        Arg3:
+            The type of the second argument.
+			Of the type ElementType.
+
+     */
+    IROpCode_Rem,
 	
 } IROpCode;
 
@@ -422,6 +522,7 @@ typedef enum ElementType
 	ElementType_I2,
 	ElementType_I4,
 	ElementType_I8,
+	ElementType_U,
 	ElementType_U1,
 	ElementType_U2,
 	ElementType_U4,
@@ -430,4 +531,12 @@ typedef enum ElementType
 	ElementType_R8,
 	ElementType_Ref,
 	ElementType_DataType,
+	ElementType_ManagedPointer,
 } ElementType;
+
+typedef enum OverflowType
+{
+	OverflowType_None,
+	OverflowType_Signed,
+	OverflowType_Unsigned,
+} OverflowType;

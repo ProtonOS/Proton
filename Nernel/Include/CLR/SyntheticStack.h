@@ -31,6 +31,7 @@ typedef enum StackObjectNumericType
     StackObjectNumericType_UPointer,
 	StackObjectNumericType_Ref,
 	StackObjectNumericType_DataType,
+	StackObjectNumericType_ManagedPointer,
 } StackObjectNumericType;
 
 struct _StackObject

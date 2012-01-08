@@ -16,7 +16,7 @@
         /*| LogFlags_MetaData_Loading */ \
         /*| LogFlags_AppDomain_Loading  */\
         | LogFlags_ILReading_BranchLinker \
-        | LogFlags_ILReading_ElementTypes  \
+        /*| LogFlags_ILReading_ElementTypes */ \
         ))
 #endif
 

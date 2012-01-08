@@ -369,7 +369,7 @@
 	ClearFlags(); \
 	break; }
 
-#define SetTypeOfStackObjectFromElementType(obj, elType) \
+#define SetTypeOfStackObjectFromSigElementType(obj, elType) \
 	switch (elType) \
 	{ \
 		case Signature_ElementType_Boolean: \
@@ -440,18 +440,238 @@
 			obj->Type = StackObjectType_DataType; \
 			break; \
 		case Signature_ElementType_Object: \
+			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type Object"); \
 		case Signature_ElementType_Array: \
+			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type Array"); \
 		case Signature_ElementType_SingleDimensionArray: \
+			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type SingleDimArray"); \
 		case Signature_ElementType_String: \
+			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type String"); \
 		case Signature_ElementType_ByReference: \
-		case Signature_ElementType_Class: \
 			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type ReferenceType"); \
+		case Signature_ElementType_Class: \
+			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type Class"); \
 			obj->NumericType = StackObjectNumericType_Ref; \
 			obj->Type = StackObjectType_ReferenceType; \
 			break; \
 		default: \
-			/*Panic(String_Format("Unknown Element Type '0x%x'!", (unsigned int)(elType))); */ \
+			Panic(String_Format("Unknown Element Type '0x%x'!", (unsigned int)(elType))); \
 			break; \
 	} 
+
+
+#define GetElementTypeOfStackObject(dest, stkObj) \
+	switch (stkObj->NumericType) \
+	{ \
+		case StackObjectNumericType_UInt8: \
+			dest = ElementType_U1; \
+			break; \
+		case StackObjectNumericType_UInt16: \
+			dest = ElementType_U2; \
+			break; \
+		case StackObjectNumericType_UInt32: \
+			dest = ElementType_U4; \
+			break; \
+		case StackObjectNumericType_UInt64: \
+			dest = ElementType_U8; \
+			break; \
+		case StackObjectNumericType_Int8: \
+			dest = ElementType_I1; \
+			break; \
+		case StackObjectNumericType_Int16: \
+			dest = ElementType_I2; \
+			break; \
+		case StackObjectNumericType_Int32: \
+			dest = ElementType_I4; \
+			break; \
+		case StackObjectNumericType_Int64: \
+			dest = ElementType_I8; \
+			break; \
+		case StackObjectNumericType_Float32: \
+			dest = ElementType_R4; \
+			break; \
+		case StackObjectNumericType_Float64: \
+			dest = ElementType_R8; \
+			break; \
+		case StackObjectNumericType_Pointer: \
+			dest = ElementType_I; \
+			break; \
+		case StackObjectNumericType_UPointer: \
+			dest = ElementType_U; \
+			break; \
+		case StackObjectNumericType_DataType: \
+			dest = ElementType_DataType; \
+			break; \
+		case StackObjectNumericType_Ref: \
+			dest = ElementType_Ref; \
+			break; \
+		case StackObjectNumericType_ManagedPointer: \
+			dest = ElementType_ManagedPointer; \
+			break; \
+		default: \
+			Panic("Unknown StackObjectNumericType!"); \
+			break; \
+	} 
+
+
+
+#define BinaryNumericOp_Add 0
+#define BinaryNumericOp_Sub 1
+#define BinaryNumericOp_Div 2
+#define BinaryNumericOp_Mul 3
+#define BinaryNumericOp_Rem 4
+
+#define CheckBinaryNumericOpOperandTypesAndSetResult(OperandA, OperandB, BinaryNumericOp, ResultObject) \
+	switch(OperandA) \
+	{ \
+		case ElementType_U1: \
+		case ElementType_U2: \
+		case ElementType_U4: \
+		case ElementType_I1: \
+		case ElementType_I2: \
+		case ElementType_I4: \
+		{ \
+			if (BinaryNumericOp == BinaryNumericOp_Add) \
+			{ \
+				if (OperandB == ElementType_ManagedPointer) \
+				{ \
+					ResultObject->Type = StackObjectType_ManagedPointer; \
+					ResultObject->NumericType = StackObjectNumericType_ManagedPointer; \
+					break; \
+				} \
+			} \
+			switch(OperandB) \
+			{ \
+				case ElementType_I: \
+				case ElementType_U: \
+					ResultObject->Type = StackObjectType_NativeInt; \
+					ResultObject->NumericType = StackObjectNumericType_Pointer; \
+					break; \
+				case ElementType_U1: \
+				case ElementType_U2: \
+				case ElementType_U4: \
+				case ElementType_I1: \
+				case ElementType_I2: \
+				case ElementType_I4: \
+					ResultObject->Type = StackObjectType_Int32; \
+					ResultObject->NumericType = StackObjectNumericType_Int32; \
+					break; \
+				default: \
+					Panic("Invalid Operands for Binary Numeric Operation!"); \
+					break; \
+			} \
+			break; \
+		} \
+		\
+		case ElementType_I8: \
+		case ElementType_U8: \
+		{ \
+			switch(OperandB) \
+			{ \
+				case ElementType_I8: \
+				case ElementType_U8: \
+					ResultObject->Type = StackObjectType_Int64; \
+					ResultObject->NumericType = StackObjectNumericType_Int64; \
+					break; \
+				default: \
+					Panic("Invalid Operands for Binary Numeric Operation!"); \
+					break; \
+			} \
+			break; \
+		} \
+		\
+		case ElementType_R4: \
+		case ElementType_R8: \
+		{ \
+			switch(OperandB) \
+			{ \
+				case ElementType_R4: \
+				case ElementType_R8: \
+					ResultObject->Type = StackObjectType_Float; \
+					ResultObject->NumericType = StackObjectNumericType_Float64; \
+					break; \
+				default: \
+					Panic("Invalid Operands for Binary Numeric Operation!"); \
+					break; \
+			} \
+			break; \
+		} \
+		\
+		case ElementType_I: \
+		case ElementType_U: \
+		{ \
+			if (BinaryNumericOp == BinaryNumericOp_Add) \
+			{ \
+				if (OperandB == ElementType_ManagedPointer) \
+				{ \
+					ResultObject->Type = StackObjectType_ManagedPointer; \
+					ResultObject->NumericType = StackObjectNumericType_ManagedPointer; \
+					break; \
+				} \
+			} \
+			switch(OperandB) \
+			{ \
+				case ElementType_I: \
+				case ElementType_U: \
+				case ElementType_U1: \
+				case ElementType_U2: \
+				case ElementType_U4: \
+				case ElementType_I1: \
+				case ElementType_I2: \
+				case ElementType_I4: \
+					ResultObject->Type = StackObjectType_NativeInt; \
+					ResultObject->NumericType = StackObjectNumericType_Pointer; \
+					break; \
+				default: \
+					Panic("Invalid Operands for Binary Numeric Operation!"); \
+					break; \
+			} \
+			break; \
+		} \
+		\
+		case ElementType_ManagedPointer: \
+		{ \
+			if (BinaryNumericOp == BinaryNumericOp_Add || BinaryNumericOp == BinaryNumericOp_Sub) \
+			{ \
+				if (BinaryNumericOp == BinaryNumericOp_Sub) \
+				{ \
+					if (OperandB == ElementType_ManagedPointer) \
+					{ \
+						ResultObject->Type = StackObjectType_NativeInt; \
+						ResultObject->NumericType = StackObjectNumericType_Pointer; \
+						break; \
+					} \
+				} \
+				switch(OperandB) \
+				{ \
+					case ElementType_I: \
+					case ElementType_U: \
+					case ElementType_U1: \
+					case ElementType_U2: \
+					case ElementType_U4: \
+					case ElementType_I1: \
+					case ElementType_I2: \
+					case ElementType_I4: \
+						ResultObject->Type = StackObjectType_ManagedPointer; \
+						ResultObject->NumericType = StackObjectNumericType_ManagedPointer; \
+						break; \
+					default: \
+						Panic("Invalid Operands for Binary Numeric Operation!"); \
+						break; \
+				} \
+			} \
+			else \
+			{ \
+				Panic("Invalid Operands for Binary Numeric Operation!"); \
+			} \
+			break; \
+		} \
+		\
+		default: \
+			Panic("Invalid Operands for Addition!"); \
+			break; \
+	}
+
+
 
 
