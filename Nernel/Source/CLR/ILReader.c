@@ -111,7 +111,16 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 					
                     MethodSignature* mthSig = MethodSignature_Expand(methodDef->Signature, fil);
 					StackObject* obj = StackObjectPool_Allocate();
-					SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[0]->Type->ElementType);
+					if (mthSig->HasThis && !(mthSig->ExplicitThis))
+					{
+						obj->Type = StackObjectType_ReferenceType;
+						obj->NumericType = StackObjectNumericType_Ref;
+						//Panic("Don't know how to get the type of the parameter here!");
+					}
+					else
+					{
+						SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[0]->Type->ElementType);
+					}
 					MethodSignature_Destroy(mthSig);
 					obj->Name = String_Format("Parameter %i", (int)1);
 					SyntheticStack_Push(stack, obj);
@@ -127,7 +136,14 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 					
                     MethodSignature* mthSig = MethodSignature_Expand(methodDef->Signature, fil);
 					StackObject* obj = StackObjectPool_Allocate();
-					SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[1]->Type->ElementType);
+					if (mthSig->HasThis && !(mthSig->ExplicitThis))
+					{
+						SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[0]->Type->ElementType);
+					}
+					else
+					{
+						SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[1]->Type->ElementType);
+					}
 					MethodSignature_Destroy(mthSig);
 					obj->Name = String_Format("Parameter %i", (int)2);
 					SyntheticStack_Push(stack, obj);
@@ -143,7 +159,14 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 					
                     MethodSignature* mthSig = MethodSignature_Expand(methodDef->Signature, fil);
 					StackObject* obj = StackObjectPool_Allocate();
-					SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[2]->Type->ElementType);
+					if (mthSig->HasThis && !(mthSig->ExplicitThis))
+					{
+						SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[1]->Type->ElementType);
+					}
+					else
+					{
+						SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[2]->Type->ElementType);
+					}
 					MethodSignature_Destroy(mthSig);
 					obj->Name = String_Format("Parameter %i", (int)3);
 					SyntheticStack_Push(stack, obj);
@@ -159,7 +182,14 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 					
                     MethodSignature* mthSig = MethodSignature_Expand(methodDef->Signature, fil);
 					StackObject* obj = StackObjectPool_Allocate();
-					SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[3]->Type->ElementType);
+					if (mthSig->HasThis && !(mthSig->ExplicitThis))
+					{
+						SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[2]->Type->ElementType);
+					}
+					else
+					{
+						SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[3]->Type->ElementType);
+					}
 					MethodSignature_Destroy(mthSig);
 					obj->Name = String_Format("Parameter %i", (int)4);
 					SyntheticStack_Push(stack, obj);
@@ -175,6 +205,24 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 					
                     MethodSignature* mthSig = MethodSignature_Expand(methodDef->Signature, fil);
 					StackObject* obj = StackObjectPool_Allocate();
+					if (mthSig->HasThis && !(mthSig->ExplicitThis))
+					{
+						if (*dt == 0)
+						{
+							//if ((methodDef->TypeDefinition->Flags & TYPE)
+							obj->Type = StackObjectType_ReferenceType;
+							obj->NumericType = StackObjectNumericType_Ref;
+							//Panic("Don't know how to get the type of the parameter here!");
+						}
+						else
+						{
+							SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[(*dt) - 1]->Type->ElementType);
+						}
+					}
+					else
+					{
+						SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[*dt]->Type->ElementType);
+					}
 					SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[*dt]->Type->ElementType);
 					MethodSignature_Destroy(mthSig);
 					obj->Name = String_Format("Parameter %i", (int)(((int32_t)(int8_t)(uint8_t)*dt) + 1));
@@ -480,7 +528,18 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 				{
 					Log_WriteLine(LogFlags_ILReading, "Read Call");
 					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
-					MethodSignature* sig = MethodSignature_Expand((uint8_t*)tok->Data, fil);
+					MethodSignature* sig;
+					switch(tok->Table)
+					{
+						case MetaData_Table_MethodDefinition:
+							sig = MethodSignature_Expand(((MethodDefinition*)tok->Data)->Signature, fil);
+							break;
+
+						default:
+							printf("Table: 0x%x\n", (unsigned int)tok->Table);
+							Panic("Unknown Table for Call!");
+							break;
+					}
 					if (sig->HasThis)
 						StackObjectPool_Release(SyntheticStack_Pop(stack));
 					for (uint32_t i = 0; i < sig->ParameterCount; i++)
@@ -492,6 +551,16 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 						StackObject* obj = StackObjectPool_Allocate();
 						SetTypeOfStackObjectFromSigElementType(obj, sig->ReturnType->Type->ElementType);
 						SyntheticStack_Push(stack, obj);
+					}
+					switch(tok->Table)
+					{
+						case MetaData_Table_MethodDefinition:
+							MethodSignature_Destroy(sig);
+							break;
+
+						default:
+							Panic("Unknown Table for Call!");
+							break;
 					}
 					free(tok);
 				}
@@ -501,7 +570,18 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 				{
 					Log_WriteLine(LogFlags_ILReading, "Read CallI");
 					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
-					MethodSignature* sig = MethodSignature_Expand((uint8_t*)tok->Data, fil);
+					MethodSignature* sig;
+					switch(tok->Table)
+					{
+						case MetaData_Table_MethodDefinition:
+							sig = MethodSignature_Expand(((MethodDefinition*)tok->Data)->Signature, fil);
+							break;
+
+						default:
+							printf("Table: 0x%x\n", (unsigned int)tok->Table);
+							Panic("Unknown Table for Call!");
+							break;
+					}
 					if (sig->HasThis)
 						StackObjectPool_Release(SyntheticStack_Pop(stack));
 					for (uint32_t i = 0; i < sig->ParameterCount; i++)
@@ -513,6 +593,16 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 						StackObject* obj = StackObjectPool_Allocate();
 						SetTypeOfStackObjectFromSigElementType(obj, sig->ReturnType->Type->ElementType);
 						SyntheticStack_Push(stack, obj);
+					}
+					switch(tok->Table)
+					{
+						case MetaData_Table_MethodDefinition:
+							MethodSignature_Destroy(sig);
+							break;
+
+						default:
+							Panic("Unknown Table for Call!");
+							break;
 					}
 					free(tok);
 				}
@@ -523,7 +613,18 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 				{
 					Log_WriteLine(LogFlags_ILReading, "Read CallVirt");
 					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
-					MethodSignature* sig = MethodSignature_Expand((uint8_t*)tok->Data, fil);
+					MethodSignature* sig;
+					switch(tok->Table)
+					{
+						case MetaData_Table_MethodDefinition:
+							sig = MethodSignature_Expand(((MethodDefinition*)tok->Data)->Signature, fil);
+							break;
+
+						default:
+							printf("Table: 0x%x\n", (unsigned int)tok->Table);
+							Panic("Unknown Table for Call!");
+							break;
+					}
 					if (sig->HasThis)
 						StackObjectPool_Release(SyntheticStack_Pop(stack));
 					for (uint32_t i = 0; i < sig->ParameterCount; i++)
@@ -535,6 +636,16 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 						StackObject* obj = StackObjectPool_Allocate();
 						SetTypeOfStackObjectFromSigElementType(obj, sig->ReturnType->Type->ElementType);
 						SyntheticStack_Push(stack, obj);
+					}
+					switch(tok->Table)
+					{
+						case MetaData_Table_MethodDefinition:
+							MethodSignature_Destroy(sig);
+							break;
+
+						default:
+							Panic("Unknown Table for Call!");
+							break;
 					}
 					free(tok);
 				}
@@ -548,7 +659,26 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 
             case ILOpCode_Ret:				// 0x2A
                 {
-                    
+                    MethodSignature* mthSig = MethodSignature_Expand(methodDef->Signature, fil);
+					if (mthSig->ReturnType->Void)
+					{
+						bool_t* HasRetValue = (bool_t*)malloc(sizeof(bool_t));
+						*HasRetValue = FALSE;
+
+						EMIT_IR_1ARG(IROpCode_Return, HasRetValue);
+					}
+					else
+					{
+						StackObject* obj = SyntheticStack_Pop(stack);
+						bool_t* HasRetValue = (bool_t*)malloc(sizeof(bool_t));
+						*HasRetValue = TRUE;
+						ElementType* mtType = (ElementType*)malloc(sizeof(ElementType));
+						GetElementTypeOfStackObject(*mtType, obj);
+						StackObjectPool_Release(obj);
+
+						EMIT_IR_2ARG(IROpCode_Return, HasRetValue, mtType);
+					}
+					MethodSignature_Destroy(mthSig);
                 }
                 ClearFlags();
                 break;
@@ -635,44 +765,44 @@ Branch_Common:
 
 				
             case ILOpCode_LdInd_I:			// 0x4D
-				DefineUnSupportedOpCode(LdInd.I);
+				DefineLdInd(I);
             case ILOpCode_LdInd_I1:			// 0x46
-				DefineUnSupportedOpCode(LdInd.I1);
+				DefineLdInd(I1);
             case ILOpCode_LdInd_U1:			// 0x47
-				DefineUnSupportedOpCode(LdInd.U1);
+				DefineLdInd(U1);
             case ILOpCode_LdInd_I2:			// 0x48
-				DefineUnSupportedOpCode(LdInd.I2);
+				DefineLdInd(I2);
             case ILOpCode_LdInd_U2:			// 0x49
-				DefineUnSupportedOpCode(LdInd.U2);
+				DefineLdInd(U2);
             case ILOpCode_LdInd_I4:			// 0x4A
-				DefineUnSupportedOpCode(LdInd.I4);
+				DefineLdInd(I4);
             case ILOpCode_LdInd_U4:			// 0x4B
-				DefineUnSupportedOpCode(LdInd.U4);
+				DefineLdInd(U4);
             case ILOpCode_LdInd_I8:			// 0x4C
-				DefineUnSupportedOpCode(LdInd.I8);
+				DefineLdInd(I8);
             case ILOpCode_LdInd_R4:			// 0x4D
-				DefineUnSupportedOpCode(LdInd.R4);
+				DefineLdInd(R4);
             case ILOpCode_LdInd_R8:			// 0x4F
-				DefineUnSupportedOpCode(LdInd.R8);
+				DefineLdInd(R8);
             case ILOpCode_LdInd_Ref:		// 0x50
-				DefineUnSupportedOpCode(LdInd.Ref);
+				DefineLdInd(Ref);
 
             case ILOpCode_StInd_I:			// 0xDF
-				DefineUnSupportedOpCode(StInd.I);
+				DefineStInd(I);
             case ILOpCode_StInd_I1:			// 0x52
-				DefineUnSupportedOpCode(StInd.I1);
+				DefineStInd(I1);
             case ILOpCode_StInd_I2:			// 0x53
-				DefineUnSupportedOpCode(StInd.I2);
+				DefineStInd(I2);
             case ILOpCode_StInd_I4:			// 0x54
-				DefineUnSupportedOpCode(StInd.I4);
+				DefineStInd(I4);
             case ILOpCode_StInd_I8:			// 0x55
-				DefineUnSupportedOpCode(StInd.I8);
+				DefineStInd(I8);
             case ILOpCode_StInd_R4:			// 0x56
-				DefineUnSupportedOpCode(StInd.R4);
+				DefineStInd(R4);
             case ILOpCode_StInd_R8:			// 0x57
-				DefineUnSupportedOpCode(StInd.R8);
+				DefineStInd(R8);
             case ILOpCode_StInd_Ref:		// 0x51
-				DefineUnSupportedOpCode(StInd.Ref);
+				DefineStInd(Ref);
                 
 
             case ILOpCode_Add:				// 0x58

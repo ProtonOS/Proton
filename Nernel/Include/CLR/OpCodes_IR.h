@@ -34,20 +34,22 @@ typedef enum IROpCode
      */
     IROpCode_BreakForDebugger,
     /*
-        Returns from the current method,
-        and doesn't return any real value.
+        Returns from the current method.
 
         Arg1:
-            N/A
+            A boolean representing whether
+			there is actually a value to return.
 
         Arg2:
-            N/A
+            The type of value to return.
+			Of the type ElementType.
+			Only valid if Arg1 is true.
 
         Arg3:
             N/A
 
      */
-    IROpCode_Return_NoRetValue,
+    IROpCode_Return,
     /*
         Loads an int32 value onto the 
         top of the stack.
@@ -469,6 +471,39 @@ typedef enum IROpCode
 
      */
     IROpCode_Rem,
+    /*
+        Loads the value at the address on the top of
+		the stack.
+
+        Arg1:
+            The type of object to load.
+			Of the type ElementType.
+
+        Arg2:
+            N/A
+
+        Arg3:
+            N/A
+
+     */
+    IROpCode_LoadIndirect,
+    /*
+        Stores the value on the top of
+		the stack at the address almost
+		on the top of the stack.
+
+        Arg1:
+            The type of object to load.
+			Of the type ElementType.
+
+        Arg2:
+            N/A
+
+        Arg3:
+            N/A
+
+     */
+    IROpCode_StoreIndirect,
 	
 } IROpCode;
 

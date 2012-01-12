@@ -165,7 +165,6 @@
     <ClInclude Include="Include\CLR\OpCodes_IR.h" />
     <ClInclude Include="Include\CLR\Optimizations\UnconditionalBranchTransform.h" />
     <ClInclude Include="Include\CLR\PEFile.h" />
-    <ClInclude Include="Include\CLR\ReferenceTypeObject.h" />
     <ClInclude Include="Include\CLR\SyntheticStack.h" />
     <ClInclude Include="Include\Core\Config.h" />
     <ClInclude Include="Include\Core\Console.h" />
@@ -239,6 +238,8 @@
     <ClInclude Include="Include\CLR\JIT\x86\x86-codegen-extra.h" />
     <ClInclude Include="Include\CLR\JIT\x86\x86-codegen.h" />
     <ClInclude Include="Include\CLR\JIT\JIT.h" />
+    <ClInclude Include="Include\Core\ReferenceTypeObject.h" />
+    <ClInclude Include="Include\CLR\ReferenceTypeObject.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Makefile.omake" />
