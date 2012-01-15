@@ -23,6 +23,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\CLR\AppDomain.c" />
+    <ClCompile Include="Source\CLR\Architecture\Architecture-x86.c" />
     <ClCompile Include="Source\CLR\CLIFile.c" />
     <ClCompile Include="Source\CLR\GC.c" />
     <ClCompile Include="Source\CLR\ILReader.c" />
@@ -134,6 +135,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\CLR\AppDomain.h" />
+    <ClInclude Include="Include\CLR\Architecture.h" />
     <ClInclude Include="Include\CLR\CLIFile.h" />
     <ClInclude Include="Include\CLR\GC.h" />
     <ClInclude Include="Include\CLR\ILReader.h" />

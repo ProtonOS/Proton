@@ -120,10 +120,6 @@ struct _CLIFile
     GenericParameterConstraint* GenericParameterConstraints;
     uint32_t MethodSpecificationCount;
     MethodSpecification* MethodSpecifications;
-
-	TypeDefinition* SystemObjectTypeDefinition;
-	TypeDefinition* SystemValueTypeTypeDefinition;
-	TypeDefinition* SystemEnumTypeDefinition;
 };
 
 CLIFile* CLIFile_Create(PEFile* pFile);

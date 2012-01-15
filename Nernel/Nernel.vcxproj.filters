@@ -110,6 +110,7 @@
     <ClCompile Include="Source\CLR\MetaData\Signature.c" />
     <ClCompile Include="Source\CLR\JIT\JIT.c" />
     <ClCompile Include="Source\CLR\JIT\JIT-x86.c" />
+    <ClCompile Include="Source\CLR\Architecture\Architecture-x86.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\CLR\AppDomain.h" />
@@ -240,6 +241,7 @@
     <ClInclude Include="Include\CLR\JIT\JIT.h" />
     <ClInclude Include="Include\Core\ReferenceTypeObject.h" />
     <ClInclude Include="Include\CLR\ReferenceTypeObject.h" />
+    <ClInclude Include="Include\CLR\Architecture.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Makefile.omake" />

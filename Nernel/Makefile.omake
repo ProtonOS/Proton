@@ -84,6 +84,8 @@
 	Source/CLR/ReferenceTypeObject.c
 	Source/CLR/SyntheticStack.c
 #
+	Source/CLR/Architecture/Architecture-x86.c
+#
 	Source/CLR/InternalCalls/Proton.IO.MemoryIO.c
 	Source/CLR/InternalCalls/Proton.IO.PortIO.c
 #

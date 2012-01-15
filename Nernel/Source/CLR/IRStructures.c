@@ -1,4 +1,5 @@
 #include <CLR/IRStructures.h>
+#include <CLR/Architecture.h>
 #include <stdlib.h>
 
 
@@ -131,8 +132,8 @@ void IRField_Destroy(IRField* fld)
 
 void IRAssembly_AddMethod(IRAssembly* asmb, IRMethod* mth)
 {
-	mth->MethodIndex = asmb->MethodCount;
 	asmb->MethodCount++;
+	mth->MethodIndex = asmb->MethodCount;
 	// The reason this is safe to do even if
 	// we haven't allocated for it yet, is because
 	// realloc acts like a normal malloc if the first
@@ -143,16 +144,16 @@ void IRAssembly_AddMethod(IRAssembly* asmb, IRMethod* mth)
 
 void IRAssembly_AddType(IRAssembly* asmb, IRType* tp)
 {
-	tp->TypeIndex = asmb->TypeCount;
 	asmb->TypeCount++;
+	tp->TypeIndex = asmb->TypeCount;
 	asmb->Types = (IRType**)realloc(asmb->Types, sizeof(IRType*) * asmb->TypeCount);
 	asmb->Types[asmb->TypeCount - 1] = tp;
 }
 
 void IRAssembly_AddField(IRAssembly* asmb, IRField* fld)
 {
-	fld->FieldIndex = asmb->FieldCount;
 	asmb->FieldCount++;
+	fld->FieldIndex = asmb->FieldCount;
 	asmb->Fields = (IRField**)realloc(asmb->Fields, sizeof(IRField*) * asmb->FieldCount);
 	asmb->Fields[asmb->FieldCount - 1] = fld;
 }
@@ -189,3 +190,57 @@ void IRMethod_AddParameter(IRMethod* mth, IRParameter* param)
 
 
 
+
+uint32_t IRType_GetSize(IRType* tp)
+{
+	AppDomain* domain = tp->ParentAssembly->ParentDomain;
+	if (
+		(tp->TypeDef == domain->CachedType___System_Byte)
+	||  (tp->TypeDef == domain->CachedType___System_SByte)
+	||  (tp->TypeDef == domain->CachedType___System_Boolean)
+	)
+	{
+		return 1;
+	}
+	else if (
+		(tp->TypeDef == domain->CachedType___System_Int16)
+	||  (tp->TypeDef == domain->CachedType___System_UInt16)
+	||  (tp->TypeDef == domain->CachedType___System_Char)
+	)
+	{
+		return 2;
+	}
+	else if (
+		(tp->TypeDef == domain->CachedType___System_Int32)
+	||  (tp->TypeDef == domain->CachedType___System_UInt32)
+	||  (tp->TypeDef == domain->CachedType___System_Object)
+	||  (tp->TypeDef == domain->CachedType___System_Single)
+	)
+	{
+		return 4;
+	}
+	else if (
+		(tp->TypeDef == domain->CachedType___System_Int64)
+	||  (tp->TypeDef == domain->CachedType___System_UInt64)
+	||  (tp->TypeDef == domain->CachedType___System_Double)
+	)
+	{
+		return 8;
+	}
+	else if (
+		(tp->TypeDef == domain->CachedType___System_IntPtr)
+	||  (tp->TypeDef == domain->CachedType___System_UIntPtr)
+	)
+	{
+		return global_SizeOfPointerInBytes;
+	}
+	else
+	{
+		uint32_t size = 0;
+		for (uint32_t i2 = 1; i2 <= tp->FieldCount; i2++)
+		{
+			size += IRType_GetSize(tp->Fields[i2]->FieldType);
+		}
+		return size;
+	}
+}

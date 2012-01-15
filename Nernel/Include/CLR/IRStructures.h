@@ -15,6 +15,7 @@ typedef struct _IRField IRField;
 // circular inclusions.
 #include <CLR/CLIFile.h>
 #include <CLR/OpCodes_IR.h>
+#include <CLR/AppDomain.h>
 
 struct _IRAssembly
 {
@@ -22,6 +23,7 @@ struct _IRAssembly
         The index in the AppDomain's assembly array.
      */
 	uint32_t AssemblyIndex;
+	AppDomain* ParentDomain;
 
     uint32_t MethodCount;
     IRMethod** Methods;
@@ -37,7 +39,6 @@ struct _IRMethod
         The index in the IRAssembly's method array.
      */
     uint32_t MethodIndex;
-	AppDomain* ParentDomain;
 
     /*
         The actual assembled method.
@@ -56,6 +57,8 @@ struct _IRMethod
 
 	uint32_t LocalVariableCount;
 	IRLocalVariable** LocalVariables;	
+
+	MethodDefinition* MethodDefinition;
 };
 
 /*
@@ -89,12 +92,18 @@ struct _IRType
 
     bool_t IsValueType;
     bool_t IsReferenceType;
+	bool_t IsGeneric;
     
 	bool_t HasStaticConstructor;
 	IRMethod* StaticConstructor;
 
     uint32_t FieldCount;
     IRField** Fields;
+
+	bool_t FixedSize;
+	uint32_t Size;
+
+	TypeDefinition* TypeDef;
 };
 
 struct _IRLocalVariable

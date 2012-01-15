@@ -52,8 +52,6 @@ IRAssembly* ILReader_CreateAssembly(CLIFile* fil)
 		Log_WriteLine(LogFlags_ILReading, "Method index: %i", (int)i);
         IRMethod* irMeth = ReadIL(&ilLoc, fil->MethodDefinitions[i].Body.CodeSize, &fil->MethodDefinitions[i], fil);
         IRMethod_BranchLinker_LinkMethod(irMeth);
-        fil->MethodDefinitions[i].LoadedMethod = irMeth;
-        irMeth->MethodIndex = i - 1;
         IRAssembly_AddMethod(asmbly, irMeth);
     }
 

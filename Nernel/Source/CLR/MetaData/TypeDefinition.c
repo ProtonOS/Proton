@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include <CLR/CLIFile.h>
 
@@ -88,13 +87,6 @@ const uint8_t* TypeDefinition_Load(CLIFile* pFile, const uint8_t* pTableData)
             pFile->TypeDefinitions[index].MethodDefinitionList = &pFile->MethodDefinitions[methodDefinitionListIndex];
             methodDefinitionListIndexes[index] = methodDefinitionListIndex;
         }
-
-		if (!strcmp(pFile->TypeDefinitions[index].Namespace, "System"))
-		{
-			if (!strcmp(pFile->TypeDefinitions[index].Name, "Object")) pFile->SystemObjectTypeDefinition = &pFile->TypeDefinitions[index];
-			else if (!strcmp(pFile->TypeDefinitions[index].Name, "ValueType")) pFile->SystemValueTypeTypeDefinition = &pFile->TypeDefinitions[index];
-			else if (!strcmp(pFile->TypeDefinitions[index].Name, "Enum")) pFile->SystemEnumTypeDefinition = &pFile->TypeDefinitions[index];
-		}
     }
     uint32_t fieldListCount = 0;
     for (uint32_t index = 1, used = 0; index <= pFile->TypeDefinitionCount; ++index, used += fieldListCount)
