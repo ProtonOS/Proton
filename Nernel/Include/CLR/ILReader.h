@@ -2,4 +2,4 @@
 
 #include <CLR/IRStructures.h>
 
-ILAssembly* ILReader_CreateAssembly(CLIFile* fil);
+IRAssembly* ILReader_CreateAssembly(CLIFile* fil);

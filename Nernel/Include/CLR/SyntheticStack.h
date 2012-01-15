@@ -40,7 +40,6 @@ struct _StackObject
     StackObjectNumericType NumericType;
     StackObject* PrevObj;
     StackObject* NextObj;
-    char* Name;
 };
 
 StackObject* StackObject_Create();

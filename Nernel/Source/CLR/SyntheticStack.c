@@ -32,7 +32,6 @@ void StackObjectPool_PushSet()
     for (uint32_t i = 0; i < STACK_OBJECT_POOL_INIT_SIZE; i++)
     {
         StackObject* obj = StackObject_Create();
-        obj->Name = strdup("Default Name");
         obj->Type = STACK_OBJECT_NO_TYPE;
         SyntheticStack_Push(&stackObjPool, obj);
     }
@@ -49,8 +48,6 @@ StackObject* StackObjectPool_Allocate()
 
 void StackObjectPool_Release(StackObject* obj)
 {
-    free(obj->Name);
-    obj->Name = strdup("Default Name");
     obj->NextObj = (StackObject*)0;
     obj->PrevObj = (StackObject*)0;
     obj->Type = STACK_OBJECT_NO_TYPE;
@@ -76,13 +73,11 @@ StackObject* StackObject_Create()
 {
     StackObject* obj = (StackObject*)calloc(1, sizeof(StackObject));
     obj->Type = STACK_OBJECT_NO_TYPE;
-    obj->Name = strdup("Default Name");
     return obj;
 }
 
 void StackObject_Destroy(StackObject* obj)
 {
-    free(obj->Name);
     free(obj);
 }
 
@@ -93,7 +88,6 @@ SyntheticStack* SyntheticStack_Create()
     SyntheticStack* stack = (SyntheticStack*)calloc(1, sizeof(SyntheticStack));
     StackObject* obj = StackObject_Create();
     obj->Type = (StackObjectType)0xFF;
-    obj->Name = strdup("Root Stack Object");
     stack->TopObject = obj;
     return stack;
 }

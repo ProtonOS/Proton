@@ -23,41 +23,32 @@ IRInstruction* IRInstruction_Create()
     return instr;
 }
 
-void IRAssembly_AddMethod(IRAssembly* asmb, IRMethod* mth)
+IRParameter* IRParameter_Create()
 {
-	asmb->MethodCount++;
-	// The reason this is safe to do even if
-	// we haven't allocated for it yet, is because
-	// realloc acts like a normal malloc if the first
-	// argument is NULL.
-	asmb->Methods = (IRMethod**)realloc(asmb->Methods, sizeof(IRMethod*) * asmb->MethodCount);
-	asmb->Methods[asmb->MethodCount - 1] = mth;
+	IRParameter* param = (IRParameter*)calloc(1, sizeof(IRParameter));
+	return param;
 }
 
-void IRMethod_AddInstruction(IRMethod* mth, IRInstruction* instr)
+IRType* IRType_Create()
 {
-	mth->IRCodesCount++;
-	// The reason this is safe to do even if
-	// we haven't allocated for it yet, is because
-	// realloc acts like a normal malloc if the first
-	// argument is NULL.
-	mth->IRCodes = (IRInstruction**)realloc(mth->IRCodes, sizeof(IRInstruction*) * mth->IRCodesCount);
-	mth->IRCodes[mth->IRCodesCount - 1] = instr;
+	IRType* tp = (IRType*)calloc(1, sizeof(IRType));
+	return tp;
+}
+
+IRLocalVariable* IRLocalVariable_Create()
+{
+	IRLocalVariable* var = (IRLocalVariable*)calloc(1, sizeof(IRLocalVariable));
+	return var;
+}
+
+IRField* IRField_Create()
+{
+	IRField* fld = (IRField*)calloc(1, sizeof(IRField));
+	return fld;
 }
 
 
-// These should only be getting called within this file
-void IRAssembly_Destroy(IRAssembly* assembly);
-void IRInstruction_Destroy(IRInstruction* instr);
-void IRMethod_Destroy(IRMethod* method);
 
-
-void ILAssembly_Destroy(ILAssembly* assembly)
-{
-    CLIFile_Destroy(assembly->CLIFile);
-    IRAssembly_Destroy(assembly->IRAssembly);
-    free(assembly);
-}
 
 
 void IRAssembly_Destroy(IRAssembly* assembly)
@@ -66,6 +57,7 @@ void IRAssembly_Destroy(IRAssembly* assembly)
 	{
         IRMethod_Destroy(assembly->Methods[i]);
 	}
+	free(assembly->Methods);
     free(assembly);
 }
 
@@ -77,8 +69,20 @@ void IRMethod_Destroy(IRMethod* method)
     {
         IRInstruction_Destroy(method->IRCodes[i]);
     }
+	for (uint32_t i = 0; i < method->LocalVariableCount; i++)
+    {
+        IRLocalVariable_Destroy(method->LocalVariables[i]);
+    }
+	for (uint32_t i = 0; i < method->ParameterCount; i++)
+    {
+        IRParameter_Destroy(method->Parameters[i]);
+    }
     if (method->IRCodes)
         free(method->IRCodes);
+    if (method->LocalVariables)
+        free(method->LocalVariables);
+    if (method->Parameters)
+        free(method->Parameters);
     free(method);
 }
 
@@ -98,3 +102,90 @@ void IRInstruction_Destroy(IRInstruction* instr)
     }
     free(instr);
 }
+
+void IRParameter_Destroy(IRParameter* param)
+{
+	free(param);
+}
+
+void IRType_Destroy(IRType* tp)
+{
+	if (tp->Fields)
+		free(tp->Fields);
+	free(tp);
+}
+
+void IRLocalVariable_Destroy(IRLocalVariable* var)
+{
+	free(var);
+}
+
+void IRField_Destroy(IRField* fld)
+{
+	free(fld);
+}
+
+
+
+
+
+void IRAssembly_AddMethod(IRAssembly* asmb, IRMethod* mth)
+{
+	mth->MethodIndex = asmb->MethodCount;
+	asmb->MethodCount++;
+	// The reason this is safe to do even if
+	// we haven't allocated for it yet, is because
+	// realloc acts like a normal malloc if the first
+	// argument is NULL.
+	asmb->Methods = (IRMethod**)realloc(asmb->Methods, sizeof(IRMethod*) * asmb->MethodCount);
+	asmb->Methods[asmb->MethodCount - 1] = mth;
+}
+
+void IRAssembly_AddType(IRAssembly* asmb, IRType* tp)
+{
+	tp->TypeIndex = asmb->TypeCount;
+	asmb->TypeCount++;
+	asmb->Types = (IRType**)realloc(asmb->Types, sizeof(IRType*) * asmb->TypeCount);
+	asmb->Types[asmb->TypeCount - 1] = tp;
+}
+
+void IRAssembly_AddField(IRAssembly* asmb, IRField* fld)
+{
+	fld->FieldIndex = asmb->FieldCount;
+	asmb->FieldCount++;
+	asmb->Fields = (IRField**)realloc(asmb->Fields, sizeof(IRField*) * asmb->FieldCount);
+	asmb->Fields[asmb->FieldCount - 1] = fld;
+}
+
+
+
+
+
+
+void IRMethod_AddInstruction(IRMethod* mth, IRInstruction* instr)
+{
+	mth->IRCodesCount++;
+	mth->IRCodes = (IRInstruction**)realloc(mth->IRCodes, sizeof(IRInstruction*) * mth->IRCodesCount);
+	mth->IRCodes[mth->IRCodesCount - 1] = instr;
+}
+
+void IRMethod_AddLocalVariable(IRMethod* mth, IRLocalVariable* var)
+{
+	var->LocalVariableIndex = mth->LocalVariableCount;
+	mth->LocalVariableCount++;
+	mth->LocalVariables = (IRLocalVariable**)realloc(mth->LocalVariables, sizeof(IRLocalVariable*) * mth->LocalVariableCount);
+	mth->LocalVariables[mth->LocalVariableCount - 1] = var;
+}
+
+void IRMethod_AddParameter(IRMethod* mth, IRParameter* param)
+{
+	param->ParameterIndex = mth->ParameterCount;
+	mth->ParameterCount++;
+	mth->Parameters = (IRParameter**)realloc(mth->Parameters, sizeof(IRParameter*) * mth->ParameterCount);
+	mth->Parameters[mth->ParameterCount - 1] = param;
+}
+
+
+
+
+

@@ -2,11 +2,11 @@
 #include <CLR/Optimizations/UnconditionalBranchTransform.h>
 #include <stdlib.h>
 
-void IROptimizer_UnconditionalBranchTransform(ILAssembly* asmb)
+void IROptimizer_UnconditionalBranchTransform(IRAssembly* asmb)
 {
-    for (uint32_t i = 0; i < asmb->IRAssembly->MethodCount; i++)
+    for (uint32_t i = 0; i < asmb->MethodCount; i++)
     {
-        IRMethod* mth = asmb->IRAssembly->Methods[i];
+        IRMethod* mth = asmb->Methods[i];
         for (uint32_t i2 = 0; i2 < mth->IRCodesCount; i2++)
         {
             IRInstruction* instr = mth->IRCodes[i2];

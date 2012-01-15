@@ -122,7 +122,6 @@
     StackObject* obj2 = StackObjectPool_Allocate(); \
     obj2->Type = StackObjectType_##sObjType; \
     obj2->NumericType = StackObjectNumericType_##sObjNumType; \
-    obj2->Name = obj->Name; \
     StackObjectPool_Release(obj); \
     SyntheticStack_Push(stack, obj2); \
     EMIT_IR_2ARG(IROpCode_Convert_Unchecked, sType, tType); \
@@ -164,7 +163,6 @@
     StackObject* obj2 = StackObjectPool_Allocate(); \
     obj2->Type = StackObjectType_##sObjType; \
     obj2->NumericType = StackObjectNumericType_##sObjNumType; \
-    obj2->Name = obj->Name; \
     StackObjectPool_Release(obj); \
     SyntheticStack_Push(stack, obj2); \
     EMIT_IR_2ARG(IROpCode_Convert_OverflowCheck, sType, tType); \
@@ -209,7 +207,6 @@
     StackObject* obj2 = StackObjectPool_Allocate(); \
     obj2->Type = StackObjectType_##sObjType; \
     obj2->NumericType = StackObjectNumericType_##sObjNumType; \
-    obj2->Name = obj->Name; \
     StackObjectPool_Release(obj); \
     SyntheticStack_Push(stack, obj2); \
     EMIT_IR_2ARG(IROpCode_Convert_OverflowCheck, sType, tType); \
@@ -308,7 +305,6 @@
 			break; \
 	} \
 	SyntheticStack_Push(stack, obj); \
-	obj = NULL; \
 	EMIT_IR_3ARG(IROpCode_Shift, sType, sValType, sAmntType); \
 	ClearFlags(); \
 	break; }

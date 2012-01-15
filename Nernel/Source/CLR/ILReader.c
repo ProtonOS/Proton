@@ -18,12 +18,10 @@ uint32_t ReadUInt32(uint8_t** dat);
 uint64_t ReadUInt64(uint8_t** dat);
 IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* fil);
 
-ILAssembly* ILReader_CreateAssembly(CLIFile* fil)
+IRAssembly* ILReader_CreateAssembly(CLIFile* fil)
 {
     StackObjectPool_Initialize();
-	ILAssembly* asmbly = (ILAssembly*)calloc(1, sizeof(ILAssembly));
-    asmbly->CLIFile = fil;
-    asmbly->IRAssembly = IRAssembly_Create();
+	IRAssembly* asmbly = IRAssembly_Create();
 	char* code = calloc(1, 1024);
 	char* mth = code;
 	x86_mov_reg_imm(code, X86_EDX, 0);
@@ -56,7 +54,7 @@ ILAssembly* ILReader_CreateAssembly(CLIFile* fil)
         IRMethod_BranchLinker_LinkMethod(irMeth);
         fil->MethodDefinitions[i].LoadedMethod = irMeth;
         irMeth->MethodIndex = i - 1;
-        IRAssembly_AddMethod(asmbly->IRAssembly, irMeth);
+        IRAssembly_AddMethod(asmbly, irMeth);
     }
 
     StackObjectPool_Destroy();
@@ -122,7 +120,6 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 						SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[0]->Type->ElementType);
 					}
 					MethodSignature_Destroy(mthSig);
-					obj->Name = String_Format("Parameter %i", (int)1);
 					SyntheticStack_Push(stack, obj);
                 }
                 ClearFlags();
@@ -145,7 +142,6 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 						SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[1]->Type->ElementType);
 					}
 					MethodSignature_Destroy(mthSig);
-					obj->Name = String_Format("Parameter %i", (int)2);
 					SyntheticStack_Push(stack, obj);
                 }
                 ClearFlags();
@@ -168,7 +164,6 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 						SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[2]->Type->ElementType);
 					}
 					MethodSignature_Destroy(mthSig);
-					obj->Name = String_Format("Parameter %i", (int)3);
 					SyntheticStack_Push(stack, obj);
                 }
                 ClearFlags();
@@ -191,7 +186,6 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 						SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[3]->Type->ElementType);
 					}
 					MethodSignature_Destroy(mthSig);
-					obj->Name = String_Format("Parameter %i", (int)4);
 					SyntheticStack_Push(stack, obj);
                 }
                 ClearFlags();
@@ -225,7 +219,6 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 					}
 					SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[*dt]->Type->ElementType);
 					MethodSignature_Destroy(mthSig);
-					obj->Name = String_Format("Parameter %i", (int)(((int32_t)(int8_t)(uint8_t)*dt) + 1));
 					SyntheticStack_Push(stack, obj);
                 }
                 ClearFlags();
@@ -262,7 +255,6 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 					SetTypeOfStackObjectFromSigElementType(obj, sig->LocalVariables[0]->Type->ElementType);
 					LocalsSignature_Destroy(sig);
 					free(tok);
-					obj->Name = String_Format("Local %i", (int)1);
 					SyntheticStack_Push(stack, obj);
                 }
                 ClearFlags();
@@ -280,7 +272,6 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 					SetTypeOfStackObjectFromSigElementType(obj, sig->LocalVariables[1]->Type->ElementType);
 					LocalsSignature_Destroy(sig);
 					free(tok);
-					obj->Name = String_Format("Local %i", (int)2);
 					SyntheticStack_Push(stack, obj);
                 }
                 ClearFlags();
@@ -298,7 +289,6 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 					SetTypeOfStackObjectFromSigElementType(obj, sig->LocalVariables[2]->Type->ElementType);
 					LocalsSignature_Destroy(sig);
 					free(tok);
-					obj->Name = String_Format("Local %i", (int)3);
 					SyntheticStack_Push(stack, obj);
                 }
                 ClearFlags();
@@ -316,7 +306,6 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 					SetTypeOfStackObjectFromSigElementType(obj, sig->LocalVariables[3]->Type->ElementType);
 					LocalsSignature_Destroy(sig);
 					free(tok);
-					obj->Name = String_Format("Local %i", (int)4);
 					SyntheticStack_Push(stack, obj);
                 }
                 ClearFlags();
@@ -334,7 +323,6 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 					SetTypeOfStackObjectFromSigElementType(obj, sig->LocalVariables[*dt]->Type->ElementType);
 					LocalsSignature_Destroy(sig);
 					free(tok);
-					obj->Name = String_Format("Local %i", (int)(((int32_t)(int8_t)(uint8_t)*dt) + 1));
 					SyntheticStack_Push(stack, obj);
                 }
                 ClearFlags();
@@ -350,7 +338,6 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
                     EMIT_IR_1ARG(IROpCode_Load_LocalVar_Address, dt);
 
                     StackObject* obj = StackObjectPool_Allocate();
-                    obj->Name = String_Format("Address of Local Variable #%i", (int)*dt);
                     obj->Type = StackObjectType_ManagedPointer;
                     SyntheticStack_Push(stack, obj);
                 }
@@ -1521,7 +1508,6 @@ Branch_Common:
 							StackObject* obj = StackObjectPool_Allocate();
 							SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[*dt]->Type->ElementType);
 							MethodSignature_Destroy(mthSig);
-							obj->Name = String_Format("Parameter %i", (int)(((int32_t)(int16_t)(uint16_t)*dt) + 1));
 							SyntheticStack_Push(stack, obj);
 						}
                         ClearFlags();
@@ -1554,7 +1540,6 @@ Branch_Common:
 							SetTypeOfStackObjectFromSigElementType(obj, sig->LocalVariables[*dt]->Type->ElementType);
 							LocalsSignature_Destroy(sig);
 							free(tok);
-							obj->Name = String_Format("Local %i", (int)(((int32_t)(int16_t)(uint16_t)*dt) + 1));
 							SyntheticStack_Push(stack, obj);
                         }
                         ClearFlags();
@@ -1568,7 +1553,6 @@ Branch_Common:
                             EMIT_IR_1ARG(IROpCode_Load_LocalVar_Address, dt);
 
                             StackObject* obj = StackObjectPool_Allocate();
-                            obj->Name = String_Format("Address of Local Variable #%i", (int)*dt);
                             obj->Type = StackObjectType_ManagedPointer;
                             SyntheticStack_Push(stack, obj);
                         }

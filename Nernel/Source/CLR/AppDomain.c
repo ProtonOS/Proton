@@ -14,8 +14,8 @@ AppDomain* AppDomain_CreateDomain()
         if (cliFile)
         {
 			AppDomain* domain = (AppDomain*)malloc(sizeof(AppDomain));
-            ILAssembly* asmb = ILReader_CreateAssembly(cliFile);
-            Log_WriteLine(LogFlags_AppDomain_Loading, "Method Count: %u\n", (unsigned int)asmb->IRAssembly->MethodCount);
+            IRAssembly* asmb = ILReader_CreateAssembly(cliFile);
+            Log_WriteLine(LogFlags_AppDomain_Loading, "Method Count: %u\n", (unsigned int)asmb->MethodCount);
 			AppDomain_AddAssembly(domain, asmb);
 			return domain;
         }
@@ -32,22 +32,23 @@ AppDomain* AppDomain_CreateDomain()
 
 void AppDomain_Destroy(AppDomain* domain)
 {
-	for (uint32_t i = 0; i < domain->ILAssemblyCount; i++)
+	for (uint32_t i = 0; i < domain->IRAssemblyCount; i++)
 	{
-		ILAssembly_Destroy(domain->ILAssemblies[i]);
+		IRAssembly_Destroy(domain->IRAssemblies[i]);
 	}
-	free(domain->ILAssemblies);
+	free(domain->IRAssemblies);
 	free(domain);
 }
 
-void AppDomain_AddAssembly(AppDomain* domain, ILAssembly* assembly)
+void AppDomain_AddAssembly(AppDomain* domain, IRAssembly* assembly)
 {
-	domain->ILAssemblyCount++;
+	// The index is 0 based, count is 1 based.
+	assembly->AssemblyIndex = domain->IRAssemblyCount;
+	domain->IRAssemblyCount++;
 	// The reason this is safe to do even if
 	// we haven't allocated for it yet, is because
 	// realloc acts like a normal malloc if the first
 	// argument is NULL.
-	domain->ILAssemblies = (ILAssembly**)realloc(domain->ILAssemblies, sizeof(ILAssembly*) * domain->ILAssemblyCount);
-	domain->ILAssemblies[domain->ILAssemblyCount - 1] = assembly;
-
+	domain->IRAssemblies = (IRAssembly**)realloc(domain->IRAssemblies, sizeof(IRAssembly*) * domain->IRAssemblyCount);
+	domain->IRAssemblies[domain->IRAssemblyCount - 1] = assembly;
 }
