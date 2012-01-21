@@ -30,9 +30,6 @@ struct _TypeDefinition
     uint32_t NestedClassCount;
     NestedClass** NestedClasses;
     PropertyMap* PropertyMap;
-
-	bool_t HasStaticConstructor;
-	bool_t HasStaticConstructorBeenRun;
 };
 
 const uint8_t* TypeDefinition_Initialize(CLIFile* pFile, const uint8_t* pTableData);

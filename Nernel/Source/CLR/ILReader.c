@@ -16,13 +16,14 @@ uint8_t ReadUInt8(uint8_t** dat);
 uint16_t ReadUInt16(uint8_t** dat);
 uint32_t ReadUInt32(uint8_t** dat);
 uint64_t ReadUInt64(uint8_t** dat);
+IRType* GenerateType(TypeDefinition* def, CLIFile* fil);
 IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* fil);
 
 IRAssembly* ILReader_CreateAssembly(CLIFile* fil)
 {
     StackObjectPool_Initialize();
 	IRAssembly* asmbly = IRAssembly_Create();
-	char* code = calloc(1, 1024);
+	/*char* code = calloc(1, 1024);
 	char* mth = code;
 	x86_mov_reg_imm(code, X86_EDX, 0);
 	x86_mov_reg_imm(code, X86_EDX, 0x02F8);
@@ -43,7 +44,17 @@ IRAssembly* ILReader_CreateAssembly(CLIFile* fil)
 	x86_out_byte(code);
 	x86_ret(code);
 
-	((void(*)())mth)();
+	((void(*)())mth)();*/
+
+	for (uint32_t i = 1; i < fil->FieldCount; i++)
+	{
+
+	}
+
+	for (uint32_t i = 1; i < fil->TypeDefinitionCount; i++)
+	{
+		IRAssembly_AddType(asmbly, GenerateType(&fil->TypeDefinitions[i], fil));
+	}
 
     for (uint32_t i = 1; i <= fil->MethodDefinitionCount; i++)
     {
@@ -62,6 +73,30 @@ IRAssembly* ILReader_CreateAssembly(CLIFile* fil)
 	return asmbly;
 }
 
+IRType* GenerateType(TypeDefinition* def, CLIFile* fil)
+{
+	IRType* tp = (IRType*)calloc(1, sizeof(IRType));
+	if (def->GenericParameterCount > 0)
+	{
+		tp->IsGeneric = TRUE;
+		tp->FixedSize = FALSE;
+	}
+	else
+	{
+		tp->IsGeneric = FALSE;
+		tp->FixedSize = TRUE;
+	}
+	for(uint32_t i = 0; i < def->FieldListCount; i++)
+	{
+		//Field* fld = def->FieldList[i].
+	}
+	return tp;
+}
+
+void Link(IRAssembly* asmb)
+{
+
+}
 
 IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* fil)
 {
