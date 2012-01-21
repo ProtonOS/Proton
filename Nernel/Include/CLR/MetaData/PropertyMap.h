@@ -4,6 +4,7 @@
 
 struct _PropertyMap
 {
+	uint32_t TableIndex;
     TypeDefinition* Parent;
     Property* PropertyList;
     uint32_t PropertyListCount;

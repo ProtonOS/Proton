@@ -33,6 +33,7 @@ const uint8_t* TypeReference_Load(CLIFile* pFile, const uint8_t* pTableData)
     uint32_t resolutionScopeRow = 0;
     for (uint32_t index = 1, heapIndex = 0; index <= pFile->TypeReferenceCount; ++index)
     {
+        pFile->TypeReferences[index].TableIndex = index;
         if (pFile->ModuleDefinitionCount > ResolutionScope_Type_MaxRows16Bit ||
             pFile->ModuleReferenceCount > ResolutionScope_Type_MaxRows16Bit ||
             pFile->AssemblyReferenceCount > ResolutionScope_Type_MaxRows16Bit ||

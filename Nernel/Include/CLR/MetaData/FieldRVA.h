@@ -4,6 +4,7 @@
 
 struct _FieldRVA
 {
+	uint32_t TableIndex;
     const uint8_t* InitialValue;
     Field* Field;
 };

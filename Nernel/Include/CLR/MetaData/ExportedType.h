@@ -4,6 +4,7 @@
 
 struct _ExportedType
 {
+	uint32_t TableIndex;
     uint32_t Flags;
     TypeDefinition* TypeDefinitionID;
     const char* Name;

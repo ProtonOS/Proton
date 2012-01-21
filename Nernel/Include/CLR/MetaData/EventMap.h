@@ -4,6 +4,7 @@
 
 struct _EventMap
 {
+	uint32_t TableIndex;
     TypeDefinition* Parent;
     Event* EventList;
     uint32_t EventListCount;

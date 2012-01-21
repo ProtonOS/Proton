@@ -4,6 +4,7 @@
 
 struct _DeclSecurity
 {
+	uint32_t TableIndex;
     uint16_t Action;
     HasDeclSecurityUnion(Parent)
     uint32_t PermissionSetLength;

@@ -32,6 +32,7 @@ const uint8_t* ManifestResource_Load(CLIFile* pFile, const uint8_t* pTableData)
     uint32_t implementationRow = 0;
     for (uint32_t index = 1, heapIndex = 0; index <= pFile->ManifestResourceCount; ++index)
     {
+        pFile->ManifestResources[index].TableIndex = index;
         pFile->ManifestResources[index].Offset = *(uint32_t* )pTableData; pTableData += 4;
         pFile->ManifestResources[index].Flags = *(uint32_t* )pTableData; pTableData += 4;
         if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }

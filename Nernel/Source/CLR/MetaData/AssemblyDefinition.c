@@ -30,6 +30,7 @@ const uint8_t* AssemblyDefinition_Load(CLIFile* pFile, const uint8_t* pTableData
 {
     for (uint32_t index = 1, heapIndex = 0; index <= pFile->AssemblyDefinitionCount; ++index)
     {
+        pFile->AssemblyDefinitions[index].TableIndex = index;
         pFile->AssemblyDefinitions[index].HashAlgorithmID = *(uint32_t* )pTableData; pTableData += 4;
         pFile->AssemblyDefinitions[index].MajorVersion = *(uint16_t* )pTableData; pTableData += 2;
         pFile->AssemblyDefinitions[index].MinorVersion = *(uint16_t* )pTableData; pTableData += 2;

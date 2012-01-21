@@ -4,6 +4,7 @@
 
 struct _AssemblyProcessor
 {
+	uint32_t TableIndex;
     uint32_t Processor;
 };
 

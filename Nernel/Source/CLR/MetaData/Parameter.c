@@ -30,6 +30,7 @@ const uint8_t* Parameter_Load(CLIFile* pFile, const uint8_t* pTableData)
 {
     for (uint32_t index = 1, heapIndex = 0; index <= pFile->ParameterCount; ++index)
     {
+        pFile->Parameters[index].TableIndex = index;
         pFile->Parameters[index].Flags = *(uint16_t*)pTableData; pTableData += 2;
         pFile->Parameters[index].Sequence = *(uint16_t*)pTableData; pTableData += 2;
         if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }

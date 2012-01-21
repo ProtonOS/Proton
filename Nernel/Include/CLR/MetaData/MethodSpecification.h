@@ -4,6 +4,7 @@
 
 struct _MethodSpecification
 {
+	uint32_t TableIndex;
     MethodDefOrRefUnion(Method)
     uint32_t InstantiationLength;
     const uint8_t* Instantiation;

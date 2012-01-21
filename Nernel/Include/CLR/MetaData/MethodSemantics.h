@@ -4,6 +4,7 @@
 
 struct _MethodSemantics
 {
+	uint32_t TableIndex;
     uint16_t Semantics;
     MethodDefinition* Method;
     HasSemanticsUnion(Association)

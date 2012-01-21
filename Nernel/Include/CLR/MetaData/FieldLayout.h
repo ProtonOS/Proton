@@ -4,6 +4,7 @@
 
 struct _FieldLayout
 {
+	uint32_t TableIndex;
     uint32_t Offset;
     Field* Field;
 };

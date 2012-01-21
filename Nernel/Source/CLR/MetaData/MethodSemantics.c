@@ -32,6 +32,7 @@ const uint8_t* MethodSemantics_Load(CLIFile* pFile, const uint8_t* pTableData)
     uint32_t associationRow = 0;
     for (uint32_t index = 1; index <= pFile->MethodSemanticsCount; ++index)
     {
+        pFile->MethodSemantics[index].TableIndex = index;
         pFile->MethodSemantics[index].Semantics = *(uint16_t*)pTableData; pTableData += 2;
         if (pFile->MethodDefinitionCount > 0xFFFF) { methodIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { methodIndex = *(uint16_t*)pTableData; pTableData += 2; }

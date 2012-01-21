@@ -32,6 +32,7 @@ const uint8_t* DeclSecurity_Load(CLIFile* pFile, const uint8_t* pTableData)
     uint32_t parentRow = 0;
     for (uint32_t index = 1, heapIndex = 0; index <= pFile->DeclSecurityCount; ++index)
     {
+        pFile->DeclSecurities[index].TableIndex = index;
         pFile->DeclSecurities[index].Action = *(uint16_t*)pTableData; pTableData += 2;
 
         if (pFile->TypeDefinitionCount > HasDeclSecurity_Type_MaxRows16Bit ||

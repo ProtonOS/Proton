@@ -4,6 +4,7 @@
 
 struct _GenericParameter
 {
+	uint32_t TableIndex;
     uint16_t Index;
     uint16_t Flags;
     TypeOrMethodDefUnion(Owner)

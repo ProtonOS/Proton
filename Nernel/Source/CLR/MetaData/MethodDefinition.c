@@ -39,6 +39,7 @@ const uint8_t* MethodDefinition_Load(CLIFile* pFile, const uint8_t* pTableData)
     uint32_t* parameterListIndexes = (uint32_t*)calloc(pFile->MethodDefinitionCount + 1, sizeof(uint32_t));
     for (uint32_t index = 1, heapIndex = 0; index <= pFile->MethodDefinitionCount; ++index)
     {
+        pFile->MethodDefinitions[index].TableIndex = index;
         methodBodyVirtualAddress = *(uint32_t*)pTableData; pTableData += 4;
         pFile->MethodDefinitions[index].Body.Flags = 0;
         pFile->MethodDefinitions[index].Body.MaxStack = 0;

@@ -32,6 +32,7 @@ const uint8_t* MethodImplementation_Load(CLIFile* pFile, const uint8_t* pTableDa
     uint32_t methodRow = 0;
     for (uint32_t index = 1; index <= pFile->MethodImplementationCount; ++index)
     {
+        pFile->MethodImplementations[index].TableIndex = index;
         if (pFile->TypeDefinitionCount > 0xFFFF) { parentIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { parentIndex = *(uint16_t*)pTableData; pTableData += 2; }
         if (parentIndex == 0 || parentIndex > pFile->TypeDefinitionCount) Panic("MethodImplementation_Load TypeDefinition");

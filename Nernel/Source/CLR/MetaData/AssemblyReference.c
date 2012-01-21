@@ -30,6 +30,7 @@ const uint8_t* AssemblyReference_Load(CLIFile* pFile, const uint8_t* pTableData)
 {
     for (uint32_t index = 1, heapIndex = 0; index <= pFile->AssemblyReferenceCount; ++index)
     {
+        pFile->AssemblyReferences[index].TableIndex = index;
         pFile->AssemblyReferences[index].MajorVersion = *(uint16_t* )pTableData; pTableData += 2;
         pFile->AssemblyReferences[index].MinorVersion = *(uint16_t* )pTableData; pTableData += 2;
         pFile->AssemblyReferences[index].Build = *(uint16_t* )pTableData; pTableData += 2;

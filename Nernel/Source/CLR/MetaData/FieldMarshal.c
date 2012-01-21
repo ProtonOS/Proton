@@ -31,6 +31,7 @@ const uint8_t* FieldMarshal_Load(CLIFile* pFile, const uint8_t* pTableData)
     uint32_t parentRow = 0;
     for (uint32_t index = 1, heapIndex = 0; index <= pFile->FieldMarshalCount; ++index)
     {
+        pFile->FieldMarshals[index].TableIndex = index;
         if (pFile->FieldCount > HasFieldMarshal_Type_MaxRows16Bit ||
             pFile->ParameterCount > HasFieldMarshal_Type_MaxRows16Bit) { parentIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { parentIndex = *(uint16_t*)pTableData; pTableData += 2; }

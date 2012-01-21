@@ -4,6 +4,7 @@
 
 struct _ClassLayout
 {
+	uint32_t TableIndex;
     uint16_t PackingSize;
     uint32_t ClassSize;
     TypeDefinition* Parent;

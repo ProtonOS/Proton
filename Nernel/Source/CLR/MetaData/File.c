@@ -30,6 +30,7 @@ const uint8_t* File_Load(CLIFile* pFile, const uint8_t* pTableData)
 {
     for (uint32_t index = 1, heapIndex = 0; index <= pFile->FileCount; ++index)
     {
+        pFile->Files[index].TableIndex = index;
         pFile->Files[index].Flags = *(uint32_t* )pTableData; pTableData += 4;
         if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }

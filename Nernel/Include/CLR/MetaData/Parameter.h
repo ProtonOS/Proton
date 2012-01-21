@@ -4,6 +4,7 @@
 
 struct _Parameter
 {
+	uint32_t TableIndex;
     uint16_t Flags;
     uint16_t Sequence;
     const char* Name;

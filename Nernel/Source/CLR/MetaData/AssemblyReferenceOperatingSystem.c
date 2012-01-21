@@ -30,6 +30,7 @@ const uint8_t* AssemblyReferenceOperatingSystem_Load(CLIFile* pFile, const uint8
     uint32_t assemblyReferenceIndex = 0;
     for (uint32_t index = 1; index <= pFile->AssemblyReferenceOperatingSystemCount; ++index)
     {
+        pFile->AssemblyReferenceOperatingSystems[index].TableIndex = index;
         pFile->AssemblyReferenceOperatingSystems[index].PlatformID = *(uint32_t* )pTableData; pTableData += 4;
         pFile->AssemblyReferenceOperatingSystems[index].MajorVersion = *(uint32_t* )pTableData; pTableData += 4;
         pFile->AssemblyReferenceOperatingSystems[index].MinorVersion = *(uint32_t* )pTableData; pTableData += 4;

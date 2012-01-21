@@ -4,6 +4,7 @@
 
 struct _NestedClass
 {
+	uint32_t TableIndex;
     TypeDefinition* Nested;
     TypeDefinition* Enclosing;
 };

@@ -30,6 +30,7 @@ const uint8_t* Field_Load(CLIFile* pFile, const uint8_t* pTableData)
 {
     for (uint32_t index = 1, heapIndex = 0; index <= pFile->FieldCount; ++index)
     {
+        pFile->Fields[index].TableIndex = index;
         pFile->Fields[index].Flags = *(uint16_t*)pTableData; pTableData += 2;
         if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }

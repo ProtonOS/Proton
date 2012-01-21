@@ -33,6 +33,7 @@ const uint8_t* GenericParameter_Load(CLIFile* pFile, const uint8_t* pTableData)
     uint32_t ownerRow = 0;
     for (uint32_t index = 1, heapIndex = 0; index <= pFile->GenericParameterCount; ++index)
     {
+        pFile->GenericParameters[index].TableIndex = index;
         pFile->GenericParameters[index].Index = *(uint16_t* )pTableData; pTableData += 2;
         pFile->GenericParameters[index].Flags = *(uint16_t* )pTableData; pTableData += 2;
         if (pFile->TypeDefinitionCount > TypeOrMethodDef_Type_MaxRows16Bit ||

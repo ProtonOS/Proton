@@ -33,6 +33,7 @@ const uint8_t* GenericParameterConstraint_Load(CLIFile* pFile, const uint8_t* pT
     uint32_t constraintRow = 0;
     for (uint32_t index = 1; index <= pFile->GenericParameterConstraintCount; ++index)
     {
+        pFile->GenericParameterConstraints[index].TableIndex = index;
         if (pFile->GenericParameterCount > 0xFFFF) { ownerIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { ownerIndex = *(uint16_t*)pTableData; pTableData += 2; }
         if (ownerIndex == 0 || ownerIndex > pFile->GenericParameterCount) Panic("GenericParameterConstraint_Load GenericParameter");

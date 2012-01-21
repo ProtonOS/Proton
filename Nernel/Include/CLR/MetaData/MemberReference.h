@@ -4,6 +4,7 @@
 
 struct _MemberReference
 {
+	uint32_t TableIndex;
     MemberRefParentUnion(Parent)
     const char* Name;
     uint32_t SignatureLength;

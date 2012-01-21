@@ -32,6 +32,7 @@ const uint8_t* ImplementationMap_Load(CLIFile* pFile, const uint8_t* pTableData)
     uint32_t importScopeIndex = 0;
     for (uint32_t index = 1, heapIndex = 0; index <= pFile->ImplementationMapCount; ++index)
     {
+        pFile->ImplementationMaps[index].TableIndex = index;
         pFile->ImplementationMaps[index].MappingFlags = *(uint16_t*)pTableData; pTableData += 2;
 
         if (pFile->FieldCount > MemberForwarded_Type_MaxRows16Bit ||

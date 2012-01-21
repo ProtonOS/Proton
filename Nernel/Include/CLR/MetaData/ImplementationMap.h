@@ -4,6 +4,7 @@
 
 struct _ImplementationMap
 {
+	uint32_t TableIndex;
     uint16_t MappingFlags;
     MemberForwardedUnion(MemberForwarded)
     const char* ImportName;

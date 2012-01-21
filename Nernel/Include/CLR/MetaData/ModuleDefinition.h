@@ -4,6 +4,7 @@
 
 struct _ModuleDefinition
 {
+	uint32_t TableIndex;
     uint16_t Generation;
     const char* Name;
     const uint8_t* ModuleVersionID;

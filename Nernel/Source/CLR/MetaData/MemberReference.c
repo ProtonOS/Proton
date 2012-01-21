@@ -32,6 +32,7 @@ const uint8_t* MemberReference_Load(CLIFile* pFile, const uint8_t* pTableData)
     uint32_t parentRow = 0;
     for (uint32_t index = 1, heapIndex = 0; index <= pFile->MemberReferenceCount; ++index)
     {
+        pFile->MemberReferences[index].TableIndex = index;
         if (pFile->TypeDefinitionCount > MemberRefParent_Type_MaxRows16Bit ||
             pFile->TypeReferenceCount > MemberRefParent_Type_MaxRows16Bit ||
             pFile->ModuleReferenceCount > MemberRefParent_Type_MaxRows16Bit ||

@@ -31,6 +31,7 @@ const uint8_t* NestedClass_Load(CLIFile* pFile, const uint8_t* pTableData)
     uint32_t enclosingIndex = 0;
     for (uint32_t index = 1; index <= pFile->NestedClassCount; ++index)
     {
+        pFile->NestedClasses[index].TableIndex = index;
         if (pFile->TypeDefinitionCount > 0xFFFF) { nestedIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { nestedIndex = *(uint16_t*)pTableData; pTableData += 2; }
         if (nestedIndex == 0 || nestedIndex > pFile->TypeDefinitionCount) Panic("NestedClass_Load TypeDefinition");

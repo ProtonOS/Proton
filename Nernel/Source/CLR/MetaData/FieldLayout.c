@@ -30,6 +30,7 @@ const uint8_t* FieldLayout_Load(CLIFile* pFile, const uint8_t* pTableData)
     uint32_t fieldIndex = 0;
     for (uint32_t index = 1; index <= pFile->FieldLayoutCount; ++index)
     {
+        pFile->FieldLayouts[index].TableIndex = index;
         pFile->FieldLayouts[index].Offset = *(uint32_t*)pTableData; pTableData += 4;
         if (pFile->FieldCount > 0xFFFF) { fieldIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { fieldIndex = *(uint16_t*)pTableData; pTableData += 2; }

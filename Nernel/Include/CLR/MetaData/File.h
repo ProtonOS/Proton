@@ -4,6 +4,7 @@
 
 struct _File
 {
+	uint32_t TableIndex;
     uint32_t Flags;
     const char* Name;
     uint32_t HashValueLength;

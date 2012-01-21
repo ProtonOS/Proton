@@ -4,6 +4,7 @@
 
 struct _AssemblyReferenceOperatingSystem
 {
+	uint32_t TableIndex;
     uint32_t PlatformID;
     uint32_t MajorVersion;
     uint32_t MinorVersion;

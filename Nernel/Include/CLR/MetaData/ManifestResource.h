@@ -4,6 +4,7 @@
 
 struct _ManifestResource
 {
+	uint32_t TableIndex;
     uint32_t Offset;
     uint32_t Flags;
     const char* Name;

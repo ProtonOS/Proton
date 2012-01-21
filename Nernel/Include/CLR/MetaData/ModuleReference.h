@@ -4,6 +4,7 @@
 
 struct _ModuleReference
 {
+	uint32_t TableIndex;
     const char* Name;
 
     uint32_t CustomAttributeCount;

@@ -4,6 +4,7 @@
 
 struct _AssemblyDefinition
 {
+	uint32_t TableIndex;
     uint32_t HashAlgorithmID;
     uint16_t MajorVersion;
     uint16_t MinorVersion;

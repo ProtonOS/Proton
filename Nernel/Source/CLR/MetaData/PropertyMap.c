@@ -32,6 +32,7 @@ const uint8_t* PropertyMap_Load(CLIFile* pFile, const uint8_t* pTableData)
     uint32_t* propertyListIndexes = (uint32_t*)calloc(pFile->PropertyMapCount + 1, sizeof(uint32_t));
     for (uint32_t index = 1; index <= pFile->PropertyMapCount; ++index)
     {
+        pFile->PropertyMaps[index].TableIndex = index;
         if (pFile->TypeDefinitionCount > 0xFFFF) { parentIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { parentIndex = *(uint16_t*)pTableData; pTableData += 2; }
         if (parentIndex == 0 || parentIndex > pFile->TypeDefinitionCount) Panic("PropertyMap_Load TypeDefinition");

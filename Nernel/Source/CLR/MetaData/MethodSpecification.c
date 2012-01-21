@@ -32,6 +32,7 @@ const uint8_t* MethodSpecification_Load(CLIFile* pFile, const uint8_t* pTableDat
     uint32_t methodRow = 0;
     for (uint32_t index = 1, heapIndex = 0; index <= pFile->MethodSpecificationCount; ++index)
     {
+        pFile->MethodSpecifications[index].TableIndex = index;
         if (pFile->MethodDefinitionCount > MethodDefOrRef_Type_MaxRows16Bit ||
             pFile->MemberReferenceCount > MethodDefOrRef_Type_MaxRows16Bit) { methodIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { methodIndex = *(uint16_t*)pTableData; pTableData += 2; }

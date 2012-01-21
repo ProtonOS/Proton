@@ -32,6 +32,7 @@ const uint8_t* EventMap_Load(CLIFile* pFile, const uint8_t* pTableData)
     uint32_t* eventListIndexes = (uint32_t*)calloc(pFile->EventMapCount + 1, sizeof(uint32_t));
     for (uint32_t index = 1; index <= pFile->EventMapCount; ++index)
     {
+        pFile->EventMaps[index].TableIndex = index;
         if (pFile->TypeDefinitionCount > 0xFFFF) { parentIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { parentIndex = *(uint16_t*)pTableData; pTableData += 2; }
         if (parentIndex == 0 || parentIndex > pFile->TypeDefinitionCount) Panic("EventMap_Load TypeDefinition");

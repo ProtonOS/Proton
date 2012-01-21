@@ -33,6 +33,7 @@ const uint8_t* CustomAttribute_Load(CLIFile* pFile, const uint8_t* pTableData)
     uint32_t typeRow = 0;
     for (uint32_t index = 1, heapIndex = 0; index <= pFile->CustomAttributeCount; ++index)
     {
+        pFile->CustomAttributes[index].TableIndex = index;
         if (pFile->MethodDefinitionCount > HasCustomAttribute_Type_MaxRows16Bit ||
             pFile->FieldCount > HasCustomAttribute_Type_MaxRows16Bit ||
             pFile->TypeReferenceCount > HasCustomAttribute_Type_MaxRows16Bit ||

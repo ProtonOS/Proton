@@ -74,6 +74,7 @@ struct _MethodDefinitionException
 
 struct _MethodDefinition
 {
+	uint32_t TableIndex;
     MethodDefinitionBody Body;
     uint32_t ExceptionCount;
     MethodDefinitionException* Exceptions;

@@ -4,6 +4,7 @@
 
 struct _CustomAttribute
 {
+	uint32_t TableIndex;
     HasCustomAttributeUnion(Parent)
     CustomAttributeTypeUnion(Type)
     uint32_t ValueLength;

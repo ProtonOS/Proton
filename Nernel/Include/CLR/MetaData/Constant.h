@@ -4,6 +4,7 @@
 
 struct _Constant
 {
+	uint32_t TableIndex;
     uint8_t Type;
     HasConstantUnion(Parent)
     uint32_t ValueLength;

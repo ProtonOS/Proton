@@ -4,6 +4,7 @@
 
 struct _Field
 {
+	uint32_t TableIndex;
     uint16_t Flags;
     const char* Name;
     uint32_t SignatureLength;

@@ -4,6 +4,7 @@
 
 struct _AssemblyReferenceProcessor
 {
+	uint32_t TableIndex;
     uint32_t Processor;
     AssemblyReference* AssemblyReference;
 };

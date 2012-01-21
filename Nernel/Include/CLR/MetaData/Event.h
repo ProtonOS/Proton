@@ -4,6 +4,7 @@
 
 struct _Event
 {
+	uint32_t TableIndex;
     uint16_t Flags;
     const char* Name;
     TypeDefOrRefUnion(EventType)

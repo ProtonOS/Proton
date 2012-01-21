@@ -4,6 +4,7 @@
 
 struct _InterfaceImplementation
 {
+	uint32_t TableIndex;
     TypeDefinition* Implementor;
     TypeDefOrRefUnion(Interface)
 

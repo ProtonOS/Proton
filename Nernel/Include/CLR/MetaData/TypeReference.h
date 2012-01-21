@@ -4,6 +4,7 @@
 
 struct _TypeReference
 {
+	uint32_t TableIndex;
     ResolutionScopeUnion(ResolutionScope)
     const char* Name;
     const char* Namespace;

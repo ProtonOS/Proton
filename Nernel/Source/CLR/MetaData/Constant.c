@@ -31,6 +31,7 @@ const uint8_t* Constant_Load(CLIFile* pFile, const uint8_t* pTableData)
     uint32_t parentRow = 0;
     for (uint32_t index = 1, heapIndex = 0; index <= pFile->ConstantCount; ++index)
     {
+        pFile->Constants[index].TableIndex = index;
         pFile->Constants[index].Type = *pTableData; pTableData += 2; // 1 unused padding byte
         if (pFile->FieldCount > HasConstant_Type_MaxRows16Bit ||
             pFile->ParameterCount > HasConstant_Type_MaxRows16Bit ||

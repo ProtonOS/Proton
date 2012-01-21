@@ -30,6 +30,7 @@ const uint8_t* ClassLayout_Load(CLIFile* pFile, const uint8_t* pTableData)
     uint32_t parentIndex = 0;
     for (uint32_t index = 1; index <= pFile->ClassLayoutCount; ++index)
     {
+        pFile->ClassLayouts[index].TableIndex = index;
         pFile->ClassLayouts[index].PackingSize = *(uint16_t*)pTableData; pTableData += 2;
         pFile->ClassLayouts[index].ClassSize = *(uint32_t*)pTableData; pTableData += 4;
         if (pFile->TypeDefinitionCount > 0xFFFF) { parentIndex = *(uint32_t*)pTableData; pTableData += 4; }

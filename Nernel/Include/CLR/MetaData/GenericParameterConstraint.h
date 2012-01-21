@@ -4,6 +4,7 @@
 
 struct _GenericParameterConstraint
 {
+	uint32_t TableIndex;
     GenericParameter* Owner;
     TypeDefOrRefUnion(Constraint)
 

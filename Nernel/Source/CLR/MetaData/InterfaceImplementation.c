@@ -33,6 +33,7 @@ const uint8_t* InterfaceImplementation_Load(CLIFile* pFile, const uint8_t* pTabl
     uint32_t interfaceRow = 0;
     for (uint32_t index = 1; index <= pFile->InterfaceImplementationCount; ++index)
     {
+        pFile->InterfaceImplementations[index].TableIndex = index;
         if (pFile->TypeDefinitionCount > 0xFFFF) { implementorIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { implementorIndex = *(uint16_t*)pTableData; pTableData += 2; }
         if (implementorIndex == 0 || implementorIndex > pFile->TypeDefinitionCount) Panic("InterfaceImplementation_Load TypeDefinition");

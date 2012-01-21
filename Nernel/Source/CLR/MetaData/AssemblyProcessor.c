@@ -29,6 +29,7 @@ const uint8_t* AssemblyProcessor_Load(CLIFile* pFile, const uint8_t* pTableData)
 {
     for (uint32_t index = 1; index <= pFile->AssemblyProcessorCount; ++index)
     {
+        pFile->AssemblyProcessors[index].TableIndex = index;
         pFile->AssemblyProcessors[index].Processor = *(uint32_t* )pTableData; pTableData += 4;
     }
     return pTableData;

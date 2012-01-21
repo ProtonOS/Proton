@@ -4,6 +4,7 @@
 
 struct _MethodImplementation
 {
+	uint32_t TableIndex;
     TypeDefinition* Parent;
     MethodDefOrRefUnion(MethodBody)
     MethodDefOrRefUnion(MethodDeclaration)

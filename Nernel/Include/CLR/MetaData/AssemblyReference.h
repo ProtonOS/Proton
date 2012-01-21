@@ -4,6 +4,7 @@
 
 struct _AssemblyReference
 {
+	uint32_t TableIndex;
     uint16_t MajorVersion;
     uint16_t MinorVersion;
     uint16_t Build;

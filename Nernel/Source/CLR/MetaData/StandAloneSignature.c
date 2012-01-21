@@ -30,6 +30,7 @@ const uint8_t* StandAloneSignature_Load(CLIFile* pFile, const uint8_t* pTableDat
 {
     for (uint32_t index = 1, heapIndex = 0; index <= pFile->StandAloneSignatureCount; ++index)
     {
+        pFile->StandAloneSignatures[index].TableIndex = index;
         if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Blobs32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->StandAloneSignatures[index].Signature = MetaData_GetCompressedUnsigned(pFile->BlobsHeap + heapIndex, &pFile->StandAloneSignatures[index].SignatureLength);
