@@ -3,7 +3,8 @@
 #include <CLR/AppDomain.h>
 #include <CLR/ILReader.h>
 
-void AppDomain_LinkCorlib(AppDomain* domain);
+void AppDomain_LinkCorlib(CLIFile* fil, AppDomain* domain);
+
 AppDomain* AppDomain_CreateDomain()
 {
 	MultiBoot_LoadedModule* loadedModule = MultiBoot_GetLoadedModuleByFileName("corlib.dll");
@@ -14,10 +15,10 @@ AppDomain* AppDomain_CreateDomain()
         if (cliFile)
         {
 			AppDomain* domain = (AppDomain*)malloc(sizeof(AppDomain));
-            IRAssembly* asmb = ILReader_CreateAssembly(cliFile);
+			AppDomain_LinkCorlib(cliFile, domain);
+            IRAssembly* asmb = ILReader_CreateAssembly(cliFile, domain);
             Log_WriteLine(LogFlags_AppDomain_Loading, "Method Count: %u\n", (unsigned int)asmb->MethodCount);
 			AppDomain_AddAssembly(domain, asmb);
-			AppDomain_LinkCorlib(domain);
 			return domain;
         }
 		else
@@ -55,12 +56,11 @@ void AppDomain_AddAssembly(AppDomain* domain, IRAssembly* assembly)
 	domain->IRAssemblies[domain->IRAssemblyCount - 1] = assembly;
 }
 
-void AppDomain_LinkCorlib(AppDomain* domain)
+void AppDomain_LinkCorlib(CLIFile* corlib, AppDomain* domain)
 {
-	IRAssembly* asmb = domain->IRAssemblies[0];
-	for (uint32_t i = 1; i < asmb->TypeCount; i++)
+	for (uint32_t i = 1; i <= corlib->TypeDefinitionCount; i++)
 	{
-		TypeDefinition* tp = asmb->Types[i]->TypeDef;
+		TypeDefinition* tp = &(corlib->TypeDefinitions[i]);
 		if (!strcmp(tp->Namespace, "System"))
 		{
 			if (!strcmp(tp->Name, "Array"))
@@ -113,7 +113,21 @@ void AppDomain_LinkCorlib(AppDomain* domain)
 			}
 			else if (!strcmp(tp->Name, "Single"))
 			{
+				Log_WriteLine(LogFlags_ILReading, "Found System.Single: Type Name: %s", tp->Name);
+				Log_WriteLine(LogFlags_ILReading, "Found System.Single: Pointer: 0x%x", (unsigned int)tp);
 				domain->CachedType___System_Single = tp;
+			}
+			else if (!strcmp(tp->Name, "String"))
+			{
+				domain->CachedType___System_String = tp;
+			}
+			else if (!strcmp(tp->Name, "Type"))
+			{
+				domain->CachedType___System_Type = tp;
+			}
+			else if (!strcmp(tp->Name, "TypedReference"))
+			{
+				domain->CachedType___System_TypedReference = tp;
 			}
 			else if (!strcmp(tp->Name, "UInt16"))
 			{

@@ -1,4 +1,8 @@
 
+
+The IRType_GetSize method needs to deal with generics.
+
+
 CallVirt, Call, and CallI still need to emit actual Call IR codes.
 
 Total number of OpCodes:

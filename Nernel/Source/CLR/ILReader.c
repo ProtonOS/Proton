@@ -9,6 +9,7 @@
 #include <String_Format.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <CLR/JIT/x86/x86-codegen.h>
 
 
@@ -16,10 +17,12 @@ uint8_t ReadUInt8(uint8_t** dat);
 uint16_t ReadUInt16(uint8_t** dat);
 uint32_t ReadUInt32(uint8_t** dat);
 uint64_t ReadUInt64(uint8_t** dat);
-IRType* GenerateType(TypeDefinition* def, CLIFile* fil);
-IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* fil);
+void Link(IRAssembly* asmb);
+IRType* GenerateType(TypeDefinition* def, CLIFile* fil, IRAssembly* asmb);
+IRField* GenerateField(Field* def, CLIFile* fil, IRAssembly* asmb, AppDomain* dom);
+IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* fil, AppDomain* dom);
 
-IRAssembly* ILReader_CreateAssembly(CLIFile* fil)
+IRAssembly* ILReader_CreateAssembly(CLIFile* fil, AppDomain* dom)
 {
     StackObjectPool_Initialize();
 	IRAssembly* asmbly = IRAssembly_Create();
@@ -45,27 +48,28 @@ IRAssembly* ILReader_CreateAssembly(CLIFile* fil)
 	x86_ret(code);
 
 	((void(*)())mth)();*/
-
+	
 	for (uint32_t i = 1; i < fil->FieldCount; i++)
 	{
-
+		IRAssembly_AddField(asmbly, GenerateField(&fil->Fields[i], fil, asmbly, dom));
 	}
 
 	for (uint32_t i = 1; i < fil->TypeDefinitionCount; i++)
 	{
-		IRAssembly_AddType(asmbly, GenerateType(&fil->TypeDefinitions[i], fil));
+		IRAssembly_AddType(asmbly, GenerateType(&fil->TypeDefinitions[i], fil, asmbly));
 	}
-
+	
+	Link(asmbly);
+				Panic("Don't know how to get field offsets here!");
     for (uint32_t i = 1; i <= fil->MethodDefinitionCount; i++)
     {
         uint8_t* ilLoc = (uint8_t*)fil->MethodDefinitions[i].Body.Code;
         Log_WriteLine(LogFlags_ILReading, "Reading Method %s.%s.%s", fil->MethodDefinitions[i].TypeDefinition->Namespace, fil->MethodDefinitions[i].TypeDefinition->Name, fil->MethodDefinitions[i].Name);
 		Log_WriteLine(LogFlags_ILReading, "Method index: %i", (int)i);
-        IRMethod* irMeth = ReadIL(&ilLoc, fil->MethodDefinitions[i].Body.CodeSize, &fil->MethodDefinitions[i], fil);
+        IRMethod* irMeth = ReadIL(&ilLoc, fil->MethodDefinitions[i].Body.CodeSize, &fil->MethodDefinitions[i], fil, dom);
         IRMethod_BranchLinker_LinkMethod(irMeth);
         IRAssembly_AddMethod(asmbly, irMeth);
     }
-
     StackObjectPool_Destroy();
 
     IROptimizer_Optimize(asmbly);
@@ -73,22 +77,109 @@ IRAssembly* ILReader_CreateAssembly(CLIFile* fil)
 	return asmbly;
 }
 
-IRType* GenerateType(TypeDefinition* def, CLIFile* fil)
+IRField* GenerateField(Field* def, CLIFile* fil, IRAssembly* asmb, AppDomain* dom)
 {
-	IRType* tp = (IRType*)calloc(1, sizeof(IRType));
+	IRField* fld = IRField_Create();
+	fld->FieldDef = def;
+	FieldSignature* sig = FieldSignature_Expand(def->Signature, fil);
+	switch(sig->Type->ElementType)
+	{
+		case Signature_ElementType_Boolean:
+			fld->FieldType = (IRType*)dom->CachedType___System_Boolean->TableIndex;
+			break;
+		case Signature_ElementType_Char:
+			fld->FieldType = (IRType*)dom->CachedType___System_Char->TableIndex;
+			break;
+		case Signature_ElementType_I1:
+			fld->FieldType = (IRType*)dom->CachedType___System_SByte->TableIndex;
+			break;
+		case Signature_ElementType_I2:
+			fld->FieldType = (IRType*)dom->CachedType___System_Int16->TableIndex;
+			break;
+		case Signature_ElementType_I4:
+			fld->FieldType = (IRType*)dom->CachedType___System_Int32->TableIndex;
+			break;
+		case Signature_ElementType_I8:
+			fld->FieldType = (IRType*)dom->CachedType___System_Int64->TableIndex;
+			break;
+		case Signature_ElementType_IPointer:
+			fld->FieldType = (IRType*)dom->CachedType___System_IntPtr->TableIndex;
+			break;
+		case Signature_ElementType_U1:
+			fld->FieldType = (IRType*)dom->CachedType___System_Byte->TableIndex;
+			break;
+		case Signature_ElementType_U2:
+			fld->FieldType = (IRType*)dom->CachedType___System_UInt16->TableIndex;
+			break;
+		case Signature_ElementType_U4:
+			fld->FieldType = (IRType*)dom->CachedType___System_UInt32->TableIndex;
+			break;
+		case Signature_ElementType_U8:
+			fld->FieldType = (IRType*)dom->CachedType___System_UInt64->TableIndex;
+			break;
+		case Signature_ElementType_UPointer:
+			fld->FieldType = (IRType*)dom->CachedType___System_UIntPtr->TableIndex;
+			break;
+		case Signature_ElementType_R4:
+			fld->FieldType = (IRType*)dom->CachedType___System_Single->TableIndex;
+			break;
+		case Signature_ElementType_R8:
+			fld->FieldType = (IRType*)dom->CachedType___System_Double->TableIndex;
+			break;
+
+		case Signature_ElementType_String:
+			fld->FieldType = (IRType*)dom->CachedType___System_String->TableIndex;
+			break;
+		case Signature_ElementType_Type:
+			fld->FieldType = (IRType*)dom->CachedType___System_Type->TableIndex;
+			break;
+		case Signature_ElementType_Object:
+			fld->FieldType = (IRType*)dom->CachedType___System_Object->TableIndex;
+			break;
+		case Signature_ElementType_Void:
+			fld->FieldType = (IRType*)dom->CachedType___System_Void->TableIndex;
+			break;
+		case Signature_ElementType_TypedByReference:
+			fld->FieldType = (IRType*)dom->CachedType___System_TypedReference->TableIndex;
+			break;
+		case Signature_ElementType_Array:
+			fld->FieldType = (IRType*)dom->CachedType___System_Array->TableIndex;
+			break;
+			
+	}
+	FieldSignature_Destroy(sig);
+	return fld;
+}
+
+
+IRType* GenerateType(TypeDefinition* def, CLIFile* fil, IRAssembly* asmb)
+{
+	IRType* tp = IRType_Create();
+	tp->TypeDef = def;
+	for(uint32_t i = 0; i < def->FieldListCount; i++)
+	{
+		IRType_AddField(tp, asmb->Fields[def->FieldList[i].TableIndex]);
+	}
 	if (def->GenericParameterCount > 0)
 	{
 		tp->IsGeneric = TRUE;
-		tp->FixedSize = FALSE;
+		tp->IsFixedSize = FALSE;
 	}
 	else
 	{
 		tp->IsGeneric = FALSE;
-		tp->FixedSize = TRUE;
+		tp->IsFixedSize = TRUE;
 	}
-	for(uint32_t i = 0; i < def->FieldListCount; i++)
+	for (uint32_t i = 0; i < def->MethodDefinitionListCount; i++)
 	{
-		//Field* fld = def->FieldList[i].
+		if ((def->MethodDefinitionList[i].Flags & MethodAttributes_Static) != 0)
+		{
+			if (!strcmp(def->MethodDefinitionList[i].Name, ".cctor"))
+			{
+				tp->HasStaticConstructor = TRUE;
+				tp->StaticConstructor = (IRMethod*)def->MethodDefinitionList[i].TableIndex;
+			}
+		}
 	}
 	return tp;
 }
@@ -96,9 +187,52 @@ IRType* GenerateType(TypeDefinition* def, CLIFile* fil)
 void Link(IRAssembly* asmb)
 {
 
+	// Resolve field types.
+	for (uint32_t i = 1; i <= asmb->FieldCount; i++)
+	{
+		IRField* fld = asmb->Fields[i];
+		fld->FieldType = asmb->Types[(uint32_t)fld->FieldType];
+	}
+
+	// Set the size and resolve the static
+	// constructors for types.
+	for (uint32_t i = 1; i <= asmb->TypeCount; i++)
+	{
+		IRType* tp = asmb->Types[i];
+		tp->Size = IRType_GetSize(tp);
+		if (tp->HasStaticConstructor)
+		{
+			tp->StaticConstructor = asmb->Methods[(uint32_t)tp->StaticConstructor];
+		}
+	}
+
+	// Now set the field offsets.
+	for (uint32_t i = 1; i <= asmb->TypeCount; i++)
+	{
+		if (asmb->Types[i]->IsFixedSize)
+		{
+			IRType* tp = asmb->Types[i];
+			if (tp->TypeDef->ClassLayout)
+			{
+				Panic("Don't know how to get field offsets here!");
+			}
+			else
+			{
+				uint32_t offset = 0;
+				for (uint32_t i2 = 0; i2 < tp->FieldCount; i2++)
+				{
+					IRField* fld = tp->Fields[i2];
+					fld->Offset = offset;
+					offset += fld->ParentType->Size;
+				}
+			}
+		}
+	}
+
+
 }
 
-IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* fil)
+IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* fil, AppDomain* dom)
 {
     SyntheticStack* stack = SyntheticStack_Create();
     bool_t Constrained = FALSE;

@@ -26,6 +26,9 @@ struct _AppDomain
 	TypeDefinition* CachedType___System_Object;
 	TypeDefinition* CachedType___System_SByte;
 	TypeDefinition* CachedType___System_Single;
+	TypeDefinition* CachedType___System_String;
+	TypeDefinition* CachedType___System_Type;
+	TypeDefinition* CachedType___System_TypedReference;
 	TypeDefinition* CachedType___System_UInt16;
 	TypeDefinition* CachedType___System_UInt32;
 	TypeDefinition* CachedType___System_UInt64;

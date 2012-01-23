@@ -190,11 +190,35 @@ void IRMethod_AddParameter(IRMethod* mth, IRParameter* param)
 
 
 
+void IRType_AddField(IRType* tp, IRField* fld)
+{
+	fld->ParentType = tp;
+	tp->FieldCount++;
+	tp->Fields = (IRField**)realloc(tp->Fields, sizeof(IRField*) * tp->FieldCount);
+	tp->Fields[tp->FieldCount - 1] = fld;
+}
+
+
+
+#include <string.h>
+#include <CLR/Log.h>
 
 uint32_t IRType_GetSize(IRType* tp)
 {
+	if (tp->TypeDef->ClassLayout)
+	{
+		Log_WriteLine(LogFlags_ILReading, "Using Class Layout, Class Size: %i", (int)tp->TypeDef->ClassLayout->ClassSize);
+		return tp->TypeDef->ClassLayout->ClassSize;
+	}
+
 	AppDomain* domain = tp->ParentAssembly->ParentDomain;
 	if (
+		(tp->TypeDef == domain->CachedType___System_Void)
+	)
+	{
+		return 0;
+	}
+	else if (
 		(tp->TypeDef == domain->CachedType___System_Byte)
 	||  (tp->TypeDef == domain->CachedType___System_SByte)
 	||  (tp->TypeDef == domain->CachedType___System_Boolean)
@@ -236,11 +260,23 @@ uint32_t IRType_GetSize(IRType* tp)
 	}
 	else
 	{
+		//Log_WriteLine(LogFlags_ILReading, "Un-determined size, figuring out the size now.");
 		uint32_t size = 0;
-		for (uint32_t i2 = 1; i2 <= tp->FieldCount; i2++)
+		if (!strcmp(tp->TypeDef->Name, "Single"))
 		{
-			size += IRType_GetSize(tp->Fields[i2]->FieldType);
+			Log_WriteLine(LogFlags_ILReading, "Type Name at Cached Pointer: %s", ((TypeDefinition*)0xff0720ff)->Name);
+			Log_WriteLine(LogFlags_ILReading, "Type Name at Pointer: %s", ((TypeDefinition*)0x204dee)->Name);
+			Log_WriteLine(LogFlags_ILReading, "Cached Pointer: 0x%x This Pointer: 0x%x", (unsigned int)domain->CachedType___System_Single, (unsigned int)tp->TypeDef);
 		}
+		/*Log_WriteLine(LogFlags_ILReading, "Field Count: %i", (int)tp->FieldCount);
+		Log_WriteLine(LogFlags_ILReading, "Type Name: %s", tp->TypeDef->Name);*/
+		for (uint32_t i2 = 0; i2 < tp->FieldCount; i2++)
+		{
+			//Log_WriteLine(LogFlags_ILReading, "Current Size: %i", (int)size);
+			size += IRType_GetSize(tp->Fields[i2]->FieldType);
+			//Log_WriteLine(LogFlags_ILReading, "Type Name: %s", tp->Fields[i2]->FieldType->TypeDef->Name);
+		}
+		//Log_WriteLine(LogFlags_ILReading, "Found Size: %i", (int)size);
 		return size;
 	}
 }

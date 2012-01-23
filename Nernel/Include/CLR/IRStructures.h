@@ -100,7 +100,7 @@ struct _IRType
     uint32_t FieldCount;
     IRField** Fields;
 
-	bool_t FixedSize;
+	bool_t IsFixedSize;
 	uint32_t Size;
 
 	TypeDefinition* TypeDef;
@@ -119,6 +119,8 @@ struct _IRField
 	IRType* ParentType;
     IRType* FieldType;
 	uint32_t Offset;
+
+	Field* FieldDef;
 };
 
 
@@ -148,5 +150,6 @@ void IRMethod_AddInstruction(IRMethod* mth, IRInstruction* instr);
 void IRMethod_AddLocalVariable(IRMethod* mth, IRLocalVariable* var);
 void IRMethod_AddParameter(IRMethod* mth, IRParameter* param);
 
+void IRType_AddField(IRType* tp, IRField* fld);
 
 uint32_t IRType_GetSize(IRType* tp);
