@@ -113,6 +113,7 @@ void AppDomain_LinkCorlib(CLIFile* corlib, AppDomain* domain)
 			}
 			else if (!strcmp(tp->Name, "Single"))
 			{
+				Log_WriteLine(LogFlags_ILReading, "address of it: 0x%x", (unsigned int)&(domain->CachedType___System_Single));
 				Log_WriteLine(LogFlags_ILReading, "Found System.Single: Type Name: %s", tp->Name);
 				Log_WriteLine(LogFlags_ILReading, "Found System.Single: Pointer: 0x%x", (unsigned int)tp);
 				domain->CachedType___System_Single = tp;

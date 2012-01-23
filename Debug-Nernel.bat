@@ -1,1 +1,1 @@
-CALL C:\MingW\bin\gdb.exe --command=.\Debug-Nernel.txt .\Build\boot\nernel.bin
+gdb --readnow --symbols="./build/boot/nernel.bin" --directory="./Nernel/" -eval-command="target remote :1234"
