@@ -264,9 +264,7 @@ uint32_t IRType_GetSize(IRType* tp)
 		uint32_t size = 0;
 		if (!strcmp(tp->TypeDef->Name, "Single"))
 		{
-			Log_WriteLine(LogFlags_ILReading, "Type Name at Cached Pointer: %s", ((TypeDefinition*)0xff0720ff)->Name);
-			Log_WriteLine(LogFlags_ILReading, "Type Name at Pointer: %s", ((TypeDefinition*)0x204dee)->Name);
-			Log_WriteLine(LogFlags_ILReading, "Cached Pointer: 0x%x This Pointer: 0x%x", (unsigned int)domain->CachedType___System_Single, (unsigned int)tp->TypeDef);
+			Log_WriteLine(LogFlags_ILReading, "Domain: 0x%x, CachedType: 0x%x", (unsigned int)domain, (unsigned int)domain->CachedType___System_Single);
 		}
 		/*Log_WriteLine(LogFlags_ILReading, "Field Count: %i", (int)tp->FieldCount);
 		Log_WriteLine(LogFlags_ILReading, "Type Name: %s", tp->TypeDef->Name);*/
