@@ -3,9 +3,10 @@
 #include <stdlib.h>
 
 
-IRAssembly* IRAssembly_Create()
+IRAssembly* IRAssembly_Create(AppDomain* domain)
 {
     IRAssembly* asmb = (IRAssembly*)calloc(1, sizeof(IRAssembly));
+	asmb->ParentDomain = domain;
     return asmb;
 }
 
@@ -144,6 +145,7 @@ void IRAssembly_AddMethod(IRAssembly* asmb, IRMethod* mth)
 
 void IRAssembly_AddType(IRAssembly* asmb, IRType* tp)
 {
+	tp->ParentAssembly = asmb;
 	asmb->TypeCount++;
 	tp->TypeIndex = asmb->TypeCount;
 	asmb->Types = (IRType**)realloc(asmb->Types, sizeof(IRType*) * asmb->TypeCount);

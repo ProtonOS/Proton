@@ -124,7 +124,7 @@ struct _IRField
 };
 
 
-IRAssembly* IRAssembly_Create();
+IRAssembly* IRAssembly_Create(AppDomain* domain);
 IRMethod* IRMethod_Create();
 IRInstruction* IRInstruction_Create();
 IRParameter* IRParameter_Create();
