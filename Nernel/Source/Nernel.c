@@ -54,6 +54,13 @@ void Main(uint32_t pMultiBootMagic,
     while (TRUE) ;
 }
 
+void CPU_Interrupt(InterruptRegisters pRegisters)
+{
+	char buf[128];
+	sprintf(buf, "CPU Exception: %d", (int)pRegisters.int_no);
+	Panic(buf);
+}
+
 bool_t Nernel_Startup(uint32_t pMultiBootMagic,
                       void* pMultiBootData)
 {
@@ -70,7 +77,7 @@ bool_t Nernel_Startup(uint32_t pMultiBootMagic,
     PIC_Startup();
     PIT_Startup(100);
     SystemClock_Startup();
-
+	for (uint8_t interrupt = 0; interrupt < IDT_RemappedIRQBase; ++interrupt) IDT_RegisterHandler(interrupt, &CPU_Interrupt);
 	time_t startupTime = time(NULL);
     printf("Nernel: Startup @ %s", ctime(&startupTime));
 
