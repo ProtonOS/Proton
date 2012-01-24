@@ -14,8 +14,9 @@ AppDomain* AppDomain_CreateDomain()
         CLIFile* cliFile = CLIFile_Create(peFile);
         if (cliFile)
         {
-			AppDomain* domain = (AppDomain*)malloc(sizeof(AppDomain));
+			AppDomain* domain = (AppDomain*)calloc(sizeof(AppDomain));
 			AppDomain_LinkCorlib(cliFile, domain);
+			Log_WriteLine(LogFlags_ILReading, "Domain address: 0x%x", (unsigned int)domain);
             IRAssembly* asmb = ILReader_CreateAssembly(cliFile, domain);
             Log_WriteLine(LogFlags_AppDomain_Loading, "Method Count: %u\n", (unsigned int)asmb->MethodCount);
 			AppDomain_AddAssembly(domain, asmb);

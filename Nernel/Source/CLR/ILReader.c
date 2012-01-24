@@ -25,7 +25,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 IRAssembly* ILReader_CreateAssembly(CLIFile* fil, AppDomain* dom)
 {
     StackObjectPool_Initialize();
-	IRAssembly* asmbly = IRAssembly_Create();
+	IRAssembly* asmbly = IRAssembly_Create(dom);
 	/*char* code = calloc(1, 1024);
 	char* mth = code;
 	x86_mov_reg_imm(code, X86_EDX, 0);
