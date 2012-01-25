@@ -264,19 +264,21 @@ uint32_t IRType_GetSize(IRType* tp)
 	{
 		//Log_WriteLine(LogFlags_ILReading, "Un-determined size, figuring out the size now.");
 		uint32_t size = 0;
-		if (!strcmp(tp->TypeDef->Name, "Single"))
-		{
-			Log_WriteLine(LogFlags_ILReading, "Domain: 0x%x, CachedType: 0x%x", (unsigned int)domain, (unsigned int)domain->CachedType___System_Single);
-		}
-		/*Log_WriteLine(LogFlags_ILReading, "Field Count: %i", (int)tp->FieldCount);
-		Log_WriteLine(LogFlags_ILReading, "Type Name: %s", tp->TypeDef->Name);*/
+	    Log_WriteLine(LogFlags_ILReading, "Field Count: %i", (int)tp->FieldCount);
+		Log_WriteLine(LogFlags_ILReading, "Type Name: %s", tp->TypeDef->Name);
 		for (uint32_t i2 = 0; i2 < tp->FieldCount; i2++)
 		{
-			//Log_WriteLine(LogFlags_ILReading, "Current Size: %i", (int)size);
-			size += IRType_GetSize(tp->Fields[i2]->FieldType);
-			//Log_WriteLine(LogFlags_ILReading, "Type Name: %s", tp->Fields[i2]->FieldType->TypeDef->Name);
+		    Log_WriteLine(LogFlags_ILReading, "Current Size: %i", (int)size);
+			if (tp->Fields[i2]->FieldType->IsReferenceType)
+			{
+				size += global_SizeOfPointerInBytes;
+			}
+			else if (tp->Fields[i2]->FieldType->IsValueType)
+			{
+				size += IRType_GetSize(tp->Fields[i2]->FieldType);
+			}
 		}
-		//Log_WriteLine(LogFlags_ILReading, "Found Size: %i", (int)size);
+		Log_WriteLine(LogFlags_ILReading, "Found Size: %i", (int)size);
 		return size;
 	}
 }

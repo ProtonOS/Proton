@@ -49,12 +49,12 @@ IRAssembly* ILReader_CreateAssembly(CLIFile* fil, AppDomain* dom)
 
 	((void(*)())mth)();*/
 	
-	for (uint32_t i = 1; i < fil->FieldCount; i++)
+	for (uint32_t i = 1; i <= fil->FieldCount; i++)
 	{
 		IRAssembly_AddField(asmbly, GenerateField(&fil->Fields[i], fil, asmbly, dom));
 	}
 
-	for (uint32_t i = 1; i < fil->TypeDefinitionCount; i++)
+	for (uint32_t i = 1; i <= fil->TypeDefinitionCount; i++)
 	{
 		IRAssembly_AddType(asmbly, GenerateType(&fil->TypeDefinitions[i], fil, asmbly));
 	}
@@ -199,7 +199,11 @@ void Link(IRAssembly* asmb)
 	for (uint32_t i = 1; i <= asmb->TypeCount; i++)
 	{
 		IRType* tp = asmb->Types[i];
-		tp->Size = IRType_GetSize(tp);
+		if (tp->IsFixedSize)
+		{
+			Log_WriteLine(LogFlags_ILReading, "Type Name: %s", tp->TypeDef->Name);
+			tp->Size = IRType_GetSize(tp);
+		}
 		if (tp->HasStaticConstructor)
 		{
 			tp->StaticConstructor = asmb->Methods[(uint32_t)tp->StaticConstructor];
