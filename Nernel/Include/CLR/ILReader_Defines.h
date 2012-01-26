@@ -63,7 +63,16 @@
     instr->OpCode = instrType; \
     Log_WriteLine(LogFlags_IREmitting, "Emitting " #instrType " With 3 arguments ('" #arg1 "', '" #arg2 "', '" #arg3 "')"); \
     IRMethod_AddInstruction(m, instr); }
-
+#define EMIT_IR_1ARG_NO_DISPOSE(instrType, arg1) \
+    { IRInstruction* instr = IRInstruction_Create(); \
+    instr->InstructionLocation = (CurInstructionBase - orig); \
+    Log_WriteLine(LogFlags_ILReading_BranchLinker, "instr->InstructionLocation = 0x%x", (unsigned int)instr->InstructionLocation); \
+    GetInstrOffset(); \
+    instr->Arg1 = arg1; \
+	instr->Arg1NeedsDisposing = FALSE; \
+    instr->OpCode = instrType; \
+    Log_WriteLine(LogFlags_IREmitting, "Emitting " #instrType " With 1 argument ('" #arg1 "')"); \
+    IRMethod_AddInstruction(m, instr); }
 
 
 

@@ -263,7 +263,7 @@ uint32_t IRType_GetSize(IRType* tp)
 	else
 	{
 		//Log_WriteLine(LogFlags_ILReading, "Un-determined size, figuring out the size now.");
-		uint32_t size = 0;
+		/*uint32_t size = 0;
 	    Log_WriteLine(LogFlags_ILReading, "Field Count: %i", (int)tp->FieldCount);
 		Log_WriteLine(LogFlags_ILReading, "Type Name: %s", tp->TypeDef->Name);
 		for (uint32_t i2 = 0; i2 < tp->FieldCount; i2++)
@@ -278,7 +278,7 @@ uint32_t IRType_GetSize(IRType* tp)
 				size += IRType_GetSize(tp->Fields[i2]->FieldType);
 			}
 		}
-		Log_WriteLine(LogFlags_ILReading, "Found Size: %i", (int)size);
-		return size;
+		Log_WriteLine(LogFlags_ILReading, "Found Size: %i", (int)size);*/
+		return 6666;
 	}
 }
