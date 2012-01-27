@@ -1389,6 +1389,8 @@ Branch_Common:
                 ClearFlags();
                 break;
             case ILOpCode_NewArr:			// 0x8D
+				Log_WriteLine(LogFlags_ILReading, "Read NewArr");
+                ReadUInt32(dat);
                 
                 ClearFlags();
                 break;
@@ -1402,6 +1404,8 @@ Branch_Common:
             case ILOpCode_IsInst:			// 0x75
 				Log_WriteLine(LogFlags_ILReading, "Read IsInst");
                 ReadUInt32(dat);
+
+
                 ClearFlags();
                 break;
 
@@ -1419,26 +1423,40 @@ Branch_Common:
 
 
             case ILOpCode_LdFld:			// 0x7B
+				Log_WriteLine(LogFlags_ILReading, "Read LdFld");
+                ReadUInt32(dat);
+
                 
                 ClearFlags();
                 break;
             case ILOpCode_LdFldA:			// 0x7C
+				Log_WriteLine(LogFlags_ILReading, "Read LdFldA");
+                ReadUInt32(dat);
                 
                 ClearFlags();
                 break;
             case ILOpCode_StFld:			// 0x7D
+				Log_WriteLine(LogFlags_ILReading, "Read StFld");
+                ReadUInt32(dat);
+
                 
                 ClearFlags();
                 break;
             case ILOpCode_LdSFld:			// 0x7E
+				Log_WriteLine(LogFlags_ILReading, "Read LdSFld");
+                ReadUInt32(dat);
                 
                 ClearFlags();
                 break;
             case ILOpCode_LdSFldA:			// 0x7F
+				Log_WriteLine(LogFlags_ILReading, "Read LdSFldA");
+                ReadUInt32(dat);
                 
                 ClearFlags();
                 break;
             case ILOpCode_StSFld:			// 0x80
+				Log_WriteLine(LogFlags_ILReading, "Read StSFld");
+                ReadUInt32(dat);
                 
                 ClearFlags();
                 break;
@@ -1491,6 +1509,9 @@ Branch_Common:
 
 
             case ILOpCode_Box:				// 0x8C
+				Log_WriteLine(LogFlags_ILReading, "Read Box");
+                ReadUInt32(dat);
+
                 
                 ClearFlags();
                 break;
@@ -1568,6 +1589,9 @@ Branch_Common:
 
 
             case ILOpCode_Unbox_Any:		// 0xA5
+				Log_WriteLine(LogFlags_ILReading, "Read Unbox.Any");
+                ReadUInt32(dat);
+
                 
                 ClearFlags();
                 break;
@@ -1814,7 +1838,10 @@ Branch_Common:
 
 
                     case ILOpCodes_Extended_Constrained__:	// 0x16
-                        Constrained = TRUE;
+						Log_WriteLine(LogFlags_ILReading, "Read Constrained");
+						ReadUInt32(dat);
+                        
+						Constrained = TRUE;
                         break;
                     case ILOpCodes_Extended_No__:			// 0x19
                         No = TRUE;
