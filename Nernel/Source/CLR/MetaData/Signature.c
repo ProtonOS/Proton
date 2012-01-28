@@ -1,3 +1,4 @@
+//#include <stdio.h>
 #include <stdlib.h>
 
 #include <CLR/CLIFile.h>
@@ -87,6 +88,7 @@ const uint8_t* FieldSignature_Parse(const uint8_t* pCursor, FieldSignature** pFi
 {
     *pFieldSignature = FieldSignature_Create();
     FieldSignature* fieldSignature = *pFieldSignature;
+	//printf("FieldSig First Byte: 0x%x\n", (unsigned int)*pCursor);
     ++pCursor;
     while (*pCursor == Signature_ElementType_CustomModifier_Required ||
            *pCursor == Signature_ElementType_CustomModifier_Optional)

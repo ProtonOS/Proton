@@ -722,8 +722,8 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 				{
 					Log_WriteLine(LogFlags_ILReading, "Read Call");
 					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
-					MethodDefinition* mthDef;
-					MethodSignature* sig;
+					MethodDefinition* mthDef = NULL;
+					MethodSignature* sig = NULL;
 					switch(tok->Table)
 					{
 						case MetaData_Table_MethodDefinition:
@@ -768,7 +768,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 				{
 					Log_WriteLine(LogFlags_ILReading, "Read CallI");
 					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
-					MethodSignature* sig;
+					MethodSignature* sig = NULL;
 					switch(tok->Table)
 					{
 						case MetaData_Table_MethodDefinition:
@@ -811,7 +811,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 				{
 					Log_WriteLine(LogFlags_ILReading, "Read CallVirt");
 					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
-					MethodSignature* sig;
+					MethodSignature* sig = NULL;
 					switch(tok->Table)
 					{
 						case MetaData_Table_MethodDefinition:
@@ -1458,7 +1458,7 @@ Branch_Common:
 				{
 					Log_WriteLine(LogFlags_ILReading, "Read LdFld");
 					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
-					IRField* fld;
+					IRField* fld = NULL;
 					switch(tok->Table)
 					{
 						case MetaData_Table_Field:
@@ -1500,7 +1500,7 @@ Branch_Common:
 				{
 					Log_WriteLine(LogFlags_ILReading, "Read LdSFld");
 					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
-					IRField* fld;
+					IRField* fld = NULL;
 					switch(tok->Table)
 					{
 						case MetaData_Table_Field:
