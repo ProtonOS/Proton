@@ -47,6 +47,7 @@ void StackObject_Destroy(StackObject* obj);
 
 struct _SyntheticStack
 {
+	uint32_t StackID;
     StackObject* TopObject;
     uint32_t StackDepth;
 };

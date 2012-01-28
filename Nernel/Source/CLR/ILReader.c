@@ -562,7 +562,14 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 
 
             case ILOpCode_LdNull:			// 0x14
-                
+				{
+					EMIT_IR(IROpCode_LoadNull);
+					ReadUInt32(dat);
+					StackObject* obj = StackObjectPool_Allocate();
+					obj->NumericType = StackObjectNumericType_Ref;
+					obj->Type = StackObjectType_ReferenceType;
+					SyntheticStack_Push(stack, obj);
+				}
                 ClearFlags();
                 break;
             case ILOpCode_LdStr:			// 0x72
@@ -805,7 +812,9 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 						case MetaData_Table_MethodDefinition:
 							sig = MethodSignature_Expand(((MethodDefinition*)tok->Data)->Signature, fil);
 							break;
-
+						case MetaData_Table_MemberReference:
+							sig = MethodSignature_Expand(((MemberReference*)tok->Data)->Signature, fil);
+							break;
 						default:
 							printf("Table: 0x%x\n", (unsigned int)tok->Table);
 							Panic("Unknown Table for Call!");
@@ -828,7 +837,9 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 						case MetaData_Table_MethodDefinition:
 							MethodSignature_Destroy(sig);
 							break;
-
+						case MetaData_Table_MemberReference:
+							MethodSignature_Destroy(sig);
+							break;
 						default:
 							Panic("Unknown Table for Call!");
 							break;
@@ -1385,6 +1396,8 @@ Branch_Common:
 
 
             case ILOpCode_NewObj:			// 0x73
+				Log_WriteLine(LogFlags_ILReading, "Read NewObj");
+                ReadUInt32(dat);
                 
                 ClearFlags();
                 break;
@@ -1424,9 +1437,22 @@ Branch_Common:
 
             case ILOpCode_LdFld:			// 0x7B
 				Log_WriteLine(LogFlags_ILReading, "Read LdFld");
-                ReadUInt32(dat);
+                MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
+				IRField* fld;
+				switch(tok->Table)
+				{
+					case MetaData_Table_Field:
+						fld = dom->IRAssemblies[0]->Fields[((Field*)tok->Data)->TableIndex];
+						break;
+					default:
+						Panic("Definately not good");
+						break;
+				}
+				StackObject* obj = StackObjectPool_Allocate();
+				FieldSignature* sig = FieldSignature_Expand(fld->FieldDef->Signature, fil);
+				SetTypeOfStackObjectFromSigElementType(obj, sig->Type->ElementType);
+                SyntheticStack_Push(stack, obj);
 
-                
                 ClearFlags();
                 break;
             case ILOpCode_LdFldA:			// 0x7C
@@ -1651,6 +1677,8 @@ Branch_Common:
                 ClearFlags();
                 break;
             case ILOpCode_Leave_S:			// 0xDE
+				Log_WriteLine(LogFlags_ILReading, "Read Leave.S");
+                ReadUInt8(dat);
                 
                 ClearFlags();
                 break;
@@ -1803,6 +1831,9 @@ Branch_Common:
                         ClearFlags();
                         break;
                     case ILOpCodes_Extended_InitObj:		// 0x15
+						Log_WriteLine(LogFlags_ILReading, "Read InitObj");
+				        ReadUInt32(dat);
+
                         
                         ClearFlags();
                         break;

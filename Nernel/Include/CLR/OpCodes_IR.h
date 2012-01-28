@@ -519,6 +519,21 @@ typedef enum IROpCode
 
      */
     IROpCode_Call,
+    /*
+        Loads a null reference to the
+		top of the stack.
+
+        Arg1:
+            N/A
+
+        Arg2:
+            N/A
+
+        Arg3:
+            N/A
+
+     */
+    IROpCode_LoadNull,
 	
 } IROpCode;
 

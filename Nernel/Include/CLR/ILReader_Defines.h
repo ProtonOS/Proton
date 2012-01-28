@@ -459,6 +459,11 @@
 			obj->NumericType = StackObjectNumericType_Ref; \
 			obj->Type = StackObjectType_ReferenceType; \
 			break; \
+		case Signature_ElementType_GenericInstantiation: \
+			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type GenericInstantation"); \
+			obj->NumericType = StackObjectNumericType_Ref; \
+			obj->Type = StackObjectType_ReferenceType; \
+			break; \
 		default: \
 			Panic(String_Format("Unknown Element Type '0x%x'!", (unsigned int)(elType))); \
 			break; \
@@ -527,6 +532,8 @@
 #define BinaryNumericOp_Rem 4
 
 #define CheckBinaryNumericOpOperandTypesAndSetResult(OperandA, OperandB, BinaryNumericOp, ResultObject) \
+	Log_WriteLine(LogFlags_ILReading_ElementTypes, "Operand A: 0x%x", (unsigned int)OperandA); \
+	Log_WriteLine(LogFlags_ILReading_ElementTypes, "Operand B: 0x%x", (unsigned int)OperandB); \
 	switch(OperandA) \
 	{ \
 		case ElementType_U1: \
