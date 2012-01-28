@@ -74,6 +74,8 @@ struct _IRInstruction
     void* Arg2;
     bool_t Arg3NeedsDisposing;
     void* Arg3;
+    bool_t Arg4NeedsDisposing;
+    void* Arg4;
     bool_t IsTargetOfBranch;
 };
 

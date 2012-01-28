@@ -63,6 +63,19 @@
     instr->OpCode = instrType; \
     Log_WriteLine(LogFlags_IREmitting, "Emitting " #instrType " With 3 arguments ('" #arg1 "', '" #arg2 "', '" #arg3 "')"); \
     IRMethod_AddInstruction(m, instr); }
+#define EMIT_IR_4ARG(instrType, arg1, arg2, arg3, arg4) \
+    { IRInstruction* instr = IRInstruction_Create(); \
+    instr->InstructionLocation = (CurInstructionBase - orig); \
+    Log_WriteLine(LogFlags_ILReading_BranchLinker, "instr->InstructionLocation = 0x%x", (unsigned int)instr->InstructionLocation); \
+    GetInstrOffset(); \
+    instr->Arg1 = arg1; \
+    instr->Arg2 = arg2; \
+    instr->Arg3 = arg3; \
+    instr->Arg4 = arg4; \
+    instr->OpCode = instrType; \
+	Log_WriteLine(LogFlags_IREmitting, "Emitting " #instrType " With 4 arguments ('" #arg1 "', '" #arg2 "', '" #arg3 "', '" #arg4 "')"); \
+    IRMethod_AddInstruction(m, instr); }
+
 #define EMIT_IR_1ARG_NO_DISPOSE(instrType, arg1) \
     { IRInstruction* instr = IRInstruction_Create(); \
     instr->InstructionLocation = (CurInstructionBase - orig); \
@@ -71,7 +84,7 @@
     instr->Arg1 = arg1; \
 	instr->Arg1NeedsDisposing = FALSE; \
     instr->OpCode = instrType; \
-    Log_WriteLine(LogFlags_IREmitting, "Emitting " #instrType " With 1 argument ('" #arg1 "')"); \
+    Log_WriteLine(LogFlags_IREmitting, "Emitting " #instrType " With 1 argument ('" #arg1 "') and not disposing of it"); \
     IRMethod_AddInstruction(m, instr); }
 
 
@@ -226,11 +239,43 @@
 
 #define DefineBranchTarget(brnchType, opCode) \
     Log_WriteLine(LogFlags_ILReading, "Read " #opCode ); \
+	/* Branch conditions false & true only pop once
+     * from the top of the stack.
+	 */ \
+	if (brnchType == BranchCondition_False || brnchType == BranchCondition_True) \
+	{ \
+		branch_Arg1 = SyntheticStack_Pop(stack);\
+	} \
+	/* Branch conditions other than false, true,
+	 * and always, pop twice from the top of the
+	 * stack.
+	 */ \
+	else if (brnchType != BranchCondition_Always) \
+	{ \
+		branch_Arg1 = SyntheticStack_Pop(stack);\
+		branch_Arg2 = SyntheticStack_Pop(stack);\
+	} \
     branch_Condition = brnchType; \
     branch_Target = (uint32_t)ReadUInt32(dat); \
     goto Branch_Common; 
 #define DefineBranchTarget_Short(brnchType, opCode) \
     Log_WriteLine(LogFlags_ILReading, "Read " #opCode ".S"); \
+	/* Branch conditions false & true only pop once
+     * from the top of the stack.
+	 */ \
+	if (brnchType == BranchCondition_False || brnchType == BranchCondition_True) \
+	{ \
+		branch_Arg1 = SyntheticStack_Pop(stack);\
+	} \
+	/* Branch conditions other than false, true,
+	 * and always, pop twice from the top of the
+	 * stack.
+	 */ \
+	else if (brnchType != BranchCondition_Always) \
+	{ \
+		branch_Arg1 = SyntheticStack_Pop(stack);\
+		branch_Arg2 = SyntheticStack_Pop(stack);\
+	} \
     branch_Condition = brnchType; \
     branch_Target = (uint32_t)((int32_t)((int8_t)ReadUInt8(dat))); \
     goto Branch_Common; 

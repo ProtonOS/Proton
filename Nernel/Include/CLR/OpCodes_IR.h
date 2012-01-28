@@ -16,6 +16,9 @@ typedef enum IROpCode
         Arg3:
             N/A
 
+        Arg4:
+            N/A
+
      */
     IROpCode_Nop,
     /*
@@ -29,6 +32,9 @@ typedef enum IROpCode
             N/A
 
         Arg3:
+            N/A
+
+        Arg4:
             N/A
 
      */
@@ -48,6 +54,9 @@ typedef enum IROpCode
         Arg3:
             N/A
 
+        Arg4:
+            N/A
+
      */
     IROpCode_Return,
     /*
@@ -61,6 +70,9 @@ typedef enum IROpCode
             N/A
 
         Arg3:
+            N/A
+
+        Arg4:
             N/A
 
      */
@@ -78,6 +90,9 @@ typedef enum IROpCode
         Arg3:
             N/A
 
+        Arg4:
+            N/A
+
      */
     IROpCode_LoadInt64_Val,
     /*
@@ -91,6 +106,9 @@ typedef enum IROpCode
             N/A
 
         Arg3:
+            N/A
+
+        Arg4:
             N/A
 
      */
@@ -108,6 +126,9 @@ typedef enum IROpCode
         Arg3:
             N/A
 
+        Arg4:
+            N/A
+
      */
     IROpCode_LoadFloat64_Val,
     /*
@@ -123,7 +144,22 @@ typedef enum IROpCode
             a structure of the type IRInstruction.
 
         Arg3:
-            N/A
+            Provided that Arg1 is not
+			BranchCondition_Always, this
+			is the type of object that
+			is the first argument for 
+			the branch operation.
+			Of the type ElementType.
+
+        Arg4:
+            Provided that Arg2 is not
+			BranchCondition_Always,
+			BranchCondition_True, or
+			BranchCondition_False,
+			this is the type of object that
+			is the first argument for 
+			the branch operation.
+			Of the type ElementType.
 
      */
     IROpCode_Branch,
@@ -142,6 +178,9 @@ typedef enum IROpCode
         Arg3:
             N/A
 
+        Arg4:
+            N/A
+
      */
     IROpCode_Jump,
     /*
@@ -156,6 +195,9 @@ typedef enum IROpCode
             N/A
 
         Arg3:
+            N/A
+
+        Arg4:
             N/A
 
      */
@@ -175,6 +217,9 @@ typedef enum IROpCode
         Arg3:
             N/A
 
+        Arg4:
+            N/A
+
      */
     IROpCode_Load_LocalVar,
     /*
@@ -190,6 +235,9 @@ typedef enum IROpCode
             N/A
 
         Arg3:
+            N/A
+
+        Arg4:
             N/A
 
      */
@@ -211,6 +259,9 @@ typedef enum IROpCode
         Arg3:
             N/A
 
+        Arg4:
+            N/A
+
      */
     IROpCode_Convert_OverflowCheck,
     /*
@@ -226,6 +277,9 @@ typedef enum IROpCode
             Of the type ConversionArgumentType.
 
         Arg3:
+            N/A
+
+        Arg4:
             N/A
 
      */
@@ -244,6 +298,9 @@ typedef enum IROpCode
         Arg3:
             N/A
 
+        Arg4:
+            N/A
+
      */
     IROpCode_Load_Parameter,
     /*
@@ -260,6 +317,9 @@ typedef enum IROpCode
         Arg3:
             N/A
 
+        Arg4:
+            N/A
+
      */
     IROpCode_Store_Parameter,
     /*
@@ -274,6 +334,9 @@ typedef enum IROpCode
             N/A
 
         Arg3:
+            N/A
+
+        Arg4:
             N/A
 
      */
@@ -294,6 +357,9 @@ typedef enum IROpCode
         Arg3:
             The type of object to shift by.
 			Of the type StackObjectType.
+
+        Arg4:
+            N/A
 
      */
     IROpCode_Shift,
@@ -316,6 +382,9 @@ typedef enum IROpCode
         Arg3:
             N/A
 
+        Arg4:
+            N/A
+
      */
     IROpCode_Load_Element,
     /*
@@ -336,6 +405,9 @@ typedef enum IROpCode
         Arg3:
             N/A
 
+        Arg4:
+            N/A
+
      */
     IROpCode_Store_Element,
     /*
@@ -354,6 +426,9 @@ typedef enum IROpCode
         Arg3:
             N/A
 
+        Arg4:
+            N/A
+
      */
     IROpCode_SizeOf,
     /*
@@ -369,18 +444,25 @@ typedef enum IROpCode
         Arg3:
             N/A
 
+        Arg4:
+            N/A
+
      */
     IROpCode_Load_Array_Length,
     /*
         Pops an object off of the top of the stack.
 
         Arg1:
-            N/A
+            The type of object to pop.
+			Of the type ElementType.
 
         Arg2:
             N/A
 
         Arg3:
+            N/A
+
+        Arg4:
             N/A
 
      */
@@ -400,6 +482,9 @@ typedef enum IROpCode
             The type of the second argument.
 			Of the type ElementType.
 
+        Arg4:
+            N/A
+
      */
     IROpCode_Add,
     /*
@@ -416,6 +501,9 @@ typedef enum IROpCode
         Arg3:
             The type of the second argument.
 			Of the type ElementType.
+
+        Arg4:
+            N/A
 
      */
     IROpCode_Sub,
@@ -434,6 +522,9 @@ typedef enum IROpCode
             The type of the second argument.
 			Of the type ElementType.
 
+        Arg4:
+            N/A
+
      */
     IROpCode_Mul,
     /*
@@ -450,6 +541,9 @@ typedef enum IROpCode
         Arg3:
             The type of the second argument.
 			Of the type ElementType.
+
+        Arg4:
+            N/A
 
      */
     IROpCode_Div,
@@ -469,6 +563,9 @@ typedef enum IROpCode
             The type of the second argument.
 			Of the type ElementType.
 
+        Arg4:
+            N/A
+
      */
     IROpCode_Rem,
     /*
@@ -483,6 +580,9 @@ typedef enum IROpCode
             N/A
 
         Arg3:
+            N/A
+
+        Arg4:
             N/A
 
      */
@@ -502,6 +602,9 @@ typedef enum IROpCode
         Arg3:
             N/A
 
+        Arg4:
+            N/A
+
      */
     IROpCode_StoreIndirect,
     /*
@@ -517,6 +620,9 @@ typedef enum IROpCode
         Arg3:
             N/A
 
+        Arg4:
+            N/A
+
      */
     IROpCode_Call,
     /*
@@ -530,6 +636,9 @@ typedef enum IROpCode
             N/A
 
         Arg3:
+            N/A
+
+        Arg4:
             N/A
 
      */

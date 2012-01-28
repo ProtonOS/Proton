@@ -22,6 +22,7 @@ IRInstruction* IRInstruction_Create()
     instr->Arg1NeedsDisposing = TRUE;
     instr->Arg2NeedsDisposing = TRUE;
     instr->Arg3NeedsDisposing = TRUE;
+    instr->Arg4NeedsDisposing = TRUE;
     return instr;
 }
 
@@ -101,6 +102,10 @@ void IRInstruction_Destroy(IRInstruction* instr)
     if (instr->Arg3NeedsDisposing && instr->Arg3)
     {
         free(instr->Arg3);
+    }
+    if (instr->Arg4NeedsDisposing && instr->Arg4)
+    {
+        free(instr->Arg4);
     }
     free(instr);
 }

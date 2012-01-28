@@ -258,6 +258,8 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
     bool_t Volatile = FALSE;
     BranchCondition branch_Condition = (BranchCondition)0;
     uint32_t branch_Target;
+	StackObject* branch_Arg1 = NULL;
+	StackObject* branch_Arg2 = NULL;
 	size_t orig = (size_t)(*dat);
     size_t CurInstructionBase;
     uint8_t b;
@@ -563,8 +565,8 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 
             case ILOpCode_LdNull:			// 0x14
 				{
+                    Log_WriteLine(LogFlags_ILReading, "Read LdNull");
 					EMIT_IR(IROpCode_LoadNull);
-					ReadUInt32(dat);
 					StackObject* obj = StackObjectPool_Allocate();
 					obj->NumericType = StackObjectNumericType_Ref;
 					obj->Type = StackObjectType_ReferenceType;
@@ -706,8 +708,11 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
             case ILOpCode_Pop:				// 0x26
 				{
 					Log_WriteLine(LogFlags_ILReading, "Read Pop");
-					EMIT_IR(IROpCode_Pop);
-					StackObjectPool_Release(SyntheticStack_Pop(stack));
+					ElementType* elemType = (ElementType*)malloc(sizeof(ElementType));
+					StackObject* obj = SyntheticStack_Pop(stack);
+					GetElementTypeOfStackObject(*elemType, obj);
+					EMIT_IR_1ARG(IROpCode_Pop, elemType);
+					StackObjectPool_Release(obj);
 				}
                 ClearFlags();
                 break;
@@ -948,7 +953,21 @@ Branch_Common:
                     *targt = ((((size_t)(*dat)) - orig) + ((int32_t)branch_Target));
                     BranchCondition* condtn = (BranchCondition*)malloc(sizeof(BranchCondition));
                     *condtn = branch_Condition;
-                    EMIT_IR_2ARG(IROpCode_Branch, condtn, targt);
+					ElementType* arg1Type = (ElementType*)calloc(1, sizeof(ElementType));
+					ElementType* arg2Type = (ElementType*)calloc(1, sizeof(ElementType));
+					if (branch_Arg1)
+					{
+						GetElementTypeOfStackObject(*arg1Type, branch_Arg1);
+						StackObjectPool_Release(branch_Arg1);
+						branch_Arg1 = NULL;
+					}
+					if (branch_Arg2)
+					{
+						GetElementTypeOfStackObject(*arg2Type, branch_Arg2);
+						StackObjectPool_Release(branch_Arg2);
+						branch_Arg2 = NULL;
+					}
+                    EMIT_IR_4ARG(IROpCode_Branch, condtn, targt, arg1Type, arg2Type);
                 }
                 ClearFlags();
                 break;
@@ -1436,56 +1455,87 @@ Branch_Common:
 
 
             case ILOpCode_LdFld:			// 0x7B
-				Log_WriteLine(LogFlags_ILReading, "Read LdFld");
-                MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
-				IRField* fld;
-				switch(tok->Table)
 				{
-					case MetaData_Table_Field:
-						fld = dom->IRAssemblies[0]->Fields[((Field*)tok->Data)->TableIndex];
-						break;
-					default:
-						Panic("Definately not good");
-						break;
+					Log_WriteLine(LogFlags_ILReading, "Read LdFld");
+					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
+					IRField* fld;
+					switch(tok->Table)
+					{
+						case MetaData_Table_Field:
+							fld = dom->IRAssemblies[0]->Fields[((Field*)tok->Data)->TableIndex];
+							break;
+						default:
+							Panic("Definitely not good");
+							break;
+					}
+					StackObject* obj = StackObjectPool_Allocate();
+					FieldSignature* sig = FieldSignature_Expand(fld->FieldDef->Signature, fil);
+					SetTypeOfStackObjectFromSigElementType(obj, sig->Type->ElementType);
+					SyntheticStack_Push(stack, obj);
+	
+					ClearFlags();
+					break;
 				}
-				StackObject* obj = StackObjectPool_Allocate();
-				FieldSignature* sig = FieldSignature_Expand(fld->FieldDef->Signature, fil);
-				SetTypeOfStackObjectFromSigElementType(obj, sig->Type->ElementType);
-                SyntheticStack_Push(stack, obj);
 
-                ClearFlags();
-                break;
             case ILOpCode_LdFldA:			// 0x7C
 				Log_WriteLine(LogFlags_ILReading, "Read LdFldA");
                 ReadUInt32(dat);
                 
                 ClearFlags();
                 break;
+
             case ILOpCode_StFld:			// 0x7D
 				Log_WriteLine(LogFlags_ILReading, "Read StFld");
                 ReadUInt32(dat);
 
+
+				StackObjectPool_Release(SyntheticStack_Pop(stack));
                 
+
                 ClearFlags();
                 break;
+
             case ILOpCode_LdSFld:			// 0x7E
-				Log_WriteLine(LogFlags_ILReading, "Read LdSFld");
-                ReadUInt32(dat);
-                
-                ClearFlags();
-                break;
+				{
+					Log_WriteLine(LogFlags_ILReading, "Read LdSFld");
+					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
+					IRField* fld;
+					switch(tok->Table)
+					{
+						case MetaData_Table_Field:
+							fld = dom->IRAssemblies[0]->Fields[((Field*)tok->Data)->TableIndex];
+							break;
+						default:
+							Panic("Definitely not good");
+							break;
+					}
+					StackObject* obj = StackObjectPool_Allocate();
+					FieldSignature* sig = FieldSignature_Expand(fld->FieldDef->Signature, fil);
+					SetTypeOfStackObjectFromSigElementType(obj, sig->Type->ElementType);
+					SyntheticStack_Push(stack, obj);
+	                
+					ClearFlags();
+					break;
+				}
+
             case ILOpCode_LdSFldA:			// 0x7F
 				Log_WriteLine(LogFlags_ILReading, "Read LdSFldA");
                 ReadUInt32(dat);
                 
                 ClearFlags();
                 break;
+
             case ILOpCode_StSFld:			// 0x80
 				Log_WriteLine(LogFlags_ILReading, "Read StSFld");
                 ReadUInt32(dat);
                 
+
+				StackObjectPool_Release(SyntheticStack_Pop(stack));
+
+
                 ClearFlags();
                 break;
+
             case ILOpCode_StObj:			// 0x81
                 
                 ClearFlags();
