@@ -20,7 +20,7 @@ uint64_t ReadUInt64(uint8_t** dat);
 void Link(IRAssembly* asmb);
 IRType* GenerateType(TypeDefinition* def, CLIFile* fil, IRAssembly* asmb);
 IRField* GenerateField(Field* def, CLIFile* fil, IRAssembly* asmb, AppDomain* dom);
-IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* fil, AppDomain* dom);
+IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* fil, AppDomain* dom, IRAssembly* asmbly);
 
 IRAssembly* ILReader_CreateAssembly(CLIFile* fil, AppDomain* dom)
 {
@@ -65,7 +65,7 @@ IRAssembly* ILReader_CreateAssembly(CLIFile* fil, AppDomain* dom)
         uint8_t* ilLoc = (uint8_t*)fil->MethodDefinitions[i].Body.Code;
         Log_WriteLine(LogFlags_ILReading, "Reading Method %s.%s.%s", fil->MethodDefinitions[i].TypeDefinition->Namespace, fil->MethodDefinitions[i].TypeDefinition->Name, fil->MethodDefinitions[i].Name);
 		Log_WriteLine(LogFlags_ILReading, "Method index: %i", (int)i);
-        IRMethod* irMeth = ReadIL(&ilLoc, fil->MethodDefinitions[i].Body.CodeSize, &fil->MethodDefinitions[i], fil, dom);
+        IRMethod* irMeth = ReadIL(&ilLoc, fil->MethodDefinitions[i].Body.CodeSize, &fil->MethodDefinitions[i], fil, dom, asmbly);
         IRMethod_BranchLinker_LinkMethod(irMeth);
         IRAssembly_AddMethod(asmbly, irMeth);
     }
@@ -247,7 +247,7 @@ void Link(IRAssembly* asmb)
 
 }
 
-IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* fil, AppDomain* dom)
+IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* fil, AppDomain* dom, IRAssembly* asmbly)
 {
     SyntheticStack* stack = SyntheticStack_Create();
     bool_t Constrained = FALSE;
@@ -1462,7 +1462,7 @@ Branch_Common:
 					switch(tok->Table)
 					{
 						case MetaData_Table_Field:
-							fld = dom->IRAssemblies[0]->Fields[((Field*)tok->Data)->TableIndex];
+							fld = asmbly->Fields[((Field*)tok->Data)->TableIndex];
 							break;
 						default:
 							Panic("Definitely not good");
@@ -1472,7 +1472,8 @@ Branch_Common:
 					FieldSignature* sig = FieldSignature_Expand(fld->FieldDef->Signature, fil);
 					SetTypeOfStackObjectFromSigElementType(obj, sig->Type->ElementType);
 					SyntheticStack_Push(stack, obj);
-	
+					free(tok);
+
 					ClearFlags();
 					break;
 				}
@@ -1503,7 +1504,7 @@ Branch_Common:
 					switch(tok->Table)
 					{
 						case MetaData_Table_Field:
-							fld = dom->IRAssemblies[0]->Fields[((Field*)tok->Data)->TableIndex];
+							fld = asmbly->Fields[((Field*)tok->Data)->TableIndex];
 							break;
 						default:
 							Panic("Definitely not good");
@@ -1513,6 +1514,7 @@ Branch_Common:
 					FieldSignature* sig = FieldSignature_Expand(fld->FieldDef->Signature, fil);
 					SetTypeOfStackObjectFromSigElementType(obj, sig->Type->ElementType);
 					SyntheticStack_Push(stack, obj);
+					free(tok);
 	                
 					ClearFlags();
 					break;
