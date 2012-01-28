@@ -100,6 +100,7 @@ void IRMethod_BranchLinker_LinkMethod(IRMethod* mthd)
             targetInstruction->IsTargetOfBranch = TRUE;
             free(mthd->IRCodes[i]->Arg2);
             mthd->IRCodes[i]->Arg2 = targetInstruction;
+			mthd->IRCodes[i]->Arg2NeedsDisposing = FALSE;
 
         }
     }
