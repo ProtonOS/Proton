@@ -509,6 +509,16 @@
 			obj->NumericType = StackObjectNumericType_Ref; \
 			obj->Type = StackObjectType_ReferenceType; \
 			break; \
+		case Signature_ElementType_TypedByReference: \
+			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type TypedByReference"); \
+			obj->NumericType = StackObjectNumericType_ManagedPointer; \
+			obj->Type = StackObjectType_ManagedPointer; \
+			break; \
+		case Signature_ElementType_Var: \
+			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type Var"); \
+			obj->NumericType = StackObjectNumericType_Generic; \
+			obj->Type = StackObjectType_Generic; \
+			break; \
 		case Signature_ElementType_GenericInstantiation: \
 			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type GenericInstantation"); \
 			obj->NumericType = StackObjectNumericType_Ref; \

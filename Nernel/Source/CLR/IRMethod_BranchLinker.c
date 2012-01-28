@@ -8,50 +8,50 @@ void Panic(const char* msg);
 #define FIND_IF_NEAR(cond) \
     if (mthd->IRCodes[curLoc cond 1]->InstructionLocation == targetInstrPos) \
     { \
-        Log_WriteLine(LogFlags_ILReading_BranchLinker, "Located Branch. curLoc: %i, targetInstrPos: %i, AddAmnt: %i", (int)(curLoc cond 1), (int)targetInstrPos, (int)AddAmnt); \
+        Log_WriteLine(LogFlags_ILReading_BranchLinker, "Located Branch. curLoc: 0x%x, targetInstrPos: 0x%x, AddAmnt: %i", (unsigned int)(curLoc cond 1), (unsigned int)targetInstrPos, (int)AddAmnt); \
         targetInstruction = mthd->IRCodes[curLoc cond 1]; \
         foundTarget = TRUE; \
     } \
     else if (mthd->IRCodes[curLoc cond 2]->InstructionLocation == targetInstrPos) \
     { \
-        Log_WriteLine(LogFlags_ILReading_BranchLinker, "Located Branch. curLoc: %i, targetInstrPos: %i, AddAmnt: %i", (int)(curLoc cond 2), (int)targetInstrPos, (int)AddAmnt); \
+        Log_WriteLine(LogFlags_ILReading_BranchLinker, "Located Branch. curLoc: 0x%x, targetInstrPos: 0x%x, AddAmnt: %i", (unsigned int)(curLoc cond 2), (unsigned int)targetInstrPos, (int)AddAmnt); \
         targetInstruction = mthd->IRCodes[curLoc cond 2]; \
         foundTarget = TRUE; \
     } \
     else if (mthd->IRCodes[curLoc cond 3]->InstructionLocation == targetInstrPos) \
     { \
-        Log_WriteLine(LogFlags_ILReading_BranchLinker, "Located Branch. curLoc: %i, targetInstrPos: %i, AddAmnt: %i", (int)(curLoc cond 3), (int)targetInstrPos, (int)AddAmnt); \
+        Log_WriteLine(LogFlags_ILReading_BranchLinker, "Located Branch. curLoc: 0x%x, targetInstrPos: 0x%x, AddAmnt: %i", (unsigned int)(curLoc cond 3), (unsigned int)targetInstrPos, (int)AddAmnt); \
         targetInstruction = mthd->IRCodes[curLoc cond 3]; \
         foundTarget = TRUE; \
     } \
     else if (mthd->IRCodes[curLoc cond 4]->InstructionLocation == targetInstrPos) \
     { \
-        Log_WriteLine(LogFlags_ILReading_BranchLinker, "Located Branch. curLoc: %i, targetInstrPos: %i, AddAmnt: %i", (int)(curLoc cond 4), (int)targetInstrPos, (int)AddAmnt); \
+        Log_WriteLine(LogFlags_ILReading_BranchLinker, "Located Branch. curLoc: 0x%x, targetInstrPos: 0x%x, AddAmnt: %i", (unsigned int)(curLoc cond 4), (unsigned int)targetInstrPos, (int)AddAmnt); \
         targetInstruction = mthd->IRCodes[curLoc cond 4]; \
         foundTarget = TRUE; \
     } \
     else if (mthd->IRCodes[curLoc cond 5]->InstructionLocation == targetInstrPos) \
     { \
-        Log_WriteLine(LogFlags_ILReading_BranchLinker, "Located Branch. curLoc: %i, targetInstrPos: %i, AddAmnt: %i", (int)(curLoc cond 5), (int)targetInstrPos, (int)AddAmnt); \
+        Log_WriteLine(LogFlags_ILReading_BranchLinker, "Located Branch. curLoc: 0x%x, targetInstrPos: 0x%x, AddAmnt: %i", (unsigned int)(curLoc cond 5), (unsigned int)targetInstrPos, (int)AddAmnt); \
         targetInstruction = mthd->IRCodes[curLoc cond 5]; \
         foundTarget = TRUE; \
     } \
     else if (mthd->IRCodes[curLoc cond 6]->InstructionLocation == targetInstrPos) \
     { \
-        Log_WriteLine(LogFlags_ILReading_BranchLinker, "Located Branch. curLoc: %i, targetInstrPos: %i, AddAmnt: %i", (int)(curLoc cond 6), (int)targetInstrPos, (int)AddAmnt); \
+        Log_WriteLine(LogFlags_ILReading_BranchLinker, "Located Branch. curLoc: 0x%x, targetInstrPos: 0x%x, AddAmnt: %i", (unsigned int)(curLoc cond 6), (unsigned int)targetInstrPos, (int)AddAmnt); \
         targetInstruction = mthd->IRCodes[curLoc cond 6]; \
         foundTarget = TRUE; \
     } \
     else \
     { \
         Log_WriteLine(LogFlags_ILReading_BranchLinker, "Failed to locate branch. cond: " #cond); \
-        Log_WriteLine(LogFlags_ILReading_BranchLinker, "mthd->IRCodes[curLoc " #cond " 1]->InstructionLocation: %i", (int)(mthd->IRCodes[curLoc cond 1]->InstructionLocation)); \
-        Log_WriteLine(LogFlags_ILReading_BranchLinker, "mthd->IRCodes[curLoc " #cond " 2]->InstructionLocation: %i", (int)(mthd->IRCodes[curLoc cond 2]->InstructionLocation)); \
-        Log_WriteLine(LogFlags_ILReading_BranchLinker, "mthd->IRCodes[curLoc " #cond " 3]->InstructionLocation: %i", (int)(mthd->IRCodes[curLoc cond 3]->InstructionLocation)); \
-        Log_WriteLine(LogFlags_ILReading_BranchLinker, "mthd->IRCodes[curLoc " #cond " 4]->InstructionLocation: %i", (int)(mthd->IRCodes[curLoc cond 4]->InstructionLocation)); \
-        Log_WriteLine(LogFlags_ILReading_BranchLinker, "mthd->IRCodes[curLoc " #cond " 5]->InstructionLocation: %i", (int)(mthd->IRCodes[curLoc cond 5]->InstructionLocation)); \
-        Log_WriteLine(LogFlags_ILReading_BranchLinker, "mthd->IRCodes[curLoc " #cond " 6]->InstructionLocation: %i", (int)(mthd->IRCodes[curLoc cond 6]->InstructionLocation)); \
-        Log_WriteLine(LogFlags_ILReading_BranchLinker, "curLoc: %i, MethodLength: %i, targetInstrPos: %i, AddAmnt: %i", (int)curLoc, (int)mthd->IRCodesCount, (int)targetInstrPos, (int)AddAmnt); \
+        Log_WriteLine(LogFlags_ILReading_BranchLinker, "mthd->IRCodes[curLoc " #cond " 1]->InstructionLocation: 0x%x", (unsigned int)(mthd->IRCodes[curLoc cond 1]->InstructionLocation)); \
+        Log_WriteLine(LogFlags_ILReading_BranchLinker, "mthd->IRCodes[curLoc " #cond " 2]->InstructionLocation: 0x%x", (unsigned int)(mthd->IRCodes[curLoc cond 2]->InstructionLocation)); \
+        Log_WriteLine(LogFlags_ILReading_BranchLinker, "mthd->IRCodes[curLoc " #cond " 3]->InstructionLocation: 0x%x", (unsigned int)(mthd->IRCodes[curLoc cond 3]->InstructionLocation)); \
+        Log_WriteLine(LogFlags_ILReading_BranchLinker, "mthd->IRCodes[curLoc " #cond " 4]->InstructionLocation: 0x%x", (unsigned int)(mthd->IRCodes[curLoc cond 4]->InstructionLocation)); \
+        Log_WriteLine(LogFlags_ILReading_BranchLinker, "mthd->IRCodes[curLoc " #cond " 5]->InstructionLocation: 0x%x", (unsigned int)(mthd->IRCodes[curLoc cond 5]->InstructionLocation)); \
+        Log_WriteLine(LogFlags_ILReading_BranchLinker, "mthd->IRCodes[curLoc " #cond " 6]->InstructionLocation: 0x%x", (unsigned int)(mthd->IRCodes[curLoc cond 6]->InstructionLocation)); \
+        Log_WriteLine(LogFlags_ILReading_BranchLinker, "curLoc: 0x%x, MethodLength: 0x%x, targetInstrPos: 0x%x, AddAmnt: %i", (unsigned int)curLoc, (unsigned int)mthd->IRCodesCount, (unsigned int)targetInstrPos, (int)AddAmnt); \
         Panic("Unable to resolve target of branch!"); \
     }
 
@@ -67,12 +67,12 @@ void IRMethod_BranchLinker_LinkMethod(IRMethod* mthd)
             uint32_t curLoc = mthd->IRCodesCount / 2;
             IRInstruction* targetInstruction;
             bool_t foundTarget = FALSE;
-            Log_WriteLine(LogFlags_ILReading_BranchLinker, "Starting Link attempt, target Instruction Position: %i", (int)targetInstrPos);
+            Log_WriteLine(LogFlags_ILReading_BranchLinker, "Starting Link attempt, target Instruction Position: 0x%x", (unsigned int)targetInstrPos);
             while (!foundTarget)
             {
                 if (mthd->IRCodes[curLoc]->InstructionLocation > targetInstrPos)
                 {
-                    Log_WriteLine(LogFlags_ILReading_BranchLinker, "Instruction Location (%i) greater than target position, CurLoc: %i", (int)mthd->IRCodes[curLoc]->InstructionLocation, (int)curLoc);
+                    Log_WriteLine(LogFlags_ILReading_BranchLinker, "Instruction Location (0x%x) greater than target position, CurLoc: 0x%x", (unsigned int)mthd->IRCodes[curLoc]->InstructionLocation, (unsigned int)curLoc);
                     if (AddAmnt < 3)
                     {
                         FIND_IF_NEAR(-);
@@ -86,7 +86,7 @@ void IRMethod_BranchLinker_LinkMethod(IRMethod* mthd)
                 }
                 else if (mthd->IRCodes[curLoc]->InstructionLocation < targetInstrPos)
                 {
-                    Log_WriteLine(LogFlags_ILReading_BranchLinker, "Instruction Location (%i) less than target position, CurLoc: %i", (int)mthd->IRCodes[curLoc]->InstructionLocation, (int)curLoc);
+                    Log_WriteLine(LogFlags_ILReading_BranchLinker, "Instruction Location (0x%x) less than target position, CurLoc: 0x%x", (unsigned int)mthd->IRCodes[curLoc]->InstructionLocation, (unsigned int)curLoc);
                     if (AddAmnt < 3)
                     {
                         FIND_IF_NEAR(+);
@@ -100,7 +100,7 @@ void IRMethod_BranchLinker_LinkMethod(IRMethod* mthd)
                 }
                 else if (mthd->IRCodes[curLoc]->InstructionLocation == targetInstrPos)
                 {
-                    Log_WriteLine(LogFlags_ILReading_BranchLinker, "Located Branch. curLoc: %i, targetInstrPos: %i, AddAmnt: %i", (int)curLoc, (int)targetInstrPos, (int)AddAmnt);
+                    Log_WriteLine(LogFlags_ILReading_BranchLinker, "Located Branch. curLoc: 0x%x, targetInstrPos: 0x%x, AddAmnt: %i", (unsigned int)curLoc, (unsigned int)targetInstrPos, (int)AddAmnt);
                     targetInstruction = mthd->IRCodes[curLoc];
                     foundTarget = TRUE;
                 }

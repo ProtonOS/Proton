@@ -386,6 +386,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
                     Log_WriteLine(LogFlags_ILReading, "Read LdArg.S");
                     uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
                     *dt = (uint32_t)ReadUInt8(dat);
+					printf("Argument number: %i\n", (int)(*dt));
                     EMIT_IR_1ARG(IROpCode_Load_Parameter, dt);
 					
                     MethodSignature* mthSig = MethodSignature_Expand(methodDef->Signature, fil);
@@ -421,7 +422,17 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
                 ClearFlags();
                 break;
             case ILOpCode_LdArgA_S:			// 0x0F
-                
+                {
+                    Log_WriteLine(LogFlags_ILReading, "Read LdArg.S");
+                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
+                    *dt = (uint32_t)ReadUInt8(dat);
+                    EMIT_IR_1ARG(IROpCode_Load_Parameter_Address, dt);
+					
+					StackObject* obj = StackObjectPool_Allocate();
+					obj->Type = StackObjectType_ManagedPointer;
+					obj->NumericType = StackObjectNumericType_ManagedPointer;
+					SyntheticStack_Push(stack, obj);
+				}
                 ClearFlags();
                 break;
                 
@@ -536,6 +547,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 
                     StackObject* obj = StackObjectPool_Allocate();
                     obj->Type = StackObjectType_ManagedPointer;
+                    obj->NumericType = StackObjectNumericType_ManagedPointer;
                     SyntheticStack_Push(stack, obj);
                 }
                 ClearFlags();
@@ -576,7 +588,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
                 break;
             case ILOpCode_LdStr:			// 0x72
                 {
-                    Log_WriteLine(LogFlags_ILReading, "Read LdStr");
+                    Log_WriteLine(LogFlags_ILReading, "Read NI-NSA-LdStr");
                     MetaDataToken* tkn = CLIFile_ResolveToken(fil, ReadUInt32(dat));
                     if (!tkn->IsUserString)
                         Panic("Invalid token after LdStr!");
@@ -585,9 +597,14 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
                 ClearFlags();
                 break;
             case ILOpCode_LdObj:			// 0x71
+                {
+                    Log_WriteLine(LogFlags_ILReading, "Read LdObj");
+					ReadUInt32(dat);
                 
-                ClearFlags();
-                break;
+
+					ClearFlags();
+	                break;			
+                }
 
 
             case ILOpCode_Ldc_I4_M1:		// 0x15
@@ -720,7 +737,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 
             case ILOpCode_Call:				// 0x28
 				{
-					Log_WriteLine(LogFlags_ILReading, "Read Call");
+					Log_WriteLine(LogFlags_ILReading, "Read NI-Call");
 					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
 					MethodDefinition* mthDef = NULL;
 					MethodSignature* sig = NULL;
@@ -729,6 +746,11 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 						case MetaData_Table_MethodDefinition:
 							sig = MethodSignature_Expand(((MethodDefinition*)tok->Data)->Signature, fil);
 							mthDef = (MethodDefinition*)tok->Data;
+							break;
+
+						case MetaData_Table_MemberReference:
+							printf("Don't deal with this yet! Call with table index: 0x%x\n", (unsigned int)tok->Table);
+							sig = MethodSignature_Expand(((MemberReference*)tok->Data)->Signature, fil);
 							break;
 
 						default:
@@ -751,6 +773,10 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 					switch(tok->Table)
 					{
 						case MetaData_Table_MethodDefinition:
+							MethodSignature_Destroy(sig);
+							break;
+
+						case MetaData_Table_MemberReference:
 							MethodSignature_Destroy(sig);
 							break;
 
@@ -766,13 +792,18 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
                 break;
             case ILOpCode_CallI:			// 0x29
 				{
-					Log_WriteLine(LogFlags_ILReading, "Read CallI");
+					Log_WriteLine(LogFlags_ILReading, "Read NI-CallI");
 					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
 					MethodSignature* sig = NULL;
 					switch(tok->Table)
 					{
 						case MetaData_Table_MethodDefinition:
 							sig = MethodSignature_Expand(((MethodDefinition*)tok->Data)->Signature, fil);
+							break;
+							
+						case MetaData_Table_MemberReference:
+							printf("Don't deal with this yet! Call with table index: 0x%x\n", (unsigned int)tok->Table);
+							sig = MethodSignature_Expand(((MemberReference*)tok->Data)->Signature, fil);
 							break;
 
 						default:
@@ -798,6 +829,10 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 							MethodSignature_Destroy(sig);
 							break;
 
+						case MetaData_Table_MemberReference:
+							MethodSignature_Destroy(sig);
+							break;
+
 						default:
 							Panic("Unknown Table for Call!");
 							break;
@@ -809,7 +844,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
                 break;
             case ILOpCode_CallVirt:			// 0x6F
 				{
-					Log_WriteLine(LogFlags_ILReading, "Read CallVirt");
+					Log_WriteLine(LogFlags_ILReading, "Read NI-CallVirt");
 					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
 					MethodSignature* sig = NULL;
 					switch(tok->Table)
@@ -817,9 +852,12 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 						case MetaData_Table_MethodDefinition:
 							sig = MethodSignature_Expand(((MethodDefinition*)tok->Data)->Signature, fil);
 							break;
+
 						case MetaData_Table_MemberReference:
+							printf("Don't deal with this yet! Call with table index: 0x%x\n", (unsigned int)tok->Table);
 							sig = MethodSignature_Expand(((MemberReference*)tok->Data)->Signature, fil);
 							break;
+
 						default:
 							printf("Table: 0x%x\n", (unsigned int)tok->Table);
 							Panic("Unknown Table for Call!");
@@ -861,6 +899,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 
             case ILOpCode_Ret:				// 0x2A
                 {
+					Log_WriteLine(LogFlags_ILReading, "Read Ret");
                     MethodSignature* mthSig = MethodSignature_Expand(methodDef->Signature, fil);
 					if (mthSig->ReturnType->Void)
 					{
@@ -1415,13 +1454,13 @@ Branch_Common:
 
 
             case ILOpCode_NewObj:			// 0x73
-				Log_WriteLine(LogFlags_ILReading, "Read NewObj");
+				Log_WriteLine(LogFlags_ILReading, "Read NI-NSA-NewObj");
                 ReadUInt32(dat);
                 
                 ClearFlags();
                 break;
             case ILOpCode_NewArr:			// 0x8D
-				Log_WriteLine(LogFlags_ILReading, "Read NewArr");
+				Log_WriteLine(LogFlags_ILReading, "Read NI-NSA-NewArr");
                 ReadUInt32(dat);
                 
                 ClearFlags();
@@ -1434,7 +1473,7 @@ Branch_Common:
                 ClearFlags();
                 break;
             case ILOpCode_IsInst:			// 0x75
-				Log_WriteLine(LogFlags_ILReading, "Read IsInst");
+				Log_WriteLine(LogFlags_ILReading, "Read NI-NSA-IsInst");
                 ReadUInt32(dat);
 
 
@@ -1456,22 +1495,42 @@ Branch_Common:
 
             case ILOpCode_LdFld:			// 0x7B
 				{
-					Log_WriteLine(LogFlags_ILReading, "Read LdFld");
+					Log_WriteLine(LogFlags_ILReading, "Read NI-LdFld");
 					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
-					IRField* fld = NULL;
+					FieldSignature* sig = NULL;
 					switch(tok->Table)
 					{
 						case MetaData_Table_Field:
-							fld = asmbly->Fields[((Field*)tok->Data)->TableIndex];
+							sig = FieldSignature_Expand(asmbly->Fields[((Field*)tok->Data)->TableIndex]->FieldDef->Signature, fil);
 							break;
+
+						case MetaData_Table_MemberReference:
+							printf("Don't deal with this yet! Load Field with table index: 0x%x\n", (unsigned int)tok->Table);
+							sig = FieldSignature_Expand(((MemberReference*)tok->Data)->Signature, fil);
+							break;
+
 						default:
+							printf("Table: 0x%x\n", (unsigned int)tok->Table);
 							Panic("Definitely not good");
 							break;
 					}
 					StackObject* obj = StackObjectPool_Allocate();
-					FieldSignature* sig = FieldSignature_Expand(fld->FieldDef->Signature, fil);
 					SetTypeOfStackObjectFromSigElementType(obj, sig->Type->ElementType);
 					SyntheticStack_Push(stack, obj);
+					switch(tok->Table)
+					{
+						case MetaData_Table_Field:
+							FieldSignature_Destroy(sig);
+							break;
+
+						case MetaData_Table_MemberReference:
+							FieldSignature_Destroy(sig);
+							break;
+
+						default:
+							Panic("Unknown Table for Call!");
+							break;
+					}
 					free(tok);
 
 					ClearFlags();
@@ -1479,14 +1538,14 @@ Branch_Common:
 				}
 
             case ILOpCode_LdFldA:			// 0x7C
-				Log_WriteLine(LogFlags_ILReading, "Read LdFldA");
+				Log_WriteLine(LogFlags_ILReading, "Read NI-NSA-LdFldA");
                 ReadUInt32(dat);
                 
                 ClearFlags();
                 break;
 
             case ILOpCode_StFld:			// 0x7D
-				Log_WriteLine(LogFlags_ILReading, "Read StFld");
+				Log_WriteLine(LogFlags_ILReading, "Read NI-StFld");
                 ReadUInt32(dat);
 
 
@@ -1498,22 +1557,43 @@ Branch_Common:
 
             case ILOpCode_LdSFld:			// 0x7E
 				{
-					Log_WriteLine(LogFlags_ILReading, "Read LdSFld");
+					Log_WriteLine(LogFlags_ILReading, "Read NI-LdSFld");
 					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
-					IRField* fld = NULL;
+					FieldSignature* sig = NULL;
 					switch(tok->Table)
 					{
 						case MetaData_Table_Field:
-							fld = asmbly->Fields[((Field*)tok->Data)->TableIndex];
+							sig = FieldSignature_Expand(asmbly->Fields[((Field*)tok->Data)->TableIndex]->FieldDef->Signature, fil);
 							break;
+
+						case MetaData_Table_MemberReference:
+							printf("Don't deal with this yet! Load Static Field with table index: 0x%x\n", (unsigned int)tok->Table);
+							sig = FieldSignature_Expand(((MemberReference*)tok->Data)->Signature, fil);
+							break;
+
 						default:
+							printf("Table: 0x%x\n", (unsigned int)tok->Table);
 							Panic("Definitely not good");
 							break;
 					}
 					StackObject* obj = StackObjectPool_Allocate();
-					FieldSignature* sig = FieldSignature_Expand(fld->FieldDef->Signature, fil);
 					SetTypeOfStackObjectFromSigElementType(obj, sig->Type->ElementType);
 					SyntheticStack_Push(stack, obj);
+
+					switch(tok->Table)
+					{
+						case MetaData_Table_Field:
+							FieldSignature_Destroy(sig);
+							break;
+
+						case MetaData_Table_MemberReference:
+							FieldSignature_Destroy(sig);
+							break;
+
+						default:
+							Panic("Unknown Table for LdSFld!");
+							break;
+					}
 					free(tok);
 	                
 					ClearFlags();
@@ -1521,14 +1601,14 @@ Branch_Common:
 				}
 
             case ILOpCode_LdSFldA:			// 0x7F
-				Log_WriteLine(LogFlags_ILReading, "Read LdSFldA");
+				Log_WriteLine(LogFlags_ILReading, "Read NI-NSA-LdSFldA");
                 ReadUInt32(dat);
                 
                 ClearFlags();
                 break;
 
             case ILOpCode_StSFld:			// 0x80
-				Log_WriteLine(LogFlags_ILReading, "Read StSFld");
+				Log_WriteLine(LogFlags_ILReading, "Read NI-StSFld");
                 ReadUInt32(dat);
                 
 
@@ -1587,10 +1667,64 @@ Branch_Common:
 
 
             case ILOpCode_Box:				// 0x8C
-				Log_WriteLine(LogFlags_ILReading, "Read Box");
-                ReadUInt32(dat);
+				{
+					Log_WriteLine(LogFlags_ILReading, "Read NI-Box");
 
-                
+					StackObjectPool_Release(SyntheticStack_Pop(stack));
+
+					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
+					TypeDefinition* tdef = NULL;
+					TypeSpecification* tspec = NULL;
+					StackObject* obj = StackObjectPool_Allocate();
+					switch (tok->Table)
+					{
+						case MetaData_Table_TypeDefinition:
+							tdef = (TypeDefinition*)tok->Data;
+							if (tdef->Flags & TypeAttributes_Class)
+							{
+								obj->Type = StackObjectType_ReferenceType;
+								obj->NumericType = StackObjectNumericType_Ref;
+							}
+							else if (tdef->Extends.TypeDefinition == dom->CachedType___System_ValueType)
+							{
+								obj->Type = StackObjectType_ManagedPointer;
+								obj->NumericType = StackObjectNumericType_ManagedPointer;
+							}
+							else
+							{
+								Panic("Don't know what to do here!");
+							}
+							break;
+						case MetaData_Table_TypeSpecification:
+							tspec = (TypeSpecification*)tok->Data;
+							if (tspec->Flags & TypeAttributes_Class)
+							{
+								obj->Type = StackObjectType_ReferenceType;
+								obj->NumericType = StackObjectNumericType_Ref;
+							}
+							else if (tspec->Extends.TypeDefinition == dom->CachedType___System_ValueType)
+							{
+								obj->Type = StackObjectType_ManagedPointer;
+								obj->NumericType = StackObjectNumericType_ManagedPointer;
+							}
+							else
+							{
+								Panic("Don't know what to do here!");
+							}
+							break;
+
+						//case MetaData_Table_MemberReference:
+						//	sig = ((MemberReference*)tok->Data)->Signature, fil);
+
+						default:
+							printf("Table: 0x%x\n", (unsigned int)tok->Table);
+							Panic("Unknown Table for Box!");
+							break;
+					}
+					SyntheticStack_Push(stack, obj);
+
+					free(tok);	
+				}
                 ClearFlags();
                 break;
             case ILOpCode_LdLen:			// 0x8E
@@ -1667,7 +1801,7 @@ Branch_Common:
 
 
             case ILOpCode_Unbox_Any:		// 0xA5
-				Log_WriteLine(LogFlags_ILReading, "Read Unbox.Any");
+				Log_WriteLine(LogFlags_ILReading, "Read NI-NSA-Unbox.Any");
                 ReadUInt32(dat);
 
                 
@@ -1729,7 +1863,7 @@ Branch_Common:
                 ClearFlags();
                 break;
             case ILOpCode_Leave_S:			// 0xDE
-				Log_WriteLine(LogFlags_ILReading, "Read Leave.S");
+				Log_WriteLine(LogFlags_ILReading, "Read NI-NSA-Leave.S");
                 ReadUInt8(dat);
                 
                 ClearFlags();
@@ -1817,9 +1951,20 @@ Branch_Common:
                         ClearFlags();
                         break;
                     case ILOpCodes_Extended_LdArgA:			// 0x0A
-                        
+						{
+							Log_WriteLine(LogFlags_ILReading, "Read LdArg");
+							uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
+							*dt = (uint32_t)ReadUInt16(dat);
+							EMIT_IR_1ARG(IROpCode_Load_Parameter_Address, dt);
+							
+							StackObject* obj = StackObjectPool_Allocate();
+							obj->Type = StackObjectType_ManagedPointer;
+							obj->NumericType = StackObjectNumericType_ManagedPointer;
+							SyntheticStack_Push(stack, obj);
+						}
                         ClearFlags();
                         break;
+
                     case ILOpCodes_Extended_StArg:			// 0x0B
 						{
 							Log_WriteLine(LogFlags_ILReading, "Read StArg");
@@ -1858,6 +2003,7 @@ Branch_Common:
 
                             StackObject* obj = StackObjectPool_Allocate();
                             obj->Type = StackObjectType_ManagedPointer;
+                            obj->NumericType = StackObjectNumericType_ManagedPointer;
                             SyntheticStack_Push(stack, obj);
                         }
                         ClearFlags();
@@ -1883,7 +2029,7 @@ Branch_Common:
                         ClearFlags();
                         break;
                     case ILOpCodes_Extended_InitObj:		// 0x15
-						Log_WriteLine(LogFlags_ILReading, "Read InitObj");
+						Log_WriteLine(LogFlags_ILReading, "Read NI-NSA-InitObj");
 				        ReadUInt32(dat);
 
                         
@@ -1904,6 +2050,7 @@ Branch_Common:
                     // 0x1B Doesn't exist
                     case ILOpCodes_Extended_SizeOf:			// 0x1C
                         {	
+							Log_WriteLine(LogFlags_ILReading, "Read SizeOf");
 							MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
 							EMIT_IR_1ARG(IROpCode_SizeOf, tok);
 
@@ -1921,7 +2068,7 @@ Branch_Common:
 
 
                     case ILOpCodes_Extended_Constrained__:	// 0x16
-						Log_WriteLine(LogFlags_ILReading, "Read Constrained");
+						Log_WriteLine(LogFlags_ILReading, "NI-Read Constrained");
 						ReadUInt32(dat);
                         
 						Constrained = TRUE;

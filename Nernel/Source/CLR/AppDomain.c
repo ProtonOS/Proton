@@ -16,7 +16,7 @@ AppDomain* AppDomain_CreateDomain()
         {
 			AppDomain* domain = (AppDomain*)calloc(1, sizeof(AppDomain));
 			AppDomain_LinkCorlib(cliFile, domain);
-			Log_WriteLine(LogFlags_ILReading, "Domain address: 0x%x", (unsigned int)domain);
+			Log_WriteLine(LogFlags_AppDomain_Loading, "Domain address: 0x%x", (unsigned int)domain);
             IRAssembly* asmb = ILReader_CreateAssembly(cliFile, domain);
             Log_WriteLine(LogFlags_AppDomain_Loading, "Method Count: %u\n", (unsigned int)asmb->MethodCount);
 			AppDomain_AddAssembly(domain, asmb);
@@ -114,9 +114,7 @@ void AppDomain_LinkCorlib(CLIFile* corlib, AppDomain* domain)
 			}
 			else if (!strcmp(tp->Name, "Single"))
 			{
-				Log_WriteLine(LogFlags_ILReading, "Found System.Single: Pointer: 0x%x", (unsigned int)tp);
 				domain->CachedType___System_Single = tp;
-				Log_WriteLine(LogFlags_ILReading, "Domain: 0x%x, CachedType: 0x%x", (unsigned int)domain, (unsigned int)domain->CachedType___System_Single);
 			}
 			else if (!strcmp(tp->Name, "String"))
 			{

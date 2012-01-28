@@ -304,6 +304,26 @@ typedef enum IROpCode
      */
     IROpCode_Load_Parameter,
     /*
+        Loads the address of the specified
+        argument to the top of the stack.
+
+        Arg1:
+            The index of the parameter who's
+			address is going to be loaded to
+            load to the top of the stack.
+
+        Arg2:
+            N/A
+
+        Arg3:
+            N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_Load_Parameter_Address,
+    /*
         Stores the value on the top of the
 		stack in the specified parameter.
 
@@ -569,7 +589,7 @@ typedef enum IROpCode
      */
     IROpCode_Rem,
     /*
-        Loads the value at the address on the top of
+        Loads the value at the address to the top of
 		the stack.
 
         Arg1:
@@ -589,11 +609,11 @@ typedef enum IROpCode
     IROpCode_LoadIndirect,
     /*
         Stores the value on the top of
-		the stack at the address almost
+		the stack to the address almost
 		on the top of the stack.
 
         Arg1:
-            The type of object to load.
+            The type of object to store.
 			Of the type ElementType.
 
         Arg2:
