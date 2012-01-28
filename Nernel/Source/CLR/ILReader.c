@@ -1697,6 +1697,7 @@ Branch_Common:
 							break;
 						case MetaData_Table_TypeSpecification:
 							tspec = (TypeSpecification*)tok->Data;
+							/*
 							if (tspec->Flags & TypeAttributes_Class)
 							{
 								obj->Type = StackObjectType_ReferenceType;
@@ -1711,6 +1712,7 @@ Branch_Common:
 							{
 								Panic("Don't know what to do here!");
 							}
+							*/
 							break;
 
 						//case MetaData_Table_MemberReference:

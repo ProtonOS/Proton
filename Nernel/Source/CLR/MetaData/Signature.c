@@ -329,6 +329,13 @@ void SignatureType_Destroy(SignatureType* pType)
     free(pType);
 }
 
+SignatureType* SignatureType_Expand(const uint8_t* pSignature, CLIFile* pCLIFile)
+{
+    SignatureType* signatureType = NULL;
+	SignatureType_Parse(pSignature, &signatureType, pCLIFile);
+    return signatureType;
+}
+
 const uint8_t* SignatureType_Parse(const uint8_t* pCursor, SignatureType** pType, CLIFile* pCLIFile)
 {
     *pType = SignatureType_Create();

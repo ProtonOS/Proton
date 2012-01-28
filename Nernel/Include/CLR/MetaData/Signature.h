@@ -211,6 +211,7 @@ const uint8_t* SignatureCustomModifier_Parse(const uint8_t* pCursor, SignatureCu
 
 SignatureType* SignatureType_Create();
 void SignatureType_Destroy(SignatureType* pType);
+SignatureType* SignatureType_Expand(const uint8_t* pSignature, CLIFile* pCLIFile);
 const uint8_t* SignatureType_Parse(const uint8_t* pCursor, SignatureType** pType, CLIFile* pCLIFile);
 
 SignatureArrayShape* SignatureArrayShape_Create();
