@@ -474,6 +474,11 @@
 			obj->NumericType = StackObjectNumericType_Float64; \
 			obj->Type = StackObjectType_Float; \
 			break; \
+		case Signature_ElementType_Pointer: \
+			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type Pointer"); \
+			obj->NumericType = StackObjectNumericType_Pointer; \
+			obj->Type = StackObjectType_NativeInt; \
+			break; \
 		case Signature_ElementType_IPointer: \
 			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type IPointer"); \
 			obj->NumericType = StackObjectNumericType_Pointer; \

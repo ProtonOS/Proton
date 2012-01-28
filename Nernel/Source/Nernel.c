@@ -14,7 +14,6 @@ void Main(uint32_t pMultiBootMagic,
         Nernel_Shutdown();
         return;
     }
-
     /*
   	MultiBoot_LoadedModule* loadedModule = MultiBoot_GetLoadedModuleByFileName("corlib.dll");
     PEFile* peFile = PEFile_Create((uint8_t*)loadedModule->Address, loadedModule->Length);
