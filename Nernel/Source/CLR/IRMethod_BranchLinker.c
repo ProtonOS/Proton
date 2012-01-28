@@ -36,6 +36,12 @@ void Panic(const char* msg);
         targetInstruction = mthd->IRCodes[curLoc cond 5]; \
         foundTarget = TRUE; \
     } \
+    else if (mthd->IRCodes[curLoc cond 6]->InstructionLocation == targetInstrPos) \
+    { \
+        Log_WriteLine(LogFlags_ILReading_BranchLinker, "Located Branch. curLoc: %i, targetInstrPos: %i, AddAmnt: %i", (int)(curLoc cond 6), (int)targetInstrPos, (int)AddAmnt); \
+        targetInstruction = mthd->IRCodes[curLoc cond 6]; \
+        foundTarget = TRUE; \
+    } \
     else \
     { \
         Log_WriteLine(LogFlags_ILReading_BranchLinker, "Failed to locate branch. cond: " #cond); \
@@ -44,6 +50,7 @@ void Panic(const char* msg);
         Log_WriteLine(LogFlags_ILReading_BranchLinker, "mthd->IRCodes[curLoc " #cond " 3]->InstructionLocation: %i", (int)(mthd->IRCodes[curLoc cond 3]->InstructionLocation)); \
         Log_WriteLine(LogFlags_ILReading_BranchLinker, "mthd->IRCodes[curLoc " #cond " 4]->InstructionLocation: %i", (int)(mthd->IRCodes[curLoc cond 4]->InstructionLocation)); \
         Log_WriteLine(LogFlags_ILReading_BranchLinker, "mthd->IRCodes[curLoc " #cond " 5]->InstructionLocation: %i", (int)(mthd->IRCodes[curLoc cond 5]->InstructionLocation)); \
+        Log_WriteLine(LogFlags_ILReading_BranchLinker, "mthd->IRCodes[curLoc " #cond " 6]->InstructionLocation: %i", (int)(mthd->IRCodes[curLoc cond 6]->InstructionLocation)); \
         Log_WriteLine(LogFlags_ILReading_BranchLinker, "curLoc: %i, MethodLength: %i, targetInstrPos: %i, AddAmnt: %i", (int)curLoc, (int)mthd->IRCodesCount, (int)targetInstrPos, (int)AddAmnt); \
         Panic("Unable to resolve target of branch!"); \
     }
@@ -54,6 +61,7 @@ void IRMethod_BranchLinker_LinkMethod(IRMethod* mthd)
     {
         if (mthd->IRCodes[i]->OpCode == IROpCode_Branch)
         {
+            Log_WriteLine(LogFlags_ILReading_BranchLinker, "Starting Link attempt, Source Instruction Position: 0x%x", (unsigned int)mthd->IRCodes[i]->InstructionLocation);
             uint32_t targetInstrPos = *((uint32_t*)(mthd->IRCodes[i]->Arg2));
             uint32_t AddAmnt = mthd->IRCodesCount / 4;
             uint32_t curLoc = mthd->IRCodesCount / 2;
