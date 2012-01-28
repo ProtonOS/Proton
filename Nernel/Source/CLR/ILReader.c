@@ -49,18 +49,17 @@ IRAssembly* ILReader_CreateAssembly(CLIFile* fil, AppDomain* dom)
 
 	((void(*)())mth)();*/
 	
-	for (uint32_t i = 1; i < fil->FieldCount; i++)
+	for (uint32_t i = 1; i <= fil->FieldCount; i++)
 	{
 		IRAssembly_AddField(asmbly, GenerateField(&fil->Fields[i], fil, asmbly, dom));
 	}
 
-	for (uint32_t i = 1; i < fil->TypeDefinitionCount; i++)
+	for (uint32_t i = 1; i <= fil->TypeDefinitionCount; i++)
 	{
 		IRAssembly_AddType(asmbly, GenerateType(&fil->TypeDefinitions[i], fil, asmbly));
 	}
 	
-	Link(asmbly);
-				Panic("Don't know how to get field offsets here!");
+
     for (uint32_t i = 1; i <= fil->MethodDefinitionCount; i++)
     {
         uint8_t* ilLoc = (uint8_t*)fil->MethodDefinitions[i].Body.Code;
@@ -71,6 +70,7 @@ IRAssembly* ILReader_CreateAssembly(CLIFile* fil, AppDomain* dom)
         IRAssembly_AddMethod(asmbly, irMeth);
     }
     StackObjectPool_Destroy();
+	Link(asmbly);
 
     IROptimizer_Optimize(asmbly);
 
@@ -199,35 +199,50 @@ void Link(IRAssembly* asmb)
 	for (uint32_t i = 1; i <= asmb->TypeCount; i++)
 	{
 		IRType* tp = asmb->Types[i];
-		tp->Size = IRType_GetSize(tp);
+		/*if (tp->IsFixedSize)
+		{
+			Log_WriteLine(LogFlags_ILReading, "Type Name: %s", tp->TypeDef->Name);
+			tp->Size = IRType_GetSize(tp);
+		}*/
 		if (tp->HasStaticConstructor)
 		{
 			tp->StaticConstructor = asmb->Methods[(uint32_t)tp->StaticConstructor];
 		}
 	}
 
-	// Now set the field offsets.
-	for (uint32_t i = 1; i <= asmb->TypeCount; i++)
+	for (uint32_t i = 1; i <= asmb->MethodCount; i++)
 	{
-		if (asmb->Types[i]->IsFixedSize)
+		for (uint32_t i2 = 0; i2 < asmb->Methods[i]->IRCodesCount; i2++)
 		{
-			IRType* tp = asmb->Types[i];
-			if (tp->TypeDef->ClassLayout)
+			if (asmb->Methods[i]->IRCodes[i2]->OpCode == IROpCode_Call)
 			{
-				Panic("Don't know how to get field offsets here!");
-			}
-			else
-			{
-				uint32_t offset = 0;
-				for (uint32_t i2 = 0; i2 < tp->FieldCount; i2++)
-				{
-					IRField* fld = tp->Fields[i2];
-					fld->Offset = offset;
-					offset += fld->ParentType->Size;
-				}
+				asmb->Methods[i]->IRCodes[i2]->Arg1 = asmb->Methods[*((uint32_t*)asmb->Methods[i]->IRCodes[i2]->Arg1)];
 			}
 		}
 	}
+
+	//// Now set the field offsets.
+	//for (uint32_t i = 1; i <= asmb->TypeCount; i++)
+	//{
+	//	if (asmb->Types[i]->IsFixedSize)
+	//	{
+	//		IRType* tp = asmb->Types[i];
+	//		if (tp->TypeDef->ClassLayout)
+	//		{
+	//			Panic("Don't know how to get field offsets here!");
+	//		}
+	//		else
+	//		{
+	//			uint32_t offset = 0;
+	//			for (uint32_t i2 = 0; i2 < tp->FieldCount; i2++)
+	//			{
+	//				IRField* fld = tp->Fields[i2];
+	//				fld->Offset = offset;
+	//				offset += fld->ParentType->Size;
+	//			}
+	//		}
+	//	}
+	//}
 
 
 }
@@ -278,9 +293,16 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 					StackObject* obj = StackObjectPool_Allocate();
 					if (mthSig->HasThis && !(mthSig->ExplicitThis))
 					{
-						obj->Type = StackObjectType_ReferenceType;
-						obj->NumericType = StackObjectNumericType_Ref;
-						//Panic("Don't know how to get the type of the parameter here!");
+						if (methodDef->TypeDefinition->Extends.TypeDefinition == dom->CachedType___System_ValueType)
+						{
+							obj->Type = StackObjectType_ManagedPointer;
+							obj->NumericType = StackObjectNumericType_ManagedPointer;
+						}
+						else
+						{
+							obj->Type = StackObjectType_ReferenceType;
+							obj->NumericType = StackObjectNumericType_Ref;
+						}
 					}
 					else
 					{
@@ -370,10 +392,16 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 					{
 						if (*dt == 0)
 						{
-							//if ((methodDef->TypeDefinition->Flags & TYPE)
-							obj->Type = StackObjectType_ReferenceType;
-							obj->NumericType = StackObjectNumericType_Ref;
-							//Panic("Don't know how to get the type of the parameter here!");
+							if (methodDef->TypeDefinition->Extends.TypeDefinition == dom->CachedType___System_ValueType)
+							{
+								obj->Type = StackObjectType_ManagedPointer;
+								obj->NumericType = StackObjectNumericType_ManagedPointer;
+							}
+							else
+							{
+								obj->Type = StackObjectType_ReferenceType;
+								obj->NumericType = StackObjectNumericType_Ref;
+							}
 						}
 						else
 						{
@@ -682,11 +710,13 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 				{
 					Log_WriteLine(LogFlags_ILReading, "Read Call");
 					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
+					MethodDefinition* mthDef;
 					MethodSignature* sig;
 					switch(tok->Table)
 					{
 						case MetaData_Table_MethodDefinition:
 							sig = MethodSignature_Expand(((MethodDefinition*)tok->Data)->Signature, fil);
+							mthDef = (MethodDefinition*)tok->Data;
 							break;
 
 						default:
@@ -717,6 +747,8 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 							break;
 					}
 					free(tok);
+					EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Call, &mthDef->TableIndex);
+					
 				}
                 ClearFlags();
                 break;
@@ -1357,6 +1389,8 @@ Branch_Common:
                 ClearFlags();
                 break;
             case ILOpCode_NewArr:			// 0x8D
+				Log_WriteLine(LogFlags_ILReading, "Read NewArr");
+                ReadUInt32(dat);
                 
                 ClearFlags();
                 break;
@@ -1368,7 +1402,10 @@ Branch_Common:
                 ClearFlags();
                 break;
             case ILOpCode_IsInst:			// 0x75
-                
+				Log_WriteLine(LogFlags_ILReading, "Read IsInst");
+                ReadUInt32(dat);
+
+
                 ClearFlags();
                 break;
 
@@ -1386,26 +1423,40 @@ Branch_Common:
 
 
             case ILOpCode_LdFld:			// 0x7B
+				Log_WriteLine(LogFlags_ILReading, "Read LdFld");
+                ReadUInt32(dat);
+
                 
                 ClearFlags();
                 break;
             case ILOpCode_LdFldA:			// 0x7C
+				Log_WriteLine(LogFlags_ILReading, "Read LdFldA");
+                ReadUInt32(dat);
                 
                 ClearFlags();
                 break;
             case ILOpCode_StFld:			// 0x7D
+				Log_WriteLine(LogFlags_ILReading, "Read StFld");
+                ReadUInt32(dat);
+
                 
                 ClearFlags();
                 break;
             case ILOpCode_LdSFld:			// 0x7E
+				Log_WriteLine(LogFlags_ILReading, "Read LdSFld");
+                ReadUInt32(dat);
                 
                 ClearFlags();
                 break;
             case ILOpCode_LdSFldA:			// 0x7F
+				Log_WriteLine(LogFlags_ILReading, "Read LdSFldA");
+                ReadUInt32(dat);
                 
                 ClearFlags();
                 break;
             case ILOpCode_StSFld:			// 0x80
+				Log_WriteLine(LogFlags_ILReading, "Read StSFld");
+                ReadUInt32(dat);
                 
                 ClearFlags();
                 break;
@@ -1458,6 +1509,9 @@ Branch_Common:
 
 
             case ILOpCode_Box:				// 0x8C
+				Log_WriteLine(LogFlags_ILReading, "Read Box");
+                ReadUInt32(dat);
+
                 
                 ClearFlags();
                 break;
@@ -1535,6 +1589,9 @@ Branch_Common:
 
 
             case ILOpCode_Unbox_Any:		// 0xA5
+				Log_WriteLine(LogFlags_ILReading, "Read Unbox.Any");
+                ReadUInt32(dat);
+
                 
                 ClearFlags();
                 break;
@@ -1781,7 +1838,10 @@ Branch_Common:
 
 
                     case ILOpCodes_Extended_Constrained__:	// 0x16
-                        Constrained = TRUE;
+						Log_WriteLine(LogFlags_ILReading, "Read Constrained");
+						ReadUInt32(dat);
+                        
+						Constrained = TRUE;
                         break;
                     case ILOpCodes_Extended_No__:			// 0x19
                         No = TRUE;

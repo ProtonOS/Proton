@@ -504,6 +504,21 @@ typedef enum IROpCode
 
      */
     IROpCode_StoreIndirect,
+    /*
+        Calls the specified method.
+
+        Arg1:
+            The method to call.
+			Of the type IRMethod.
+
+        Arg2:
+            N/A
+
+        Arg3:
+            N/A
+
+     */
+    IROpCode_Call,
 	
 } IROpCode;
 

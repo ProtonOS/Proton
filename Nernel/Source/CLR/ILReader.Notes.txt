@@ -1,5 +1,6 @@
 
 
+We need to figure out how a "ref" to a ReferenceTypeObject is handled.
 The IRType_GetSize method needs to deal with generics.
 
 
