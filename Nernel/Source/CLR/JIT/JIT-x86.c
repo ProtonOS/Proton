@@ -46,10 +46,18 @@ char* JIT_Emit_Prologue(IRMethod* mth, char* compMethod)
 
 char* JIT_Emit_Epilogue(IRMethod* mth, char* compMethod)
 {
-	// We don't care about the assembly
-	// or method indexes anymore.
-	x86_pop_reg(compMethod, X86_EAX); // Pop the Method index.
-	x86_pop_reg(compMethod, X86_EAX); // Pop the Assembly index.
+	// We don't have to move the
+	// stack back from local variables,
+	// nor the Method & Assembly indexes,
+	// because we're restoring all registers
+	// here from when the stack hadn't been 
+	// touched yet.
+
+
+	// // We don't care about the assembly
+	// // or method indexes anymore.
+	//x86_pop_reg(compMethod, X86_EAX); // Pop the Method index.
+	//x86_pop_reg(compMethod, X86_EAX); // Pop the Assembly index.
 
 	// Now restore the registers state.
 	x86_popad(compMethod);
@@ -76,7 +84,7 @@ char* JIT_Compile_BreakForDebugger			(IRInstruction* instr, char* compMethod, IR
 
 char* JIT_Compile_Return					(IRInstruction* instr, char* compMethod, IRMethod* mth)
 {
-	
+	//x86_ret(compMethod);
 	return compMethod;
 }
 
@@ -202,7 +210,41 @@ char* JIT_Compile_Load_Array_Length			(IRInstruction* instr, char* compMethod, I
 
 char* JIT_Compile_Pop						(IRInstruction* instr, char* compMethod, IRMethod* mth)
 {
-	
+	switch(*((ElementType*)instr->Arg1))
+	{
+		case ElementType_I:
+		case ElementType_U:
+		case ElementType_I1:
+		case ElementType_U1:
+		case ElementType_I2:
+		case ElementType_U2:
+		case ElementType_I4:
+		case ElementType_U4:
+		case ElementType_R4:
+		case ElementType_Ref:
+		case ElementType_ManagedPointer:
+			x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, (unsigned int)4);
+			break;
+		case ElementType_I8:
+		case ElementType_U8:
+		case ElementType_R8:
+			x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, (unsigned int)8);
+			break;
+		case ElementType_DataType:
+			{
+				uint32_t pCount = ((IRType*)instr->Arg2)->Size / 4;
+				uint32_t extra = ((IRType*)instr->Arg2)->Size % 4;
+				if (extra)
+				{
+					pCount++;
+				}
+				// Repeated popping would just be slow,
+				// and, as we're not using the values,
+				// it's easier just to move the stack pointer.
+				x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, (unsigned int)pCount);
+			}
+			break;
+	}
 	return compMethod;
 }
 
@@ -272,6 +314,6 @@ char* JIT_Compile_Call						(IRInstruction* instr, char* compMethod, IRMethod* m
 
 char* JIT_Compile_LoadNull					(IRInstruction* instr, char* compMethod, IRMethod* mth)
 {
-	
+	x86_push_imm(compMethod, (unsigned int)0);
 	return compMethod;
 }

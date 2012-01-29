@@ -728,6 +728,10 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 					ElementType* elemType = (ElementType*)malloc(sizeof(ElementType));
 					StackObject* obj = SyntheticStack_Pop(stack);
 					GetElementTypeOfStackObject(*elemType, obj);
+					if (*elemType == ElementType_DataType)
+					{
+						Panic("We don't currently track the exact type of stack objects, and as such, we can't do this yet!");
+					}
 					EMIT_IR_1ARG(IROpCode_Pop, elemType);
 					StackObjectPool_Release(obj);
 				}

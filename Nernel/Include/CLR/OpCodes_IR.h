@@ -415,7 +415,10 @@ typedef enum IROpCode
 			Of the type ElementType.
 
         Arg2:
-            N/A
+            The IRType of the structure
+			to pop. Only valid if Arg1 is
+			ElementType_DataType.
+			Of the type IRType.
 
         Arg3:
             N/A
