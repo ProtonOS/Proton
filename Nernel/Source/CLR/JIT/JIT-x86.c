@@ -3,6 +3,21 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+char* JIT_Emit_Prologue(IRMethod* mth, char* compMethod)
+{
+
+
+	return compMethod;
+}
+
+char* JIT_Emit_Epilogue(IRMethod* mth, char* compMethod)
+{
+
+
+	return compMethod;
+}
+
+
 char* JIT_Compile_Nop(IRInstruction* instr, char* compMethod)
 {
 	x86_nop(compMethod);

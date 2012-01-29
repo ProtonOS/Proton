@@ -6,6 +6,10 @@
 void JIT_CompileMethod(IRMethod* mthd);
 
 
+char* JIT_Emit_Prologue(IRMethod* mth, char* compMethod);
+char* JIT_Emit_Epilogue(IRMethod* mth, char* compMethod);
+
+
 char* JIT_Compile_Nop(IRInstruction* instr, char* compMethod);
 //char* JIT_Compile_BreakForDebugger(IRInstruction* instr, char* compMethod);
 //char* JIT_Compile_Load_Int32_Val(IRInstruction* instr, char* compMethod);

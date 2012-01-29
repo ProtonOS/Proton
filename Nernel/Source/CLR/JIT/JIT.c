@@ -5,21 +5,27 @@
 
 void JIT_CompileMethod(IRMethod* mthd)
 {
-	char* AssmbledMthd = calloc(1, mthd->IRCodesCount * 128);
-	char* mthPtr = AssmbledMthd;
+	char* compMthd = calloc(1, mthd->IRCodesCount * 128);
+	char* mthPtr = compMthd;
+
+	compMthd = JIT_Emit_Prologue(mthd, compMthd);
+
 	for (uint32_t i = 0; i < mthd->IRCodesCount; i++)
 	{
 		switch(mthd->IRCodes[i]->OpCode)
 		{
 			case IROpCode_Nop:
-				JIT_Compile_Nop(mthd->IRCodes[i], AssmbledMthd);
+				compMthd = JIT_Compile_Nop(mthd->IRCodes[i], compMthd);
 				break;
 
 			case IROpCode_Convert_Unchecked:
-				JIT_Compile_Convert_Unchecked(mthd->IRCodes[i], AssmbledMthd);
+				compMthd = JIT_Compile_Convert_Unchecked(mthd->IRCodes[i], compMthd);
 				break;
 
 		}
 	}
+
+	compMthd = JIT_Emit_Epilogue(mthd, compMthd);
+
 	mthd->AssembledMethod = ((void(*)())mthPtr);
 }
