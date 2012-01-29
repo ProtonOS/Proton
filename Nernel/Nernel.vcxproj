@@ -14,6 +14,7 @@
     <None Include="License.txt" />
     <None Include="Makefile.omake" />
     <None Include="Source\CLR\ILReader.Notes.txt" />
+    <None Include="Source\CLR\JIT\JIT-x86.Notes.txt" />
     <None Include="Source\Core\Boot.asm" />
     <None Include="Source\Core\GDTUpdate.asm" />
     <None Include="Source\Core\IDTStubs.asm" />

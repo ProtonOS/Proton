@@ -2052,9 +2052,10 @@ Branch_Common:
                     // 0x1B Doesn't exist
                     case ILOpCodes_Extended_SizeOf:			// 0x1C
                         {	
-							Log_WriteLine(LogFlags_ILReading, "Read SizeOf");
-							MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
-							EMIT_IR_1ARG(IROpCode_SizeOf, tok);
+							Log_WriteLine(LogFlags_ILReading, "Read NI-SizeOf");
+							ReadUInt32(dat);
+							//MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
+							//EMIT_IR_1ARG(IROpCode_SizeOf, tok);
 
 							StackObject* obj = StackObjectPool_Allocate();
 							obj->Type = StackObjectType_Int32;

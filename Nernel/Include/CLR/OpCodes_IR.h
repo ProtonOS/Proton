@@ -343,47 +343,6 @@ typedef enum IROpCode
      */
     IROpCode_Store_Parameter,
     /*
-        Loads the specified string to the
-        top of the stack.
-
-        Arg1:
-            The string to load to the top
-            of the stack. ( char* )
-
-        Arg2:
-            N/A
-
-        Arg3:
-            N/A
-
-        Arg4:
-            N/A
-
-     */
-    IROpCode_Load_String,
-    /*
-        Shifts the object almost on the top of the stack
-        in the specified way, by an amount specified
-        by the value at the top of the stack.
-
-        Arg1:
-            The type of shift to perform.
-            Of the type ShiftType.
-
-        Arg2:
-            The type of object to shift.
-			Of the type StackObjectType.
-
-        Arg3:
-            The type of object to shift by.
-			Of the type StackObjectType.
-
-        Arg4:
-            N/A
-
-     */
-    IROpCode_Shift,
-    /*
         Loads the element in the array almost
 		on the top of the stack, at the index
 		on the top of the stack, to the top of
@@ -431,27 +390,6 @@ typedef enum IROpCode
      */
     IROpCode_Store_Element,
     /*
-        Pushes the size of the type represented
-		by the specified MetaDataToken to the
-		top of the stack.
-
-        Arg1:
-            The token representing the type to
-			push the size of.
-			Of the type MetaDataToken.
-
-        Arg2:
-            N/A
-
-        Arg3:
-            N/A
-
-        Arg4:
-            N/A
-
-     */
-    IROpCode_SizeOf,
-    /*
         Pushes the length of the array on the top
 		of the stack, to the top of the stack.
 
@@ -487,6 +425,28 @@ typedef enum IROpCode
 
      */
     IROpCode_Pop,
+    /*
+        Shifts the object almost on the top of the stack
+        in the specified way, by an amount specified
+        by the value at the top of the stack.
+
+        Arg1:
+            The type of shift to perform.
+            Of the type ShiftType.
+
+        Arg2:
+            The type of object to shift.
+			Of the type StackObjectType.
+
+        Arg3:
+            The type of object to shift by.
+			Of the type StackObjectType.
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_Shift,
     /*
         Adds the 2 items on the top of the stack,
 		and pushes the result to the top of the stack.
