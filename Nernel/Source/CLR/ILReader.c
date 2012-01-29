@@ -1458,9 +1458,29 @@ Branch_Common:
 
 
             case ILOpCode_NewObj:			// 0x73
-				Log_WriteLine(LogFlags_ILReading, "Read NI-NSA-NewObj");
-                ReadUInt32(dat);
-                
+				Log_WriteLine(LogFlags_ILReading, "Read NFI-NewObj");
+				MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
+                IRMethod* mthd = NULL;
+				switch(tok->Table)
+				{
+					case MetaData_Table_MethodDefinition:
+						mthd = (IRMethod*)(tok->Data);
+						break;
+					case MetaData_Table_MemberReference:
+						//mthd = NULL;
+						break;
+					default:
+						printf("Table: 0x%x\n", (unsigned int)tok->Table);
+						Panic("Unknown table for NewObj!");
+						break;
+				}
+				EMIT_IR_1ARG(IROpCode_NewObj, mthd);
+
+				StackObject* obj = StackObjectPool_Allocate();
+				obj->Type = StackObjectType_ReferenceType;
+				obj->NumericType = StackObjectNumericType_Ref;
+				SyntheticStack_Push(stack, obj);
+
                 ClearFlags();
                 break;
             case ILOpCode_NewArr:			// 0x8D

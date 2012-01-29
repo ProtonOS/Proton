@@ -317,3 +317,13 @@ char* JIT_Compile_LoadNull					(IRInstruction* instr, char* compMethod, IRMethod
 	x86_push_imm(compMethod, (unsigned int)0);
 	return compMethod;
 }
+
+
+char* JIT_Compile_NewObj					(IRInstruction* instr, char* compMethod, IRMethod* mth)
+{
+	
+	return compMethod;
+}
+
+
+

@@ -109,6 +109,9 @@ void JIT_CompileMethod(IRMethod* mthd)
 			case IROpCode_LoadNull:
 				compMthd = JIT_Compile_LoadNull					(mthd->IRCodes[i], compMthd, mthd);
 				break;
+			case IROpCode_NewObj:
+				compMthd = JIT_Compile_NewObj					(mthd->IRCodes[i], compMthd, mthd);
+				break;
 		}
 	}
 

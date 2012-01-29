@@ -626,6 +626,26 @@ typedef enum IROpCode
 
      */
     IROpCode_LoadNull,
+    /*
+        Creates a new object, initializes it's
+		field, and calls the constructor in 
+		Arg1.
+
+        Arg1:
+            The constructor to call.
+			Of the type IRMethod.
+
+        Arg2:
+            N/A
+
+        Arg3:
+            N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_NewObj,
 	
 } IROpCode;
 

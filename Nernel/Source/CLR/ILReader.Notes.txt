@@ -1,5 +1,6 @@
 
 
+Need to deal with MemberReference in NewObj.
 The synthetic stack needs to track the physical type of the objects of the stack.
 We need to make the log be optimized out if the call isn't actually being made.
 We need to figure out how a "ref" to a ReferenceTypeObject is handled.
