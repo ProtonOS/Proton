@@ -1,5 +1,6 @@
 #pragma once
 
+#include <uthash.h>
 #include <CLR/ReferenceTypeObject.h>
 
 #define GC_Generation0ToGeneration1_RequiredAge         25
@@ -8,6 +9,7 @@
 #define GCHeapStack_SmallHeap_Size                      (4 * 1024)
 #define GCHeapStack_LargeHeap_Size                      (GCHeapStack_SmallHeap_Size * 1024)
 
+typedef struct _GCString GCString;
 typedef struct _GC GC;
 typedef struct _GCHeap GCHeap;
 typedef struct _GCHeapStack GCHeapStack;
@@ -36,11 +38,21 @@ struct _GC
     GCHeap SmallGeneration1Heap;
     GCHeap SmallGeneration2Heap;
     GCHeap LargeHeap;
+	GCString* StringHashTable;
+};
+
+struct _GCString
+{
+	uint32_t Size;
+	uint8_t* Data;
+	ReferenceTypeObject* Object;
+	UT_hash_handle HashHandle;
 };
 
 void Panic(const char* pMessage);
 
 GC* GC_Create();
 void GC_Destroy(GC* pGC);
-ReferenceTypeObject* GC_Allocate(GC* pGC, ReferenceTypeObject* pInitialReference, uint32_t pSize);
+ReferenceTypeObject* GC_AllocateObject(GC* pGC, ReferenceTypeObject* pInitialReference, uint32_t pSize);
+ReferenceTypeObject* GC_AllocateString(GC* pGC, ReferenceTypeObject* pInitialReference, uint8_t* pData, uint32_t pSize);
 void GC_Collect(GC* pGC);

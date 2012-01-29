@@ -123,10 +123,10 @@ ReferenceTypeObject* GCHeap_Allocate(GCHeap* pGCHeap, uint32_t pStackSize, uint3
     return object;
 }
 
-ReferenceTypeObject* GC_Allocate(GC* pGC, ReferenceTypeObject* pInitialReference, uint32_t pSize)
+ReferenceTypeObject* GC_AllocateObject(GC* pGC, ReferenceTypeObject* pInitialReference, uint32_t pSize)
 {
-    if (!pInitialReference) Panic("GC_Allocate pInitialReference == NULL");
-    if (pSize == 0 || pSize >= 0x7FFFFFFF) Panic("GC_Allocate pSize == 0 || pSize >= 0x7FFFFFFF");
+    if (!pInitialReference) Panic("GC_AllocateObject pInitialReference == NULL");
+    if (pSize == 0 || pSize >= 0x7FFFFFFF) Panic("GC_AllocateObject pSize == 0 || pSize >= 0x7FFFFFFF");
     ReferenceTypeObject* object = NULL;
     if (pSize <= GCHeapStack_SmallHeap_Size)
         object = GCHeap_Allocate(&pGC->SmallGeneration0Heap, GCHeapStack_SmallHeap_Size, pSize);
@@ -134,6 +134,34 @@ ReferenceTypeObject* GC_Allocate(GC* pGC, ReferenceTypeObject* pInitialReference
         object = GCHeap_Allocate(&pGC->LargeHeap, GCHeapStack_LargeHeap_Size, pSize);
     else object = GCHeap_Allocate(&pGC->LargeHeap, pSize, pSize);
     ReferenceTypeObject_AddReference(pInitialReference, object);
+    return object;
+}
+
+ReferenceTypeObject* GC_AllocateString(GC* pGC, ReferenceTypeObject* pInitialReference, uint8_t* pData, uint32_t pSize)
+{
+    if (!pInitialReference) Panic("GC_AllocateString pInitialReference == NULL");
+    if (pSize == 0 || pSize >= 0x7FFFFFFF) Panic("GC_AllocateString pSize == 0 || pSize >= 0x7FFFFFFF");
+    ReferenceTypeObject* object = NULL;
+	uint32_t sizeOfGCString = sizeof(GCString) + pSize;
+	GCString* header = NULL;
+	HASH_FIND(HashHandle, pGC->StringHashTable, pData, pSize, header);
+	if (!header)
+	{
+		if (sizeOfGCString <= GCHeapStack_SmallHeap_Size)
+			object = GCHeap_Allocate(&pGC->SmallGeneration0Heap, GCHeapStack_SmallHeap_Size, sizeOfGCString);
+		else if (sizeOfGCString <= GCHeapStack_LargeHeap_Size)
+			object = GCHeap_Allocate(&pGC->LargeHeap, GCHeapStack_LargeHeap_Size, sizeOfGCString);
+		else object = GCHeap_Allocate(&pGC->LargeHeap, sizeOfGCString, sizeOfGCString);
+		object->Flags |= ReferenceTypeObject_Flags_String;
+		header = (GCString*)object->Object;
+		header->Data = (object->Object + sizeof(GCString));
+		header->Size = pSize;
+		header->Object = object;
+		memcpy(header->Data, pData, pSize);
+		HASH_ADD(HashHandle, pGC->StringHashTable, Data, pSize, header);
+	}
+	else object = header->Object;
+	ReferenceTypeObject_AddReference(pInitialReference, object);
     return object;
 }
 
@@ -159,7 +187,7 @@ void GCHeap_Collect(GCHeap* pGCHeap, bool_t pAgeObjects)
     }
 }
 
-void GCHeap_Compact(GCHeap* pGCHeap)
+void GCHeap_Compact(GC* pGC, GCHeap* pGCHeap)
 {
     GCHeapStack* stack = NULL;
     for (uint32_t index = 0; index < pGCHeap->StackCount; ++index)
@@ -168,7 +196,7 @@ void GCHeap_Compact(GCHeap* pGCHeap)
         if (stack->Disposed >= (stack->Size / 4))
         {
             uint32_t allocatedCount = 0;
-            for (uint32_t objectIndex = 0, startIndex = 0; objectIndex < stack->ObjectPoolSize; ++objectIndex)
+            for (uint32_t objectIndex = 0, startIndex = 0; objectIndex < stack->ObjectPoolSize; ++objectIndex) // Shift out unused objects
             {
                 if ((stack->ObjectPool[objectIndex]->Flags & ReferenceTypeObject_Flags_Allocated) != 0)
                 {
@@ -185,7 +213,7 @@ void GCHeap_Compact(GCHeap* pGCHeap)
                     }
                 }
             }
-            for (uint32_t objectIndex = 0; objectIndex < allocatedCount; ++objectIndex)
+            for (uint32_t objectIndex = 0; objectIndex < allocatedCount; ++objectIndex) // Sort used objects
             {
                 if (objectIndex > 0 && stack->ObjectPool[objectIndex]->Object < stack->ObjectPool[objectIndex - 1]->Object)
                 {
@@ -196,13 +224,22 @@ void GCHeap_Compact(GCHeap* pGCHeap)
             }
             for (uint32_t objectIndex = 0; objectIndex < allocatedCount; ++objectIndex)
             {
+                if ((stack->ObjectPool[objectIndex]->Flags & ReferenceTypeObject_Flags_Disposed) != 0 &&
+					(stack->ObjectPool[objectIndex]->Flags & ReferenceTypeObject_Flags_String) != 0)
+				{
+					stack->ObjectPool[objectIndex]->Flags &= ~ReferenceTypeObject_Flags_String;
+					HASH_DELETE(HashHandle, pGC->StringHashTable, (GCString*)stack->ObjectPool[objectIndex]->Object);
+				}
+			}
+            for (uint32_t objectIndex = 0; objectIndex < allocatedCount; ++objectIndex)
+            {
                 if ((stack->ObjectPool[objectIndex]->Flags & ReferenceTypeObject_Flags_Disposed) != 0)
                 {
                     while (objectIndex < (allocatedCount - 1) && (stack->ObjectPool[objectIndex + 1]->Flags & ReferenceTypeObject_Flags_Disposed) != 0)
                     {
                         stack->ObjectPool[objectIndex]->Size += stack->ObjectPool[objectIndex + 1]->Size;
                         ReferenceTypeObject_Reset(stack->ObjectPool[objectIndex + 1]);
-
+						
                         for (uint32_t shiftIndex = objectIndex + 2; shiftIndex < allocatedCount; ++shiftIndex)
                         {
                             ReferenceTypeObject* tempObject = stack->ObjectPool[shiftIndex];
@@ -286,9 +323,9 @@ void GC_Collect(GC* pGC)
     GCHeap_Migrate(&pGC->SmallGeneration1Heap, &pGC->SmallGeneration2Heap, GCHeapStack_SmallHeap_Size, GC_Generation0ToGeneration1_RequiredAge);
     GCHeap_Migrate(&pGC->SmallGeneration0Heap, &pGC->SmallGeneration1Heap, GCHeapStack_SmallHeap_Size, GC_Generation1ToGeneration2_RequiredAge);
 
-    GCHeap_Compact(&pGC->SmallGeneration0Heap);
-    GCHeap_Compact(&pGC->SmallGeneration1Heap);
-    GCHeap_Compact(&pGC->SmallGeneration2Heap);
-    GCHeap_Compact(&pGC->LargeHeap);
+    GCHeap_Compact(pGC, &pGC->SmallGeneration0Heap);
+    GCHeap_Compact(pGC, &pGC->SmallGeneration1Heap);
+    GCHeap_Compact(pGC, &pGC->SmallGeneration2Heap);
+    GCHeap_Compact(pGC, &pGC->LargeHeap);
 }
 
