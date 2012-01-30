@@ -1174,7 +1174,7 @@ typedef union {
 #define x86_widen_reg(inst,dreg,reg,is_signed,is_half)	\
 	do {	\
 		unsigned char op = 0xb6;	\
-                g_assert (is_half ||  X86_IS_BYTE_REG (reg)); \
+                /* g_assert (is_half ||  X86_IS_BYTE_REG (reg)); */ \
 		x86_codegen_pre(&(inst), 3); \
 		*(inst)++ = (unsigned char)0x0f;	\
 		if ((is_signed)) op += 0x08;	\

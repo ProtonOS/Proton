@@ -263,6 +263,7 @@
     <ClInclude Include="Include\Runtime\Type.h" />
     <ClInclude Include="Include\Runtime\Types.h" />
     <ClInclude Include="Include\String_Format.h" />
+    <ClInclude Include="Include\uthash.h" />
     <ClInclude Include="Source\CLR\MetaData\MethodDefinition.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

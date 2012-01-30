@@ -91,28 +91,32 @@ char* JIT_Compile_Return					(IRInstruction* instr, char* compMethod, IRMethod* 
 
 char* JIT_Compile_LoadInt32_Val			(IRInstruction* instr, char* compMethod, IRMethod* mth)
 {
-	
+	x86_push_imm(compMethod, *((int32_t*)instr->Arg1));
 	return compMethod;
 }
 
 
 char* JIT_Compile_LoadInt64_Val			(IRInstruction* instr, char* compMethod, IRMethod* mth)
 {
-	
+	int64_t value = *((int64_t*)instr->Arg1);
+	x86_push_imm(compMethod, (value & 0xFFFFFFFF));
+	x86_push_imm(compMethod, (value >> 32));
 	return compMethod;
 }
 
 
 char* JIT_Compile_LoadFloat32_Val			(IRInstruction* instr, char* compMethod, IRMethod* mth)
 {
-	
+	x86_push_imm(compMethod, *((int32_t*)instr->Arg1));
 	return compMethod;
 }
 
 
 char* JIT_Compile_LoadFloat64_Val			(IRInstruction* instr, char* compMethod, IRMethod* mth)
 {
-	
+	int64_t value = *((int64_t*)instr->Arg1);
+	x86_push_imm(compMethod, (value & 0xFFFFFFFF));
+	x86_push_imm(compMethod, (value >> 32));
 	return compMethod;
 }
 
@@ -133,35 +137,252 @@ char* JIT_Compile_Jump						(IRInstruction* instr, char* compMethod, IRMethod* m
 
 char* JIT_Compile_Store_LocalVar			(IRInstruction* instr, char* compMethod, IRMethod* mth)
 {
-	
+	uint32_t localIndex = *(uint32_t*)instr->Arg1;
+	uint32_t size = global_SizeOfPointerInBytes;
+	if (mth->LocalVariables[localIndex]->VariableType->IsValueType)
+		size = mth->LocalVariables[localIndex]->VariableType->Size;
+	uint32_t movCount = size / global_SizeOfPointerInBytes;
+	if ((size % global_SizeOfPointerInBytes) != 0) ++movCount;
+	for (uint32_t movIndex = 0; movIndex < movCount; ++movIndex)
+	{
+		x86_pop_reg(compMethod, X86_EAX);
+		x86_mov_membase_reg(compMethod, X86_EBP, mth->LocalVariables[localIndex]->Offset + (movIndex * global_SizeOfPointerInBytes), X86_EAX, global_SizeOfPointerInBytes);
+	}
 	return compMethod;
 }
 
 
 char* JIT_Compile_Load_LocalVar				(IRInstruction* instr, char* compMethod, IRMethod* mth)
 {
-	
+	uint32_t localIndex = *(uint32_t*)instr->Arg1;
+	uint32_t size = global_SizeOfPointerInBytes;
+	if (mth->LocalVariables[localIndex]->VariableType->IsValueType)
+		size = mth->LocalVariables[localIndex]->VariableType->Size;
+	uint32_t movCount = size / global_SizeOfPointerInBytes;
+	if ((size % global_SizeOfPointerInBytes) != 0) ++movCount;
+	for (uint32_t movIndex = 0; movIndex < movCount; ++movIndex)
+	{
+		x86_mov_reg_membase(compMethod, X86_EAX, X86_EBP, mth->LocalVariables[localIndex]->Offset + (movIndex * global_SizeOfPointerInBytes), global_SizeOfPointerInBytes);
+		x86_push_reg(compMethod, X86_EAX);
+	}
 	return compMethod;
 }
 
 
 char* JIT_Compile_Load_LocalVar_Address		(IRInstruction* instr, char* compMethod, IRMethod* mth)
 {
-	
+	uint32_t localIndex = *(uint32_t*)instr->Arg1;
+	x86_mov_reg_reg(compMethod, X86_EAX, X86_EBP, global_SizeOfPointerInBytes);
+	x86_alu_reg_imm(compMethod, X86_ADD, X86_EAX, mth->LocalVariables[localIndex]->Offset);
+	x86_push_reg(compMethod, X86_EAX);
 	return compMethod;
 }
 
 
 char* JIT_Compile_Convert_OverflowCheck		(IRInstruction* instr, char* compMethod, IRMethod* mth)
 {
-	
 	return compMethod;
 }
 
 
 char* JIT_Compile_Convert_Unchecked			(IRInstruction* instr, char* compMethod, IRMethod* mth)
 {
-	
+	char buf[128];
+	ConversionArgumentType fromType = *(ConversionArgumentType*)instr->Arg1;
+	ConversionArgumentType toType = *(ConversionArgumentType*)instr->Arg2;
+	switch (fromType)
+	{
+		case ConversionArgumentType_I:
+		case ConversionArgumentType_I4:
+			switch (toType)
+			{
+				case ConversionArgumentType_I1:
+					x86_pop_reg(compMethod, X86_EAX);
+					x86_widen_reg(compMethod, X86_EAX, X86_EAX, TRUE, FALSE);
+					x86_push_reg(compMethod, X86_EAX);
+					break;
+				case ConversionArgumentType_U1:
+					x86_pop_reg(compMethod, X86_EAX);
+					x86_widen_reg(compMethod, X86_EAX, X86_EAX, FALSE, FALSE);
+					x86_push_reg(compMethod, X86_EAX);
+					break;
+				case ConversionArgumentType_I2:
+					x86_pop_reg(compMethod, X86_EAX);
+					x86_widen_reg(compMethod, X86_EAX, X86_EAX, TRUE, TRUE);
+					x86_push_reg(compMethod, X86_EAX);
+					break;
+				case ConversionArgumentType_U2:
+					x86_pop_reg(compMethod, X86_EAX);
+					x86_widen_reg(compMethod, X86_EAX, X86_EAX, FALSE, TRUE);
+					x86_push_reg(compMethod, X86_EAX);
+					break;
+				case ConversionArgumentType_I:
+				case ConversionArgumentType_I4:
+				case ConversionArgumentType_U:
+				case ConversionArgumentType_U4: break;
+				case ConversionArgumentType_I8:
+					x86_pop_reg(compMethod, X86_EAX);
+					x86_cdq(compMethod);
+					x86_push_reg(compMethod, X86_EDX);
+					x86_push_reg(compMethod, X86_EAX);
+					break;
+				case ConversionArgumentType_U8:
+					x86_pop_reg(compMethod, X86_EAX);
+					x86_push_imm(compMethod, 0);
+					x86_push_reg(compMethod, X86_EAX);
+					break;
+				case ConversionArgumentType_R4:
+					x86_fild_membase(compMethod, X86_ESP, 0, FALSE);
+					x86_fst_membase(compMethod, X86_ESP, 0, FALSE, TRUE);
+					x86_fld_membase(compMethod, X86_ESP, 0, FALSE);
+					x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 4);
+					break;
+				case ConversionArgumentType_R8:
+					x86_fild_membase(compMethod, X86_ESP, 0, FALSE);
+					x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 4);
+					break;
+				default:
+					{
+						snprintf(buf, 128, "Convert Unchecked, Invalid Arguments: From = 0x%x, To = 0x%x", (unsigned int)fromType, (unsigned int)toType);
+						Panic(buf);
+					}
+					break;
+			}
+			break;
+		case ConversionArgumentType_I8:
+			switch (toType)
+			{
+				case ConversionArgumentType_I1:
+				case ConversionArgumentType_U1:
+					x86_pop_reg(compMethod, X86_EAX);
+					x86_pop_reg(compMethod, X86_EBX);
+					x86_alu_reg_imm(compMethod, X86_AND, X86_EAX, 0xFF);
+					x86_push_reg(compMethod, X86_EAX);
+					break;
+				case ConversionArgumentType_I2:
+				case ConversionArgumentType_U2:
+					x86_pop_reg(compMethod, X86_EAX);
+					x86_pop_reg(compMethod, X86_EBX);
+					x86_alu_reg_imm(compMethod, X86_AND, X86_EAX, 0xFFFF);
+					x86_push_reg(compMethod, X86_EAX);
+					break;
+				case ConversionArgumentType_I:
+				case ConversionArgumentType_I4:
+				case ConversionArgumentType_U:
+				case ConversionArgumentType_U4:
+					x86_pop_reg(compMethod, X86_EAX);
+					x86_pop_reg(compMethod, X86_EBX);
+					x86_push_reg(compMethod, X86_EAX);
+					break;
+				case ConversionArgumentType_I8:
+				case ConversionArgumentType_U8: break;
+				case ConversionArgumentType_R4:
+					x86_fild_membase(compMethod, X86_ESP, 0, TRUE);
+					x86_fst_membase(compMethod, X86_ESP, 0, FALSE, TRUE);
+					x86_fld_membase(compMethod, X86_ESP, 0, FALSE);
+					x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 8);
+					break;
+				case ConversionArgumentType_R8:
+					x86_fild_membase(compMethod, X86_ESP, 0, TRUE);
+					x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 8);
+					break;
+				default:
+					{
+						snprintf(buf, 128, "Convert Unchecked, Invalid Arguments: From = 0x%x, To = 0x%x", (unsigned int)fromType, (unsigned int)toType);
+						Panic(buf);
+					}
+					break;
+			}
+			break;
+		case ConversionArgumentType_R8:
+			switch (toType)
+			{
+				case ConversionArgumentType_I1:
+					x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, 8);
+					x86_fst_membase(compMethod, X86_ESP, 0, TRUE, TRUE);
+					x86_movsd_reg_membase(compMethod, X86_XMM0, X86_ESP, 0);
+					x86_cvttsd2si(compMethod, X86_EAX, X86_XMM0);
+					x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 8);
+					x86_widen_reg(compMethod, X86_EAX, X86_EAX, TRUE, FALSE);
+					x86_push_reg(compMethod, X86_EAX);
+					break;
+				case ConversionArgumentType_U1:
+					x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, 8);
+					x86_fst_membase(compMethod, X86_ESP, 0, TRUE, TRUE);
+					x86_movsd_reg_membase(compMethod, X86_XMM0, X86_ESP, 0);
+					x86_cvttsd2si(compMethod, X86_EAX, X86_XMM0);
+					x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 8);
+					x86_widen_reg(compMethod, X86_EAX, X86_EAX, FALSE, FALSE);
+					x86_push_reg(compMethod, X86_EAX);
+					break;
+				case ConversionArgumentType_I2:
+					x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, 8);
+					x86_fst_membase(compMethod, X86_ESP, 0, TRUE, TRUE);
+					x86_movsd_reg_membase(compMethod, X86_XMM0, X86_ESP, 0);
+					x86_cvttsd2si(compMethod, X86_EAX, X86_XMM0);
+					x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 8);
+					x86_widen_reg(compMethod, X86_EAX, X86_EAX, TRUE, TRUE);
+					x86_push_reg(compMethod, X86_EAX);
+					break;
+				case ConversionArgumentType_U2:
+					x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, 8);
+					x86_fst_membase(compMethod, X86_ESP, 0, TRUE, TRUE);
+					x86_movsd_reg_membase(compMethod, X86_XMM0, X86_ESP, 0);
+					x86_cvttsd2si(compMethod, X86_EAX, X86_XMM0);
+					x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 8);
+					x86_widen_reg(compMethod, X86_EAX, X86_EAX, FALSE, TRUE);
+					x86_push_reg(compMethod, X86_EAX);
+					break;
+				case ConversionArgumentType_I:
+				case ConversionArgumentType_I4:
+				case ConversionArgumentType_U:
+				case ConversionArgumentType_U4:
+					x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, 8);
+					x86_fst_membase(compMethod, X86_ESP, 0, TRUE, TRUE);
+					x86_movsd_reg_membase(compMethod, X86_XMM0, X86_ESP, 0);
+					x86_cvttsd2si(compMethod, X86_EAX, X86_XMM0);
+					x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 8);
+					x86_push_reg(compMethod, X86_EAX);
+					break;
+				case ConversionArgumentType_I8:
+				case ConversionArgumentType_U8:
+					x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, 4);
+					x86_fnstcw_membase(compMethod, X86_ESP, 0);
+					x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, 0, 2);
+					x86_alu_reg_imm(compMethod, X86_OR, X86_EAX, 0x0C00);
+					x86_mov_membase_reg(compMethod, X86_ESP, 2, X86_EAX, 2);
+					x86_fldcw_membase(compMethod, X86_ESP, 2);
+					x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, 8);
+					x86_fist_pop_membase(compMethod, X86_ESP, 0, TRUE);
+					x86_pop_reg(compMethod, X86_EAX);
+					x86_pop_reg(compMethod, X86_EBX);
+					x86_fldcw_membase(compMethod, X86_ESP, 0);
+					x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 4);
+					x86_push_reg(compMethod, X86_EBX);
+					x86_push_reg(compMethod, X86_EAX);
+					break;
+				case ConversionArgumentType_R4:
+					x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, 4);
+					x86_fst_membase(compMethod, X86_ESP, 0, FALSE, TRUE);
+					x86_fld_membase(compMethod, X86_ESP, 0, FALSE);
+					x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 4);
+					break;
+				case ConversionArgumentType_R8: break;
+				default:
+					{
+						snprintf(buf, 128, "Convert Unchecked, Invalid Arguments: From = 0x%x, To = 0x%x", (unsigned int)fromType, (unsigned int)toType);
+						Panic(buf);
+					}
+					break;
+			}
+			break;
+		default:
+			{
+				snprintf(buf, 128, "Convert Unchecked, Invalid Arguments: From = 0x%x, To = 0x%x", (unsigned int)fromType, (unsigned int)toType);
+				Panic(buf);
+			}
+			break;
+	}
 	return compMethod;
 }
 
