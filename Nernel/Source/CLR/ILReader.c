@@ -592,7 +592,9 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
                     MetaDataToken* tkn = CLIFile_ResolveToken(fil, ReadUInt32(dat));
                     if (!tkn->IsUserString)
                         Panic("Invalid token after LdStr!");
+					
 
+					EMIT_IR(IROpCode_Nop);
                 }
                 ClearFlags();
                 break;
