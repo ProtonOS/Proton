@@ -1514,6 +1514,8 @@ Branch_Common:
                 ClearFlags();
                 break;
             case ILOpCode_Throw:			// 0x7A
+				Log_WriteLine(LogFlags_ILReading, "Read NI-NSA-Throw");
+
                 
                 ClearFlags();
                 break;
@@ -1571,15 +1573,17 @@ Branch_Common:
                 break;
 
             case ILOpCode_StFld:			// 0x7D
-				Log_WriteLine(LogFlags_ILReading, "Read NI-StFld");
-                ReadUInt32(dat);
+				{
+					Log_WriteLine(LogFlags_ILReading, "Read NI-StFld");
+					ReadUInt32(dat);
 
 
-				StackObjectPool_Release(SyntheticStack_Pop(stack));
+					StackObjectPool_Release(SyntheticStack_Pop(stack));
                 
 
-                ClearFlags();
-                break;
+					ClearFlags();
+					break;
+				}
 
             case ILOpCode_LdSFld:			// 0x7E
 				{
