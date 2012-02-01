@@ -456,6 +456,7 @@ typedef enum IROpCode
 
         Arg1:
             The type of overflow checks to perform.
+			Of the type OverflowType.
 
         Arg2:
             The type of the first argument.
@@ -476,6 +477,7 @@ typedef enum IROpCode
 
         Arg1:
             The type of overflow checks to perform.
+			Of the type OverflowType.
 
         Arg2:
             The type of the first argument.
@@ -496,6 +498,7 @@ typedef enum IROpCode
 
         Arg1:
             The type of overflow checks to perform.
+			Of the type OverflowType.
 
         Arg2:
             The type of the first argument.
@@ -516,6 +519,7 @@ typedef enum IROpCode
 
         Arg1:
             The type of overflow checks to perform.
+			Of the type OverflowType.
 
         Arg2:
             The type of the first argument.
@@ -537,6 +541,7 @@ typedef enum IROpCode
 
         Arg1:
             The type of overflow checks to perform.
+			Of the type OverflowType.
 
         Arg2:
             The type of the first argument.
@@ -552,8 +557,8 @@ typedef enum IROpCode
      */
     IROpCode_Rem,
     /*
-        Loads the value at the address to the top of
-		the stack.
+        Loads the value at the address on the top
+		of the stack, to the top of the stack.
 
         Arg1:
             The type of object to load.

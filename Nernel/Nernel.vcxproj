@@ -148,6 +148,7 @@
     <ClInclude Include="Include\CLR\IRMethod_BranchLinker.h" />
     <ClInclude Include="Include\CLR\IROptimizer.h" />
     <ClInclude Include="Include\CLR\IRStructures.h" />
+    <ClInclude Include="Include\CLR\JIT\JIT-x86.h" />
     <ClInclude Include="Include\CLR\JIT\JIT.h" />
     <ClInclude Include="Include\CLR\JIT\x86\x86-codegen-extra.h" />
     <ClInclude Include="Include\CLR\JIT\x86\x86-codegen.h" />

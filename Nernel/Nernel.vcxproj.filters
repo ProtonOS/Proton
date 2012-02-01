@@ -243,6 +243,7 @@
     <ClInclude Include="Include\CLR\ReferenceTypeObject.h" />
     <ClInclude Include="Include\CLR\Architecture.h" />
     <ClInclude Include="Include\uthash.h" />
+    <ClInclude Include="Include\CLR\JIT\JIT-x86.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Makefile.omake" />
