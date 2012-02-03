@@ -320,7 +320,7 @@
 			*sAmntType = StackObjectType_NativeInt; \
 			break; \
 		default: \
-			Panic("Invalid stack object type on the top of the stack!"); \
+			Panic(String_Format("Invalid stack object type on the top of the stack (%i)!", (int)obj->Type)); \
 			break; \
 	} \
 	StackObjectPool_Release(obj); \
@@ -337,7 +337,7 @@
 			*sValType = StackObjectType_NativeInt; \
 			break; \
 		default: \
-			Panic("Invalid stack object type on the top of the stack!"); \
+			Panic(String_Format("Invalid stack object type on the top of the stack (%i)!", (int)obj->Type)); \
 			break; \
 	} \
 	StackObjectPool_Release(obj); \
@@ -525,7 +525,7 @@
 			obj->Type = StackObjectType_ReferenceType; \
 			break; \
 		default: \
-			Panic(String_Format("Unknown Element Type '0x%x'!", (unsigned int)(elType))); \
+			Panic(String_Format("Unknown Element Type '0x%x' at 0x%x!", (unsigned int)(elType), (unsigned int)&elType)); \
 			break; \
 	} 
 

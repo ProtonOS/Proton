@@ -264,7 +264,15 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
     size_t CurInstructionBase;
     uint8_t b;
     IRMethod* m = IRMethod_Create();
+	
+	
+    /*Log_WriteLine(LogFlags_ILReading, "Hex value of the method: ");
+    while ((size_t)(*dat) - orig < len)
+    {
+        Log_WriteLine(LogFlags_ILReading, "%0.8x", (unsigned int)ReadUInt32(dat));
+	}
 
+	*dat = (uint8_t*)orig;*/
     while ((size_t)(*dat) - orig < len)
     {
         CurInstructionBase = ((size_t)*dat);
@@ -384,9 +392,8 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
             case ILOpCode_LdArg_S:			// 0x0E
                 {
                     Log_WriteLine(LogFlags_ILReading, "Read LdArg.S");
-                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
+                    uint32_t* dt = (uint32_t*)calloc(1, sizeof(uint32_t));
                     *dt = (uint32_t)ReadUInt8(dat);
-					printf("Argument number: %i\n", (int)(*dt));
                     EMIT_IR_1ARG(IROpCode_Load_Parameter, dt);
 					
                     MethodSignature* mthSig = MethodSignature_Expand(methodDef->Signature, fil);
@@ -415,7 +422,6 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 					{
 						SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[*dt]->Type->ElementType);
 					}
-					SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[*dt]->Type->ElementType);
 					MethodSignature_Destroy(mthSig);
 					SyntheticStack_Push(stack, obj);
                 }
@@ -721,7 +727,15 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 
             // 0x24 Doesn't exist
             case ILOpCode_Dup:				// 0x25
+				{
+					Log_WriteLine(LogFlags_ILReading, "Read NI-Dup");
                 
+					StackObject* obj1 = SyntheticStack_Peek(stack);
+					StackObject* obj2 = StackObjectPool_Allocate();
+					obj2->NumericType = obj1->NumericType;
+					obj2->Type = obj1->Type;
+					SyntheticStack_Push(stack, obj2);
+				}
                 ClearFlags();
                 break;
             case ILOpCode_Pop:				// 0x26
@@ -1460,35 +1474,43 @@ Branch_Common:
 
 
             case ILOpCode_NewObj:			// 0x73
-				Log_WriteLine(LogFlags_ILReading, "Read NFI-NewObj");
-				MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
-                IRMethod* mthd = NULL;
-				switch(tok->Table)
 				{
-					case MetaData_Table_MethodDefinition:
-						mthd = (IRMethod*)(tok->Data);
-						break;
-					case MetaData_Table_MemberReference:
-						//mthd = NULL;
-						break;
-					default:
-						printf("Table: 0x%x\n", (unsigned int)tok->Table);
-						Panic("Unknown table for NewObj!");
-						break;
+					Log_WriteLine(LogFlags_ILReading, "Read NFI-NewObj");
+					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
+					IRMethod* mthd = NULL;
+					switch(tok->Table)
+					{
+						case MetaData_Table_MethodDefinition:
+							mthd = (IRMethod*)(tok->Data);
+							break;
+						case MetaData_Table_MemberReference:
+							//mthd = NULL;
+							break;
+						default:
+							printf("Table: 0x%x\n", (unsigned int)tok->Table);
+							Panic("Unknown table for NewObj!");
+							break;
+					}
+					EMIT_IR_1ARG(IROpCode_NewObj, mthd);
+	
+					StackObject* obj = StackObjectPool_Allocate();
+					obj->Type = StackObjectType_ReferenceType;
+					obj->NumericType = StackObjectNumericType_Ref;
+					SyntheticStack_Push(stack, obj);
 				}
-				EMIT_IR_1ARG(IROpCode_NewObj, mthd);
-
-				StackObject* obj = StackObjectPool_Allocate();
-				obj->Type = StackObjectType_ReferenceType;
-				obj->NumericType = StackObjectNumericType_Ref;
-				SyntheticStack_Push(stack, obj);
-
                 ClearFlags();
                 break;
             case ILOpCode_NewArr:			// 0x8D
-				Log_WriteLine(LogFlags_ILReading, "Read NI-NSA-NewArr");
-                ReadUInt32(dat);
+				{
+					Log_WriteLine(LogFlags_ILReading, "Read NI-NewArr");
+					ReadUInt32(dat);
                 
+					StackObjectPool_Release(SyntheticStack_Pop(stack));
+					StackObject* obj = StackObjectPool_Allocate();
+					obj->NumericType = StackObjectNumericType_Ref;
+					obj->Type = StackObjectType_ReferenceType;
+					SyntheticStack_Push(stack, obj);
+				}
                 ClearFlags();
                 break;
 
@@ -1524,6 +1546,8 @@ Branch_Common:
             case ILOpCode_LdFld:			// 0x7B
 				{
 					Log_WriteLine(LogFlags_ILReading, "Read NI-LdFld");
+					StackObjectPool_Release(SyntheticStack_Pop(stack));
+
 					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
 					FieldSignature* sig = NULL;
 					switch(tok->Table)
@@ -1883,9 +1907,18 @@ Branch_Common:
             // 0xCE Doesn't exist
             // 0xCF Doesn't exist
             case ILOpCode_LdToken:			// 0xD0
+				{
+					Log_WriteLine(LogFlags_ILReading, "Read NI-LdToken");
+					ReadUInt32(dat);
+
+					StackObject* obj = StackObjectPool_Allocate();
+					obj->Type = StackObjectType_ReferenceType;
+					obj->NumericType = StackObjectNumericType_Ref;
+					SyntheticStack_Push(stack, obj);
                 
-                ClearFlags();
-                break;
+					ClearFlags();
+					break;
+				}
             case ILOpCode_EndFinally:		// 0xDC
                 
                 ClearFlags();

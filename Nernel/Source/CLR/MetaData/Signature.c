@@ -88,7 +88,6 @@ const uint8_t* FieldSignature_Parse(const uint8_t* pCursor, FieldSignature** pFi
 {
     *pFieldSignature = FieldSignature_Create();
     FieldSignature* fieldSignature = *pFieldSignature;
-	//printf("FieldSig First Byte: 0x%x\n", (unsigned int)*pCursor);
     ++pCursor; // 0x06
     while (*pCursor == Signature_ElementType_CustomModifier_Required ||
            *pCursor == Signature_ElementType_CustomModifier_Optional)
@@ -265,7 +264,7 @@ const uint8_t* SignatureParameter_Parse(const uint8_t* pCursor, SignatureParamet
         parameter->CustomModifiers = (SignatureCustomModifier**)realloc(parameter->CustomModifiers, sizeof(SignatureCustomModifier*) * parameter->CustomModifierCount);
         pCursor = SignatureCustomModifier_Parse(pCursor, &parameter->CustomModifiers[parameter->CustomModifierCount - 1], pCLIFile);
     }
-    if (*pCursor == Signature_ElementType_TypedByReference)
+    if (*pCursor == Signature_ElementType_TypedByReference) // Managed pointer
     {
         parameter->TypedByReference = TRUE;
         return pCursor + 1;
