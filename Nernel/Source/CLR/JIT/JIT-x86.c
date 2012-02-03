@@ -50,16 +50,16 @@ char* JIT_Emit_Epilogue(IRMethod* mth, char* compMethod)
 {
 	// We don't have to move the
 	// stack back from local variables,
-	// nor the Method & Assembly indexes,
 	// because we're restoring all registers
 	// here from when the stack hadn't been 
 	// touched yet.
+	x86_mov_reg_reg(compMethod, X86_ESP, X86_EBP, global_SizeOfPointerInBytes);
 
 
 	// // We don't care about the assembly
 	// // or method indexes anymore.
-	//x86_pop_reg(compMethod, X86_EAX); // Pop the Method index.
-	//x86_pop_reg(compMethod, X86_EAX); // Pop the Assembly index.
+	x86_pop_reg(compMethod, X86_EAX); // Pop the Method index.
+	x86_pop_reg(compMethod, X86_EAX); // Pop the Assembly index.
 
 	// Now restore the registers state.
 	x86_popad(compMethod);
