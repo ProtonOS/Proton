@@ -1080,313 +1080,37 @@ Branch_Common:
 				DefineStInd(Ref);
                 
 
+
             case ILOpCode_Add:				// 0x58
-				{
-					Log_WriteLine(LogFlags_ILReading, "Read Add");
-
-					StackObject* obj = SyntheticStack_Pop(stack);
-					ElementType* t1 = (ElementType*)malloc(sizeof(ElementType));
-					ElementType* t2 = (ElementType*)malloc(sizeof(ElementType));
-					OverflowType* ovfTp = (OverflowType*)malloc(sizeof(OverflowType));
-					*ovfTp = OverflowType_None;
-
-					GetElementTypeOfStackObject(*t1, obj);
-					StackObjectPool_Release(obj);
-					obj = SyntheticStack_Pop(stack);
-					GetElementTypeOfStackObject(*t2, obj);
-					StackObjectPool_Release(obj);
-					obj = StackObjectPool_Allocate();
-					CheckBinaryNumericOpOperandTypesAndSetResult(*t1, *t2, BinaryNumericOp_Add, obj);
-					SyntheticStack_Push(stack, obj);
-
-					EMIT_IR_3ARG(IROpCode_Add, ovfTp, t1, t2);
-				}
-                ClearFlags();
-                break;
+				DefineBinaryNumericOperation(Add, Add, None);
             case ILOpCode_Add_Ovf:			// 0xD6
-				{
-					Log_WriteLine(LogFlags_ILReading, "Read Add.Ovf");
-
-					StackObject* obj = SyntheticStack_Pop(stack);
-					ElementType* t1 = (ElementType*)malloc(sizeof(ElementType));
-					ElementType* t2 = (ElementType*)malloc(sizeof(ElementType));
-					OverflowType* ovfTp = (OverflowType*)malloc(sizeof(OverflowType));
-					*ovfTp = OverflowType_Signed;
-
-					GetElementTypeOfStackObject(*t1, obj);
-					StackObjectPool_Release(obj);
-					obj = SyntheticStack_Pop(stack);
-					GetElementTypeOfStackObject(*t2, obj);
-					StackObjectPool_Release(obj);
-					obj = StackObjectPool_Allocate();
-					CheckBinaryNumericOpOperandTypesAndSetResult(*t1, *t2, BinaryNumericOp_Add, obj);
-					SyntheticStack_Push(stack, obj);
-
-					EMIT_IR_3ARG(IROpCode_Add, ovfTp, t1, t2);
-				}
-                ClearFlags();
-                break;
+				DefineBinaryNumericOperation(Add, Add.Ovf, Signed);
             case ILOpCode_Add_Ovf_Un:		// 0xD7
-				{
-					Log_WriteLine(LogFlags_ILReading, "Read Add.Ovf.Un");
-
-					StackObject* obj = SyntheticStack_Pop(stack);
-					ElementType* t1 = (ElementType*)malloc(sizeof(ElementType));
-					ElementType* t2 = (ElementType*)malloc(sizeof(ElementType));
-					OverflowType* ovfTp = (OverflowType*)malloc(sizeof(OverflowType));
-					*ovfTp = OverflowType_Unsigned;
-
-					GetElementTypeOfStackObject(*t1, obj);
-					StackObjectPool_Release(obj);
-					obj = SyntheticStack_Pop(stack);
-					GetElementTypeOfStackObject(*t2, obj);
-					StackObjectPool_Release(obj);
-					obj = StackObjectPool_Allocate();
-					CheckBinaryNumericOpOperandTypesAndSetResult(*t1, *t2, BinaryNumericOp_Add, obj);
-					SyntheticStack_Push(stack, obj);
-
-					EMIT_IR_3ARG(IROpCode_Add, ovfTp, t1, t2);
-				}
-                ClearFlags();
-                break;
-
+				DefineBinaryNumericOperation(Add, Add.Ovf.Un, Unsigned);
 
             case ILOpCode_Sub:				// 0x59
-				{
-					Log_WriteLine(LogFlags_ILReading, "Read Sub");
-
-					StackObject* obj = SyntheticStack_Pop(stack);
-					ElementType* t1 = (ElementType*)malloc(sizeof(ElementType));
-					ElementType* t2 = (ElementType*)malloc(sizeof(ElementType));
-					OverflowType* ovfTp = (OverflowType*)malloc(sizeof(OverflowType));
-					*ovfTp = OverflowType_None;
-
-					GetElementTypeOfStackObject(*t1, obj);
-					StackObjectPool_Release(obj);
-					obj = SyntheticStack_Pop(stack);
-					GetElementTypeOfStackObject(*t2, obj);
-					StackObjectPool_Release(obj);
-					obj = StackObjectPool_Allocate();
-					CheckBinaryNumericOpOperandTypesAndSetResult(*t1, *t2, BinaryNumericOp_Sub, obj);
-					SyntheticStack_Push(stack, obj);
-
-					EMIT_IR_3ARG(IROpCode_Sub, ovfTp, t1, t2);
-				}
-                ClearFlags();
-                break;
+				DefineBinaryNumericOperation(Sub, Sub, None);
             case ILOpCode_Sub_Ovf:			// 0xDA
-				{
-					Log_WriteLine(LogFlags_ILReading, "Read Sub.Ovf");
-
-					StackObject* obj = SyntheticStack_Pop(stack);
-					ElementType* t1 = (ElementType*)malloc(sizeof(ElementType));
-					ElementType* t2 = (ElementType*)malloc(sizeof(ElementType));
-					OverflowType* ovfTp = (OverflowType*)malloc(sizeof(OverflowType));
-					*ovfTp = OverflowType_Signed;
-
-					GetElementTypeOfStackObject(*t1, obj);
-					StackObjectPool_Release(obj);
-					obj = SyntheticStack_Pop(stack);
-					GetElementTypeOfStackObject(*t2, obj);
-					StackObjectPool_Release(obj);
-					obj = StackObjectPool_Allocate();
-					CheckBinaryNumericOpOperandTypesAndSetResult(*t1, *t2, BinaryNumericOp_Sub, obj);
-					SyntheticStack_Push(stack, obj);
-
-					EMIT_IR_3ARG(IROpCode_Sub, ovfTp, t1, t2);
-				}
-                ClearFlags();
-                break;
+				DefineBinaryNumericOperation(Sub, Sub.Ovf, Signed);
             case ILOpCode_Sub_Ovf_Un:		// 0xDB
-				{
-					Log_WriteLine(LogFlags_ILReading, "Read Sub.Ovf.Un");
-
-					StackObject* obj = SyntheticStack_Pop(stack);
-					ElementType* t1 = (ElementType*)malloc(sizeof(ElementType));
-					ElementType* t2 = (ElementType*)malloc(sizeof(ElementType));
-					OverflowType* ovfTp = (OverflowType*)malloc(sizeof(OverflowType));
-					*ovfTp = OverflowType_Unsigned;
-
-					GetElementTypeOfStackObject(*t1, obj);
-					StackObjectPool_Release(obj);
-					obj = SyntheticStack_Pop(stack);
-					GetElementTypeOfStackObject(*t2, obj);
-					StackObjectPool_Release(obj);
-					obj = StackObjectPool_Allocate();
-					CheckBinaryNumericOpOperandTypesAndSetResult(*t1, *t2, BinaryNumericOp_Sub, obj);
-					SyntheticStack_Push(stack, obj);
-
-					EMIT_IR_3ARG(IROpCode_Sub, ovfTp, t1, t2);
-				}
-                ClearFlags();
-                break;
-
-
+				DefineBinaryNumericOperation(Sub, Sub.Ovf.Un, Unsigned);
+				
             case ILOpCode_Mul:				// 0x5A
-				{
-					Log_WriteLine(LogFlags_ILReading, "Read Mul");
-
-					StackObject* obj = SyntheticStack_Pop(stack);
-					ElementType* t1 = (ElementType*)malloc(sizeof(ElementType));
-					ElementType* t2 = (ElementType*)malloc(sizeof(ElementType));
-					OverflowType* ovfTp = (OverflowType*)malloc(sizeof(OverflowType));
-					*ovfTp = OverflowType_None;
-
-					GetElementTypeOfStackObject(*t1, obj);
-					StackObjectPool_Release(obj);
-					obj = SyntheticStack_Pop(stack);
-					GetElementTypeOfStackObject(*t2, obj);
-					StackObjectPool_Release(obj);
-					obj = StackObjectPool_Allocate();
-					CheckBinaryNumericOpOperandTypesAndSetResult(*t1, *t2, BinaryNumericOp_Mul, obj);
-					SyntheticStack_Push(stack, obj);
-
-					EMIT_IR_3ARG(IROpCode_Mul, ovfTp, t1, t2);
-				}
-                ClearFlags();
-                break;
+				DefineBinaryNumericOperation(Mul, Mul, None);
             case ILOpCode_Mul_Ovf:			// 0xD8
-				{
-					Log_WriteLine(LogFlags_ILReading, "Read Mul.Ovf");
-
-					StackObject* obj = SyntheticStack_Pop(stack);
-					ElementType* t1 = (ElementType*)malloc(sizeof(ElementType));
-					ElementType* t2 = (ElementType*)malloc(sizeof(ElementType));
-					OverflowType* ovfTp = (OverflowType*)malloc(sizeof(OverflowType));
-					*ovfTp = OverflowType_Signed;
-
-					GetElementTypeOfStackObject(*t1, obj);
-					StackObjectPool_Release(obj);
-					obj = SyntheticStack_Pop(stack);
-					GetElementTypeOfStackObject(*t2, obj);
-					StackObjectPool_Release(obj);
-					obj = StackObjectPool_Allocate();
-					CheckBinaryNumericOpOperandTypesAndSetResult(*t1, *t2, BinaryNumericOp_Mul, obj);
-					SyntheticStack_Push(stack, obj);
-
-					EMIT_IR_3ARG(IROpCode_Mul, ovfTp, t1, t2);
-				}
-                ClearFlags();
-                break;
+				DefineBinaryNumericOperation(Mul, Mul.Ovf, Signed);
             case ILOpCode_Mul_Ovf_Un:		// 0xD9
-				{
-					Log_WriteLine(LogFlags_ILReading, "Read Mul.Ovf.Un");
-
-					StackObject* obj = SyntheticStack_Pop(stack);
-					ElementType* t1 = (ElementType*)malloc(sizeof(ElementType));
-					ElementType* t2 = (ElementType*)malloc(sizeof(ElementType));
-					OverflowType* ovfTp = (OverflowType*)malloc(sizeof(OverflowType));
-					*ovfTp = OverflowType_Unsigned;
-
-					GetElementTypeOfStackObject(*t1, obj);
-					StackObjectPool_Release(obj);
-					obj = SyntheticStack_Pop(stack);
-					GetElementTypeOfStackObject(*t2, obj);
-					StackObjectPool_Release(obj);
-					obj = StackObjectPool_Allocate();
-					CheckBinaryNumericOpOperandTypesAndSetResult(*t1, *t2, BinaryNumericOp_Mul, obj);
-					SyntheticStack_Push(stack, obj);
-
-					EMIT_IR_3ARG(IROpCode_Mul, ovfTp, t1, t2);
-				}
-                ClearFlags();
-                break;
-
+				DefineBinaryNumericOperation(Mul, Mul.Ovf.Un, Unsigned);
 
             case ILOpCode_Div:				// 0x5B
-				{
-					Log_WriteLine(LogFlags_ILReading, "Read Div");
-
-					StackObject* obj = SyntheticStack_Pop(stack);
-					ElementType* t1 = (ElementType*)malloc(sizeof(ElementType));
-					ElementType* t2 = (ElementType*)malloc(sizeof(ElementType));
-					OverflowType* ovfTp = (OverflowType*)malloc(sizeof(OverflowType));
-					*ovfTp = OverflowType_Signed;
-
-					GetElementTypeOfStackObject(*t1, obj);
-					StackObjectPool_Release(obj);
-					obj = SyntheticStack_Pop(stack);
-					GetElementTypeOfStackObject(*t2, obj);
-					StackObjectPool_Release(obj);
-					obj = StackObjectPool_Allocate();
-					CheckBinaryNumericOpOperandTypesAndSetResult(*t1, *t2, BinaryNumericOp_Div, obj);
-					SyntheticStack_Push(stack, obj);
-
-					EMIT_IR_3ARG(IROpCode_Div, ovfTp, t1, t2);
-				}
-                ClearFlags();
-                break;
+				DefineBinaryNumericOperation(Div, Div, Signed);
             case ILOpCode_Div_Un:			// 0x5C
-				{
-					Log_WriteLine(LogFlags_ILReading, "Read Div.Un");
-
-					StackObject* obj = SyntheticStack_Pop(stack);
-					ElementType* t1 = (ElementType*)malloc(sizeof(ElementType));
-					ElementType* t2 = (ElementType*)malloc(sizeof(ElementType));
-					OverflowType* ovfTp = (OverflowType*)malloc(sizeof(OverflowType));
-					*ovfTp = OverflowType_Unsigned;
-
-					GetElementTypeOfStackObject(*t1, obj);
-					StackObjectPool_Release(obj);
-					obj = SyntheticStack_Pop(stack);
-					GetElementTypeOfStackObject(*t2, obj);
-					StackObjectPool_Release(obj);
-					obj = StackObjectPool_Allocate();
-					CheckBinaryNumericOpOperandTypesAndSetResult(*t1, *t2, BinaryNumericOp_Div, obj);
-					SyntheticStack_Push(stack, obj);
-
-					EMIT_IR_3ARG(IROpCode_Div, ovfTp, t1, t2);
-				}
-                ClearFlags();
-                break;
-
+				DefineBinaryNumericOperation(Div, Div.Un, Unsigned);
 
             case ILOpCode_Rem:				// 0x5D
-				{
-					Log_WriteLine(LogFlags_ILReading, "Read Rem");
-
-					StackObject* obj = SyntheticStack_Pop(stack);
-					ElementType* t1 = (ElementType*)malloc(sizeof(ElementType));
-					ElementType* t2 = (ElementType*)malloc(sizeof(ElementType));
-					OverflowType* ovfTp = (OverflowType*)malloc(sizeof(OverflowType));
-					*ovfTp = OverflowType_Signed;
-
-					GetElementTypeOfStackObject(*t1, obj);
-					StackObjectPool_Release(obj);
-					obj = SyntheticStack_Pop(stack);
-					GetElementTypeOfStackObject(*t2, obj);
-					StackObjectPool_Release(obj);
-					obj = StackObjectPool_Allocate();
-					CheckBinaryNumericOpOperandTypesAndSetResult(*t1, *t2, BinaryNumericOp_Rem, obj);
-					SyntheticStack_Push(stack, obj);
-
-					EMIT_IR_3ARG(IROpCode_Rem, ovfTp, t1, t2);
-				}
-                ClearFlags();
-                break;
+				DefineBinaryNumericOperation(Rem, Rem, Signed);
             case ILOpCode_Rem_Un:			// 0x5E
-				{
-					Log_WriteLine(LogFlags_ILReading, "Read Rem.Un");
-
-					StackObject* obj = SyntheticStack_Pop(stack);
-					ElementType* t1 = (ElementType*)malloc(sizeof(ElementType));
-					ElementType* t2 = (ElementType*)malloc(sizeof(ElementType));
-					OverflowType* ovfTp = (OverflowType*)malloc(sizeof(OverflowType));
-					*ovfTp = OverflowType_Unsigned;
-
-					GetElementTypeOfStackObject(*t1, obj);
-					StackObjectPool_Release(obj);
-					obj = SyntheticStack_Pop(stack);
-					GetElementTypeOfStackObject(*t2, obj);
-					StackObjectPool_Release(obj);
-					obj = StackObjectPool_Allocate();
-					CheckBinaryNumericOpOperandTypesAndSetResult(*t1, *t2, BinaryNumericOp_Rem, obj);
-					SyntheticStack_Push(stack, obj);
-
-					EMIT_IR_3ARG(IROpCode_Rem, ovfTp, t1, t2);
-				}
-                ClearFlags();
-                break;
+				DefineBinaryNumericOperation(Rem, Rem.Un, Unsigned);
 
 
             case ILOpCode_And:				// 0x5F

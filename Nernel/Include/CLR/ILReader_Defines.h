@@ -829,6 +829,27 @@
 	ClearFlags(); \
 	break; }
 
+#define DefineBinaryNumericOperation(IRopCode, ILopCode, overflowType) \
+	{ Log_WriteLine(LogFlags_ILReading, "Read " #ILopCode); \
+	\
+	StackObject* obj = SyntheticStack_Pop(stack); \
+	ElementType* t1 = (ElementType*)malloc(sizeof(ElementType)); \
+	ElementType* t2 = (ElementType*)malloc(sizeof(ElementType)); \
+	OverflowType* ovfTp = (OverflowType*)malloc(sizeof(OverflowType)); \
+	*ovfTp = OverflowType_##overflowType; \
+	\
+	GetElementTypeOfStackObject(*t1, obj); \
+	StackObjectPool_Release(obj); \
+	obj = SyntheticStack_Pop(stack); \
+	GetElementTypeOfStackObject(*t2, obj); \
+	StackObjectPool_Release(obj); \
+	obj = StackObjectPool_Allocate(); \
+	CheckBinaryNumericOpOperandTypesAndSetResult(*t1, *t2, BinaryNumericOp_##IRopCode, obj); \
+	SyntheticStack_Push(stack, obj); \
+	\
+	EMIT_IR_3ARG(IROpCode_##IRopCode, ovfTp, t1, t2); \
+	ClearFlags(); \
+	break; }
 
 
 
