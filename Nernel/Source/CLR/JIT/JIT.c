@@ -112,6 +112,9 @@ void JIT_CompileMethod(IRMethod* mthd)
 			case IROpCode_NewObj:
 				compMthd = JIT_Compile_NewObj					(mthd->IRCodes[i], compMthd, mthd);
 				break;
+			case IROpCode_Dup:
+				compMthd = JIT_Compile_Dup						(mthd->IRCodes[i], compMthd, mthd);
+				break;
 		}
 	}
 

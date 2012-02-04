@@ -651,6 +651,27 @@ typedef enum IROpCode
 
      */
     IROpCode_NewObj,
+    /*
+        Pushes a duplicate of the object
+		on the top of the stack, to the 
+		top of the stack.
+
+        Arg1:
+            The type of object on
+			the top of the stack.
+			Of the type ElementType.
+
+        Arg2:
+            N/A
+
+        Arg3:
+            N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_Dup,
 	
 } IROpCode;
 

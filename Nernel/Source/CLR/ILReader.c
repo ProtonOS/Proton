@@ -392,7 +392,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
             case ILOpCode_LdArg_S:			// 0x0E
                 {
                     Log_WriteLine(LogFlags_ILReading, "Read LdArg.S");
-                    uint32_t* dt = (uint32_t*)calloc(1, sizeof(uint32_t));
+                    uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
                     *dt = (uint32_t)ReadUInt8(dat);
                     EMIT_IR_1ARG(IROpCode_Load_Parameter, dt);
 					
@@ -728,13 +728,17 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
             // 0x24 Doesn't exist
             case ILOpCode_Dup:				// 0x25
 				{
-					Log_WriteLine(LogFlags_ILReading, "Read NI-Dup");
+					Log_WriteLine(LogFlags_ILReading, "Read Dup");
                 
 					StackObject* obj1 = SyntheticStack_Peek(stack);
 					StackObject* obj2 = StackObjectPool_Allocate();
 					obj2->NumericType = obj1->NumericType;
 					obj2->Type = obj1->Type;
 					SyntheticStack_Push(stack, obj2);
+
+					ElementType* mType = (ElementType*)malloc(sizeof(ElementType));
+					GetElementTypeOfStackObject(*mType, obj2);
+					EMIT_IR_1ARG(IROpCode_Dup, mType);
 				}
                 ClearFlags();
                 break;

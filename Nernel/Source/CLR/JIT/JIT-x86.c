@@ -929,4 +929,11 @@ char* JIT_Compile_NewObj					(IRInstruction* instr, char* compMethod, IRMethod* 
 }
 
 
+char* JIT_Compile_Dup						(IRInstruction* instr, char* compMethod, IRMethod* mth)
+{
+	
+	return compMethod;
+}
+
+
 

@@ -42,4 +42,5 @@ char* JIT_Compile_StoreIndirect				(IRInstruction* instr, char* compMethod, IRMe
 char* JIT_Compile_Call						(IRInstruction* instr, char* compMethod, IRMethod* mth);
 char* JIT_Compile_LoadNull					(IRInstruction* instr, char* compMethod, IRMethod* mth);
 char* JIT_Compile_NewObj					(IRInstruction* instr, char* compMethod, IRMethod* mth);
+char* JIT_Compile_Dup						(IRInstruction* instr, char* compMethod, IRMethod* mth);
 
