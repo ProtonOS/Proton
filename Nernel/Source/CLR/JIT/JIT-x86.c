@@ -442,7 +442,7 @@ char* JIT_Compile_Load_Element				(IRInstruction* instr, char* compMethod, IRMet
 
 	x86_pop_reg(compMethod, X86_EAX);
 	x86_pop_reg(compMethod, X86_ECX);
-	x86_mov_reg_membase(compMethod, X86_ECX, X86_ECX, 5, global_SizeOfPointerInBytes);
+	x86_mov_reg_mem(compMethod, X86_ECX, X86_ECX, global_SizeOfPointerInBytes);
 	x86_alu_reg_imm(compMethod, X86_ADD, X86_ECX, sizeof(x86ArrayHeader));
 	x86_imul_reg_reg_imm(compMethod, X86_EAX, X86_EAX, sizeOfElementType);
 	x86_alu_reg_reg(compMethod, X86_ADD, X86_ECX, X86_EAX);
@@ -462,7 +462,7 @@ char* JIT_Compile_Store_Element				(IRInstruction* instr, char* compMethod, IRMe
 	x86_pop_reg(compMethod, X86_EDX);
 	x86_pop_reg(compMethod, X86_ECX);
 	x86_pop_reg(compMethod, X86_EAX);
-	x86_mov_reg_membase(compMethod, X86_ECX, X86_ECX, 5, global_SizeOfPointerInBytes);
+	x86_mov_reg_mem(compMethod, X86_ECX, X86_ECX, global_SizeOfPointerInBytes);
 	x86_alu_reg_imm(compMethod, X86_ADD, X86_ECX, sizeof(x86ArrayHeader));
 	x86_imul_reg_reg_imm(compMethod, X86_EAX, X86_EAX, sizeOfElementType);
 	x86_alu_reg_reg(compMethod, X86_ADD, X86_ECX, X86_EAX);
@@ -474,7 +474,7 @@ char* JIT_Compile_Store_Element				(IRInstruction* instr, char* compMethod, IRMe
 char* JIT_Compile_Load_Array_Length			(IRInstruction* instr, char* compMethod, IRMethod* mth)
 {
 	x86_pop_reg(compMethod, X86_ECX);
-	x86_mov_reg_membase(compMethod, X86_ECX, X86_ECX, 5, global_SizeOfPointerInBytes);
+	x86_mov_reg_mem(compMethod, X86_ECX, X86_ECX, global_SizeOfPointerInBytes);
 	x86_mov_reg_mem(compMethod, X86_ECX, X86_ECX, 4);
 	x86_push_reg(compMethod, X86_ECX);
 	return compMethod;

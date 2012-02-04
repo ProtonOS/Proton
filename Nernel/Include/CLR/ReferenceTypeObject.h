@@ -11,9 +11,9 @@ typedef struct _GCHeapStack GCHeapStack;
 
 struct _ReferenceTypeObject
 {
+    uint8_t* Object; // Do not cache this pointer anywhere, GC can change it
     uint8_t Flags;
     uint32_t Size;
-    uint8_t* Object; // Do not cache this pointer anywhere, GC can change it
     GCHeapStack* Stack;
     uint8_t Age;
     uint32_t ReferenceCount;
