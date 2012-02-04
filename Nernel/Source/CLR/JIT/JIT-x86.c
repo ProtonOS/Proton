@@ -7,6 +7,7 @@
 #include <stdio.h>
 
 void Panic(const char* msg);
+void JIT_Trampoline_DoCall(IRMethod* mth);
 
 char* JIT_Emit_Prologue(IRMethod* mth, char* compMethod)
 {
@@ -632,7 +633,7 @@ char* JIT_Compile_Shift						(IRInstruction* instr, char* compMethod, IRMethod* 
 				default: Panic("Invalid shifted type"); break;
 			}
 			break;
-		default: Panic("Invalid shift direction"); break;
+		default: Panic("Invalid/Unsupported shift direction"); break;
 	}
 	return compMethod;
 }
@@ -895,7 +896,22 @@ char* JIT_Compile_StoreIndirect				(IRInstruction* instr, char* compMethod, IRMe
 char* JIT_Compile_Call						(IRInstruction* instr, char* compMethod, IRMethod* mth)
 {
 	
+	__asm("nop; nop");
+	JIT_Trampoline_DoCall(mth);
+	__asm("nop; nop");
+
 	return compMethod;
+}
+
+void JIT_Trampoline_DoCall(IRMethod* mth)
+{
+	__asm("pusha");
+	if (!mth->AssembledMethod)
+	{
+		JIT_CompileMethod(mth);
+	}
+	__asm("popa");
+	mth->AssembledMethod();
 }
 
 

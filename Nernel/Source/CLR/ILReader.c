@@ -1722,7 +1722,7 @@ Branch_Common:
 
             case ILOpCode_Box:				// 0x8C
 				{
-					Log_WriteLine(LogFlags_ILReading, "Read NI-Box");
+					Log_WriteLine(LogFlags_ILReading, "Read NI-PNSA-Box");
 
 					StackObjectPool_Release(SyntheticStack_Pop(stack));
 
