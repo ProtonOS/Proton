@@ -1169,24 +1169,17 @@ Branch_Common:
 
 
             case ILOpCode_And:				// 0x5F
-                
-                ClearFlags();
-                break;
-
-
+				DefineBitwiseIntegerOperation(And);
             case ILOpCode_Or:				// 0x60
-				Log_WriteLine(LogFlags_ILReading, "Read NI-NSA-Or");
-                EMIT_IR(IROpCode_Nop);
-
-
-                ClearFlags();
-                break;
-
-
+				DefineBitwiseIntegerOperation(Or);
             case ILOpCode_Xor:				// 0x61
-                
-                ClearFlags();
-                break;
+				DefineBitwiseIntegerOperation(XOr);
+
+
+            case ILOpCode_Neg:				// 0x65
+                DefineUnaryOperation(Neg);
+            case ILOpCode_Not:				// 0x66
+                DefineUnaryOperation(Not);
 
 
             case ILOpCode_Shl:				// 0x62
@@ -1200,17 +1193,6 @@ Branch_Common:
             case ILOpCode_Shr_Un:			// 0x64
 				DefineShift(Right, Shr.Un);
 
-
-            case ILOpCode_Neg:				// 0x65
-                
-                ClearFlags();
-                break;
-
-
-            case ILOpCode_Not:				// 0x66
-                
-                ClearFlags();
-                break;
 
 
             case ILOpCode_Conv_I1:			// 0x67
@@ -1343,8 +1325,9 @@ Branch_Common:
                 ClearFlags();
                 break;
             case ILOpCode_Throw:			// 0x7A
-				Log_WriteLine(LogFlags_ILReading, "Read NI-NSA-Throw");
-
+				Log_WriteLine(LogFlags_ILReading, "Read NI-Throw");
+				
+				StackObjectPool_Release(SyntheticStack_Pop(stack));
                 
                 ClearFlags();
                 break;
@@ -1491,7 +1474,13 @@ Branch_Common:
                 break;
 
             case ILOpCode_StObj:			// 0x81
+				Log_WriteLine(LogFlags_ILReading, "Read NI-StObj");
+                ReadUInt32(dat);
                 
+
+				StackObjectPool_Release(SyntheticStack_Pop(stack));
+
+
                 ClearFlags();
                 break;
 
@@ -2033,7 +2022,7 @@ uint64_t ReadUInt64(uint8_t** dat)
     return i;
 }
 
-void SetTypeOfStackObjectFromSigElementType(StackObject* obj, SignatureType* TypeSig, CLIFile* fil, AppDomain* dom)
+__attribute__((always_inline)) void SetTypeOfStackObjectFromSigElementType(StackObject* obj, SignatureType* TypeSig, CLIFile* fil, AppDomain* dom)
 {
 	switch (TypeSig->ElementType) 
 	{ 
@@ -2123,7 +2112,51 @@ void SetTypeOfStackObjectFromSigElementType(StackObject* obj, SignatureType* Typ
 								if (!strcmp(fld->Name, "value__")) 
 								{ 
 									FieldSignature* sig2 = FieldSignature_Expand(fld->Signature, fil); 
-									SetTypeOfStackObjectFromSigElementType(obj, sig2->Type, fil, dom);
+									switch (sig2->Type->ElementType) 
+									{ 
+										case Signature_ElementType_I1: 
+											Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type I1"); 
+											obj->NumericType = StackObjectNumericType_Int8; 
+											obj->Type = StackObjectType_Int32; 
+											break; 
+										case Signature_ElementType_I2: 
+											Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type I2"); 
+											obj->NumericType = StackObjectNumericType_Int16; 
+											obj->Type = StackObjectType_Int32; 
+											break; 
+										case Signature_ElementType_I4: 
+											Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type I4"); 
+											obj->NumericType = StackObjectNumericType_Int32; 
+											obj->Type = StackObjectType_Int32; 
+											break; 
+										case Signature_ElementType_I8: 
+											Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type I8"); 
+											obj->NumericType = StackObjectNumericType_Int64; 
+											obj->Type = StackObjectType_Int64; 
+											break; 
+										case Signature_ElementType_U1: 
+											Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type U1"); 
+											obj->NumericType = StackObjectNumericType_UInt8; 
+											obj->Type = StackObjectType_Int32; 
+											break;
+										case Signature_ElementType_U2: 
+											Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type U2"); 
+											obj->NumericType = StackObjectNumericType_UInt16; 
+											obj->Type = StackObjectType_Int32; 
+											break; 
+										case Signature_ElementType_U4: 
+											Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type U4"); 
+											obj->NumericType = StackObjectNumericType_UInt32; 
+											obj->Type = StackObjectType_Int32; 
+											break; 
+										case Signature_ElementType_U8: 
+											Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type U8"); 
+											obj->NumericType = StackObjectNumericType_UInt64; 
+											obj->Type = StackObjectType_Int64; 
+											break; 
+										default:
+											Panic("Invalid value type for Enum!");
+									}
 									FieldSignature_Destroy(sig2); 
 									break; 
 								} 

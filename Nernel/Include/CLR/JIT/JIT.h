@@ -43,4 +43,9 @@ char* JIT_Compile_Call						(IRInstruction* instr, char* compMethod, IRMethod* m
 char* JIT_Compile_LoadNull					(IRInstruction* instr, char* compMethod, IRMethod* mth);
 char* JIT_Compile_NewObj					(IRInstruction* instr, char* compMethod, IRMethod* mth);
 char* JIT_Compile_Dup						(IRInstruction* instr, char* compMethod, IRMethod* mth);
+char* JIT_Compile_And						(IRInstruction* instr, char* compMethod, IRMethod* mth);
+char* JIT_Compile_Or						(IRInstruction* instr, char* compMethod, IRMethod* mth);
+char* JIT_Compile_XOr						(IRInstruction* instr, char* compMethod, IRMethod* mth);
+char* JIT_Compile_Neg						(IRInstruction* instr, char* compMethod, IRMethod* mth);
+char* JIT_Compile_Not						(IRInstruction* instr, char* compMethod, IRMethod* mth);
 

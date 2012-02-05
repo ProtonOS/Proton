@@ -115,6 +115,21 @@ void JIT_CompileMethod(IRMethod* mthd)
 			case IROpCode_Dup:
 				compMthd = JIT_Compile_Dup						(mthd->IRCodes[i], compMthd, mthd);
 				break;
+			case IROpCode_And:
+				compMthd = JIT_Compile_And						(mthd->IRCodes[i], compMthd, mthd);
+				break;
+			case IROpCode_Or:
+				compMthd = JIT_Compile_Or						(mthd->IRCodes[i], compMthd, mthd);
+				break;
+			case IROpCode_XOr:
+				compMthd = JIT_Compile_XOr						(mthd->IRCodes[i], compMthd, mthd);
+				break;
+			case IROpCode_Neg:
+				compMthd = JIT_Compile_Neg						(mthd->IRCodes[i], compMthd, mthd);
+				break;
+			case IROpCode_Not:
+				compMthd = JIT_Compile_Not						(mthd->IRCodes[i], compMthd, mthd);
+				break;
 		}
 	}
 

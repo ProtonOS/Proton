@@ -939,4 +939,39 @@ char* JIT_Compile_Dup						(IRInstruction* instr, char* compMethod, IRMethod* mt
 }
 
 
+char* JIT_Compile_And						(IRInstruction* instr, char* compMethod, IRMethod* mth)
+{
+	
+	return compMethod;
+}
+
+
+char* JIT_Compile_Or						(IRInstruction* instr, char* compMethod, IRMethod* mth)
+{
+	
+	return compMethod;
+}
+
+
+char* JIT_Compile_XOr						(IRInstruction* instr, char* compMethod, IRMethod* mth)
+{
+	
+	return compMethod;
+}
+
+
+char* JIT_Compile_Neg						(IRInstruction* instr, char* compMethod, IRMethod* mth)
+{
+	
+	return compMethod;
+}
+
+
+char* JIT_Compile_Not						(IRInstruction* instr, char* compMethod, IRMethod* mth)
+{
+	
+	return compMethod;
+}
+
+
 

@@ -761,5 +761,134 @@
 	break; }
 
 
+#define DefineBitwiseIntegerOperation(IRopCode) \
+	{ Log_WriteLine(LogFlags_ILReading, "Read " #IRopCode); \
+	StackObject* obj = SyntheticStack_Pop(stack); \
+	ElementType* t1 = (ElementType*)malloc(sizeof(ElementType)); \
+	ElementType* t2 = (ElementType*)malloc(sizeof(ElementType)); \
+	GetElementTypeOfStackObject(*t1, obj); \
+	StackObjectPool_Release(obj); \
+	obj = SyntheticStack_Pop(stack); \
+	GetElementTypeOfStackObject(*t2, obj); \
+	StackObjectPool_Release(obj); \
+	obj = StackObjectPool_Allocate(); \
+	switch(*t1) \
+	{ \
+		case ElementType_I1: \
+		case ElementType_I2: \
+		case ElementType_I4: \
+		case ElementType_U1: \
+		case ElementType_U2: \
+		case ElementType_U4: \
+			switch(*t2) \
+			{ \
+				case ElementType_I: \
+				case ElementType_U: \
+					obj->Type = StackObjectType_NativeInt; \
+					obj->NumericType = StackObjectNumericType_Pointer; \
+					break; \
+				case ElementType_I1: \
+				case ElementType_I2: \
+				case ElementType_I4: \
+				case ElementType_U1: \
+				case ElementType_U2: \
+				case ElementType_U4: \
+					obj->Type = StackObjectType_Int32; \
+					obj->NumericType = StackObjectNumericType_Int32; \
+					break; \
+				default: \
+					Panic("Invalid second operand for a bitwise integer operation!"); \
+					break; \
+			} \
+			break; \
+		case ElementType_U: \
+		case ElementType_I: \
+			switch(*t2) \
+			{ \
+				case ElementType_I: \
+				case ElementType_U: \
+				case ElementType_I1: \
+				case ElementType_I2: \
+				case ElementType_I4: \
+				case ElementType_U1: \
+				case ElementType_U2: \
+				case ElementType_U4: \
+					obj->Type = StackObjectType_NativeInt; \
+					obj->NumericType = StackObjectNumericType_Pointer; \
+					break; \
+				default: \
+					Panic("Invalid second operand for a bitwise integer operation!"); \
+					break; \
+			} \
+			break; \
+		case ElementType_I8: \
+		case ElementType_U8: \
+			switch(*t2) \
+			{ \
+				case ElementType_I8: \
+				case ElementType_U8: \
+					obj->Type = StackObjectType_Int64; \
+					obj->NumericType = StackObjectNumericType_Int64; \
+					break; \
+				default: \
+					Panic("Invalid second operand for a bitwise integer operation!"); \
+					break; \
+			} \
+			break; \
+		default: \
+			Panic("Invalid first operand for a bitwise integer operation!"); \
+			break; \
+	} \
+	SyntheticStack_Push(stack, obj);  \
+	EMIT_IR_2ARG(IROpCode_##IRopCode, t1, t2);  \
+	ClearFlags();  \
+	break; }
 
+#define DefineUnaryOperation(IRopCode) \
+	{ Log_WriteLine(LogFlags_ILReading, "Read " #IRopCode); \
+	ElementType* t1 = (ElementType*)malloc(sizeof(ElementType)); \
+	StackObject* obj = SyntheticStack_Pop(stack); \
+	GetElementTypeOfStackObject(*t1, obj); \
+	StackObjectPool_Release(obj); \
+	obj = StackObjectPool_Allocate(); \
+	switch(*t1) \
+	{ \
+		case ElementType_I1: \
+		case ElementType_I2: \
+		case ElementType_I4: \
+		case ElementType_U1: \
+		case ElementType_U2: \
+		case ElementType_U4: \
+			obj->Type = StackObjectType_Int32; \
+			obj->NumericType = StackObjectNumericType_Int32; \
+			break; \
+		case ElementType_U: \
+			obj->Type = StackObjectType_NativeInt; \
+			obj->NumericType = StackObjectNumericType_UPointer; \
+			break; \
+		case ElementType_I: \
+			obj->Type = StackObjectType_NativeInt; \
+			obj->NumericType = StackObjectNumericType_Pointer; \
+			break; \
+		case ElementType_I8: \
+		case ElementType_U8: \
+			obj->Type = StackObjectType_Int64; \
+			obj->NumericType = StackObjectNumericType_Int64; \
+			break; \
+		case ElementType_R4: \
+			obj->Type = StackObjectType_Float; \
+			obj->NumericType = StackObjectNumericType_Float32; \
+			break; \
+		case ElementType_R8: \
+			obj->Type = StackObjectType_Float; \
+			obj->NumericType = StackObjectNumericType_Float64; \
+			break; \
+		default: \
+			Panic("Invalid operand for an unary operation!"); \
+			break; \
+	} \
+	SyntheticStack_Push(stack, obj);  \
+	EMIT_IR_1ARG(IROpCode_##IRopCode, t1);  \
+	ClearFlags();  \
+	break; }
 

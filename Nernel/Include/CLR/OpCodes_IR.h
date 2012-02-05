@@ -672,6 +672,109 @@ typedef enum IROpCode
 
      */
     IROpCode_Dup,
+    /*
+        Computes the result of 'And'ing the 2 items on the 
+		top of the stack, and pushes the result to 
+		the top of the stack.
+		
+        Arg1:
+            The type of the first argument.
+			Of the type ElementType.
+
+        Arg2:
+            The type of the second argument.
+			Of the type ElementType.
+
+		Arg3:
+			N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_And,
+    /*
+        Computes the result of 'Or'ing the 2 items on the 
+		top of the stack, and pushes the result to 
+		the top of the stack.
+		
+        Arg1:
+            The type of the first argument.
+			Of the type ElementType.
+
+        Arg2:
+            The type of the second argument.
+			Of the type ElementType.
+
+		Arg3:
+			N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_Or,
+    /*
+        Computes the result of 'XOr'ing the 2 items on the 
+		top of the stack, and pushes the result to 
+		the top of the stack.
+		
+        Arg1:
+            The type of the first argument.
+			Of the type ElementType.
+
+        Arg2:
+            The type of the second argument.
+			Of the type ElementType.
+
+		Arg3:
+			N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_XOr,
+    /*
+        Computes the 'Neg' value of the item on the
+		top of the stack, and pushes the result to 
+		the top of the stack.
+		
+        Arg1:
+            The type of the only argument.
+			Of the type ElementType.
+
+        Arg2:
+            N/A
+
+		Arg3:
+			N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_Neg,
+    /*
+        Computes the 'Not' value of the item on the
+		top of the stack, and pushes the result to 
+		the top of the stack.
+		
+        Arg1:
+            The type of the only argument.
+			Of the type ElementType.
+
+        Arg2:
+            N/A
+
+		Arg3:
+			N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_Not,
 	
 } IROpCode;
 
