@@ -19,6 +19,7 @@ uint64_t ReadUInt64(uint8_t** dat);
 void Link(IRAssembly* asmb);
 IRType* GenerateType(TypeDefinition* def, CLIFile* fil, IRAssembly* asmb);
 IRField* GenerateField(Field* def, CLIFile* fil, IRAssembly* asmb, AppDomain* dom);
+void GetElementTypeFromTypeDef(TypeDefinition* tdef, AppDomain* dom, ElementType* dst);
 void SetTypeOfStackObjectFromSigElementType(StackObject* obj, SignatureType* TypeSig, CLIFile* fil, AppDomain* dom);
 IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* fil, AppDomain* dom, IRAssembly* asmbly);
 
@@ -1546,18 +1547,63 @@ Branch_Common:
 								obj->Type = StackObjectType_ReferenceType;
 								obj->NumericType = StackObjectNumericType_Ref;
 							}
-							else if (tdef->Extends.TypeDefinition == dom->CachedType___System_ValueType || tdef->Extends.TypeDefinition == dom->CachedType___System_Enum)
-							{
-								obj->Type = StackObjectType_ManagedPointer;
-								obj->NumericType = StackObjectNumericType_ManagedPointer;
-							}
 							else
 							{
-								Panic("Don't know what to do here!");
+								switch(tdef->TypeOfExtends)
+								{
+									case TypeDefOrRef_Type_TypeDefinition:
+										if (tdef->Extends.TypeDefinition == dom->CachedType___System_ValueType)
+										{
+											ElementType elmType;
+											GetElementTypeFromTypeDef(tdef, dom, &elmType);
+											SetObjectTypeFromElementType(obj, elmType);
+										}
+										else if (tdef->Extends.TypeDefinition == dom->CachedType___System_Enum)
+										{
+											for (uint32_t i = 0; i < tdef->FieldListCount; i++) 
+											{ 
+												Field* fld = &(tdef->FieldList[i]); 
+												if (!strcmp(fld->Name, "value__")) 
+												{ 
+													FieldSignature* sig2 = FieldSignature_Expand(fld->Signature, fil); 
+													switch (sig2->Type->ElementType)
+													{
+														case Signature_ElementType_I1:
+														case Signature_ElementType_I2:
+														case Signature_ElementType_I4:
+														case Signature_ElementType_I8:
+														case Signature_ElementType_U1:
+														case Signature_ElementType_U2:
+														case Signature_ElementType_U4:
+														case Signature_ElementType_U8:
+															SetTypeOfStackObjectFromSigElementType(obj, sig2->Type, fil, dom);
+															break;
+														default:
+															Panic("Invalid value type for an Enum!");
+															break;
+													}
+													FieldSignature_Destroy(sig2);
+													break;
+												}
+											}
+										}
+										else
+										{
+											Panic("Don't know what to do here!");						
+										}
+										break;
+
+									default:
+										Panic("Don't know what to do here!");
+										break;
+								}
 							}
 							break;
 						case MetaData_Table_TypeSpecification:
 							tspec = (TypeSpecification*)tok->Data;
+							//SignatureType* sig = SignatureType_Expand(tspec->Signature, fil);
+							
+							printf("Don't deal with this yet! Box with table index: 0x%x\n", (unsigned int)tok->Table);
 							/*
 							if (tspec->Flags & TypeAttributes_Class)
 							{
@@ -2020,6 +2066,72 @@ uint64_t ReadUInt64(uint8_t** dat)
     uint64_t i = *((uint64_t*)*dat);
     *dat += 8;
     return i;
+}
+
+void GetElementTypeFromTypeDef(TypeDefinition* tdef, AppDomain* dom, ElementType* dst)
+{
+	if (tdef->Flags & TypeAttributes_Class)
+	{
+		*dst = ElementType_Ref;
+	}
+	else if (
+		(tdef == dom->CachedType___System_Byte)
+	||  (tdef == dom->CachedType___System_Boolean)
+	)
+	{
+		*dst = ElementType_U1;
+	}
+	else if (tdef == dom->CachedType___System_SByte)
+	{
+		*dst = ElementType_I1;
+	}
+	else if (
+		(tdef == dom->CachedType___System_Char)
+	 || (tdef == dom->CachedType___System_UInt16)
+	)
+	{
+		*dst = ElementType_U2;
+	}
+	else if (tdef == dom->CachedType___System_Int16)
+	{
+		*dst = ElementType_I2;
+	}
+	else if (tdef == dom->CachedType___System_Single)
+	{
+		*dst = ElementType_R4;
+	}
+	else if (tdef == dom->CachedType___System_Int32)
+	{
+		*dst = ElementType_I4;
+	}
+	else if (tdef == dom->CachedType___System_UInt32)
+	{
+		*dst = ElementType_U4;
+	}
+	else if (tdef == dom->CachedType___System_Double)
+	{
+		*dst = ElementType_R8;
+	}
+	else if (tdef == dom->CachedType___System_Int64)
+	{
+		*dst = ElementType_I8;
+	}
+	else if (tdef == dom->CachedType___System_UInt64)
+	{
+		*dst = ElementType_U8;
+	}
+	else if (tdef == dom->CachedType___System_IntPtr)
+	{
+		*dst = ElementType_I;
+	}
+	else if (tdef == dom->CachedType___System_UIntPtr)
+	{
+		*dst = ElementType_U;
+	}
+	else
+	{
+		*dst = ElementType_DataType;
+	}
 }
 
 __attribute__((always_inline)) void SetTypeOfStackObjectFromSigElementType(StackObject* obj, SignatureType* TypeSig, CLIFile* fil, AppDomain* dom)

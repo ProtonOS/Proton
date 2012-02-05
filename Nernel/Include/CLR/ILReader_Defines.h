@@ -16,7 +16,7 @@
 
 
 #define GetInstrOffset() \
-    if (Constrained) { instr->InstructionLocation -= 2; } \
+    if (Constrained) { instr->InstructionLocation -= 6; } \
     if (No) { instr->InstructionLocation -= 2; } \
     if (ReadOnly) { instr->InstructionLocation -= 2; } \
     if (Tail) { instr->InstructionLocation -= 2; } \
@@ -482,6 +482,89 @@
 			break; \
 	} 
 
+#define SetObjectTypeFromElementType(obj, elemType) \
+{ \
+	switch(elemType) \
+	{ \
+		case ElementType_I1: \
+		case ElementType_I2: \
+		case ElementType_I4: \
+		case ElementType_U1: \
+		case ElementType_U2: \
+		case ElementType_U4: \
+			obj->Type = StackObjectType_Int32; \
+			break; \
+		case ElementType_I8: \
+		case ElementType_U8: \
+			obj->Type = StackObjectType_Int64; \
+			break; \
+		case ElementType_I: \
+		case ElementType_U: \
+			obj->Type = StackObjectType_NativeInt; \
+			break; \
+		case ElementType_R4: \
+		case ElementType_R8: \
+			obj->Type = StackObjectType_Float; \
+			break; \
+		case ElementType_Ref: \
+			obj->Type = StackObjectType_ReferenceType; \
+			break; \
+		case ElementType_DataType: \
+			obj->Type = StackObjectType_DataType; \
+			break; \
+		default: \
+			Panic("Unknown ElementType!"); \
+			break; \
+	} \
+	switch(elemType) \
+	{ \
+		case ElementType_I1: \
+			obj->NumericType = StackObjectNumericType_Int8; \
+			break; \
+		case ElementType_I2: \
+			obj->NumericType = StackObjectNumericType_Int16; \
+			break; \
+		case ElementType_I4: \
+			obj->NumericType = StackObjectNumericType_Int32; \
+			break; \
+		case ElementType_U1: \
+			obj->NumericType = StackObjectNumericType_UInt8; \
+			break; \
+		case ElementType_U2: \
+			obj->NumericType = StackObjectNumericType_UInt16; \
+			break; \
+		case ElementType_U4: \
+			obj->NumericType = StackObjectNumericType_UInt32; \
+			break; \
+		case ElementType_I8: \
+			obj->NumericType = StackObjectNumericType_Int64; \
+			break; \
+		case ElementType_U8: \
+			obj->NumericType = StackObjectNumericType_UInt64; \
+			break; \
+		case ElementType_I: \
+			obj->NumericType = StackObjectNumericType_Pointer; \
+			break; \
+		case ElementType_U: \
+			obj->NumericType = StackObjectNumericType_UPointer; \
+			break; \
+		case ElementType_R4: \
+			obj->NumericType = StackObjectNumericType_Float32; \
+			break; \
+		case ElementType_R8: \
+			obj->NumericType = StackObjectNumericType_Float64; \
+			break; \
+		case ElementType_Ref: \
+			obj->NumericType = StackObjectNumericType_Ref; \
+			break; \
+		case ElementType_DataType: \
+			obj->NumericType = StackObjectNumericType_DataType; \
+			break; \
+		default: \
+			Panic("Unknown ElementType!"); \
+			break; \
+	} \
+}
 
 
 #define BinaryNumericOp_Add 0
