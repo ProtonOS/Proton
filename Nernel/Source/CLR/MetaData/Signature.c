@@ -1,4 +1,4 @@
-//#include <stdio.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #include <CLR/CLIFile.h>
@@ -360,7 +360,7 @@ const uint8_t* SignatureType_Parse(const uint8_t* pCursor, SignatureType** pType
         pCursor = MetaData_GetCompressedUnsigned(pCursor, &type->GenericInstGenericArgumentCount);
         if (type->GenericInstGenericArgumentCount > 0)
         {
-            type->GenericInstGenericArguments = (SignatureType**)calloc(type->GenericInstGenericArgumentCount, sizeof(SignatureCustomModifier*) * type->GenericInstGenericArgumentCount);
+            type->GenericInstGenericArguments = (SignatureType**)calloc(type->GenericInstGenericArgumentCount, sizeof(SignatureType*) * type->GenericInstGenericArgumentCount);
             for (uint32_t index = 0; index < type->GenericInstGenericArgumentCount; ++index) pCursor = SignatureType_Parse(pCursor, &type->GenericInstGenericArguments[index], pCLIFile);
         }
         break;
@@ -399,6 +399,42 @@ const uint8_t* SignatureType_Parse(const uint8_t* pCursor, SignatureType** pType
         pCursor = MetaData_GetCompressedUnsigned(pCursor, &type->VarNumber);
         break;
     default: break;
+    }
+    return pCursor;
+}
+
+SignatureMethodSpecification* SignatureMethodSpecification_Create()
+{
+    return (SignatureMethodSpecification*)calloc(1, sizeof(SignatureMethodSpecification));
+}
+
+void SignatureMethodSpecification_Destroy(SignatureMethodSpecification* pMethodSpecification)
+{
+    if (pMethodSpecification->GenericInstGenericArguments)
+    {
+        for (uint32_t index = 0; index < pMethodSpecification->GenericInstGenericArgumentCount; ++index) SignatureType_Destroy(pMethodSpecification->GenericInstGenericArguments[index]);
+        free(pMethodSpecification->GenericInstGenericArguments);
+    }
+    free(pMethodSpecification);
+}
+
+SignatureMethodSpecification* SignatureMethodSpecification_Expand(const uint8_t* pSignature, CLIFile* pCLIFile)
+{
+    SignatureMethodSpecification* signatureMethodSpecification = NULL;
+	SignatureMethodSpecification_Parse(pSignature, &signatureMethodSpecification, pCLIFile);
+    return signatureMethodSpecification;
+}
+
+const uint8_t* SignatureMethodSpecification_Parse(const uint8_t* pCursor, SignatureMethodSpecification** pMethodSpecification, CLIFile* pCLIFile)
+{
+    *pMethodSpecification = SignatureMethodSpecification_Create();
+    SignatureMethodSpecification* methodSpecification = *pMethodSpecification;
+    ++pCursor; // 0x0A
+    pCursor = MetaData_GetCompressedUnsigned(pCursor, &methodSpecification->GenericInstGenericArgumentCount);
+    if (methodSpecification->GenericInstGenericArgumentCount > 0)
+    {
+        methodSpecification->GenericInstGenericArguments = (SignatureType**)calloc(methodSpecification->GenericInstGenericArgumentCount, sizeof(SignatureType*) * methodSpecification->GenericInstGenericArgumentCount);
+        for (uint32_t index = 0; index < methodSpecification->GenericInstGenericArgumentCount; ++index) pCursor = SignatureType_Parse(pCursor, &methodSpecification->GenericInstGenericArguments[index], pCLIFile);
     }
     return pCursor;
 }

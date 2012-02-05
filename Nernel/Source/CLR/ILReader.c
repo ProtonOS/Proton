@@ -1,5 +1,4 @@
 #include <CLR/ILReader.h>
-#include <CLR/ILReader_Defines.h>
 #include <CLR/OpCodes_IL.h>
 #include <CLR/OpCodes_IR.h>
 #include <CLR/SyntheticStack.h>
@@ -10,7 +9,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <CLR/JIT/x86/x86-codegen.h>
+#include <CLR/ILReader_Defines.h>
 
 
 uint8_t ReadUInt8(uint8_t** dat);
@@ -20,34 +19,13 @@ uint64_t ReadUInt64(uint8_t** dat);
 void Link(IRAssembly* asmb);
 IRType* GenerateType(TypeDefinition* def, CLIFile* fil, IRAssembly* asmb);
 IRField* GenerateField(Field* def, CLIFile* fil, IRAssembly* asmb, AppDomain* dom);
+void SetTypeOfStackObjectFromSigElementType(StackObject* obj, SignatureType* TypeSig, CLIFile* fil, AppDomain* dom);
 IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* fil, AppDomain* dom, IRAssembly* asmbly);
 
 IRAssembly* ILReader_CreateAssembly(CLIFile* fil, AppDomain* dom)
 {
     StackObjectPool_Initialize();
 	IRAssembly* asmbly = IRAssembly_Create(dom);
-	/*char* code = calloc(1, 1024);
-	char* mth = code;
-	x86_mov_reg_imm(code, X86_EDX, 0);
-	x86_mov_reg_imm(code, X86_EDX, 0x02F8);
-	x86_mov_reg_imm(code, X86_EAX, 0);
-	x86_mov_reg_imm(code, X86_EAX, ((unsigned char)'H'));
-	x86_out_byte(code);
-	x86_mov_reg_imm(code, X86_EAX, ((unsigned char)'E'));
-	x86_out_byte(code);
-	x86_mov_reg_imm(code, X86_EAX, ((unsigned char)'L'));
-	x86_out_byte(code);
-	x86_mov_reg_imm(code, X86_EAX, ((unsigned char)'L'));
-	x86_out_byte(code);
-	x86_mov_reg_imm(code, X86_EAX, ((unsigned char)'O'));
-	x86_out_byte(code);
-	x86_mov_reg_imm(code, X86_EAX, ((unsigned char)'\r'));
-	x86_out_byte(code);
-	x86_mov_reg_imm(code, X86_EAX, ((unsigned char)'\n'));
-	x86_out_byte(code);
-	x86_ret(code);
-
-	((void(*)())mth)();*/
 	
 	for (uint32_t i = 1; i <= fil->FieldCount; i++)
 	{
@@ -71,7 +49,7 @@ IRAssembly* ILReader_CreateAssembly(CLIFile* fil, AppDomain* dom)
     }
     StackObjectPool_Destroy();
 	Link(asmbly);
-
+	
     IROptimizer_Optimize(asmbly);
 
 	return asmbly;
@@ -316,7 +294,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 					}
 					else
 					{
-						SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[0]->Type->ElementType);
+						SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[0]->Type, fil, dom);
 					}
 					MethodSignature_Destroy(mthSig);
 					SyntheticStack_Push(stack, obj);
@@ -334,11 +312,11 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 					StackObject* obj = StackObjectPool_Allocate();
 					if (mthSig->HasThis && !(mthSig->ExplicitThis))
 					{
-						SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[0]->Type->ElementType);
+						SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[0]->Type, fil, dom);
 					}
 					else
 					{
-						SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[1]->Type->ElementType);
+						SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[1]->Type, fil, dom);
 					}
 					MethodSignature_Destroy(mthSig);
 					SyntheticStack_Push(stack, obj);
@@ -356,11 +334,11 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 					StackObject* obj = StackObjectPool_Allocate();
 					if (mthSig->HasThis && !(mthSig->ExplicitThis))
 					{
-						SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[1]->Type->ElementType);
+						SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[1]->Type, fil, dom);
 					}
 					else
 					{
-						SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[2]->Type->ElementType);
+						SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[2]->Type, fil, dom);
 					}
 					MethodSignature_Destroy(mthSig);
 					SyntheticStack_Push(stack, obj);
@@ -378,11 +356,11 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 					StackObject* obj = StackObjectPool_Allocate();
 					if (mthSig->HasThis && !(mthSig->ExplicitThis))
 					{
-						SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[2]->Type->ElementType);
+						SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[2]->Type, fil, dom);
 					}
 					else
 					{
-						SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[3]->Type->ElementType);
+						SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[3]->Type, fil, dom);
 					}
 					MethodSignature_Destroy(mthSig);
 					SyntheticStack_Push(stack, obj);
@@ -415,12 +393,12 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 						}
 						else
 						{
-							SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[(*dt) - 1]->Type->ElementType);
+							SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[(*dt) - 1]->Type, fil, dom);
 						}
 					}
 					else
 					{
-						SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[*dt]->Type->ElementType);
+						SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[*dt]->Type, fil, dom);
 					}
 					MethodSignature_Destroy(mthSig);
 					SyntheticStack_Push(stack, obj);
@@ -466,7 +444,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
                     MetaDataToken* tok = CLIFile_ResolveToken(fil, methodDef->Body.LocalVariableSignatureToken);
 					LocalsSignature* sig = LocalsSignature_Expand(((StandAloneSignature*)tok->Data)->Signature, fil);
 					StackObject* obj = StackObjectPool_Allocate();
-					SetTypeOfStackObjectFromSigElementType(obj, sig->LocalVariables[0]->Type->ElementType);
+					SetTypeOfStackObjectFromSigElementType(obj, sig->LocalVariables[0]->Type, fil, dom);
 					LocalsSignature_Destroy(sig);
 					free(tok);
 					SyntheticStack_Push(stack, obj);
@@ -483,7 +461,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
                     MetaDataToken* tok = CLIFile_ResolveToken(fil, methodDef->Body.LocalVariableSignatureToken);
 					LocalsSignature* sig = LocalsSignature_Expand(((StandAloneSignature*)tok->Data)->Signature, fil);
 					StackObject* obj = StackObjectPool_Allocate();
-					SetTypeOfStackObjectFromSigElementType(obj, sig->LocalVariables[1]->Type->ElementType);
+					SetTypeOfStackObjectFromSigElementType(obj, sig->LocalVariables[1]->Type, fil, dom);
 					LocalsSignature_Destroy(sig);
 					free(tok);
 					SyntheticStack_Push(stack, obj);
@@ -500,7 +478,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
                     MetaDataToken* tok = CLIFile_ResolveToken(fil, methodDef->Body.LocalVariableSignatureToken);
 					LocalsSignature* sig = LocalsSignature_Expand(((StandAloneSignature*)tok->Data)->Signature, fil);
 					StackObject* obj = StackObjectPool_Allocate();
-					SetTypeOfStackObjectFromSigElementType(obj, sig->LocalVariables[2]->Type->ElementType);
+					SetTypeOfStackObjectFromSigElementType(obj, sig->LocalVariables[2]->Type, fil, dom);
 					LocalsSignature_Destroy(sig);
 					free(tok);
 					SyntheticStack_Push(stack, obj);
@@ -517,7 +495,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
                     MetaDataToken* tok = CLIFile_ResolveToken(fil, methodDef->Body.LocalVariableSignatureToken);
 					LocalsSignature* sig = LocalsSignature_Expand(((StandAloneSignature*)tok->Data)->Signature, fil);
 					StackObject* obj = StackObjectPool_Allocate();
-					SetTypeOfStackObjectFromSigElementType(obj, sig->LocalVariables[3]->Type->ElementType);
+					SetTypeOfStackObjectFromSigElementType(obj, sig->LocalVariables[3]->Type, fil, dom);
 					LocalsSignature_Destroy(sig);
 					free(tok);
 					SyntheticStack_Push(stack, obj);
@@ -534,7 +512,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
                     MetaDataToken* tok = CLIFile_ResolveToken(fil, methodDef->Body.LocalVariableSignatureToken);
 					LocalsSignature* sig = LocalsSignature_Expand(((StandAloneSignature*)tok->Data)->Signature, fil);
 					StackObject* obj = StackObjectPool_Allocate();
-					SetTypeOfStackObjectFromSigElementType(obj, sig->LocalVariables[*dt]->Type->ElementType);
+					SetTypeOfStackObjectFromSigElementType(obj, sig->LocalVariables[*dt]->Type, fil, dom);
 					LocalsSignature_Destroy(sig);
 					free(tok);
 					SyntheticStack_Push(stack, obj);
@@ -599,6 +577,10 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
                     if (!tkn->IsUserString)
                         Panic("Invalid token after LdStr!");
 					
+					StackObject* obj = StackObjectPool_Allocate();
+					obj->Type = StackObjectType_ReferenceType;
+					obj->NumericType = StackObjectNumericType_Ref;
+					SyntheticStack_Push(stack, obj);
 
 					EMIT_IR(IROpCode_Nop);
                 }
@@ -776,6 +758,22 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 							printf("Don't deal with this yet! Call with table index: 0x%x\n", (unsigned int)tok->Table);
 							sig = MethodSignature_Expand(((MemberReference*)tok->Data)->Signature, fil);
 							break;
+							
+						case MetaData_Table_MethodSpecification:
+							printf("Don't deal with this yet! Call with table index: 0x%x\n", (unsigned int)tok->Table);
+							if (((MethodSpecification*)tok->Data)->TypeOfMethod == MethodDefOrRef_Type_MethodDefinition)
+							{
+								sig = MethodSignature_Expand(((MethodSpecification*)tok->Data)->Method.MethodDefinition->Signature, fil);
+							}
+							else if (((MethodSpecification*)tok->Data)->TypeOfMethod == MethodDefOrRef_Type_MemberReference)
+							{
+								sig = MethodSignature_Expand(((MethodSpecification*)tok->Data)->Method.MemberReference->Signature, fil);
+							}
+							else
+							{
+								Panic("GO AWAY!");
+							}
+							break;
 
 						default:
 							printf("Table: 0x%x\n", (unsigned int)tok->Table);
@@ -791,12 +789,16 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 					if (!(sig->ReturnType->Void))
 					{
 						StackObject* obj = StackObjectPool_Allocate();
-						SetTypeOfStackObjectFromSigElementType(obj, sig->ReturnType->Type->ElementType);
+						SetTypeOfStackObjectFromSigElementType(obj, sig->ReturnType->Type, fil, dom);
 						SyntheticStack_Push(stack, obj);
 					}
 					switch(tok->Table)
 					{
 						case MetaData_Table_MethodDefinition:
+							MethodSignature_Destroy(sig);
+							break;
+							
+						case MetaData_Table_MethodSpecification:
 							MethodSignature_Destroy(sig);
 							break;
 
@@ -830,6 +832,22 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 							sig = MethodSignature_Expand(((MemberReference*)tok->Data)->Signature, fil);
 							break;
 
+						case MetaData_Table_MethodSpecification:
+							printf("Don't deal with this yet! Call with table index: 0x%x\n", (unsigned int)tok->Table);
+							if (((MethodSpecification*)tok->Data)->TypeOfMethod == MethodDefOrRef_Type_MethodDefinition)
+							{
+								sig = MethodSignature_Expand(((MethodSpecification*)tok->Data)->Method.MethodDefinition->Signature, fil);
+							}
+							else if (((MethodSpecification*)tok->Data)->TypeOfMethod == MethodDefOrRef_Type_MemberReference)
+							{
+								sig = MethodSignature_Expand(((MethodSpecification*)tok->Data)->Method.MemberReference->Signature, fil);
+							}
+							else
+							{
+								Panic("GO AWAY!");
+							}
+							break;
+
 						default:
 							printf("Table: 0x%x\n", (unsigned int)tok->Table);
 							Panic("Unknown Table for Call!");
@@ -844,12 +862,16 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 					if (!(sig->ReturnType->Void))
 					{
 						StackObject* obj = StackObjectPool_Allocate();
-						SetTypeOfStackObjectFromSigElementType(obj, sig->ReturnType->Type->ElementType);
+						SetTypeOfStackObjectFromSigElementType(obj, sig->ReturnType->Type, fil, dom);
 						SyntheticStack_Push(stack, obj);
 					}
 					switch(tok->Table)
 					{
 						case MetaData_Table_MethodDefinition:
+							MethodSignature_Destroy(sig);
+							break;
+							
+						case MetaData_Table_MethodSpecification:
 							MethodSignature_Destroy(sig);
 							break;
 
@@ -881,6 +903,22 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 							printf("Don't deal with this yet! Call with table index: 0x%x\n", (unsigned int)tok->Table);
 							sig = MethodSignature_Expand(((MemberReference*)tok->Data)->Signature, fil);
 							break;
+							
+						case MetaData_Table_MethodSpecification:
+							printf("Don't deal with this yet! Call with table index: 0x%x\n", (unsigned int)tok->Table);
+							if (((MethodSpecification*)tok->Data)->TypeOfMethod == MethodDefOrRef_Type_MethodDefinition)
+							{
+								sig = MethodSignature_Expand(((MethodSpecification*)tok->Data)->Method.MethodDefinition->Signature, fil);
+							}
+							else if (((MethodSpecification*)tok->Data)->TypeOfMethod == MethodDefOrRef_Type_MemberReference)
+							{
+								sig = MethodSignature_Expand(((MethodSpecification*)tok->Data)->Method.MemberReference->Signature, fil);
+							}
+							else
+							{
+								Panic("GO AWAY!");
+							}
+							break;
 
 						default:
 							printf("Table: 0x%x\n", (unsigned int)tok->Table);
@@ -896,12 +934,15 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 					if (!(sig->ReturnType->Void))
 					{
 						StackObject* obj = StackObjectPool_Allocate();
-						SetTypeOfStackObjectFromSigElementType(obj, sig->ReturnType->Type->ElementType);
+						SetTypeOfStackObjectFromSigElementType(obj, sig->ReturnType->Type, fil, dom);
 						SyntheticStack_Push(stack, obj);
 					}
 					switch(tok->Table)
 					{
 						case MetaData_Table_MethodDefinition:
+							MethodSignature_Destroy(sig);
+							break;
+						case MetaData_Table_MethodSpecification:
 							MethodSignature_Destroy(sig);
 							break;
 						case MetaData_Table_MemberReference:
@@ -1037,12 +1078,22 @@ Branch_Common:
 
 
             case ILOpCode_Switch:			// 0x45
-                
+				{
+					Log_WriteLine(LogFlags_ILReading, "Read NI-Switch");
+					uint32_t cnt = ReadUInt32(dat);
+					
+					for (uint32_t i = 0; i < cnt; i++)
+					{
+						ReadUInt32(dat);
+					}
+					
+					StackObjectPool_Release(SyntheticStack_Pop(stack));
 
-                ClearFlags();
-                break;
-
+					ClearFlags();
+					break;
+				}
 				
+
             case ILOpCode_LdInd_I:			// 0x4D
 				DefineLdInd(I);
             case ILOpCode_LdInd_I1:			// 0x46
@@ -1124,7 +1175,10 @@ Branch_Common:
 
 
             case ILOpCode_Or:				// 0x60
-                
+				Log_WriteLine(LogFlags_ILReading, "Read NI-NSA-Or");
+                EMIT_IR(IROpCode_Nop);
+
+
                 ClearFlags();
                 break;
 
@@ -1205,21 +1259,42 @@ Branch_Common:
 				{
 					Log_WriteLine(LogFlags_ILReading, "Read NFI-NewObj");
 					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
-					IRMethod* mthd = NULL;
+					MethodDefinition* mthDef = NULL;
+					MethodSignature* sig = NULL;
 					switch(tok->Table)
 					{
 						case MetaData_Table_MethodDefinition:
-							mthd = (IRMethod*)(tok->Data);
+							sig = MethodSignature_Expand(((MethodDefinition*)tok->Data)->Signature, fil);
+							mthDef = (MethodDefinition*)tok->Data;
 							break;
+
 						case MetaData_Table_MemberReference:
-							//mthd = NULL;
+							printf("Don't deal with this yet! NewObj with table index: 0x%x\n", (unsigned int)tok->Table);
+							sig = MethodSignature_Expand(((MemberReference*)tok->Data)->Signature, fil);
 							break;
+
 						default:
 							printf("Table: 0x%x\n", (unsigned int)tok->Table);
-							Panic("Unknown table for NewObj!");
+							Panic("Unknown Table for NewObj!");
 							break;
 					}
-					EMIT_IR_1ARG(IROpCode_NewObj, mthd);
+					for (uint32_t i = 0; i < sig->ParameterCount; i++)
+					{
+						StackObjectPool_Release(SyntheticStack_Pop(stack));
+					}
+					switch(tok->Table)
+					{
+						case MetaData_Table_MethodDefinition:
+						case MetaData_Table_MemberReference:
+							MethodSignature_Destroy(sig);
+							break;
+
+						default:
+							Panic("Unknown Table for NewObj!");
+							break;
+					}
+					free(tok);
+					EMIT_IR_1ARG(IROpCode_NewObj, mthDef);
 	
 					StackObject* obj = StackObjectPool_Allocate();
 					obj->Type = StackObjectType_ReferenceType;
@@ -1245,6 +1320,10 @@ Branch_Common:
 
 
             case ILOpCode_CastClass:		// 0x74
+				Log_WriteLine(LogFlags_ILReading, "Read NI-NSA-CastClass");
+                ReadUInt32(dat);
+
+
                 
                 ClearFlags();
                 break;
@@ -1278,10 +1357,13 @@ Branch_Common:
 
 					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
 					FieldSignature* sig = NULL;
+					Field* fld = NULL;
 					switch(tok->Table)
 					{
 						case MetaData_Table_Field:
-							sig = FieldSignature_Expand(asmbly->Fields[((Field*)tok->Data)->TableIndex]->FieldDef->Signature, fil);
+							fld = (Field*)tok->Data;
+							sig = FieldSignature_Expand(fld->Signature, fil);
+
 							break;
 
 						case MetaData_Table_MemberReference:
@@ -1294,8 +1376,15 @@ Branch_Common:
 							Panic("Definitely not good");
 							break;
 					}
+					/*if (fld)
+					{
+						printf("Loading field name: %s\n", fld->Name);
+						printf("Custom Modifier Count: %i \n", (int)sig->CustomModifierCount);
+						printf("Field Index: %i \n", (int)fld->TableIndex);
+						printf("Element Type: 0x%x \n", (unsigned int)sig->Type->ElementType);
+					}*/
 					StackObject* obj = StackObjectPool_Allocate();
-					SetTypeOfStackObjectFromSigElementType(obj, sig->Type->ElementType);
+					SetTypeOfStackObjectFromSigElementType(obj, sig->Type, fil, dom);
 					SyntheticStack_Push(stack, obj);
 					switch(tok->Table)
 					{
@@ -1332,7 +1421,7 @@ Branch_Common:
 
 					StackObjectPool_Release(SyntheticStack_Pop(stack));
                 
-
+					EMIT_IR(IROpCode_Nop);
 					ClearFlags();
 					break;
 				}
@@ -1359,7 +1448,7 @@ Branch_Common:
 							break;
 					}
 					StackObject* obj = StackObjectPool_Allocate();
-					SetTypeOfStackObjectFromSigElementType(obj, sig->Type->ElementType);
+					SetTypeOfStackObjectFromSigElementType(obj, sig->Type, fil, dom);
 					SyntheticStack_Push(stack, obj);
 
 					switch(tok->Table)
@@ -1378,6 +1467,7 @@ Branch_Common:
 					}
 					free(tok);
 	                
+					EMIT_IR(IROpCode_Nop);
 					ClearFlags();
 					break;
 				}
@@ -1467,7 +1557,7 @@ Branch_Common:
 								obj->Type = StackObjectType_ReferenceType;
 								obj->NumericType = StackObjectNumericType_Ref;
 							}
-							else if (tdef->Extends.TypeDefinition == dom->CachedType___System_ValueType)
+							else if (tdef->Extends.TypeDefinition == dom->CachedType___System_ValueType || tdef->Extends.TypeDefinition == dom->CachedType___System_Enum)
 							{
 								obj->Type = StackObjectType_ManagedPointer;
 								obj->NumericType = StackObjectNumericType_ManagedPointer;
@@ -1524,9 +1614,21 @@ Branch_Common:
                 ClearFlags();
                 break;
             case ILOpCode_LdElemA:			// 0x8F
+				{
+					Log_WriteLine(LogFlags_ILReading, "Read NI-LdElemA");
+					ReadUInt32(dat);
+				
+					StackObjectPool_Release(SyntheticStack_Pop(stack));
+					StackObjectPool_Release(SyntheticStack_Pop(stack));
                 
-                ClearFlags();
-                break;
+					StackObject* obj = StackObjectPool_Allocate();
+					obj->Type = StackObjectType_NativeInt;
+					obj->NumericType = StackObjectNumericType_UPointer;
+					SyntheticStack_Push(stack, obj);
+					
+	                ClearFlags();
+					break;
+				}
 
 
             case ILOpCode_LdElem_I1:		// 0x90
@@ -1555,6 +1657,8 @@ Branch_Common:
 
 
             case ILOpCode_LdElem:			// 0xA3
+				Log_WriteLine(LogFlags_ILReading, "Read NI-NSA-LdElem");
+                ReadUInt32(dat);
                 
                 ClearFlags();
                 break;
@@ -1579,6 +1683,8 @@ Branch_Common:
 
 
             case ILOpCode_StElem:			// 0xA4
+				Log_WriteLine(LogFlags_ILReading, "Read NI-NSA-StElem");
+                ReadUInt32(dat);
                 
                 ClearFlags();
                 break;
@@ -1648,10 +1754,16 @@ Branch_Common:
 					break;
 				}
             case ILOpCode_EndFinally:		// 0xDC
+				Log_WriteLine(LogFlags_ILReading, "Read NI-EndFinally");
                 
+				EMIT_IR(IROpCode_Nop);
                 ClearFlags();
                 break;
             case ILOpCode_Leave:			// 0xDD
+				Log_WriteLine(LogFlags_ILReading, "Read NI-NSA-Leave");
+                ReadUInt32(dat);
+                
+				EMIT_IR(IROpCode_Nop);
                 
                 ClearFlags();
                 break;
@@ -1659,6 +1771,7 @@ Branch_Common:
 				Log_WriteLine(LogFlags_ILReading, "Read NI-NSA-Leave.S");
                 ReadUInt8(dat);
                 
+				EMIT_IR(IROpCode_Nop);
                 ClearFlags();
                 break;
             // 0xE1 Doesn't Exist
@@ -1737,7 +1850,7 @@ Branch_Common:
 							
 							MethodSignature* mthSig = MethodSignature_Expand(methodDef->Signature, fil);
 							StackObject* obj = StackObjectPool_Allocate();
-							SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[*dt]->Type->ElementType);
+							SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[*dt]->Type, fil, dom);
 							MethodSignature_Destroy(mthSig);
 							SyntheticStack_Push(stack, obj);
 						}
@@ -1779,7 +1892,7 @@ Branch_Common:
 							MetaDataToken* tok = CLIFile_ResolveToken(fil, methodDef->Body.LocalVariableSignatureToken);
 							LocalsSignature* sig = LocalsSignature_Expand(((StandAloneSignature*)tok->Data)->Signature, fil);
 							StackObject* obj = StackObjectPool_Allocate();
-							SetTypeOfStackObjectFromSigElementType(obj, sig->LocalVariables[*dt]->Type->ElementType);
+							SetTypeOfStackObjectFromSigElementType(obj, sig->LocalVariables[*dt]->Type, fil, dom);
 							LocalsSignature_Destroy(sig);
 							free(tok);
 							SyntheticStack_Push(stack, obj);
@@ -1888,6 +2001,7 @@ Branch_Common:
     		// 0xFF Doesn't Exist
         }
     }
+	SyntheticStack_Destroy(stack);
     return m;
 }
 
@@ -1917,4 +2031,162 @@ uint64_t ReadUInt64(uint8_t** dat)
     uint64_t i = *((uint64_t*)*dat);
     *dat += 8;
     return i;
+}
+
+void SetTypeOfStackObjectFromSigElementType(StackObject* obj, SignatureType* TypeSig, CLIFile* fil, AppDomain* dom)
+{
+	switch (TypeSig->ElementType) 
+	{ 
+		case Signature_ElementType_Boolean: 
+		case Signature_ElementType_I1: 
+			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type I1"); 
+			obj->NumericType = StackObjectNumericType_Int8; 
+			obj->Type = StackObjectType_Int32; 
+			break; 
+		case Signature_ElementType_I2: 
+			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type I2"); 
+			obj->NumericType = StackObjectNumericType_Int16; 
+			obj->Type = StackObjectType_Int32; 
+			break; 
+		case Signature_ElementType_I4: 
+			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type I4"); 
+			obj->NumericType = StackObjectNumericType_Int32; 
+			obj->Type = StackObjectType_Int32; 
+			break; 
+		case Signature_ElementType_I8: 
+			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type I8"); 
+			obj->NumericType = StackObjectNumericType_Int64; 
+			obj->Type = StackObjectType_Int64; 
+			break; 
+		case Signature_ElementType_U1: 
+			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type U1"); 
+			obj->NumericType = StackObjectNumericType_UInt8; 
+			obj->Type = StackObjectType_Int32; 
+			break; 
+		case Signature_ElementType_Char: 
+		case Signature_ElementType_U2: 
+			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type U2"); 
+			obj->NumericType = StackObjectNumericType_UInt16; 
+			obj->Type = StackObjectType_Int32; 
+			break; 
+		case Signature_ElementType_U4: 
+			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type U4"); 
+			obj->NumericType = StackObjectNumericType_UInt32; 
+			obj->Type = StackObjectType_Int32; 
+			break; 
+		case Signature_ElementType_U8: 
+			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type U8"); 
+			obj->NumericType = StackObjectNumericType_UInt64; 
+			obj->Type = StackObjectType_Int64; 
+			break; 
+		case Signature_ElementType_R4: 
+			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type R4"); 
+			obj->NumericType = StackObjectNumericType_Float32; 
+			obj->Type = StackObjectType_Float; 
+			break; 
+		case Signature_ElementType_R8: 
+			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type R8"); 
+			obj->NumericType = StackObjectNumericType_Float64; 
+			obj->Type = StackObjectType_Float; 
+			break; 
+		case Signature_ElementType_Pointer: 
+			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type Pointer"); 
+			obj->NumericType = StackObjectNumericType_Pointer; 
+			obj->Type = StackObjectType_NativeInt; 
+			break; 
+		case Signature_ElementType_IPointer: 
+			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type IPointer"); 
+			obj->NumericType = StackObjectNumericType_Pointer; 
+			obj->Type = StackObjectType_NativeInt; 
+			break; 
+		case Signature_ElementType_UPointer: 
+			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type UPointer"); 
+			obj->NumericType = StackObjectNumericType_UPointer; 
+			obj->Type = StackObjectType_NativeInt; 
+			break; 
+		case Signature_ElementType_ValueType:
+		{
+			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type ValueType"); 
+			MetaDataToken* tok = CLIFile_ResolveTypeDefOrRefOrSpecToken(fil, TypeSig->ValueTypeDefOrRefOrSpecToken); 
+			switch(tok->Table) 
+			{ 
+				case MetaData_Table_TypeDefinition: 
+				{
+					TypeDefinition* tdef = (TypeDefinition*)tok->Data; 
+					if (tdef->TypeOfExtends == TypeDefOrRef_Type_TypeDefinition) 
+					{ 
+						if (tdef->Extends.TypeDefinition == dom->CachedType___System_Enum) 
+						{ 
+							for (uint32_t i = 0; i < tdef->FieldListCount; i++) 
+							{ 
+								Field* fld = &(tdef->FieldList[i]); 
+								if (!strcmp(fld->Name, "value__")) 
+								{ 
+									FieldSignature* sig2 = FieldSignature_Expand(fld->Signature, fil); 
+									SetTypeOfStackObjectFromSigElementType(obj, sig2->Type, fil, dom);
+									FieldSignature_Destroy(sig2); 
+									break; 
+								} 
+							} 
+						} 
+						else 
+						{ 
+							obj->NumericType = StackObjectNumericType_DataType; 
+							obj->Type = StackObjectType_DataType; 
+						} 
+					} 
+					else 
+					{ 
+						Panic("Unknown Table For Something-or-Another!"); 
+					} 
+					break; 
+				}
+					
+				default: 
+					Panic(String_Format("Unknown Table Again %i!", (int)tok->Table)); 
+					break; 
+					
+			} 
+			free(tok); 
+			break; 
+		}
+		case Signature_ElementType_Object: 
+			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type Object"); 
+		case Signature_ElementType_Array: 
+			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type Array"); 
+		case Signature_ElementType_SingleDimensionArray: 
+			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type SingleDimArray"); 
+		case Signature_ElementType_String: 
+			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type String"); 
+		case Signature_ElementType_ByReference: 
+			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type ReferenceType"); 
+		case Signature_ElementType_Class: 
+			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type Class"); 
+			obj->NumericType = StackObjectNumericType_Ref; 
+			obj->Type = StackObjectType_ReferenceType; 
+			break; 
+		case Signature_ElementType_TypedByReference: 
+			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type TypedByReference"); 
+			obj->NumericType = StackObjectNumericType_ManagedPointer; 
+			obj->Type = StackObjectType_ManagedPointer; 
+			break; 
+		case Signature_ElementType_Var: 
+			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type Var"); 
+			obj->NumericType = StackObjectNumericType_Generic; 
+			obj->Type = StackObjectType_Generic;
+			break; 
+		case Signature_ElementType_MethodVar: 
+			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type MethodVar"); 
+			obj->NumericType = StackObjectNumericType_MethodGeneric; 
+			obj->Type = StackObjectType_MethodGeneric; 
+			break; 
+		case Signature_ElementType_GenericInstantiation: 
+			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type GenericInstantation"); 
+			obj->NumericType = StackObjectNumericType_Ref; 
+			obj->Type = StackObjectType_ReferenceType; 
+			break; 
+		default: 
+			Panic(String_Format("Unknown Element Type '0x%x' at 0x%x!", (unsigned int)(TypeSig->ElementType), (unsigned int)&(TypeSig->ElementType))); 
+			break; 
+	}
 }

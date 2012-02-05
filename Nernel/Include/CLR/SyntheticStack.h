@@ -14,6 +14,7 @@ typedef enum StackObjectType
     StackObjectType_UnmanagedPointer,
     StackObjectType_ManagedPointer,
 	StackObjectType_Generic,
+	StackObjectType_MethodGeneric,
 } StackObjectType;
 
 typedef enum StackObjectNumericType
@@ -34,6 +35,7 @@ typedef enum StackObjectNumericType
 	StackObjectNumericType_DataType,
 	StackObjectNumericType_ManagedPointer,
 	StackObjectNumericType_Generic,
+	StackObjectNumericType_MethodGeneric,
 } StackObjectNumericType;
 
 struct _StackObject

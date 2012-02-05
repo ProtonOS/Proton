@@ -133,6 +133,9 @@
 		case StackObjectNumericType_Pointer: \
             *sType = ConversionArgumentType_I; \
             break; \
+		case StackObjectNumericType_ManagedPointer: \
+            *sType = ConversionArgumentType_I; \
+            break; \
     \
         default: \
             Panic("Invalid argument for conversion"); \
@@ -376,7 +379,7 @@
 			*indxType = StackObjectType_NativeInt; \
 			break; \
 		default: \
-			Panic("Invalid index type!"); \
+			Panic(String_Format("Invalid index type '%i'!", (int)obj->Type)); \
 			break; \
 	} \
 	StackObjectPool_Release(obj); \
@@ -407,7 +410,7 @@
 			*indxType = StackObjectType_NativeInt; \
 			break; \
 		default: \
-			Panic("Invalid index type!"); \
+			Panic(String_Format("Invalid index type '%i'!", (int)obj->Type)); \
 			break; \
 	} \
 	StackObjectPool_Release(obj); \
@@ -418,116 +421,6 @@
 	EMIT_IR_2ARG(IROpCode_Store_Element, elmntType, indxType); \
 	ClearFlags(); \
 	break; }
-
-#define SetTypeOfStackObjectFromSigElementType(obj, elType) \
-	switch (elType) \
-	{ \
-		case Signature_ElementType_Boolean: \
-		case Signature_ElementType_I1: \
-			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type I1"); \
-			obj->NumericType = StackObjectNumericType_Int8; \
-			obj->Type = StackObjectType_Int32; \
-			break; \
-		case Signature_ElementType_I2: \
-			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type I2"); \
-			obj->NumericType = StackObjectNumericType_Int16; \
-			obj->Type = StackObjectType_Int32; \
-			break; \
-		case Signature_ElementType_I4: \
-			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type I4"); \
-			obj->NumericType = StackObjectNumericType_Int32; \
-			obj->Type = StackObjectType_Int32; \
-			break; \
-		case Signature_ElementType_I8: \
-			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type I8"); \
-			obj->NumericType = StackObjectNumericType_Int64; \
-			obj->Type = StackObjectType_Int64; \
-			break; \
-		case Signature_ElementType_U1: \
-			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type U1"); \
-			obj->NumericType = StackObjectNumericType_UInt8; \
-			obj->Type = StackObjectType_Int32; \
-			break; \
-		case Signature_ElementType_Char: \
-		case Signature_ElementType_U2: \
-			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type U2"); \
-			obj->NumericType = StackObjectNumericType_UInt16; \
-			obj->Type = StackObjectType_Int32; \
-			break; \
-		case Signature_ElementType_U4: \
-			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type U4"); \
-			obj->NumericType = StackObjectNumericType_UInt32; \
-			obj->Type = StackObjectType_Int32; \
-			break; \
-		case Signature_ElementType_U8: \
-			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type U8"); \
-			obj->NumericType = StackObjectNumericType_UInt64; \
-			obj->Type = StackObjectType_Int64; \
-			break; \
-		case Signature_ElementType_R4: \
-			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type R4"); \
-			obj->NumericType = StackObjectNumericType_Float32; \
-			obj->Type = StackObjectType_Float; \
-			break; \
-		case Signature_ElementType_R8: \
-			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type R8"); \
-			obj->NumericType = StackObjectNumericType_Float64; \
-			obj->Type = StackObjectType_Float; \
-			break; \
-		case Signature_ElementType_Pointer: \
-			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type Pointer"); \
-			obj->NumericType = StackObjectNumericType_Pointer; \
-			obj->Type = StackObjectType_NativeInt; \
-			break; \
-		case Signature_ElementType_IPointer: \
-			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type IPointer"); \
-			obj->NumericType = StackObjectNumericType_Pointer; \
-			obj->Type = StackObjectType_NativeInt; \
-			break; \
-		case Signature_ElementType_UPointer: \
-			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type UPointer"); \
-			obj->NumericType = StackObjectNumericType_UPointer; \
-			obj->Type = StackObjectType_NativeInt; \
-			break; \
-		case Signature_ElementType_ValueType: \
-			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type ValueType"); \
-			obj->NumericType = StackObjectNumericType_DataType; \
-			obj->Type = StackObjectType_DataType; \
-			break; \
-		case Signature_ElementType_Object: \
-			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type Object"); \
-		case Signature_ElementType_Array: \
-			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type Array"); \
-		case Signature_ElementType_SingleDimensionArray: \
-			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type SingleDimArray"); \
-		case Signature_ElementType_String: \
-			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type String"); \
-		case Signature_ElementType_ByReference: \
-			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type ReferenceType"); \
-		case Signature_ElementType_Class: \
-			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type Class"); \
-			obj->NumericType = StackObjectNumericType_Ref; \
-			obj->Type = StackObjectType_ReferenceType; \
-			break; \
-		case Signature_ElementType_TypedByReference: \
-			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type TypedByReference"); \
-			obj->NumericType = StackObjectNumericType_ManagedPointer; \
-			obj->Type = StackObjectType_ManagedPointer; \
-			break; \
-		case Signature_ElementType_Var: \
-			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type Var"); \
-			obj->NumericType = StackObjectNumericType_Generic; \
-			obj->Type = StackObjectType_Generic; \
-			break; \
-		case Signature_ElementType_GenericInstantiation: \
-			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type GenericInstantation"); \
-			obj->NumericType = StackObjectNumericType_Ref; \
-			obj->Type = StackObjectType_ReferenceType; \
-			break; \
-		default: \
-			Panic(String_Format("Unknown Element Type '0x%x' at 0x%x!", (unsigned int)(elType), (unsigned int)&elType)); \
-			break; \
-	} 
 
 
 #define GetElementTypeOfStackObject(dest, stkObj) \
@@ -577,6 +470,12 @@
 			break; \
 		case StackObjectNumericType_ManagedPointer: \
 			dest = ElementType_ManagedPointer; \
+			break; \
+		case StackObjectNumericType_Generic: \
+			dest = ElementType_Generic; \
+			break; \
+		case StackObjectNumericType_MethodGeneric: \
+			dest = ElementType_MethodGeneric; \
 			break; \
 		default: \
 			Panic("Unknown StackObjectNumericType!"); \
@@ -779,6 +678,10 @@
 		case ElementType_U: \
 			obj->Type = StackObjectType_NativeInt; \
 			break; \
+		case ElementType_R4: \
+		case ElementType_R8: \
+			obj->Type = StackObjectType_Float; \
+			break; \
 		case ElementType_Ref: \
 			obj->Type = StackObjectType_ReferenceType; \
 			break; \
@@ -817,6 +720,12 @@
 			break; \
 		case ElementType_U: \
 			obj->NumericType = StackObjectNumericType_UPointer; \
+			break; \
+		case ElementType_R4: \
+			obj->NumericType = StackObjectNumericType_Float32; \
+			break; \
+		case ElementType_R8: \
+			obj->NumericType = StackObjectNumericType_Float64; \
 			break; \
 		case ElementType_Ref: \
 			obj->NumericType = StackObjectNumericType_Ref; \

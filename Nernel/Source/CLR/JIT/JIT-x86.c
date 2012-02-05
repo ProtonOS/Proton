@@ -518,6 +518,9 @@ char* JIT_Compile_Pop						(IRInstruction* instr, char* compMethod, IRMethod* mt
 				x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, (unsigned int)pCount);
 			}
 			break;
+		default:
+			Panic("Unsupported Element Type!");
+			break;
 	}
 	return compMethod;
 }

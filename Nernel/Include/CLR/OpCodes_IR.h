@@ -735,6 +735,8 @@ typedef enum ElementType
 	ElementType_Ref,
 	ElementType_DataType,
 	ElementType_ManagedPointer,
+	ElementType_Generic,
+	ElementType_MethodGeneric,
 } ElementType;
 
 typedef enum OverflowType

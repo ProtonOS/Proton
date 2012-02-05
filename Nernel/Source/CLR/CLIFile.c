@@ -303,3 +303,44 @@ MetaDataToken* CLIFile_ResolveToken(CLIFile* pFile, uint32_t pToken)
     }
     return token;
 }
+
+MetaDataToken* CLIFile_ResolveTypeDefOrRefOrSpecToken(CLIFile* pFile, uint32_t pToken)
+{
+    MetaDataToken* token = (MetaDataToken*)calloc(1, sizeof(MetaDataToken));
+	uint8_t typeDefOrRefOrSpec = pToken & 0x03;
+	switch (typeDefOrRefOrSpec)
+	{
+		case 0: token->Table = MetaData_Table_TypeDefinition; break;
+		case 1: token->Table = MetaData_Table_TypeReference; break;
+		case 2: token->Table = MetaData_Table_TypeSpecification; break;
+		default: Panic("CLIFile_ResolveTypeDefOrRefOrSpecToken: Unknown Table Type"); break;
+	}
+    token->Data = NULL;
+    uint32_t index = pToken >> 2;
+    if (index == 0) return token;
+    if (token->Table == MetaData_Table_UserStrings)
+    {
+        token->IsUserString = TRUE;
+        token->Data = pFile->UserStringsHeap + index;
+        return token;
+    }
+    switch (token->Table)
+    {
+    case MetaData_Table_TypeReference:
+        if (index > pFile->TypeReferenceCount) Panic("CLIFile_ResolveTypeDefOrRefOrSpecToken: TypeReference");
+        token->Data = &pFile->TypeReferences[index];
+        break;
+    case MetaData_Table_TypeDefinition:
+        if (index > pFile->TypeDefinitionCount) Panic("CLIFile_ResolveTypeDefOrRefOrSpecToken: TypeDefinition");
+        token->Data = &pFile->TypeDefinitions[index];
+        break;
+    case MetaData_Table_TypeSpecification:
+        if (index > pFile->TypeSpecificationCount) Panic("CLIFile_ResolveTypeDefOrRefOrSpecToken: TypeSpecification");
+        token->Data = &pFile->TypeSpecifications[index];
+        break;
+    default:
+        Panic("CLIFile_ResolveTypeDefOrRefOrSpecToken: Unknown Table Type");
+        break;
+    }
+    return token;
+}

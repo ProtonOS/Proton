@@ -42,6 +42,12 @@ void Panic(const char* msg);
         targetInstruction = mthd->IRCodes[curLoc cond 6]; \
         foundTarget = TRUE; \
     } \
+    else if (mthd->IRCodes[curLoc cond 7]->InstructionLocation == targetInstrPos) \
+    { \
+        Log_WriteLine(LogFlags_ILReading_BranchLinker, "Located Branch. curLoc: 0x%x, targetInstrPos: 0x%x, AddAmnt: %i", (unsigned int)(curLoc cond 7), (unsigned int)targetInstrPos, (int)AddAmnt); \
+        targetInstruction = mthd->IRCodes[curLoc cond 7]; \
+        foundTarget = TRUE; \
+    } \
     else \
     { \
         Log_WriteLine(LogFlags_ILReading_BranchLinker, "Failed to locate branch. cond: " #cond); \
@@ -51,6 +57,7 @@ void Panic(const char* msg);
         Log_WriteLine(LogFlags_ILReading_BranchLinker, "mthd->IRCodes[curLoc " #cond " 4]->InstructionLocation: 0x%x", (unsigned int)(mthd->IRCodes[curLoc cond 4]->InstructionLocation)); \
         Log_WriteLine(LogFlags_ILReading_BranchLinker, "mthd->IRCodes[curLoc " #cond " 5]->InstructionLocation: 0x%x", (unsigned int)(mthd->IRCodes[curLoc cond 5]->InstructionLocation)); \
         Log_WriteLine(LogFlags_ILReading_BranchLinker, "mthd->IRCodes[curLoc " #cond " 6]->InstructionLocation: 0x%x", (unsigned int)(mthd->IRCodes[curLoc cond 6]->InstructionLocation)); \
+        Log_WriteLine(LogFlags_ILReading_BranchLinker, "mthd->IRCodes[curLoc " #cond " 7]->InstructionLocation: 0x%x", (unsigned int)(mthd->IRCodes[curLoc cond 7]->InstructionLocation)); \
         Log_WriteLine(LogFlags_ILReading_BranchLinker, "curLoc: 0x%x, MethodLength (In IR Codes): 0x%x, targetInstrPos: 0x%x, AddAmnt: %i", (unsigned int)curLoc, (unsigned int)mthd->IRCodesCount, (unsigned int)targetInstrPos, (int)AddAmnt); \
         Panic("Unable to resolve target of branch!"); \
     }

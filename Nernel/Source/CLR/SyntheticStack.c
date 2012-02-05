@@ -11,17 +11,17 @@ char* strdup(const char* msg);
 
 void StackObjectPool_PushSet();
 void StackObjectPool_TrimPool();
-SyntheticStack stackObjPool;
+SyntheticStack* stackObjPool;
 
 void StackObjectPool_Initialize()
 {
-    stackObjPool = *SyntheticStack_Create();
+    stackObjPool = SyntheticStack_Create();
     StackObjectPool_PushSet();
 }
 
 void StackObjectPool_Destroy()
 {
-    SyntheticStack_Destroy(&stackObjPool);
+    SyntheticStack_Destroy(stackObjPool);
 }
 
 #define STACK_OBJECT_NO_TYPE ((StackObjectType)0xFE)
@@ -33,17 +33,17 @@ void StackObjectPool_PushSet()
     {
         StackObject* obj = StackObject_Create();
         obj->Type = STACK_OBJECT_NO_TYPE;
-        SyntheticStack_Push(&stackObjPool, obj);
+        SyntheticStack_Push(stackObjPool, obj);
     }
 }
 
 StackObject* StackObjectPool_Allocate()
 {
-    if (!(stackObjPool.StackDepth > 0))
+    if (!(stackObjPool->StackDepth > 0))
     {
         StackObjectPool_PushSet();
     }
-    return SyntheticStack_Pop(&stackObjPool);
+    return SyntheticStack_Pop(stackObjPool);
 }
 
 void StackObjectPool_Release(StackObject* obj)
@@ -52,18 +52,18 @@ void StackObjectPool_Release(StackObject* obj)
     obj->PrevObj = (StackObject*)0;
     obj->Type = STACK_OBJECT_NO_TYPE;
     obj->NumericType = (StackObjectNumericType)0;
-    SyntheticStack_Push(&stackObjPool, obj);
+    SyntheticStack_Push(stackObjPool, obj);
     StackObjectPool_TrimPool();
 }
 
 void StackObjectPool_TrimPool()
 {
-    if (stackObjPool.StackDepth > 256)
+    if (stackObjPool->StackDepth > 256)
     {
-        uint32_t nToRem = stackObjPool.StackDepth - 64;
+        uint32_t nToRem = stackObjPool->StackDepth - 64;
         for (uint32_t i = 0; i < nToRem; i++)
         {
-            StackObject_Destroy(SyntheticStack_Pop(&stackObjPool));
+            StackObject_Destroy(SyntheticStack_Pop(stackObjPool));
         }
     }
 }
@@ -99,11 +99,12 @@ SyntheticStack* SyntheticStack_Create()
 void SyntheticStack_Destroy(SyntheticStack* stack)
 {
     Log_WriteLine(LogFlags_SyntheticStack, "On Stack Destruction: %i Object(s) left on stack", (int)stack->StackDepth);
-    while (stack->TopObject->PrevObj)
+    while ((int)(stack->StackDepth) > 1)
     {
         StackObject_Destroy(SyntheticStack_Pop(stack));
     }
-    free(stack->TopObject);
+	if ((int)(stack->StackDepth) > 0)
+		StackObject_Destroy(stack->TopObject);
     free(stack);
 }
 
@@ -114,10 +115,13 @@ void SyntheticStack_Push(SyntheticStack* stack, StackObject* obj)
     stack->TopObject->NextObj = obj;
     stack->StackDepth++;
     stack->TopObject = obj;
-    Log_WriteLine(LogFlags_SyntheticStack, "Stack: 0x%x", (unsigned int)stack->StackID);
-    Log_WriteLine(LogFlags_SyntheticStack, "Pushed object to stack. Current number on stack: %i", (int)stack->StackDepth);
-    Log_WriteLine(LogFlags_SyntheticStack, "Pushed object to stack. Top Object Type: 0x%x", (unsigned int)obj->Type);
-    Log_WriteLine(LogFlags_SyntheticStack, "Pushed object to stack. Top Object Numeric Type: 0x%x", (unsigned int)obj->NumericType);
+	if (stack->StackID != 1)
+	{
+		Log_WriteLine(LogFlags_SyntheticStack, "Stack: 0x%x", (unsigned int)stack->StackID);
+		Log_WriteLine(LogFlags_SyntheticStack, "Pushed object to stack. Top Object Type: 0x%x", (unsigned int)obj->Type);
+		Log_WriteLine(LogFlags_SyntheticStack, "Pushed object to stack. Top Object Numeric Type: 0x%x", (unsigned int)obj->NumericType);
+		Log_WriteLine(LogFlags_SyntheticStack, "Pushed object to stack. Current number on stack: %i", (int)stack->StackDepth);
+	}
 }
 
 StackObject* SyntheticStack_Pop(SyntheticStack* stack)
@@ -127,10 +131,13 @@ StackObject* SyntheticStack_Pop(SyntheticStack* stack)
     stack->StackDepth--;
     obj->NextObj = (StackObject*)0;
     obj->PrevObj = (StackObject*)0;
-    Log_WriteLine(LogFlags_SyntheticStack, "Stack: 0x%x", (unsigned int)stack->StackID);
-    Log_WriteLine(LogFlags_SyntheticStack, "Popped object to stack. Top Object Type: 0x%x", (unsigned int)obj->Type);
-    Log_WriteLine(LogFlags_SyntheticStack, "Popped object to stack. Top Object Numeric Type: 0x%x", (unsigned int)obj->NumericType);
-    Log_WriteLine(LogFlags_SyntheticStack, "Popped object from stack. Current number on stack: %i", (int)stack->StackDepth);
+	if (stack->StackID != 1)
+	{
+		Log_WriteLine(LogFlags_SyntheticStack, "Stack: 0x%x", (unsigned int)stack->StackID);
+		Log_WriteLine(LogFlags_SyntheticStack, "Popped object to stack. Top Object Type: 0x%x", (unsigned int)obj->Type);
+		Log_WriteLine(LogFlags_SyntheticStack, "Popped object to stack. Top Object Numeric Type: 0x%x", (unsigned int)obj->NumericType);
+		Log_WriteLine(LogFlags_SyntheticStack, "Popped object from stack. Current number on stack: %i", (int)stack->StackDepth);
+	}
     return obj;
 }
 

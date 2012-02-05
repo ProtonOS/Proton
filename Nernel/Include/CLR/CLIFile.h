@@ -129,6 +129,7 @@ const uint8_t* CLIFile_GetUserString(CLIFile* pFile, uint32_t pVirtualAddress);
 const uint8_t* CLIFile_GetBlob(CLIFile* pFile, uint32_t pVirtualAddress);
 const uint8_t* CLIFile_GetGUID(CLIFile* pFile, uint32_t pVirtualAddress);
 MetaDataToken* CLIFile_ResolveToken(CLIFile* pFile, uint32_t pToken);
+MetaDataToken* CLIFile_ResolveTypeDefOrRefOrSpecToken(CLIFile* pFile, uint32_t pToken);
 
 #include <CLR/MetaData/ModuleDefinition.h>
 #include <CLR/MetaData/TypeReference.h>

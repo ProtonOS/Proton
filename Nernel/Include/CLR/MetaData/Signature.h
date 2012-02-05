@@ -63,6 +63,7 @@ typedef struct _SignatureReturnType SignatureReturnType;
 typedef struct _SignatureParameter SignatureParameter;
 typedef struct _SignatureCustomModifier SignatureCustomModifier;
 typedef struct _SignatureType SignatureType;
+typedef struct _SignatureMethodSpecification SignatureMethodSpecification;
 typedef struct _SignatureArrayShape SignatureArrayShape;
 typedef struct _SignatureLocalVariable SignatureLocalVariable;
 
@@ -159,6 +160,12 @@ struct _SignatureType
     uint32_t VarNumber;
 };
 
+struct _SignatureMethodSpecification
+{
+    uint32_t GenericInstGenericArgumentCount;
+    SignatureType** GenericInstGenericArguments;
+};
+
 struct _SignatureArrayShape
 {
     uint32_t Rank;
@@ -213,6 +220,11 @@ SignatureType* SignatureType_Create();
 void SignatureType_Destroy(SignatureType* pType);
 SignatureType* SignatureType_Expand(const uint8_t* pSignature, CLIFile* pCLIFile);
 const uint8_t* SignatureType_Parse(const uint8_t* pCursor, SignatureType** pType, CLIFile* pCLIFile);
+
+SignatureMethodSpecification* SignatureMethodSpecification_Create();
+void SignatureMethodSpecification_Destroy(SignatureMethodSpecification* pMethodSpecification);
+SignatureMethodSpecification* SignatureMethodSpecification_Expand(const uint8_t* pSignature, CLIFile* pCLIFile);
+const uint8_t* SignatureMethodSpecification_Parse(const uint8_t* pCursor, SignatureMethodSpecification** pMethodSpecification, CLIFile* pCLIFile);
 
 SignatureArrayShape* SignatureArrayShape_Create();
 void SignatureArrayShape_Destroy(SignatureArrayShape* pArrayShape);
