@@ -38,11 +38,14 @@ IRAssembly* ILReader_CreateAssembly(CLIFile* fil, AppDomain* dom)
 		IRAssembly_AddField(asmbly, GenerateField(&fil->Fields[i], fil, asmbly, dom));
 	}
 
+	printf("Loaded Fields\n");
+
 	for (uint32_t i = 1; i <= fil->TypeDefinitionCount; i++)
 	{
 		IRAssembly_AddType(asmbly, GenerateType(&fil->TypeDefinitions[i], fil, asmbly));
 	}
 	
+	printf("Loaded Types\n");
 
     for (uint32_t i = 1; i <= fil->MethodDefinitionCount; i++)
     {
@@ -236,14 +239,20 @@ void TypeDefinition_GetLayedOutMethods(TypeDefinition* tdef, CLIFile* fil, IRMet
 			else
 			{
 				bool_t Found = FALSE;
+				printf("Method count: %i NewMethodCount: %i\n", (int)mthsCount, (int)newMethodsCount);
+				printf("Looking for base method of %s.%s.%s\n", tdef->Namespace, tdef->Name, tdef->MethodDefinitionList[i].Name);
 				for (uint32_t i2 = 0; i2 < mthsCount; i2++)
 				{
-					if (!strcmp(tdef->MethodDefinitionList[i].Name, fil->MethodDefinitions[(uint32_t)((*mths)[i2]->MethodDefinition)].Name))
+					MethodDefinition* mthDef = &(fil->MethodDefinitions[(uint32_t)((*mths)[i2])]);
+					if (!strcmp(tdef->MethodDefinitionList[i].Name, mthDef->Name))
 					{
-						MethodDefinition* mthDef = &(fil->MethodDefinitions[(uint32_t)((*mths)[i2]->MethodDefinition)]);
+						printf("Name is the same\n");
 						if (Signature_Equals(tdef->MethodDefinitionList[i].Signature, tdef->MethodDefinitionList[i].SignatureLength, mthDef->Signature, mthDef->SignatureLength))
 						{
+							printf("Found Match!\n");
 							fnlMethods[i2] = (IRMethod*)tdef->MethodDefinitionList[i].TableIndex; 
+							Found = TRUE;
+							break;
 						}
 					}
 				}
@@ -263,7 +272,10 @@ void TypeDefinition_GetLayedOutMethods(TypeDefinition* tdef, CLIFile* fil, IRMet
 		}
 	}
 
-	free(*mths);
+	if (mths != NULL)
+	{
+		free(*mths);
+	}
 
 	*Destination = fnlMethods;
 	*destLength = mthsCount + newMethodsCount;
@@ -292,7 +304,19 @@ void Link(IRAssembly* asmb)
 		}
 	}
 
-	for (uint32_t i = 1; i <= asmb->MethodCount; i++)
+	// Resolve the methods in the method
+	// tables.
+	for (uint32_t i = 1; i <= asmb->TypeCount; i++)
+	{
+		IRType* tp = asmb->Types[i];
+		for (uint32_t i2 = 0; i2 < tp->MethodCount; i2++)
+		{
+			tp->Methods[i2] = asmb->Methods[(uint32_t)tp->Methods[i2]];
+		}
+	}
+
+
+	/*for (uint32_t i = 1; i <= asmb->MethodCount; i++)
 	{
 		for (uint32_t i2 = 0; i2 < asmb->Methods[i]->IRCodesCount; i2++)
 		{
@@ -301,7 +325,7 @@ void Link(IRAssembly* asmb)
 				asmb->Methods[i]->IRCodes[i2]->Arg1 = asmb->Methods[*((uint32_t*)asmb->Methods[i]->IRCodes[i2]->Arg1)];
 			}
 		}
-	}
+	}*/
 
 }
 
@@ -832,6 +856,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 						case MetaData_Table_MethodDefinition:
 							sig = MethodSignature_Expand(((MethodDefinition*)tok->Data)->Signature, fil);
 							mthDef = (MethodDefinition*)tok->Data;
+
 							break;
 
 						case MetaData_Table_MemberReference:
@@ -891,8 +916,37 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 							break;
 					}
 					free(tok);
-					EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Call, &mthDef->TableIndex);
-					
+					if (mthDef)
+					{
+						IRMethodSpec* mthSpec = IRMethodSpec_Create();
+						mthSpec->ParentType = asmbly->Types[mthDef->TypeDefinition->TableIndex];
+						bool_t FoundMethod = FALSE;
+						for (uint32_t i = 0; i < mthSpec->ParentType->MethodCount; i++)
+						{
+							MethodDefinition* mthDef2 = &(fil->MethodDefinitions[(uint32_t)(mthSpec->ParentType->Methods[i])]);
+							if (!strcmp(mthDef->Name, mthDef2->Name))
+							{
+								if (Signature_Equals(mthDef->Signature, mthDef->SignatureLength, mthDef2->Signature, mthDef2->SignatureLength))
+								{
+									mthSpec->MethodIndex = i;
+									FoundMethod = TRUE;
+									break;
+								}
+							}
+						}
+						if (!FoundMethod)
+						{
+							Panic("Unable to resolve method to call!");
+						}
+						EMIT_IR_1ARG(IROpCode_Call, mthSpec);
+					}
+					else
+					{
+						// This is just a temporary thing
+						// so that this can be the target
+						// of a branch (although it shouldn't be).
+						EMIT_IR(IROpCode_Nop);
+					}
 				}
                 ClearFlags();
                 break;
