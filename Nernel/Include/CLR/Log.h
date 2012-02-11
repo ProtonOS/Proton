@@ -3,7 +3,7 @@
 // To disable logging, all
 // you have to do is uncomment
 // this line.
-#define NO_LOG
+//#define NO_LOG
 
 #ifdef NO_LOG
 #define ActiveLogFlags (LogFlags_NoLog)
@@ -12,7 +12,7 @@
 #define ActiveLogFlags ((LogFlags)( \
         LogFlags_ILReading  \
         | LogFlags_IREmitting \
-        /* | LogFlags_SyntheticStack */ \
+        | LogFlags_SyntheticStack \
         /* | LogFlags_MetaData_Loading */ \
         /* | LogFlags_AppDomain_Loading  */ \
         | LogFlags_ILReading_BranchLinker \

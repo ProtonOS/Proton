@@ -50,6 +50,12 @@ IRField* IRField_Create()
 	return fld;
 }
 
+IRMethodSpec* IRMethodSpec_Create()
+{
+	IRMethodSpec* mthspec = (IRMethodSpec*)calloc(1, sizeof(IRMethodSpec));
+	return mthspec;
+}
+
 
 
 
@@ -132,6 +138,11 @@ void IRField_Destroy(IRField* fld)
 	free(fld);
 }
 
+void IRMethodSpec_Destroy(IRMethodSpec* mthspec)
+{
+	free(mthspec);
+}
+
 
 
 
@@ -207,14 +218,10 @@ void IRType_AddField(IRType* tp, IRField* fld)
 
 
 
-#include <string.h>
-#include <CLR/Log.h>
-
 uint32_t IRType_GetSize(IRType* tp)
 {
 	if (tp->TypeDef->ClassLayout)
 	{
-		Log_WriteLine(LogFlags_ILReading, "Using Class Layout, Class Size: %i", (int)tp->TypeDef->ClassLayout->ClassSize);
 		return tp->TypeDef->ClassLayout->ClassSize;
 	}
 

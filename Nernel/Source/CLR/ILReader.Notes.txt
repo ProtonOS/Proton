@@ -1,4 +1,6 @@
 
+Need to handle extends types other than TypeDefinition when laying out methods.
+
 
 LdStr needs to actually emit the correct op-code, it currently emits a NoOp so that it doesn't break branch linking.
 Need to deal with MemberReference in NewObj.

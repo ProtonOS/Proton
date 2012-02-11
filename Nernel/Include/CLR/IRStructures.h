@@ -1,10 +1,11 @@
 #pragma once
 
 typedef struct _IRAssembly IRAssembly;
+typedef struct _IRType IRType;
+typedef struct _IRMethodSpec IRMethodSpec;
 typedef struct _IRMethod IRMethod;
 typedef struct _IRInstruction IRInstruction;
 typedef struct _IRParameter IRParameter;
-typedef struct _IRType IRType;
 typedef struct _IRLocalVariable IRLocalVariable;
 typedef struct _IRField IRField;
 
@@ -31,6 +32,43 @@ struct _IRAssembly
     IRField** Fields;
     uint32_t TypeCount;
     IRType** Types;
+};
+
+struct _IRType
+{
+	uint32_t TypeIndex;
+	IRAssembly* ParentAssembly;
+
+    bool_t IsValueType;
+    bool_t IsReferenceType;
+	bool_t IsGeneric;
+	bool_t IsInterface;
+    
+	bool_t HasStaticConstructor;
+	IRMethod* StaticConstructor;
+
+	uint32_t MethodCount;
+	IRMethod** Methods;
+
+    uint32_t FieldCount;
+    IRField** Fields;
+
+	bool_t IsFixedSize;
+	uint32_t Size;
+
+	TypeDefinition* TypeDef;
+};
+
+struct _IRMethodSpec
+{
+	/*
+		The parent type of this method.
+	 */
+	IRType* ParentType;
+	/*
+		The index in the parent type's method list.
+	 */
+	uint32_t MethodIndex;
 };
 
 struct _IRMethod
@@ -87,26 +125,6 @@ struct _IRParameter
 	uint32_t Size;
 };
 
-struct _IRType
-{
-	uint32_t TypeIndex;
-	IRAssembly* ParentAssembly;
-
-    bool_t IsValueType;
-    bool_t IsReferenceType;
-	bool_t IsGeneric;
-    
-	bool_t HasStaticConstructor;
-	IRMethod* StaticConstructor;
-
-    uint32_t FieldCount;
-    IRField** Fields;
-
-	bool_t IsFixedSize;
-	uint32_t Size;
-
-	TypeDefinition* TypeDef;
-};
 
 struct _IRLocalVariable
 {
@@ -133,6 +151,7 @@ IRParameter* IRParameter_Create();
 IRType* IRType_Create();
 IRLocalVariable* IRLocalVariable_Create();
 IRField* IRField_Create();
+IRMethodSpec* IRMethodSpec_Create();
 
 
 void IRAssembly_Destroy(IRAssembly* asmb);
@@ -142,6 +161,7 @@ void IRParameter_Destroy(IRParameter* param);
 void IRType_Destroy(IRType* tp);
 void IRLocalVariable_Destroy(IRLocalVariable* var);
 void IRField_Destroy(IRField* fld);
+void IRMethodSpec_Destroy(IRMethodSpec* mthspec);
 
 
 void IRAssembly_AddMethod(IRAssembly* asmb, IRMethod* mth);

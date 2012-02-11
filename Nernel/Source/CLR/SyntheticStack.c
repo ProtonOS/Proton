@@ -3,11 +3,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-// For some insane reason, gcc doesn't
-// want me to use strdup, because it refuses
-// to find it, so we declare it here
-char* strdup(const char* msg);
-
 
 void StackObjectPool_PushSet();
 void StackObjectPool_TrimPool();
@@ -25,10 +20,10 @@ void StackObjectPool_Destroy()
 }
 
 #define STACK_OBJECT_NO_TYPE ((StackObjectType)0xFE)
-
-void StackObjectPool_PushSet()
-{
 #define STACK_OBJECT_POOL_INIT_SIZE (32)
+
+__attribute__((always_inline)) void StackObjectPool_PushSet()
+{
     for (uint32_t i = 0; i < STACK_OBJECT_POOL_INIT_SIZE; i++)
     {
         StackObject* obj = StackObject_Create();
@@ -56,7 +51,7 @@ void StackObjectPool_Release(StackObject* obj)
     StackObjectPool_TrimPool();
 }
 
-void StackObjectPool_TrimPool()
+__attribute__((always_inline)) void StackObjectPool_TrimPool()
 {
     if (stackObjPool->StackDepth > 256)
     {

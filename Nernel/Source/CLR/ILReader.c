@@ -11,15 +11,20 @@
 #include <string.h>
 #include <CLR/ILReader_Defines.h>
 
+//#define ILREADER_DONT_INLINE
+
 
 uint8_t ReadUInt8(uint8_t** dat);
 uint16_t ReadUInt16(uint8_t** dat);
 uint32_t ReadUInt32(uint8_t** dat);
 uint64_t ReadUInt64(uint8_t** dat);
 void Link(IRAssembly* asmb);
+void TypeDefinition_GetLayedOutMethods(TypeDefinition* tdef, CLIFile* fil, IRMethod*** Destination, uint* destLength);
 IRType* GenerateType(TypeDefinition* def, CLIFile* fil, IRAssembly* asmb);
 IRField* GenerateField(Field* def, CLIFile* fil, IRAssembly* asmb, AppDomain* dom);
 void GetElementTypeFromTypeDef(TypeDefinition* tdef, AppDomain* dom, ElementType* dst);
+void GetElementTypeOfStackObject(ElementType* dest, StackObject* stkObj);
+void SetObjectTypeFromElementType(StackObject* obj, ElementType elemType);
 void SetTypeOfStackObjectFromSigElementType(StackObject* obj, SignatureType* TypeSig, CLIFile* fil, AppDomain* dom);
 IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* fil, AppDomain* dom, IRAssembly* asmbly);
 
@@ -135,10 +140,28 @@ IRType* GenerateType(TypeDefinition* def, CLIFile* fil, IRAssembly* asmb)
 {
 	IRType* tp = IRType_Create();
 	tp->TypeDef = def;
+
+	// Add the fields in.
 	for(uint32_t i = 0; i < def->FieldListCount; i++)
 	{
 		IRType_AddField(tp, asmb->Fields[def->FieldList[i].TableIndex]);
 	}
+	
+	// Check if it's an interface.
+	if (def->Flags & TypeAttributes_Interface)
+	{
+		tp->IsInterface = TRUE;
+	}
+
+	// Layout the methods.
+	IRMethod*** mths = NULL;
+	uint mthCount = 0;
+	TypeDefinition_GetLayedOutMethods(def, fil, mths, &mthCount);
+	tp->Methods = (IRMethod**)calloc(mthCount, sizeof(IRMethod*));
+	memcpy(&(tp->Methods), mths, (mthCount * sizeof(IRMethod*)));
+	free(*mths);
+
+	// Check if it's a generic type.
 	if (def->GenericParameterCount > 0)
 	{
 		tp->IsGeneric = TRUE;
@@ -149,6 +172,8 @@ IRType* GenerateType(TypeDefinition* def, CLIFile* fil, IRAssembly* asmb)
 		tp->IsGeneric = FALSE;
 		tp->IsFixedSize = TRUE;
 	}
+	
+	// Find the static constructor if it exists.
 	for (uint32_t i = 0; i < def->MethodDefinitionListCount; i++)
 	{
 		if ((def->MethodDefinitionList[i].Flags & MethodAttributes_Static) != 0)
@@ -156,12 +181,95 @@ IRType* GenerateType(TypeDefinition* def, CLIFile* fil, IRAssembly* asmb)
 			if (!strcmp(def->MethodDefinitionList[i].Name, ".cctor"))
 			{
 				tp->HasStaticConstructor = TRUE;
+				// This gets resolved in the Link method.
 				tp->StaticConstructor = (IRMethod*)def->MethodDefinitionList[i].TableIndex;
 			}
 		}
 	}
+	
 	return tp;
 }
+
+void TypeDefinition_GetLayedOutMethods(TypeDefinition* tdef, CLIFile* fil, IRMethod*** Destination, uint* destLength)
+{
+	IRMethod*** mths = NULL;
+	uint mthsCount = 0;
+	if (tdef->Extends.TypeDefinition != NULL)
+	{
+		TypeDefinition_GetLayedOutMethods(tdef->Extends.TypeDefinition, fil, mths, &mthsCount);
+	}
+
+	uint32_t newMethodsCount = 0;
+	for (uint32_t i = 0; i < tdef->MethodDefinitionListCount; i++)
+	{
+		if (tdef->MethodDefinitionList[i].Flags & MethodAttributes_Virtual)
+		{
+			if (tdef->MethodDefinitionList[i].Flags & MethodAttributes_NewSlot)
+			{
+				newMethodsCount++;
+			}
+		}
+		else
+		{
+			if (!(tdef->MethodDefinitionList[i].Flags & MethodAttributes_Static) && 
+				!(tdef->MethodDefinitionList[i].Flags & MethodAttributes_RTSpecialName))
+			{
+				newMethodsCount++;
+			}
+		}
+	}
+
+	IRMethod** fnlMethods = (IRMethod**)calloc(mthsCount + newMethodsCount, sizeof(IRMethod*));
+	for (uint32_t i = 0; i < mthsCount; i++)
+	{
+		fnlMethods[i] = (*mths)[i];
+	}
+
+	for (uint32_t i = 0; i < tdef->MethodDefinitionListCount; i++)
+	{
+		if (tdef->MethodDefinitionList[i].Flags & MethodAttributes_Virtual)
+		{
+			if (tdef->MethodDefinitionList[i].Flags & MethodAttributes_NewSlot)
+			{
+				fnlMethods[i + mthsCount] = (IRMethod*)tdef->MethodDefinitionList[i].TableIndex;
+			}
+			else
+			{
+				bool_t Found = FALSE;
+				for (uint32_t i2 = 0; i2 < mthsCount; i2++)
+				{
+					if (!strcmp(tdef->MethodDefinitionList[i].Name, fil->MethodDefinitions[(uint32_t)((*mths)[i2]->MethodDefinition)].Name))
+					{
+						MethodDefinition* mthDef = &(fil->MethodDefinitions[(uint32_t)((*mths)[i2]->MethodDefinition)]);
+						if (Signature_Equals(tdef->MethodDefinitionList[i].Signature, tdef->MethodDefinitionList[i].SignatureLength, mthDef->Signature, mthDef->SignatureLength))
+						{
+							fnlMethods[i2] = (IRMethod*)tdef->MethodDefinitionList[i].TableIndex; 
+						}
+					}
+				}
+				if (!Found)
+				{
+					Panic("Unable to resolve base method of override!");
+				}
+			}
+		}
+		else
+		{
+			if (!(tdef->MethodDefinitionList[i].Flags & MethodAttributes_Static) && 
+				!(tdef->MethodDefinitionList[i].Flags & MethodAttributes_RTSpecialName))
+			{
+				fnlMethods[i + mthsCount] = (IRMethod*)tdef->MethodDefinitionList[i].TableIndex;
+			}
+		}
+	}
+
+	free(*mths);
+
+	*Destination = fnlMethods;
+	*destLength = mthsCount + newMethodsCount;
+
+}
+
 
 void Link(IRAssembly* asmb)
 {
@@ -173,16 +281,11 @@ void Link(IRAssembly* asmb)
 		fld->FieldType = asmb->Types[(uint32_t)fld->FieldType];
 	}
 
-	// Set the size and resolve the static
-	// constructors for types.
+	// Resolve the static constructors 
+	// for types.
 	for (uint32_t i = 1; i <= asmb->TypeCount; i++)
 	{
 		IRType* tp = asmb->Types[i];
-		/*if (tp->IsFixedSize)
-		{
-			Log_WriteLine(LogFlags_ILReading, "Type Name: %s", tp->TypeDef->Name);
-			tp->Size = IRType_GetSize(tp);
-		}*/
 		if (tp->HasStaticConstructor)
 		{
 			tp->StaticConstructor = asmb->Methods[(uint32_t)tp->StaticConstructor];
@@ -199,30 +302,6 @@ void Link(IRAssembly* asmb)
 			}
 		}
 	}
-
-	//// Now set the field offsets.
-	//for (uint32_t i = 1; i <= asmb->TypeCount; i++)
-	//{
-	//	if (asmb->Types[i]->IsFixedSize)
-	//	{
-	//		IRType* tp = asmb->Types[i];
-	//		if (tp->TypeDef->ClassLayout)
-	//		{
-	//			Panic("Don't know how to get field offsets here!");
-	//		}
-	//		else
-	//		{
-	//			uint32_t offset = 0;
-	//			for (uint32_t i2 = 0; i2 < tp->FieldCount; i2++)
-	//			{
-	//				IRField* fld = tp->Fields[i2];
-	//				fld->Offset = offset;
-	//				offset += fld->ParentType->Size;
-	//			}
-	//		}
-	//	}
-	//}
-
 
 }
 
@@ -720,7 +799,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 					SyntheticStack_Push(stack, obj2);
 
 					ElementType* mType = (ElementType*)malloc(sizeof(ElementType));
-					GetElementTypeOfStackObject(*mType, obj2);
+					GetElementTypeOfStackObject(mType, obj2);
 					EMIT_IR_1ARG(IROpCode_Dup, mType);
 				}
                 ClearFlags();
@@ -730,7 +809,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 					Log_WriteLine(LogFlags_ILReading, "Read Pop");
 					ElementType* elemType = (ElementType*)malloc(sizeof(ElementType));
 					StackObject* obj = SyntheticStack_Pop(stack);
-					GetElementTypeOfStackObject(*elemType, obj);
+					GetElementTypeOfStackObject(elemType, obj);
 					if (*elemType == ElementType_DataType)
 					{
 						Panic("We don't currently track the exact type of stack objects, and as such, we can't do this yet!");
@@ -756,12 +835,12 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 							break;
 
 						case MetaData_Table_MemberReference:
-							printf("Don't deal with this yet! Call with table index: 0x%x\n", (unsigned int)tok->Table);
+							//printf("Don't deal with this yet! Call with table index: 0x%x\n", (unsigned int)tok->Table);
 							sig = MethodSignature_Expand(((MemberReference*)tok->Data)->Signature, fil);
 							break;
 							
 						case MetaData_Table_MethodSpecification:
-							printf("Don't deal with this yet! Call with table index: 0x%x\n", (unsigned int)tok->Table);
+							//printf("Don't deal with this yet! Call with table index: 0x%x\n", (unsigned int)tok->Table);
 							if (((MethodSpecification*)tok->Data)->TypeOfMethod == MethodDefOrRef_Type_MethodDefinition)
 							{
 								sig = MethodSignature_Expand(((MethodSpecification*)tok->Data)->Method.MethodDefinition->Signature, fil);
@@ -829,12 +908,12 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 							break;
 							
 						case MetaData_Table_MemberReference:
-							printf("Don't deal with this yet! Call with table index: 0x%x\n", (unsigned int)tok->Table);
+							//printf("Don't deal with this yet! Call with table index: 0x%x\n", (unsigned int)tok->Table);
 							sig = MethodSignature_Expand(((MemberReference*)tok->Data)->Signature, fil);
 							break;
 
 						case MetaData_Table_MethodSpecification:
-							printf("Don't deal with this yet! Call with table index: 0x%x\n", (unsigned int)tok->Table);
+							//printf("Don't deal with this yet! Call with table index: 0x%x\n", (unsigned int)tok->Table);
 							if (((MethodSpecification*)tok->Data)->TypeOfMethod == MethodDefOrRef_Type_MethodDefinition)
 							{
 								sig = MethodSignature_Expand(((MethodSpecification*)tok->Data)->Method.MethodDefinition->Signature, fil);
@@ -901,12 +980,12 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 							break;
 
 						case MetaData_Table_MemberReference:
-							printf("Don't deal with this yet! Call with table index: 0x%x\n", (unsigned int)tok->Table);
+							//printf("Don't deal with this yet! Call with table index: 0x%x\n", (unsigned int)tok->Table);
 							sig = MethodSignature_Expand(((MemberReference*)tok->Data)->Signature, fil);
 							break;
 							
 						case MetaData_Table_MethodSpecification:
-							printf("Don't deal with this yet! Call with table index: 0x%x\n", (unsigned int)tok->Table);
+							//printf("Don't deal with this yet! Call with table index: 0x%x\n", (unsigned int)tok->Table);
 							if (((MethodSpecification*)tok->Data)->TypeOfMethod == MethodDefOrRef_Type_MethodDefinition)
 							{
 								sig = MethodSignature_Expand(((MethodSpecification*)tok->Data)->Method.MethodDefinition->Signature, fil);
@@ -980,7 +1059,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 						bool_t* HasRetValue = (bool_t*)malloc(sizeof(bool_t));
 						*HasRetValue = TRUE;
 						ElementType* mtType = (ElementType*)malloc(sizeof(ElementType));
-						GetElementTypeOfStackObject(*mtType, obj);
+						GetElementTypeOfStackObject(mtType, obj);
 						StackObjectPool_Release(obj);
 
 						EMIT_IR_2ARG(IROpCode_Return, HasRetValue, mtType);
@@ -1062,13 +1141,13 @@ Branch_Common:
 					ElementType* arg2Type = (ElementType*)calloc(1, sizeof(ElementType));
 					if (branch_Arg1)
 					{
-						GetElementTypeOfStackObject(*arg1Type, branch_Arg1);
+						GetElementTypeOfStackObject(arg1Type, branch_Arg1);
 						StackObjectPool_Release(branch_Arg1);
 						branch_Arg1 = NULL;
 					}
 					if (branch_Arg2)
 					{
-						GetElementTypeOfStackObject(*arg2Type, branch_Arg2);
+						GetElementTypeOfStackObject(arg2Type, branch_Arg2);
 						StackObjectPool_Release(branch_Arg2);
 						branch_Arg2 = NULL;
 					}
@@ -1252,7 +1331,7 @@ Branch_Common:
 							break;
 
 						case MetaData_Table_MemberReference:
-							printf("Don't deal with this yet! NewObj with table index: 0x%x\n", (unsigned int)tok->Table);
+							//printf("Don't deal with this yet! NewObj with table index: 0x%x\n", (unsigned int)tok->Table);
 							sig = MethodSignature_Expand(((MemberReference*)tok->Data)->Signature, fil);
 							break;
 
@@ -1351,7 +1430,7 @@ Branch_Common:
 							break;
 
 						case MetaData_Table_MemberReference:
-							printf("Don't deal with this yet! Load Field with table index: 0x%x\n", (unsigned int)tok->Table);
+							//printf("Don't deal with this yet! Load Field with table index: 0x%x\n", (unsigned int)tok->Table);
 							sig = FieldSignature_Expand(((MemberReference*)tok->Data)->Signature, fil);
 							break;
 
@@ -1418,11 +1497,11 @@ Branch_Common:
 					switch(tok->Table)
 					{
 						case MetaData_Table_Field:
-							sig = FieldSignature_Expand(asmbly->Fields[((Field*)tok->Data)->TableIndex]->FieldDef->Signature, fil);
+							sig = FieldSignature_Expand(((Field*)tok->Data)->Signature, fil);
 							break;
 
 						case MetaData_Table_MemberReference:
-							printf("Don't deal with this yet! Load Static Field with table index: 0x%x\n", (unsigned int)tok->Table);
+							//printf("Don't deal with this yet! Load Static Field with table index: 0x%x\n", (unsigned int)tok->Table);
 							sig = FieldSignature_Expand(((MemberReference*)tok->Data)->Signature, fil);
 							break;
 
@@ -1536,7 +1615,6 @@ Branch_Common:
 
 					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
 					TypeDefinition* tdef = NULL;
-					TypeSpecification* tspec = NULL;
 					StackObject* obj = StackObjectPool_Allocate();
 					switch (tok->Table)
 					{
@@ -1600,10 +1678,15 @@ Branch_Common:
 							}
 							break;
 						case MetaData_Table_TypeSpecification:
-							tspec = (TypeSpecification*)tok->Data;
+							//tspec = (TypeSpecification*)tok->Data;
+							// This is typically used for generics.
+							
+							obj->NumericType = StackObjectNumericType_Generic;
+							obj->Type = StackObjectType_Generic;
+
 							//SignatureType* sig = SignatureType_Expand(tspec->Signature, fil);
 							
-							printf("Don't deal with this yet! Box with table index: 0x%x\n", (unsigned int)tok->Table);
+							//printf("Don't deal with this yet! Box with table index: 0x%x\n", (unsigned int)tok->Table);
 							/*
 							if (tspec->Flags & TypeAttributes_Class)
 							{
@@ -2040,6 +2123,9 @@ Branch_Common:
     return m;
 }
 
+#ifndef ILREADER_DONT_INLINE
+__attribute__((always_inline)) 
+#endif
 uint8_t ReadUInt8(uint8_t** dat)
 {
     uint8_t b = **dat;
@@ -2047,6 +2133,9 @@ uint8_t ReadUInt8(uint8_t** dat)
     return b;
 }
 
+#ifndef ILREADER_DONT_INLINE
+__attribute__((always_inline)) 
+#endif
 uint16_t ReadUInt16(uint8_t** dat)
 {
 	uint16_t i = *((uint16_t*)*dat);
@@ -2054,6 +2143,9 @@ uint16_t ReadUInt16(uint8_t** dat)
     return i;
 }
 
+#ifndef ILREADER_DONT_INLINE
+__attribute__((always_inline)) 
+#endif
 uint32_t ReadUInt32(uint8_t** dat)
 {
 	uint32_t i = *((uint32_t*)*dat);
@@ -2061,6 +2153,9 @@ uint32_t ReadUInt32(uint8_t** dat)
     return i;
 }
 
+#ifndef ILREADER_DONT_INLINE
+__attribute__((always_inline)) 
+#endif
 uint64_t ReadUInt64(uint8_t** dat)
 {
     uint64_t i = *((uint64_t*)*dat);
@@ -2068,6 +2163,9 @@ uint64_t ReadUInt64(uint8_t** dat)
     return i;
 }
 
+#ifndef ILREADER_DONT_INLINE
+__attribute__((always_inline)) 
+#endif
 void GetElementTypeFromTypeDef(TypeDefinition* tdef, AppDomain* dom, ElementType* dst)
 {
 	if (tdef->Flags & TypeAttributes_Class)
@@ -2134,7 +2232,10 @@ void GetElementTypeFromTypeDef(TypeDefinition* tdef, AppDomain* dom, ElementType
 	}
 }
 
-__attribute__((always_inline)) void SetTypeOfStackObjectFromSigElementType(StackObject* obj, SignatureType* TypeSig, CLIFile* fil, AppDomain* dom)
+#ifndef ILREADER_DONT_INLINE
+__attribute__((always_inline)) 
+#endif
+void SetTypeOfStackObjectFromSigElementType(StackObject* obj, SignatureType* TypeSig, CLIFile* fil, AppDomain* dom)
 {
 	switch (TypeSig->ElementType) 
 	{ 
@@ -2335,3 +2436,159 @@ __attribute__((always_inline)) void SetTypeOfStackObjectFromSigElementType(Stack
 			break; 
 	}
 }
+
+
+
+#ifndef ILREADER_DONT_INLINE
+__attribute__((always_inline)) 
+#endif
+void SetObjectTypeFromElementType(StackObject* obj, ElementType elemType)
+{ 
+	switch(elemType) 
+	{ 
+		case ElementType_I1: 
+		case ElementType_I2: 
+		case ElementType_I4: 
+		case ElementType_U1: 
+		case ElementType_U2: 
+		case ElementType_U4: 
+			obj->Type = StackObjectType_Int32; 
+			break; 
+		case ElementType_I8: 
+		case ElementType_U8: 
+			obj->Type = StackObjectType_Int64; 
+			break; 
+		case ElementType_I: 
+		case ElementType_U:
+			obj->Type = StackObjectType_NativeInt; 
+			break;
+		case ElementType_R4: 
+		case ElementType_R8:
+			obj->Type = StackObjectType_Float; 
+			break; 
+		case ElementType_Ref: 
+			obj->Type = StackObjectType_ReferenceType; 
+			break; 
+		case ElementType_DataType: 
+			obj->Type = StackObjectType_DataType; 
+			break; 
+		default: 
+			Panic("Unknown ElementType!"); 
+			break; 
+	} 
+	switch(elemType) 
+	{ 
+		case ElementType_I1: 
+			obj->NumericType = StackObjectNumericType_Int8; 
+			break; 
+		case ElementType_I2: 
+			obj->NumericType = StackObjectNumericType_Int16; 
+			break; 
+		case ElementType_I4: 
+			obj->NumericType = StackObjectNumericType_Int32; 
+			break; 
+		case ElementType_U1: 
+			obj->NumericType = StackObjectNumericType_UInt8; 
+			break; 
+		case ElementType_U2: 
+			obj->NumericType = StackObjectNumericType_UInt16; 
+			break; 
+		case ElementType_U4: 
+			obj->NumericType = StackObjectNumericType_UInt32; 
+			break; 
+		case ElementType_I8: 
+			obj->NumericType = StackObjectNumericType_Int64; 
+			break; 
+		case ElementType_U8: 
+			obj->NumericType = StackObjectNumericType_UInt64; 
+			break; 
+		case ElementType_I: 
+			obj->NumericType = StackObjectNumericType_Pointer; 
+			break; 
+		case ElementType_U: 
+			obj->NumericType = StackObjectNumericType_UPointer; 
+			break; 
+		case ElementType_R4: 
+			obj->NumericType = StackObjectNumericType_Float32; 
+			break; 
+		case ElementType_R8: 
+			obj->NumericType = StackObjectNumericType_Float64; 
+			break; 
+		case ElementType_Ref: 
+			obj->NumericType = StackObjectNumericType_Ref; 
+			break; 
+		case ElementType_DataType: 
+			obj->NumericType = StackObjectNumericType_DataType; 
+			break; 
+		default: 
+			Panic("Unknown ElementType!"); 
+			break; 
+	} 
+}
+
+
+
+#ifndef ILREADER_DONT_INLINE
+__attribute__((always_inline)) 
+#endif
+void GetElementTypeOfStackObject(ElementType* dest, StackObject* stkObj) 
+{
+	switch (stkObj->NumericType) 
+	{ 
+		case StackObjectNumericType_UInt8: 
+			*dest = ElementType_U1; 
+			break; 
+		case StackObjectNumericType_UInt16: 
+			*dest = ElementType_U2; 
+			break; 
+		case StackObjectNumericType_UInt32: 
+			*dest = ElementType_U4; 
+			break; 
+		case StackObjectNumericType_UInt64: 
+			*dest = ElementType_U8; 
+			break; 
+		case StackObjectNumericType_Int8: 
+			*dest = ElementType_I1; 
+			break; 
+		case StackObjectNumericType_Int16: 
+			*dest = ElementType_I2; 
+			break; 
+		case StackObjectNumericType_Int32: 
+			*dest = ElementType_I4; 
+			break; 
+		case StackObjectNumericType_Int64: 
+			*dest = ElementType_I8; 
+			break; 
+		case StackObjectNumericType_Float32: 
+			*dest = ElementType_R4; 
+			break; 
+		case StackObjectNumericType_Float64: 
+			*dest = ElementType_R8; 
+			break; 
+		case StackObjectNumericType_Pointer: 
+			*dest = ElementType_I; 
+			break; 
+		case StackObjectNumericType_UPointer: 
+			*dest = ElementType_U; 
+			break; 
+		case StackObjectNumericType_DataType: 
+			*dest = ElementType_DataType; 
+			break; 
+		case StackObjectNumericType_Ref: 
+			*dest = ElementType_Ref; 
+			break; 
+		case StackObjectNumericType_ManagedPointer: 
+			*dest = ElementType_ManagedPointer; 
+			break; 
+		case StackObjectNumericType_Generic: 
+			*dest = ElementType_Generic; 
+			break; 
+		case StackObjectNumericType_MethodGeneric: 
+			*dest = ElementType_MethodGeneric; 
+			break; 
+		default: 
+			Panic("Unknown StackObjectNumericType!"); 
+			break; 
+	} 
+}
+

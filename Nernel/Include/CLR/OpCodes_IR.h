@@ -600,7 +600,7 @@ typedef enum IROpCode
 
         Arg1:
             The method to call.
-			Of the type IRMethod.
+			Of the type IRMethodSpec.
 
         Arg2:
             N/A
