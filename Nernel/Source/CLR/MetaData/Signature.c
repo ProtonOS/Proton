@@ -1,7 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <CLR/CLIFile.h>
+
+bool_t Signature_Equals(const uint8_t* pSignature1, uint32_t pSignature1Length, const uint8_t* pSignature2, uint32_t pSignature2Length)
+{
+	if (pSignature1Length != pSignature2Length) return FALSE;
+	return memcmp(pSignature1, pSignature2, pSignature1Length) == 0;
+}
 
 MethodSignature* MethodSignature_Create()
 {

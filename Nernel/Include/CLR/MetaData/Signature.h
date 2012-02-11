@@ -184,6 +184,8 @@ struct _SignatureLocalVariable
     bool_t TypedByReference;
 };
 
+bool_t Signature_Equals(const uint8_t* pSignature1, uint32_t pSignature1Length, const uint8_t* pSignature2, uint32_t pSignature2Length);
+
 MethodSignature* MethodSignature_Create();
 void MethodSignature_Destroy(MethodSignature* pMethodSignature);
 const uint8_t* MethodSignature_Parse(const uint8_t* pCursor, MethodSignature** pMethodSignature, CLIFile* pCLIFile);
