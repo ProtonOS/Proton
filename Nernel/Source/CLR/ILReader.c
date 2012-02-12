@@ -243,7 +243,11 @@ void TypeDefinition_GetLayedOutMethods(TypeDefinition* tdef, CLIFile* fil, IRMet
 				printf("Looking for base method of %s.%s.%s\n", tdef->Namespace, tdef->Name, tdef->MethodDefinitionList[i].Name);
 				for (uint32_t i2 = 0; i2 < mthsCount; i2++)
 				{
+					printf("Value of i2: %i\n", (int)i2);
+					printf("(uint32_t)((*mths)[i2]): 0x%x \n", (unsigned int)((*mths)[i2]));
 					MethodDefinition* mthDef = &(fil->MethodDefinitions[(uint32_t)((*mths)[i2])]);
+					printf("mthDef: 0x%x \n", (unsigned int)mthDef);
+					printf("Checking: %s \n", mthDef->Name);
 					if (!strcmp(tdef->MethodDefinitionList[i].Name, mthDef->Name))
 					{
 						printf("Name is the same\n");
