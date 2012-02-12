@@ -22,10 +22,15 @@ void Link(IRAssembly* asmb);
 void TypeDefinition_GetLayedOutMethods(TypeDefinition* tdef, CLIFile* fil, IRMethod*** Destination, uint* destLength);
 IRType* GenerateType(TypeDefinition* def, CLIFile* fil, IRAssembly* asmb);
 IRField* GenerateField(Field* def, CLIFile* fil, IRAssembly* asmb, AppDomain* dom);
+
+
+void CheckBinaryNumericOpOperandTypesAndSetResult(ElementType* OperandA, ElementType* OperandB, int BinaryNumericOp, StackObject* ResultObject);
 void GetElementTypeFromTypeDef(TypeDefinition* tdef, AppDomain* dom, ElementType* dst);
 void GetElementTypeOfStackObject(ElementType* dest, StackObject* stkObj);
 void SetObjectTypeFromElementType(StackObject* obj, ElementType elemType);
 void SetTypeOfStackObjectFromSigElementType(StackObject* obj, SignatureType* TypeSig, CLIFile* fil, AppDomain* dom);
+
+
 IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* fil, AppDomain* dom, IRAssembly* asmbly);
 
 IRAssembly* ILReader_CreateAssembly(CLIFile* fil, AppDomain* dom)
@@ -2650,3 +2655,161 @@ void GetElementTypeOfStackObject(ElementType* dest, StackObject* stkObj)
 	} 
 }
 
+
+#ifndef ILREADER_DONT_INLINE
+__attribute__((always_inline)) 
+#endif
+void CheckBinaryNumericOpOperandTypesAndSetResult(ElementType* OperandA, ElementType* OperandB, int BinaryNumericOp, StackObject* ResultObject) 
+{
+	Log_WriteLine(LogFlags_ILReading_ElementTypes, "Operand A: 0x%x", (unsigned int)*OperandA); 
+	Log_WriteLine(LogFlags_ILReading_ElementTypes, "Operand B: 0x%x", (unsigned int)*OperandB);
+	switch(*OperandA) 
+	{ 
+		case ElementType_U1: 
+		case ElementType_U2: 
+		case ElementType_U4: 
+		case ElementType_I1: 
+		case ElementType_I2: 
+		case ElementType_I4: 
+		{ 
+			if (BinaryNumericOp == BinaryNumericOp_Add) 
+			{ 
+				if (*OperandB == ElementType_ManagedPointer) 
+				{ 
+					ResultObject->Type = StackObjectType_ManagedPointer; 
+					ResultObject->NumericType = StackObjectNumericType_ManagedPointer; 
+					break; 
+				} 
+			} 
+			switch(*OperandB) 
+			{ 
+				case ElementType_I: 
+				case ElementType_U: 
+					ResultObject->Type = StackObjectType_NativeInt; 
+					ResultObject->NumericType = StackObjectNumericType_Pointer; 
+					break; 
+				case ElementType_U1: 
+				case ElementType_U2: 
+				case ElementType_U4: 
+				case ElementType_I1: 
+				case ElementType_I2: 
+				case ElementType_I4: 
+					ResultObject->Type = StackObjectType_Int32; 
+					ResultObject->NumericType = StackObjectNumericType_Int32; 
+					break; 
+				default: 
+					Panic("Invalid Operands for Binary Numeric Operation!"); 
+					break; 
+			} 
+			break; 
+		} 
+		
+		case ElementType_I8: 
+		case ElementType_U8: 
+		{ 
+			switch(*OperandB) 
+			{ 
+				case ElementType_I8: 
+				case ElementType_U8: 
+					ResultObject->Type = StackObjectType_Int64; 
+					ResultObject->NumericType = StackObjectNumericType_Int64; 
+					break; 
+				default: 
+					Panic("Invalid Operands for Binary Numeric Operation!"); 
+					break; 
+			} 
+			break; 
+		} 
+		
+		case ElementType_R4: 
+		case ElementType_R8: 
+		{ 
+			switch(*OperandB) 
+			{ 
+				case ElementType_R4: 
+				case ElementType_R8: 
+					ResultObject->Type = StackObjectType_Float; 
+					ResultObject->NumericType = StackObjectNumericType_Float64; 
+					break; 
+				default: 
+					Panic("Invalid Operands for Binary Numeric Operation!"); 
+					break; 
+			} 
+			break; 
+		} 
+		
+		case ElementType_I: 
+		case ElementType_U: 
+		{ 
+			if (BinaryNumericOp == BinaryNumericOp_Add) 
+			{ 
+				if (*OperandB == ElementType_ManagedPointer) 
+				{ 
+					ResultObject->Type = StackObjectType_ManagedPointer; 
+					ResultObject->NumericType = StackObjectNumericType_ManagedPointer; 
+					break; 
+				} 
+			} 
+			switch(*OperandB) 
+			{ 
+				case ElementType_I: 
+				case ElementType_U: 
+				case ElementType_U1: 
+				case ElementType_U2: 
+				case ElementType_U4: 
+				case ElementType_I1: 
+				case ElementType_I2: 
+				case ElementType_I4: 
+					ResultObject->Type = StackObjectType_NativeInt; 
+					ResultObject->NumericType = StackObjectNumericType_Pointer; 
+					break; 
+				default: 
+					Panic("Invalid Operands for Binary Numeric Operation!"); 
+					break; 
+			} 
+			break; 
+		} 
+		
+		case ElementType_ManagedPointer: 
+		{ 
+			if (BinaryNumericOp == BinaryNumericOp_Add || BinaryNumericOp == BinaryNumericOp_Sub) 
+			{ 
+				if (BinaryNumericOp == BinaryNumericOp_Sub) 
+				{ 
+					if (*OperandB == ElementType_ManagedPointer) 
+					{ 
+						ResultObject->Type = StackObjectType_NativeInt; 
+						ResultObject->NumericType = StackObjectNumericType_Pointer; 
+						break; 
+					} 
+				} 
+				switch(*OperandB) 
+				{ 
+					case ElementType_I: 
+					case ElementType_U: 
+					case ElementType_U1: 
+					case ElementType_U2: 
+					case ElementType_U4: 
+					case ElementType_I1: 
+					case ElementType_I2: 
+					case ElementType_I4: 
+						ResultObject->Type = StackObjectType_ManagedPointer; 
+						ResultObject->NumericType = StackObjectNumericType_ManagedPointer; 
+						break; 
+					default: 
+						Panic("Invalid Operands for Binary Numeric Operation!"); 
+						break; 
+				} 
+			} 
+			else 
+			{ 
+				Panic("Invalid Operands for Binary Numeric Operation!"); 
+			} 
+			break; 
+		} 
+		
+		default: 
+			Panic("Invalid Operands for Addition!"); 
+			break; 
+	}
+}
