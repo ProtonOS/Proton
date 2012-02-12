@@ -24,7 +24,7 @@ IRType* GenerateType(TypeDefinition* def, CLIFile* fil, IRAssembly* asmb);
 IRField* GenerateField(Field* def, CLIFile* fil, IRAssembly* asmb, AppDomain* dom);
 
 
-void CheckBinaryNumericOpOperandTypesAndSetResult(ElementType* OperandA, ElementType* OperandB, int BinaryNumericOp, StackObject* ResultObject);
+void CheckBinaryNumericOperandTypesAndSetResult(ElementType* OperandA, ElementType* OperandB, int BinaryNumericOp, StackObject* ResultObject);
 void GetElementTypeFromTypeDef(TypeDefinition* tdef, AppDomain* dom, ElementType* dst);
 void GetElementTypeOfStackObject(ElementType* dest, StackObject* stkObj);
 void SetObjectTypeFromElementType(StackObject* obj, ElementType elemType);
@@ -2659,7 +2659,7 @@ void GetElementTypeOfStackObject(ElementType* dest, StackObject* stkObj)
 #ifndef ILREADER_DONT_INLINE
 __attribute__((always_inline)) 
 #endif
-void CheckBinaryNumericOpOperandTypesAndSetResult(ElementType* OperandA, ElementType* OperandB, int BinaryNumericOp, StackObject* ResultObject) 
+void CheckBinaryNumericOperandTypesAndSetResult(ElementType* OperandA, ElementType* OperandB, int BinaryNumericOp, StackObject* ResultObject) 
 {
 	Log_WriteLine(LogFlags_ILReading_ElementTypes, "Operand A: 0x%x", (unsigned int)*OperandA); 
 	Log_WriteLine(LogFlags_ILReading_ElementTypes, "Operand B: 0x%x", (unsigned int)*OperandB);

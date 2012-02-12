@@ -540,7 +540,7 @@
 	GetElementTypeOfStackObject(t2, obj); \
 	StackObjectPool_Release(obj); \
 	obj = StackObjectPool_Allocate(); \
-	CheckBinaryNumericOpOperandTypesAndSetResult(t1, t2, BinaryNumericOp_##IRopCode, obj); \
+	CheckBinaryNumericOperandTypesAndSetResult(t1, t2, BinaryNumericOp_##IRopCode, obj); \
 	SyntheticStack_Push(stack, obj); \
 	\
 	EMIT_IR_3ARG(IROpCode_##IRopCode, ovfTp, t1, t2); \
