@@ -19,7 +19,7 @@ uint16_t ReadUInt16(uint8_t** dat);
 uint32_t ReadUInt32(uint8_t** dat);
 uint64_t ReadUInt64(uint8_t** dat);
 void Link(IRAssembly* asmb);
-void TypeDefinition_GetLayedOutMethods(TypeDefinition* tdef, CLIFile* fil, IRMethod*** Destination, uint* destLength);
+IRMethod** TypeDefinition_GetLayedOutMethods(TypeDefinition* tdef, CLIFile* fil, uint* destLength);
 IRType* GenerateType(TypeDefinition* def, CLIFile* fil, IRAssembly* asmb);
 IRField* GenerateField(Field* def, CLIFile* fil, IRAssembly* asmb, AppDomain* dom);
 
@@ -163,20 +163,10 @@ IRType* GenerateType(TypeDefinition* def, CLIFile* fil, IRAssembly* asmb)
 	}
 
 	// Layout the methods.
-	IRMethod** tmp = NULL;
-	IRMethod*** mths = &tmp;
 	uint mthCount = 0;
 	printf("Step 0.\n");
-	TypeDefinition_GetLayedOutMethods(def, fil, mths, &mthCount);
-	printf("mths: 0x%x\n", (unsigned int)mths);
-	printf("*mths: 0x%x\n", (unsigned int)*mths);
-	printf("Step 1.\n");
-	tp->Methods = (IRMethod**)calloc(mthCount, sizeof(IRMethod*));
-	printf("Step 2.\n");
-	memcpy(&(tp->Methods), mths, (mthCount * sizeof(IRMethod*)));
+	tp->Methods = TypeDefinition_GetLayedOutMethods(def, fil, &mthCount);
 	printf("Final Step.\n");
-	//free(*mths);
-	printf("Free sucessful\n");
 
 	// Check if it's a generic type.
 	if (def->GenericParameterCount > 0)
@@ -207,15 +197,14 @@ IRType* GenerateType(TypeDefinition* def, CLIFile* fil, IRAssembly* asmb)
 	return tp;
 }
 
-void TypeDefinition_GetLayedOutMethods(TypeDefinition* tdef, CLIFile* fil, IRMethod*** Destination, uint* destLength)
+IRMethod** TypeDefinition_GetLayedOutMethods(TypeDefinition* tdef, CLIFile* fil, uint* destLength)
 {
 	printf("Laying out %s.%s\n", tdef->Namespace, tdef->Name);
-	IRMethod** tmp = NULL;
-	IRMethod*** mths = &tmp;
+	IRMethod** mths = NULL;
 	uint mthsCount = 0;
 	if (tdef->Extends.TypeDefinition != NULL)
 	{
-		TypeDefinition_GetLayedOutMethods(tdef->Extends.TypeDefinition, fil, mths, &mthsCount);
+		mths = TypeDefinition_GetLayedOutMethods(tdef->Extends.TypeDefinition, fil, &mthsCount);
 	}
 
 	uint32_t newMethodsCount = 0;
@@ -237,36 +226,32 @@ void TypeDefinition_GetLayedOutMethods(TypeDefinition* tdef, CLIFile* fil, IRMet
 			}
 		}
 	}
+	printf("Method count: %i NewMethodCount: %i\n", (int)mthsCount, (int)newMethodsCount);
 
 	IRMethod** fnlMethods = (IRMethod**)calloc(mthsCount + newMethodsCount, sizeof(IRMethod*));
 	for (uint32_t i = 0; i < mthsCount; i++)
 	{
-		fnlMethods[i] = (*mths)[i];
+		fnlMethods[i] = mths[i];
 	}
 
+	uint32_t mthIndex = 0;
 	for (uint32_t i = 0; i < tdef->MethodDefinitionListCount; i++)
 	{
 		if (tdef->MethodDefinitionList[i].Flags & MethodAttributes_Virtual)
 		{
-			printf("Got Here!\n");
 			if (tdef->MethodDefinitionList[i].Flags & MethodAttributes_NewSlot)
 			{
-				printf("Again\n");
-				fnlMethods[i + mthsCount] = (IRMethod*)tdef->MethodDefinitionList[i].TableIndex;
+				fnlMethods[mthIndex + mthsCount] = (IRMethod*)tdef->MethodDefinitionList[i].TableIndex;
 				printf("tblIndex = %i\n", (int)tdef->MethodDefinitionList[i].TableIndex);
+				mthIndex++;
 			}
 			else
 			{
-				printf("Again2\n");
 				bool_t Found = FALSE;
-				printf("Method count: %i NewMethodCount: %i\n", (int)mthsCount, (int)newMethodsCount);
 				printf("Looking for base method of %s.%s.%s\n", tdef->Namespace, tdef->Name, tdef->MethodDefinitionList[i].Name);
 				for (uint32_t i2 = 0; i2 < mthsCount; i2++)
 				{
-					printf("Value of i2: %i\n", (int)i2);
-					printf("(uint32_t)((*mths)[i2]): %i \n", (int)((*mths)[i2]));
-					MethodDefinition* mthDef = &(fil->MethodDefinitions[(uint32_t)((*mths)[i2])]);
-					printf("mthDef: 0x%x \n", (unsigned int)mthDef);
+					MethodDefinition* mthDef = &(fil->MethodDefinitions[(uint32_t)(mths[i2])]);
 					printf("Checking: %s \n", mthDef->Name);
 					if (!strcmp(tdef->MethodDefinitionList[i].Name, mthDef->Name))
 					{
@@ -275,6 +260,7 @@ void TypeDefinition_GetLayedOutMethods(TypeDefinition* tdef, CLIFile* fil, IRMet
 						{
 							printf("Found Match!\n");
 							fnlMethods[i2] = (IRMethod*)tdef->MethodDefinitionList[i].TableIndex; 
+							mthIndex++;
 							Found = TRUE;
 							break;
 						}
@@ -292,18 +278,19 @@ void TypeDefinition_GetLayedOutMethods(TypeDefinition* tdef, CLIFile* fil, IRMet
 				!(tdef->MethodDefinitionList[i].Flags & MethodAttributes_RTSpecialName))
 			{
 				fnlMethods[i + mthsCount] = (IRMethod*)tdef->MethodDefinitionList[i].TableIndex;
+				printf("tblIndex = %i\n", (int)tdef->MethodDefinitionList[i].TableIndex);
+				mthIndex++;
 			}
 		}
 	}
 
 	if (mths != NULL)
 	{
-		free(*mths);
+		free(mths);
 	}
 
-	*Destination = fnlMethods;
 	*destLength = mthsCount + newMethodsCount;
-
+	return fnlMethods;
 }
 
 
