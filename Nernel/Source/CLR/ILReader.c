@@ -202,6 +202,20 @@ IRMethod** TypeDefinition_GetLayedOutMethods(TypeDefinition* tdef, CLIFile* fil,
 	printf("Laying out %s.%s\n", tdef->Namespace, tdef->Name);
 	IRMethod** mths = NULL;
 	uint mthsCount = 0;
+	if (tdef->TypeOfExtends != TypeDefOrRef_Type_TypeDefinition)
+	{
+		if (tdef->TypeOfExtends == TypeDefOrRef_Type_TypeSpecification)
+		{
+			*destLength = 0;
+			return NULL;
+			//Panic("Type Spec!");
+		}
+		else if (tdef->TypeOfExtends == TypeDefOrRef_Type_TypeReference)
+		{
+			Panic("Type Ref!");
+		}
+	}
+
 	if (tdef->Extends.TypeDefinition != NULL)
 	{
 		mths = TypeDefinition_GetLayedOutMethods(tdef->Extends.TypeDefinition, fil, &mthsCount);
