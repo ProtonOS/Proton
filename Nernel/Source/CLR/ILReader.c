@@ -146,6 +146,7 @@ IRField* GenerateField(Field* def, CLIFile* fil, IRAssembly* asmb, AppDomain* do
 
 IRType* GenerateType(TypeDefinition* def, CLIFile* fil, IRAssembly* asmb)
 {
+	printf("Generating %s.%s\n", def->Namespace, def->Name);
 	IRType* tp = IRType_Create();
 	tp->TypeDef = def;
 
@@ -162,12 +163,20 @@ IRType* GenerateType(TypeDefinition* def, CLIFile* fil, IRAssembly* asmb)
 	}
 
 	// Layout the methods.
-	IRMethod*** mths = NULL;
+	IRMethod** tmp = NULL;
+	IRMethod*** mths = &tmp;
 	uint mthCount = 0;
+	printf("Step 0.\n");
 	TypeDefinition_GetLayedOutMethods(def, fil, mths, &mthCount);
+	printf("mths: 0x%x\n", (unsigned int)mths);
+	printf("*mths: 0x%x\n", (unsigned int)*mths);
+	printf("Step 1.\n");
 	tp->Methods = (IRMethod**)calloc(mthCount, sizeof(IRMethod*));
+	printf("Step 2.\n");
 	memcpy(&(tp->Methods), mths, (mthCount * sizeof(IRMethod*)));
-	free(*mths);
+	printf("Final Step.\n");
+	//free(*mths);
+	printf("Free sucessful\n");
 
 	// Check if it's a generic type.
 	if (def->GenericParameterCount > 0)
@@ -200,7 +209,9 @@ IRType* GenerateType(TypeDefinition* def, CLIFile* fil, IRAssembly* asmb)
 
 void TypeDefinition_GetLayedOutMethods(TypeDefinition* tdef, CLIFile* fil, IRMethod*** Destination, uint* destLength)
 {
-	IRMethod*** mths = NULL;
+	printf("Laying out %s.%s\n", tdef->Namespace, tdef->Name);
+	IRMethod** tmp = NULL;
+	IRMethod*** mths = &tmp;
 	uint mthsCount = 0;
 	if (tdef->Extends.TypeDefinition != NULL)
 	{
@@ -237,19 +248,23 @@ void TypeDefinition_GetLayedOutMethods(TypeDefinition* tdef, CLIFile* fil, IRMet
 	{
 		if (tdef->MethodDefinitionList[i].Flags & MethodAttributes_Virtual)
 		{
+			printf("Got Here!\n");
 			if (tdef->MethodDefinitionList[i].Flags & MethodAttributes_NewSlot)
 			{
+				printf("Again\n");
 				fnlMethods[i + mthsCount] = (IRMethod*)tdef->MethodDefinitionList[i].TableIndex;
+				printf("tblIndex = %i\n", (int)tdef->MethodDefinitionList[i].TableIndex);
 			}
 			else
 			{
+				printf("Again2\n");
 				bool_t Found = FALSE;
 				printf("Method count: %i NewMethodCount: %i\n", (int)mthsCount, (int)newMethodsCount);
 				printf("Looking for base method of %s.%s.%s\n", tdef->Namespace, tdef->Name, tdef->MethodDefinitionList[i].Name);
 				for (uint32_t i2 = 0; i2 < mthsCount; i2++)
 				{
 					printf("Value of i2: %i\n", (int)i2);
-					printf("(uint32_t)((*mths)[i2]): 0x%x \n", (unsigned int)((*mths)[i2]));
+					printf("(uint32_t)((*mths)[i2]): %i \n", (int)((*mths)[i2]));
 					MethodDefinition* mthDef = &(fil->MethodDefinitions[(uint32_t)((*mths)[i2])]);
 					printf("mthDef: 0x%x \n", (unsigned int)mthDef);
 					printf("Checking: %s \n", mthDef->Name);
