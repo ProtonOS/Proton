@@ -274,6 +274,7 @@ IRMethod** TypeDefinition_GetLayedOutMethods(TypeDefinition* tdef, CLIFile* fil,
 						{
 							printf("Found Match!\n");
 							fnlMethods[i2] = (IRMethod*)tdef->MethodDefinitionList[i].TableIndex; 
+							printf("tblIndex = %i\n", (int)tdef->MethodDefinitionList[i].TableIndex);
 							mthIndex++;
 							Found = TRUE;
 							break;
