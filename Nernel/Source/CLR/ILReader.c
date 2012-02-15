@@ -236,8 +236,8 @@ IRMethod** TypeDefinition_GetLayedOutMethods(TypeDefinition* tdef, CLIFile* fil,
 		else
 		{
 			if (!(tdef->MethodDefinitionList[i].Flags & MethodAttributes_Static) && 
-				!(tdef->MethodDefinitionList[i].Flags & MethodAttributes_RTSpecialName) &&
-				!IsStruct(tdef, dom))
+				!(tdef->MethodDefinitionList[i].Flags & MethodAttributes_RTSpecialName)
+				)
 			{
 				newMethodsCount++;
 			}
@@ -301,8 +301,8 @@ IRMethod** TypeDefinition_GetLayedOutMethods(TypeDefinition* tdef, CLIFile* fil,
 		else
 		{
 			if (!(tdef->MethodDefinitionList[i].Flags & MethodAttributes_Static) && 
-				!(tdef->MethodDefinitionList[i].Flags & MethodAttributes_RTSpecialName) &&
-				!IsStruct(tdef, dom))
+				!(tdef->MethodDefinitionList[i].Flags & MethodAttributes_RTSpecialName)
+				)
 			{
 				fnlMethods[mthIndex + mthsCount] = (IRMethod*)tdef->MethodDefinitionList[i].TableIndex;
 				Log_WriteLine(LogFlags_ILReading_MethodLayout, "Adding method %s.%s.%s from table index %i at %i", tdef->Namespace, tdef->Name, tdef->MethodDefinitionList[i].Name, (int)tdef->MethodDefinitionList[i].TableIndex, mthIndex + mthsCount);
