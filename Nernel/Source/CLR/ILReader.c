@@ -961,7 +961,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 					free(tok);
 					if (mthDef)
 					{
-						if ((mthDef->Flags & MethodAttributes_Static) || (mthDef->Flags & MethodAttributes_RTSpecialName) || IsStruct(mthDef->TypeDefinition, dom))
+						if ((mthDef->Flags & MethodAttributes_Static) || (mthDef->Flags & MethodAttributes_RTSpecialName) || (mthDef->TypeDefinition->Flags & TypeAttributes_Sealed) || IsStruct(mthDef->TypeDefinition, dom))
 						{
 							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Call_Absolute, (IRMethod*)(mthDef->TableIndex));
 						}
