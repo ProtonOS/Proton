@@ -12,11 +12,12 @@
 #define ActiveLogFlags ((LogFlags)( \
         LogFlags_ILReading  \
         | LogFlags_IREmitting \
-        | LogFlags_SyntheticStack \
+        /* | LogFlags_SyntheticStack */ \
         /* | LogFlags_MetaData_Loading */ \
         /* | LogFlags_AppDomain_Loading  */ \
         | LogFlags_ILReading_BranchLinker \
         /* | LogFlags_ILReading_ElementTypes */ \
+		/* | LogFlags_ILReading_MethodLayout */\
         ))
 #endif
 
@@ -34,6 +35,7 @@ typedef enum LogFlags
     LogFlags_AppDomain_Loading =		1 << 4,
     LogFlags_ILReading_BranchLinker =	1 << 5,
     LogFlags_ILReading_ElementTypes =	1 << 6,
+    LogFlags_ILReading_MethodLayout =	1 << 7,
 
 } LogFlags;
 

@@ -896,28 +896,6 @@ char* JIT_Compile_StoreIndirect				(IRInstruction* instr, char* compMethod, IRMe
 }
 
 
-char* JIT_Compile_Call						(IRInstruction* instr, char* compMethod, IRMethod* mth)
-{
-	
-	__asm("nop; nop");
-	JIT_Trampoline_DoCall(mth);
-	__asm("nop; nop");
-
-	return compMethod;
-}
-
-void JIT_Trampoline_DoCall(IRMethod* mth)
-{
-	__asm("pusha");
-	if (!mth->AssembledMethod)
-	{
-		JIT_CompileMethod(mth);
-	}
-	__asm("popa");
-	mth->AssembledMethod();
-}
-
-
 char* JIT_Compile_LoadNull					(IRInstruction* instr, char* compMethod, IRMethod* mth)
 {
 	x86_push_imm(compMethod, (unsigned int)0);
@@ -974,4 +952,28 @@ char* JIT_Compile_Not						(IRInstruction* instr, char* compMethod, IRMethod* mt
 }
 
 
+char* JIT_Compile_Call_Absolute				(IRInstruction* instr, char* compMethod, IRMethod* mth)
+{
 
+	return compMethod;
+}
+char* JIT_Compile_Call						(IRInstruction* instr, char* compMethod, IRMethod* mth)
+{
+	
+	__asm("nop; nop");
+	JIT_Trampoline_DoCall(mth);
+	__asm("nop; nop");
+
+	return compMethod;
+}
+
+void JIT_Trampoline_DoCall(IRMethod* mth)
+{
+	__asm("pusha");
+	if (!mth->AssembledMethod)
+	{
+		JIT_CompileMethod(mth);
+	}
+	__asm("popa");
+	mth->AssembledMethod();
+}

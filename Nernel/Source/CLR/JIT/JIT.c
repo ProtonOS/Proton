@@ -103,9 +103,6 @@ void JIT_CompileMethod(IRMethod* mthd)
 			case IROpCode_StoreIndirect:
 				compMthd = JIT_Compile_StoreIndirect			(mthd->IRCodes[i], compMthd, mthd);
 				break;
-			case IROpCode_Call:
-				compMthd = JIT_Compile_Call						(mthd->IRCodes[i], compMthd, mthd);
-				break;
 			case IROpCode_LoadNull:
 				compMthd = JIT_Compile_LoadNull					(mthd->IRCodes[i], compMthd, mthd);
 				break;
@@ -129,6 +126,12 @@ void JIT_CompileMethod(IRMethod* mthd)
 				break;
 			case IROpCode_Not:
 				compMthd = JIT_Compile_Not						(mthd->IRCodes[i], compMthd, mthd);
+				break;
+			case IROpCode_Call:
+				compMthd = JIT_Compile_Call						(mthd->IRCodes[i], compMthd, mthd);
+				break;
+			case IROpCode_Call_Absolute:
+				compMthd = JIT_Compile_Call_Absolute			(mthd->IRCodes[i], compMthd, mthd);
 				break;
 		}
 	}

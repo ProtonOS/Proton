@@ -19,8 +19,8 @@ uint16_t ReadUInt16(uint8_t** dat);
 uint32_t ReadUInt32(uint8_t** dat);
 uint64_t ReadUInt64(uint8_t** dat);
 void Link(IRAssembly* asmb);
-IRMethod** TypeDefinition_GetLayedOutMethods(TypeDefinition* tdef, CLIFile* fil, uint* destLength);
-IRType* GenerateType(TypeDefinition* def, CLIFile* fil, IRAssembly* asmb);
+IRMethod** TypeDefinition_GetLayedOutMethods(TypeDefinition* tdef, CLIFile* fil, uint* destLength, AppDomain* dom);
+IRType* GenerateType(TypeDefinition* def, CLIFile* fil, IRAssembly* asmb, AppDomain* dom);
 IRField* GenerateField(Field* def, CLIFile* fil, IRAssembly* asmb, AppDomain* dom);
 
 
@@ -30,6 +30,7 @@ void GetElementTypeOfStackObject(ElementType* dest, StackObject* stkObj);
 void SetObjectTypeFromElementType(StackObject* obj, ElementType elemType);
 void SetTypeOfStackObjectFromSigElementType(StackObject* obj, SignatureType* TypeSig, CLIFile* fil, AppDomain* dom);
 
+bool_t IsStruct(TypeDefinition* tdef, AppDomain* dom);
 
 IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* fil, AppDomain* dom, IRAssembly* asmbly);
 
@@ -47,7 +48,7 @@ IRAssembly* ILReader_CreateAssembly(CLIFile* fil, AppDomain* dom)
 
 	for (uint32_t i = 1; i <= fil->TypeDefinitionCount; i++)
 	{
-		IRAssembly_AddType(asmbly, GenerateType(&fil->TypeDefinitions[i], fil, asmbly));
+		IRAssembly_AddType(asmbly, GenerateType(&fil->TypeDefinitions[i], fil, asmbly, dom));
 	}
 	
 	printf("Loaded Types\n");
@@ -144,9 +145,9 @@ IRField* GenerateField(Field* def, CLIFile* fil, IRAssembly* asmb, AppDomain* do
 }
 
 
-IRType* GenerateType(TypeDefinition* def, CLIFile* fil, IRAssembly* asmb)
+IRType* GenerateType(TypeDefinition* def, CLIFile* fil, IRAssembly* asmb, AppDomain* dom)
 {
-	printf("Generating %s.%s\n", def->Namespace, def->Name);
+	Log_WriteLine(LogFlags_ILReading_MethodLayout, "Generating %s.%s", def->Namespace, def->Name);
 	IRType* tp = IRType_Create();
 	tp->TypeDef = def;
 
@@ -164,9 +165,10 @@ IRType* GenerateType(TypeDefinition* def, CLIFile* fil, IRAssembly* asmb)
 
 	// Layout the methods.
 	uint mthCount = 0;
-	printf("Step 0.\n");
-	tp->Methods = TypeDefinition_GetLayedOutMethods(def, fil, &mthCount);
-	printf("Final Step.\n");
+	Log_WriteLine(LogFlags_ILReading_MethodLayout, "Step 0.");
+	tp->Methods = TypeDefinition_GetLayedOutMethods(def, fil, &mthCount, dom);
+	tp->MethodCount = mthCount;
+	Log_WriteLine(LogFlags_ILReading_MethodLayout, "Final Step.");
 
 	// Check if it's a generic type.
 	if (def->GenericParameterCount > 0)
@@ -197,9 +199,9 @@ IRType* GenerateType(TypeDefinition* def, CLIFile* fil, IRAssembly* asmb)
 	return tp;
 }
 
-IRMethod** TypeDefinition_GetLayedOutMethods(TypeDefinition* tdef, CLIFile* fil, uint* destLength)
+IRMethod** TypeDefinition_GetLayedOutMethods(TypeDefinition* tdef, CLIFile* fil, uint* destLength, AppDomain* dom)
 {
-	printf("Laying out %s.%s\n", tdef->Namespace, tdef->Name);
+	Log_WriteLine(LogFlags_ILReading_MethodLayout, "Laying out %s.%s", tdef->Namespace, tdef->Name);
 	IRMethod** mths = NULL;
 	uint mthsCount = 0;
 	if (tdef->TypeOfExtends != TypeDefOrRef_Type_TypeDefinition)
@@ -218,7 +220,7 @@ IRMethod** TypeDefinition_GetLayedOutMethods(TypeDefinition* tdef, CLIFile* fil,
 
 	if (tdef->Extends.TypeDefinition != NULL)
 	{
-		mths = TypeDefinition_GetLayedOutMethods(tdef->Extends.TypeDefinition, fil, &mthsCount);
+		mths = TypeDefinition_GetLayedOutMethods(tdef->Extends.TypeDefinition, fil, &mthsCount, dom);
 	}
 
 	uint32_t newMethodsCount = 0;
@@ -234,13 +236,14 @@ IRMethod** TypeDefinition_GetLayedOutMethods(TypeDefinition* tdef, CLIFile* fil,
 		else
 		{
 			if (!(tdef->MethodDefinitionList[i].Flags & MethodAttributes_Static) && 
-				!(tdef->MethodDefinitionList[i].Flags & MethodAttributes_RTSpecialName))
+				!(tdef->MethodDefinitionList[i].Flags & MethodAttributes_RTSpecialName) &&
+				!IsStruct(tdef, dom))
 			{
 				newMethodsCount++;
 			}
 		}
 	}
-	printf("Method count: %i NewMethodCount: %i\n", (int)mthsCount, (int)newMethodsCount);
+	Log_WriteLine(LogFlags_ILReading_MethodLayout, "Method count: %i NewMethodCount: %i", (int)mthsCount, (int)newMethodsCount);
 
 	IRMethod** fnlMethods = (IRMethod**)calloc(mthsCount + newMethodsCount, sizeof(IRMethod*));
 	for (uint32_t i = 0; i < mthsCount; i++)
@@ -256,26 +259,34 @@ IRMethod** TypeDefinition_GetLayedOutMethods(TypeDefinition* tdef, CLIFile* fil,
 			if (tdef->MethodDefinitionList[i].Flags & MethodAttributes_NewSlot)
 			{
 				fnlMethods[mthIndex + mthsCount] = (IRMethod*)tdef->MethodDefinitionList[i].TableIndex;
-				printf("tblIndex = %i\n", (int)tdef->MethodDefinitionList[i].TableIndex);
+				Log_WriteLine(LogFlags_ILReading_MethodLayout, "Adding method %s.%s.%s from table index %i at %i", tdef->Namespace, tdef->Name, tdef->MethodDefinitionList[i].Name, (int)tdef->MethodDefinitionList[i].TableIndex, mthIndex + mthsCount);
 				mthIndex++;
 			}
 			else
 			{
 				bool_t Found = FALSE;
-				printf("Looking for base method of %s.%s.%s\n", tdef->Namespace, tdef->Name, tdef->MethodDefinitionList[i].Name);
+				Log_WriteLine(LogFlags_ILReading_MethodLayout, "Looking for base method of %s.%s.%s (Table Index %i)", tdef->Namespace, tdef->Name, tdef->MethodDefinitionList[i].Name, (int)(tdef->MethodDefinitionList[i].TableIndex));
 				for (uint32_t i2 = 0; i2 < mthsCount; i2++)
 				{
 					MethodDefinition* mthDef = &(fil->MethodDefinitions[(uint32_t)(mths[i2])]);
-					printf("Checking: %s \n", mthDef->Name);
+					if (mthDef->TableIndex)
+					{
+						Log_WriteLine(LogFlags_ILReading_MethodLayout, "Checking Method %s.%s.%s from table index %i", mthDef->TypeDefinition->Namespace, mthDef->TypeDefinition->Name, mthDef->Name, (int)mthDef->TableIndex);
+						Log_WriteLine(LogFlags_ILReading_MethodLayout, "i2: %i", (int)i2);
+					}
+					else
+					{
+						Log_WriteLine(LogFlags_ILReading_MethodLayout, "Method Index 0! This shouldn't happen!");
+					}
+
 					if (!strcmp(tdef->MethodDefinitionList[i].Name, mthDef->Name))
 					{
-						printf("Name is the same\n");
+						Log_WriteLine(LogFlags_ILReading_MethodLayout, "Name is the same");
 						if (Signature_Equals(tdef->MethodDefinitionList[i].Signature, tdef->MethodDefinitionList[i].SignatureLength, mthDef->Signature, mthDef->SignatureLength))
 						{
-							printf("Found Match!\n");
+							Log_WriteLine(LogFlags_ILReading_MethodLayout, "Found Match!");
 							fnlMethods[i2] = (IRMethod*)tdef->MethodDefinitionList[i].TableIndex; 
-							printf("tblIndex = %i\n", (int)tdef->MethodDefinitionList[i].TableIndex);
-							mthIndex++;
+							Log_WriteLine(LogFlags_ILReading_MethodLayout, "Overloading method %s.%s.%s from table index %i at %i", tdef->Namespace, tdef->Name, tdef->MethodDefinitionList[i].Name, (int)tdef->MethodDefinitionList[i].TableIndex, i2);
 							Found = TRUE;
 							break;
 						}
@@ -290,11 +301,16 @@ IRMethod** TypeDefinition_GetLayedOutMethods(TypeDefinition* tdef, CLIFile* fil,
 		else
 		{
 			if (!(tdef->MethodDefinitionList[i].Flags & MethodAttributes_Static) && 
-				!(tdef->MethodDefinitionList[i].Flags & MethodAttributes_RTSpecialName))
+				!(tdef->MethodDefinitionList[i].Flags & MethodAttributes_RTSpecialName) &&
+				!IsStruct(tdef, dom))
 			{
-				fnlMethods[i + mthsCount] = (IRMethod*)tdef->MethodDefinitionList[i].TableIndex;
-				printf("tblIndex = %i\n", (int)tdef->MethodDefinitionList[i].TableIndex);
+				fnlMethods[mthIndex + mthsCount] = (IRMethod*)tdef->MethodDefinitionList[i].TableIndex;
+				Log_WriteLine(LogFlags_ILReading_MethodLayout, "Adding method %s.%s.%s from table index %i at %i", tdef->Namespace, tdef->Name, tdef->MethodDefinitionList[i].Name, (int)tdef->MethodDefinitionList[i].TableIndex, mthIndex + mthsCount);
 				mthIndex++;
+			}
+			else
+			{
+				Log_WriteLine(LogFlags_ILReading_MethodLayout, "Ignoring method %s.%s.%s at table index %i", tdef->Namespace, tdef->Name, tdef->MethodDefinitionList[i].Name, (int)tdef->MethodDefinitionList[i].TableIndex);
 			}
 		}
 	}
@@ -341,17 +357,18 @@ void Link(IRAssembly* asmb)
 		}
 	}
 
-
-	/*for (uint32_t i = 1; i <= asmb->MethodCount; i++)
+	// Resolve the target of the methods
+	// that have definite targets.
+	for (uint32_t i = 1; i <= asmb->MethodCount; i++)
 	{
 		for (uint32_t i2 = 0; i2 < asmb->Methods[i]->IRCodesCount; i2++)
 		{
-			if (asmb->Methods[i]->IRCodes[i2]->OpCode == IROpCode_Call)
+			if (asmb->Methods[i]->IRCodes[i2]->OpCode == IROpCode_Call_Absolute)
 			{
-				asmb->Methods[i]->IRCodes[i2]->Arg1 = asmb->Methods[*((uint32_t*)asmb->Methods[i]->IRCodes[i2]->Arg1)];
+				asmb->Methods[i]->IRCodes[i2]->Arg1 = asmb->Methods[(uint32_t)asmb->Methods[i]->IRCodes[i2]->Arg1];
 			}
 		}
-	}*/
+	}
 
 }
 
@@ -873,7 +890,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 
             case ILOpCode_Call:				// 0x28
 				{
-					Log_WriteLine(LogFlags_ILReading, "Read NI-Call");
+					Log_WriteLine(LogFlags_ILReading, "Read NFI-Call");
 					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
 					MethodDefinition* mthDef = NULL;
 					MethodSignature* sig = NULL;
@@ -944,27 +961,53 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 					free(tok);
 					if (mthDef)
 					{
-						IRMethodSpec* mthSpec = IRMethodSpec_Create();
-						mthSpec->ParentType = asmbly->Types[mthDef->TypeDefinition->TableIndex];
-						bool_t FoundMethod = FALSE;
-						for (uint32_t i = 0; i < mthSpec->ParentType->MethodCount; i++)
+						if ((mthDef->Flags & MethodAttributes_Static) || (mthDef->Flags & MethodAttributes_RTSpecialName) || IsStruct(mthDef->TypeDefinition, dom))
 						{
-							MethodDefinition* mthDef2 = &(fil->MethodDefinitions[(uint32_t)(mthSpec->ParentType->Methods[i])]);
-							if (!strcmp(mthDef->Name, mthDef2->Name))
+							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Call_Absolute, (IRMethod*)(mthDef->TableIndex));
+						}
+						else
+						{
+							IRMethodSpec* mthSpec = IRMethodSpec_Create();
+							Log_WriteLine(LogFlags_ILReading, "Looking for Method %s.%s.%s from table index %i", mthDef->TypeDefinition->Namespace, mthDef->TypeDefinition->Name, mthDef->Name, (int)mthDef->TableIndex);
+							mthSpec->ParentType = asmbly->Types[mthDef->TypeDefinition->TableIndex];
+							bool_t FoundMethod = FALSE;
+							for (uint32_t i = 0; i < mthSpec->ParentType->MethodCount; i++)
 							{
-								if (Signature_Equals(mthDef->Signature, mthDef->SignatureLength, mthDef2->Signature, mthDef2->SignatureLength))
+								MethodDefinition* mthDef2 = &(fil->MethodDefinitions[(uint32_t)(mthSpec->ParentType->Methods[i])]);
+								if (mthDef->TableIndex)
 								{
-									mthSpec->MethodIndex = i;
-									FoundMethod = TRUE;
-									break;
+									Log_WriteLine(LogFlags_ILReading, "Checking Method %s.%s.%s from table index %i", mthDef2->TypeDefinition->Namespace, mthDef2->TypeDefinition->Name, mthDef2->Name, (int)mthDef2->TableIndex);
+									Log_WriteLine(LogFlags_ILReading, "i: %i", (int)i);
+								}
+								else
+								{
+									Log_WriteLine(LogFlags_ILReading, "Method Index 0! This shouldn't happen!");
+								}							
+								if (!strcmp(mthDef->Name, mthDef2->Name))
+								{
+									if (mthDef->Flags & MethodAttributes_HideBySignature)
+									{
+										if (Signature_Equals(mthDef->Signature, mthDef->SignatureLength, mthDef2->Signature, mthDef2->SignatureLength))
+										{
+											mthSpec->MethodIndex = i;
+											FoundMethod = TRUE;
+											break;
+										}
+									}
+									else
+									{
+										mthSpec->MethodIndex = i;
+										FoundMethod = TRUE;
+										break;
+									}
 								}
 							}
+							if (!FoundMethod)
+							{
+								Panic("Unable to resolve method to call!");
+							}
+							EMIT_IR_1ARG(IROpCode_Call, mthSpec);
 						}
-						if (!FoundMethod)
-						{
-							Panic("Unable to resolve method to call!");
-						}
-						EMIT_IR_1ARG(IROpCode_Call, mthSpec);
 					}
 					else
 					{
@@ -2828,5 +2871,33 @@ void CheckBinaryNumericOperandTypesAndSetResult(ElementType* OperandA, ElementTy
 		default: 
 			Panic("Invalid Operands for Addition!"); 
 			break; 
+	}
+}
+
+
+#ifndef ILREADER_DONT_INLINE
+__attribute__((always_inline)) 
+#endif
+bool_t IsStruct(TypeDefinition* tdef, AppDomain* dom)
+{
+	if (tdef->TypeOfExtends == TypeDefOrRef_Type_TypeDefinition) 
+	{ 
+		if (tdef->Extends.TypeDefinition == dom->CachedType___System_Enum) 
+		{ 
+			return TRUE;
+		}
+		else if (tdef->Extends.TypeDefinition == dom->CachedType___System_ValueType)
+		{
+			return TRUE;
+		}
+		else
+		{
+			return FALSE;
+		}
+	}
+	else
+	{
+		Log_WriteLine(LogFlags_ILReading, "Unknown type of extends when checking if a type is a struct.");
+		return FALSE;
 	}
 }

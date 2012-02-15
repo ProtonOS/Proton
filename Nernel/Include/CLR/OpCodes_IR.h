@@ -596,24 +596,6 @@ typedef enum IROpCode
      */
     IROpCode_StoreIndirect,
     /*
-        Calls the specified method.
-
-        Arg1:
-            The method to call.
-			Of the type IRMethodSpec.
-
-        Arg2:
-            N/A
-
-        Arg3:
-            N/A
-
-        Arg4:
-            N/A
-
-     */
-    IROpCode_Call,
-    /*
         Loads a null reference to the
 		top of the stack.
 
@@ -775,6 +757,46 @@ typedef enum IROpCode
 
      */
     IROpCode_Not,
+    /*
+        Calls the specified method,
+		this does check for overloads.
+
+        Arg1:
+            The method to call.
+			Of the type IRMethodSpec.
+
+        Arg2:
+            N/A
+
+        Arg3:
+            N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_Call,
+    /*
+        Calls the specified method.
+		This does not check for overloads,
+		and the target method will never
+		change.
+
+        Arg1:
+            The method to call.
+			Of the type IRMethod.
+
+        Arg2:
+            N/A
+
+        Arg3:
+            N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_Call_Absolute,
 	
 } IROpCode;
 
