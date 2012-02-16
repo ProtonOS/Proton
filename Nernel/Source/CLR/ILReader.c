@@ -969,7 +969,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 						{
 							IRMethodSpec* mthSpec = IRMethodSpec_Create();
 							Log_WriteLine(LogFlags_ILReading, "Looking for Method %s.%s.%s from table index %i", mthDef->TypeDefinition->Namespace, mthDef->TypeDefinition->Name, mthDef->Name, (int)mthDef->TableIndex);
-							mthSpec->ParentType = asmbly->Types[mthDef->TypeDefinition->TableIndex];
+							mthSpec->ParentType = asmbly->Types[mthDef->TypeDefinition->TableIndex - 1];
 							bool_t FoundMethod = FALSE;
 							for (uint32_t i = 0; i < mthSpec->ParentType->MethodCount; i++)
 							{
@@ -2054,25 +2054,75 @@ Branch_Common:
                         ClearFlags();
                         break;
                     case ILOpCodes_Extended_Ceq:			// 0x01
-                        
-                        ClearFlags();
-                        break;
+						{
+							StackObjectPool_Release(SyntheticStack_Pop(stack));
+							StackObjectPool_Release(SyntheticStack_Pop(stack));
+
+							StackObject* obj = StackObjectPool_Allocate();
+							obj->Type = StackObjectType_Int32;
+							obj->NumericType = StackObjectNumericType_Int32;
+							SyntheticStack_Push(stack, obj);
+	
+							EMIT_IR(IROpCode_Nop);
+							ClearFlags();
+							break;
+						}
                     case ILOpCodes_Extended_Cgt:			// 0x02
-                        
-                        ClearFlags();
-                        break;
+						{
+							StackObjectPool_Release(SyntheticStack_Pop(stack));
+							StackObjectPool_Release(SyntheticStack_Pop(stack));
+
+							StackObject* obj = StackObjectPool_Allocate();
+							obj->Type = StackObjectType_Int32;
+							obj->NumericType = StackObjectNumericType_Int32;
+							SyntheticStack_Push(stack, obj);
+	
+							EMIT_IR(IROpCode_Nop);
+							ClearFlags();
+							break;
+						}
                     case ILOpCodes_Extended_Cgt_Un:			// 0x03
-                        
-                        ClearFlags();
-                        break;
+						{
+							StackObjectPool_Release(SyntheticStack_Pop(stack));
+							StackObjectPool_Release(SyntheticStack_Pop(stack));
+
+							StackObject* obj = StackObjectPool_Allocate();
+							obj->Type = StackObjectType_Int32;
+							obj->NumericType = StackObjectNumericType_Int32;
+							SyntheticStack_Push(stack, obj);
+	
+							EMIT_IR(IROpCode_Nop);
+							ClearFlags();
+							break;
+						}
                     case ILOpCodes_Extended_Clt:			// 0x04
-                        
-                        ClearFlags();
-                        break;
+						{
+							StackObjectPool_Release(SyntheticStack_Pop(stack));
+							StackObjectPool_Release(SyntheticStack_Pop(stack));
+
+							StackObject* obj = StackObjectPool_Allocate();
+							obj->Type = StackObjectType_Int32;
+							obj->NumericType = StackObjectNumericType_Int32;
+							SyntheticStack_Push(stack, obj);
+	
+							EMIT_IR(IROpCode_Nop);
+							ClearFlags();
+							break;
+						}
                     case ILOpCodes_Extended_Clt_Un:			// 0x05
-                        
-                        ClearFlags();
-                        break;
+						{
+							StackObjectPool_Release(SyntheticStack_Pop(stack));
+							StackObjectPool_Release(SyntheticStack_Pop(stack));
+
+							StackObject* obj = StackObjectPool_Allocate();
+							obj->Type = StackObjectType_Int32;
+							obj->NumericType = StackObjectNumericType_Int32;
+							SyntheticStack_Push(stack, obj);
+	
+							EMIT_IR(IROpCode_Nop);
+							ClearFlags();
+							break;
+						}
                     case ILOpCodes_Extended_LdFtn:			// 0x06
                         
                         ClearFlags();
@@ -2551,8 +2601,8 @@ void SetTypeOfStackObjectFromSigElementType(StackObject* obj, SignatureType* Typ
 			break; 
 		case Signature_ElementType_GenericInstantiation: 
 			Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type GenericInstantation"); 
-			obj->NumericType = StackObjectNumericType_Ref; 
-			obj->Type = StackObjectType_ReferenceType; 
+			obj->NumericType = StackObjectNumericType_UPointer; 
+			obj->Type = StackObjectType_NativeInt; 
 			break; 
 		default: 
 			Panic(String_Format("Unknown Element Type '0x%x' at 0x%x!", (unsigned int)(TypeSig->ElementType), (unsigned int)&(TypeSig->ElementType))); 
@@ -2710,7 +2760,7 @@ void GetElementTypeOfStackObject(ElementType* dest, StackObject* stkObj)
 			*dest = ElementType_MethodGeneric; 
 			break; 
 		default: 
-			Panic("Unknown StackObjectNumericType!"); 
+			Panic(String_Format("Unknown StackObjectNumericType %i!", (int)stkObj->NumericType)); 
 			break; 
 	} 
 }
