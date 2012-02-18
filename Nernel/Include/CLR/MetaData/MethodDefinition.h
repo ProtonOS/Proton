@@ -1,6 +1,7 @@
 #pragma once
 
 #include <CLR/MetaData/MetaData.h>
+#include <CLR/AppDomain.h>
 
 #define MethodDefinitionBody_Offset_Flags                 0x00
 
@@ -71,6 +72,8 @@ struct _MethodDefinitionException
     uint32_t ClassTokenOrFilterOffset;
 };
 
+typedef void(*InternalCallPointer)(AppDomain* pAppDomain, uint32_t pArgCount, void** pArgs, void* pReturn);
+
 struct _MethodDefinition
 {
 	uint32_t TableIndex;
@@ -95,6 +98,7 @@ struct _MethodDefinition
     MemberReference** MemberReferences;
     TypeDefinition* TypeDefinition;
 
+	InternalCallPointer InternalCall;
 };
 
 const uint8_t* MethodDefinition_Initialize(CLIFile* pFile, const uint8_t* pTableData);

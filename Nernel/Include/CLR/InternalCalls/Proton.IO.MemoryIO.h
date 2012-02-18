@@ -1,9 +1,11 @@
 #pragma once
 
-void Proton_IO_MemoryIO_InByte(void* pThis_, void* pParams, void* pReturnValue);
-void Proton_IO_MemoryIO_InUShort(void* pThis_, void* pParams, void* pReturnValue);
-void Proton_IO_MemoryIO_InUInt(void* pThis_, void* pParams, void* pReturnValue);
+#include <CLR/AppDomain.h>
 
-void Proton_IO_MemoryIO_OutByte(void* pThis_, void* pParams, void* pReturnValue);
-void Proton_IO_MemoryIO_OutUShort(void* pThis_, void* pParams, void* pReturnValue);
-void Proton_IO_MemoryIO_OutUInt(void* pThis_, void* pParams, void* pReturnValue);
+void Proton_IO_MemoryIO_InByte(AppDomain* pAppDomain, uint32_t pArgCount, void** pArgs, void* pReturn);
+void Proton_IO_MemoryIO_InUShort(AppDomain* pAppDomain, uint32_t pArgCount, void** pArgs, void* pReturn);
+void Proton_IO_MemoryIO_InUInt(AppDomain* pAppDomain, uint32_t pArgCount, void** pArgs, void* pReturn);
+
+void Proton_IO_MemoryIO_OutByte(AppDomain* pAppDomain, uint32_t pArgCount, void** pArgs, void* pReturn);
+void Proton_IO_MemoryIO_OutUShort(AppDomain* pAppDomain, uint32_t pArgCount, void** pArgs, void* pReturn);
+void Proton_IO_MemoryIO_OutUInt(AppDomain* pAppDomain, uint32_t pArgCount, void** pArgs, void* pReturn);

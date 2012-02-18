@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include <CLR/CLIFile.h>
+#include <CLR/InternalCalls.h>
 
 const uint8_t* MethodDefinition_Initialize(CLIFile* pFile, const uint8_t* pTableData)
 {
@@ -251,4 +252,8 @@ void MethodDefinition_Link(CLIFile* pFile)
             }
         }
     }
+    for (uint32_t index = 1; index <= pFile->MethodDefinitionCount; ++index)
+    {
+		if ((pFile->MethodDefinitions[index].ImplFlags & MethodImplAttributes_InternalCall) != 0) pFile->MethodDefinitions[index].InternalCall = ResolveInternalCall(&pFile->MethodDefinitions[index], pFile);
+	}
 }
