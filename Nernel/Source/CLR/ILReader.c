@@ -90,6 +90,15 @@ IRAssembly* ILReader_CreateAssembly(CLIFile* fil, AppDomain* dom)
 	
     IROptimizer_Optimize(asmbly);
 	printf("Ran Optimizations\n");
+
+	if (fil->CLIHeader->EntryPointToken)
+	{
+		MetaDataToken* tok = CLIFile_ResolveToken(fil, fil->CLIHeader->EntryPointToken);
+		if (tok->Table != MetaData_Table_MethodDefinition)
+			Panic("Unknown entry point Table!");
+		asmbly->EntryPoint = asmbly->Methods[((MethodDefinition*)tok->Data)->TableIndex - 1];
+		free(tok);
+	}
 	return asmbly;
 }
 
@@ -805,7 +814,10 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 					obj->NumericType = StackObjectNumericType_Ref;
 					SyntheticStack_Push(stack, obj);
 
-					EMIT_IR(IROpCode_Nop);
+					uint32_t* strLen = (uint32_t*)malloc(sizeof(uint32_t));
+					uint8_t* str = (uint8_t*)MetaData_GetCompressedUnsigned((uint8_t*)tkn->Data, strLen);
+
+					EMIT_IR_2ARG_DISPOSE__NO_DISPOSE(IROpCode_Load_String, strLen, str);
                 }
                 ClearFlags();
                 break;
@@ -1053,7 +1065,11 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 					free(tok);
 					if (mthDef)
 					{
-						if ((mthDef->Flags & MethodAttributes_Static) || (mthDef->Flags & MethodAttributes_RTSpecialName) || (mthDef->TypeDefinition->Flags & TypeAttributes_Sealed) || IsStruct(mthDef->TypeDefinition, dom))
+						if (mthDef->InternalCall)
+						{
+							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Call_Internal, mthDef->InternalCall);
+						}
+						else if ((mthDef->Flags & MethodAttributes_Static) || (mthDef->Flags & MethodAttributes_RTSpecialName) || (mthDef->TypeDefinition->Flags & TypeAttributes_Sealed) || IsStruct(mthDef->TypeDefinition, dom))
 						{
 							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Call_Absolute, (IRMethod*)(mthDef->TableIndex));
 						}

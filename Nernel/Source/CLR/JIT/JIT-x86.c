@@ -7,7 +7,7 @@
 #include <stdio.h>
 
 void Panic(const char* msg);
-void JIT_Trampoline_DoCall(IRMethod* mth);
+void JIT_Trampoline_DoCall(IRMethodSpec* mth);
 
 char* JIT_Emit_Prologue(IRMethod* mth, char* compMethod)
 {
@@ -952,28 +952,41 @@ char* JIT_Compile_Not						(IRInstruction* instr, char* compMethod, IRMethod* mt
 }
 
 
+char* JIT_Compile_Load_String				(IRInstruction* instr, char* compMethod, IRMethod* mth)
+{
+	
+	return compMethod;
+}
+
+
 char* JIT_Compile_Call_Absolute				(IRInstruction* instr, char* compMethod, IRMethod* mth)
+{
+
+	return compMethod;
+}
+char* JIT_Compile_Call_Internal				(IRInstruction* instr, char* compMethod, IRMethod* mth)
 {
 
 	return compMethod;
 }
 char* JIT_Compile_Call						(IRInstruction* instr, char* compMethod, IRMethod* mth)
 {
-	
-	__asm("nop; nop");
-	JIT_Trampoline_DoCall(mth);
-	__asm("nop; nop");
+	x86_push_imm(compMethod, instr->Arg1);
+	x86_call_imm(compMethod, JIT_Trampoline_DoCall);
 
 	return compMethod;
 }
 
-void JIT_Trampoline_DoCall(IRMethod* mth)
+void JIT_Trampoline_DoCall(IRMethodSpec* mth)
 {
 	__asm("pusha");
-	if (!mth->AssembledMethod)
 	{
-		JIT_CompileMethod(mth);
+		if (!mth->AssembledMethod)
+		{
+			JIT_CompileMethod(mth);
+		}
 	}
-	__asm("popa");
+	//__asm("popa");
 	mth->AssembledMethod();
+	__asm("pusha");
 }

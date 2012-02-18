@@ -31,7 +31,7 @@
 #define TOOL(MKISOFS, ../SDK/bin/mkisofs);
 #define TOOL_WIN32(MKISOFS, ../SDK/bin/mkisofs.exe);
 
-#define CONST(GCC_ARGS, -I../SDK/include -I./Include -include types.h -g -O0 -Wall -Wextra -Werror -Wno-return-type -Wno-unused-parameter -Wno-unused-but-set-variable -fno-builtin -nostdlib -std=c99 -fpack-struct=1 -nostartfiles -nodefaultlibs -c);
+#define CONST(GCC_ARGS, -I../SDK/include -I./Include -include types.h -g -O0 -Wall -S -Wextra -Werror -Wno-return-type -Wno-unused-parameter -Wno-unused-but-set-variable -fno-builtin -nostdlib -std=c99 -fpack-struct=1 -nostartfiles -nodefaultlibs -c);
 #define CONST(LD_ARGS, -L../SDK/lib -T Source/Nernel.ld -g);
 #define CONST(LD_LIBS, -lc -lm -lgcc);
 #define CONST(RM_ARGS, -rf);
@@ -88,6 +88,8 @@
 #
 	Source/CLR/InternalCalls/Proton.IO.MemoryIO.c
 	Source/CLR/InternalCalls/Proton.IO.PortIO.c
+	Source/CLR/InternalCalls/System.Math.c
+	Source/CLR/InternalCalls/System.Console.c
 #
 	Source/CLR/JIT/JIT.c
 	Source/CLR/JIT/JIT-x86.c

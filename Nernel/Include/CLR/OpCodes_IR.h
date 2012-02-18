@@ -797,6 +797,47 @@ typedef enum IROpCode
 
      */
     IROpCode_Call_Absolute,
+    /*
+        Calls a method that has
+		been marked as internal
+		and is implemented by the
+		framework.
+
+        Arg1:
+            The method to call.
+			Of the type InternalCallPointer.
+
+        Arg2:
+            N/A
+
+        Arg3:
+            N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_Call_Internal,
+    /*
+        Loads the specified string
+		(in unicode format) to the top
+		of the stack as a ReferenceTypeObject.
+		
+        Arg1:
+            The Length of the string. (in Bytes)
+
+        Arg2:
+            The actual data.
+			Of the type (const uint8_t*).
+
+        Arg3:
+            N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_Load_String,
 	
 } IROpCode;
 

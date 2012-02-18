@@ -31,6 +31,8 @@
     <ClCompile Include="Source\CLR\InternalCalls.c" />
     <ClCompile Include="Source\CLR\InternalCalls\Proton.IO.MemoryIO.c" />
     <ClCompile Include="Source\CLR\InternalCalls\Proton.IO.PortIO.c" />
+    <ClCompile Include="Source\CLR\InternalCalls\System.Console.c" />
+    <ClCompile Include="Source\CLR\InternalCalls\System.Math.c" />
     <ClCompile Include="Source\CLR\IRMethod_BranchLinker.c" />
     <ClCompile Include="Source\CLR\IROptimizer.c" />
     <ClCompile Include="Source\CLR\IRStructures.c" />
@@ -145,6 +147,8 @@
     <ClInclude Include="Include\CLR\InternalCalls\Helpers.h" />
     <ClInclude Include="Include\CLR\InternalCalls\Proton.IO.MemoryIO.h" />
     <ClInclude Include="Include\CLR\InternalCalls\Proton.IO.PortIO.h" />
+    <ClInclude Include="Include\CLR\InternalCalls\System.Console.h" />
+    <ClInclude Include="Include\CLR\InternalCalls\System.Math.h" />
     <ClInclude Include="Include\CLR\IRMethod_BranchLinker.h" />
     <ClInclude Include="Include\CLR\IROptimizer.h" />
     <ClInclude Include="Include\CLR\IRStructures.h" />

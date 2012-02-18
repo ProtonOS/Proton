@@ -3,6 +3,7 @@
 #include <CLR/AppDomain.h>
 #include <CLR/ILReader.h>
 #include <CLR/Log.h>
+#include <CLR/JIT/JIT.h>
 
 static AppDomain* global_baseMernelDomain;
 
@@ -52,6 +53,8 @@ void Main(uint32_t pMultiBootMagic,
 
 	Console_Clear(Console_CreateAttributes(Console_DarkBlack, Console_LightGreen));
 	printf("Startup Successful!");
+
+	JIT_CompileMethod(global_baseMernelDomain->IRAssemblies[0]->EntryPoint);
     while (TRUE) ;
 }
 

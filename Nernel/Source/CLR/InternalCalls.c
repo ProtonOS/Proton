@@ -1,5 +1,7 @@
 #include <CLR/InternalCalls/Proton.IO.MemoryIO.h>
 #include <CLR/InternalCalls/Proton.IO.PortIO.h>
+#include <CLR/InternalCalls/System.Math.h>
+#include <CLR/InternalCalls/System.Console.h>
 
 #include <CLR/InternalCalls.h>
 #include <stdio.h>
@@ -15,12 +17,23 @@ const InternalCall InternalCallTable[] =
 	{	NULL,				NULL,				"OutByte",			2,	{ Signature_ElementType_U4, Signature_ElementType_U1 }, &Proton_IO_MemoryIO_OutByte },
 	{	NULL,				NULL,				"OutUShort",		2,	{ Signature_ElementType_U4, Signature_ElementType_U2 }, &Proton_IO_MemoryIO_OutUShort },
 	{	NULL,				NULL,				"OutUInt",			2,	{ Signature_ElementType_U4, Signature_ElementType_U4 }, &Proton_IO_MemoryIO_OutUInt },
+
 	{	NULL,				"PortIO",			"InByte",			1,	{ Signature_ElementType_U4 }, &Proton_IO_PortIO_InByte },
 	{	NULL,				NULL,				"InUShort",			1,	{ Signature_ElementType_U4 }, &Proton_IO_PortIO_InUShort },
 	{	NULL,				NULL,				"InUInt",			1,	{ Signature_ElementType_U4 }, &Proton_IO_PortIO_InUInt },
 	{	NULL,				NULL,				"OutByte",			2,	{ Signature_ElementType_U4, Signature_ElementType_U1 }, &Proton_IO_PortIO_OutByte },
 	{	NULL,				NULL,				"OutUShort",		2,	{ Signature_ElementType_U4, Signature_ElementType_U2 }, &Proton_IO_PortIO_OutUShort },
 	{	NULL,				NULL,				"OutUInt",			2,	{ Signature_ElementType_U4, Signature_ElementType_U4 }, &Proton_IO_PortIO_OutUInt },
+
+
+	{	"System",			"Math",				"Sin",				1,	{ Signature_ElementType_R8 }, &System_Math_Sin },
+	{	NULL,				NULL,				"Cos",				1,	{ Signature_ElementType_R8 }, &System_Math_Cos },
+	{	NULL,				NULL,				"Tan",				1,	{ Signature_ElementType_R8 }, &System_Math_Tan },
+	{	NULL,				NULL,				"Pow",				2,	{ Signature_ElementType_R8, Signature_ElementType_R8 }, &System_Math_Pow },
+	{	NULL,				NULL,				"Sqrt",				1,	{ Signature_ElementType_R8 }, &System_Math_Sqrt },
+
+	{	NULL,				"Console",			"Write",			1,	{ Signature_ElementType_String }, &System_Console_Write },
+
 	{	NULL,				NULL,				NULL,				0,	{ }, NULL }
 };
 

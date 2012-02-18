@@ -111,6 +111,8 @@
     <ClCompile Include="Source\CLR\JIT\JIT.c" />
     <ClCompile Include="Source\CLR\JIT\JIT-x86.c" />
     <ClCompile Include="Source\CLR\Architecture\Architecture-x86.c" />
+    <ClCompile Include="Source\CLR\InternalCalls\System.Math.c" />
+    <ClCompile Include="Source\CLR\InternalCalls\System.Console.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\CLR\AppDomain.h" />
@@ -244,6 +246,8 @@
     <ClInclude Include="Include\CLR\Architecture.h" />
     <ClInclude Include="Include\uthash.h" />
     <ClInclude Include="Include\CLR\JIT\JIT-x86.h" />
+    <ClInclude Include="Include\CLR\InternalCalls\System.Math.h" />
+    <ClInclude Include="Include\CLR\InternalCalls\System.Console.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Makefile.omake" />

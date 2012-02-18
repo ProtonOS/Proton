@@ -26,6 +26,8 @@ struct _IRAssembly
 	uint32_t AssemblyIndex;
 	AppDomain* ParentDomain;
 
+	IRMethod* EntryPoint;
+
     uint32_t MethodCount;
     IRMethod** Methods;
     uint32_t FieldCount;

@@ -6,7 +6,7 @@
     <ProductVersion>9.0.21022</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{6A77A7C0-FB66-4CAA-94EE-142DBA20655D}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <OutputType>Exe</OutputType>
     <RootNamespace>corlib</RootNamespace>
     <AssemblyName>corlib</AssemblyName>
     <OldToolsVersion>3.5</OldToolsVersion>
@@ -40,7 +40,11 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>Mernel.Program</StartupObject>
+  </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Program.cs" />
     <Compile Include="System\Actions.cs" />
     <Compile Include="System\Activator.cs">
       <SubType>Code</SubType>
