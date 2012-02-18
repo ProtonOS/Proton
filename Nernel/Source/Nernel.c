@@ -50,6 +50,7 @@ void Main(uint32_t pMultiBootMagic,
 
     global_baseMernelDomain = AppDomain_CreateDomain();
 
+	Console_Clear(Console_CreateAttributes(Console_DarkBlack, Console_LightGreen));
 	printf("Startup Successful!");
     while (TRUE) ;
 }

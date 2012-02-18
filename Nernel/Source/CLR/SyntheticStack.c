@@ -3,7 +3,24 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+// This makes it so VS doesn't complain about the attribute.
+// GCC sees the attribute just fine.
+#ifdef _WIN32
 
+#define ALWAYS_INLINE
+
+#else
+
+#ifdef ILREADER_DONT_INLINE
+#define ALWAYS_INLINE
+#else
+#define ALWAYS_INLINE __attribute__((always_inline)) 
+#endif
+
+#endif 
+
+
+void Panic(const char* msg);
 void StackObjectPool_PushSet();
 void StackObjectPool_TrimPool();
 SyntheticStack* stackObjPool;
@@ -20,9 +37,10 @@ void StackObjectPool_Destroy()
 }
 
 #define STACK_OBJECT_NO_TYPE ((StackObjectType)0xFE)
+#define STACK_OBJECT_ROOTOBJECT ((StackObjectType)0xFF)
 #define STACK_OBJECT_POOL_INIT_SIZE (32)
 
-__attribute__((always_inline)) void StackObjectPool_PushSet()
+ALWAYS_INLINE void StackObjectPool_PushSet()
 {
     for (uint32_t i = 0; i < STACK_OBJECT_POOL_INIT_SIZE; i++)
     {
@@ -51,7 +69,7 @@ void StackObjectPool_Release(StackObject* obj)
     StackObjectPool_TrimPool();
 }
 
-__attribute__((always_inline)) void StackObjectPool_TrimPool()
+ALWAYS_INLINE void StackObjectPool_TrimPool()
 {
     if (stackObjPool->StackDepth > 256)
     {
@@ -86,8 +104,11 @@ SyntheticStack* SyntheticStack_Create()
 	stack->StackID = StackNumber;
 	StackNumber++;
     StackObject* obj = StackObject_Create();
-    obj->Type = (StackObjectType)0xFF;
+    obj->Type = STACK_OBJECT_ROOTOBJECT;
     stack->TopObject = obj;
+
+	stack->StackDepth = 0;
+
     return stack;
 }
 
@@ -123,6 +144,8 @@ StackObject* SyntheticStack_Pop(SyntheticStack* stack)
 {
     StackObject* obj = stack->TopObject;
     stack->TopObject = obj->PrevObj;
+	if (stack->StackDepth <= 0)
+		Panic("Attempted to pop from an empty stack!");
     stack->StackDepth--;
     obj->NextObj = (StackObject*)0;
     obj->PrevObj = (StackObject*)0;

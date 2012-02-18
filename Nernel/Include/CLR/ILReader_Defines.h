@@ -28,7 +28,7 @@
 #define EMIT_IR(instrType) \
     { IRInstruction* instr = IRInstruction_Create(); \
     instr->InstructionLocation = (CurInstructionBase - orig); \
-    Log_WriteLine(LogFlags_ILReading_BranchLinker, "instr->InstructionLocation = 0x%x", (unsigned int)instr->InstructionLocation); \
+    Log_WriteLine(LogFlags_IREmitting, "instr->InstructionLocation = 0x%x", (unsigned int)instr->InstructionLocation); \
     GetInstrOffset(); \
     instr->OpCode = instrType; \
     Log_WriteLine(LogFlags_IREmitting, "Emitting " #instrType); \
@@ -36,7 +36,7 @@
 #define EMIT_IR_1ARG(instrType, arg1) \
     { IRInstruction* instr = IRInstruction_Create(); \
     instr->InstructionLocation = (CurInstructionBase - orig); \
-    Log_WriteLine(LogFlags_ILReading_BranchLinker, "instr->InstructionLocation = 0x%x", (unsigned int)instr->InstructionLocation); \
+    Log_WriteLine(LogFlags_IREmitting, "instr->InstructionLocation = 0x%x", (unsigned int)instr->InstructionLocation); \
     GetInstrOffset(); \
     instr->Arg1 = arg1; \
     instr->OpCode = instrType; \
@@ -45,7 +45,7 @@
 #define EMIT_IR_2ARG(instrType, arg1, arg2) \
     { IRInstruction* instr = IRInstruction_Create(); \
     instr->InstructionLocation = (CurInstructionBase - orig); \
-    Log_WriteLine(LogFlags_ILReading_BranchLinker, "instr->InstructionLocation = 0x%x", (unsigned int)instr->InstructionLocation); \
+    Log_WriteLine(LogFlags_IREmitting, "instr->InstructionLocation = 0x%x", (unsigned int)instr->InstructionLocation); \
     GetInstrOffset(); \
     instr->Arg1 = arg1; \
     instr->Arg2 = arg2; \
@@ -55,7 +55,7 @@
 #define EMIT_IR_3ARG(instrType, arg1, arg2, arg3) \
     { IRInstruction* instr = IRInstruction_Create(); \
     instr->InstructionLocation = (CurInstructionBase - orig); \
-    Log_WriteLine(LogFlags_ILReading_BranchLinker, "instr->InstructionLocation = 0x%x", (unsigned int)instr->InstructionLocation); \
+    Log_WriteLine(LogFlags_IREmitting, "instr->InstructionLocation = 0x%x", (unsigned int)instr->InstructionLocation); \
     GetInstrOffset(); \
     instr->Arg1 = arg1; \
     instr->Arg2 = arg2; \
@@ -66,7 +66,7 @@
 #define EMIT_IR_4ARG(instrType, arg1, arg2, arg3, arg4) \
     { IRInstruction* instr = IRInstruction_Create(); \
     instr->InstructionLocation = (CurInstructionBase - orig); \
-    Log_WriteLine(LogFlags_ILReading_BranchLinker, "instr->InstructionLocation = 0x%x", (unsigned int)instr->InstructionLocation); \
+    Log_WriteLine(LogFlags_IREmitting, "instr->InstructionLocation = 0x%x", (unsigned int)instr->InstructionLocation); \
     GetInstrOffset(); \
     instr->Arg1 = arg1; \
     instr->Arg2 = arg2; \
@@ -79,7 +79,7 @@
 #define EMIT_IR_1ARG_NO_DISPOSE(instrType, arg1) \
     { IRInstruction* instr = IRInstruction_Create(); \
     instr->InstructionLocation = (CurInstructionBase - orig); \
-    Log_WriteLine(LogFlags_ILReading_BranchLinker, "instr->InstructionLocation = 0x%x", (unsigned int)instr->InstructionLocation); \
+    Log_WriteLine(LogFlags_IREmitting, "instr->InstructionLocation = 0x%x", (unsigned int)instr->InstructionLocation); \
     GetInstrOffset(); \
     instr->Arg1 = arg1; \
 	instr->Arg1NeedsDisposing = FALSE; \
@@ -249,6 +249,17 @@
 	{ \
 		branch_Arg1 = SyntheticStack_Pop(stack);\
 	} \
+	/* Branch condition always should only pop
+	 * from the stack if the stack isn't already
+	 * empty.
+	 */ \
+	else if (brnchType == BranchCondition_Always) \
+	{ \
+		if (stack->StackDepth > 0) \
+		{ \
+			StackObjectPool_Release(SyntheticStack_Pop(stack)); \
+		} \
+	} \
 	/* Branch conditions other than false, true,
 	 * and always, pop twice from the top of the
 	 * stack.
@@ -269,6 +280,17 @@
 	if (brnchType == BranchCondition_False || brnchType == BranchCondition_True) \
 	{ \
 		branch_Arg1 = SyntheticStack_Pop(stack);\
+	} \
+	/* Branch condition always should only pop
+	 * from the stack if the stack isn't already
+	 * empty.
+	 */ \
+	else if (brnchType == BranchCondition_Always) \
+	{ \
+		if (stack->StackDepth > 0) \
+		{ \
+			StackObjectPool_Release(SyntheticStack_Pop(stack)); \
+		} \
 	} \
 	/* Branch conditions other than false, true,
 	 * and always, pop twice from the top of the

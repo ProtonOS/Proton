@@ -13,6 +13,22 @@
 
 //#define ILREADER_DONT_INLINE
 
+// This makes it so VS doesn't complain about the attribute.
+// GCC sees the attribute just fine.
+#ifdef _WIN32
+
+#define ALWAYS_INLINE
+
+#else
+
+#ifdef ILREADER_DONT_INLINE
+#define ALWAYS_INLINE
+#else
+#define ALWAYS_INLINE __attribute__((always_inline)) 
+#endif
+
+#endif 
+
 
 uint8_t ReadUInt8(uint8_t** dat);
 uint16_t ReadUInt16(uint8_t** dat);
@@ -24,6 +40,8 @@ IRType* GenerateType(TypeDefinition* def, CLIFile* fil, IRAssembly* asmb, AppDom
 IRField* GenerateField(Field* def, CLIFile* fil, IRAssembly* asmb, AppDomain* dom);
 
 
+void EmptyStack(SyntheticStack* stack);
+
 void CheckBinaryNumericOperandTypesAndSetResult(ElementType* OperandA, ElementType* OperandB, int BinaryNumericOp, StackObject* ResultObject);
 void GetElementTypeFromTypeDef(TypeDefinition* tdef, AppDomain* dom, ElementType* dst);
 void GetElementTypeOfStackObject(ElementType* dest, StackObject* stkObj);
@@ -31,6 +49,8 @@ void SetObjectTypeFromElementType(StackObject* obj, ElementType elemType);
 void SetTypeOfStackObjectFromSigElementType(StackObject* obj, SignatureType* TypeSig, CLIFile* fil, AppDomain* dom);
 
 bool_t IsStruct(TypeDefinition* tdef, AppDomain* dom);
+
+
 
 IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* fil, AppDomain* dom, IRAssembly* asmbly);
 
@@ -374,6 +394,23 @@ void Link(IRAssembly* asmb)
 
 IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* fil, AppDomain* dom, IRAssembly* asmbly)
 {
+	uint32_t CatchHandlerIndex = 0;
+	uint32_t TryHandlerIndex = 0;
+	uint32_t ExceptionHandlerCount = methodDef->ExceptionCount;
+	uint32_t* ExceptionCatchStatementOffsets = (uint32_t*)calloc(ExceptionHandlerCount, sizeof(uint32_t));
+	uint32_t* ExceptionCatchStatementLengths = (uint32_t*)calloc(ExceptionHandlerCount, sizeof(uint32_t));
+	uint32_t* ExceptionTryStatementOffsets = (uint32_t*)calloc(ExceptionHandlerCount, sizeof(uint32_t));
+	uint32_t* ExceptionTryStatementLengths = (uint32_t*)calloc(ExceptionHandlerCount, sizeof(uint32_t));
+	for (uint32_t i = 0; i < ExceptionHandlerCount; i++)
+	{
+		Log_WriteLine(LogFlags_ILReading_ExceptionBlocks, "Catch handler %i (Length: 0x%x) at offset 0x%x", (int)i, (unsigned int)methodDef->Exceptions[i].HandlerLength, (unsigned int)methodDef->Exceptions[i].HandlerOffset);
+		ExceptionCatchStatementOffsets[i] = methodDef->Exceptions[i].HandlerOffset;
+		ExceptionCatchStatementLengths[i] = methodDef->Exceptions[i].HandlerLength;
+		Log_WriteLine(LogFlags_ILReading_ExceptionBlocks, "Try statement %i (Length: 0x%x) at offset 0x%x", (int)i, (unsigned int)methodDef->Exceptions[i].TryLength, (unsigned int)methodDef->Exceptions[i].TryOffset);
+		ExceptionTryStatementOffsets[i] = methodDef->Exceptions[i].TryOffset;
+		ExceptionTryStatementOffsets[i] = methodDef->Exceptions[i].TryLength;
+	}
+
     SyntheticStack* stack = SyntheticStack_Create();
     bool_t Constrained = FALSE;
     bool_t No = FALSE;
@@ -401,7 +438,35 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
     while ((size_t)(*dat) - orig < len)
     {
         CurInstructionBase = ((size_t)*dat);
-        Log_WriteLine(LogFlags_ILReading_BranchLinker, "CurInstructionBase: %i", (int)CurInstructionBase);
+        Log_WriteLine(LogFlags_ILReading, "CurInstructionBase: %i", (int)CurInstructionBase);
+		if (CatchHandlerIndex < ExceptionHandlerCount)
+		{
+			uint32_t curOffset = CurInstructionBase - orig;
+			if (ExceptionCatchStatementOffsets[CatchHandlerIndex] == curOffset)
+			{
+				Log_WriteLine(LogFlags_ILReading_ExceptionBlocks, "Entered Catch Block %i (Length: 0x%x) at offset 0x%x", (int)(CatchHandlerIndex), (unsigned int)ExceptionCatchStatementLengths[CatchHandlerIndex], (unsigned int)ExceptionCatchStatementOffsets[CatchHandlerIndex]);
+				// We're at the start of a catch handler,
+				// so we need to push an exception object
+				// to the top of the stack.
+				StackObject* obj = StackObjectPool_Allocate();
+				obj->Type = StackObjectType_ReferenceType;
+				obj->NumericType = StackObjectNumericType_Ref;
+				SyntheticStack_Push(stack, obj);
+
+				CatchHandlerIndex++;
+			}
+		}
+		if (TryHandlerIndex < ExceptionHandlerCount)
+		{
+			uint32_t curOffset = CurInstructionBase - orig;
+			if (ExceptionTryStatementOffsets[TryHandlerIndex] == curOffset)
+			{
+				Log_WriteLine(LogFlags_ILReading_ExceptionBlocks, "Entered Try Block %i (Length: 0x%x) at offset 0x%x", (int)(TryHandlerIndex), (unsigned int)ExceptionTryStatementLengths[TryHandlerIndex], (unsigned int)ExceptionTryStatementOffsets[TryHandlerIndex]);
+				TryHandlerIndex++;
+			}
+		}
+
+
         b = ReadUInt8(dat);
         switch (b)
         {
@@ -736,8 +801,24 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
             case ILOpCode_LdObj:			// 0x71
                 {
                     Log_WriteLine(LogFlags_ILReading, "Read LdObj");
-					ReadUInt32(dat);
-                
+					StackObjectPool_Release(SyntheticStack_Pop(stack));
+					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
+					StackObject* obj = StackObjectPool_Allocate();
+					switch(tok->Table)
+					{
+						case MetaData_Table_TypeDefinition:
+						{
+							ElementType tp = ElementType_Ref;
+							GetElementTypeFromTypeDef((TypeDefinition*)tok->Data, dom, &tp);
+							SetObjectTypeFromElementType(obj, tp);
+							break;
+						}
+						default:
+							Panic("Unknown table for LdObj!");
+							break;
+					}
+					SyntheticStack_Push(stack, obj);
+					free(tok);
 
 					ClearFlags();
 	                break;			
@@ -1160,7 +1241,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
                 ClearFlags();
                 break;
             case ILOpCode_Jmp:				// 0x27
-                
+                DefineUnSupportedOpCode(Jmp);
                 ClearFlags();
                 break;
 
@@ -1427,7 +1508,7 @@ Branch_Common:
 
 
             case ILOpCode_Conv_R_Un:		// 0x76
-                
+                DefineUnSupportedOpCode(Conv.R.Un);
                 ClearFlags();
                 break;
 
@@ -1435,7 +1516,7 @@ Branch_Common:
 
 
             case ILOpCode_CpObj:			// 0x70
-                
+                DefineUnSupportedOpCode(CpObj);
                 ClearFlags();
                 break;
 
@@ -1505,28 +1586,86 @@ Branch_Common:
 
 
             case ILOpCode_CastClass:		// 0x74
-				Log_WriteLine(LogFlags_ILReading, "Read NI-NSA-CastClass");
-                ReadUInt32(dat);
+				{
+					Log_WriteLine(LogFlags_ILReading, "Read NI-CastClass");
+					ReadUInt32(dat);
+	
+					StackObject* obj = SyntheticStack_Pop(stack);
+					obj->Type = StackObjectType_ReferenceType;
+					obj->NumericType = StackObjectNumericType_Ref;
+					SyntheticStack_Push(stack, obj);
 
 
-                
-                ClearFlags();
-                break;
+					//DefineUnSupportedOpCode(CastClass);
+	                
+					ClearFlags();
+					break;
+				}
             case ILOpCode_IsInst:			// 0x75
-				Log_WriteLine(LogFlags_ILReading, "Read NI-NSA-IsInst");
-                ReadUInt32(dat);
-
-
-                ClearFlags();
-                break;
-
+				{
+					Log_WriteLine(LogFlags_ILReading, "Read NI-IsInst");
+					ReadUInt32(dat);
+	
+					StackObject* obj = SyntheticStack_Pop(stack);
+					obj->Type = StackObjectType_ReferenceType;
+					obj->NumericType = StackObjectNumericType_Ref;
+					SyntheticStack_Push(stack, obj);
+	
+					//DefineUnSupportedOpCode(IsInst);
+	
+					ClearFlags();
+					break;
+				}
 
             // 0x77 Doesn't exist
             // 0x78 Doesn't exist
             case ILOpCode_UnBox:			// 0x79
-                
+                DefineUnSupportedOpCode(UnBox);
                 ClearFlags();
                 break;
+            case ILOpCode_Unbox_Any:		// 0xA5
+				{
+					Log_WriteLine(LogFlags_ILReading, "Read NI-Unbox.Any");
+					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
+					StackObject* obj = SyntheticStack_Pop(stack);
+					switch(tok->Table)
+					{
+						case MetaData_Table_TypeDefinition:
+						{
+							TypeDefinition* tdef = (TypeDefinition*)tok->Data;
+							if (IsStruct(tdef, dom))
+							{
+								obj->Type = StackObjectType_ManagedPointer;
+								obj->NumericType = StackObjectNumericType_ManagedPointer;
+							}
+							else
+							{
+								obj->Type = StackObjectType_ReferenceType;
+								obj->NumericType = StackObjectNumericType_Ref;
+							}
+							break;
+						}
+						case MetaData_Table_TypeSpecification:
+						{
+							printf("WARNING: This is only a temporary hack, and might not work in the future.\n");
+							obj->Type = StackObjectType_ReferenceType;
+							obj->NumericType = StackObjectNumericType_Ref;
+							//TypeSpecification* tspec = (TypeSpecification*)tok->Data;
+							break;
+						}
+						default:
+							Panic(String_Format("Unknown table (%x) for Unbox.Any!", (unsigned int)tok->Table));
+							break;
+					}
+					SyntheticStack_Push(stack, obj);
+					free(tok);
+	
+	
+					//DefineUnSupportedOpCode(Unbox.Any);
+                
+					ClearFlags();
+					break;
+				}
             case ILOpCode_Throw:			// 0x7A
 				Log_WriteLine(LogFlags_ILReading, "Read NI-Throw");
 				
@@ -1593,11 +1732,21 @@ Branch_Common:
 				}
 
             case ILOpCode_LdFldA:			// 0x7C
-				Log_WriteLine(LogFlags_ILReading, "Read NI-NSA-LdFldA");
-                ReadUInt32(dat);
-                
-                ClearFlags();
-                break;
+				{
+					Log_WriteLine(LogFlags_ILReading, "Read NI-LdFldA");
+					ReadUInt32(dat);
+
+					StackObjectPool_Release(SyntheticStack_Pop(stack));
+
+					StackObject* obj = StackObjectPool_Allocate();
+					obj->Type = StackObjectType_NativeInt;
+					obj->NumericType = StackObjectNumericType_Pointer;
+					SyntheticStack_Push(stack, obj);
+
+					//DefineUnSupportedOpCode(LdFldA);
+					ClearFlags();
+					break;
+				}
 
             case ILOpCode_StFld:			// 0x7D
 				{
@@ -1659,11 +1808,17 @@ Branch_Common:
 				}
 
             case ILOpCode_LdSFldA:			// 0x7F
-				Log_WriteLine(LogFlags_ILReading, "Read NI-NSA-LdSFldA");
-                ReadUInt32(dat);
-                
-                ClearFlags();
-                break;
+				{
+					Log_WriteLine(LogFlags_ILReading, "Read NI-LdSFldA");
+					ReadUInt32(dat);
+					StackObject* obj = StackObjectPool_Allocate();
+					obj->Type = StackObjectType_NativeInt;
+					obj->NumericType = StackObjectNumericType_UPointer;
+					SyntheticStack_Push(stack, obj);
+					//DefineUnSupportedOpCode(LdSFldA);
+					ClearFlags();
+					break;
+				}
 
             case ILOpCode_StSFld:			// 0x80
 				Log_WriteLine(LogFlags_ILReading, "Read NI-StSFld");
@@ -1898,11 +2053,40 @@ Branch_Common:
 
 
             case ILOpCode_LdElem:			// 0xA3
-				Log_WriteLine(LogFlags_ILReading, "Read NI-NSA-LdElem");
-                ReadUInt32(dat);
-                
-                ClearFlags();
-                break;
+				{
+					Log_WriteLine(LogFlags_ILReading, "Read NI-LdElem");
+					
+					StackObjectPool_Release(SyntheticStack_Pop(stack));
+					StackObjectPool_Release(SyntheticStack_Pop(stack));
+					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
+					StackObject* obj = StackObjectPool_Allocate();
+					switch(tok->Table)
+					{
+						case MetaData_Table_TypeDefinition:
+						{
+							ElementType tp = ElementType_Ref;
+							GetElementTypeFromTypeDef((TypeDefinition*)tok->Data, dom, &tp);
+							SetObjectTypeFromElementType(obj, tp);
+							break;
+						}
+						case MetaData_Table_TypeSpecification:
+						{
+							printf("This isn't fully valid, but it will work for now.\n");
+							obj->Type = StackObjectType_ReferenceType;
+							obj->NumericType = StackObjectNumericType_Ref;
+							break;
+						}
+						default:
+							Panic(String_Format("Unknown table (%x) for LdElem!", (unsigned int)tok->Table));
+							break;
+					}
+					SyntheticStack_Push(stack, obj);
+					free(tok);
+					
+					//DefineUnSupportedOpCode(LdElem);
+					ClearFlags();
+					break;
+				}
 
 
             case ILOpCode_StElem_I:			// 0x9B
@@ -1924,20 +2108,21 @@ Branch_Common:
 
 
             case ILOpCode_StElem:			// 0xA4
-				Log_WriteLine(LogFlags_ILReading, "Read NI-NSA-StElem");
-                ReadUInt32(dat);
+				{
+					Log_WriteLine(LogFlags_ILReading, "Read NI-StElem");
+					ReadUInt32(dat);
+
+					
+					StackObjectPool_Release(SyntheticStack_Pop(stack));
+					StackObjectPool_Release(SyntheticStack_Pop(stack));
+					StackObjectPool_Release(SyntheticStack_Pop(stack));
+					//DefineUnSupportedOpCode(StElem);
                 
-                ClearFlags();
-                break;
+					ClearFlags();
+					break;
+				}
 
 
-            case ILOpCode_Unbox_Any:		// 0xA5
-				Log_WriteLine(LogFlags_ILReading, "Read NI-NSA-Unbox.Any");
-                ReadUInt32(dat);
-
-                
-                ClearFlags();
-                break;
             // 0xA6 Doesn't exist
             // 0xA7 Doesn't exist
             // 0xA8 Doesn't exist
@@ -1959,17 +2144,17 @@ Branch_Common:
             // 0xC0 Doesn't exist
             // 0xC1 Doesn't exist
             case ILOpCode_RefAnyVal:		// 0xC2
-                
+                DefineUnSupportedOpCode(RefAnyVal);
                 ClearFlags();
                 break;
             case ILOpCode_CkFinite:			// 0xC3
-                
+                DefineUnSupportedOpCode(CkFinite);
                 ClearFlags();
 				break;
             // 0xC4 Doesn't exist
             // 0xC5 Doesn't exist
             case ILOpCode_MkRefAny:			// 0xC6
-                
+                DefineUnSupportedOpCode(MkRefAny);
                 ClearFlags();
                 break;
             // 0xC7 Doesn't exist
@@ -2001,18 +2186,24 @@ Branch_Common:
                 ClearFlags();
                 break;
             case ILOpCode_Leave:			// 0xDD
-				Log_WriteLine(LogFlags_ILReading, "Read NI-NSA-Leave");
+				Log_WriteLine(LogFlags_ILReading, "Read NI-Leave");
                 ReadUInt32(dat);
                 
+				EmptyStack(stack);
+
 				EMIT_IR(IROpCode_Nop);
                 
                 ClearFlags();
                 break;
             case ILOpCode_Leave_S:			// 0xDE
-				Log_WriteLine(LogFlags_ILReading, "Read NI-NSA-Leave.S");
+				Log_WriteLine(LogFlags_ILReading, "Read NI-Leave.S");
                 ReadUInt8(dat);
+				
+				EmptyStack(stack);
                 
 				EMIT_IR(IROpCode_Nop);
+
+
                 ClearFlags();
                 break;
             // 0xE1 Doesn't Exist
@@ -2050,7 +2241,7 @@ Branch_Common:
                 switch (b)
                 {
                     case ILOpCodes_Extended_ArgList:		// 0x00
-                        
+                        DefineUnSupportedOpCode(ArgList);
                         ClearFlags();
                         break;
                     case ILOpCodes_Extended_Ceq:			// 0x01
@@ -2124,11 +2315,11 @@ Branch_Common:
 							break;
 						}
                     case ILOpCodes_Extended_LdFtn:			// 0x06
-                        
+                        DefineUnSupportedOpCode(LdFtn);
                         ClearFlags();
                         break;
                     case ILOpCodes_Extended_LdVirtFtn:		// 0x07
-                        
+                        DefineUnSupportedOpCode(LdVirtFtn);
                         ClearFlags();
                         break;
                     // 0x08 Doesn't exist
@@ -2217,31 +2408,35 @@ Branch_Common:
                         ClearFlags();
                         break;
                     case ILOpCodes_Extended_LocAlloc:		// 0x0F
-                        
+                        DefineUnSupportedOpCode(LocAlloc);
                         ClearFlags();
                         break;
 					// 0x10 Doesn't exist
                     case ILOpCodes_Extended_EndFilter:		// 0x11
-                        
+                        DefineUnSupportedOpCode(EndFilter);
                         ClearFlags();
                         break;
                     case ILOpCodes_Extended_InitObj:		// 0x15
-						Log_WriteLine(LogFlags_ILReading, "Read NI-NSA-InitObj");
-				        ReadUInt32(dat);
-
-                        
-                        ClearFlags();
-                        break;
+						{
+							Log_WriteLine(LogFlags_ILReading, "Read NI-InitObj");
+							ReadUInt32(dat);
+	
+							StackObjectPool_Release(SyntheticStack_Pop(stack));
+							//DefineUnSupportedOpCode(InitObj);
+	                        
+							ClearFlags();
+							break;
+						}
                     case ILOpCodes_Extended_CpBlk:			// 0x17
-                        
+                        DefineUnSupportedOpCode(CpBlk);
                         ClearFlags();
                         break;
                     case ILOpCodes_Extended_InitBlk:		// 0x18
-                        
+                        DefineUnSupportedOpCode(InitBlk);
                         ClearFlags();
                         break;
                     case ILOpCodes_Extended_ReThrow:		// 0x1A
-						
+						DefineUnSupportedOpCode(ReThrow);
 						ClearFlags();
                         break;
                     // 0x1B Doesn't exist
@@ -2255,6 +2450,7 @@ Branch_Common:
 							StackObject* obj = StackObjectPool_Allocate();
 							obj->Type = StackObjectType_Int32;
 							obj->NumericType = StackObjectNumericType_UInt32;
+							SyntheticStack_Push(stack, obj);
 
 							ClearFlags();
 							break;
@@ -2296,50 +2492,35 @@ Branch_Common:
     return m;
 }
 
-#ifndef ILREADER_DONT_INLINE
-__attribute__((always_inline)) 
-#endif
-uint8_t ReadUInt8(uint8_t** dat)
+ALWAYS_INLINE uint8_t ReadUInt8(uint8_t** dat)
 {
     uint8_t b = **dat;
     (*dat)++;
     return b;
 }
 
-#ifndef ILREADER_DONT_INLINE
-__attribute__((always_inline)) 
-#endif
-uint16_t ReadUInt16(uint8_t** dat)
+ALWAYS_INLINE uint16_t ReadUInt16(uint8_t** dat)
 {
 	uint16_t i = *((uint16_t*)*dat);
     *dat += 2;
     return i;
 }
 
-#ifndef ILREADER_DONT_INLINE
-__attribute__((always_inline)) 
-#endif
-uint32_t ReadUInt32(uint8_t** dat)
+ALWAYS_INLINE uint32_t ReadUInt32(uint8_t** dat)
 {
 	uint32_t i = *((uint32_t*)*dat);
     *dat += 4;
     return i;
 }
 
-#ifndef ILREADER_DONT_INLINE
-__attribute__((always_inline)) 
-#endif
-uint64_t ReadUInt64(uint8_t** dat)
+ALWAYS_INLINE uint64_t ReadUInt64(uint8_t** dat)
 {
     uint64_t i = *((uint64_t*)*dat);
     *dat += 8;
     return i;
 }
 
-#ifndef ILREADER_DONT_INLINE
-__attribute__((always_inline)) 
-#endif
-void GetElementTypeFromTypeDef(TypeDefinition* tdef, AppDomain* dom, ElementType* dst)
+ALWAYS_INLINE void GetElementTypeFromTypeDef(TypeDefinition* tdef, AppDomain* dom, ElementType* dst)
 {
 	if (tdef->Flags & TypeAttributes_Class)
 	{
@@ -2404,11 +2585,7 @@ void GetElementTypeFromTypeDef(TypeDefinition* tdef, AppDomain* dom, ElementType
 		*dst = ElementType_DataType;
 	}
 }
-
-#ifndef ILREADER_DONT_INLINE
-__attribute__((always_inline)) 
-#endif
-void SetTypeOfStackObjectFromSigElementType(StackObject* obj, SignatureType* TypeSig, CLIFile* fil, AppDomain* dom)
+ALWAYS_INLINE void SetTypeOfStackObjectFromSigElementType(StackObject* obj, SignatureType* TypeSig, CLIFile* fil, AppDomain* dom)
 {
 	switch (TypeSig->ElementType) 
 	{ 
@@ -2611,11 +2788,7 @@ void SetTypeOfStackObjectFromSigElementType(StackObject* obj, SignatureType* Typ
 }
 
 
-
-#ifndef ILREADER_DONT_INLINE
-__attribute__((always_inline)) 
-#endif
-void SetObjectTypeFromElementType(StackObject* obj, ElementType elemType)
+ALWAYS_INLINE void SetObjectTypeFromElementType(StackObject* obj, ElementType elemType)
 { 
 	switch(elemType) 
 	{ 
@@ -2700,11 +2873,7 @@ void SetObjectTypeFromElementType(StackObject* obj, ElementType elemType)
 }
 
 
-
-#ifndef ILREADER_DONT_INLINE
-__attribute__((always_inline)) 
-#endif
-void GetElementTypeOfStackObject(ElementType* dest, StackObject* stkObj) 
+ALWAYS_INLINE void GetElementTypeOfStackObject(ElementType* dest, StackObject* stkObj) 
 {
 	switch (stkObj->NumericType) 
 	{ 
@@ -2766,10 +2935,7 @@ void GetElementTypeOfStackObject(ElementType* dest, StackObject* stkObj)
 }
 
 
-#ifndef ILREADER_DONT_INLINE
-__attribute__((always_inline)) 
-#endif
-void CheckBinaryNumericOperandTypesAndSetResult(ElementType* OperandA, ElementType* OperandB, int BinaryNumericOp, StackObject* ResultObject) 
+ALWAYS_INLINE void CheckBinaryNumericOperandTypesAndSetResult(ElementType* OperandA, ElementType* OperandB, int BinaryNumericOp, StackObject* ResultObject) 
 {
 	Log_WriteLine(LogFlags_ILReading_ElementTypes, "Operand A: 0x%x", (unsigned int)*OperandA); 
 	Log_WriteLine(LogFlags_ILReading_ElementTypes, "Operand B: 0x%x", (unsigned int)*OperandB);
@@ -2925,10 +3091,7 @@ void CheckBinaryNumericOperandTypesAndSetResult(ElementType* OperandA, ElementTy
 }
 
 
-#ifndef ILREADER_DONT_INLINE
-__attribute__((always_inline)) 
-#endif
-bool_t IsStruct(TypeDefinition* tdef, AppDomain* dom)
+ALWAYS_INLINE bool_t IsStruct(TypeDefinition* tdef, AppDomain* dom)
 {
 	if (tdef->TypeOfExtends == TypeDefOrRef_Type_TypeDefinition) 
 	{ 
@@ -2949,5 +3112,14 @@ bool_t IsStruct(TypeDefinition* tdef, AppDomain* dom)
 	{
 		Log_WriteLine(LogFlags_ILReading, "Unknown type of extends when checking if a type is a struct.");
 		return FALSE;
+	}
+}
+
+
+ALWAYS_INLINE void EmptyStack(SyntheticStack* stack)
+{
+	while (stack->StackDepth > 0)
+	{
+		StackObjectPool_Release(SyntheticStack_Pop(stack));
 	}
 }
