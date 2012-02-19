@@ -84,12 +84,9 @@ IRAssembly* ILReader_CreateAssembly(CLIFile* fil, AppDomain* dom)
     }
 	printf("Loaded Methods\n");
     StackObjectPool_Destroy();
-	printf("Destroyed Pool\n");
 	Link(asmbly);
-	printf("Linked assembly\n");
 	
     IROptimizer_Optimize(asmbly);
-	printf("Ran Optimizations\n");
 
 	if (fil->CLIHeader->EntryPointToken)
 	{
@@ -359,14 +356,12 @@ IRMethod** TypeDefinition_GetLayedOutMethods(TypeDefinition* tdef, CLIFile* fil,
 
 void Link(IRAssembly* asmb)
 {
-	printf("Started Linking\n");
 	// Resolve field types.
 	for (uint32_t i = 0; i < asmb->FieldCount; i++)
 	{
 		IRField* fld = asmb->Fields[i];
 		fld->FieldType = asmb->Types[(uint32_t)fld->FieldType];
 	}
-	printf("Resolved Fields\n");
 		
 	// Resolve the static constructors 
 	// for types.
@@ -378,7 +373,6 @@ void Link(IRAssembly* asmb)
 			tp->StaticConstructor = asmb->Methods[(uint32_t)tp->StaticConstructor];
 		}
 	}
-	printf("Resolved static constructors\n");
 
 	// Resolve the methods in the method
 	// tables.
@@ -390,14 +384,11 @@ void Link(IRAssembly* asmb)
 			tp->Methods[i2] = asmb->Methods[(uint32_t)tp->Methods[i2]];
 		}
 	}
-	printf("Resolved methods in the type's method tables\n");
 
 	// Resolve the target of the methods
 	// that have definite targets.
-	printf("Resolving Call_Absolute, %u methods\n", asmb->MethodCount);
 	for (uint32_t i = 0; i < asmb->MethodCount; i++)
 	{
-		printf("Resolving Call_Absolute, %u ir codes\n", asmb->Methods[i]->IRCodesCount);
 		for (uint32_t i2 = 0; i2 < asmb->Methods[i]->IRCodesCount; i2++)
 		{
 			if (asmb->Methods[i]->IRCodes[i2]->OpCode == IROpCode_Call_Absolute)
@@ -406,10 +397,6 @@ void Link(IRAssembly* asmb)
 			}
 		}
 	}
-	printf("Resolved methods in Call_Absolute op-codes\n");
-
-
-	printf("Finished Linking\n");
 }
 
 IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* fil, AppDomain* dom, IRAssembly* asmbly)
