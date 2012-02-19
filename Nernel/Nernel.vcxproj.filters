@@ -260,5 +260,6 @@
     <None Include="License.txt" />
     <None Include="Source\CLR\ILReader.Notes.txt" />
     <None Include="Source\CLR\JIT\JIT-x86.Notes.txt" />
+    <None Include="Source\CLR\JIT\JIT-x86-Trampoline.asm" />
   </ItemGroup>
 </Project>

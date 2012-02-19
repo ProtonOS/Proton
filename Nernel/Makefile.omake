@@ -31,7 +31,11 @@
 #define TOOL(MKISOFS, ../SDK/bin/mkisofs);
 #define TOOL_WIN32(MKISOFS, ../SDK/bin/mkisofs.exe);
 
-#define CONST(GCC_ARGS, -I../SDK/include -I./Include -include types.h -g -O0 -Wall -S -Wextra -Werror -Wno-return-type -Wno-unused-parameter -Wno-unused-but-set-variable -fno-builtin -nostdlib -std=c99 -fpack-struct=1 -nostartfiles -nodefaultlibs -c);
+#define TOOL(NASM, ../SDK/bin/nasm);
+#define TOOL_WIN32(NASM, ../SDK/bin/nasm.exe);
+
+#define CONST(NASM_ARGS,  -Ox -f elf);
+#define CONST(GCC_ARGS, -I../SDK/include -I./Include -include types.h -g -O0 -Wall -Wextra -Werror -Wno-return-type -Wno-unused-parameter -Wno-unused-but-set-variable -fno-builtin -nostdlib -std=c99 -fpack-struct=1 -nostartfiles -nodefaultlibs -c);
 #define CONST(LD_ARGS, -L../SDK/lib -T Source/Nernel.ld -g);
 #define CONST(LD_LIBS, -lc -lm -lgcc);
 #define CONST(RM_ARGS, -rf);
@@ -52,6 +56,11 @@
 	Source/Core/GDTUpdate.asm
 	Source/Core/IDTStubs.asm
 	Source/Core/IDTUpdate.asm
+}
+
+#define SOURCE(NASM_FILES)
+{
+	Source/CLR/JIT/JIT-x86-Trampoline.asm
 }
 
 #define SOURCE(C_FILES)
@@ -173,8 +182,13 @@
 	{
 		#prefix{${OBJECT}/$(FILENAME.NO_EXTENSION.DIR_TO_FILENAME).o} : ALL
 	}
+	
+	common TOOL(NASM ${NASM_ARGS} -o ) : NASM_FILES
+	{
+		#prefix{${OBJECT}/$(FILENAME.NO_EXTENSION.DIR_TO_FILENAME).o} : ALL
+	}
 
-	LD ${LD_ARGS} -o ${OUT} ${${OBJECT}/&([ASM_FILES].NO_EXTENSION.DIR_TO_FILENAME).o} ${${OBJECT}/&([C_FILES].NO_EXTENSION.DIR_TO_FILENAME).o} ${LD_LIBS}
+	LD ${LD_ARGS} -o ${OUT} ${${OBJECT}/&([ASM_FILES].NO_EXTENSION.DIR_TO_FILENAME).o} ${${OBJECT}/&([NASM_FILES].NO_EXTENSION.DIR_TO_FILENAME).o} ${${OBJECT}/&([C_FILES].NO_EXTENSION.DIR_TO_FILENAME).o} ${LD_LIBS}
 
 	MKISOFS ${MKISOFS_ARGS} -o ${ISO} ${BUILD}
 }

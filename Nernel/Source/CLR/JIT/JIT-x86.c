@@ -7,7 +7,6 @@
 #include <stdio.h>
 
 void Panic(const char* msg);
-void JIT_Trampoline_DoCall(IRMethodSpec* mth);
 
 char* JIT_Emit_Prologue(IRMethod* mth, char* compMethod)
 {
@@ -969,24 +968,108 @@ char* JIT_Compile_Call_Internal				(IRInstruction* instr, char* compMethod, IRMe
 
 	return compMethod;
 }
+#include <CLR/ReferenceTypeObject.h>
+void JIT_Trampoline_DoCall2(IRMethodSpec* mth, ReferenceTypeObject* obj);
 char* JIT_Compile_Call						(IRInstruction* instr, char* compMethod, IRMethod* mth)
 {
 	x86_push_imm(compMethod, instr->Arg1);
-	x86_call_imm(compMethod, JIT_Trampoline_DoCall);
+	x86_call_imm(compMethod, JIT_Trampoline_DoCall2);
 
 	return compMethod;
 }
 
-void JIT_Trampoline_DoCall(IRMethodSpec* mth)
+__asm
+(
+	"JIT_Trampoline_DoCall3:	\n"
+	""
+);
+
+void JIT_Trampoline_DoCall2(IRMethodSpec* mth, ReferenceTypeObject* obj)
 {
-	__asm("pusha");
+	__asm("\n \n /Starting Method \n \n");
+
+	uint32_t domIndex = obj->DomainIndex;
+
+	__asm("\n \n /Got Domain Index \n \n");
+
+	uint32_t asmblyIndex = obj->AssemblyIndex;
+
+	__asm("\n \n /Got Assembly Index \n \n");
+
+	uint32_t tpIndex = obj->TypeIndex;
+
+	__asm("\n \n /Got Type Index \n \n");
+
+	uint32_t mthIndex = mth->MethodIndex;
+
+	__asm("\n \n /Got Method Index \n \n");
+
+	AppDomain* dom = AppDomainRegistry_GetDomain(domIndex);
+
+	__asm("\n \n /Got Domain \n \n");
+
+	if (asmblyIndex >= dom->IRAssemblyCount)
 	{
-		if (!mth->AssembledMethod)
-		{
-			JIT_CompileMethod(mth);
-		}
+
+		__asm("\n \n /Checked Assembly Index \n \n");
+
+		Panic("Assembly Index is too High!");
+
+		__asm("\n \n /Finished Panicking \n \n");
+
 	}
-	//__asm("popa");
-	mth->AssembledMethod();
-	__asm("pusha");
+	__asm("\n \n /Finished Checking Assembly Index \n \n");
+
+	IRAssembly* asmbly = dom->IRAssemblies[asmblyIndex];
+
+	__asm("\n \n /Got Assembly \n \n");
+
+	if (tpIndex >= asmbly->TypeCount)
+	{
+
+		__asm("\n \n /Checked Type Index \n \n");
+
+		Panic("Type Index is too High!");
+
+		__asm("\n \n /Finished Panicking \n \n");
+
+	}
+	__asm("\n \n /Finished Checking Type Index \n \n");
+
+	IRType* tp = asmbly->Types[tpIndex];
+
+	__asm("\n \n /Got Type \n \n");
+
+	if (mthIndex >= tp->MethodCount)
+	{
+
+		__asm("\n \n /Checked Method Index \n \n");
+
+		Panic("Method Index is too High!");
+
+		__asm("\n \n /Finished Panicking \n \n");
+
+	}
+	__asm("\n \n /Finished Checking Method Index \n \n");
+
+	IRMethod* m = tp->Methods[mthIndex];
+
+	__asm("\n \n /Got Method \n \n");
+
+	//IRMethod* m = AppDomainRegistry_GetDomain(obj->DomainIndex)->IRAssemblies[obj->AssemblyIndex]->Types[obj->TypeIndex]->Methods[mth->MethodIndex];
+	if (!m->AssembledMethod)
+	{
+
+		__asm("\n \n /Checked if Method Was Compiled \n \n");
+
+		JIT_CompileMethod(m);
+
+		__asm("\n \n /Finished Compiling Method \n \n");
+
+	}
+	__asm("\n \n /Finished Checking if Method Was Compiled \n \n");
+
+	m->AssembledMethod();
+
+	__asm("\n \n /Finished Method \n \n");
 }

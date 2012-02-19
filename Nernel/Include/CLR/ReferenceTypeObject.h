@@ -9,6 +9,10 @@
 typedef struct _ReferenceTypeObject ReferenceTypeObject;
 typedef struct _GCHeapStack GCHeapStack;
 
+// Do not change this structure without
+// consulting the JIT first, because a
+// large portion of the JIT requires offsets
+// in this to be hard-coded in.
 struct _ReferenceTypeObject
 {
     uint8_t* Object; // Do not cache this pointer anywhere, GC can change it
@@ -20,6 +24,9 @@ struct _ReferenceTypeObject
     uint32_t DependancyPoolSize;
     uint32_t DependancyPoolCount;
     ReferenceTypeObject** DependancyPool;
+	uint32_t DomainIndex;
+	uint32_t AssemblyIndex;
+	uint32_t TypeIndex;
 };
 
 void ReferenceTypeObject_AddReference(ReferenceTypeObject* pReference, ReferenceTypeObject* pDependancy);

@@ -4,6 +4,7 @@
 #include <CLR/ILReader.h>
 
 void AppDomain_LinkCorlib(CLIFile* fil, AppDomain* domain);
+void AppDomainRegistry_AddDomain(AppDomain* dom);
 
 AppDomain* AppDomain_CreateDomain()
 {
@@ -20,6 +21,7 @@ AppDomain* AppDomain_CreateDomain()
             IRAssembly* asmb = ILReader_CreateAssembly(cliFile, domain);
             Log_WriteLine(LogFlags_AppDomain_Loading, "Method Count: %u\n", (unsigned int)asmb->MethodCount);
 			AppDomain_AddAssembly(domain, asmb);
+			AppDomainRegistry_AddDomain(domain);
 			return domain;
         }
 		else
@@ -154,4 +156,33 @@ void AppDomain_LinkCorlib(CLIFile* corlib, AppDomain* domain)
 			}
 		}
 	}
+}
+
+AppDomain** DomainRegistry;
+uint32_t lastDomainIndex = 0;
+
+AppDomain* AppDomainRegistry_GetDomain(uint32_t domNumber)
+{
+	if (domNumber >= lastDomainIndex)
+		Panic("Domain requested that doesn't exist!");
+	return DomainRegistry[domNumber];
+}
+
+void AppDomainRegistry_AddDomain(AppDomain* dom)
+{
+	if (!DomainRegistry)
+	{
+		DomainRegistry = (AppDomain**)calloc(1, sizeof(AppDomain*));
+		DomainRegistry[0] = dom;
+		dom->DomainIndex = 0;
+		lastDomainIndex++;
+	}
+	else
+	{
+		DomainRegistry = (AppDomain**)realloc(DomainRegistry, sizeof(AppDomain*) * (lastDomainIndex + 1));
+		DomainRegistry[lastDomainIndex + 1] = dom;
+		dom->DomainIndex = lastDomainIndex + 1;
+		lastDomainIndex++;
+	}
+
 }

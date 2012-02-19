@@ -9,6 +9,9 @@ typedef struct _AppDomain AppDomain;
 
 struct _AppDomain
 {
+	uint32_t DomainIndex;
+
+
 	uint32_t IRAssemblyCount;
 	IRAssembly** IRAssemblies;
 
@@ -45,3 +48,5 @@ void AppDomain_Destroy(AppDomain* domain);
 
 
 void AppDomain_AddAssembly(AppDomain* domain, IRAssembly* assembly);
+
+AppDomain* AppDomainRegistry_GetDomain(uint32_t domNumber);

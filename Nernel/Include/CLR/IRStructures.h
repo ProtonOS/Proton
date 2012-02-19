@@ -18,6 +18,12 @@ typedef struct _IRField IRField;
 #include <CLR/OpCodes_IR.h>
 #include <CLR/AppDomain.h>
 
+// Also, please DO NOT modify the
+// structures unless you first check
+// very thoroughly with the JIT, because
+// certain portions of the JIT require things
+// to be in certain places.
+
 struct _IRAssembly
 {
 	/*
