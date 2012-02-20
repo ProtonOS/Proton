@@ -185,19 +185,57 @@ namespace System {
 
 		#endregion
 
-		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public static double Ceiling(double x)
+        {
+            if (x == double.NaN || x == double.NegativeInfinity || x == double.PositiveInfinity) return x;
+            return (x - (long)x > 0) ? (long)(x + 1) : (long)x;
+        }
+
+        public static double Floor(double x)
+        {
+            if (x == 0.0) return 0.0;
+            if (x == double.NaN || x == double.NegativeInfinity || x == double.PositiveInfinity) return x;
+            return (long)x;
+        }
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
 		public extern static double Sin(double x);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static double Asin(double x);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		public extern static double Cos(double x);
 
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static double Acos(double x);
+
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		public extern static double Tan(double x);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static double Atan(double x);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static double Atan2(double x, double y);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		public extern static double Pow(double x, double y);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		public extern static double Sqrt(double x);
-	}
+
+        public static double Log(double x) { return Log(x, E); }
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static double Log(double x, double y);
+        public static double Log10(double x) { return Log(x, 10.0); }
+
+        public static double Round(double x)
+        {
+            double floor = Floor(x);
+            return (floor % 2 == 0) ? floor : Ceiling(x);
+        }
+
+        public static double Truncate(double x) { return Floor(x); }
+    }
 }

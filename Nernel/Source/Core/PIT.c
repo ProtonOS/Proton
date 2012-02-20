@@ -9,6 +9,7 @@
 uint16_t gPIT_Hertz = 0;
 uint16_t gPIT_Cycle = 0;
 uint32_t gPIT_MillisecondsPerCycle = 0;
+uint32_t gPIT_MillisecondsElapsedSinceStartup = 0;
 uint32_t gPIT_MillisecondsElapsed = 0;
 uint32_t gPIT_SecondsElapsed = 0;
 
@@ -38,6 +39,7 @@ void PIT_Interrupt(InterruptRegisters pRegisters)
     if (SystemClock_IsReady())
     {
         ++gPIT_Cycle;
+		gPIT_MillisecondsElapsedSinceStartup += gPIT_MillisecondsPerCycle;
         gPIT_MillisecondsElapsed += gPIT_MillisecondsPerCycle;
         if (gPIT_Cycle >= gPIT_Hertz)
         {
@@ -50,6 +52,8 @@ void PIT_Interrupt(InterruptRegisters pRegisters)
         }
     }
 }
+
+uint64_t PIT_GetMillisecondsSinceStartup() { return gPIT_MillisecondsElapsedSinceStartup; }
 
 uint16_t PIT_GetMillisecondsElapsed() { return gPIT_MillisecondsElapsed; }
 

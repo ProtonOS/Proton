@@ -113,6 +113,9 @@
     <ClCompile Include="Source\CLR\Architecture\Architecture-x86.c" />
     <ClCompile Include="Source\CLR\InternalCalls\System.Math.c" />
     <ClCompile Include="Source\CLR\InternalCalls\System.Console.c" />
+    <ClCompile Include="Source\CLR\InternalCalls\System.Object.c" />
+    <ClCompile Include="Source\CLR\InternalCalls\System.DateTime.c" />
+    <ClCompile Include="Source\CLR\InternalCalls\System.Environment.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\CLR\AppDomain.h" />
@@ -248,6 +251,9 @@
     <ClInclude Include="Include\CLR\JIT\JIT-x86.h" />
     <ClInclude Include="Include\CLR\InternalCalls\System.Math.h" />
     <ClInclude Include="Include\CLR\InternalCalls\System.Console.h" />
+    <ClInclude Include="Include\CLR\InternalCalls\System.Object.h" />
+    <ClInclude Include="Include\CLR\InternalCalls\System.DateTime.h" />
+    <ClInclude Include="Include\CLR\InternalCalls\System.Environment.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Makefile.omake" />

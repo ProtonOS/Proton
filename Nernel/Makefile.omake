@@ -99,6 +99,9 @@
 	Source/CLR/InternalCalls/Proton.IO.PortIO.c
 	Source/CLR/InternalCalls/System.Math.c
 	Source/CLR/InternalCalls/System.Console.c
+	Source/CLR/InternalCalls/System.Object.c
+	Source/CLR/InternalCalls/System.DateTime.c
+	Source/CLR/InternalCalls/System.Environment.c
 #
 	Source/CLR/JIT/JIT.c
 	Source/CLR/JIT/JIT-x86.c

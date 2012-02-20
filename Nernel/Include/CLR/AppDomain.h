@@ -4,7 +4,7 @@ typedef struct _AppDomain AppDomain;
 
 #include <CLR/IRStructures.h>
 #include <CLR/CLIFile.h>
-
+#include <CLR/GC.h>
 
 
 struct _AppDomain
@@ -39,7 +39,8 @@ struct _AppDomain
 	TypeDefinition* CachedType___System_ValueType;
 	TypeDefinition* CachedType___System_Void;
 
-
+	GC* GarbageCollector;
+	ReferenceTypeObject* RootObject;
 };
 
 

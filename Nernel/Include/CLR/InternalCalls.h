@@ -11,6 +11,7 @@ struct _InternalCall
 	const char* Namespace;
 	const char* TypeName;
 	const char* Name;
+	const uint8_t ReturnType;
 	const uint32_t ArgCount;
 	const uint8_t Args[MAX_INTERNAL_ARGS];
 	InternalCallPointer TargetMethod;

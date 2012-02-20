@@ -19,3 +19,5 @@ bool_t SystemClock_IsReady() { return gSystemClock_StartupTime != 0; }
 uint32_t SystemClock_GetSecondsSinceEpoch() { return gSystemClock_StartupTime + PIT_GetSecondsElapsed(); }
 
 uint16_t SystemClock_GetMilliseconds() { return PIT_GetMillisecondsElapsed(); }
+
+uint64_t SystemClock_GetTicks() { return PIT_GetMillisecondsSinceStartup(); }

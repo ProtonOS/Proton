@@ -9,7 +9,9 @@ namespace System
         Win32NT = 2,
         WinCE = 3,
         Unix = 4,
-        Proton = 5
+        Xbox = 5,
+        MaxOSX = 6,
+        Proton = 7
     }
 }
 

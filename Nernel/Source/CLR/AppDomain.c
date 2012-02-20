@@ -16,6 +16,8 @@ AppDomain* AppDomain_CreateDomain()
         if (cliFile)
         {
 			AppDomain* domain = (AppDomain*)calloc(1, sizeof(AppDomain));
+			domain->GarbageCollector = GC_Create();
+			domain->RootObject = (ReferenceTypeObject*)calloc(1, sizeof(ReferenceTypeObject));
 			AppDomain_LinkCorlib(cliFile, domain);
 			Log_WriteLine(LogFlags_AppDomain_Loading, "Domain address: 0x%x", (unsigned int)domain);
             IRAssembly* asmb = ILReader_CreateAssembly(cliFile, domain);
@@ -42,6 +44,8 @@ void AppDomain_Destroy(AppDomain* domain)
 		IRAssembly_Destroy(domain->IRAssemblies[i]);
 	}
 	free(domain->IRAssemblies);
+	GC_Destroy(domain->GarbageCollector);
+	free(domain->RootObject);
 	free(domain);
 }
 

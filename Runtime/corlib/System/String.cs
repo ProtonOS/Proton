@@ -19,19 +19,26 @@ namespace System {
 		// This field must be the only field, to tie up with C code
 		private int length;
 
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		extern public String(char c, int count);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public extern unsafe String(char* value);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public extern unsafe String(sbyte* value);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public extern String(char[] value);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public extern String(char c, int count);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public extern String(char[] value, int startIndex, int length);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public extern unsafe String(char* value, int startIndex, int length);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public extern unsafe String(sbyte* value, int startIndex, int length);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public extern unsafe String(sbyte* value, int startIndex, int length, Encoding enc);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private extern String(string str, int startIndex, int length);
 
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		extern public String(char[] chars);
-
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		extern public String(char[] chars, int startIndex, int length);
-		
 		#region Private Internal Calls
-
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		extern private String(string str, int startIndex, int length);
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		extern private static string InternalConcat(string str0, string str1);

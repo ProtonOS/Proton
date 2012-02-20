@@ -33,6 +33,7 @@ void PIT_Startup(uint16_t pHertz);
 void PIT_Shutdown();
 
 void PIT_Interrupt(InterruptRegisters pRegisters);
+uint64_t PIT_GetMillisecondsSinceStartup();
 uint16_t PIT_GetMillisecondsElapsed();
 uint32_t PIT_GetSecondsElapsed();
 
