@@ -808,7 +808,9 @@ typedef enum IROpCode
 			Of the type InternalCallPointer.
 
         Arg2:
-            N/A
+            The IR representation of
+			the method to call.
+			Of the type IRMethod.
 
         Arg3:
             N/A

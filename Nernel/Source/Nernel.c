@@ -6,6 +6,7 @@
 #include <CLR/JIT/JIT.h>
 
 static AppDomain* global_baseMernelDomain;
+void Nernel_FinishedRunning();
 
 void Main(uint32_t pMultiBootMagic,
             void* pMultiBootData)
@@ -52,10 +53,25 @@ void Main(uint32_t pMultiBootMagic,
     global_baseMernelDomain = AppDomain_CreateDomain();
 
 	Console_Clear(Console_CreateAttributes(Console_DarkBlack, Console_LightGreen));
-	printf("Startup Successful!");
+	printf("Startup Successful!\n");
+	
+	printf("Location: %x\n", (unsigned int)global_baseMernelDomain->IRAssemblies[0]);
+	printf("Location: %x\n", (unsigned int)global_baseMernelDomain->IRAssemblies[0]->EntryPoint->MethodDefinition);
 
 	JIT_CompileMethod(global_baseMernelDomain->IRAssemblies[0]->EntryPoint);
+
+	printf("Now how do you like that.");
+
+	Nernel_FinishedRunning();
+
+	global_baseMernelDomain->IRAssemblies[0]->EntryPoint->AssembledMethod();
+
     while (TRUE) ;
+}
+
+void Nernel_FinishedRunning()
+{
+
 }
 
 void CPU_Interrupt(InterruptRegisters pRegisters)

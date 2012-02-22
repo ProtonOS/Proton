@@ -3,7 +3,7 @@
 // To disable logging, all
 // you have to do is uncomment
 // this line.
-#define NO_LOG
+//#define NO_LOG
 
 
 #ifdef NO_LOG
@@ -11,8 +11,9 @@
 #undef NO_LOG
 #else
 #define ActiveLogFlags ((LogFlags)( \
-        LogFlags_ILReading  \
-        | LogFlags_IREmitting \
+		LogFlags_JIT \
+        /* LogFlags_ILReading */ \
+        /* | LogFlags_IREmitting */ \
         /* | LogFlags_SyntheticStack */ \
         /* | LogFlags_MetaData_Loading */ \
         /* | LogFlags_AppDomain_Loading  */ \
@@ -39,6 +40,7 @@ typedef enum LogFlags
     LogFlags_ILReading_ElementTypes =		1 << 6,
     LogFlags_ILReading_MethodLayout =		1 << 7,
     LogFlags_ILReading_ExceptionBlocks =	1 << 8,
+    LogFlags_JIT =							1 << 9,
 
 } LogFlags;
 

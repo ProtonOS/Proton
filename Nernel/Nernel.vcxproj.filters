@@ -254,6 +254,7 @@
     <ClInclude Include="Include\CLR\InternalCalls\System.Object.h" />
     <ClInclude Include="Include\CLR\InternalCalls\System.DateTime.h" />
     <ClInclude Include="Include\CLR\InternalCalls\System.Environment.h" />
+    <ClInclude Include="Include\Inline.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Makefile.omake" />

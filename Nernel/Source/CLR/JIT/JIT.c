@@ -1,17 +1,25 @@
 #include <CLR/JIT/JIT.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <Core/Console.h>
+#include <CLR/Log.h>
 
 
+void DumpMethod(IRMethod* mth, uint32_t len);
 void JIT_CompileMethod(IRMethod* mthd)
 {
+	Log_WriteLine(LogFlags_JIT, "JITing method %s.%s.%s", mthd->MethodDefinition->TypeDefinition->Namespace, mthd->MethodDefinition->TypeDefinition->Name, mthd->MethodDefinition->Name);
 	char* compMthd = calloc(1, mthd->IRCodesCount * 128);
+	Log_WriteLine(LogFlags_JIT, "Address of JIT'd Method: 0x%x Size: 0x%x", (unsigned int)compMthd, mthd->IRCodesCount * 128);
 	char* mthPtr = compMthd;
+	mthd->AssembledMethod = ((void(*)())((unsigned int)mthPtr));
 
 	compMthd = JIT_Emit_Prologue(mthd, compMthd);
+	Log_WriteLine(LogFlags_JIT, "IRCodesCount: %i", (int)mthd->IRCodesCount);
 
 	for (uint32_t i = 0; i < mthd->IRCodesCount; i++)
 	{
+		Log_WriteLine(LogFlags_JIT, "OpCode: 0x%x", (unsigned int)mthd->IRCodes[i]->OpCode);
 		// Because of the fact that IROpCode is an enum
 		// We know that we have all the op-codes at compile-time.
 		switch(mthd->IRCodes[i]->OpCode)
@@ -144,5 +152,17 @@ void JIT_CompileMethod(IRMethod* mthd)
 
 	compMthd = JIT_Emit_Epilogue(mthd, compMthd);
 
-	mthd->AssembledMethod = ((void(*)())mthPtr);
+	DumpMethod(mthd, mthd->IRCodesCount * 128);
+	Log_WriteLine(LogFlags_JIT, "Finished JITing method %s.%s.%s", mthd->MethodDefinition->TypeDefinition->Namespace, mthd->MethodDefinition->TypeDefinition->Name, mthd->MethodDefinition->Name);
+}
+
+void DumpMethod(IRMethod* mth, uint32_t len)
+{
+	/*Console_WriteString("Dumping Compiled Method", 23);
+	Console_WriteString((const char*)&len, 4);
+	for (uint32_t i = 0; i < len; i++)
+	{
+		Console_WriteCharacter(((char*)mth->AssembledMethod)[i]);
+	}
+	Console_WriteLine("FinishedDumpingMethod");*/
 }

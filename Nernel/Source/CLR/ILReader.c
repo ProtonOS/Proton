@@ -10,24 +10,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <CLR/ILReader_Defines.h>
+#include <Inline.h>
 
-//#define ILREADER_DONT_INLINE
-
-// This makes it so VS doesn't complain about the attribute.
-// GCC sees the attribute just fine.
-#ifdef _WIN32
-
-#define ALWAYS_INLINE
-
-#else
-
-#ifdef ILREADER_DONT_INLINE
-#define ALWAYS_INLINE
-#else
-#define ALWAYS_INLINE __attribute__((always_inline)) 
-#endif
-
-#endif 
+//#define NEVER_INLINE
 
 
 uint8_t ReadUInt8(uint8_t** dat);
@@ -47,6 +32,7 @@ void GetElementTypeFromTypeDef(TypeDefinition* tdef, AppDomain* dom, ElementType
 void GetElementTypeOfStackObject(ElementType* dest, StackObject* stkObj);
 void SetObjectTypeFromElementType(StackObject* obj, ElementType elemType);
 void SetTypeOfStackObjectFromSigElementType(StackObject* obj, SignatureType* TypeSig, CLIFile* fil, AppDomain* dom);
+IRType* GetIRTypeOfSignatureType(AppDomain* dom, CLIFile* fil, IRAssembly* asmbly, SignatureType* tp);
 
 bool_t IsStruct(TypeDefinition* tdef, AppDomain* dom);
 
@@ -80,6 +66,7 @@ IRAssembly* ILReader_CreateAssembly(CLIFile* fil, AppDomain* dom)
 		Log_WriteLine(LogFlags_ILReading, "Method index: %i", (int)i);
         IRMethod* irMeth = ReadIL(&ilLoc, fil->MethodDefinitions[i].Body.CodeSize, &fil->MethodDefinitions[i], fil, dom, asmbly);
         IRMethod_BranchLinker_LinkMethod(irMeth);
+		irMeth->MethodDefinition = &fil->MethodDefinitions[i];
         IRAssembly_AddMethod(asmbly, irMeth);
     }
 	printf("Loaded Methods\n");
@@ -183,7 +170,7 @@ IRType* GenerateType(TypeDefinition* def, CLIFile* fil, IRAssembly* asmb, AppDom
 	// Add the fields in.
 	for(uint32_t i = 0; i < def->FieldListCount; i++)
 	{
-		IRType_AddField(tp, asmb->Fields[def->FieldList[i].TableIndex]);
+		IRType_AddField(tp, asmb->Fields[def->FieldList[i].TableIndex - 1]);
 	}
 	
 	// Check if it's an interface.
@@ -381,7 +368,7 @@ void Link(IRAssembly* asmb)
 		IRType* tp = asmb->Types[i];
 		for (uint32_t i2 = 0; i2 < tp->MethodCount; i2++)
 		{
-			tp->Methods[i2] = asmb->Methods[(uint32_t)tp->Methods[i2]];
+			tp->Methods[i2] = asmb->Methods[(uint32_t)tp->Methods[i2] - 1];
 		}
 	}
 
@@ -393,7 +380,11 @@ void Link(IRAssembly* asmb)
 		{
 			if (asmb->Methods[i]->IRCodes[i2]->OpCode == IROpCode_Call_Absolute)
 			{
-				asmb->Methods[i]->IRCodes[i2]->Arg1 = asmb->Methods[(uint32_t)asmb->Methods[i]->IRCodes[i2]->Arg1];
+				asmb->Methods[i]->IRCodes[i2]->Arg1 = asmb->Methods[(uint32_t)asmb->Methods[i]->IRCodes[i2]->Arg1 - 1];
+			}
+			else if (asmb->Methods[i]->IRCodes[i2]->OpCode == IROpCode_Call_Internal)
+			{
+				asmb->Methods[i]->IRCodes[i2]->Arg2 = asmb->Methods[(uint32_t)asmb->Methods[i]->IRCodes[i2]->Arg2 - 1];
 			}
 		}
 	}
@@ -433,7 +424,42 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
     size_t CurInstructionBase;
     uint8_t b;
     IRMethod* m = IRMethod_Create();
-	
+
+	{
+		MethodSignature* sig = MethodSignature_Expand(methodDef->Signature, fil);
+		if (!sig->ReturnType->Void)
+		{
+			m->Returns = TRUE;
+			//m->ReturnType = GetElementTypeFromTypeDef
+		}
+
+		uint32_t paramIndex = 0;
+		if (sig->HasThis && !sig->ExplicitThis)
+		{
+			m->ParameterCount = sig->ParameterCount + 1;
+			IRParameter* p = IRParameter_Create();
+			p->ParameterIndex = paramIndex;
+			p->Type = asmbly->Types[methodDef->TypeDefinition->TableIndex - 1];
+			IRMethod_AddParameter(m, p);
+			paramIndex++;
+		}
+		else
+		{
+			m->ParameterCount = sig->ParameterCount;
+		}
+
+
+		for (uint32_t i = 0; i < sig->ParameterCount; i++)
+		{
+			IRParameter* p = IRParameter_Create();
+			p->ParameterIndex = paramIndex;
+			p->Type = GetIRTypeOfSignatureType(dom, fil, asmbly, sig->Parameters[i]->Type);
+			IRMethod_AddParameter(m, p);
+			paramIndex++;
+		}
+
+		MethodSignature_Destroy(sig);
+	}
 	
     /*Log_WriteLine(LogFlags_ILReading, "Hex value of the method: ");
     while ((size_t)(*dat) - orig < len)
@@ -1054,7 +1080,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 					{
 						if (mthDef->InternalCall)
 						{
-							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Call_Internal, mthDef->InternalCall);
+							EMIT_IR_2ARG_NO_DISPOSE(IROpCode_Call_Internal, mthDef->InternalCall, (int*)mthDef->TableIndex);
 						}
 						else if ((mthDef->Flags & MethodAttributes_Static) || (mthDef->Flags & MethodAttributes_RTSpecialName) || (mthDef->TypeDefinition->Flags & TypeAttributes_Sealed) || IsStruct(mthDef->TypeDefinition, dom))
 						{
@@ -1069,7 +1095,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 							for (uint32_t i = 0; i < mthSpec->ParentType->MethodCount; i++)
 							{
 								MethodDefinition* mthDef2 = &(fil->MethodDefinitions[(uint32_t)(mthSpec->ParentType->Methods[i])]);
-								if (mthDef->TableIndex)
+								if (mthDef2->TableIndex)
 								{
 									Log_WriteLine(LogFlags_ILReading, "Checking Method %s.%s.%s from table index %i", mthDef2->TypeDefinition->Namespace, mthDef2->TypeDefinition->Name, mthDef2->Name, (int)mthDef2->TableIndex);
 									Log_WriteLine(LogFlags_ILReading, "i: %i", (int)i);
@@ -3135,5 +3161,102 @@ ALWAYS_INLINE void EmptyStack(SyntheticStack* stack)
 	while (stack->StackDepth > 0)
 	{
 		StackObjectPool_Release(SyntheticStack_Pop(stack));
+	}
+}
+
+ALWAYS_INLINE IRType* GetIRTypeOfSignatureType(AppDomain* dom, CLIFile* fil, IRAssembly* asmbly, SignatureType* tp)
+{
+	switch(tp->ElementType)
+	{
+		case Signature_ElementType_I1:
+			return asmbly->Types[dom->CachedType___System_SByte->TableIndex - 1];
+		case Signature_ElementType_U1:
+			return asmbly->Types[dom->CachedType___System_Byte->TableIndex - 1];
+		case Signature_ElementType_I2:
+			return asmbly->Types[dom->CachedType___System_Int16->TableIndex - 1];
+		case Signature_ElementType_U2:
+			return asmbly->Types[dom->CachedType___System_UInt16->TableIndex - 1];
+		case Signature_ElementType_I4:
+			return asmbly->Types[dom->CachedType___System_Int32->TableIndex - 1];
+		case Signature_ElementType_U4:
+			return asmbly->Types[dom->CachedType___System_UInt32->TableIndex - 1];
+		case Signature_ElementType_I8:
+			return asmbly->Types[dom->CachedType___System_Int64->TableIndex - 1];
+		case Signature_ElementType_U8:
+			return asmbly->Types[dom->CachedType___System_UInt64->TableIndex - 1];
+		case Signature_ElementType_R4:
+			return asmbly->Types[dom->CachedType___System_Single->TableIndex - 1];
+		case Signature_ElementType_R8:
+			return asmbly->Types[dom->CachedType___System_Double->TableIndex - 1];
+		case Signature_ElementType_Boolean:
+			return asmbly->Types[dom->CachedType___System_Boolean->TableIndex - 1];
+		case Signature_ElementType_Char:
+			return asmbly->Types[dom->CachedType___System_Char->TableIndex - 1];
+		case Signature_ElementType_IPointer:
+			return asmbly->Types[dom->CachedType___System_IntPtr->TableIndex - 1];
+		case Signature_ElementType_UPointer:
+			return asmbly->Types[dom->CachedType___System_UIntPtr->TableIndex - 1];
+		case Signature_ElementType_Object:
+			return asmbly->Types[dom->CachedType___System_Object->TableIndex - 1];
+		case Signature_ElementType_String:
+			return asmbly->Types[dom->CachedType___System_String->TableIndex - 1];
+		case Signature_ElementType_Type:
+			return asmbly->Types[dom->CachedType___System_Type->TableIndex - 1];
+		case Signature_ElementType_Void:
+			return asmbly->Types[dom->CachedType___System_Void->TableIndex - 1];
+		case Signature_ElementType_Class:
+		{
+			MetaDataToken* tok = CLIFile_ResolveTypeDefOrRefOrSpecToken(fil, tp->ClassTypeDefOrRefOrSpecToken);
+			IRType* retVal = NULL;
+			switch(tok->Table)
+			{
+				case MetaData_Table_TypeDefinition:
+					retVal = asmbly->Types[((TypeDefinition*)tok->Data)->TableIndex - 1];
+					break;
+
+				default:
+					Panic(String_Format("Unknown table (0x%x)!", (unsigned int)tok->Table));
+					break;
+			}
+			free(tok);
+			return retVal;
+		}
+		case Signature_ElementType_ValueType:
+		{
+			MetaDataToken* tok = CLIFile_ResolveTypeDefOrRefOrSpecToken(fil, tp->ValueTypeDefOrRefOrSpecToken);
+			IRType* retVal = NULL;
+			switch(tok->Table)
+			{
+				case MetaData_Table_TypeDefinition:
+					retVal = asmbly->Types[((TypeDefinition*)tok->Data)->TableIndex - 1];
+					break;
+
+				default:
+					Panic(String_Format("Unknown table (0x%x)!", (unsigned int)tok->Table));
+					break;
+			}
+			free(tok);
+			return retVal;
+		}
+		case Signature_ElementType_Pointer:
+			printf("WARNING: Not quite sure how to deal with this yet!\n");
+			return NULL;
+		case Signature_ElementType_SingleDimensionArray:
+			printf("WARNING: Not quite sure how to deal with this yet!\n");
+			return NULL;
+
+		case Signature_ElementType_MethodVar:
+			printf("WARNING: Generic parameters aren't supported yet!\n");
+			return NULL;
+		case Signature_ElementType_Var:
+			printf("WARNING: Generic parameters aren't supported yet!\n");
+			return NULL;
+		case Signature_ElementType_GenericInstantiation:
+			printf("WARNING: Generic parameters aren't supported yet!\n");
+			return NULL;
+
+		default:
+			Panic(String_Format("Unknown Signature Element Type (0x%x)!", (unsigned int)tp->ElementType));
+			break;
 	}
 }

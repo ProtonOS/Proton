@@ -7,7 +7,7 @@ extern Panic
 
 BadAssemblyIndex	db	"Assembly Index is too High!", 0
 BadTypeIndex		db	"Type Index is too High!", 0
-BadMethodIndex		db	"Assembly Index is too High!", 0
+BadMethodIndex		db	"Method Index is too High!", 0
 
 global JIT_Trampoline_DoCall
 JIT_Trampoline_DoCall:
@@ -94,7 +94,6 @@ Bad_TypeIndex:
 
 Bad_MethodIndex:
 	push	BadMethodIndex
-	jmp		Bad_Common
 
 Bad_Common:
 	call	Panic

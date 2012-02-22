@@ -383,7 +383,7 @@ typedef union {
 		int disp, size = 0;	\
 		switch (*(unsigned char*)(ins)) {	\
 		case 0xe8: case 0xe9: ++size; break; /* call, jump32 */	\
-		case 0x0f: if (!(*pos >= 0x70 && *pos <= 0x8f)) assert (0);	\
+		case 0x0f: if (!(*pos >= 0x70 && *pos <= 0x8f)) break;	\
 		   ++size; ++pos; break; /* prefix for 32-bit disp */	\
 		case 0xe0: case 0xe1: case 0xe2: /* loop */	\
 		case 0xeb: /* jump8 */	\
@@ -393,12 +393,12 @@ typedef union {
 		case 0x78: case 0x79: case 0x7a: case 0x7b:	\
 		case 0x7c: case 0x7d: case 0x7e: case 0x7f:	\
 			break;	\
-		default: assert (0);	\
+		default: break;	\
 		}	\
 		disp = (target) - pos;	\
 		if (size) x86_imm_emit32 (pos, disp - 4);	\
 		else if (x86_is_imm8 (disp - 1)) x86_imm_emit8 (pos, disp - 1);	\
-		else assert (0);	\
+		else break;	\
 	} while (0)
 
 #define x86_patch(ins,target) do { x86_do_patch((ins), (target)); } while (0)
@@ -984,7 +984,7 @@ typedef union {
 		case 1: *(inst)++ = (unsigned char)0x88; break;	\
 		case 2: x86_prefix((inst), X86_OPERAND_PREFIX); /* fall through */	\
 		case 4: *(inst)++ = (unsigned char)0x89; break;	\
-		default: assert (0);	\
+		default: break;	\
 		}	\
 		x86_mem_emit ((inst), (reg), (mem));	\
 	} while (0)
@@ -996,7 +996,7 @@ typedef union {
 		case 1: *(inst)++ = (unsigned char)0x88; break;	\
 		case 2: x86_prefix((inst), X86_OPERAND_PREFIX); /* fall through */	\
 		case 4: *(inst)++ = (unsigned char)0x89; break;	\
-		default: assert (0);	\
+		default: break;	\
 		}	\
 		x86_regp_emit ((inst), (reg), (regp));	\
 	} while (0)
@@ -1008,7 +1008,7 @@ typedef union {
 		case 1: *(inst)++ = (unsigned char)0x88; break;	\
 		case 2: x86_prefix((inst), X86_OPERAND_PREFIX); /* fall through */	\
 		case 4: *(inst)++ = (unsigned char)0x89; break;	\
-		default: assert (0);	\
+		default: break;	\
 		}	\
 		x86_membase_emit ((inst), (reg), (basereg), (disp));	\
 	} while (0)
@@ -1020,7 +1020,7 @@ typedef union {
 		case 1: *(inst)++ = (unsigned char)0x88; break;	\
 		case 2: x86_prefix((inst), X86_OPERAND_PREFIX); /* fall through */	\
 		case 4: *(inst)++ = (unsigned char)0x89; break;	\
-		default: assert (0);	\
+		default: break;	\
 		}	\
 		x86_memindex_emit ((inst), (reg), (basereg), (disp), (indexreg), (shift));	\
 	} while (0)
@@ -1032,7 +1032,7 @@ typedef union {
 		case 1: *(inst)++ = (unsigned char)0x8a; break;	\
 		case 2: x86_prefix((inst), X86_OPERAND_PREFIX); /* fall through */	\
 		case 4: *(inst)++ = (unsigned char)0x8b; break;	\
-		default: assert (0);	\
+		default: break;	\
 		}	\
 		x86_reg_emit ((inst), (dreg), (reg));	\
 	} while (0)
@@ -1058,7 +1058,7 @@ typedef union {
 		case 1: *(inst)++ = (unsigned char)0x8a; break;	\
 		case 2: x86_prefix((inst), X86_OPERAND_PREFIX); /* fall through */	\
 		case 4: *(inst)++ = (unsigned char)0x8b; break;	\
-		default: assert (0);	\
+		default: break;	\
 		}	\
 		x86_membase_emit ((inst), (reg), (basereg), (disp));	\
 	} while (0)
@@ -1810,7 +1810,7 @@ typedef union {
 #define x86_call_code(inst,target)	\
 	do {	\
 		int _x86_offset; \
-		_x86_offset = (unsigned char*)(target) - (inst);	\
+		_x86_offset = (unsigned char*)(target) - (unsigned char*)(inst);	\
 		_x86_offset -= 5;	\
 		x86_call_imm_body ((inst), _x86_offset);	\
 	} while (0)

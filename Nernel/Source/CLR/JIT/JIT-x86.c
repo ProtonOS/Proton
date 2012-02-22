@@ -10,11 +10,7 @@ void Panic(const char* msg);
 
 char* JIT_Emit_Prologue(IRMethod* mth, char* compMethod)
 {
-	x86_pushad(compMethod);
-	// Now we push the Assembly & Method pair
-	// so that we can back-trace later.
-	x86_push_imm(compMethod, mth->ParentAssembly->AssemblyIndex);
-	x86_push_imm(compMethod, mth->MethodIndex);
+	x86_push_reg(compMethod, X86_EBP);
 
 	uint32_t localsSize = 0;
 	for (uint32_t i = 0; i < mth->LocalVariableCount; i++)
@@ -33,14 +29,17 @@ char* JIT_Emit_Prologue(IRMethod* mth, char* compMethod)
 			Panic("Generics aren't currently supported!");
 		}
 	}
-
-	// No idea why VS is complaining about an error here,
-	// but there is no real error.
-	// 
 	// Either way, these next to op-codes set the 
 	// current stack context.
 	x86_mov_reg_reg(compMethod, X86_EBP, X86_ESP, global_SizeOfPointerInBytes);
-	x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, (unsigned int)(localsSize));
+	//// Now we push the Assembly & Method pair
+	//// so that we can back-trace later.
+	//x86_push_imm(compMethod, mth->ParentAssembly->AssemblyIndex);
+	//x86_push_imm(compMethod, mth->MethodIndex);
+	if (localsSize > 0)
+	{
+		x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, (unsigned int)(localsSize));
+	}
 
 
 	return compMethod;
@@ -48,21 +47,14 @@ char* JIT_Emit_Prologue(IRMethod* mth, char* compMethod)
 
 char* JIT_Emit_Epilogue(IRMethod* mth, char* compMethod)
 {
-	// We don't have to move the
-	// stack back from local variables,
-	// because we're restoring all registers
-	// here from when the stack hadn't been 
-	// touched yet.
-	x86_mov_reg_reg(compMethod, X86_ESP, X86_EBP, global_SizeOfPointerInBytes);
 
+	//// // We don't care about the assembly
+	//// // or method indexes anymore.
+	//x86_pop_reg(compMethod, X86_EAX); // Pop the Method index.
+	//x86_pop_reg(compMethod, X86_EAX); // Pop the Assembly index.
 
-	// // We don't care about the assembly
-	// // or method indexes anymore.
-	x86_pop_reg(compMethod, X86_EAX); // Pop the Method index.
-	x86_pop_reg(compMethod, X86_EAX); // Pop the Assembly index.
-
-	// Now restore the registers state.
-	x86_popad(compMethod);
+	x86_leave(compMethod);
+	x86_ret(compMethod);
 
 	return compMethod;
 }
@@ -393,8 +385,8 @@ char* JIT_Compile_Load_Parameter			(IRInstruction* instr, char* compMethod, IRMe
 {
 	uint32_t paramIndex = *(uint32_t*)instr->Arg1;
 	uint32_t size = global_SizeOfPointerInBytes;
-	if (mth->Parameters[paramIndex]->Type->IsValueType)
-		size = mth->Parameters[paramIndex]->Type->Size;
+	/*if (mth->Parameters[paramIndex]->Type->IsValueType)
+		size = mth->Parameters[paramIndex]->Type->Size;*/
 	uint32_t movCount = size / global_SizeOfPointerInBytes;
 	if ((size % global_SizeOfPointerInBytes) != 0) ++movCount;
 	for (uint32_t movIndex = 0; movIndex < movCount; ++movIndex)
@@ -954,17 +946,159 @@ char* JIT_Compile_Not						(IRInstruction* instr, char* compMethod, IRMethod* mt
 char* JIT_Compile_Load_String				(IRInstruction* instr, char* compMethod, IRMethod* mth)
 {
 	
+	x86_nop(compMethod);
+	x86_nop(compMethod);
+	x86_nop(compMethod);
+	x86_nop(compMethod);
+	x86_nop(compMethod);
+
 	return compMethod;
 }
 
 
 char* JIT_Compile_Call_Absolute				(IRInstruction* instr, char* compMethod, IRMethod* mth)
 {
+	IRMethod* m = (IRMethod*)instr->Arg1;
+	if (!m->AssembledMethod)
+	{
+		JIT_CompileMethod(m);
+	}
 
+	x86_call_code(compMethod, m->AssembledMethod);
 	return compMethod;
 }
+
+void Align(uint32_t* val)
+{
+	if (*val % 4 != 0)
+	{
+		*val += 4 - (*val % 4);
+	}
+}
+
+uint32_t CalculateSize(IRType* tp);
+uint32_t CalculateSize(IRType* tp)
+{
+	if (tp->Size > 0)
+		return tp->Size;
+
+	if (tp->TypeDef->ClassLayout)
+	{
+		return tp->TypeDef->ClassLayout->ClassSize;
+	}
+
+	AppDomain* domain = tp->ParentAssembly->ParentDomain;
+	if (
+		(tp->TypeDef == domain->CachedType___System_Void)
+	)
+	{
+		tp->IsVoid = TRUE;
+		return 0;
+	}
+	else if (
+		(tp->TypeDef == domain->CachedType___System_Byte)
+	||  (tp->TypeDef == domain->CachedType___System_SByte)
+	||  (tp->TypeDef == domain->CachedType___System_Boolean)
+	)
+	{
+		tp->Size = 1;
+		return 1;
+	}
+	else if (
+		(tp->TypeDef == domain->CachedType___System_Int16)
+	||  (tp->TypeDef == domain->CachedType___System_UInt16)
+	||  (tp->TypeDef == domain->CachedType___System_Char)
+	)
+	{
+		tp->Size = 2;
+		return 2;
+	}
+	else if (
+		(tp->TypeDef == domain->CachedType___System_Int32)
+	||  (tp->TypeDef == domain->CachedType___System_UInt32)
+	||  (tp->TypeDef == domain->CachedType___System_Object)
+	||  (tp->TypeDef == domain->CachedType___System_Single)
+	)
+	{
+		tp->Size = 4;
+		return 4;
+	}
+	else if (
+		(tp->TypeDef == domain->CachedType___System_Int64)
+	||  (tp->TypeDef == domain->CachedType___System_UInt64)
+	||  (tp->TypeDef == domain->CachedType___System_Double)
+	)
+	{
+		tp->Size = 8;
+		return 8;
+	}
+	else if (
+		(tp->TypeDef == domain->CachedType___System_IntPtr)
+	||  (tp->TypeDef == domain->CachedType___System_UIntPtr)
+	||  (tp->TypeDef == domain->CachedType___System_String)
+	)
+	{
+		tp->Size = global_SizeOfPointerInBytes;
+		return global_SizeOfPointerInBytes;
+	}
+	else
+	{
+		Panic("Can't Calculate the size of this currently!");
+	}
+}
+
 char* JIT_Compile_Call_Internal				(IRInstruction* instr, char* compMethod, IRMethod* mth)
 {
+	void* mthd = instr->Arg1; // This is the method we will be calling.
+	IRMethod* m = (IRMethod*)instr->Arg2;
+	uint32_t totalStackDepth = 0;
+
+	x86_mov_reg_reg(compMethod, X86_EAX, X86_ESP, 4);
+
+	if (m->Returns)
+	{
+		// The return value ends up on the top of the stack after the call.
+		x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, CalculateSize(m->ReturnType));
+	}
+	
+	uint32_t paramsSize = m->ParameterCount * global_SizeOfPointerInBytes;
+	totalStackDepth += paramsSize;
+	if (paramsSize > 0)
+	{
+		x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, paramsSize);
+	}
+	for (uint32_t i = 0; i < m->ParameterCount; i++)
+	{
+		x86_mov_reg_reg(compMethod, X86_EBX, X86_EAX, 4);
+		x86_alu_reg_imm(compMethod, X86_ADD, X86_EBX, m->Parameters[i]->Offset + global_SizeOfPointerInBytes);
+		x86_mov_membase_reg(compMethod, X86_ESP, paramsSize - (i * global_SizeOfPointerInBytes), X86_EBX, 4);
+	}
+	
+	if (m->Returns)
+	{
+		x86_push_reg(compMethod, X86_EAX); // Push the return pointer
+	}
+	else
+	{
+		x86_push_imm(compMethod, 0); // Push a null pointer
+	}
+	totalStackDepth += 4;
+
+	x86_mov_reg_reg(compMethod, X86_EBX, X86_EAX, 4);
+	x86_alu_reg_imm(compMethod, X86_ADD, X86_EBX, 4);
+	x86_push_reg(compMethod, X86_EBX); // Push the pointer to the array
+	totalStackDepth += 4;
+
+	x86_push_imm(compMethod, m->ParameterCount); // Push the number of arguments
+	totalStackDepth += 4;
+
+	x86_push_imm(compMethod, (unsigned int)m->ParentAssembly->ParentDomain); // Push the domain
+	totalStackDepth += 4;
+
+	x86_call_code(compMethod, mthd); // Call the method.
+
+	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, totalStackDepth);
+
 
 	return compMethod;
 }
@@ -974,7 +1108,7 @@ char* JIT_Compile_Call						(IRInstruction* instr, char* compMethod, IRMethod* m
 {
 	x86_push_imm(compMethod, instr->Arg1);
 	x86_push_imm(compMethod, 0);
-	x86_call_imm(compMethod, JIT_Trampoline_DoCall);
+	x86_call_code(compMethod, JIT_Trampoline_DoCall);
 
 	return compMethod;
 }

@@ -65,6 +65,8 @@ struct _IRType
 	uint32_t Size;
 
 	TypeDefinition* TypeDef;
+
+	bool_t IsVoid;
 };
 
 struct _IRMethodSpec
@@ -105,6 +107,10 @@ struct _IRMethod
 	IRLocalVariable** LocalVariables;	
 
 	MethodDefinition* MethodDefinition;
+
+	bool_t Returns;
+	IRType* ReturnType;
+
 };
 
 /*

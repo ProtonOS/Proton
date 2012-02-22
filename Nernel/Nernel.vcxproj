@@ -224,6 +224,7 @@
     <ClInclude Include="Include\Core\PIC.h" />
     <ClInclude Include="Include\Core\PIT.h" />
     <ClInclude Include="Include\Core\RTC.h" />
+    <ClInclude Include="Include\Inline.h" />
     <ClInclude Include="Include\Nernel.h" />
     <ClInclude Include="Include\Core\MultiBoot.h" />
     <ClInclude Include="Include\PortIO.h" />

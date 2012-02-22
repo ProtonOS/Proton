@@ -86,6 +86,18 @@
     instr->OpCode = instrType; \
     Log_WriteLine(LogFlags_IREmitting, "Emitting " #instrType " With 1 argument ('" #arg1 "') and not disposing of it"); \
     IRMethod_AddInstruction(m, instr); }
+#define EMIT_IR_2ARG_NO_DISPOSE(instrType, arg1, arg2) \
+    { IRInstruction* instr = IRInstruction_Create(); \
+    instr->InstructionLocation = (CurInstructionBase - orig); \
+    Log_WriteLine(LogFlags_IREmitting, "instr->InstructionLocation = 0x%x", (unsigned int)instr->InstructionLocation); \
+    GetInstrOffset(); \
+    instr->Arg1 = arg1; \
+	instr->Arg1NeedsDisposing = FALSE; \
+    instr->Arg2 = arg2; \
+	instr->Arg2NeedsDisposing = FALSE; \
+    instr->OpCode = instrType; \
+	Log_WriteLine(LogFlags_IREmitting, "Emitting " #instrType " With 2 arguments ('" #arg1 "', '" #arg2"') and not disposing of either of them."); \
+    IRMethod_AddInstruction(m, instr); }
 
 #define EMIT_IR_2ARG_DISPOSE__NO_DISPOSE(instrType, arg1, arg2) \
     { IRInstruction* instr = IRInstruction_Create(); \
