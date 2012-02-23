@@ -3,7 +3,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LocalDebuggerCommand>..\SDK\qemu\qemu.exe</LocalDebuggerCommand>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>-L ..\SDK\qemu -cdrom ..\Proton.iso -serial vc -serial "file:..\Logs\ComPort2Out.txt"</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-L ..\SDK\qemu -cdrom ..\Proton.iso -serial vc -serial "file:..\Logs\ComPort2Out.txt" -s -S</LocalDebuggerCommandArguments>
     <ShowAllFiles>true</ShowAllFiles>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

@@ -13,7 +13,7 @@ char* JIT_Emit_Prologue(IRMethod* mth, char* compMethod)
 	x86_push_reg(compMethod, X86_EBP);
 
 	uint32_t localsSize = 0;
-	for (uint32_t i = 0; i < mth->LocalVariableCount; i++)
+	/*for (uint32_t i = 0; i < mth->LocalVariableCount; i++)
 	{
 		IRLocalVariable* var = mth->LocalVariables[i];
 		if (var->VariableType->IsReferenceType)
@@ -28,7 +28,7 @@ char* JIT_Emit_Prologue(IRMethod* mth, char* compMethod)
 		{
 			Panic("Generics aren't currently supported!");
 		}
-	}
+	}*/
 	// Either way, these next to op-codes set the 
 	// current stack context.
 	x86_mov_reg_reg(compMethod, X86_EBP, X86_ESP, global_SizeOfPointerInBytes);
@@ -52,6 +52,8 @@ char* JIT_Emit_Epilogue(IRMethod* mth, char* compMethod)
 	//// // or method indexes anymore.
 	//x86_pop_reg(compMethod, X86_EAX); // Pop the Method index.
 	//x86_pop_reg(compMethod, X86_EAX); // Pop the Assembly index.
+
+	x86_pop_reg(compMethod, X86_EAX);
 
 	x86_leave(compMethod);
 	x86_ret(compMethod);
@@ -383,7 +385,7 @@ char* JIT_Compile_Convert_Unchecked			(IRInstruction* instr, char* compMethod, I
 
 char* JIT_Compile_Load_Parameter			(IRInstruction* instr, char* compMethod, IRMethod* mth)
 {
-	uint32_t paramIndex = *(uint32_t*)instr->Arg1;
+	//uint32_t paramIndex = *(uint32_t*)instr->Arg1;
 	uint32_t size = global_SizeOfPointerInBytes;
 	/*if (mth->Parameters[paramIndex]->Type->IsValueType)
 		size = mth->Parameters[paramIndex]->Type->Size;*/
@@ -391,7 +393,7 @@ char* JIT_Compile_Load_Parameter			(IRInstruction* instr, char* compMethod, IRMe
 	if ((size % global_SizeOfPointerInBytes) != 0) ++movCount;
 	for (uint32_t movIndex = 0; movIndex < movCount; ++movIndex)
 	{
-		x86_mov_reg_membase(compMethod, X86_EAX, X86_EBP, (mth->Parameters[paramIndex]->Offset + (movIndex * global_SizeOfPointerInBytes)) * -1, global_SizeOfPointerInBytes);
+		x86_mov_reg_membase(compMethod, X86_EAX, X86_EBP, movIndex * global_SizeOfPointerInBytes, global_SizeOfPointerInBytes);
 		x86_push_reg(compMethod, X86_EAX);
 	}
 	return compMethod;
@@ -945,12 +947,12 @@ char* JIT_Compile_Not						(IRInstruction* instr, char* compMethod, IRMethod* mt
 
 char* JIT_Compile_Load_String				(IRInstruction* instr, char* compMethod, IRMethod* mth)
 {
-	
-	x86_nop(compMethod);
-	x86_nop(compMethod);
-	x86_nop(compMethod);
-	x86_nop(compMethod);
-	x86_nop(compMethod);
+	// This should work, because the strings getting loaded
+	// would be root objects, thus there is no need to be
+	// trying to re-add them to the GC at runtime.
+	ReferenceTypeObject* str = GC_AllocateString(mth->ParentAssembly->ParentDomain->GarbageCollector, mth->ParentAssembly->ParentDomain->RootObject, (uint8_t*)instr->Arg2, *(uint32_t*)instr->Arg1);
+
+	x86_push_imm(compMethod, str);
 
 	return compMethod;
 }
@@ -963,8 +965,10 @@ char* JIT_Compile_Call_Absolute				(IRInstruction* instr, char* compMethod, IRMe
 	{
 		JIT_CompileMethod(m);
 	}
-
+	
+	x86_push_imm(compMethod, 0);
 	x86_call_code(compMethod, m->AssembledMethod);
+	x86_push_reg(compMethod, X86_EAX);
 	return compMethod;
 }
 
@@ -1051,53 +1055,10 @@ char* JIT_Compile_Call_Internal				(IRInstruction* instr, char* compMethod, IRMe
 {
 	void* mthd = instr->Arg1; // This is the method we will be calling.
 	IRMethod* m = (IRMethod*)instr->Arg2;
-	uint32_t totalStackDepth = 0;
-
-	x86_mov_reg_reg(compMethod, X86_EAX, X86_ESP, 4);
-
-	if (m->Returns)
-	{
-		// The return value ends up on the top of the stack after the call.
-		x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, CalculateSize(m->ReturnType));
-	}
-	
-	uint32_t paramsSize = m->ParameterCount * global_SizeOfPointerInBytes;
-	totalStackDepth += paramsSize;
-	if (paramsSize > 0)
-	{
-		x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, paramsSize);
-	}
-	for (uint32_t i = 0; i < m->ParameterCount; i++)
-	{
-		x86_mov_reg_reg(compMethod, X86_EBX, X86_EAX, 4);
-		x86_alu_reg_imm(compMethod, X86_ADD, X86_EBX, m->Parameters[i]->Offset + global_SizeOfPointerInBytes);
-		x86_mov_membase_reg(compMethod, X86_ESP, paramsSize - (i * global_SizeOfPointerInBytes), X86_EBX, 4);
-	}
-	
-	if (m->Returns)
-	{
-		x86_push_reg(compMethod, X86_EAX); // Push the return pointer
-	}
-	else
-	{
-		x86_push_imm(compMethod, 0); // Push a null pointer
-	}
-	totalStackDepth += 4;
-
-	x86_mov_reg_reg(compMethod, X86_EBX, X86_EAX, 4);
-	x86_alu_reg_imm(compMethod, X86_ADD, X86_EBX, 4);
-	x86_push_reg(compMethod, X86_EBX); // Push the pointer to the array
-	totalStackDepth += 4;
-
-	x86_push_imm(compMethod, m->ParameterCount); // Push the number of arguments
-	totalStackDepth += 4;
 
 	x86_push_imm(compMethod, (unsigned int)m->ParentAssembly->ParentDomain); // Push the domain
-	totalStackDepth += 4;
-
 	x86_call_code(compMethod, mthd); // Call the method.
-
-	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, totalStackDepth);
+	x86_push_reg(compMethod, X86_EAX);
 
 
 	return compMethod;

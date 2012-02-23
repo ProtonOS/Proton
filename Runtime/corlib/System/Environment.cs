@@ -7,7 +7,7 @@ namespace System {
 
 		public static string NewLine {
 			get {
-				return (Platform == PlatformID.Unix) ? "\n" : "\r\n";
+				return "\n";
 			}
 		}
 

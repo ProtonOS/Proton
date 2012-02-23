@@ -14,7 +14,7 @@ struct _InternalCall
 	const uint8_t ReturnType;
 	const uint32_t ArgCount;
 	const uint8_t Args[MAX_INTERNAL_ARGS];
-	InternalCallPointer TargetMethod;
+	void* TargetMethod;
 };
 
 InternalCallPointer ResolveInternalCall(MethodDefinition* methodDef, CLIFile* fil);

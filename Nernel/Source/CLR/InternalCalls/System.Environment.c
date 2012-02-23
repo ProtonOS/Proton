@@ -4,27 +4,30 @@
 #include <CLR/InternalCalls/System.Environment.h>
 #include <CLR/InternalCalls/Helpers.h>
 
-void System_Environment_getTickCount(AppDomain* pAppDomain, uint32_t pArgCount, void** pArgs, void* pReturn)
+#define PLATFORM 7
+
+uint32_t System_Environment_getTickCount(AppDomain* pAppDomain)
 {
-	*(uint32_t*)pReturn = (uint32_t)SystemClock_GetTicks();
+	return (uint32_t)SystemClock_GetTicks();
 }
 
 uint16_t gUnicodeOSVersionData[32];
 uint8_t gUnicodeOSVersionDataLength = 0;
 
-void System_Environment_GetOSVersionString(AppDomain* pAppDomain, uint32_t pArgCount, void** pArgs, void* pReturn)
+ReferenceTypeObject* System_Environment_GetOSVersionString(AppDomain* pAppDomain)
 {
 	if (gUnicodeOSVersionDataLength == 0)
 	{
 		gUnicodeOSVersionDataLength = strlen(VERSION);
-		for (size_t index = 0; index < gUnicodeOSVersionDataLength; ++index) gUnicodeOSVersionData[index] = VERSION[index];
+		for (size_t index = 0; index < gUnicodeOSVersionDataLength; ++index) 
+			gUnicodeOSVersionData[index] = VERSION[index];
 		gUnicodeOSVersionDataLength *= 2;
 	}
 	ReferenceTypeObject* unicodeVersionString = GC_AllocateString(pAppDomain->GarbageCollector, pAppDomain->RootObject, (uint8_t*)gUnicodeOSVersionData, gUnicodeOSVersionDataLength);
-	*(ReferenceTypeObject**)pReturn = unicodeVersionString;
+	return unicodeVersionString;
 }
 
-void System_Environment_getPlatform(AppDomain* pAppDomain, uint32_t pArgCount, void** pArgs, void* pReturn)
+uint32_t System_Environment_getPlatform(AppDomain* pAppDomain)
 {
-	*(int32_t*)pReturn = PLATFORM;
+	return PLATFORM;
 }

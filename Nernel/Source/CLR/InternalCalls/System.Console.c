@@ -4,9 +4,9 @@
 #include <CLR/InternalCalls/Helpers.h>
 #include <stdio.h>
 
-void System_Console_Write(AppDomain* pAppDomain, uint32_t pArgCount, void** pArgs, void* pReturn)
+void System_Console_Write(AppDomain* pAppDomain, ReferenceTypeObject* pStr)
 {
-	ReferenceTypeObject* stringRefObj = INTERNAL_CALL_PARAM(0, ReferenceTypeObject*);
-	GCString* stringGCHeader = (GCString*)stringRefObj->Object;
-	for (uint32_t index = 0; index < stringGCHeader->Size; index += 2) Console_WriteCharacter(stringGCHeader->Data[index]);
+	GCString* stringGCHeader = (GCString*)pStr->Object;
+	for (uint32_t index = 0; index < stringGCHeader->Size; index += 2) 
+		Console_WriteCharacter(stringGCHeader->Data[index]);
 }
