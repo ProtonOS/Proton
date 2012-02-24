@@ -135,14 +135,14 @@ char* JIT_Compile_Store_LocalVar			(IRInstruction* instr, char* compMethod, IRMe
 {
 	uint32_t localIndex = *(uint32_t*)instr->Arg1;
 	uint32_t size = global_SizeOfPointerInBytes;
-	if (mth->LocalVariables[localIndex]->VariableType->IsValueType)
-		size = mth->LocalVariables[localIndex]->VariableType->Size;
+	/*if (mth->LocalVariables[localIndex]->VariableType->IsValueType)
+		size = mth->LocalVariables[localIndex]->VariableType->Size;*/
 	uint32_t movCount = size / global_SizeOfPointerInBytes;
 	if ((size % global_SizeOfPointerInBytes) != 0) ++movCount;
 	for (uint32_t movIndex = 0; movIndex < movCount; ++movIndex)
 	{
 		x86_pop_reg(compMethod, X86_EAX);
-		x86_mov_membase_reg(compMethod, X86_EBP, mth->LocalVariables[localIndex]->Offset + (movIndex * global_SizeOfPointerInBytes), X86_EAX, global_SizeOfPointerInBytes);
+		x86_mov_membase_reg(compMethod, X86_EBP, (localIndex + 1) * global_SizeOfPointerInBytes, X86_EAX, global_SizeOfPointerInBytes);
 	}
 	return compMethod;
 }
@@ -152,14 +152,14 @@ char* JIT_Compile_Load_LocalVar				(IRInstruction* instr, char* compMethod, IRMe
 {
 	uint32_t localIndex = *(uint32_t*)instr->Arg1;
 	uint32_t size = global_SizeOfPointerInBytes;
-	if (mth->LocalVariables[localIndex]->VariableType->IsValueType)
-		size = mth->LocalVariables[localIndex]->VariableType->Size;
+	/*if (mth->LocalVariables[localIndex]->VariableType->IsValueType)
+		size = mth->LocalVariables[localIndex]->VariableType->Size;*/
 	uint32_t movCount = size / global_SizeOfPointerInBytes;
 	if ((size % global_SizeOfPointerInBytes) != 0) ++movCount;
 	for (uint32_t movIndex = 0; movIndex < movCount; ++movIndex)
 	{
-		x86_mov_reg_membase(compMethod, X86_EAX, X86_EBP, mth->LocalVariables[localIndex]->Offset + (movIndex * global_SizeOfPointerInBytes), global_SizeOfPointerInBytes);
-		x86_push_reg(compMethod, X86_EAX);
+		x86_push_membase(compMethod, X86_EBP, (localIndex + 1) * global_SizeOfPointerInBytes);
+		//x86_push_reg(compMethod, X86_EAX);
 	}
 	return compMethod;
 }
@@ -385,7 +385,7 @@ char* JIT_Compile_Convert_Unchecked			(IRInstruction* instr, char* compMethod, I
 
 char* JIT_Compile_Load_Parameter			(IRInstruction* instr, char* compMethod, IRMethod* mth)
 {
-	//uint32_t paramIndex = *(uint32_t*)instr->Arg1;
+	uint32_t paramIndex = *(uint32_t*)instr->Arg1;
 	uint32_t size = global_SizeOfPointerInBytes;
 	/*if (mth->Parameters[paramIndex]->Type->IsValueType)
 		size = mth->Parameters[paramIndex]->Type->Size;*/
@@ -393,7 +393,7 @@ char* JIT_Compile_Load_Parameter			(IRInstruction* instr, char* compMethod, IRMe
 	if ((size % global_SizeOfPointerInBytes) != 0) ++movCount;
 	for (uint32_t movIndex = 0; movIndex < movCount; ++movIndex)
 	{
-		x86_mov_reg_membase(compMethod, X86_EAX, X86_EBP, movIndex * global_SizeOfPointerInBytes, global_SizeOfPointerInBytes);
+		x86_mov_reg_membase(compMethod, X86_EAX, X86_EBP, 4 + (paramIndex + 1) * global_SizeOfPointerInBytes, global_SizeOfPointerInBytes);
 		x86_push_reg(compMethod, X86_EAX);
 	}
 	return compMethod;
@@ -966,7 +966,6 @@ char* JIT_Compile_Call_Absolute				(IRInstruction* instr, char* compMethod, IRMe
 		JIT_CompileMethod(m);
 	}
 	
-	x86_push_imm(compMethod, 0);
 	x86_call_code(compMethod, m->AssembledMethod);
 	x86_push_reg(compMethod, X86_EAX);
 	return compMethod;
