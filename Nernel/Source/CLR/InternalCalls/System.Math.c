@@ -6,84 +6,82 @@ const double NaN = 0.0 / 0.0;
 const double NegativeInfinity = -1.0 / 0.0;
 const double PositiveInfinity = 1.0 / 0.0;
 
-void System_Math_Sin(AppDomain* pAppDomain, uint32_t pArgCount, void** pArgs, void* pReturn)
+uint64_t System_Math_Sin(AppDomain* pAppDomain, uint64_t pAngle)
 {
-	*(double*)pReturn = sin(INTERNAL_CALL_PARAM(0, double));
+	return sin((double)pAngle);
 }
 
-void System_Math_Sinh(AppDomain* pAppDomain, uint32_t pArgCount, void** pArgs, void* pReturn)
+uint64_t System_Math_Sinh(AppDomain* pAppDomain, uint64_t pAngle)
 {
-	*(double*)pReturn = sinh(INTERNAL_CALL_PARAM(0, double));
+	return sinh((double)pAngle);
 }
 
-void System_Math_Asin(AppDomain* pAppDomain, uint32_t pArgCount, void** pArgs, void* pReturn)
+uint64_t System_Math_Asin(AppDomain* pAppDomain, uint64_t pSine)
 {
-	*(double*)pReturn = asin(INTERNAL_CALL_PARAM(0, double));
+	return asin((double)pSine);
 }
 
-void System_Math_Cos(AppDomain* pAppDomain, uint32_t pArgCount, void** pArgs, void* pReturn)
+uint64_t System_Math_Cos(AppDomain* pAppDomain, uint64_t pAngle)
 {
-	*(double*)pReturn = cos(INTERNAL_CALL_PARAM(0, double));
+	return cos((double)pAngle);
 }
 
-void System_Math_Cosh(AppDomain* pAppDomain, uint32_t pArgCount, void** pArgs, void* pReturn)
+uint64_t System_Math_Cosh(AppDomain* pAppDomain, uint64_t pAngle)
 {
-	*(double*)pReturn = cosh(INTERNAL_CALL_PARAM(0, double));
+	return cosh((double)pAngle);
 }
 
-void System_Math_Acos(AppDomain* pAppDomain, uint32_t pArgCount, void** pArgs, void* pReturn)
+uint64_t System_Math_Acos(AppDomain* pAppDomain, uint64_t pCosine)
 {
-	*(double*)pReturn = acos(INTERNAL_CALL_PARAM(0, double));
+	return acos((double)pCosine);
 }
 
-void System_Math_Tan(AppDomain* pAppDomain, uint32_t pArgCount, void** pArgs, void* pReturn)
+uint64_t System_Math_Tan(AppDomain* pAppDomain, uint64_t pAngle)
 {
-	*(double*)pReturn = tan(INTERNAL_CALL_PARAM(0, double));
+	return tan((double)pAngle);
 }
 
-void System_Math_Tanh(AppDomain* pAppDomain, uint32_t pArgCount, void** pArgs, void* pReturn)
+uint64_t System_Math_Tanh(AppDomain* pAppDomain, uint64_t pAngle)
 {
-	*(double*)pReturn = tanh(INTERNAL_CALL_PARAM(0, double));
+	return tanh((double)pAngle);
 }
 
-void System_Math_Atan(AppDomain* pAppDomain, uint32_t pArgCount, void** pArgs, void* pReturn)
+uint64_t System_Math_Atan(AppDomain* pAppDomain, uint64_t pTangent)
 {
-	*(double*)pReturn = atan(INTERNAL_CALL_PARAM(0, double));
+	return atan((double)pTangent);
 }
 
-void System_Math_Atan2(AppDomain* pAppDomain, uint32_t pArgCount, void** pArgs, void* pReturn)
+uint64_t System_Math_Atan2(AppDomain* pAppDomain, uint64_t pY, uint64_t pX)
 {
-	*(double*)pReturn = atan2(INTERNAL_CALL_PARAM(0, double), INTERNAL_CALL_PARAM(1, double));
+	return atan2((double)pY, (double)pX);
 }
 
-void System_Math_Exp(AppDomain* pAppDomain, uint32_t pArgCount, void** pArgs, void* pReturn)
+uint64_t System_Math_Exp(AppDomain* pAppDomain, uint64_t pExponent)
 {
-	*(double*)pReturn = exp(INTERNAL_CALL_PARAM(0, double));
+	return exp((double)pExponent);
 }
 
-void System_Math_Pow(AppDomain* pAppDomain, uint32_t pArgCount, void** pArgs, void* pReturn)
+uint64_t System_Math_Pow(AppDomain* pAppDomain, uint64_t pBase, uint64_t pExponent)
 {
-	*(double*)pReturn = pow(INTERNAL_CALL_PARAM(0, double), INTERNAL_CALL_PARAM(1, double));
+	return pow((double)pBase, (double)pExponent);
 }
 
-void System_Math_Sqrt(AppDomain* pAppDomain, uint32_t pArgCount, void** pArgs, void* pReturn)
+uint64_t System_Math_Sqrt(AppDomain* pAppDomain, uint64_t pNumber)
 {
-	*(double*)pReturn = sqrt(INTERNAL_CALL_PARAM(0, double));
+	return sqrt((double)pNumber);
 }
 
-void System_Math_Log(AppDomain* pAppDomain, uint32_t pArgCount, void** pArgs, void* pReturn)
+uint64_t System_Math_Log(AppDomain* pAppDomain, uint64_t pAngle, uint64_t pBase)
 {
-	double x = INTERNAL_CALL_PARAM(0, double);
-	double y = INTERNAL_CALL_PARAM(1, double);
+	double x = (double)pAngle;
+	double y = (double)pBase;
 	if (x == 0.0)
 	{
-		*(double*)pReturn = NegativeInfinity;
-		return;
+		return (uint64_t)NegativeInfinity;
 	}
 	if (x < 1.0 && y < 1.0)
 	{
-		*(double*)pReturn = NaN;
-		return;
+		return (uint64_t)NaN;
 	}
 	double partial = 0.5;
 	double integer = 0.0;
@@ -110,5 +108,5 @@ void System_Math_Log(AppDomain* pAppDomain, uint32_t pArgCount, void** pArgs, vo
 		partial *= 0.5;
 		x *= x;
 	}
-	*(double*)pReturn = (integer + fraction);
+	return (uint64_t)(integer + fraction);
 }

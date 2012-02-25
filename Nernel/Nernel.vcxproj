@@ -37,6 +37,7 @@
     <ClCompile Include="Source\CLR\InternalCalls\System.Environment.c" />
     <ClCompile Include="Source\CLR\InternalCalls\System.Math.c" />
     <ClCompile Include="Source\CLR\InternalCalls\System.Object.c" />
+    <ClCompile Include="Source\CLR\InternalCalls\System.String.c" />
     <ClCompile Include="Source\CLR\IRMethod_BranchLinker.c" />
     <ClCompile Include="Source\CLR\IROptimizer.c" />
     <ClCompile Include="Source\CLR\IRStructures.c" />
@@ -156,6 +157,7 @@
     <ClInclude Include="Include\CLR\InternalCalls\System.Environment.h" />
     <ClInclude Include="Include\CLR\InternalCalls\System.Math.h" />
     <ClInclude Include="Include\CLR\InternalCalls\System.Object.h" />
+    <ClInclude Include="Include\CLR\InternalCalls\System.String.h" />
     <ClInclude Include="Include\CLR\IRMethod_BranchLinker.h" />
     <ClInclude Include="Include\CLR\IROptimizer.h" />
     <ClInclude Include="Include\CLR\IRStructures.h" />

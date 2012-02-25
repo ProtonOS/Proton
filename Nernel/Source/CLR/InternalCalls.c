@@ -5,6 +5,7 @@
 #include <CLR/InternalCalls/System.Object.h>
 #include <CLR/InternalCalls/System.DateTime.h>
 #include <CLR/InternalCalls/System.Environment.h>
+#include <CLR/InternalCalls/System.String.h>
 
 #include <CLR/InternalCalls.h>
 #include <stdio.h>
@@ -54,6 +55,9 @@ const InternalCall InternalCallTable[] =
 	{	NULL,				"Environment",		"get_TickCount",		Signature_ElementType_I4,		0,	{ }, &System_Environment_getTickCount },
 	{	NULL,				NULL,				"GetOSVersionString",	Signature_ElementType_String,	0,	{ }, &System_Environment_GetOSVersionString },
 	{	NULL,				NULL,				"get_Platform",			Signature_ElementType_ValueType,0,	{ }, &System_Environment_getPlatform },
+
+	{	NULL,				"String",			"InternalConcat",		Signature_ElementType_String,	2,	{ Signature_ElementType_String, Signature_ElementType_String }, &System_String_InternalConcat },
+	{	NULL,				NULL,				"InternalReplace",		Signature_ElementType_String,	2,	{ Signature_ElementType_String, Signature_ElementType_String }, &System_String_InternalReplace },
 
 	{	NULL,				NULL,				NULL,					Signature_ElementType_End,		0,	{ }, NULL }
 };

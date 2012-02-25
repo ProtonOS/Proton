@@ -11,6 +11,25 @@ namespace System {
 		public const double E = 2.7182818284590452354;
 		public const double PI = 3.14159265358979323846;
 
+        /*
+        
+	{	"System",			"Math",				"Sin",					Signature_ElementType_R8,		1,	{ Signature_ElementType_R8 }, &System_Math_Sin },
+	{	NULL,				NULL,				"Sinh",					Signature_ElementType_R8,		1,	{ Signature_ElementType_R8 }, &System_Math_Sinh },
+	{	NULL,				NULL,				"Asin",					Signature_ElementType_R8,		1,	{ Signature_ElementType_R8 }, &System_Math_Asin },
+	{	NULL,				NULL,				"Cos",					Signature_ElementType_R8,		1,	{ Signature_ElementType_R8 }, &System_Math_Cos },
+	{	NULL,				NULL,				"Cosh",					Signature_ElementType_R8,		1,	{ Signature_ElementType_R8 }, &System_Math_Cosh },
+	{	NULL,				NULL,				"Acos",					Signature_ElementType_R8,		1,	{ Signature_ElementType_R8 }, &System_Math_Acos },
+	{	NULL,				NULL,				"Tan",					Signature_ElementType_R8,		1,	{ Signature_ElementType_R8 }, &System_Math_Tan },
+	{	NULL,				NULL,				"Tanh",					Signature_ElementType_R8,		1,	{ Signature_ElementType_R8 }, &System_Math_Tanh },
+	{	NULL,				NULL,				"Atan",					Signature_ElementType_R8,		1,	{ Signature_ElementType_R8 }, &System_Math_Atan },
+	{	NULL,				NULL,				"Atan2",				Signature_ElementType_R8,		2,	{ Signature_ElementType_R8, Signature_ElementType_R8 }, &System_Math_Atan2 },
+	{	NULL,				NULL,				"Exp",					Signature_ElementType_R8,		1,	{ Signature_ElementType_R8 }, &System_Math_Exp },
+	{	NULL,				NULL,				"Pow",					Signature_ElementType_R8,		2,	{ Signature_ElementType_R8, Signature_ElementType_R8 }, &System_Math_Pow },
+	{	NULL,				NULL,				"Sqrt",					Signature_ElementType_R8,		1,	{ Signature_ElementType_R8 }, &System_Math_Sqrt },
+	{	NULL,				NULL,				"Log",					Signature_ElementType_R8,		2,	{ Signature_ElementType_R8, Signature_ElementType_R8 }, &System_Math_Log },
+        */
+
+
 		#region Abs()
 
 		public static sbyte Abs(sbyte v) {
@@ -202,10 +221,16 @@ namespace System {
 		public extern static double Sin(double x);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static double Sinh(double x);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static double Asin(double x);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		public extern static double Cos(double x);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static double Cosh(double x);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static double Acos(double x);
@@ -214,10 +239,16 @@ namespace System {
 		public extern static double Tan(double x);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static double Tanh(double x);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static double Atan(double x);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static double Atan2(double x, double y);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static double Exp(double x);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		public extern static double Pow(double x, double y);
@@ -226,8 +257,10 @@ namespace System {
 		public extern static double Sqrt(double x);
 
         public static double Log(double x) { return Log(x, E); }
+
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static double Log(double x, double y);
+
         public static double Log10(double x) { return Log(x, 10.0); }
 
         public static double Round(double x)

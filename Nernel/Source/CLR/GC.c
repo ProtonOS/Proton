@@ -165,6 +165,141 @@ ReferenceTypeObject* GC_AllocateString(GC* pGC, ReferenceTypeObject* pInitialRef
     return object;
 }
 
+ReferenceTypeObject* GC_ConcatenateStrings(GC* pGC, ReferenceTypeObject* pInitialReference, ReferenceTypeObject* pString1, ReferenceTypeObject* pString2)
+{
+	GCString* string1 = (GCString*)pString1->Object;
+	GCString* string2 = (GCString*)pString2->Object;
+	ReferenceTypeObject* object = NULL;
+	uint32_t sizeOfGCString = sizeof(GCString) + string1->Size + string2->Size;
+	if (sizeOfGCString <= GCHeapStack_SmallHeap_Size)
+		object = GCHeap_Allocate(&pGC->SmallGeneration0Heap, GCHeapStack_SmallHeap_Size, sizeOfGCString);
+	else if (sizeOfGCString <= GCHeapStack_LargeHeap_Size)
+		object = GCHeap_Allocate(&pGC->LargeHeap, GCHeapStack_LargeHeap_Size, sizeOfGCString);
+	else object = GCHeap_Allocate(&pGC->LargeHeap, sizeOfGCString, sizeOfGCString);
+
+	object->Flags |= ReferenceTypeObject_Flags_String;
+	GCString* header = (GCString*)object->Object;
+	header->Data = (object->Object + sizeof(GCString));
+	header->Size = string1->Size + string2->Size;
+	header->Object = object;
+	memcpy(header->Data, string1->Data, string1->Size);
+	memcpy(header->Data + string1->Size, string2->Data, string2->Size);
+
+	GCString* searchHeader = NULL;
+	HASH_FIND(HashHandle, pGC->StringHashTable, header->Data, string1->Size + string2->Size, searchHeader);
+	if (!searchHeader)
+	{
+		HASH_ADD(HashHandle, pGC->StringHashTable, Data, string1->Size + string2->Size, header);
+	}
+	else
+	{
+		object->Flags ^= ReferenceTypeObject_Flags_String;
+		object->Flags &= ReferenceTypeObject_Flags_Disposing;
+		object = searchHeader->Object;
+	}
+	ReferenceTypeObject_AddReference(pInitialReference, object);
+    return object;
+}
+
+ReferenceTypeObject* GC_SubstituteString(GC* pGC, ReferenceTypeObject* pInitialReference, ReferenceTypeObject* pSource, ReferenceTypeObject* pPattern, ReferenceTypeObject* pSubstitute)
+{
+	GCString* source = (GCString*)pSource->Object;
+	GCString* pattern = (GCString*)pPattern->Object;
+	GCString* substitute = (GCString*)pSubstitute->Object;
+	ReferenceTypeObject* object = NULL;
+	GCString* header = NULL;
+	if (pattern->Size == substitute->Size)
+	{
+		uint32_t sizeOfGCString = sizeof(GCString) + source->Size;
+		if (sizeOfGCString <= GCHeapStack_SmallHeap_Size)
+			object = GCHeap_Allocate(&pGC->SmallGeneration0Heap, GCHeapStack_SmallHeap_Size, sizeOfGCString);
+		else if (sizeOfGCString <= GCHeapStack_LargeHeap_Size)
+			object = GCHeap_Allocate(&pGC->LargeHeap, GCHeapStack_LargeHeap_Size, sizeOfGCString);
+		else object = GCHeap_Allocate(&pGC->LargeHeap, sizeOfGCString, sizeOfGCString);
+
+		object->Flags |= ReferenceTypeObject_Flags_String;
+		header = (GCString*)object->Object;
+		header->Data = (object->Object + sizeof(GCString));
+		header->Size = source->Size;
+		header->Object = object;
+		memcpy(header->Data, source->Data, source->Size);
+
+		uint32_t eos = 0;
+		if (object->Size > pattern->Size) eos = object->Size - pattern->Size;
+		for (uint32_t index = 0; index < eos; ++index)
+		{
+			if (!memcmp(header->Data + index, pattern->Data, pattern->Size))
+			{
+				memcpy(header->Data + index, substitute->Data, substitute->Size);
+			}
+		}
+	}
+	else
+	{
+		// Pattern & Substitute sizes are different
+		uint32_t sizeOfWorkspace = source->Size;
+		uint8_t* workspace = (uint8_t*)calloc(1, sizeOfWorkspace);
+		uint8_t* tempspace = (uint8_t*)calloc(1, sizeOfWorkspace);
+		memcpy(workspace, source->Data, sizeOfWorkspace);
+		for (uint32_t index = 0; index < sizeOfWorkspace; ++index)
+		{
+			if (!memcmp(workspace + index, pattern->Data, pattern->Size))
+			{
+				uint32_t remainder = sizeOfWorkspace - index;
+				if (substitute->Size > pattern->Size)
+				{
+					uint32_t difference = substitute->Size - pattern->Size;
+					sizeOfWorkspace += difference;
+					workspace = (uint8_t*)realloc(workspace, sizeOfWorkspace);
+					tempspace = (uint8_t*)realloc(tempspace, sizeOfWorkspace);
+					memcpy(tempspace + index + substitute->Size, workspace + index, remainder);
+					memcpy(workspace + index, substitute->Data, substitute->Size);
+					memcpy(workspace + index + substitute->Size, tempspace + index + substitute->Size, remainder);
+				}
+				else
+				{
+					uint32_t difference = pattern->Size - substitute->Size;
+					sizeOfWorkspace -= difference;
+					workspace = (uint8_t*)realloc(workspace, sizeOfWorkspace);
+					tempspace = (uint8_t*)realloc(tempspace, sizeOfWorkspace);
+					memcpy(workspace + index, substitute->Data, substitute->Size);
+					memcpy(workspace + index + substitute->Size, workspace + index + pattern->Size, remainder);
+				}
+			}
+		}
+		free(tempspace);
+
+		uint32_t sizeOfGCString = sizeof(GCString) + sizeOfWorkspace;
+		if (sizeOfGCString <= GCHeapStack_SmallHeap_Size)
+			object = GCHeap_Allocate(&pGC->SmallGeneration0Heap, GCHeapStack_SmallHeap_Size, sizeOfGCString);
+		else if (sizeOfGCString <= GCHeapStack_LargeHeap_Size)
+			object = GCHeap_Allocate(&pGC->LargeHeap, GCHeapStack_LargeHeap_Size, sizeOfGCString);
+		else object = GCHeap_Allocate(&pGC->LargeHeap, sizeOfGCString, sizeOfGCString);
+
+		object->Flags |= ReferenceTypeObject_Flags_String;
+		header = (GCString*)object->Object;
+		header->Data = (object->Object + sizeof(GCString));
+		header->Size = sizeOfWorkspace;
+		header->Object = object;
+		memcpy(header->Data, workspace, sizeOfWorkspace);
+	}
+	GCString* searchHeader = NULL;
+	HASH_FIND(HashHandle, pGC->StringHashTable, header->Data, header->Size, searchHeader);
+	if (!searchHeader)
+	{
+		HASH_ADD(HashHandle, pGC->StringHashTable, Data, header->Size, header);
+	}
+	else
+	{
+		object->Flags ^= ReferenceTypeObject_Flags_String;
+		object->Flags &= ReferenceTypeObject_Flags_Disposing;
+		object = searchHeader->Object;
+	}
+	ReferenceTypeObject_AddReference(pInitialReference, object);
+    return object;
+}
+
+
 void GCHeap_Collect(GCHeap* pGCHeap, bool_t pAgeObjects)
 {
     ReferenceTypeObject* object = NULL;

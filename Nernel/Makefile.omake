@@ -102,6 +102,7 @@
 	Source/CLR/InternalCalls/System.Object.c
 	Source/CLR/InternalCalls/System.DateTime.c
 	Source/CLR/InternalCalls/System.Environment.c
+	Source/CLR/InternalCalls/System.String.c
 #
 	Source/CLR/JIT/JIT.c
 	Source/CLR/JIT/JIT-x86.c
