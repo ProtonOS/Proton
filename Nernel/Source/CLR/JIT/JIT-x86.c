@@ -12,7 +12,7 @@ char* JIT_Emit_Prologue(IRMethod* mth, char* compMethod)
 {
 	x86_push_reg(compMethod, X86_EBP);
 
-	uint32_t localsSize = 0;
+	uint32_t localsSize = mth->LocalVariableCount * global_SizeOfPointerInBytes;
 	/*for (uint32_t i = 0; i < mth->LocalVariableCount; i++)
 	{
 		IRLocalVariable* var = mth->LocalVariables[i];

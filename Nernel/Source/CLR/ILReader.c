@@ -425,7 +425,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
     uint8_t b;
     IRMethod* m = IRMethod_Create();
 
-	{
+	{   // Setup Parameters
 		MethodSignature* sig = MethodSignature_Expand(methodDef->Signature, fil);
 		if (!sig->ReturnType->Void)
 		{
@@ -459,6 +459,21 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 		}
 
 		MethodSignature_Destroy(sig);
+	}
+
+	{   // Setup Locals
+		if (methodDef->Body.LocalVariableSignatureToken)
+		{
+			MetaDataToken* tok = CLIFile_ResolveToken(fil, methodDef->Body.LocalVariableSignatureToken);
+			LocalsSignature* sig = LocalsSignature_Expand(((StandAloneSignature*)tok->Data)->Signature, fil);
+			
+			m->LocalVariableCount = sig->LocalVariableCount;
+
+			LocalsSignature_Destroy(sig);
+			free(tok);
+		}
+		//LocalsSignature* sig = LocalsSignature_Expand(
+		//m->LocalVariableCount = methodDef->Body.LocalVariableSignatureToken
 	}
 	
     /*Log_WriteLine(LogFlags_ILReading, "Hex value of the method: ");
