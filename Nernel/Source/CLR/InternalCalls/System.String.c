@@ -1,5 +1,6 @@
 #include <CLR/InternalCalls/System.String.h>
 #include <CLR/InternalCalls/Helpers.h>
+#include <stdio.h>
 
 ReferenceTypeObject* System_String_Ctor_CharPtr(AppDomain* pAppDomain, ReferenceTypeObject* pThis, uint16_t* pCharPtr)
 {
@@ -21,5 +22,6 @@ ReferenceTypeObject* System_String_InternalConcat(AppDomain* pAppDomain, Referen
 
 ReferenceTypeObject* System_String_InternalReplace(AppDomain* pAppDomain, ReferenceTypeObject* pThis, ReferenceTypeObject* pPattern, ReferenceTypeObject* pSubstitute)
 {
+	printf("InternalReplace: SizeOf pThis Object = %u @ 0x%x\n", (unsigned int)pThis->Size, (unsigned int)pThis);
 	return GC_SubstituteString(pAppDomain->GarbageCollector, pAppDomain->RootObject, pThis, pPattern, pSubstitute);
 }

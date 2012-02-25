@@ -1054,6 +1054,7 @@ char* JIT_Compile_Call_Internal				(IRInstruction* instr, char* compMethod, IRMe
 {
 	void* mthd = instr->Arg1; // This is the method we will be calling.
 	IRMethod* m = (IRMethod*)instr->Arg2;
+	printf("Emitting Call_Internal: %s.%s.%s\n", m->MethodDefinition->TypeDefinition->Namespace, m->MethodDefinition->TypeDefinition->Name, m->MethodDefinition->Name);
 
 	x86_push_imm(compMethod, (unsigned int)m->ParentAssembly->ParentDomain); // Push the domain
 	x86_call_code(compMethod, mthd); // Call the method.
