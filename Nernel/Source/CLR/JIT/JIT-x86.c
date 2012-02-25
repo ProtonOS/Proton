@@ -142,7 +142,7 @@ char* JIT_Compile_Store_LocalVar			(IRInstruction* instr, char* compMethod, IRMe
 	for (uint32_t movIndex = 0; movIndex < movCount; ++movIndex)
 	{
 		x86_pop_reg(compMethod, X86_EAX);
-		x86_mov_membase_reg(compMethod, X86_EBP, (localIndex + 1) * global_SizeOfPointerInBytes, X86_EAX, global_SizeOfPointerInBytes);
+		x86_mov_membase_reg(compMethod, X86_EBP, -((localIndex + 1) * global_SizeOfPointerInBytes), X86_EAX, global_SizeOfPointerInBytes);
 	}
 	return compMethod;
 }
@@ -158,7 +158,7 @@ char* JIT_Compile_Load_LocalVar				(IRInstruction* instr, char* compMethod, IRMe
 	if ((size % global_SizeOfPointerInBytes) != 0) ++movCount;
 	for (uint32_t movIndex = 0; movIndex < movCount; ++movIndex)
 	{
-		x86_push_membase(compMethod, X86_EBP, (localIndex + 1) * global_SizeOfPointerInBytes);
+		x86_push_membase(compMethod, X86_EBP, -((localIndex + 1) * global_SizeOfPointerInBytes));
 		//x86_push_reg(compMethod, X86_EAX);
 	}
 	return compMethod;
