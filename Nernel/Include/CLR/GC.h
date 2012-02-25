@@ -1,6 +1,7 @@
 #pragma once
 
 #include <uthash.h>
+#include <CLR/AppDomain.h>
 #include <CLR/ReferenceTypeObject.h>
 
 #define GC_Generation0ToGeneration1_RequiredAge         25
@@ -34,6 +35,7 @@ struct _GCHeap
 
 struct _GC
 {
+	AppDomain* Domain;
     GCHeap SmallGeneration0Heap;
     GCHeap SmallGeneration1Heap;
     GCHeap SmallGeneration2Heap;
@@ -49,12 +51,23 @@ struct _GCString
 	UT_hash_handle HashHandle;
 };
 
+struct _GCArray
+{
+	uint32_t Length;
+	uint32_t DomainIndex;
+	uint32_t AssemblyIndex;
+	uint32_t TypeIndex;
+	uint8_t* Data;
+};
+
 void Panic(const char* pMessage);
 
-GC* GC_Create();
+GC* GC_Create(AppDomain* pAppDomain);
 void GC_Destroy(GC* pGC);
 ReferenceTypeObject* GC_AllocateObject(GC* pGC, ReferenceTypeObject* pInitialReference, uint32_t pSize);
 ReferenceTypeObject* GC_AllocateString(GC* pGC, ReferenceTypeObject* pInitialReference, uint8_t* pData, uint32_t pSize);
+ReferenceTypeObject* GC_AllocateStringFromCharAndCount(GC* pGC, ReferenceTypeObject* pInitialReference, uint16_t pChar, uint32_t pCount);
 ReferenceTypeObject* GC_ConcatenateStrings(GC* pGC, ReferenceTypeObject* pInitialReference, ReferenceTypeObject* pString1, ReferenceTypeObject* pString2);
 ReferenceTypeObject* GC_SubstituteString(GC* pGC, ReferenceTypeObject* pInitialReference, ReferenceTypeObject* pSource, ReferenceTypeObject* pPattern, ReferenceTypeObject* pSubstitute);
+ReferenceTypeObject* GC_AllocateArray(GC* pGC, ReferenceTypeObject* pInitialReference, uint32_t pLength, uint32_t pDomainIndex, uint32_t pAssemblyIndex, uint32_t pTypeIndex);
 void GC_Collect(GC* pGC);

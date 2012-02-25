@@ -57,8 +57,15 @@ const InternalCall InternalCallTable[] =
 	{	NULL,				NULL,				"get_Platform",			Signature_ElementType_ValueType,0,	{ }, &System_Environment_getPlatform },
 
 	{	NULL,				"String",			".ctor",				Signature_ElementType_Void,		1,	{ Signature_ElementType_Pointer, Signature_ElementType_Char }, &System_String_Ctor_CharPtr },
+	{	NULL,				NULL,				".ctor",				Signature_ElementType_Void,		3,	{ Signature_ElementType_Pointer, Signature_ElementType_Char, Signature_ElementType_I4, Signature_ElementType_I4 }, &System_String_Ctor_CharPtrAndStartAndLength },
+	{	NULL,				NULL,				".ctor",				Signature_ElementType_Void,		1,	{ Signature_ElementType_Pointer, Signature_ElementType_I1 }, &System_String_Ctor_SBytePtr },
+	{	NULL,				NULL,				".ctor",				Signature_ElementType_Void,		3,	{ Signature_ElementType_Pointer, Signature_ElementType_I1, Signature_ElementType_I4, Signature_ElementType_I4 }, &System_String_Ctor_SBytePtrAndStartAndLength },
+	{	NULL,				NULL,				".ctor",				Signature_ElementType_Void,		2,	{ Signature_ElementType_Char, Signature_ElementType_I4 }, &System_String_Ctor_CharAndCount },
+	{	NULL,				NULL,				".ctor",				Signature_ElementType_Void,		3,	{ Signature_ElementType_String, Signature_ElementType_I4, Signature_ElementType_I4 }, &System_String_Ctor_StringAndStartAndLength },
 	{	NULL,				NULL,				"InternalConcat",		Signature_ElementType_String,	2,	{ Signature_ElementType_String, Signature_ElementType_String }, &System_String_InternalConcat },
 	{	NULL,				NULL,				"InternalReplace",		Signature_ElementType_String,	2,	{ Signature_ElementType_String, Signature_ElementType_String }, &System_String_InternalReplace },
+	{	NULL,				NULL,				"InternalIndexOf",		Signature_ElementType_I4,		4,	{ Signature_ElementType_Char, Signature_ElementType_I4, Signature_ElementType_I4, Signature_ElementType_Boolean }, &System_String_InternalIndexOf },
+	{	NULL,				NULL,				"Equals",				Signature_ElementType_Boolean,	2,	{ Signature_ElementType_String, Signature_ElementType_String }, &System_String_Equals },
 
 	{	NULL,				NULL,				NULL,					Signature_ElementType_End,		0,	{ }, NULL }
 };
@@ -109,6 +116,20 @@ InternalCallPointer ResolveInternalCall(MethodDefinition* methodDef, CLIFile* fi
 
 								if (sig->Parameters[i]->Type->PtrType->ElementType == ic->Args[i + 1] ||
 									(ic->Args[i + 1] == Signature_ElementType_Void && sig->Parameters[i]->Type->PtrVoid))
+								{
+									++i;
+								}
+								else
+								{
+									sigMatch = FALSE;
+									break;
+								}
+							}
+							else if (sig->Parameters[i]->Type->ElementType == Signature_ElementType_SingleDimensionArray)
+							{
+								if (i == ic->ArgCount - 1) Panic("Missing single dimension array type for internal method parameters");
+
+								if (sig->Parameters[i]->Type->SZArrayType->ElementType == ic->Args[i + 1])
 								{
 									++i;
 								}

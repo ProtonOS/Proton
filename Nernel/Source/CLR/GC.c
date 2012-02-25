@@ -30,9 +30,10 @@ void GCHeapStack_Destroy(GCHeapStack* pGCHeapStack)
     free(pGCHeapStack);
 }
 
-GC* GC_Create()
+GC* GC_Create(AppDomain* pAppDomain)
 {
     GC* gc = (GC*)calloc(1, sizeof(GC));
+	gc->Domain = pAppDomain;
     gc->SmallGeneration0Heap.StackCount = 1;
     gc->SmallGeneration1Heap.StackCount = 1;
     gc->SmallGeneration2Heap.StackCount = 1;
@@ -159,8 +160,52 @@ ReferenceTypeObject* GC_AllocateString(GC* pGC, ReferenceTypeObject* pInitialRef
 		header->Object = object;
 		memcpy(header->Data, pData, pSize);
 		HASH_ADD(HashHandle, pGC->StringHashTable, Data, pSize, header);
+		object->DomainIndex = pGC->Domain->DomainIndex;
+		object->AssemblyIndex = 0;
+		object->TypeIndex = pGC->Domain->CachedType___System_String->TableIndex - 1;
 	}
 	else object = header->Object;
+	ReferenceTypeObject_AddReference(pInitialReference, object);
+    return object;
+}
+
+ReferenceTypeObject* GC_AllocateStringFromCharAndCount(GC* pGC, ReferenceTypeObject* pInitialReference, uint16_t pChar, uint32_t pCount)
+{
+    if (!pInitialReference) Panic("GC_AllocateStringFromCharAndCount pInitialReference == NULL");
+    if (pCount == 0 || pCount >= 0x3FFFFFFF) Panic("GC_AllocateStringFromCharAndCount pCount == 0 || pCount >= 0x3FFFFFFF");
+    ReferenceTypeObject* object = NULL;
+	uint32_t sizeOfGCString = sizeof(GCString) + pCount * 2;
+	GCString* header = NULL;
+	if (sizeOfGCString <= GCHeapStack_SmallHeap_Size)
+		object = GCHeap_Allocate(&pGC->SmallGeneration0Heap, GCHeapStack_SmallHeap_Size, sizeOfGCString);
+	else if (sizeOfGCString <= GCHeapStack_LargeHeap_Size)
+		object = GCHeap_Allocate(&pGC->LargeHeap, GCHeapStack_LargeHeap_Size, sizeOfGCString);
+	else object = GCHeap_Allocate(&pGC->LargeHeap, sizeOfGCString, sizeOfGCString);
+	object->Flags |= ReferenceTypeObject_Flags_String;
+	header = (GCString*)object->Object;
+	header->Data = (object->Object + sizeof(GCString));
+	header->Size = pCount * 2;
+	header->Object = object;
+	uint16_t* data = (uint16_t*)header->Data;
+	for (uint32_t index = 0; index < pCount; ++index)
+	{
+		data[index] = pChar;
+	}
+	GCString* searchHeader = NULL;
+	HASH_FIND(HashHandle, pGC->StringHashTable, header->Data, pCount * 2, searchHeader);
+	if (!searchHeader)
+	{
+		HASH_ADD(HashHandle, pGC->StringHashTable, Data, pCount * 2, header);
+		object->DomainIndex = pGC->Domain->DomainIndex;
+		object->AssemblyIndex = 0;
+		object->TypeIndex = pGC->Domain->CachedType___System_String->TableIndex - 1;
+	}
+	else
+	{
+		object->Flags ^= ReferenceTypeObject_Flags_String;
+		object->Flags &= ReferenceTypeObject_Flags_Disposing;
+		object = searchHeader->Object;
+	}
 	ReferenceTypeObject_AddReference(pInitialReference, object);
     return object;
 }
@@ -190,6 +235,9 @@ ReferenceTypeObject* GC_ConcatenateStrings(GC* pGC, ReferenceTypeObject* pInitia
 	if (!searchHeader)
 	{
 		HASH_ADD(HashHandle, pGC->StringHashTable, Data, string1->Size + string2->Size, header);
+		object->DomainIndex = pGC->Domain->DomainIndex;
+		object->AssemblyIndex = 0;
+		object->TypeIndex = pGC->Domain->CachedType___System_String->TableIndex - 1;
 	}
 	else
 	{
@@ -288,6 +336,9 @@ ReferenceTypeObject* GC_SubstituteString(GC* pGC, ReferenceTypeObject* pInitialR
 	if (!searchHeader)
 	{
 		HASH_ADD(HashHandle, pGC->StringHashTable, Data, header->Size, header);
+		object->DomainIndex = pGC->Domain->DomainIndex;
+		object->AssemblyIndex = 0;
+		object->TypeIndex = pGC->Domain->CachedType___System_String->TableIndex - 1;
 	}
 	else
 	{
@@ -535,6 +586,12 @@ void GCHeap_Migrate(GCHeap* pSourceHeap, GCHeap* pDestinationHeap, uint32_t pSta
             }
         }
     }
+}
+
+ReferenceTypeObject* GC_AllocateArray(GC* pGC, ReferenceTypeObject* pInitialReference, uint32_t pLength, uint32_t pDomainIndex, uint32_t pAssemblyIndex, uint32_t pTypeIndex)
+{
+	ReferenceTypeObject* object = NULL;
+	return object;
 }
 
 void GC_Collect(GC* pGC)
