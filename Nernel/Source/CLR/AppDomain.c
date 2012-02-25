@@ -16,14 +16,14 @@ AppDomain* AppDomain_CreateDomain()
         if (cliFile)
         {
 			AppDomain* domain = (AppDomain*)calloc(1, sizeof(AppDomain));
-			domain->GarbageCollector = GC_Create();
+			AppDomainRegistry_AddDomain(domain);
+			domain->GarbageCollector = GC_Create(domain);
 			domain->RootObject = (ReferenceTypeObject*)calloc(1, sizeof(ReferenceTypeObject));
 			AppDomain_LinkCorlib(cliFile, domain);
 			Log_WriteLine(LogFlags_AppDomain_Loading, "Domain address: 0x%x", (unsigned int)domain);
             IRAssembly* asmb = ILReader_CreateAssembly(cliFile, domain);
             Log_WriteLine(LogFlags_AppDomain_Loading, "Method Count: %u\n", (unsigned int)asmb->MethodCount);
 			AppDomain_AddAssembly(domain, asmb);
-			AppDomainRegistry_AddDomain(domain);
 			return domain;
         }
 		else
@@ -162,13 +162,14 @@ void AppDomain_LinkCorlib(CLIFile* corlib, AppDomain* domain)
 	}
 }
 
+#include <String_Format.h>
 AppDomain** DomainRegistry;
 uint32_t lastDomainIndex = 0;
 
 AppDomain* AppDomainRegistry_GetDomain(uint32_t domNumber)
 {
 	if (domNumber >= lastDomainIndex)
-		Panic("Domain requested that doesn't exist!");
+		Panic(String_Format("Domain (%i) requested that doesn't exist!", (int)domNumber));
 	return DomainRegistry[domNumber];
 }
 
