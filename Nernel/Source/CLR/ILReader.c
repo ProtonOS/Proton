@@ -1233,10 +1233,12 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 					Log_WriteLine(LogFlags_ILReading, "Read NI-CallVirt");
 					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
 					MethodSignature* sig = NULL;
+					MethodDefinition* mthDef = NULL;
 					switch(tok->Table)
 					{
 						case MetaData_Table_MethodDefinition:
 							sig = MethodSignature_Expand(((MethodDefinition*)tok->Data)->Signature, fil);
+							mthDef = (MethodDefinition*)tok->Data;
 							break;
 
 						case MetaData_Table_MemberReference:
@@ -1293,6 +1295,69 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 							break;
 					}
 					free(tok);
+
+
+					if (mthDef)
+					{
+						if (mthDef->InternalCall)
+						{
+							EMIT_IR_2ARG_NO_DISPOSE(IROpCode_Call_Internal, mthDef->InternalCall, (int*)mthDef->TableIndex);
+						}
+						else if ((mthDef->Flags & MethodAttributes_RTSpecialName) || (mthDef->TypeDefinition->Flags & TypeAttributes_Sealed) || IsStruct(mthDef->TypeDefinition, dom))
+						{
+							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Call_Absolute, (IRMethod*)(mthDef->TableIndex));
+						}
+						else
+						{
+							IRMethodSpec* mthSpec = IRMethodSpec_Create();
+							Log_WriteLine(LogFlags_ILReading, "Looking for Method %s.%s.%s from table index %i", mthDef->TypeDefinition->Namespace, mthDef->TypeDefinition->Name, mthDef->Name, (int)mthDef->TableIndex);
+							mthSpec->ParentType = asmbly->Types[mthDef->TypeDefinition->TableIndex - 1];
+							bool_t FoundMethod = FALSE;
+							for (uint32_t i = 0; i < mthSpec->ParentType->MethodCount; i++)
+							{
+								MethodDefinition* mthDef2 = &(fil->MethodDefinitions[(uint32_t)(mthSpec->ParentType->Methods[i])]);
+								if (mthDef2->TableIndex)
+								{
+									Log_WriteLine(LogFlags_ILReading, "Checking Method %s.%s.%s from table index %i", mthDef2->TypeDefinition->Namespace, mthDef2->TypeDefinition->Name, mthDef2->Name, (int)mthDef2->TableIndex);
+									Log_WriteLine(LogFlags_ILReading, "i: %i", (int)i);
+								}
+								else
+								{
+									Log_WriteLine(LogFlags_ILReading, "Method Index 0! This shouldn't happen!");
+								}							
+								if (!strcmp(mthDef->Name, mthDef2->Name))
+								{
+									if (mthDef->Flags & MethodAttributes_HideBySignature)
+									{
+										if (Signature_Equals(mthDef->Signature, mthDef->SignatureLength, mthDef2->Signature, mthDef2->SignatureLength))
+										{
+											mthSpec->MethodIndex = i;
+											FoundMethod = TRUE;
+											break;
+										}
+									}
+									else
+									{
+										mthSpec->MethodIndex = i;
+										FoundMethod = TRUE;
+										break;
+									}
+								}
+							}
+							if (!FoundMethod)
+							{
+								Panic("Unable to resolve method to call!");
+							}
+							EMIT_IR_1ARG(IROpCode_Call, mthSpec);
+						}
+					}
+					else
+					{
+						// This is just a temporary thing
+						// so that this can be the target
+						// of a branch (although it shouldn't be).
+						EMIT_IR(IROpCode_Nop);
+					}
 				}
                 ClearFlags();
                 break;

@@ -1067,8 +1067,8 @@ char* JIT_Compile_Call_Internal				(IRInstruction* instr, char* compMethod, IRMe
 void JIT_Trampoline_DoCall(); // this is done in asm.
 char* JIT_Compile_Call						(IRInstruction* instr, char* compMethod, IRMethod* mth)
 {
+	printf("Emitting call\n");
 	x86_push_imm(compMethod, instr->Arg1);
-	x86_push_imm(compMethod, 0);
 	x86_call_code(compMethod, JIT_Trampoline_DoCall);
 
 	return compMethod;

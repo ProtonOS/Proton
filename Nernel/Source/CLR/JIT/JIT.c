@@ -19,7 +19,7 @@ void JIT_CompileMethod(IRMethod* mthd)
 
 	for (uint32_t i = 0; i < mthd->IRCodesCount; i++)
 	{
-		Log_WriteLine(LogFlags_JIT, "OpCode: 0x%x", (unsigned int)mthd->IRCodes[i]->OpCode);
+		Log_WriteLine(LogFlags_JIT, "OpCode: %u", (unsigned int)mthd->IRCodes[i]->OpCode);
 		// Because of the fact that IROpCode is an enum
 		// We know that we have all the op-codes at compile-time.
 		switch(mthd->IRCodes[i]->OpCode)

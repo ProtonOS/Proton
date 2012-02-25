@@ -18,6 +18,18 @@ typedef struct _IRField IRField;
 #include <CLR/OpCodes_IR.h>
 #include <CLR/AppDomain.h>
 
+struct _IRMethodSpec
+{
+	/*
+		The parent type of this method.
+	 */
+	IRType* ParentType;
+	/*
+		The index in the parent type's method list.
+	 */
+	uint32_t MethodIndex;
+};
+
 // Also, please DO NOT modify the
 // structures unless you first check
 // very thoroughly with the JIT, because
@@ -67,18 +79,6 @@ struct _IRType
 	TypeDefinition* TypeDef;
 
 	bool_t IsVoid;
-};
-
-struct _IRMethodSpec
-{
-	/*
-		The parent type of this method.
-	 */
-	IRType* ParentType;
-	/*
-		The index in the parent type's method list.
-	 */
-	uint32_t MethodIndex;
 };
 
 struct _IRMethod

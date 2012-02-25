@@ -11,17 +11,19 @@ BadMethodIndex		db	"Method Index is too High!", 0
 
 global JIT_Trampoline_DoCall
 JIT_Trampoline_DoCall:
+	push	ebp
+	mov		ebp, esp
 	mov		edx, [ebp + 12]
 	mov		eax, [edx + 30]
-	push	edx
 	push	eax
 	call	AppDomainRegistry_GetDomain
-	pop		edx
 	push	eax
+	mov		eax, [esp]
+	mov		edx, [ebp + 12]
 	
 	; Check Assembly Index
-	mov		eax, [eax + 4]
 	mov		ebx, [edx + 34]
+	mov		eax, [eax + 4]
 	cmp		eax, ebx
 	jae		Bad_AssemblyIndex
 	; Assembly index is ok
@@ -80,6 +82,7 @@ JIT_Trampoline_DoCall:
 MethodReady:
 	pop		eax
 	mov		eax, [eax + 4]
+	pop		ebp
 	call	eax
 	ret
 	
@@ -97,5 +100,5 @@ Bad_MethodIndex:
 
 Bad_Common:
 	call	Panic
-	
+	ret
 	
