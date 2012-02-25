@@ -844,6 +844,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 
 					uint32_t* strLen = (uint32_t*)malloc(sizeof(uint32_t));
 					uint8_t* str = (uint8_t*)MetaData_GetCompressedUnsigned((uint8_t*)tkn->Data, strLen);
+					*strLen -= 1; // Remove the null terminator
 
 					EMIT_IR_2ARG_DISPOSE__NO_DISPOSE(IROpCode_Load_String, strLen, str);
                 }
