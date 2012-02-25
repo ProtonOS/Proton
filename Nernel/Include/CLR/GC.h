@@ -1,8 +1,13 @@
 #pragma once
 
+typedef struct _GCString GCString;
+typedef struct _GC GC;
+typedef struct _GCHeap GCHeap;
+typedef struct _GCHeapStack GCHeapStack;
+
 #include <uthash.h>
-#include <CLR/AppDomain.h>
 #include <CLR/ReferenceTypeObject.h>
+#include <CLR/AppDomain.h>
 
 #define GC_Generation0ToGeneration1_RequiredAge         25
 #define GC_Generation1ToGeneration2_RequiredAge         200
@@ -10,10 +15,6 @@
 #define GCHeapStack_SmallHeap_Size                      (4 * 1024)
 #define GCHeapStack_LargeHeap_Size                      (GCHeapStack_SmallHeap_Size * 1024)
 
-typedef struct _GCString GCString;
-typedef struct _GC GC;
-typedef struct _GCHeap GCHeap;
-typedef struct _GCHeapStack GCHeapStack;
 
 struct _GCHeapStack
 {

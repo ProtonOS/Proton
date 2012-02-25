@@ -110,7 +110,7 @@ InternalCallPointer ResolveInternalCall(MethodDefinition* methodDef, CLIFile* fi
 					{
 						if (sig->Parameters[i]->Type->ElementType != ic->Args[i])
 						{
-							if (sig->Parameters[i]->Type->ElementType == Signature_ElementType_Pointer)
+							if (ic->Args[i] == Signature_ElementType_Pointer && sig->Parameters[i]->Type->ElementType == Signature_ElementType_Pointer)
 							{
 								if (i == ic->ArgCount - 1) Panic("Missing pointer type for internal method parameters");
 
@@ -125,7 +125,7 @@ InternalCallPointer ResolveInternalCall(MethodDefinition* methodDef, CLIFile* fi
 									break;
 								}
 							}
-							else if (sig->Parameters[i]->Type->ElementType == Signature_ElementType_SingleDimensionArray)
+							else if (ic->Args[i] == Signature_ElementType_SingleDimensionArray && sig->Parameters[i]->Type->ElementType == Signature_ElementType_SingleDimensionArray)
 							{
 								if (i == ic->ArgCount - 1) Panic("Missing single dimension array type for internal method parameters");
 
