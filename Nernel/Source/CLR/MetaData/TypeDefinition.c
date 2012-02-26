@@ -96,6 +96,13 @@ const uint8_t* TypeDefinition_Load(CLIFile* pFile, const uint8_t* pTableData)
         pFile->TypeDefinitions[index].FieldListCount = fieldListCount;
     }
     free(fieldListIndexes);
+    for (uint32_t index = 1; index <= pFile->TypeDefinitionCount; ++index)
+    {
+		for (uint32_t index2 = 0; index < pFile->TypeDefinitions[index].FieldListCount; ++index)
+		{
+			pFile->TypeDefinitions[index].FieldList[index2].TypeDefinition = &pFile->TypeDefinitions[index];
+		}
+    }
     uint32_t methodDefinitionListCount = 0;
     for (uint32_t index = 1, used = 0; index <= pFile->TypeDefinitionCount; ++index, used += methodDefinitionListCount)
     {

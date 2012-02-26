@@ -15,6 +15,7 @@ struct _Field
     CustomAttribute** CustomAttributes;
     FieldMarshal* FieldMarshal;
     ImplementationMap* ImplementationMap;
+	TypeDefinition* TypeDefinition;
 };
 
 const uint8_t* Field_Initialize(CLIFile* pFile, const uint8_t* pTableData);
