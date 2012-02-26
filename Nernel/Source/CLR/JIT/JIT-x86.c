@@ -957,6 +957,22 @@ char* JIT_Compile_Load_String				(IRInstruction* instr, char* compMethod, IRMeth
 	return compMethod;
 }
 
+char* JIT_Emit_ParamSwap(char* compMethod, uint32_t paramCount)
+{
+	uint32_t swapCount = paramCount / 2;
+	// If paramCount is odd, the middle 
+	// param won't move at all.
+	for (uint32_t index = 0; index < swapCount; ++index)
+	{
+		x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, index * 4, 4);
+		x86_mov_reg_membase(compMethod, X86_EBX, X86_ESP, (paramCount - (index + 1)) * 4, 4);
+		x86_mov_membase_reg(compMethod, X86_ESP, index * 4, X86_EBX, 4);
+		x86_mov_membase_reg(compMethod, X86_ESP, (paramCount - (index + 1)) * 4, X86_EAX, 4);
+	}
+
+	return compMethod;
+}
+
 char* JIT_Compile_Call_Absolute				(IRInstruction* instr, char* compMethod, IRMethod* mth)
 {
 	IRMethod* m = (IRMethod*)instr->Arg1;
@@ -965,14 +981,7 @@ char* JIT_Compile_Call_Absolute				(IRInstruction* instr, char* compMethod, IRMe
 		JIT_CompileMethod(m);
 	}
 
-	uint32_t swapCount = m->ParameterCount / 2;
-	for (uint32_t index = 0; index < swapCount; ++index)
-	{
-		x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, index * 4, 4);
-		x86_mov_reg_membase(compMethod, X86_EBX, X86_ESP, (m->ParameterCount - (index + 1)) * 4, 4);
-		x86_mov_membase_reg(compMethod, X86_ESP, index * 4, X86_EBX, 4);
-		x86_mov_membase_reg(compMethod, X86_ESP, (m->ParameterCount - (index + 1)) * 4, X86_EAX, 4);
-	}
+	compMethod = JIT_Emit_ParamSwap(compMethod, m->ParameterCount);
 
 	x86_call_code(compMethod, m->AssembledMethod);
 	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, (m->ParameterCount * 4));
@@ -1063,19 +1072,12 @@ char* JIT_Compile_Call_Internal				(IRInstruction* instr, char* compMethod, IRMe
 {
 	void* mthd = instr->Arg1; // This is the method we will be calling.
 	IRMethod* m = (IRMethod*)instr->Arg2;
-
-	uint32_t swapCount = m->ParameterCount / 2;
-	for (uint32_t index = 0; index < swapCount; ++index)
-	{
-		x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, index * 4, 4);
-		x86_mov_reg_membase(compMethod, X86_EBX, X86_ESP, (m->ParameterCount - (index + 1)) * 4, 4);
-		x86_mov_membase_reg(compMethod, X86_ESP, index * 4, X86_EBX, 4);
-		x86_mov_membase_reg(compMethod, X86_ESP, (m->ParameterCount - (index + 1)) * 4, X86_EAX, 4);
-	}
+	
+	compMethod = JIT_Emit_ParamSwap(compMethod, m->ParameterCount);
 
 	x86_push_imm(compMethod, (unsigned int)m->ParentAssembly->ParentDomain); // Push the domain
 	x86_call_code(compMethod, mthd); // Call the method.
-	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, ((m->ParameterCount + 1) * 4));
+	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, ((m->ParameterCount + 1) * 4)); // Fix the stack after calling the method
 	x86_push_reg(compMethod, X86_EAX);
 
 	return compMethod;
@@ -1089,18 +1091,12 @@ char* JIT_Compile_Call						(IRInstruction* instr, char* compMethod, IRMethod* m
 	IRMethodSpec* spec = (IRMethodSpec*)instr->Arg1;
 	IRMethod* m = spec->ParentType->Methods[spec->MethodIndex];
 
-	uint32_t swapCount = m->ParameterCount / 2;
-	for (uint32_t index = 0; index < swapCount; ++index)
-	{
-		x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, index * 4, 4);
-		x86_mov_reg_membase(compMethod, X86_EBX, X86_ESP, (m->ParameterCount - (index + 1)) * 4, 4);
-		x86_mov_membase_reg(compMethod, X86_ESP, index * 4, X86_EBX, 4);
-		x86_mov_membase_reg(compMethod, X86_ESP, (m->ParameterCount - (index + 1)) * 4, X86_EAX, 4);
-	}
-
+	
+	compMethod = JIT_Emit_ParamSwap(compMethod, m->ParameterCount);
+	
 	x86_push_imm(compMethod, instr->Arg1);
 	x86_call_code(compMethod, JIT_Trampoline_DoCall2);
-	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 4);
+	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 4); // Fix the stack from calling the trampoline
 	x86_call_reg(compMethod, X86_EAX);
 	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, (spec->ParentType->Methods[spec->MethodIndex]->ParameterCount * 4));
 
@@ -1113,88 +1109,30 @@ void* JIT_Trampoline_DoCall2(IRMethodSpec* mth, ReferenceTypeObject* obj)
 	printf("DoCall: argc = %u\n", (unsigned int)mth->ParentType->Methods[mth->MethodIndex]->ParameterCount);
 	printf("DoCall: Data = %s %s %s\n", (char*)((GCString*)obj->Object)->Data, (char*)(((GCString*)obj->Object)->Data + 2), (char*)(((GCString*)obj->Object)->Data + 4));
 	printf("DoCall: DomIndex = %u\n", (unsigned int)obj->DomainIndex);
-	uint32_t domIndex = obj->DomainIndex;
 
-	__asm("\n \n /Got Domain Index \n \n");
-
-	uint32_t asmblyIndex = obj->AssemblyIndex;
-
-	__asm("\n \n /Got Assembly Index \n \n");
-
-	uint32_t tpIndex = obj->TypeIndex;
-
-	__asm("\n \n /Got Type Index \n \n");
-
-	uint32_t mthIndex = mth->MethodIndex;
-
-	__asm("\n \n /Got Method Index \n \n");
-
-	AppDomain* dom = AppDomainRegistry_GetDomain(domIndex);
-
-	__asm("\n \n /Got Domain \n \n");
-
-	if (asmblyIndex >= dom->IRAssemblyCount)
+	AppDomain* dom = AppDomainRegistry_GetDomain(obj->DomainIndex);
+	if (obj->AssemblyIndex >= dom->IRAssemblyCount)
 	{
-
-		__asm("\n \n /Checked Assembly Index \n \n");
-
 		Panic("Assembly Index is too High!");
-
-		__asm("\n \n /Finished Panicking \n \n");
-
 	}
-	__asm("\n \n /Finished Checking Assembly Index \n \n");
 
-	IRAssembly* asmbly = dom->IRAssemblies[asmblyIndex];
-
-	__asm("\n \n /Got Assembly \n \n");
-
-	if (tpIndex >= asmbly->TypeCount)
+	IRAssembly* asmbly = dom->IRAssemblies[obj->AssemblyIndex];
+	if (obj->TypeIndex >= asmbly->TypeCount)
 	{
-
-		__asm("\n \n /Checked Type Index \n \n");
-
 		Panic("Type Index is too High!");
-
-		__asm("\n \n /Finished Panicking \n \n");
-
 	}
-	__asm("\n \n /Finished Checking Type Index \n \n");
 
-	IRType* tp = asmbly->Types[tpIndex];
-
-	__asm("\n \n /Got Type \n \n");
-
-	if (mthIndex >= tp->MethodCount)
+	IRType* tp = asmbly->Types[obj->TypeIndex];
+	if (mth->MethodIndex >= tp->MethodCount)
 	{
-
-		__asm("\n \n /Checked Method Index \n \n");
-
 		Panic("Method Index is too High!");
-
-		__asm("\n \n /Finished Panicking \n \n");
-
 	}
-	__asm("\n \n /Finished Checking Method Index \n \n");
 
-	IRMethod* m = tp->Methods[mthIndex];
-
-	__asm("\n \n /Got Method \n \n");
-
+	IRMethod* m = tp->Methods[mth->MethodIndex];
 	//IRMethod* m = AppDomainRegistry_GetDomain(obj->DomainIndex)->IRAssemblies[obj->AssemblyIndex]->Types[obj->TypeIndex]->Methods[mth->MethodIndex];
 	if (!m->AssembledMethod)
 	{
-
-		__asm("\n \n /Checked if Method Was Compiled \n \n");
-
 		JIT_CompileMethod(m);
-
-		__asm("\n \n /Finished Compiling Method \n \n");
-
 	}
-	__asm("\n \n /Finished Checking if Method Was Compiled \n \n");
-
 	return m->AssembledMethod;
-
-	__asm("\n \n /Finished Method \n \n");
 }
