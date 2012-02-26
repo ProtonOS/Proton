@@ -138,6 +138,9 @@ void JIT_CompileMethod(IRMethod* mthd)
 			case IROpCode_Load_String:
 				compMthd = JIT_Compile_Load_String				(mthd->IRCodes[i], compMthd, mthd);
 				break;
+			case IROpCode_Load_Field:
+				compMthd = JIT_Compile_Load_Field				(mthd->IRCodes[i], compMthd, mthd);
+				break;
 			case IROpCode_Call:
 				compMthd = JIT_Compile_Call						(mthd->IRCodes[i], compMthd, mthd);
 				break;

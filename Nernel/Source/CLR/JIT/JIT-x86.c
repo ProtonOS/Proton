@@ -957,6 +957,21 @@ char* JIT_Compile_Load_String				(IRInstruction* instr, char* compMethod, IRMeth
 	return compMethod;
 }
 
+
+char* JIT_Compile_Load_Field				(IRInstruction* instr, char* compMethod, IRMethod* mth)
+{
+	IRFieldSpec* spec = (IRFieldSpec*)instr->Arg1;
+
+	// Still need to handle large fields.
+	x86_mov_reg_mem(compMethod, X86_EAX, X86_ESP, 4);
+	x86_mov_reg_membase(compMethod, X86_EAX, X86_EAX, spec->FieldIndex * global_SizeOfPointerInBytes, 4);
+	x86_mov_mem_reg(compMethod, X86_ESP, X86_EAX, 4);
+
+	return compMethod;
+}
+
+
+
 char* JIT_Emit_ParamSwap(char* compMethod, uint32_t paramCount)
 {
 	uint32_t swapCount = paramCount / 2;

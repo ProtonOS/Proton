@@ -840,6 +840,28 @@ typedef enum IROpCode
 
      */
     IROpCode_Load_String,
+    /*
+        Loads the specified field
+		from the object on the top
+		of the stack, to the top
+		of the stack.
+		
+        Arg1:
+            A spec representing the field
+			to be loaded.
+			Of the type IRFieldSpec.
+
+        Arg2:
+            N/A
+
+        Arg3:
+            N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_Load_Field,
 	
 } IROpCode;
 

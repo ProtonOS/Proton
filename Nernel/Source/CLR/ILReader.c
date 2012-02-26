@@ -20,6 +20,8 @@ uint16_t ReadUInt16(uint8_t** dat);
 uint32_t ReadUInt32(uint8_t** dat);
 uint64_t ReadUInt64(uint8_t** dat);
 void Link(IRAssembly* asmb);
+
+IRField** TypeDefinition_GetLayedOutFields(TypeDefinition* tdef, CLIFile* fil, uint* destLength, AppDomain* dom);
 IRMethod** TypeDefinition_GetLayedOutMethods(TypeDefinition* tdef, CLIFile* fil, uint* destLength, AppDomain* dom);
 IRType* GenerateType(TypeDefinition* def, CLIFile* fil, IRAssembly* asmb, AppDomain* dom);
 IRField* GenerateField(Field* def, CLIFile* fil, IRAssembly* asmb, AppDomain* dom);
@@ -181,10 +183,14 @@ IRType* GenerateType(TypeDefinition* def, CLIFile* fil, IRAssembly* asmb, AppDom
 
 	// Layout the methods.
 	uint mthCount = 0;
-	Log_WriteLine(LogFlags_ILReading_MethodLayout, "Step 0.");
 	tp->Methods = TypeDefinition_GetLayedOutMethods(def, fil, &mthCount, dom);
 	tp->MethodCount = mthCount;
-	Log_WriteLine(LogFlags_ILReading_MethodLayout, "Final Step.");
+
+	// Layout the fields
+	uint fldCount = 0;
+	tp->Fields = TypeDefinition_GetLayedOutFields(def, fil, &fldCount, dom);
+	tp->FieldCount = fldCount;
+
 
 	// Check if it's a generic type.
 	if (def->GenericParameterCount > 0)
@@ -213,6 +219,66 @@ IRType* GenerateType(TypeDefinition* def, CLIFile* fil, IRAssembly* asmb, AppDom
 	}
 	
 	return tp;
+}
+
+IRField** TypeDefinition_GetLayedOutFields(TypeDefinition* tdef, CLIFile* fil, uint* destLength, AppDomain* dom)
+{
+	Log_WriteLine(LogFlags_ILReading_FieldLayout, "Laying out the fields of %s.%s", tdef->Namespace, tdef->Name);
+	IRField** flds = NULL;
+	uint fldsCount = 0;
+	if (tdef->TypeOfExtends != TypeDefOrRef_Type_TypeDefinition)
+	{
+		if (tdef->TypeOfExtends == TypeDefOrRef_Type_TypeSpecification)
+		{
+			*destLength = 0;
+			return NULL;
+			//Panic("Type Spec!");
+		}
+		else if (tdef->TypeOfExtends == TypeDefOrRef_Type_TypeReference)
+		{
+			Panic("Type Ref!");
+		}
+	}
+
+	if (tdef->Extends.TypeDefinition != NULL)
+	{
+		flds = TypeDefinition_GetLayedOutFields(tdef->Extends.TypeDefinition, fil, &fldsCount, dom);
+	}
+
+	uint32_t newFieldsCount = 0;
+	for (uint32_t i = 0; i < tdef->FieldListCount; i++)
+	{
+		if (!(tdef->FieldList[i].Flags & FieldAttributes_Static))
+		{
+			newFieldsCount++;
+		}
+	}
+	Log_WriteLine(LogFlags_ILReading_FieldLayout, "Field count: %i NewFieldCount: %i", (int)fldsCount, (int)newFieldsCount);
+
+	IRField** fnlFields = (IRField**)calloc(fldsCount + newFieldsCount, sizeof(IRField*));
+	for (uint32_t i = 0; i < fldsCount; i++)
+	{
+		fnlFields[i] = flds[i];
+	}
+
+	uint32_t fldIndex = 0;
+	for (uint32_t i = 0; i < tdef->MethodDefinitionListCount; i++)
+	{
+		if (!(tdef->FieldList[i].Flags & FieldAttributes_Static))
+		{
+			fnlFields[fldIndex + fldsCount] = (IRField*)tdef->FieldList[i].TableIndex;
+			Log_WriteLine(LogFlags_ILReading_FieldLayout, "Adding Field %s.%s.%s from table index %i at %i", tdef->Namespace, tdef->Name, tdef->FieldList[i].Name, (int)tdef->FieldList[i].TableIndex, fldIndex + fldsCount);
+			fldIndex++;
+		}
+	}
+
+	if (flds != NULL)
+	{
+		free(flds);
+	}
+
+	*destLength = fldsCount + newFieldsCount;
+	return fnlFields;
 }
 
 IRMethod** TypeDefinition_GetLayedOutMethods(TypeDefinition* tdef, CLIFile* fil, uint* destLength, AppDomain* dom)
@@ -347,7 +413,7 @@ void Link(IRAssembly* asmb)
 	for (uint32_t i = 0; i < asmb->FieldCount; i++)
 	{
 		IRField* fld = asmb->Fields[i];
-		fld->FieldType = asmb->Types[(uint32_t)fld->FieldType];
+		fld->FieldType = asmb->Types[(uint32_t)fld->FieldType - 1];
 	}
 		
 	// Resolve the static constructors 
@@ -369,6 +435,17 @@ void Link(IRAssembly* asmb)
 		for (uint32_t i2 = 0; i2 < tp->MethodCount; i2++)
 		{
 			tp->Methods[i2] = asmb->Methods[(uint32_t)tp->Methods[i2] - 1];
+		}
+	}
+
+	// Resolve the fields in the field
+	// tables.
+	for (uint32_t i = 0; i < asmb->TypeCount; i++)
+	{
+		IRType* tp = asmb->Types[i];
+		for (uint32_t i2 = 0; i2 < tp->FieldCount; i2++)
+		{
+			tp->Fields[i2] = asmb->Fields[(uint32_t)tp->Fields[i2] - 1];
 		}
 	}
 
@@ -1809,7 +1886,7 @@ Branch_Common:
 						case MetaData_Table_Field:
 							fld = (Field*)tok->Data;
 							sig = FieldSignature_Expand(fld->Signature, fil);
-
+							
 							break;
 
 						case MetaData_Table_MemberReference:

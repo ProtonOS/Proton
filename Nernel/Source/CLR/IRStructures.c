@@ -56,6 +56,12 @@ IRMethodSpec* IRMethodSpec_Create()
 	return mthspec;
 }
 
+IRFieldSpec* IRFieldSpec_Create()
+{
+	IRFieldSpec* fldspec = (IRFieldSpec*)calloc(1, sizeof(IRFieldSpec));
+	return fldspec;
+}
+
 
 
 
@@ -141,6 +147,11 @@ void IRField_Destroy(IRField* fld)
 void IRMethodSpec_Destroy(IRMethodSpec* mthspec)
 {
 	free(mthspec);
+}
+
+void IRFieldSpec_Destroy(IRFieldSpec* fldspec)
+{
+	free(fldspec);
 }
 
 

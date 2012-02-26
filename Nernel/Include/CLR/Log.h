@@ -12,7 +12,7 @@
 #else
 #define ActiveLogFlags ((LogFlags)( \
 		LogFlags_JIT \
-        /* LogFlags_ILReading */ \
+        /* | LogFlags_ILReading */ \
         /* | LogFlags_IREmitting */ \
         /* | LogFlags_SyntheticStack */ \
         /* | LogFlags_MetaData_Loading */ \
@@ -21,6 +21,7 @@
         /* | LogFlags_ILReading_ElementTypes */ \
 		/* | LogFlags_ILReading_MethodLayout */ \
 		/* | LogFlags_ILReading_ExceptionBlocks */ \
+		| LogFlags_ILReading_FieldLayout \
         ))
 #endif
 
@@ -41,6 +42,7 @@ typedef enum LogFlags
     LogFlags_ILReading_MethodLayout =		1 << 7,
     LogFlags_ILReading_ExceptionBlocks =	1 << 8,
     LogFlags_JIT =							1 << 9,
+    LogFlags_ILReading_FieldLayout =		1 << 10,
 
 } LogFlags;
 

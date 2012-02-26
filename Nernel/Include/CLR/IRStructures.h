@@ -2,12 +2,13 @@
 
 typedef struct _IRAssembly IRAssembly;
 typedef struct _IRType IRType;
-typedef struct _IRMethodSpec IRMethodSpec;
 typedef struct _IRMethod IRMethod;
 typedef struct _IRInstruction IRInstruction;
 typedef struct _IRParameter IRParameter;
 typedef struct _IRLocalVariable IRLocalVariable;
 typedef struct _IRField IRField;
+typedef struct _IRMethodSpec IRMethodSpec;
+typedef struct _IRFieldSpec IRFieldSpec;
 
 
 
@@ -17,18 +18,6 @@ typedef struct _IRField IRField;
 #include <CLR/CLIFile.h>
 #include <CLR/OpCodes_IR.h>
 #include <CLR/AppDomain.h>
-
-struct _IRMethodSpec
-{
-	/*
-		The parent type of this method.
-	 */
-	IRType* ParentType;
-	/*
-		The index in the parent type's method list.
-	 */
-	uint32_t MethodIndex;
-};
 
 // Also, please DO NOT modify the
 // structures unless you first check
@@ -157,6 +146,29 @@ struct _IRField
 	Field* FieldDef;
 };
 
+struct _IRMethodSpec
+{
+	/*
+		The parent type of this method.
+	 */
+	IRType* ParentType;
+	/*
+		The index in the parent type's method list.
+	 */
+	uint32_t MethodIndex;
+};
+
+struct _IRFieldSpec
+{
+	/*
+		The type of this field.
+	 */
+	IRType* FieldType;
+	/*
+		The index in the parent type's field list.
+	 */
+	uint32_t FieldIndex;
+};
 
 IRAssembly* IRAssembly_Create(AppDomain* domain);
 IRMethod* IRMethod_Create();
@@ -166,6 +178,7 @@ IRType* IRType_Create();
 IRLocalVariable* IRLocalVariable_Create();
 IRField* IRField_Create();
 IRMethodSpec* IRMethodSpec_Create();
+IRFieldSpec* IRFieldSpec_Create();
 
 
 void IRAssembly_Destroy(IRAssembly* asmb);
@@ -176,6 +189,7 @@ void IRType_Destroy(IRType* tp);
 void IRLocalVariable_Destroy(IRLocalVariable* var);
 void IRField_Destroy(IRField* fld);
 void IRMethodSpec_Destroy(IRMethodSpec* mthspec);
+void IRFieldSpec_Destroy(IRFieldSpec* mthspec);
 
 
 void IRAssembly_AddMethod(IRAssembly* asmb, IRMethod* mth);

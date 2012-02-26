@@ -1044,7 +1044,7 @@ typedef union {
 		case 1: *(inst)++ = (unsigned char)0x8a; break;	\
 		case 2: x86_prefix((inst), X86_OPERAND_PREFIX); /* fall through */	\
 		case 4: *(inst)++ = (unsigned char)0x8b; break;	\
-		default: assert (0);	\
+		default: break;	\
 		}	\
 		x86_mem_emit ((inst), (reg), (mem));	\
 	} while (0)
