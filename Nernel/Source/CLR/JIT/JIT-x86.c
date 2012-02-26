@@ -80,7 +80,11 @@ char* JIT_Compile_BreakForDebugger			(IRInstruction* instr, char* compMethod, IR
 
 char* JIT_Compile_Return					(IRInstruction* instr, char* compMethod, IRMethod* mth)
 {
-	//x86_ret(compMethod);
+	if (mth->Returns)
+	{
+		x86_pop_reg(compMethod, X86_EAX);
+	}
+	x86_ret(compMethod);
 	return compMethod;
 }
 
@@ -1000,7 +1004,10 @@ char* JIT_Compile_Call_Absolute				(IRInstruction* instr, char* compMethod, IRMe
 
 	x86_call_code(compMethod, m->AssembledMethod);
 	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, (m->ParameterCount * 4));
-	x86_push_reg(compMethod, X86_EAX);
+	if (m->Returns)
+	{
+		x86_push_reg(compMethod, X86_EAX);
+	}
 	return compMethod;
 }
 
@@ -1093,14 +1100,16 @@ char* JIT_Compile_Call_Internal				(IRInstruction* instr, char* compMethod, IRMe
 	x86_push_imm(compMethod, (unsigned int)m->ParentAssembly->ParentDomain); // Push the domain
 	x86_call_code(compMethod, mthd); // Call the method.
 	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, ((m->ParameterCount + 1) * 4)); // Fix the stack after calling the method
-	x86_push_reg(compMethod, X86_EAX);
+	if (m->Returns)
+	{
+		x86_push_reg(compMethod, X86_EAX);
+	}
 
 	return compMethod;
 }
 
 #include <CLR/ReferenceTypeObject.h>
-void JIT_Trampoline_DoCall(IRMethodSpec* spec, ReferenceTypeObject* obj); // this is done in asm.
-void* JIT_Trampoline_DoCall2(IRMethodSpec* mth, ReferenceTypeObject* obj);
+void* JIT_Trampoline_DoCall(IRMethodSpec* mth, ReferenceTypeObject* obj);
 char* JIT_Compile_Call						(IRInstruction* instr, char* compMethod, IRMethod* mth)
 {
 	IRMethodSpec* spec = (IRMethodSpec*)instr->Arg1;
@@ -1110,15 +1119,23 @@ char* JIT_Compile_Call						(IRInstruction* instr, char* compMethod, IRMethod* m
 	compMethod = JIT_Emit_ParamSwap(compMethod, m->ParameterCount);
 	
 	x86_push_imm(compMethod, instr->Arg1);
-	x86_call_code(compMethod, JIT_Trampoline_DoCall2);
+	x86_call_code(compMethod, JIT_Trampoline_DoCall);
 	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 4); // Fix the stack from calling the trampoline
 	x86_call_reg(compMethod, X86_EAX);
+	if (m->Returns)
+	{
+		x86_pop_reg(compMethod, X86_EAX);
+	}
 	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, (spec->ParentType->Methods[spec->MethodIndex]->ParameterCount * 4));
+	if (m->Returns)
+	{
+		x86_push_reg(compMethod, X86_EAX);
+	}
 
 	return compMethod;
 }
 
-void* JIT_Trampoline_DoCall2(IRMethodSpec* mth, ReferenceTypeObject* obj)
+void* JIT_Trampoline_DoCall(IRMethodSpec* mth, ReferenceTypeObject* obj)
 {
 	printf("DoCall: mth name = %s\n", mth->ParentType->Methods[mth->MethodIndex]->MethodDefinition->Name);
 	printf("DoCall: argc = %u\n", (unsigned int)mth->ParentType->Methods[mth->MethodIndex]->ParameterCount);

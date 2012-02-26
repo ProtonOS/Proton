@@ -1887,7 +1887,7 @@ Branch_Common:
 							{
 								fld = (Field*)tok->Data;
 								sig = FieldSignature_Expand(fld->Signature, fil);
-								/*TypeDefinition* tdef = fld->TypeDefinition;
+								TypeDefinition* tdef = fld->TypeDefinition;
 								bool_t Found = FALSE;
 								for (uint32_t i = 0; i < tdef->FieldListCount; i++)
 								{
@@ -1902,7 +1902,7 @@ Branch_Common:
 									}
 								}
 								if (!Found)
-									Panic("Unable to resolve field!");*/
+									Panic("Unable to resolve field!");
 							}
 							break;
 

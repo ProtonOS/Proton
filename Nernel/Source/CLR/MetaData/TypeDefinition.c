@@ -76,6 +76,8 @@ const uint8_t* TypeDefinition_Load(CLIFile* pFile, const uint8_t* pTableData)
         if (fieldListIndex == 0 || fieldListIndex > pFile->FieldCount + 1) Panic("TypeDefinition_Load Field");
         if (fieldListIndex <= pFile->FieldCount)
         {
+			//printf("TypeDef Field Link: %s.%s, start @ %u\n", pFile->TypeDefinitions[index].Namespace, pFile->TypeDefinitions[index].Name, fieldListIndex);
+			//printf("Field List: 0x%x\n", (unsigned int)&pFile->Fields[fieldListIndex]);
             pFile->TypeDefinitions[index].FieldList = &pFile->Fields[fieldListIndex];
             fieldListIndexes[index] = fieldListIndex;
         }
@@ -94,15 +96,9 @@ const uint8_t* TypeDefinition_Load(CLIFile* pFile, const uint8_t* pTableData)
         if (index == pFile->TypeDefinitionCount || fieldListIndexes[index + 1] == 0) fieldListCount = pFile->FieldCount - used;
         else fieldListCount = fieldListIndexes[index + 1] - fieldListIndexes[index];
         pFile->TypeDefinitions[index].FieldListCount = fieldListCount;
+		//printf("TypeDef: %s.%s, Owns %u Fields starting @ %u\n", pFile->TypeDefinitions[index].Namespace, pFile->TypeDefinitions[index].Name, fieldListCount, fieldListIndexes[index]);
     }
     free(fieldListIndexes);
-    for (uint32_t index = 1; index <= pFile->TypeDefinitionCount; ++index)
-    {
-		for (uint32_t index2 = 0; index < pFile->TypeDefinitions[index].FieldListCount; ++index)
-		{
-			pFile->TypeDefinitions[index].FieldList[index2].TypeDefinition = &pFile->TypeDefinitions[index];
-		}
-    }
     uint32_t methodDefinitionListCount = 0;
     for (uint32_t index = 1, used = 0; index <= pFile->TypeDefinitionCount; ++index, used += methodDefinitionListCount)
     {
@@ -256,5 +252,15 @@ void TypeDefinition_Link(CLIFile* pFile)
                 pFile->TypeDefinitions[index].MethodDefinitionList[searchIndex].TypeDefinition = &pFile->TypeDefinitions[index];
             }
         }
+    }
+
+	for (uint32_t index = 1; index <= pFile->TypeDefinitionCount; ++index)
+    {
+		//printf("Linking Fields for %s.%s, %u\n", pFile->TypeDefinitions[index].Namespace, pFile->TypeDefinitions[index].Name, pFile->TypeDefinitions[index].FieldListCount);
+		for (uint32_t index2 = 0; index2 < pFile->TypeDefinitions[index].FieldListCount; ++index2)
+		{
+			pFile->TypeDefinitions[index].FieldList[index2].TypeDefinition = &pFile->TypeDefinitions[index];
+			//printf("Linking Field %s to TypeDef %s.%s @ 0x%x\n", pFile->TypeDefinitions[index].FieldList[index2].Name, pFile->TypeDefinitions[index].Namespace, pFile->TypeDefinitions[index].Name, (unsigned int)pFile->TypeDefinitions[index].FieldList[index2].TypeDefinition);
+		}
     }
 }

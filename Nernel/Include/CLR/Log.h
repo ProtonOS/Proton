@@ -21,7 +21,7 @@
         /* | LogFlags_ILReading_ElementTypes */ \
 		/* | LogFlags_ILReading_MethodLayout */ \
 		/* | LogFlags_ILReading_ExceptionBlocks */ \
-		| LogFlags_ILReading_FieldLayout \
+		/* | LogFlags_ILReading_FieldLayout */ \
         ))
 #endif
 
