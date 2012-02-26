@@ -13,12 +13,18 @@ global JIT_Trampoline_DoCall
 JIT_Trampoline_DoCall:
 	push	ebp
 	mov		ebp, esp
-	mov		edx, [ebp + 12]
+	sub		esp, 4
+	mov		edx, [ebp + 0]
 	mov		eax, [edx + 30]
+	pushad
 	push	eax
 	call	AppDomainRegistry_GetDomain
-	push	eax
+	add		esp, 4
+	mov		[ebp - 4], eax
+	popad
 	mov		eax, [esp]
+	;push	eax
+	;mov		eax, [esp]
 	mov		edx, [ebp + 12]
 	
 	; Check Assembly Index
@@ -52,6 +58,7 @@ JIT_Trampoline_DoCall:
 	; Now check method index
 	mov		eax, [eax + 17]
 	mov		ebx, [ebp + 8]
+	mov		ebx, [ebx + 4]
 	cmp		eax, ebx
 	jae		Bad_MethodIndex
 	; Method index is ok
@@ -64,7 +71,7 @@ JIT_Trampoline_DoCall:
 	; The method is now on the top of the stack.
 	
 	mov		eax, [ebx + 4]
-	test	eax, eax
+	cmp		eax, 0
 	jne		MethodReady
 	
 	; Push the pointer to the 
@@ -72,6 +79,7 @@ JIT_Trampoline_DoCall:
 	; to be compiled.
 	push	ebx
 	call	JIT_CompileMethod
+	add		esp, 4
 	
 	; The method is ready,
 	; and the original copy
@@ -82,6 +90,7 @@ JIT_Trampoline_DoCall:
 MethodReady:
 	pop		eax
 	mov		eax, [eax + 4]
+	mov		esp, ebp
 	pop		ebp
 	call	eax
 	ret
