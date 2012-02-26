@@ -8,7 +8,7 @@ struct _TypeDefinition
     uint32_t Flags;
     const char* Name;
     const char* Namespace;
-    TypeDefOrRefUnion(Extends);
+    TypeDefOrRefUnion(Extends)
     Field* FieldList;
 	uint32_t FieldListCount;
     MethodDefinition* MethodDefinitionList;
