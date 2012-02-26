@@ -11,7 +11,6 @@ typedef struct _IRMethodSpec IRMethodSpec;
 typedef struct _IRFieldSpec IRFieldSpec;
 
 
-
 // DO NOT put this include above the typedefs,
 // the typedefs are needed to be able to resolve
 // circular inclusions.

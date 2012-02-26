@@ -2,16 +2,6 @@
 
 #include <CLR/OpCodes_IR.h>
 
-typedef struct _x86ArrayHeader x86ArrayHeader;
-
-struct _x86ArrayHeader
-{
-	uint32_t ElementCount;
-	uint32_t DomainIndex;
-	uint32_t AssemblyIndex;
-	uint32_t TypeIndex;
-};
-
 #define GetSizeOfElementType(dest, value) \
 	switch (value) \
 	{ \

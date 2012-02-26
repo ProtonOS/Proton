@@ -41,6 +41,7 @@
     <ClCompile Include="Source\CLR\IRMethod_BranchLinker.c" />
     <ClCompile Include="Source\CLR\IROptimizer.c" />
     <ClCompile Include="Source\CLR\IRStructures.c" />
+    <ClCompile Include="Source\CLR\JIT\BranchRegistry.c" />
     <ClCompile Include="Source\CLR\JIT\JIT.c" />
     <ClCompile Include="Source\CLR\JIT\JIT-x86.c" />
     <ClCompile Include="Source\CLR\Log.c" />
@@ -161,6 +162,7 @@
     <ClInclude Include="Include\CLR\IRMethod_BranchLinker.h" />
     <ClInclude Include="Include\CLR\IROptimizer.h" />
     <ClInclude Include="Include\CLR\IRStructures.h" />
+    <ClInclude Include="Include\CLR\JIT\BranchRegistry.h" />
     <ClInclude Include="Include\CLR\JIT\JIT-x86.h" />
     <ClInclude Include="Include\CLR\JIT\JIT.h" />
     <ClInclude Include="Include\CLR\JIT\x86\x86-codegen-extra.h" />

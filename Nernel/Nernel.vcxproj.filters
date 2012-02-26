@@ -117,6 +117,7 @@
     <ClCompile Include="Source\CLR\InternalCalls\System.DateTime.c" />
     <ClCompile Include="Source\CLR\InternalCalls\System.Environment.c" />
     <ClCompile Include="Source\CLR\InternalCalls\System.String.c" />
+    <ClCompile Include="Source\CLR\JIT\BranchRegistry.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\CLR\AppDomain.h" />
@@ -257,6 +258,7 @@
     <ClInclude Include="Include\CLR\InternalCalls\System.Environment.h" />
     <ClInclude Include="Include\Inline.h" />
     <ClInclude Include="Include\CLR\InternalCalls\System.String.h" />
+    <ClInclude Include="Include\CLR\JIT\BranchRegistry.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Makefile.omake" />

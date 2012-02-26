@@ -1,6 +1,7 @@
 #pragma once
 
 typedef struct _GCString GCString;
+typedef struct _GCArray GCArray;
 typedef struct _GC GC;
 typedef struct _GCHeap GCHeap;
 typedef struct _GCHeapStack GCHeapStack;

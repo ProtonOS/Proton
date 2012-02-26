@@ -64,21 +64,21 @@ char* JIT_Emit_Epilogue(IRMethod* mth, char* compMethod)
 
 
 
-char* JIT_Compile_Nop(IRInstruction* instr, char* compMethod, IRMethod* mth)
+char* JIT_Compile_Nop(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	x86_nop(compMethod);
 	return compMethod;
 }
 
 
-char* JIT_Compile_BreakForDebugger			(IRInstruction* instr, char* compMethod, IRMethod* mth)
+char* JIT_Compile_BreakForDebugger			(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	
 	return compMethod;
 }
 
 
-char* JIT_Compile_Return					(IRInstruction* instr, char* compMethod, IRMethod* mth)
+char* JIT_Compile_Return					(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	if (mth->Returns)
 	{
@@ -89,14 +89,14 @@ char* JIT_Compile_Return					(IRInstruction* instr, char* compMethod, IRMethod* 
 }
 
 
-char* JIT_Compile_LoadInt32_Val			(IRInstruction* instr, char* compMethod, IRMethod* mth)
+char* JIT_Compile_LoadInt32_Val			(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	x86_push_imm(compMethod, *((int32_t*)instr->Arg1));
 	return compMethod;
 }
 
 
-char* JIT_Compile_LoadInt64_Val			(IRInstruction* instr, char* compMethod, IRMethod* mth)
+char* JIT_Compile_LoadInt64_Val			(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	int64_t value = *((int64_t*)instr->Arg1);
 	x86_push_imm(compMethod, (value & 0xFFFFFFFF));
@@ -105,14 +105,14 @@ char* JIT_Compile_LoadInt64_Val			(IRInstruction* instr, char* compMethod, IRMet
 }
 
 
-char* JIT_Compile_LoadFloat32_Val			(IRInstruction* instr, char* compMethod, IRMethod* mth)
+char* JIT_Compile_LoadFloat32_Val			(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	x86_push_imm(compMethod, *((int32_t*)instr->Arg1));
 	return compMethod;
 }
 
 
-char* JIT_Compile_LoadFloat64_Val			(IRInstruction* instr, char* compMethod, IRMethod* mth)
+char* JIT_Compile_LoadFloat64_Val			(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	int64_t value = *((int64_t*)instr->Arg1);
 	x86_push_imm(compMethod, (value & 0xFFFFFFFF));
@@ -120,22 +120,143 @@ char* JIT_Compile_LoadFloat64_Val			(IRInstruction* instr, char* compMethod, IRM
 	return compMethod;
 }
 
+/*
+    Branches to a specific instruction.
+    Takes it's arguments from the stack.
 
-char* JIT_Compile_Branch					(IRInstruction* instr, char* compMethod, IRMethod* mth)
+    Arg1:
+        The condition of the branch,
+        of the type BranchCondition.
+
+    Arg2:
+        The branch target, a pointer to 
+        a structure of the type IRInstruction.
+
+    Arg3:
+        Provided that Arg1 is not
+		BranchCondition_Always, this
+		is the type of object that
+		is the first argument for 
+		the branch operation.
+		Of the type ElementType.
+
+    Arg4:
+        Provided that Arg2 is not
+		BranchCondition_Always,
+		BranchCondition_True, or
+		BranchCondition_False,
+		this is the type of object that
+		is the first argument for 
+		the branch operation.
+		Of the type ElementType.
+
+*/
+
+char* JIT_Compile_Branch					(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
+{
+	// it would be something like this:
+	BranchCondition condition = *(BranchCondition*)instr->Arg1;
+	IRInstruction* target = (IRInstruction*)instr->Arg2;
+	if (condition == BranchCondition_Always)
+	{
+		if (target->InstructionLocation > instr->InstructionLocation)
+		{
+			unsigned char* comp = (unsigned char*)compMethod;
+			x86_jump_code(comp, 0);
+			BranchRegistry_RegisterBranchForLink(branchRegistry, instr->InstructionLocation, target->InstructionLocation, compMethod);
+			compMethod = (char*)comp;
+		}
+		else
+		{
+			unsigned char* targLoc = (unsigned char*)BranchRegistry_GetInstructionLocation(branchRegistry, target->InstructionLocation);
+			unsigned char* comp = (unsigned char*)compMethod;
+			x86_jump_code(comp, targLoc);
+			compMethod = (char*)comp;
+		}
+	}
+	else if(condition == BranchCondition_False || condition == BranchCondition_True)
+	{
+		ElementType ArgType = *(ElementType*)instr->Arg3;
+		switch(ArgType)
+		{
+			case ElementType_I1:
+			case ElementType_I2:
+			case ElementType_I4:
+			case ElementType_I:
+			case ElementType_U1:
+			case ElementType_U2:
+			case ElementType_U4:
+			case ElementType_U:
+			case ElementType_ManagedPointer:
+			case ElementType_Ref:
+				{
+					x86_pop_reg(compMethod, X86_EAX);
+					x86_alu_reg_imm(compMethod, X86_CMP, X86_EAX, 0);
+
+					unsigned char* comp = (unsigned char*)compMethod;
+					if (target->InstructionLocation > instr->InstructionLocation)
+					{
+						if (condition == BranchCondition_False)
+						{
+								x86_branch32(comp, X86_CC_E, 0, FALSE);
+						}
+						else
+						{
+								x86_branch32(comp, X86_CC_NE, 0, FALSE);
+						}
+						BranchRegistry_RegisterBranchForLink(branchRegistry, instr->InstructionLocation, target->InstructionLocation, compMethod);
+					}
+					else
+					{
+						unsigned char* targLoc = (unsigned char*)BranchRegistry_GetInstructionLocation(branchRegistry, target->InstructionLocation);
+						if (condition == BranchCondition_False)
+						{
+								x86_branch32(comp, X86_CC_E, targLoc, FALSE);
+						}
+						else
+						{
+								x86_branch32(comp, X86_CC_NE, targLoc, FALSE);
+						}
+					}
+					compMethod = (char*)comp;
+				}
+				break;
+			default:
+				Panic("Invalid argument type for simple branch!");
+				break;
+		}
+	}
+	else
+	{
+		//ElementType Arg1Type = *(ElementType*)instr->Arg3;
+		//ElementType Arg2Type = *(ElementType*)instr->Arg4;
+
+	}
+	return compMethod;
+}
+char* JIT_LinkBranches(char* compMethod, BranchRegistry* branchReg, uint32_t pLength)
+{
+
+	for (uint32_t i = 0; i < pLength; i++)
+	{
+		if (branchReg->BranchLocations[i] != 0)
+		{
+			x86_patch((unsigned char*)branchReg->BranchLocations[i], (unsigned char*)branchReg->InstructionLocations[branchReg->TargetLocations[i]]);
+		}
+	}
+
+	return compMethod;
+}
+
+
+char* JIT_Compile_Jump						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	
 	return compMethod;
 }
 
 
-char* JIT_Compile_Jump						(IRInstruction* instr, char* compMethod, IRMethod* mth)
-{
-	
-	return compMethod;
-}
-
-
-char* JIT_Compile_Store_LocalVar			(IRInstruction* instr, char* compMethod, IRMethod* mth)
+char* JIT_Compile_Store_LocalVar			(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	uint32_t localIndex = *(uint32_t*)instr->Arg1;
 	uint32_t size = global_SizeOfPointerInBytes;
@@ -152,7 +273,7 @@ char* JIT_Compile_Store_LocalVar			(IRInstruction* instr, char* compMethod, IRMe
 }
 
 
-char* JIT_Compile_Load_LocalVar				(IRInstruction* instr, char* compMethod, IRMethod* mth)
+char* JIT_Compile_Load_LocalVar				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	uint32_t localIndex = *(uint32_t*)instr->Arg1;
 	uint32_t size = global_SizeOfPointerInBytes;
@@ -169,7 +290,7 @@ char* JIT_Compile_Load_LocalVar				(IRInstruction* instr, char* compMethod, IRMe
 }
 
 
-char* JIT_Compile_Load_LocalVar_Address		(IRInstruction* instr, char* compMethod, IRMethod* mth)
+char* JIT_Compile_Load_LocalVar_Address		(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	uint32_t localIndex = *(uint32_t*)instr->Arg1;
 	x86_mov_reg_reg(compMethod, X86_EAX, X86_EBP, global_SizeOfPointerInBytes);
@@ -179,13 +300,13 @@ char* JIT_Compile_Load_LocalVar_Address		(IRInstruction* instr, char* compMethod
 }
 
 
-char* JIT_Compile_Convert_OverflowCheck		(IRInstruction* instr, char* compMethod, IRMethod* mth)
+char* JIT_Compile_Convert_OverflowCheck		(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	return compMethod;
 }
 
 
-char* JIT_Compile_Convert_Unchecked			(IRInstruction* instr, char* compMethod, IRMethod* mth)
+char* JIT_Compile_Convert_Unchecked			(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	char buf[128];
 	ConversionArgumentType fromType = *(ConversionArgumentType*)instr->Arg1;
@@ -387,7 +508,7 @@ char* JIT_Compile_Convert_Unchecked			(IRInstruction* instr, char* compMethod, I
 }
 
 
-char* JIT_Compile_Load_Parameter			(IRInstruction* instr, char* compMethod, IRMethod* mth)
+char* JIT_Compile_Load_Parameter			(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	uint32_t paramIndex = *(uint32_t*)instr->Arg1;
 	uint32_t size = global_SizeOfPointerInBytes;
@@ -404,7 +525,7 @@ char* JIT_Compile_Load_Parameter			(IRInstruction* instr, char* compMethod, IRMe
 }
 
 
-char* JIT_Compile_Load_Parameter_Address	(IRInstruction* instr, char* compMethod, IRMethod* mth)
+char* JIT_Compile_Load_Parameter_Address	(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	uint32_t paramIndex = *(uint32_t*)instr->Arg1;
 	x86_mov_reg_reg(compMethod, X86_EAX, X86_EBP, global_SizeOfPointerInBytes);
@@ -414,7 +535,7 @@ char* JIT_Compile_Load_Parameter_Address	(IRInstruction* instr, char* compMethod
 }
 
 
-char* JIT_Compile_Store_Parameter			(IRInstruction* instr, char* compMethod, IRMethod* mth)
+char* JIT_Compile_Store_Parameter			(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	uint32_t paramIndex = *(uint32_t*)instr->Arg1;
 	uint32_t size = global_SizeOfPointerInBytes;
@@ -431,7 +552,7 @@ char* JIT_Compile_Store_Parameter			(IRInstruction* instr, char* compMethod, IRM
 }
 
 
-char* JIT_Compile_Load_Element				(IRInstruction* instr, char* compMethod, IRMethod* mth)
+char* JIT_Compile_Load_Element				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	ElementType elementType = *(ElementType*)instr->Arg1;
 	//StackObjectType indexType = *(StackObjectType*)instr->Arg2;
@@ -441,7 +562,7 @@ char* JIT_Compile_Load_Element				(IRInstruction* instr, char* compMethod, IRMet
 	x86_pop_reg(compMethod, X86_EAX);
 	x86_pop_reg(compMethod, X86_ECX);
 	x86_mov_reg_mem(compMethod, X86_ECX, X86_ECX, global_SizeOfPointerInBytes);
-	x86_alu_reg_imm(compMethod, X86_ADD, X86_ECX, sizeof(x86ArrayHeader));
+	x86_alu_reg_imm(compMethod, X86_ADD, X86_ECX, sizeof(GCArray));
 	x86_imul_reg_reg_imm(compMethod, X86_EAX, X86_EAX, sizeOfElementType);
 	x86_alu_reg_reg(compMethod, X86_ADD, X86_ECX, X86_EAX);
 	x86_mov_reg_mem(compMethod, X86_EAX, X86_ECX, sizeOfElementType);
@@ -450,7 +571,7 @@ char* JIT_Compile_Load_Element				(IRInstruction* instr, char* compMethod, IRMet
 }
 
 
-char* JIT_Compile_Store_Element				(IRInstruction* instr, char* compMethod, IRMethod* mth)
+char* JIT_Compile_Store_Element				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	ElementType elementType = *(ElementType*)instr->Arg1;
 	//StackObjectType indexType = *(StackObjectType*)instr->Arg2;
@@ -461,7 +582,7 @@ char* JIT_Compile_Store_Element				(IRInstruction* instr, char* compMethod, IRMe
 	x86_pop_reg(compMethod, X86_ECX);
 	x86_pop_reg(compMethod, X86_EAX);
 	x86_mov_reg_mem(compMethod, X86_ECX, X86_ECX, global_SizeOfPointerInBytes);
-	x86_alu_reg_imm(compMethod, X86_ADD, X86_ECX, sizeof(x86ArrayHeader));
+	x86_alu_reg_imm(compMethod, X86_ADD, X86_ECX, sizeof(GCArray));
 	x86_imul_reg_reg_imm(compMethod, X86_EAX, X86_EAX, sizeOfElementType);
 	x86_alu_reg_reg(compMethod, X86_ADD, X86_ECX, X86_EAX);
 	x86_mov_mem_reg(compMethod, X86_ECX, X86_EDX, sizeOfElementType);
@@ -469,7 +590,7 @@ char* JIT_Compile_Store_Element				(IRInstruction* instr, char* compMethod, IRMe
 }
 
 
-char* JIT_Compile_Load_Array_Length			(IRInstruction* instr, char* compMethod, IRMethod* mth)
+char* JIT_Compile_Load_Array_Length			(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	x86_pop_reg(compMethod, X86_ECX);
 	x86_mov_reg_mem(compMethod, X86_ECX, X86_ECX, global_SizeOfPointerInBytes);
@@ -479,7 +600,7 @@ char* JIT_Compile_Load_Array_Length			(IRInstruction* instr, char* compMethod, I
 }
 
 
-char* JIT_Compile_Pop						(IRInstruction* instr, char* compMethod, IRMethod* mth)
+char* JIT_Compile_Pop						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	switch(*((ElementType*)instr->Arg1))
 	{
@@ -523,7 +644,7 @@ char* JIT_Compile_Pop						(IRInstruction* instr, char* compMethod, IRMethod* mt
 }
 
 
-char* JIT_Compile_Shift						(IRInstruction* instr, char* compMethod, IRMethod* mth)
+char* JIT_Compile_Shift						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	ShiftType shiftType = *(ShiftType*)instr->Arg1;
 	StackObjectType shiftedType = *(StackObjectType*)instr->Arg2;
@@ -639,7 +760,7 @@ char* JIT_Compile_Shift						(IRInstruction* instr, char* compMethod, IRMethod* 
 }
 
 
-char* JIT_Compile_Add						(IRInstruction* instr, char* compMethod, IRMethod* mth)
+char* JIT_Compile_Add						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	OverflowType ovfType = *(OverflowType*)instr->Arg1;
 	ElementType argEins = *(ElementType*)instr->Arg2;
@@ -685,7 +806,7 @@ char* JIT_Compile_Add						(IRInstruction* instr, char* compMethod, IRMethod* mt
 }
 
 
-char* JIT_Compile_Sub						(IRInstruction* instr, char* compMethod, IRMethod* mth)
+char* JIT_Compile_Sub						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	OverflowType ovfType = *(OverflowType*)instr->Arg1;
 	ElementType argEins = *(ElementType*)instr->Arg2;
@@ -731,7 +852,7 @@ char* JIT_Compile_Sub						(IRInstruction* instr, char* compMethod, IRMethod* mt
 }
 
 
-char* JIT_Compile_Mul						(IRInstruction* instr, char* compMethod, IRMethod* mth)
+char* JIT_Compile_Mul						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	OverflowType ovfType = *(OverflowType*)instr->Arg1;
 	ElementType argEins = *(ElementType*)instr->Arg2;
@@ -776,7 +897,7 @@ char* JIT_Compile_Mul						(IRInstruction* instr, char* compMethod, IRMethod* mt
 }
 
 
-char* JIT_Compile_Div						(IRInstruction* instr, char* compMethod, IRMethod* mth)
+char* JIT_Compile_Div						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	OverflowType ovfType = *(OverflowType*)instr->Arg1;
 	ElementType argEins = *(ElementType*)instr->Arg2;
@@ -820,7 +941,7 @@ char* JIT_Compile_Div						(IRInstruction* instr, char* compMethod, IRMethod* mt
 }
 
 
-char* JIT_Compile_Rem						(IRInstruction* instr, char* compMethod, IRMethod* mth)
+char* JIT_Compile_Rem						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	OverflowType ovfType = *(OverflowType*)instr->Arg1;
 	ElementType argEins = *(ElementType*)instr->Arg2;
@@ -869,7 +990,7 @@ char* JIT_Compile_Rem						(IRInstruction* instr, char* compMethod, IRMethod* mt
 }
 
 
-char* JIT_Compile_LoadIndirect				(IRInstruction* instr, char* compMethod, IRMethod* mth)
+char* JIT_Compile_LoadIndirect				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	ElementType elementType = *(ElementType*)instr->Arg1;
 	uint32_t sizeOfElementType = 0;
@@ -881,7 +1002,7 @@ char* JIT_Compile_LoadIndirect				(IRInstruction* instr, char* compMethod, IRMet
 }
 
 
-char* JIT_Compile_StoreIndirect				(IRInstruction* instr, char* compMethod, IRMethod* mth)
+char* JIT_Compile_StoreIndirect				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	ElementType elementType = *(ElementType*)instr->Arg1;
 	uint32_t sizeOfElementType = 0;
@@ -893,63 +1014,63 @@ char* JIT_Compile_StoreIndirect				(IRInstruction* instr, char* compMethod, IRMe
 }
 
 
-char* JIT_Compile_LoadNull					(IRInstruction* instr, char* compMethod, IRMethod* mth)
+char* JIT_Compile_LoadNull					(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	x86_push_imm(compMethod, (unsigned int)0);
 	return compMethod;
 }
 
 
-char* JIT_Compile_NewObj					(IRInstruction* instr, char* compMethod, IRMethod* mth)
+char* JIT_Compile_NewObj					(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	
 	return compMethod;
 }
 
 
-char* JIT_Compile_Dup						(IRInstruction* instr, char* compMethod, IRMethod* mth)
+char* JIT_Compile_Dup						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	
 	return compMethod;
 }
 
 
-char* JIT_Compile_And						(IRInstruction* instr, char* compMethod, IRMethod* mth)
+char* JIT_Compile_And						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	
 	return compMethod;
 }
 
 
-char* JIT_Compile_Or						(IRInstruction* instr, char* compMethod, IRMethod* mth)
+char* JIT_Compile_Or						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	
 	return compMethod;
 }
 
 
-char* JIT_Compile_XOr						(IRInstruction* instr, char* compMethod, IRMethod* mth)
+char* JIT_Compile_XOr						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	
 	return compMethod;
 }
 
 
-char* JIT_Compile_Neg						(IRInstruction* instr, char* compMethod, IRMethod* mth)
+char* JIT_Compile_Neg						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	
 	return compMethod;
 }
 
 
-char* JIT_Compile_Not						(IRInstruction* instr, char* compMethod, IRMethod* mth)
+char* JIT_Compile_Not						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	
 	return compMethod;
 }
 
 
-char* JIT_Compile_Load_String				(IRInstruction* instr, char* compMethod, IRMethod* mth)
+char* JIT_Compile_Load_String				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	// This should work, because the strings getting loaded
 	// would be root objects, thus there is no need to be
@@ -962,7 +1083,7 @@ char* JIT_Compile_Load_String				(IRInstruction* instr, char* compMethod, IRMeth
 }
 
 
-char* JIT_Compile_Load_Field				(IRInstruction* instr, char* compMethod, IRMethod* mth)
+char* JIT_Compile_Load_Field				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	IRFieldSpec* spec = (IRFieldSpec*)instr->Arg1;
 
@@ -992,7 +1113,7 @@ char* JIT_Emit_ParamSwap(char* compMethod, uint32_t paramCount)
 	return compMethod;
 }
 
-char* JIT_Compile_Call_Absolute				(IRInstruction* instr, char* compMethod, IRMethod* mth)
+char* JIT_Compile_Call_Absolute				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	IRMethod* m = (IRMethod*)instr->Arg1;
 	if (!m->AssembledMethod)
@@ -1090,7 +1211,7 @@ uint32_t CalculateSize(IRType* tp)
 	}
 }
 
-char* JIT_Compile_Call_Internal				(IRInstruction* instr, char* compMethod, IRMethod* mth)
+char* JIT_Compile_Call_Internal				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	void* mthd = instr->Arg1; // This is the method we will be calling.
 	IRMethod* m = (IRMethod*)instr->Arg2;
@@ -1110,7 +1231,7 @@ char* JIT_Compile_Call_Internal				(IRInstruction* instr, char* compMethod, IRMe
 
 #include <CLR/ReferenceTypeObject.h>
 void* JIT_Trampoline_DoCall(IRMethodSpec* mth, ReferenceTypeObject* obj);
-char* JIT_Compile_Call						(IRInstruction* instr, char* compMethod, IRMethod* mth)
+char* JIT_Compile_Call						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	IRMethodSpec* spec = (IRMethodSpec*)instr->Arg1;
 	IRMethod* m = spec->ParentType->Methods[spec->MethodIndex];

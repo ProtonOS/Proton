@@ -1,5 +1,9 @@
 
 
+In Branch Registry Destruction:
+	Massive memory leak, because it won't free InstructionLocations.
+
+
 In the Prologue and Epilogue:
 
 	We need to figure out if pushad & popad are really needed here.
