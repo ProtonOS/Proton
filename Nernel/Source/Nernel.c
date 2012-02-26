@@ -64,7 +64,7 @@ void Main(uint32_t pMultiBootMagic,
 
 	Nernel_FinishedRunning();
 	Console_Clear(Console_CreateAttributes(Console_DarkBlack, Console_LightCyan));
-	//printf("Mernel JIT'd, starting up now!\n");
+	printf("Mernel JIT'd, starting up now!\n");
 
 	global_baseMernelDomain->IRAssemblies[0]->EntryPoint->AssembledMethod();
 

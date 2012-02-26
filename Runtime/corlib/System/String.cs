@@ -17,7 +17,7 @@ namespace System {
 		}
 
 		// This field must be the only field, to tie up with C code
-		private int length;
+		private int length = 0;
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         public extern unsafe String(char* value);

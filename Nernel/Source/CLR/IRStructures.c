@@ -198,7 +198,7 @@ void IRMethod_AddLocalVariable(IRMethod* mth, IRLocalVariable* var)
 
 void IRMethod_AddParameter(IRMethod* mth, IRParameter* param)
 {
-	mth->ParameterCount++;
+	//mth->ParameterCount++;
 	mth->Parameters = (IRParameter**)realloc(mth->Parameters, sizeof(IRParameter*) * mth->ParameterCount);
 	mth->Parameters[mth->ParameterCount - 1] = param;
 }

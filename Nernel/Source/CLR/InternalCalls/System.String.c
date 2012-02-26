@@ -75,7 +75,6 @@ ReferenceTypeObject* System_String_InternalConcat(AppDomain* pAppDomain, Referen
 
 ReferenceTypeObject* System_String_InternalReplace(AppDomain* pAppDomain, ReferenceTypeObject* pThis, ReferenceTypeObject* pPattern, ReferenceTypeObject* pSubstitute)
 {
-	printf("InternalReplace: SizeOf pThis Object = %u @ 0x%x\n", (unsigned int)pThis->Size, (unsigned int)pThis);
 	return GC_SubstituteString(pAppDomain->GarbageCollector, pAppDomain->RootObject, pThis, pPattern, pSubstitute);
 }
 

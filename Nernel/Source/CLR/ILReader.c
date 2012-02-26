@@ -424,6 +424,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
     size_t CurInstructionBase;
     uint8_t b;
     IRMethod* m = IRMethod_Create();
+	m->ParentAssembly = asmbly;
 
 	{   // Setup Parameters
 		MethodSignature* sig = MethodSignature_Expand(methodDef->Signature, fil);
@@ -447,7 +448,6 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 		{
 			m->ParameterCount = sig->ParameterCount;
 		}
-
 
 		for (uint32_t i = 0; i < sig->ParameterCount; i++)
 		{

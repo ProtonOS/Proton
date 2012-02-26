@@ -957,7 +957,6 @@ char* JIT_Compile_Load_String				(IRInstruction* instr, char* compMethod, IRMeth
 	return compMethod;
 }
 
-
 char* JIT_Compile_Call_Absolute				(IRInstruction* instr, char* compMethod, IRMethod* mth)
 {
 	IRMethod* m = (IRMethod*)instr->Arg1;
@@ -965,8 +964,18 @@ char* JIT_Compile_Call_Absolute				(IRInstruction* instr, char* compMethod, IRMe
 	{
 		JIT_CompileMethod(m);
 	}
-	
+
+	uint32_t swapCount = m->ParameterCount / 2;
+	for (uint32_t index = 0; index < swapCount; ++index)
+	{
+		x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, index * 4, 4);
+		x86_mov_reg_membase(compMethod, X86_EBX, X86_ESP, (m->ParameterCount - (index + 1)) * 4, 4);
+		x86_mov_membase_reg(compMethod, X86_ESP, index * 4, X86_EBX, 4);
+		x86_mov_membase_reg(compMethod, X86_ESP, (m->ParameterCount - (index + 1)) * 4, X86_EAX, 4);
+	}
+
 	x86_call_code(compMethod, m->AssembledMethod);
+	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, (m->ParameterCount * 4));
 	x86_push_reg(compMethod, X86_EAX);
 	return compMethod;
 }
@@ -1054,12 +1063,20 @@ char* JIT_Compile_Call_Internal				(IRInstruction* instr, char* compMethod, IRMe
 {
 	void* mthd = instr->Arg1; // This is the method we will be calling.
 	IRMethod* m = (IRMethod*)instr->Arg2;
-	printf("Emitting Call_Internal: %s.%s.%s\n", m->MethodDefinition->TypeDefinition->Namespace, m->MethodDefinition->TypeDefinition->Name, m->MethodDefinition->Name);
+
+	uint32_t swapCount = m->ParameterCount / 2;
+	for (uint32_t index = 0; index < swapCount; ++index)
+	{
+		x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, index * 4, 4);
+		x86_mov_reg_membase(compMethod, X86_EBX, X86_ESP, (m->ParameterCount - (index + 1)) * 4, 4);
+		x86_mov_membase_reg(compMethod, X86_ESP, index * 4, X86_EBX, 4);
+		x86_mov_membase_reg(compMethod, X86_ESP, (m->ParameterCount - (index + 1)) * 4, X86_EAX, 4);
+	}
 
 	x86_push_imm(compMethod, (unsigned int)m->ParentAssembly->ParentDomain); // Push the domain
 	x86_call_code(compMethod, mthd); // Call the method.
+	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, ((m->ParameterCount + 1) * 4));
 	x86_push_reg(compMethod, X86_EAX);
-
 
 	return compMethod;
 }
@@ -1069,21 +1086,33 @@ void JIT_Trampoline_DoCall(IRMethodSpec* spec, ReferenceTypeObject* obj); // thi
 void* JIT_Trampoline_DoCall2(IRMethodSpec* mth, ReferenceTypeObject* obj);
 char* JIT_Compile_Call						(IRInstruction* instr, char* compMethod, IRMethod* mth)
 {
-	printf("Emitting call, mth = 0x%x\n", (unsigned int)instr->Arg1);
+	IRMethodSpec* spec = (IRMethodSpec*)instr->Arg1;
+	IRMethod* m = spec->ParentType->Methods[spec->MethodIndex];
+
+	uint32_t swapCount = m->ParameterCount / 2;
+	for (uint32_t index = 0; index < swapCount; ++index)
+	{
+		x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, index * 4, 4);
+		x86_mov_reg_membase(compMethod, X86_EBX, X86_ESP, (m->ParameterCount - (index + 1)) * 4, 4);
+		x86_mov_membase_reg(compMethod, X86_ESP, index * 4, X86_EBX, 4);
+		x86_mov_membase_reg(compMethod, X86_ESP, (m->ParameterCount - (index + 1)) * 4, X86_EAX, 4);
+	}
+
 	x86_push_imm(compMethod, instr->Arg1);
-	//x86_push_imm(compMethod, 0);
 	x86_call_code(compMethod, JIT_Trampoline_DoCall2);
+	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 4);
 	x86_call_reg(compMethod, X86_EAX);
+	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, (spec->ParentType->Methods[spec->MethodIndex]->ParameterCount * 4));
 
 	return compMethod;
 }
 
 void* JIT_Trampoline_DoCall2(IRMethodSpec* mth, ReferenceTypeObject* obj)
 {
-	printf("argc: %u\n", (unsigned int)mth->ParentType->Methods[mth->MethodIndex]->ParameterCount);
-	printf("obj: 0x%x\n", (unsigned int)obj);
-	printf("mth: 0x%x\n", (unsigned int)mth);
-	printf("Data: %s\n", (char*)((GCString*)obj->Object)->Data);
+	printf("DoCall: mth name = %s\n", mth->ParentType->Methods[mth->MethodIndex]->MethodDefinition->Name);
+	printf("DoCall: argc = %u\n", (unsigned int)mth->ParentType->Methods[mth->MethodIndex]->ParameterCount);
+	printf("DoCall: Data = %s %s %s\n", (char*)((GCString*)obj->Object)->Data, (char*)(((GCString*)obj->Object)->Data + 2), (char*)(((GCString*)obj->Object)->Data + 4));
+	printf("DoCall: DomIndex = %u\n", (unsigned int)obj->DomainIndex);
 	uint32_t domIndex = obj->DomainIndex;
 
 	__asm("\n \n /Got Domain Index \n \n");

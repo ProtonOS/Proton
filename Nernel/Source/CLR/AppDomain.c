@@ -179,15 +179,12 @@ void AppDomainRegistry_AddDomain(AppDomain* dom)
 	{
 		DomainRegistry = (AppDomain**)calloc(1, sizeof(AppDomain*));
 		DomainRegistry[0] = dom;
-		dom->DomainIndex = 0;
-		lastDomainIndex++;
+		dom->DomainIndex = lastDomainIndex++;
 	}
 	else
 	{
 		DomainRegistry = (AppDomain**)realloc(DomainRegistry, sizeof(AppDomain*) * (lastDomainIndex + 1));
-		DomainRegistry[lastDomainIndex + 1] = dom;
-		dom->DomainIndex = lastDomainIndex + 1;
-		lastDomainIndex++;
+		DomainRegistry[lastDomainIndex] = dom;
+		dom->DomainIndex = lastDomainIndex++;
 	}
-
 }
