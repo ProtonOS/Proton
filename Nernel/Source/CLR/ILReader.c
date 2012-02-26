@@ -262,7 +262,7 @@ IRField** TypeDefinition_GetLayedOutFields(TypeDefinition* tdef, CLIFile* fil, u
 	}
 
 	uint32_t fldIndex = 0;
-	for (uint32_t i = 0; i < tdef->MethodDefinitionListCount; i++)
+	for (uint32_t i = 0; i < tdef->FieldListCount; i++)
 	{
 		if (!(tdef->FieldList[i].Flags & FieldAttributes_Static))
 		{
@@ -1884,9 +1884,26 @@ Branch_Common:
 					switch(tok->Table)
 					{
 						case MetaData_Table_Field:
-							fld = (Field*)tok->Data;
-							sig = FieldSignature_Expand(fld->Signature, fil);
-							
+							{
+								fld = (Field*)tok->Data;
+								sig = FieldSignature_Expand(fld->Signature, fil);
+								/*TypeDefinition* tdef = fld->TypeDefinition;
+								bool_t Found = FALSE;
+								for (uint32_t i = 0; i < tdef->FieldListCount; i++)
+								{
+									if (Signature_Equals(fld->Signature, fld->SignatureLength, tdef->FieldList[i].Signature, tdef->FieldList[i].SignatureLength))
+									{
+										IRFieldSpec* spec = IRFieldSpec_Create();
+										spec->FieldIndex = i;
+										spec->FieldType = asmbly->Types[tdef->TableIndex - 1];
+										EMIT_IR_1ARG(IROpCode_Load_Field, spec);
+										Found = TRUE;
+										break;
+									}
+								}
+								if (!Found)
+									Panic("Unable to resolve field!");*/
+							}
 							break;
 
 						case MetaData_Table_MemberReference:
