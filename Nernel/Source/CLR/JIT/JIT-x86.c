@@ -3,6 +3,7 @@
 #include <CLR/JIT/JIT-x86.h>
 #include <CLR/Architecture.h>
 #include <CLR/SyntheticStack.h>
+#include <Inline.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -52,8 +53,11 @@ char* JIT_Emit_Epilogue(IRMethod* mth, char* compMethod)
 	//// // or method indexes anymore.
 	//x86_pop_reg(compMethod, X86_EAX); // Pop the Method index.
 	//x86_pop_reg(compMethod, X86_EAX); // Pop the Assembly index.
-
-	x86_pop_reg(compMethod, X86_EAX);
+	
+	if (mth->Returns)
+	{
+		x86_pop_reg(compMethod, X86_EAX);
+	}
 
 	x86_leave(compMethod);
 	x86_ret(compMethod);
@@ -84,6 +88,7 @@ char* JIT_Compile_Return					(IRInstruction* instr, char* compMethod, IRMethod* 
 	{
 		x86_pop_reg(compMethod, X86_EAX);
 	}
+	x86_leave(compMethod);
 	x86_ret(compMethod);
 	return compMethod;
 }
@@ -1097,7 +1102,7 @@ char* JIT_Compile_Load_Field				(IRInstruction* instr, char* compMethod, IRMetho
 
 
 
-char* JIT_Emit_ParamSwap(char* compMethod, uint32_t paramCount)
+ALWAYS_INLINE char* JIT_Emit_ParamSwap(char* compMethod, uint32_t paramCount)
 {
 	uint32_t swapCount = paramCount / 2;
 	// If paramCount is odd, the middle 
@@ -1132,7 +1137,7 @@ char* JIT_Compile_Call_Absolute				(IRInstruction* instr, char* compMethod, IRMe
 	return compMethod;
 }
 
-void Align(uint32_t* val)
+ALWAYS_INLINE void Align(uint32_t* val)
 {
 	if (*val % 4 != 0)
 	{
@@ -1140,8 +1145,7 @@ void Align(uint32_t* val)
 	}
 }
 
-uint32_t CalculateSize(IRType* tp);
-uint32_t CalculateSize(IRType* tp)
+ALWAYS_INLINE uint32_t CalculateSize(IRType* tp)
 {
 	if (tp->Size > 0)
 		return tp->Size;
@@ -1243,10 +1247,6 @@ char* JIT_Compile_Call						(IRInstruction* instr, char* compMethod, IRMethod* m
 	x86_call_code(compMethod, JIT_Trampoline_DoCall);
 	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 4); // Fix the stack from calling the trampoline
 	x86_call_reg(compMethod, X86_EAX);
-	if (m->Returns)
-	{
-		x86_pop_reg(compMethod, X86_EAX);
-	}
 	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, (spec->ParentType->Methods[spec->MethodIndex]->ParameterCount * 4));
 	if (m->Returns)
 	{
@@ -1258,34 +1258,33 @@ char* JIT_Compile_Call						(IRInstruction* instr, char* compMethod, IRMethod* m
 
 void* JIT_Trampoline_DoCall(IRMethodSpec* mth, ReferenceTypeObject* obj)
 {
-	printf("DoCall: mth name = %s\n", mth->ParentType->Methods[mth->MethodIndex]->MethodDefinition->Name);
-	printf("DoCall: argc = %u\n", (unsigned int)mth->ParentType->Methods[mth->MethodIndex]->ParameterCount);
-	printf("DoCall: Data = %s %s %s\n", (char*)((GCString*)obj->Object)->Data, (char*)(((GCString*)obj->Object)->Data + 2), (char*)(((GCString*)obj->Object)->Data + 4));
-	printf("DoCall: DomIndex = %u\n", (unsigned int)obj->DomainIndex);
-
-	AppDomain* dom = AppDomainRegistry_GetDomain(obj->DomainIndex);
-	if (obj->AssemblyIndex >= dom->IRAssemblyCount)
+	void* variable;
+	//AppDomain* dom = AppDomainRegistry_GetDomain(obj->DomainIndex);
+	variable = AppDomainRegistry_GetDomain(obj->DomainIndex);
+	if (obj->AssemblyIndex >= ((AppDomain*)variable)->IRAssemblyCount)
 	{
 		Panic("Assembly Index is too High!");
 	}
 
-	IRAssembly* asmbly = dom->IRAssemblies[obj->AssemblyIndex];
-	if (obj->TypeIndex >= asmbly->TypeCount)
+	//IRAssembly* asmbly = dom->IRAssemblies[obj->AssemblyIndex];
+	variable = ((AppDomain*)variable)->IRAssemblies[obj->AssemblyIndex];
+	if (obj->TypeIndex >= ((IRAssembly*)variable)->TypeCount)
 	{
 		Panic("Type Index is too High!");
 	}
 
-	IRType* tp = asmbly->Types[obj->TypeIndex];
-	if (mth->MethodIndex >= tp->MethodCount)
+	//IRType* tp = asmbly->Types[obj->TypeIndex];
+	variable = ((IRAssembly*)variable)->Types[obj->TypeIndex];
+	if (mth->MethodIndex >= ((IRType*)variable)->MethodCount)
 	{
 		Panic("Method Index is too High!");
 	}
 
-	IRMethod* m = tp->Methods[mth->MethodIndex];
-	//IRMethod* m = AppDomainRegistry_GetDomain(obj->DomainIndex)->IRAssemblies[obj->AssemblyIndex]->Types[obj->TypeIndex]->Methods[mth->MethodIndex];
-	if (!m->AssembledMethod)
+	//IRMethod* m = tp->Methods[mth->MethodIndex];
+	variable = ((IRType*)variable)->Methods[mth->MethodIndex];
+	if (!((IRMethod*)variable)->AssembledMethod)
 	{
-		JIT_CompileMethod(m);
+		JIT_CompileMethod(((IRMethod*)variable));
 	}
-	return m->AssembledMethod;
+	return ((IRMethod*)variable)->AssembledMethod;
 }
