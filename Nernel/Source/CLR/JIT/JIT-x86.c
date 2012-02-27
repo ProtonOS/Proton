@@ -822,7 +822,7 @@ char* JIT_Compile_Pop						(IRInstruction* instr, char* compMethod, IRMethod* mt
 				// Repeated popping would just be slow,
 				// and, as we're not using the values,
 				// it's easier just to move the stack pointer.
-				x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, (unsigned int)pCount);
+				x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, (unsigned int)pCount * 4);
 			}
 			break;
 		default:
