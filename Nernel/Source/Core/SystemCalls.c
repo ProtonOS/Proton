@@ -57,7 +57,6 @@ void* sbrk(ptrdiff_t pAdjustment)
 {
 	static uint8_t memoryBlockIndex;
 	MultiBoot_MemoryBlock* memoryBlock = &gMultiBoot_MemoryBlocks[memoryBlockIndex];
-
 	if (pAdjustment >= 0)
 	{
         uint32_t adjustment = (uint32_t)pAdjustment;
@@ -80,36 +79,6 @@ void* sbrk(ptrdiff_t pAdjustment)
 	if (memoryBlock->Used == 0 && memoryBlockIndex > 0) --memoryBlockIndex;
 
     return NULL;
-}
-
-_PTR _malloc_r(struct _reent* pReentrant,
-               size_t pSize)
-{
-    if (pReentrant) { }
-    return malloc(pSize);
-}
-
-_PTR _calloc_r(struct _reent* pReentrant,
-               size_t pCount,
-               size_t pSize)
-{
-    if (pReentrant) { }
-    return calloc(pCount, pSize);
-}
-
-void _free_r(struct _reent* pReentrant,
-             _PTR pMemory)
-{
-    if (pReentrant) { }
-    free(pMemory);
-}
-
-_PTR _realloc_r(struct _reent* pReentrant,
-                _PTR pMemory,
-                size_t pSize)
-{
-    if (pReentrant) { }
-    return realloc(pMemory, pSize);
 }
 
 int gettimeofday(struct timeval* pTime,

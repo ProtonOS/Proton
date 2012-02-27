@@ -59,7 +59,6 @@
     Source/Nernel.c
 #
 	Source/Core/Console.c
-	Source/Core/DLMalloc.c
 	Source/Core/GDT.c
 	Source/Core/IDT.c
 	Source/Core/MultiBoot.c

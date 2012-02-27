@@ -89,7 +89,6 @@
     <ClCompile Include="Source\CLR\PEFile.c" />
     <ClCompile Include="Source\CLR\ReferenceTypeObject.c" />
     <ClCompile Include="Source\CLR\SyntheticStack.c" />
-    <ClCompile Include="Source\Core\DLMalloc.c" />
     <ClCompile Include="Source\Core\Console.c" />
     <ClCompile Include="Source\Core\GDT.c" />
     <ClCompile Include="Source\Core\IDT.c" />

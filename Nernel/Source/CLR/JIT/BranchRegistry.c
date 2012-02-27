@@ -18,7 +18,7 @@ void BranchRegistry_Destroy(BranchRegistry* pBranchRegistry)
 {
 	if (pBranchRegistry->InstructionLocations)
 	{
-		//free(pBranchRegistry->InstructionLocations);
+		free(pBranchRegistry->InstructionLocations);
 		free(pBranchRegistry->TargetLocations);
 		free(pBranchRegistry->BranchLocations);
 	}
