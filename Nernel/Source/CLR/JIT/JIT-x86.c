@@ -1088,9 +1088,9 @@ char* JIT_Compile_Load_Field				(IRInstruction* instr, char* compMethod, IRMetho
 	IRFieldSpec* spec = (IRFieldSpec*)instr->Arg1;
 
 	// Still need to handle large fields.
-	x86_mov_reg_mem(compMethod, X86_EAX, X86_ESP, 4);
+	x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, 0, 4);
 	x86_mov_reg_membase(compMethod, X86_EAX, X86_EAX, spec->FieldIndex * global_SizeOfPointerInBytes, 4);
-	x86_mov_mem_reg(compMethod, X86_ESP, X86_EAX, 4);
+	x86_mov_membase_reg(compMethod, X86_ESP, 0, X86_EAX, 4);
 
 	return compMethod;
 }
