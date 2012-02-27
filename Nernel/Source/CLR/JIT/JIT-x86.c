@@ -319,6 +319,7 @@ char* JIT_Compile_Convert_Unchecked			(IRInstruction* instr, char* compMethod, I
 	switch (fromType)
 	{
 		case ConversionArgumentType_I:
+		case ConversionArgumentType_U:
 		case ConversionArgumentType_I4:
 			switch (toType)
 			{
@@ -369,13 +370,14 @@ char* JIT_Compile_Convert_Unchecked			(IRInstruction* instr, char* compMethod, I
 					break;
 				default:
 					{
-						snprintf(buf, 128, "Convert Unchecked, Invalid Arguments: From = 0x%x, To = 0x%x", (unsigned int)fromType, (unsigned int)toType);
+						snprintf(buf, 128, "Convert Unchecked (Branch 1), Invalid Arguments: From = 0x%x, To = 0x%x", (unsigned int)fromType, (unsigned int)toType);
 						Panic(buf);
 					}
 					break;
 			}
 			break;
 		case ConversionArgumentType_I8:
+		case ConversionArgumentType_U8:
 			switch (toType)
 			{
 				case ConversionArgumentType_I1:
@@ -401,7 +403,8 @@ char* JIT_Compile_Convert_Unchecked			(IRInstruction* instr, char* compMethod, I
 					x86_push_reg(compMethod, X86_EAX);
 					break;
 				case ConversionArgumentType_I8:
-				case ConversionArgumentType_U8: break;
+				case ConversionArgumentType_U8: 
+					break;
 				case ConversionArgumentType_R4:
 					x86_fild_membase(compMethod, X86_ESP, 0, TRUE);
 					x86_fst_membase(compMethod, X86_ESP, 0, FALSE, TRUE);
@@ -414,7 +417,7 @@ char* JIT_Compile_Convert_Unchecked			(IRInstruction* instr, char* compMethod, I
 					break;
 				default:
 					{
-						snprintf(buf, 128, "Convert Unchecked, Invalid Arguments: From = 0x%x, To = 0x%x", (unsigned int)fromType, (unsigned int)toType);
+						snprintf(buf, 128, "Convert Unchecked (Branch 2), Invalid Arguments: From = 0x%x, To = 0x%x", (unsigned int)fromType, (unsigned int)toType);
 						Panic(buf);
 					}
 					break;
@@ -496,7 +499,7 @@ char* JIT_Compile_Convert_Unchecked			(IRInstruction* instr, char* compMethod, I
 				case ConversionArgumentType_R8: break;
 				default:
 					{
-						snprintf(buf, 128, "Convert Unchecked, Invalid Arguments: From = 0x%x, To = 0x%x", (unsigned int)fromType, (unsigned int)toType);
+						snprintf(buf, 128, "Convert Unchecked (Branch 3), Invalid Arguments: From = 0x%x, To = 0x%x", (unsigned int)fromType, (unsigned int)toType);
 						Panic(buf);
 					}
 					break;
@@ -504,7 +507,7 @@ char* JIT_Compile_Convert_Unchecked			(IRInstruction* instr, char* compMethod, I
 			break;
 		default:
 			{
-				snprintf(buf, 128, "Convert Unchecked, Invalid Arguments: From = 0x%x, To = 0x%x", (unsigned int)fromType, (unsigned int)toType);
+				snprintf(buf, 128, "Convert Unchecked (Branch 4), Invalid Arguments: From = 0x%x, To = 0x%x", (unsigned int)fromType, (unsigned int)toType);
 				Panic(buf);
 			}
 			break;
