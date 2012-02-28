@@ -2,75 +2,104 @@
 
 using System.Runtime.CompilerServices;
 using System.Globalization;
-namespace System {
-	public struct UInt32 : IFormattable, IComparable, IComparable<uint>, IEquatable<uint> {
-		public const uint MaxValue = 0xffffffff;
-		public const uint MinValue = 0;
+namespace System
+{
+    public struct UInt32 : IFormattable, IComparable, IComparable<uint>, IEquatable<uint>
+    {
+        public const uint MaxValue = 0xffffffff;
+        public const uint MinValue = 0;
 
 #pragma warning disable 649
         internal uint m_value;
 #pragma warning restore 649
 
-		public override bool Equals(object obj) {
-			return (obj is uint) && ((uint)obj).m_value == this.m_value;
-		}
+        public override bool Equals(object obj)
+        {
+            return (obj is uint) && ((uint)obj).m_value == this.m_value;
+        }
 
-		public override int GetHashCode() {
-			return (int)this.m_value;
-		}
+        public override int GetHashCode()
+        {
+            return (int)this.m_value;
+        }
 
-		#region ToString methods
+        #region ToString methods
 
-		public override string ToString() {
-			return NumberFormatter.FormatGeneral(new NumberFormatter.NumberStore(this.m_value));
-		}
+        public override string ToString()
+        {
+            if (this == 0)
+            {
+                return "0";
+            }
+            const string xDigits = "0123456789";
+            char[] xResultChars = new char[11];
+            int xCurrentPos = 10;
+            while (this > 0)
+            {
+                byte xPos = (byte)(this % 10);
+                this /= 10;
+                xResultChars[xCurrentPos] = xDigits[xPos];
+                xCurrentPos -= 1;
+            }
+            return new String(xResultChars, xCurrentPos + 1, 10 - xCurrentPos);
 
-		public string ToString(IFormatProvider formatProvider) {
-			return NumberFormatter.FormatGeneral(new NumberFormatter.NumberStore(this.m_value), formatProvider);
-		}
+            //return NumberFormatter.FormatGeneral(new NumberFormatter.NumberStore(this.m_value));
+        }
 
-		public string ToString(string format) {
-			return ToString(format, null);
-		}
+        public string ToString(IFormatProvider formatProvider)
+        {
+            return NumberFormatter.FormatGeneral(new NumberFormatter.NumberStore(this.m_value), formatProvider);
+        }
 
-		public string ToString(string format, IFormatProvider formatProvider) {
-			NumberFormatInfo nfi = NumberFormatInfo.GetInstance(formatProvider);
-			return NumberFormatter.NumberToString(format, m_value, nfi);
-		}
+        public string ToString(string format)
+        {
+            return ToString(format, null);
+        }
 
-		#endregion
+        public string ToString(string format, IFormatProvider formatProvider)
+        {
+            NumberFormatInfo nfi = NumberFormatInfo.GetInstance(formatProvider);
+            return NumberFormatter.NumberToString(format, m_value, nfi);
+        }
 
-		#region IComparable Members
+        #endregion
 
-		public int CompareTo(object obj) {
-			if (obj == null) {
-				return 1;
-			}
-			if (!(obj is uint)) {
-				throw new ArgumentException();
-			}
-			return this.CompareTo((uint)obj);
-		}
+        #region IComparable Members
 
-		#endregion
+        public int CompareTo(object obj)
+        {
+            if (obj == null)
+            {
+                return 1;
+            }
+            if (!(obj is uint))
+            {
+                throw new ArgumentException();
+            }
+            return this.CompareTo((uint)obj);
+        }
 
-		#region IComparable<uint> Members
+        #endregion
 
-		public int CompareTo(uint x) {
-			return (this.m_value > x) ? 1 : ((this.m_value < x) ? -1 : 0);
-		}
+        #region IComparable<uint> Members
 
-		#endregion
+        public int CompareTo(uint x)
+        {
+            return (this.m_value > x) ? 1 : ((this.m_value < x) ? -1 : 0);
+        }
 
-		#region IEquatable<uint> Members
+        #endregion
 
-		public bool Equals(uint x) {
-			return this.m_value == x;
-		}
+        #region IEquatable<uint> Members
 
-		#endregion
+        public bool Equals(uint x)
+        {
+            return this.m_value == x;
+        }
 
-	}
+        #endregion
+
+    }
 }
 
 #endif
