@@ -423,7 +423,21 @@ char* JIT_LinkBranches(char* compMethod, BranchRegistry* branchReg, uint32_t pLe
 
 char* JIT_Compile_Jump						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
-	
+	IRInstruction* target = (IRInstruction*)instr->Arg1;
+	if (target->InstructionLocation > instr->InstructionLocation)
+	{
+		unsigned char* comp = (unsigned char*)compMethod;
+		x86_jump_code(comp, 0);
+		BranchRegistry_RegisterBranchForLink(branchRegistry, instr->InstructionLocation, target->InstructionLocation, compMethod);
+		compMethod = (char*)comp;
+	}
+	else
+	{
+		unsigned char* targLoc = (unsigned char*)BranchRegistry_GetInstructionLocation(branchRegistry, target->InstructionLocation);
+		unsigned char* comp = (unsigned char*)compMethod;
+		x86_jump_code(comp, targLoc);
+		compMethod = (char*)comp;
+	}
 	return compMethod;
 }
 
