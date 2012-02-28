@@ -141,7 +141,8 @@ ReferenceTypeObject* GC_AllocateObject(GC* pGC, ReferenceTypeObject* pInitialRef
 ReferenceTypeObject* GC_AllocateString(GC* pGC, ReferenceTypeObject* pInitialReference, uint8_t* pData, uint32_t pSize)
 {
     if (!pInitialReference) Panic("GC_AllocateString pInitialReference == NULL");
-    if (pSize == 0 || pSize >= 0x7FFFFFFF) Panic("GC_AllocateString pSize == 0 || pSize >= 0x7FFFFFFF");
+    //if (pSize == 0) Panic("GC_AllocateString pSize == 0");
+	if (pSize >= 0x7FFFFFFF) Panic("GC_AllocateString pSize >= 0x7FFFFFFF");
     ReferenceTypeObject* object = NULL;
 	uint32_t sizeOfGCString = sizeof(GCString) + pSize;
 	GCString* header = NULL;

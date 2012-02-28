@@ -26,3 +26,4 @@
 	} while(0);
 
 
+#define x86_fdecstp(inst) do { x86_codegen_pre(&(inst), 2); *(inst)++ = (unsigned char)0xd9; *(inst)++ = (unsigned char)0xf6; } while (0)

@@ -74,7 +74,7 @@ void Main(uint32_t pMultiBootMagic,
 
 void Nernel_FinishedRunning()
 {
-
+	printf("Mernel, Return!");
 }
 
 void CPU_Interrupt(InterruptRegisters pRegisters)
