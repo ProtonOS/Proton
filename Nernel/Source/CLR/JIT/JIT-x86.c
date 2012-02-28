@@ -1038,7 +1038,8 @@ char* JIT_Compile_NewObj					(IRInstruction* instr, char* compMethod, IRMethod* 
 
 char* JIT_Compile_Dup						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
-	
+	x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, 0, 4);
+	x86_push_reg(compMethod, X86_EAX);
 	return compMethod;
 }
 
