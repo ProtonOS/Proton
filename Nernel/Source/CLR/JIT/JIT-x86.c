@@ -1221,41 +1221,131 @@ char* JIT_Compile_Dup						(IRInstruction* instr, char* compMethod, IRMethod* mt
 {
 	x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, 0, 4);
 	x86_push_reg(compMethod, X86_EAX);
+	if (*(ElementType*)instr->Arg1 == ElementType_I8 || *(ElementType*)instr->Arg1 == ElementType_U8)
+	{
+		x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, 8, 4);
+		x86_push_reg(compMethod, X86_EAX);
+	}
 	return compMethod;
 }
 
 
 char* JIT_Compile_And						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
-	
+	ElementType arg1Type = *(ElementType*)instr->Arg1;
+	ElementType arg2Type = *(ElementType*)instr->Arg2;
+
+	switch(arg1Type)
+	{
+		case ElementType_I:
+		case ElementType_I4:
+			if (arg2Type != ElementType_I && arg2Type != ElementType_I4)
+				Panic("Invalid type combination for binary AND");
+			x86_pop_reg(compMethod, X86_EAX);
+			x86_alu_membase_reg(compMethod, X86_AND, X86_ESP, 0, X86_EAX);
+			break;
+		case ElementType_I8:
+			if (arg2Type != ElementType_I8)
+				Panic("Invalid type combination for binary AND");
+			x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, 0, 4);
+			x86_mov_reg_membase(compMethod, X86_EBX, X86_ESP, 4, 4);
+			x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 8);
+			x86_alu_membase_reg(compMethod, X86_AND, X86_ESP, 0, X86_EAX);
+			x86_alu_membase_reg(compMethod, X86_AND, X86_ESP, 4, X86_EBX);
+			break;
+		default:
+			Panic("Invalid type combination for binary AND");
+			break;
+	}
+
 	return compMethod;
 }
 
 
 char* JIT_Compile_Or						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
-	
+	ElementType arg1Type = *(ElementType*)instr->Arg1;
+	ElementType arg2Type = *(ElementType*)instr->Arg2;
+
+	switch(arg1Type)
+	{
+		case ElementType_I:
+		case ElementType_I4:
+			if (arg2Type != ElementType_I && arg2Type != ElementType_I4)
+				Panic("Invalid type combination for binary OR");
+			x86_pop_reg(compMethod, X86_EAX);
+			x86_alu_membase_reg(compMethod, X86_OR, X86_ESP, 0, X86_EAX);
+			break;
+		case ElementType_I8:
+			if (arg2Type != ElementType_I8)
+				Panic("Invalid type combination for binary OR");
+			x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, 0, 4);
+			x86_mov_reg_membase(compMethod, X86_EBX, X86_ESP, 4, 4);
+			x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 8);
+			x86_alu_membase_reg(compMethod, X86_OR, X86_ESP, 0, X86_EAX);
+			x86_alu_membase_reg(compMethod, X86_OR, X86_ESP, 4, X86_EBX);
+			break;
+		default:
+			Panic("Invalid type combination for binary OR");
+			break;
+	}
+
 	return compMethod;
 }
 
 
 char* JIT_Compile_XOr						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
-	
+	ElementType arg1Type = *(ElementType*)instr->Arg1;
+	ElementType arg2Type = *(ElementType*)instr->Arg2;
+
+	switch(arg1Type)
+	{
+		case ElementType_I:
+		case ElementType_I4:
+			if (arg2Type != ElementType_I && arg2Type != ElementType_I4)
+				Panic("Invalid type combination for binary XOR");
+			x86_pop_reg(compMethod, X86_EAX);
+			x86_alu_membase_reg(compMethod, X86_XOR, X86_ESP, 0, X86_EAX);
+			break;
+		case ElementType_I8:
+			if (arg2Type != ElementType_I8)
+				Panic("Invalid type combination for binary XOR");
+			x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, 0, 4);
+			x86_mov_reg_membase(compMethod, X86_EBX, X86_ESP, 4, 4);
+			x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 8);
+			x86_alu_membase_reg(compMethod, X86_XOR, X86_ESP, 0, X86_EAX);
+			x86_alu_membase_reg(compMethod, X86_XOR, X86_ESP, 4, X86_EBX);
+			break;
+		default:
+			Panic("Invalid type combination for binary XOR");
+			break;
+	}
+
 	return compMethod;
 }
 
 
 char* JIT_Compile_Neg						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
-	
+	ElementType arg1Type = *(ElementType*)instr->Arg1;
+	if (arg1Type != ElementType_I && arg1Type != ElementType_I4 && arg1Type != ElementType_I8)
+		Panic("Invalid type for binary NEG");
+	x86_neg_membase(compMethod, X86_ESP, 0);
+	if (arg1Type == ElementType_I8)
+		x86_neg_membase(compMethod, X86_ESP, 4);
 	return compMethod;
 }
 
 
 char* JIT_Compile_Not						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
-	
+	ElementType arg1Type = *(ElementType*)instr->Arg1;
+	if (arg1Type != ElementType_I && arg1Type != ElementType_I4 && arg1Type != ElementType_I8)
+		Panic("Invalid type for binary NOT");
+	x86_not_membase(compMethod, X86_ESP, 0);
+	if (arg1Type == ElementType_I8)
+		x86_not_membase(compMethod, X86_ESP, 4);
 	return compMethod;
 }
 
