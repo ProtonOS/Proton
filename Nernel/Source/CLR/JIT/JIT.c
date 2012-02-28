@@ -16,6 +16,8 @@ void JIT_CompileMethod(IRMethod* mthd)
 
 	BranchRegistry* branchRegistry = BranchRegistry_Create(mthd->IRCodes[mthd->IRCodesCount - 1]->InstructionLocation);
 
+	JIT_Layout_Parameters(mthd);
+
 	compMthd = JIT_Emit_Prologue(mthd, compMthd);
 	Log_WriteLine(LogFlags_JIT, "IRCodesCount: %i", (int)mthd->IRCodesCount);
 

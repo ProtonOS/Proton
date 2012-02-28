@@ -9,6 +9,97 @@
 
 void Panic(const char* msg);
 
+ALWAYS_INLINE uint32_t CalculateSize(IRType* tp)
+{
+	if (tp->Size > 0)
+		return tp->Size;
+
+	if (tp->TypeDef->ClassLayout)
+	{
+		return tp->TypeDef->ClassLayout->ClassSize;
+	}
+
+	AppDomain* domain = tp->ParentAssembly->ParentDomain;
+	if (
+		(tp->TypeDef == domain->CachedType___System_Void)
+	)
+	{
+		tp->IsVoid = TRUE;
+		return 0;
+	}
+	else if (
+		(tp->TypeDef == domain->CachedType___System_Byte)
+	||  (tp->TypeDef == domain->CachedType___System_SByte)
+	||  (tp->TypeDef == domain->CachedType___System_Boolean)
+	)
+	{
+		tp->Size = 1;
+		return 1;
+	}
+	else if (
+		(tp->TypeDef == domain->CachedType___System_Int16)
+	||  (tp->TypeDef == domain->CachedType___System_UInt16)
+	||  (tp->TypeDef == domain->CachedType___System_Char)
+	)
+	{
+		tp->Size = 2;
+		return 2;
+	}
+	else if (
+		(tp->TypeDef == domain->CachedType___System_Int32)
+	||  (tp->TypeDef == domain->CachedType___System_UInt32)
+	||  (tp->TypeDef == domain->CachedType___System_Object)
+	||  (tp->TypeDef == domain->CachedType___System_Single)
+	)
+	{
+		tp->Size = 4;
+		return 4;
+	}
+	else if (
+		(tp->TypeDef == domain->CachedType___System_Int64)
+	||  (tp->TypeDef == domain->CachedType___System_UInt64)
+	||  (tp->TypeDef == domain->CachedType___System_Double)
+	)
+	{
+		tp->Size = 8;
+		return 8;
+	}
+	else if (
+		(tp->TypeDef == domain->CachedType___System_IntPtr)
+	||  (tp->TypeDef == domain->CachedType___System_UIntPtr)
+	||  (tp->TypeDef == domain->CachedType___System_String)
+	)
+	{
+		tp->Size = global_SizeOfPointerInBytes;
+		return global_SizeOfPointerInBytes;
+	}
+	/*
+	else
+	{
+		Panic("Can't Calculate the size of this currently!");
+	}
+	*/
+	return global_SizeOfPointerInBytes;
+}
+
+void JIT_Layout_Parameters(IRMethod* pMethod)
+{
+	if (!pMethod->ParametersLayedOut)
+	{
+		IRParameter* param = NULL;
+		uint32_t offset = 0;
+		for (uint32_t index = 0; index < pMethod->ParameterCount; ++index)
+		{
+			param = pMethod->Parameters[0];
+			//if (param->Type->TypeDef) param->Size = CalculateSize(param->Type);
+			//else param->Size = global_SizeOfPointerInBytes;
+			param->Offset = offset;
+			offset += param->Size;
+		}
+		pMethod->ParametersLayedOut = TRUE;
+	}
+}
+
 char* JIT_Emit_Prologue(IRMethod* mth, char* compMethod)
 {
 	x86_push_reg(compMethod, X86_EBP);
@@ -233,8 +324,84 @@ char* JIT_Compile_Branch					(IRInstruction* instr, char* compMethod, IRMethod* 
 	}
 	else
 	{
-		//ElementType Arg1Type = *(ElementType*)instr->Arg3;
-		//ElementType Arg2Type = *(ElementType*)instr->Arg4;
+		ElementType Arg1Type = *(ElementType*)instr->Arg3;
+		ElementType Arg2Type = *(ElementType*)instr->Arg4;
+		if (Arg1Type != Arg2Type)
+			Panic("Something went very wrong in the decomp, because this shouldn't be possible.");
+
+		switch(Arg1Type) // Here we get to load the arguments and call cmp on them.
+		{
+			case ElementType_Ref:
+			case ElementType_ManagedPointer:
+			case ElementType_I:
+			case ElementType_I4:
+			{
+				x86_pop_reg(compMethod, X86_EAX);
+				x86_pop_reg(compMethod, X86_EBX);
+				x86_alu_reg_reg(compMethod, X86_CMP, X86_EBX, X86_EAX);
+				break;
+			}
+			case ElementType_I8:
+			{
+				x86_fild_membase(compMethod, X86_ESP, 0, TRUE);
+				x86_fild_membase(compMethod, X86_ESP, 8, TRUE);
+				x86_fcomip(compMethod, 1);
+				x86_fdecstp(compMethod);
+				x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 16);
+				// Not fun on a 32-bit system
+				break;
+			}
+			case ElementType_R4:
+			case ElementType_R8:
+			{
+				x86_fcomip(compMethod, 1);
+				x86_fdecstp(compMethod);
+				break;
+			}
+
+			default:
+				Panic("Invalid type for branch equal comparison.");
+				break;
+		}
+		unsigned char* comp = (unsigned char*)compMethod;
+		switch(condition) // the flags should now be set, so we just emit a conditional jump now.
+		{
+			case BranchCondition_Equal:
+				x86_branch32(comp, X86_CC_E, 0, TRUE);
+				break;
+			case BranchCondition_Greater_Or_Equal:
+				x86_branch32(comp, X86_CC_GE, 0, TRUE);
+				break;
+			case BranchCondition_Greater_Or_Equal_Unsigned:
+				x86_branch32(comp, X86_CC_GE, 0, FALSE);
+				break;
+			case BranchCondition_Greater:
+				x86_branch32(comp, X86_CC_GT, 0, TRUE);
+				break;
+			case BranchCondition_Greater_Unsigned:
+				x86_branch32(comp, X86_CC_GT, 0, FALSE);
+				break;
+			case BranchCondition_Less_Or_Equal:
+				x86_branch32(comp, X86_CC_LE, 0, TRUE);
+				break;
+			case BranchCondition_Less_Or_Equal_Unsigned:
+				x86_branch32(comp, X86_CC_LE, 0, FALSE);
+				break;
+			case BranchCondition_Less:
+				x86_branch32(comp, X86_CC_LT, 0, TRUE);
+				break;
+			case BranchCondition_Less_Unsigned:
+				x86_branch32(comp, X86_CC_LT, 0, FALSE);
+				break;
+			case BranchCondition_NotEqual_Unsigned:
+				x86_branch32(comp, X86_CC_NE, 0, FALSE);
+				break;
+			default:
+				Panic("WTF?!?!?!"); // unknown branch condition.
+				break;
+		}
+		BranchRegistry_RegisterBranchForLink(branchRegistry, instr->InstructionLocation, target->InstructionLocation, compMethod);
+		compMethod = (char*)comp;
 
 	}
 	return compMethod;
@@ -569,11 +736,11 @@ char* JIT_Compile_Load_Element				(IRInstruction* instr, char* compMethod, IRMet
 
 	x86_pop_reg(compMethod, X86_EAX);
 	x86_pop_reg(compMethod, X86_ECX);
-	x86_mov_reg_mem(compMethod, X86_ECX, X86_ECX, global_SizeOfPointerInBytes);
+	x86_mov_reg_membase(compMethod, X86_ECX, X86_ECX, 0, global_SizeOfPointerInBytes);
 	x86_alu_reg_imm(compMethod, X86_ADD, X86_ECX, sizeof(GCArray));
 	x86_imul_reg_reg_imm(compMethod, X86_EAX, X86_EAX, sizeOfElementType);
 	x86_alu_reg_reg(compMethod, X86_ADD, X86_ECX, X86_EAX);
-	x86_mov_reg_mem(compMethod, X86_EAX, X86_ECX, sizeOfElementType);
+	x86_mov_reg_membase(compMethod, X86_EAX, X86_ECX, 0, sizeOfElementType);
 	x86_push_reg(compMethod, X86_EAX);
 	return compMethod;
 }
@@ -589,11 +756,11 @@ char* JIT_Compile_Store_Element				(IRInstruction* instr, char* compMethod, IRMe
 	x86_pop_reg(compMethod, X86_EDX);
 	x86_pop_reg(compMethod, X86_ECX);
 	x86_pop_reg(compMethod, X86_EAX);
-	x86_mov_reg_mem(compMethod, X86_ECX, X86_ECX, global_SizeOfPointerInBytes);
+	x86_mov_reg_membase(compMethod, X86_ECX, X86_ECX, 0, global_SizeOfPointerInBytes);
 	x86_alu_reg_imm(compMethod, X86_ADD, X86_ECX, sizeof(GCArray));
 	x86_imul_reg_reg_imm(compMethod, X86_EAX, X86_EAX, sizeOfElementType);
 	x86_alu_reg_reg(compMethod, X86_ADD, X86_ECX, X86_EAX);
-	x86_mov_mem_reg(compMethod, X86_ECX, X86_EDX, sizeOfElementType);
+	x86_mov_membase_reg(compMethod, X86_ECX, 0, X86_EDX, sizeOfElementType);
 	return compMethod;
 }
 
@@ -601,8 +768,8 @@ char* JIT_Compile_Store_Element				(IRInstruction* instr, char* compMethod, IRMe
 char* JIT_Compile_Load_Array_Length			(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	x86_pop_reg(compMethod, X86_ECX);
-	x86_mov_reg_mem(compMethod, X86_ECX, X86_ECX, global_SizeOfPointerInBytes);
-	x86_mov_reg_mem(compMethod, X86_ECX, X86_ECX, 4);
+	x86_mov_reg_membase(compMethod, X86_ECX, X86_ECX, 0, global_SizeOfPointerInBytes);
+	x86_mov_reg_membase(compMethod, X86_ECX, X86_ECX, 0, 4);
 	x86_push_reg(compMethod, X86_ECX);
 	return compMethod;
 }
@@ -788,13 +955,13 @@ char* JIT_Compile_Add						(IRInstruction* instr, char* compMethod, IRMethod* mt
 				case ElementType_U:
 				case ElementType_U4:
 					x86_pop_reg(compMethod, X86_EAX);
-					x86_alu_mem_reg(compMethod, X86_ADD, X86_ESP, X86_EAX);
+					x86_alu_membase_reg(compMethod, X86_ADD, X86_ESP, 0, X86_EAX);
 					break;
 				case ElementType_I8:
 				case ElementType_U8:
 					x86_pop_reg(compMethod, X86_EAX);
 					x86_pop_reg(compMethod, X86_EBX);
-					x86_alu_mem_reg(compMethod, X86_ADD, X86_ESP, X86_EAX);
+					x86_alu_membase_reg(compMethod, X86_ADD, X86_ESP, 0, X86_EAX);
 					x86_alu_membase_reg(compMethod, X86_ADC, X86_ESP, 4, X86_EBX);
 					break;
 				case ElementType_R4:
@@ -834,13 +1001,13 @@ char* JIT_Compile_Sub						(IRInstruction* instr, char* compMethod, IRMethod* mt
 				case ElementType_U:
 				case ElementType_U4:
 					x86_pop_reg(compMethod, X86_EAX);
-					x86_alu_mem_reg(compMethod, X86_SUB, X86_ESP, X86_EAX);
+					x86_alu_membase_reg(compMethod, X86_SUB, X86_ESP, 0, X86_EAX);
 					break;
 				case ElementType_I8:
 				case ElementType_U8:
 					x86_pop_reg(compMethod, X86_EAX);
 					x86_pop_reg(compMethod, X86_EBX);
-					x86_alu_mem_reg(compMethod, X86_SUB, X86_ESP, X86_EAX);
+					x86_alu_membase_reg(compMethod, X86_SUB, X86_ESP, 0, X86_EAX);
 					x86_alu_membase_reg(compMethod, X86_SBB, X86_ESP, 4, X86_EBX);
 					break;
 				case ElementType_R4:
@@ -971,7 +1138,7 @@ char* JIT_Compile_Rem						(IRInstruction* instr, char* compMethod, IRMethod* mt
 					x86_pop_reg(compMethod, X86_EAX);
 					x86_cdq(compMethod);
 					x86_div_membase(compMethod, X86_ESP, 0, TRUE);
-					x86_mov_mem_reg(compMethod, X86_ESP, X86_EDX, 4);
+					x86_mov_membase_reg(compMethod, X86_ESP, 0, X86_EDX, 4);
 					break;
 				case ElementType_I8:
 				case ElementType_U8:
@@ -1004,7 +1171,7 @@ char* JIT_Compile_LoadIndirect				(IRInstruction* instr, char* compMethod, IRMet
 	uint32_t sizeOfElementType = 0;
 	GetSizeOfElementType(sizeOfElementType, elementType);
 	x86_pop_reg(compMethod, X86_ECX);
-	x86_mov_reg_mem(compMethod, X86_ECX, X86_ECX, sizeOfElementType);
+	x86_mov_reg_membase(compMethod, X86_ECX, X86_ECX, 0, sizeOfElementType);
 	x86_push_reg(compMethod, X86_ECX);
 	return compMethod;
 }
@@ -1017,7 +1184,7 @@ char* JIT_Compile_StoreIndirect				(IRInstruction* instr, char* compMethod, IRMe
 	GetSizeOfElementType(sizeOfElementType, elementType);
 	x86_pop_reg(compMethod, X86_EAX);
 	x86_pop_reg(compMethod, X86_ECX);
-	x86_mov_mem_reg(compMethod, X86_ECX, X86_EAX, sizeOfElementType);
+	x86_mov_membase_reg(compMethod, X86_ECX, 0, X86_EAX, sizeOfElementType);
 	return compMethod;
 }
 
@@ -1145,76 +1312,6 @@ ALWAYS_INLINE void Align(uint32_t* val)
 	if (*val % 4 != 0)
 	{
 		*val += 4 - (*val % 4);
-	}
-}
-
-ALWAYS_INLINE uint32_t CalculateSize(IRType* tp)
-{
-	if (tp->Size > 0)
-		return tp->Size;
-
-	if (tp->TypeDef->ClassLayout)
-	{
-		return tp->TypeDef->ClassLayout->ClassSize;
-	}
-
-	AppDomain* domain = tp->ParentAssembly->ParentDomain;
-	if (
-		(tp->TypeDef == domain->CachedType___System_Void)
-	)
-	{
-		tp->IsVoid = TRUE;
-		return 0;
-	}
-	else if (
-		(tp->TypeDef == domain->CachedType___System_Byte)
-	||  (tp->TypeDef == domain->CachedType___System_SByte)
-	||  (tp->TypeDef == domain->CachedType___System_Boolean)
-	)
-	{
-		tp->Size = 1;
-		return 1;
-	}
-	else if (
-		(tp->TypeDef == domain->CachedType___System_Int16)
-	||  (tp->TypeDef == domain->CachedType___System_UInt16)
-	||  (tp->TypeDef == domain->CachedType___System_Char)
-	)
-	{
-		tp->Size = 2;
-		return 2;
-	}
-	else if (
-		(tp->TypeDef == domain->CachedType___System_Int32)
-	||  (tp->TypeDef == domain->CachedType___System_UInt32)
-	||  (tp->TypeDef == domain->CachedType___System_Object)
-	||  (tp->TypeDef == domain->CachedType___System_Single)
-	)
-	{
-		tp->Size = 4;
-		return 4;
-	}
-	else if (
-		(tp->TypeDef == domain->CachedType___System_Int64)
-	||  (tp->TypeDef == domain->CachedType___System_UInt64)
-	||  (tp->TypeDef == domain->CachedType___System_Double)
-	)
-	{
-		tp->Size = 8;
-		return 8;
-	}
-	else if (
-		(tp->TypeDef == domain->CachedType___System_IntPtr)
-	||  (tp->TypeDef == domain->CachedType___System_UIntPtr)
-	||  (tp->TypeDef == domain->CachedType___System_String)
-	)
-	{
-		tp->Size = global_SizeOfPointerInBytes;
-		return global_SizeOfPointerInBytes;
-	}
-	else
-	{
-		Panic("Can't Calculate the size of this currently!");
 	}
 }
 

@@ -99,6 +99,7 @@ struct _IRMethod
 	bool_t Returns;
 	IRType* ReturnType;
 
+	bool_t ParametersLayedOut;
 };
 
 /*
