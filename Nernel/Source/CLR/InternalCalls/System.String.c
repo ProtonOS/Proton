@@ -195,3 +195,14 @@ uint32_t System_String_Equals(AppDomain* pAppDomain, ReferenceTypeObject* pStrin
 {
 	return pString1 == pString2;
 }
+
+uint32_t System_String_GetHashCode(AppDomain* pAppDomain, ReferenceTypeObject* pThis)
+{
+	GCString* header = (GCString*)pThis->Object;
+	uint16_t* data = (uint16_t*)header->Data;
+	uint32_t hash = 0;
+	uint32_t length = header->Size / 2;
+	for (uint32_t index = 0; index < length; ++index) hash = (hash << 5) - hash + data[index];
+	return hash;
+}
+

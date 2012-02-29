@@ -70,6 +70,7 @@ const InternalCall InternalCallTable[] =
 	{	NULL,				NULL,				"InternalIndexOf",		Signature_ElementType_I4,		4,	{ Signature_ElementType_Char, Signature_ElementType_I4, Signature_ElementType_I4, Signature_ElementType_Boolean }, &System_String_InternalIndexOf },
 	{	NULL,				NULL,				"InternalIndexOfAny",	Signature_ElementType_I4,		4,	{ Signature_ElementType_SingleDimensionArray, Signature_ElementType_Char, Signature_ElementType_I4, Signature_ElementType_I4, Signature_ElementType_Boolean }, &System_String_InternalIndexOfAny },
 	{	NULL,				NULL,				"Equals",				Signature_ElementType_Boolean,	2,	{ Signature_ElementType_String, Signature_ElementType_String }, &System_String_Equals },
+	{	NULL,				NULL,				"GetHashCode",			Signature_ElementType_I4,		0,	{ }, &System_String_GetHashCode },
 
 	{	NULL,				NULL,				NULL,					Signature_ElementType_End,		0,	{ }, NULL }
 };
