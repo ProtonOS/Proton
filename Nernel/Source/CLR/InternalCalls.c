@@ -57,14 +57,18 @@ const InternalCall InternalCallTable[] =
 	{	NULL,				NULL,				"get_Platform",			Signature_ElementType_ValueType,0,	{ }, &System_Environment_getPlatform },
 
 	{	NULL,				"String",			".ctor",				Signature_ElementType_Void,		1,	{ Signature_ElementType_Pointer, Signature_ElementType_Char }, &System_String_Ctor_CharPtr },
-	{	NULL,				NULL,				".ctor",				Signature_ElementType_Void,		3,	{ Signature_ElementType_Pointer, Signature_ElementType_Char, Signature_ElementType_I4, Signature_ElementType_I4 }, &System_String_Ctor_CharPtrAndStartAndLength },
-	{	NULL,				NULL,				".ctor",				Signature_ElementType_Void,		1,	{ Signature_ElementType_Pointer, Signature_ElementType_I1 }, &System_String_Ctor_SBytePtr },
-	{	NULL,				NULL,				".ctor",				Signature_ElementType_Void,		3,	{ Signature_ElementType_Pointer, Signature_ElementType_I1, Signature_ElementType_I4, Signature_ElementType_I4 }, &System_String_Ctor_SBytePtrAndStartAndLength },
-	{	NULL,				NULL,				".ctor",				Signature_ElementType_Void,		2,	{ Signature_ElementType_Char, Signature_ElementType_I4 }, &System_String_Ctor_CharAndCount },
-	{	NULL,				NULL,				".ctor",				Signature_ElementType_Void,		3,	{ Signature_ElementType_String, Signature_ElementType_I4, Signature_ElementType_I4 }, &System_String_Ctor_StringAndStartAndLength },
+	{	NULL,				NULL,				NULL,					Signature_ElementType_Void,		1,	{ Signature_ElementType_Pointer, Signature_ElementType_I1 }, &System_String_Ctor_SBytePtr },
+	{	NULL,				NULL,				NULL,					Signature_ElementType_Void,		1,	{ Signature_ElementType_SingleDimensionArray, Signature_ElementType_Char }, &System_String_Ctor_CharArray },
+	{	NULL,				NULL,				NULL,					Signature_ElementType_Void,		2,	{ Signature_ElementType_Char, Signature_ElementType_I4 }, &System_String_Ctor_CharAndCount },
+	{	NULL,				NULL,				NULL,					Signature_ElementType_Void,		3,	{ Signature_ElementType_SingleDimensionArray, Signature_ElementType_Char, Signature_ElementType_I4, Signature_ElementType_I4 }, &System_String_Ctor_CharArrayAndStartAndLength },
+	{	NULL,				NULL,				NULL,					Signature_ElementType_Void,		3,	{ Signature_ElementType_Pointer, Signature_ElementType_Char, Signature_ElementType_I4, Signature_ElementType_I4 }, &System_String_Ctor_CharPtrAndStartAndLength },
+	{	NULL,				NULL,				NULL,					Signature_ElementType_Void,		3,	{ Signature_ElementType_Pointer, Signature_ElementType_I1, Signature_ElementType_I4, Signature_ElementType_I4 }, &System_String_Ctor_SBytePtrAndStartAndLength },
+	{	NULL,				NULL,				NULL,					Signature_ElementType_Void,		3,	{ Signature_ElementType_String, Signature_ElementType_I4, Signature_ElementType_I4 }, &System_String_Ctor_StringAndStartAndLength },
 	{	NULL,				NULL,				"InternalConcat",		Signature_ElementType_String,	2,	{ Signature_ElementType_String, Signature_ElementType_String }, &System_String_InternalConcat },
 	{	NULL,				NULL,				"InternalReplace",		Signature_ElementType_String,	2,	{ Signature_ElementType_String, Signature_ElementType_String }, &System_String_InternalReplace },
+	{	NULL,				NULL,				"InternalTrim",			Signature_ElementType_String,	2,	{ Signature_ElementType_SingleDimensionArray, Signature_ElementType_Char, Signature_ElementType_I4 }, &System_String_InternalTrim },
 	{	NULL,				NULL,				"InternalIndexOf",		Signature_ElementType_I4,		4,	{ Signature_ElementType_Char, Signature_ElementType_I4, Signature_ElementType_I4, Signature_ElementType_Boolean }, &System_String_InternalIndexOf },
+	{	NULL,				NULL,				"InternalIndexOfAny",	Signature_ElementType_I4,		4,	{ Signature_ElementType_SingleDimensionArray, Signature_ElementType_Char, Signature_ElementType_I4, Signature_ElementType_I4, Signature_ElementType_Boolean }, &System_String_InternalIndexOfAny },
 	{	NULL,				NULL,				"Equals",				Signature_ElementType_Boolean,	2,	{ Signature_ElementType_String, Signature_ElementType_String }, &System_String_Equals },
 
 	{	NULL,				NULL,				NULL,					Signature_ElementType_End,		0,	{ }, NULL }
@@ -72,72 +76,64 @@ const InternalCall InternalCallTable[] =
 
 InternalCallPointer ResolveInternalCall(MethodDefinition* methodDef, CLIFile* fil)
 {
+	const InternalCall* result = NULL;
 	const InternalCall* ic = NULL;
-	const char* lastNamespace = NULL;
-	const char* lastTypeName = NULL;
-	const char* lastName = NULL;
-	for (uint32_t index = 0; InternalCallTable[index].TargetMethod != NULL; ++index)
+	const char* foundNamespace = NULL;
+	const char* foundTypeName = NULL;
+	const char* foundName = NULL;
+	for (uint32_t index = 0; InternalCallTable[index].TargetMethod; ++index)
 	{
 		ic = &InternalCallTable[index];
-		if (lastNamespace == NULL)
+		if (!foundNamespace)
 		{
-			if (ic->Namespace && !strcmp(ic->Namespace, methodDef->TypeDefinition->Namespace))
-			{
-				lastNamespace = ic->Namespace;
-			}
+			if (ic->Namespace && !strcmp(ic->Namespace, methodDef->TypeDefinition->Namespace)) foundNamespace = ic->Namespace;
+			else continue;
 		}
-		else if (ic->Namespace != NULL) goto LookupFailed;
+		else if (ic->Namespace) break;
 
-		if (lastTypeName == NULL)
+		if (!foundTypeName)
 		{
-			if (ic->TypeName && !strcmp(ic->TypeName, methodDef->TypeDefinition->Name))
-			{
-				lastTypeName = ic->Name;
-			}
+			if (ic->TypeName && !strcmp(ic->TypeName, methodDef->TypeDefinition->Name)) foundTypeName = ic->TypeName;
+			else continue;
 		}
-		else if (ic->TypeName != NULL) goto LookupFailed;
+		else if (ic->TypeName) break;
 
-		if (lastName == NULL)
+		if (!foundName)
 		{
-			if (ic->Name && !strcmp(ic->Name, methodDef->Name) && ic->ArgCount == methodDef->ParameterListCount)
+			if (ic->Name && !strcmp(ic->Name, methodDef->Name)) foundName = ic->Name;
+			else continue;
+		}
+		else if (ic->Name) break;
+
+		if (foundName && ic->ParameterCount == methodDef->ParameterListCount)
+		{
+			MethodSignature* sig = MethodSignature_Expand(methodDef->Signature, fil);
+			bool_t sigMatch = TRUE;
+			if (sig->ReturnType->Type->ElementType == ic->ReturnType ||
+				(ic->ReturnType == Signature_ElementType_Void && sig->ReturnType->Void))
 			{
-				MethodSignature* sig = MethodSignature_Expand(methodDef->Signature, fil);
-				bool_t sigMatch = TRUE;
-				if (sig->ReturnType->Type->ElementType == ic->ReturnType ||
-					(ic->ReturnType == Signature_ElementType_Void && sig->ReturnType->Void))
+				for (uint32_t arg = 0, param = 0; param < ic->ParameterCount; arg++, param++)
 				{
-					for (uint32_t i = 0; i < ic->ArgCount; i++)
+					if (ic->Args[arg] == sig->Parameters[param]->Type->ElementType)
 					{
-						if (sig->Parameters[i]->Type->ElementType != ic->Args[i])
+						if (ic->Args[arg] == Signature_ElementType_Pointer)
 						{
-							if (ic->Args[i] == Signature_ElementType_Pointer && sig->Parameters[i]->Type->ElementType == Signature_ElementType_Pointer)
+							if (sig->Parameters[param]->Type->PtrType->ElementType == ic->Args[arg + 1] ||
+								(ic->Args[arg + 1] == Signature_ElementType_Void && sig->Parameters[param]->Type->PtrVoid))
 							{
-								if (i == ic->ArgCount - 1) Panic("Missing pointer type for internal method parameters");
-
-								if (sig->Parameters[i]->Type->PtrType->ElementType == ic->Args[i + 1] ||
-									(ic->Args[i + 1] == Signature_ElementType_Void && sig->Parameters[i]->Type->PtrVoid))
-								{
-									++i;
-								}
-								else
-								{
-									sigMatch = FALSE;
-									break;
-								}
+								++arg;
 							}
-							else if (ic->Args[i] == Signature_ElementType_SingleDimensionArray && sig->Parameters[i]->Type->ElementType == Signature_ElementType_SingleDimensionArray)
+							else
 							{
-								if (i == ic->ArgCount - 1) Panic("Missing single dimension array type for internal method parameters");
-
-								if (sig->Parameters[i]->Type->SZArrayType->ElementType == ic->Args[i + 1])
-								{
-									++i;
-								}
-								else
-								{
-									sigMatch = FALSE;
-									break;
-								}
+								sigMatch = FALSE;
+								break;
+							}
+						}
+						else if (ic->Args[arg] == Signature_ElementType_SingleDimensionArray)
+						{
+							if (sig->Parameters[param]->Type->SZArrayType->ElementType == ic->Args[arg + 1])
+							{
+								++arg;
 							}
 							else
 							{
@@ -146,18 +142,30 @@ InternalCallPointer ResolveInternalCall(MethodDefinition* methodDef, CLIFile* fi
 							}
 						}
 					}
+					else
+					{
+						sigMatch = FALSE;
+						break;
+					}
 				}
-				else sigMatch = FALSE;
-				MethodSignature_Destroy(sig);
-				if (sigMatch)
-					return ic->TargetMethod;
+			}
+			else sigMatch = FALSE;
+			MethodSignature_Destroy(sig);
+			if (sigMatch)
+			{
+				result = ic;
+				break;
 			}
 		}
-		else if (ic->Name != NULL) goto LookupFailed;
 	}
 
-LookupFailed:
+	if (result) return result->TargetMethod;
+
 	printf("ResolveInternalCall Missing: %s.%s.%s\n", methodDef->TypeDefinition->Namespace, methodDef->TypeDefinition->Name, methodDef->Name);
+	for (uint32_t index = 0; index < methodDef->ParameterListCount; ++index)
+	{
+		printf("  Param[%u] is %s\n", (unsigned int)index, methodDef->ParameterList[index].Name);
+	}
     //Panic("Unable to resolve internal call!");
     return 0;
 }
