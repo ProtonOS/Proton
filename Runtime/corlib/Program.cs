@@ -12,7 +12,7 @@ namespace Mernel
             string str2 = "Definately.";
             //str2 = str2.Replace("fin", "fan");
             //str2 = str2.Replace("Definately", "Fosho!");
-            // Console.WriteLine(str + "\n" + str2);
+            Console.WriteLine(str + "\n" + str2);
             //int a = 2;
             //int b = 78;
             //b = 2;
