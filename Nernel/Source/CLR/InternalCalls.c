@@ -1,10 +1,11 @@
 #include <CLR/InternalCalls/Proton.IO.MemoryIO.h>
 #include <CLR/InternalCalls/Proton.IO.PortIO.h>
-#include <CLR/InternalCalls/System.Math.h>
+#include <CLR/InternalCalls/System.Array.h>
 #include <CLR/InternalCalls/System.Console.h>
-#include <CLR/InternalCalls/System.Object.h>
 #include <CLR/InternalCalls/System.DateTime.h>
 #include <CLR/InternalCalls/System.Environment.h>
+#include <CLR/InternalCalls/System.Math.h>
+#include <CLR/InternalCalls/System.Object.h>
 #include <CLR/InternalCalls/System.String.h>
 
 #include <CLR/InternalCalls.h>
@@ -71,9 +72,19 @@ const InternalCall InternalCallTable[] =
 	{	NULL,				NULL,				"InternalIndexOfAny",	Signature_ElementType_I4,		4,	{ Signature_ElementType_SingleDimensionArray, Signature_ElementType_Char, Signature_ElementType_I4, Signature_ElementType_I4, Signature_ElementType_Boolean }, &System_String_InternalIndexOfAny },
 	{	NULL,				NULL,				"Equals",				Signature_ElementType_Boolean,	2,	{ Signature_ElementType_String, Signature_ElementType_String }, &System_String_Equals },
 	{	NULL,				NULL,				"GetHashCode",			Signature_ElementType_I4,		0,	{ }, &System_String_GetHashCode },
+	{	NULL,				NULL,				"get_Chars",			Signature_ElementType_Char,		1,	{ Signature_ElementType_I4 }, &System_String_getChars },
+
+	{	NULL,				"Array",			"Internal_GetValue",	Signature_ElementType_Object,	1,	{ Signature_ElementType_I4 }, &System_Array_InternalGetValue },
+	{	NULL,				NULL,				"Internal_SetValue",	Signature_ElementType_Boolean,	2,	{ Signature_ElementType_Object, Signature_ElementType_I4 }, &System_Array_InternalSetValue },
+	{	NULL,				NULL,				"Clear",				Signature_ElementType_Void,		3,	{ Signature_ElementType_Class, Signature_ElementType_I4, Signature_ElementType_I4 }, &System_Array_Clear },
+	{	NULL,				NULL,				"Internal_Copy",		Signature_ElementType_Boolean,	5,	{ Signature_ElementType_Class, Signature_ElementType_I4, Signature_ElementType_Class, Signature_ElementType_I4, Signature_ElementType_I4 }, &System_Array_InternalCopy },
+	{	NULL,				NULL,				"Reverse",				Signature_ElementType_Void,		3,	{ Signature_ElementType_Class, Signature_ElementType_I4, Signature_ElementType_I4 }, &System_Array_Reverse },
 
 	{	NULL,				NULL,				NULL,					Signature_ElementType_End,		0,	{ }, NULL }
 };
+
+//uint32_t System_Array_InternalCopy(AppDomain* pAppDomain, ReferenceTypeObject* pSource, uint32_t pSourceIndex, ReferenceTypeObject* pDestination, uint32_t pDestinationIndex, uint32_t pLength);
+//void System_Array_Reverse(AppDomain* pAppDomain, ReferenceTypeObject* pArray, uint32_t pIndex, uint32_t pLength);
 
 InternalCallPointer ResolveInternalCall(MethodDefinition* methodDef, CLIFile* fil)
 {
@@ -163,10 +174,12 @@ InternalCallPointer ResolveInternalCall(MethodDefinition* methodDef, CLIFile* fi
 	if (result) return result->TargetMethod;
 
 	printf("ResolveInternalCall Missing: %s.%s.%s\n", methodDef->TypeDefinition->Namespace, methodDef->TypeDefinition->Name, methodDef->Name);
+	MethodSignature* sig = MethodSignature_Expand(methodDef->Signature, fil);
 	for (uint32_t index = 0; index < methodDef->ParameterListCount; ++index)
 	{
-		printf("  Param[%u] is %s\n", (unsigned int)index, methodDef->ParameterList[index].Name);
+		printf("  Param[%u] is %s, sig type 0x%x\n", (unsigned int)index, methodDef->ParameterList[index].Name, sig->Parameters[index]->Type->ElementType);
 	}
+	MethodSignature_Destroy(sig);
     //Panic("Unable to resolve internal call!");
     return 0;
 }

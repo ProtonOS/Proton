@@ -206,3 +206,9 @@ uint32_t System_String_GetHashCode(AppDomain* pAppDomain, ReferenceTypeObject* p
 	return hash;
 }
 
+uint32_t System_String_getChars(AppDomain* pAppDomain, ReferenceTypeObject* pThis, uint32_t pIndex)
+{
+	GCString* header = (GCString*)pThis->Object;
+	uint16_t* data = (uint16_t*)header->Data;
+	return data[pIndex];
+}

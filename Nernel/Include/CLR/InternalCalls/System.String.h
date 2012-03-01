@@ -17,3 +17,4 @@ int32_t System_String_InternalIndexOf(AppDomain* pAppDomain, ReferenceTypeObject
 int32_t System_String_InternalIndexOfAny(AppDomain* pAppDomain, ReferenceTypeObject* pThis, ReferenceTypeObject* pCharArray, uint32_t pStart, uint32_t pCount, uint32_t pForwards);
 uint32_t System_String_Equals(AppDomain* pAppDomain, ReferenceTypeObject* pString1, ReferenceTypeObject* pString2);
 uint32_t System_String_GetHashCode(AppDomain* pAppDomain, ReferenceTypeObject* pThis);
+uint32_t System_String_getChars(AppDomain* pAppDomain, ReferenceTypeObject* pThis, uint32_t pIndex);

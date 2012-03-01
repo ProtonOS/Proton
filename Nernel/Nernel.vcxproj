@@ -32,6 +32,7 @@
     <ClCompile Include="Source\CLR\InternalCalls.c" />
     <ClCompile Include="Source\CLR\InternalCalls\Proton.IO.MemoryIO.c" />
     <ClCompile Include="Source\CLR\InternalCalls\Proton.IO.PortIO.c" />
+    <ClCompile Include="Source\CLR\InternalCalls\System.Array.c" />
     <ClCompile Include="Source\CLR\InternalCalls\System.Console.c" />
     <ClCompile Include="Source\CLR\InternalCalls\System.DateTime.c" />
     <ClCompile Include="Source\CLR\InternalCalls\System.Environment.c" />
@@ -152,6 +153,7 @@
     <ClInclude Include="Include\CLR\InternalCalls\Helpers.h" />
     <ClInclude Include="Include\CLR\InternalCalls\Proton.IO.MemoryIO.h" />
     <ClInclude Include="Include\CLR\InternalCalls\Proton.IO.PortIO.h" />
+    <ClInclude Include="Include\CLR\InternalCalls\System.Array.h" />
     <ClInclude Include="Include\CLR\InternalCalls\System.Console.h" />
     <ClInclude Include="Include\CLR\InternalCalls\System.DateTime.h" />
     <ClInclude Include="Include\CLR\InternalCalls\System.Environment.h" />

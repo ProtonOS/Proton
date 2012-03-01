@@ -117,6 +117,7 @@
     <ClCompile Include="Source\CLR\InternalCalls\System.Environment.c" />
     <ClCompile Include="Source\CLR\InternalCalls\System.String.c" />
     <ClCompile Include="Source\CLR\JIT\BranchRegistry.c" />
+    <ClCompile Include="Source\CLR\InternalCalls\System.Array.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\CLR\AppDomain.h" />
@@ -258,6 +259,7 @@
     <ClInclude Include="Include\Inline.h" />
     <ClInclude Include="Include\CLR\InternalCalls\System.String.h" />
     <ClInclude Include="Include\CLR\JIT\BranchRegistry.h" />
+    <ClInclude Include="Include\CLR\InternalCalls\System.Array.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Makefile.omake" />
