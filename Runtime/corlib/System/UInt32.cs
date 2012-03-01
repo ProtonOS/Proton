@@ -32,16 +32,17 @@ namespace System
                 return "0";
             }
             const string xDigits = "0123456789";
-            char[] xResultChars = new char[11];
-            int xCurrentPos = 10;
+            string result = "";
+            //char[] xResultChars = new char[11];
+            //int xCurrentPos = 10;
             while (this > 0)
             {
-                byte xPos = (byte)(this % 10);
+                int xPos = (int)(this % 10);
                 this /= 10;
-                xResultChars[xCurrentPos] = xDigits[xPos];
-                xCurrentPos -= 1;
+                result = xDigits[xPos].ToString() + result;
+                //xCurrentPos -= 1;
             }
-            return new String(xResultChars, xCurrentPos + 1, 10 - xCurrentPos);
+            return result; //new String(xResultChars, xCurrentPos + 1, 10 - xCurrentPos);
 
             //return NumberFormatter.FormatGeneral(new NumberFormatter.NumberStore(this.m_value));
         }

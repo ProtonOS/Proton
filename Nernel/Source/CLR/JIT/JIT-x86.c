@@ -3,6 +3,7 @@
 #include <CLR/JIT/JIT-x86.h>
 #include <CLR/Architecture.h>
 #include <CLR/SyntheticStack.h>
+#include <String_Format.h>
 #include <Inline.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -325,9 +326,9 @@ char* JIT_Compile_Branch					(IRInstruction* instr, char* compMethod, IRMethod* 
 	else
 	{
 		ElementType Arg1Type = *(ElementType*)instr->Arg3;
-		ElementType Arg2Type = *(ElementType*)instr->Arg4;
-		if (Arg1Type != Arg2Type)
-			Panic("Something went very wrong in the decomp, because this shouldn't be possible.");
+		//ElementType Arg2Type = *(ElementType*)instr->Arg4;
+		//if (Arg1Type != Arg2Type)
+		//	Panic("Something went very wrong in the decomp, because this shouldn't be possible.");
 
 		switch(Arg1Type) // Here we get to load the arguments and call cmp on them.
 		{
@@ -417,8 +418,7 @@ char* JIT_LinkBranches(char* compMethod, BranchRegistry* branchReg, uint32_t pLe
 		}
 	}
 
-	return compMethod;
-}
+	return compMethod;}
 
 
 char* JIT_Compile_Jump						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
@@ -480,7 +480,8 @@ char* JIT_Compile_Load_LocalVar_Address		(IRInstruction* instr, char* compMethod
 {
 	uint32_t localIndex = *(uint32_t*)instr->Arg1;
 	x86_mov_reg_reg(compMethod, X86_EAX, X86_EBP, global_SizeOfPointerInBytes);
-	x86_alu_reg_imm(compMethod, X86_ADD, X86_EAX, mth->LocalVariables[localIndex]->Offset);
+	x86_alu_reg_imm(compMethod, X86_ADD, X86_EAX, localIndex * global_SizeOfPointerInBytes);
+	//x86_alu_reg_imm(compMethod, X86_ADD, X86_EAX, mth->LocalVariables[localIndex]->Offset);
 	x86_push_reg(compMethod, X86_EAX);
 	return compMethod;
 }
@@ -718,7 +719,8 @@ char* JIT_Compile_Load_Parameter_Address	(IRInstruction* instr, char* compMethod
 {
 	uint32_t paramIndex = *(uint32_t*)instr->Arg1;
 	x86_mov_reg_reg(compMethod, X86_EAX, X86_EBP, global_SizeOfPointerInBytes);
-	x86_alu_reg_imm(compMethod, X86_ADD, X86_EAX, mth->Parameters[paramIndex]->Offset * -1);
+	x86_alu_reg_imm(compMethod, X86_ADD, X86_EAX, paramIndex * global_SizeOfPointerInBytes * -1);
+	//x86_alu_reg_imm(compMethod, X86_ADD, X86_EAX, mth->Parameters[paramIndex]->Offset * -1);
 	x86_push_reg(compMethod, X86_EAX);
 	return compMethod;
 }
@@ -1094,6 +1096,7 @@ char* JIT_Compile_Div						(IRInstruction* instr, char* compMethod, IRMethod* mt
 
 	switch(ovfType)
 	{
+		case OverflowType_Unsigned:
 		case OverflowType_None:
 			switch(argEins)
 			{
@@ -1123,8 +1126,9 @@ char* JIT_Compile_Div						(IRInstruction* instr, char* compMethod, IRMethod* mt
 			}
 			break;
 		case OverflowType_Signed:
-		case OverflowType_Unsigned:
-		default: Panic("Unsupported OverflowType!"); break;
+		default:
+			Panic("Unsupported OverflowType!");
+			break;
 	}
 	return compMethod;
 }
@@ -1138,6 +1142,7 @@ char* JIT_Compile_Rem						(IRInstruction* instr, char* compMethod, IRMethod* mt
 
 	switch(ovfType)
 	{
+		case OverflowType_Unsigned:
 		case OverflowType_None:
 			switch(argEins)
 			{
@@ -1172,8 +1177,9 @@ char* JIT_Compile_Rem						(IRInstruction* instr, char* compMethod, IRMethod* mt
 			}
 			break;
 		case OverflowType_Signed:
-		case OverflowType_Unsigned:
-		default: Panic("Unsupported OverflowType!"); break;
+		default: 
+			Panic(String_Format("Unsupported OverflowType (%i)!", (int)ovfType)); 
+			break;
 	}
 	return compMethod;
 }
@@ -1212,7 +1218,8 @@ char* JIT_Compile_LoadNull					(IRInstruction* instr, char* compMethod, IRMethod
 
 char* JIT_Compile_NewObj					(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
-	
+	//IRMethod* mth = (IRMethod*)instr->Arg1;
+	//mth->Parameters[0]->Type->Size
 	return compMethod;
 }
 
@@ -1487,7 +1494,11 @@ void* JIT_Trampoline_DoCall(IRMethodSpec* mth, ReferenceTypeObject* obj)
 
 	//IRMethod* m = tp->Methods[mth->MethodIndex];
 	variable = ((IRType*)variable)->Methods[mth->MethodIndex];
-	if (!((IRMethod*)variable)->AssembledMethod)
+	if (((IRMethod*)variable)->MethodDefinition->ImplFlags & MethodImplAttributes_InternalCall)
+	{
+		return (((IRMethod*)variable)->MethodDefinition->InternalCall);
+	}
+	else if (!((IRMethod*)variable)->AssembledMethod)
 	{
 		JIT_CompileMethod(((IRMethod*)variable));
 	}
