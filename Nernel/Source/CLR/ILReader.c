@@ -2253,6 +2253,7 @@ Branch_Common:
 
 						case MetaData_Table_MemberReference:
 							//printf("Don't deal with this yet! Load Field with table index: 0x%x\n", (unsigned int)tok->Table);
+							EMIT_IR(IROpCode_Nop);
 							sig = FieldSignature_Expand(((MemberReference*)tok->Data)->Signature, fil);
 							break;
 
@@ -2457,6 +2458,9 @@ Branch_Common:
 							EMIT_IR_1ARG(IROpCode_Store_Object, et);
 							break;
 						}
+						case MetaData_Table_TypeSpecification:
+							printf("Not Sure what to do here!\n");
+							break;
 						default:
 							Panic("Unknown Table for StObj!");
 							break;
