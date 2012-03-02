@@ -53,8 +53,8 @@ void JIT_CompileMethod(IRMethod* mthd)
 			case IROpCode_Branch:
 				compMthd = JIT_Compile_Branch					(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
 				break;
-			case IROpCode_Jump:
-				compMthd = JIT_Compile_Jump						(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
+			case IROpCode_Optimized_Jump:
+				compMthd = JIT_Compile_Optimized_Jump			(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
 				break;
 			case IROpCode_Store_LocalVar:
 				compMthd = JIT_Compile_Store_LocalVar			(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
@@ -83,8 +83,17 @@ void JIT_CompileMethod(IRMethod* mthd)
 			case IROpCode_Load_Element:
 				compMthd = JIT_Compile_Load_Element				(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
 				break;
+			case IROpCode_Load_Element_Evil:
+				compMthd = JIT_Compile_Load_Element_Evil		(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
+				break;
+			case IROpCode_Load_Element_Address:
+				compMthd = JIT_Compile_Load_Element_Address		(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
+				break;
 			case IROpCode_Store_Element:
 				compMthd = JIT_Compile_Store_Element			(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
+				break;
+			case IROpCode_Store_Element_Evil:
+				compMthd = JIT_Compile_Store_Element_Evil		(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
 				break;
 			case IROpCode_Load_Array_Length:
 				compMthd = JIT_Compile_Load_Array_Length		(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
@@ -122,6 +131,9 @@ void JIT_CompileMethod(IRMethod* mthd)
 			case IROpCode_NewObj:
 				compMthd = JIT_Compile_NewObj					(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
 				break;
+			case IROpCode_NewArr:
+				compMthd = JIT_Compile_NewArr					(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
+				break;
 			case IROpCode_Dup:
 				compMthd = JIT_Compile_Dup						(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
 				break;
@@ -146,6 +158,48 @@ void JIT_CompileMethod(IRMethod* mthd)
 			case IROpCode_Load_Field:
 				compMthd = JIT_Compile_Load_Field				(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
 				break;
+			case IROpCode_Load_Field_Address:
+				compMthd = JIT_Compile_Load_Field_Address		(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
+				break;
+			case IROpCode_Store_Field:
+				compMthd = JIT_Compile_Store_Field				(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
+				break;
+			case IROpCode_Load_Static_Field:
+				compMthd = JIT_Compile_Load_Static_Field		(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
+				break;
+			case IROpCode_Load_Static_Field_Address:
+				compMthd = JIT_Compile_Load_Static_Field_Address(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
+				break;
+			case IROpCode_Store_Static_Field:
+				compMthd = JIT_Compile_Store_Static_Field		(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
+				break;
+			case IROpCode_Load_Object:
+				compMthd = JIT_Compile_Load_Object				(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
+				break;
+			case IROpCode_Store_Object:
+				compMthd = JIT_Compile_Store_Object				(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
+				break;
+			case IROpCode_Copy_Object:
+				compMthd = JIT_Compile_Copy_Object				(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
+				break;
+			case IROpCode_Switch:
+				compMthd = JIT_Compile_Switch					(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
+				break;
+			case IROpCode_CastClass:
+				compMthd = JIT_Compile_CastClass				(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
+				break;
+			case IROpCode_IsInst:
+				compMthd = JIT_Compile_IsInst					(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
+				break;
+			case IROpCode_Unbox:
+				compMthd = JIT_Compile_Unbox					(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
+				break;
+			case IROpCode_Unbox_Any:
+				compMthd = JIT_Compile_Unbox_Any				(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
+				break;
+			case IROpCode_Box:
+				compMthd = JIT_Compile_Box						(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
+				break;
 			case IROpCode_Call:
 				compMthd = JIT_Compile_Call						(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
 				break;
@@ -154,6 +208,9 @@ void JIT_CompileMethod(IRMethod* mthd)
 				break;
 			case IROpCode_Call_Internal:
 				compMthd = JIT_Compile_Call_Internal			(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
+				break;
+			case IROpCode_Jump:
+				compMthd = JIT_Compile_Jump						(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
 				break;
 		}
 	}

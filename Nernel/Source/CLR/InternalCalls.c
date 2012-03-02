@@ -83,9 +83,6 @@ const InternalCall InternalCallTable[] =
 	{	NULL,				NULL,				NULL,					Signature_ElementType_End,		0,	{ }, NULL }
 };
 
-//uint32_t System_Array_InternalCopy(AppDomain* pAppDomain, ReferenceTypeObject* pSource, uint32_t pSourceIndex, ReferenceTypeObject* pDestination, uint32_t pDestinationIndex, uint32_t pLength);
-//void System_Array_Reverse(AppDomain* pAppDomain, ReferenceTypeObject* pArray, uint32_t pIndex, uint32_t pLength);
-
 InternalCallPointer ResolveInternalCall(MethodDefinition* methodDef, CLIFile* fil)
 {
 	const InternalCall* result = NULL;

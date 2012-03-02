@@ -4,7 +4,7 @@
 
 typedef struct _InternalCall InternalCall;
 
-#define MAX_INTERNAL_ARGS 6
+#define MAX_INTERNAL_ARGS 8
 
 struct _InternalCall
 {

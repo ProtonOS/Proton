@@ -182,7 +182,7 @@ typedef enum IROpCode
             N/A
 
      */
-    IROpCode_Jump,
+    IROpCode_Optimized_Jump,
     /*
         Stores the value at the top of the
         stack to the specified local variable.
@@ -367,6 +367,48 @@ typedef enum IROpCode
      */
     IROpCode_Load_Element,
     /*
+        Loads the element in the array almost
+		on the top of the stack, at the index
+		on the top of the stack, to the top of
+		the stack.
+
+        Arg1:
+            The type of object to load.
+			Of the type IRType.
+
+        Arg2:
+            N/A
+
+        Arg3:
+            N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_Load_Element_Evil,
+    /*
+        Loads the address of the element in the
+		array almost on the top of the stack, at
+		the index on the top of the stack, to the
+		top of the stack.
+
+        Arg1:
+            The type of object to load.
+			Of the type IRType.
+
+        Arg2:
+            N/A
+
+        Arg3:
+            N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_Load_Element_Address,
+    /*
         Stores the element on the top of the 
 		stack, in the array about to be almost
 		on the top of the stack, at the index
@@ -389,6 +431,27 @@ typedef enum IROpCode
 
      */
     IROpCode_Store_Element,
+    /*
+        Stores the element on the top of the 
+		stack, in the array about to be almost
+		on the top of the stack, at the index
+		almost on the top of the stack.
+
+        Arg1:
+            The type of object to store.
+			Of the type IRType.
+
+        Arg2:
+            N/A
+
+        Arg3:
+            N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_Store_Element_Evil,
     /*
         Pushes the length of the array on the top
 		of the stack, to the top of the stack.
@@ -634,6 +697,27 @@ typedef enum IROpCode
      */
     IROpCode_NewObj,
     /*
+        Creates a new array, initializes it's
+		fields, and calls the constructor in
+		Arg1.
+
+        Arg1:
+            The type of object to store in the
+			array.
+			Of the type IRType*.
+
+        Arg2:
+            N/A
+
+        Arg3:
+            N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_NewArr,
+    /*
         Pushes a duplicate of the object
 		on the top of the stack, to the 
 		top of the stack.
@@ -849,7 +933,7 @@ typedef enum IROpCode
         Arg1:
             A spec representing the field
 			to be loaded.
-			Of the type IRFieldSpec.
+			Of the type IRFieldSpec*.
 
         Arg2:
             N/A
@@ -862,7 +946,307 @@ typedef enum IROpCode
 
      */
     IROpCode_Load_Field,
-	
+    /*
+        Loads the address of the specified
+		field from the object on the top of
+		the stack, to the top of the stack.
+		
+        Arg1:
+            The field to be loaded.
+			Of the type IRFieldSpec*.
+
+        Arg2:
+			N/A
+
+        Arg3:
+            N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_Load_Field_Address,
+    /*
+        Stores the value on the top of
+		the stack to the specified field
+		of the object almost on the top
+		of the stack.
+		
+        Arg1:
+            A spec representing the field
+			to be stored to.
+			Of the type IRFieldSpec*.
+
+        Arg2:
+            N/A
+
+        Arg3:
+            N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_Store_Field,
+    /*
+        Loads the specified field
+		to the top of the stack.
+		
+        Arg1:
+            The field to be loaded.
+			Of the type IRField*.
+
+        Arg2:
+            N/A
+
+        Arg3:
+            N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_Load_Static_Field,
+    /*
+        Loads the address of the specified
+		field to the top of the stack.
+		
+        Arg1:
+            The field to be loaded.
+			Of the type IRField*.
+
+        Arg2:
+			N/A
+
+        Arg3:
+            N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_Load_Static_Field_Address,
+    /*
+        Stores the value on the top of
+		the stack to the specified static
+		field.
+		
+        Arg1:
+            The field to be stored to.
+			Of the type IRField*.
+
+        Arg2:
+            N/A
+
+        Arg3:
+            N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_Store_Static_Field,
+	/*
+        Loads the value at the address on
+		the top of the stack to the top of
+		the stack
+		
+        Arg1:
+            The type of the resulting value.
+			Of the type ElementType.
+
+        Arg2:
+            N/A
+
+        Arg3:
+            N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_Load_Object,
+    /*
+        Stores the source value on the top of the
+		stack to the destination address almost on
+		the top of the stack.
+		
+        Arg1:
+            The type token of the destination argument.
+			Of the type ElementType.
+
+        Arg2:
+            N/A
+
+        Arg3:
+            N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_Store_Object,
+    /*
+        Copies the value at source address on the top of
+		the stack to the destination address almost on
+		the top of the stack.
+		
+        Arg1:
+            The type token of the destination argument.
+			Of the type ElementType.
+
+        Arg2:
+            N/A
+
+        Arg3:
+            N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_Copy_Object,
+    /*
+        Jumps from one method to another.
+		
+        Arg1:
+            The method to call.
+			Of the type IRMethodSpec.
+
+        Arg2:
+            N/A
+
+        Arg3:
+            N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_Jump,
+    /*
+        Creates a switch jump table,
+		jumping to the appropriate case
+		statement as defined by the value
+		on the top of the stack.
+		
+        Arg1:
+            The number of possible case statements.
+			Of the type uint32_t.
+
+        Arg2:
+            The array of IRInstruction* representing
+			the array of jump targets.
+			Of the type IRInstruction*[].
+
+        Arg3:
+            N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_Switch,
+    /*
+        Attempts to cast an object on the top of
+		the stack to a target type, leaving the
+		new object on the stack, failing throws
+		an exception.
+		
+        Arg1:
+            The type of the resulting object.
+			Of the type IRType*.
+
+        Arg2:
+			N/A
+
+        Arg3:
+            N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_CastClass,
+    /*
+        Cast an object on the top of the stack to
+		a target type, leaving the new object on
+		the stack, failing returns null.
+		
+        Arg1:
+            The type of the resulting object.
+			Of the type IRType*.
+
+        Arg2:
+			N/A
+
+        Arg3:
+            N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_IsInst,
+    /*
+        Unboxes the value on the top of the stack,
+		and pushes it's address to the top of the
+		stack.
+		
+        Arg1:
+            The type of the resulting object.
+			Of the type IRType*.
+
+        Arg2:
+			N/A
+
+        Arg3:
+            N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_Unbox,
+    /*
+        Unboxes the value on the top of the stack,
+		and pushes it's value to the top of the 
+		stack.
+		
+        Arg1:
+            The type of the resulting object.
+			Of the type IRType*.
+
+        Arg2:
+			N/A
+
+        Arg3:
+            N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_Unbox_Any,
+    /*
+        Boxes the value on the top of the
+		stack.
+		
+        Arg1:
+            The type of the resulting object.
+			Of the type IRType*.
+
+        Arg2:
+			N/A
+
+        Arg3:
+            N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_Box,
 } IROpCode;
 
 

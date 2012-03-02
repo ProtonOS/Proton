@@ -927,32 +927,6 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
                 }
                 ClearFlags();
                 break;
-            case ILOpCode_LdObj:			// 0x71
-                {
-                    Log_WriteLine(LogFlags_ILReading, "Read LdObj");
-					StackObjectPool_Release(SyntheticStack_Pop(stack));
-					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
-					StackObject* obj = StackObjectPool_Allocate();
-					switch(tok->Table)
-					{
-						case MetaData_Table_TypeDefinition:
-						{
-							ElementType tp = ElementType_Ref;
-							GetElementTypeFromTypeDef((TypeDefinition*)tok->Data, dom, &tp);
-							SetObjectTypeFromElementType(obj, tp);
-							break;
-						}
-						default:
-							Panic("Unknown table for LdObj!");
-							break;
-					}
-					SyntheticStack_Push(stack, obj);
-					free(tok);
-
-					ClearFlags();
-	                break;			
-                }
-
 
             case ILOpCode_Ldc_I4_M1:		// 0x15
                 {
@@ -1439,10 +1413,85 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
                 ClearFlags();
                 break;
             case ILOpCode_Jmp:				// 0x27
-                DefineUnSupportedOpCode(Jmp);
-                ClearFlags();
+			{
+				EmptyStack(stack);
+				MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
+				MethodDefinition* mthDef = NULL;
+				switch (tok->Table)
+				{
+					case MetaData_Table_MethodDefinition:
+						mthDef = (MethodDefinition*)tok->Data;
+					break;
+					default:
+						Panic("Invalid Table for Jmp!");
+						break;
+				}
+				free(tok);
+				if (mthDef)
+				{
+					if (mthDef->InternalCall)
+					{
+						Panic("Attempting to Jump into Internal Call");
+					}
+					else if ((mthDef->Flags & MethodAttributes_Static) || (mthDef->Flags & MethodAttributes_RTSpecialName) || (mthDef->TypeDefinition->Flags & TypeAttributes_Sealed) || IsStruct(mthDef->TypeDefinition, dom))
+					{
+						printf("Jumping via Call_Absolute, not fulling implemented\n");
+						EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Call_Absolute, (IRMethod*)(mthDef->TableIndex));
+					}
+					else
+					{
+						IRMethodSpec* mthSpec = IRMethodSpec_Create();
+						Log_WriteLine(LogFlags_ILReading, "Looking for Method %s.%s.%s from table index %i", mthDef->TypeDefinition->Namespace, mthDef->TypeDefinition->Name, mthDef->Name, (int)mthDef->TableIndex);
+						mthSpec->ParentType = asmbly->Types[mthDef->TypeDefinition->TableIndex - 1];
+						bool_t FoundMethod = FALSE;
+						for (uint32_t i = 0; i < mthSpec->ParentType->MethodCount; i++)
+						{
+							MethodDefinition* mthDef2 = &(fil->MethodDefinitions[(uint32_t)(mthSpec->ParentType->Methods[i])]);
+							if (mthDef2->TableIndex)
+							{
+								Log_WriteLine(LogFlags_ILReading, "Checking Method %s.%s.%s from table index %i", mthDef2->TypeDefinition->Namespace, mthDef2->TypeDefinition->Name, mthDef2->Name, (int)mthDef2->TableIndex);
+								Log_WriteLine(LogFlags_ILReading, "i: %i", (int)i);
+							}
+							else
+							{
+								Log_WriteLine(LogFlags_ILReading, "Method Index 0! This shouldn't happen!");
+							}							
+							if (!strcmp(mthDef->Name, mthDef2->Name))
+							{
+								if (mthDef->Flags & MethodAttributes_HideBySignature)
+								{
+									if (Signature_Equals(mthDef->Signature, mthDef->SignatureLength, mthDef2->Signature, mthDef2->SignatureLength))
+									{
+										mthSpec->MethodIndex = i;
+										FoundMethod = TRUE;
+										break;
+									}
+								}
+								else
+								{
+									mthSpec->MethodIndex = i;
+									FoundMethod = TRUE;
+									break;
+								}
+							}
+						}
+						if (!FoundMethod)
+						{
+							Panic("Unable to resolve method to call!");
+						}
+						EMIT_IR_1ARG(IROpCode_Jump, mthSpec);
+					}
+				}
+				else
+				{
+					// This is just a temporary thing
+					// so that this can be the target
+					// of a branch (although it shouldn't be).
+					EMIT_IR(IROpCode_Nop);
+				}
+				ClearFlags();
                 break;
-
+			}
 
             case ILOpCode_Ret:				// 0x2A
                 {
@@ -1561,13 +1610,17 @@ Branch_Common:
 
             case ILOpCode_Switch:			// 0x45
 				{
-					Log_WriteLine(LogFlags_ILReading, "Read NI-Switch");
-					uint32_t cnt = ReadUInt32(dat);
+					Log_WriteLine(LogFlags_ILReading, "Read Switch");
+					uint32_t* count = (uint32_t*)malloc(sizeof(uint32_t));
+					*count = ReadUInt32(dat);
+					IRInstruction** targets = (IRInstruction**)calloc(*count, sizeof(IRInstruction*));
 					
-					for (uint32_t i = 0; i < cnt; i++)
+					for (uint32_t i = 0; i < *count; i++)
 					{
-						ReadUInt32(dat);
+						targets[i] = (IRInstruction*)ReadUInt32(dat);
 					}
+
+					EMIT_IR_2ARG(IROpCode_Switch, count, targets);
 					
 					StackObjectPool_Release(SyntheticStack_Pop(stack));
 
@@ -1702,22 +1755,10 @@ Branch_Common:
             case ILOpCode_Conv_U:			// 0xE0
                 DEFINE_CONV_UNCHECKED(U, NativeInt, UPointer);
 
-
-
-
             case ILOpCode_Conv_R_Un:		// 0x76
                 DefineUnSupportedOpCode(Conv.R.Un);
                 ClearFlags();
                 break;
-
-
-
-
-            case ILOpCode_CpObj:			// 0x70
-                DefineUnSupportedOpCode(CpObj);
-                ClearFlags();
-                break;
-
 
             case ILOpCode_NewObj:			// 0x73
 				{
@@ -1769,8 +1810,18 @@ Branch_Common:
                 break;
             case ILOpCode_NewArr:			// 0x8D
 				{
-					Log_WriteLine(LogFlags_ILReading, "Read NI-NewArr");
-					ReadUInt32(dat);
+					Log_WriteLine(LogFlags_ILReading, "Read NewArr");
+					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
+					switch (tok->Table)
+					{
+						case MetaData_Table_TypeDefinition:
+							EMIT_IR_1ARG(IROpCode_NewArr, asmbly->Types[((TypeDefinition*)tok->Data)->TableIndex - 1]);
+							break;
+						default:
+							Panic("Unknown Table for NewArr!");
+							break;
+					}
+					free(tok);
                 
 					StackObjectPool_Release(SyntheticStack_Pop(stack));
 					StackObject* obj = StackObjectPool_Allocate();
@@ -1781,36 +1832,51 @@ Branch_Common:
                 ClearFlags();
                 break;
 
-
-
             case ILOpCode_CastClass:		// 0x74
 				{
-					Log_WriteLine(LogFlags_ILReading, "Read NI-CastClass");
-					ReadUInt32(dat);
-	
+					Log_WriteLine(LogFlags_ILReading, "Read CastClass");
+					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
+					switch(tok->Table)
+					{
+						case MetaData_Table_TypeDefinition:
+							EMIT_IR_1ARG(IROpCode_CastClass, asmbly->Types[((TypeDefinition*)tok->Data)->TableIndex - 1]);
+							break;
+						default:
+							Panic("Unknown table for CastClass!");
+							break;
+					}
+					free(tok);
+
 					StackObject* obj = SyntheticStack_Pop(stack);
 					obj->Type = StackObjectType_ReferenceType;
 					obj->NumericType = StackObjectNumericType_Ref;
 					SyntheticStack_Push(stack, obj);
 
-
-					//DefineUnSupportedOpCode(CastClass);
 	                
 					ClearFlags();
 					break;
 				}
             case ILOpCode_IsInst:			// 0x75
 				{
-					Log_WriteLine(LogFlags_ILReading, "Read NI-IsInst");
-					ReadUInt32(dat);
-	
+					Log_WriteLine(LogFlags_ILReading, "Read IsInst");
+					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
+					switch(tok->Table)
+					{
+						case MetaData_Table_TypeDefinition:
+							EMIT_IR_1ARG(IROpCode_IsInst, asmbly->Types[((TypeDefinition*)tok->Data)->TableIndex - 1]);
+							break;
+						default:
+							Panic("Unknown table for IsInst!");
+							break;
+					}
+					free(tok);
+
 					StackObject* obj = SyntheticStack_Pop(stack);
 					obj->Type = StackObjectType_ReferenceType;
 					obj->NumericType = StackObjectNumericType_Ref;
 					SyntheticStack_Push(stack, obj);
-	
-					//DefineUnSupportedOpCode(IsInst);
-	
+
+	                
 					ClearFlags();
 					break;
 				}
@@ -1818,12 +1884,8 @@ Branch_Common:
             // 0x77 Doesn't exist
             // 0x78 Doesn't exist
             case ILOpCode_UnBox:			// 0x79
-                DefineUnSupportedOpCode(UnBox);
-                ClearFlags();
-                break;
-            case ILOpCode_Unbox_Any:		// 0xA5
 				{
-					Log_WriteLine(LogFlags_ILReading, "Read NI-Unbox.Any");
+					Log_WriteLine(LogFlags_ILReading, "Read Unbox");
 					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
 					StackObject* obj = SyntheticStack_Pop(stack);
 					switch(tok->Table)
@@ -1841,6 +1903,42 @@ Branch_Common:
 								obj->Type = StackObjectType_ReferenceType;
 								obj->NumericType = StackObjectNumericType_Ref;
 							}
+							EMIT_IR_1ARG(IROpCode_Unbox, asmbly->Types[tdef->TableIndex - 1]);
+							break;
+						}
+						case MetaData_Table_TypeSpecification:
+						{
+							printf("WARNING: This is only a temporary hack, and might not work in the future.\n");
+							obj->Type = StackObjectType_ReferenceType;
+							obj->NumericType = StackObjectNumericType_Ref;
+							//TypeSpecification* tspec = (TypeSpecification*)tok->Data;
+							break;
+						}
+						default:
+							Panic(String_Format("Unknown table (%x) for Unbox!", (unsigned int)tok->Table));
+							break;
+					}
+					SyntheticStack_Push(stack, obj);
+					free(tok);
+					
+					ClearFlags();
+					break;
+				}
+            case ILOpCode_Unbox_Any:		// 0xA5
+				{
+					Log_WriteLine(LogFlags_ILReading, "Read Unbox.Any");
+	
+					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
+					StackObject* obj = SyntheticStack_Pop(stack);
+					switch(tok->Table)
+					{
+						case MetaData_Table_TypeDefinition:
+						{
+							TypeDefinition* tdef = (TypeDefinition*)tok->Data;
+							ElementType et = (ElementType)0;
+							GetElementTypeFromTypeDef(tdef, dom, &et);
+							SetObjectTypeFromElementType(obj, et);
+							EMIT_IR_1ARG(IROpCode_Unbox_Any, asmbly->Types[tdef->TableIndex - 1]);
 							break;
 						}
 						case MetaData_Table_TypeSpecification:
@@ -1857,252 +1955,14 @@ Branch_Common:
 					}
 					SyntheticStack_Push(stack, obj);
 					free(tok);
-	
-	
-					//DefineUnSupportedOpCode(Unbox.Any);
-                
+
 					ClearFlags();
 					break;
 				}
-            case ILOpCode_Throw:			// 0x7A
-				Log_WriteLine(LogFlags_ILReading, "Read NI-Throw");
 				
-				StackObjectPool_Release(SyntheticStack_Pop(stack));
-                
-                ClearFlags();
-                break;
-
-
-            case ILOpCode_LdFld:			// 0x7B
-				{
-					Log_WriteLine(LogFlags_ILReading, "Read NI-LdFld");
-					StackObjectPool_Release(SyntheticStack_Pop(stack));
-
-					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
-					FieldSignature* sig = NULL;
-					Field* fld = NULL;
-					switch(tok->Table)
-					{
-						case MetaData_Table_Field:
-							{
-								fld = (Field*)tok->Data;
-								sig = FieldSignature_Expand(fld->Signature, fil);
-								TypeDefinition* tdef = fld->TypeDefinition;
-								bool_t Found = FALSE;
-								for (uint32_t i = 0; i < tdef->FieldListCount; i++)
-								{
-									if (Signature_Equals(fld->Signature, fld->SignatureLength, tdef->FieldList[i].Signature, tdef->FieldList[i].SignatureLength))
-									{
-										IRFieldSpec* spec = IRFieldSpec_Create();
-										spec->FieldIndex = i;
-										spec->FieldType = asmbly->Types[tdef->TableIndex - 1];
-										EMIT_IR_1ARG(IROpCode_Load_Field, spec);
-										Found = TRUE;
-										break;
-									}
-								}
-								if (!Found)
-									Panic("Unable to resolve field!");
-							}
-							break;
-
-						case MetaData_Table_MemberReference:
-							//printf("Don't deal with this yet! Load Field with table index: 0x%x\n", (unsigned int)tok->Table);
-							sig = FieldSignature_Expand(((MemberReference*)tok->Data)->Signature, fil);
-							break;
-
-						default:
-							printf("Table: 0x%x\n", (unsigned int)tok->Table);
-							Panic("Definitely not good");
-							break;
-					}
-					/*if (fld)
-					{
-						printf("Loading field name: %s\n", fld->Name);
-						printf("Custom Modifier Count: %i \n", (int)sig->CustomModifierCount);
-						printf("Field Index: %i \n", (int)fld->TableIndex);
-						printf("Element Type: 0x%x \n", (unsigned int)sig->Type->ElementType);
-					}*/
-					StackObject* obj = StackObjectPool_Allocate();
-					SetTypeOfStackObjectFromSigElementType(obj, sig->Type, fil, dom);
-					SyntheticStack_Push(stack, obj);
-					switch(tok->Table)
-					{
-						case MetaData_Table_Field:
-							FieldSignature_Destroy(sig);
-							break;
-
-						case MetaData_Table_MemberReference:
-							FieldSignature_Destroy(sig);
-							break;
-
-						default:
-							Panic("Unknown Table for Call!");
-							break;
-					}
-					free(tok);
-
-					ClearFlags();
-					break;
-				}
-
-            case ILOpCode_LdFldA:			// 0x7C
-				{
-					Log_WriteLine(LogFlags_ILReading, "Read NI-LdFldA");
-					ReadUInt32(dat);
-
-					StackObjectPool_Release(SyntheticStack_Pop(stack));
-
-					StackObject* obj = StackObjectPool_Allocate();
-					obj->Type = StackObjectType_NativeInt;
-					obj->NumericType = StackObjectNumericType_Pointer;
-					SyntheticStack_Push(stack, obj);
-
-					//DefineUnSupportedOpCode(LdFldA);
-					ClearFlags();
-					break;
-				}
-
-            case ILOpCode_StFld:			// 0x7D
-				{
-					Log_WriteLine(LogFlags_ILReading, "Read NI-StFld");
-					ReadUInt32(dat);
-
-
-					StackObjectPool_Release(SyntheticStack_Pop(stack));
-                
-					EMIT_IR(IROpCode_Nop);
-					ClearFlags();
-					break;
-				}
-
-            case ILOpCode_LdSFld:			// 0x7E
-				{
-					Log_WriteLine(LogFlags_ILReading, "Read NI-LdSFld");
-					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
-					FieldSignature* sig = NULL;
-					switch(tok->Table)
-					{
-						case MetaData_Table_Field:
-							sig = FieldSignature_Expand(((Field*)tok->Data)->Signature, fil);
-							break;
-
-						case MetaData_Table_MemberReference:
-							//printf("Don't deal with this yet! Load Static Field with table index: 0x%x\n", (unsigned int)tok->Table);
-							sig = FieldSignature_Expand(((MemberReference*)tok->Data)->Signature, fil);
-							break;
-
-						default:
-							printf("Table: 0x%x\n", (unsigned int)tok->Table);
-							Panic("Definitely not good");
-							break;
-					}
-					StackObject* obj = StackObjectPool_Allocate();
-					SetTypeOfStackObjectFromSigElementType(obj, sig->Type, fil, dom);
-					SyntheticStack_Push(stack, obj);
-
-					switch(tok->Table)
-					{
-						case MetaData_Table_Field:
-							FieldSignature_Destroy(sig);
-							break;
-
-						case MetaData_Table_MemberReference:
-							FieldSignature_Destroy(sig);
-							break;
-
-						default:
-							Panic("Unknown Table for LdSFld!");
-							break;
-					}
-					free(tok);
-	                
-					EMIT_IR(IROpCode_Nop);
-					ClearFlags();
-					break;
-				}
-
-            case ILOpCode_LdSFldA:			// 0x7F
-				{
-					Log_WriteLine(LogFlags_ILReading, "Read NI-LdSFldA");
-					ReadUInt32(dat);
-					StackObject* obj = StackObjectPool_Allocate();
-					obj->Type = StackObjectType_NativeInt;
-					obj->NumericType = StackObjectNumericType_UPointer;
-					SyntheticStack_Push(stack, obj);
-					//DefineUnSupportedOpCode(LdSFldA);
-					ClearFlags();
-					break;
-				}
-
-            case ILOpCode_StSFld:			// 0x80
-				Log_WriteLine(LogFlags_ILReading, "Read NI-StSFld");
-                ReadUInt32(dat);
-                
-
-				StackObjectPool_Release(SyntheticStack_Pop(stack));
-
-
-                ClearFlags();
-                break;
-
-            case ILOpCode_StObj:			// 0x81
-				Log_WriteLine(LogFlags_ILReading, "Read NI-StObj");
-                ReadUInt32(dat);
-                
-
-				StackObjectPool_Release(SyntheticStack_Pop(stack));
-
-
-                ClearFlags();
-                break;
-
-
-            case ILOpCode_Conv_Ovf_I1:		// 0xB3
-                DEFINE_CONV_OVF(I1, Int32, Int8);
-            case ILOpCode_Conv_Ovf_I1_Un:	// 0x82
-                DEFINE_CONV_OVF_UN(I1, Int32, Int8);
-            case ILOpCode_Conv_Ovf_U1:		// 0xB4
-                DEFINE_CONV_OVF(U1, Int32, UInt8);
-            case ILOpCode_Conv_Ovf_U1_Un:	// 0x86
-                DEFINE_CONV_OVF_UN(U1, Int32, UInt8);
-            case ILOpCode_Conv_Ovf_I2:		// 0xB5
-                DEFINE_CONV_OVF(I2, Int32, Int16);
-            case ILOpCode_Conv_Ovf_I2_Un:	// 0x83
-                DEFINE_CONV_OVF_UN(I2, Int32, Int16);
-            case ILOpCode_Conv_Ovf_U2:		// 0xB6
-                DEFINE_CONV_OVF(U2, Int32, UInt16);
-            case ILOpCode_Conv_Ovf_U2_Un:	// 0x87
-                DEFINE_CONV_OVF_UN(U2, Int32, UInt16);
-            case ILOpCode_Conv_Ovf_I4:		// 0xB7
-                DEFINE_CONV_OVF(I4, Int32, Int32);
-            case ILOpCode_Conv_Ovf_I4_Un:	// 0x84
-                DEFINE_CONV_OVF_UN(I4, Int32, Int32);
-            case ILOpCode_Conv_Ovf_U4:		// 0xB8
-                DEFINE_CONV_OVF(U4, Int32, UInt32);
-            case ILOpCode_Conv_Ovf_U4_Un:	// 0x88
-                DEFINE_CONV_OVF_UN(U4, Int32, UInt32);
-            case ILOpCode_Conv_Ovf_I8:		// 0xB9
-                DEFINE_CONV_OVF(I8, Int64, Int64);
-            case ILOpCode_Conv_Ovf_I8_Un:	// 0x85
-                DEFINE_CONV_OVF_UN(I8, Int64, Int64);
-            case ILOpCode_Conv_Ovf_U8:		// 0xBA
-                DEFINE_CONV_OVF(U8, Int64, UInt64);
-            case ILOpCode_Conv_Ovf_U8_Un:	// 0x89
-                DEFINE_CONV_OVF_UN(U8, Int64, UInt64);
-            case ILOpCode_Conv_Ovf_I:		// 0xD4
-                DEFINE_CONV_OVF(I, NativeInt, Pointer);
-            case ILOpCode_Conv_Ovf_I_Un:	// 0x8A
-                DEFINE_CONV_OVF_UN(I, NativeInt, Pointer);
-            case ILOpCode_Conv_Ovf_U:		// 0xD5
-                DEFINE_CONV_OVF(U, NativeInt, UPointer);
-            case ILOpCode_Conv_Ovf_U_Un:	// 0x8B
-                DEFINE_CONV_OVF_UN(U, NativeInt, UPointer);
-
-
             case ILOpCode_Box:				// 0x8C
 				{
-					Log_WriteLine(LogFlags_ILReading, "Read NI-PNSA-Box");
+					Log_WriteLine(LogFlags_ILReading, "Read NI-Box");
 
 					StackObjectPool_Release(SyntheticStack_Pop(stack));
 
@@ -2169,6 +2029,7 @@ Branch_Common:
 										break;
 								}
 							}
+							EMIT_IR_1ARG(IROpCode_Box, asmbly->Types[tdef->TableIndex - 1]);
 							break;
 						case MetaData_Table_TypeSpecification:
 							//tspec = (TypeSpecification*)tok->Data;
@@ -2212,6 +2073,463 @@ Branch_Common:
 				}
                 ClearFlags();
                 break;
+            case ILOpCode_Throw:			// 0x7A
+				Log_WriteLine(LogFlags_ILReading, "Read NI-Throw");
+				
+				StackObjectPool_Release(SyntheticStack_Pop(stack));
+                
+                ClearFlags();
+                break;
+
+
+            case ILOpCode_LdFld:			// 0x7B
+				{
+					Log_WriteLine(LogFlags_ILReading, "Read LdFld");
+					StackObjectPool_Release(SyntheticStack_Pop(stack));
+
+					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
+					FieldSignature* sig = NULL;
+					Field* fld = NULL;
+					switch(tok->Table)
+					{
+						case MetaData_Table_Field:
+							{
+								fld = (Field*)tok->Data;
+								sig = FieldSignature_Expand(fld->Signature, fil);
+								TypeDefinition* tdef = fld->TypeDefinition;
+								bool_t Found = FALSE;
+								for (uint32_t i = 0; i < tdef->FieldListCount; i++)
+								{
+									if (Signature_Equals(fld->Signature, fld->SignatureLength, tdef->FieldList[i].Signature, tdef->FieldList[i].SignatureLength))
+									{
+										IRFieldSpec* spec = IRFieldSpec_Create();
+										spec->FieldIndex = i;
+										spec->FieldType = asmbly->Types[tdef->TableIndex - 1];
+										EMIT_IR_1ARG(IROpCode_Load_Field, spec);
+										Found = TRUE;
+										break;
+									}
+								}
+								if (!Found)
+									Panic("Unable to resolve field!");
+							}
+							break;
+
+						case MetaData_Table_MemberReference:
+							//printf("Don't deal with this yet! Load Field with table index: 0x%x\n", (unsigned int)tok->Table);
+							sig = FieldSignature_Expand(((MemberReference*)tok->Data)->Signature, fil);
+							break;
+
+						default:
+							printf("Table: 0x%x\n", (unsigned int)tok->Table);
+							Panic("Definitely not good");
+							break;
+					}
+					/*if (fld)
+					{
+						printf("Loading field name: %s\n", fld->Name);
+						printf("Custom Modifier Count: %i \n", (int)sig->CustomModifierCount);
+						printf("Field Index: %i \n", (int)fld->TableIndex);
+						printf("Element Type: 0x%x \n", (unsigned int)sig->Type->ElementType);
+					}*/
+					StackObject* obj = StackObjectPool_Allocate();
+					SetTypeOfStackObjectFromSigElementType(obj, sig->Type, fil, dom);
+					SyntheticStack_Push(stack, obj);
+					switch(tok->Table)
+					{
+						case MetaData_Table_Field:
+							FieldSignature_Destroy(sig);
+							break;
+
+						case MetaData_Table_MemberReference:
+							FieldSignature_Destroy(sig);
+							break;
+
+						default:
+							Panic("Unknown Table for LdFld!");
+							break;
+					}
+					free(tok);
+
+					ClearFlags();
+					break;
+				}
+
+            case ILOpCode_LdFldA:			// 0x7C
+				{
+					Log_WriteLine(LogFlags_ILReading, "Read LdFldA");
+					StackObjectPool_Release(SyntheticStack_Pop(stack));
+
+					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
+					FieldSignature* sig = NULL;
+					Field* fld = NULL;
+					switch(tok->Table)
+					{
+						case MetaData_Table_Field:
+							{
+								fld = (Field*)tok->Data;
+								sig = FieldSignature_Expand(fld->Signature, fil);
+								TypeDefinition* tdef = fld->TypeDefinition;
+								bool_t Found = FALSE;
+								for (uint32_t i = 0; i < tdef->FieldListCount; i++)
+								{
+									if (Signature_Equals(fld->Signature, fld->SignatureLength, tdef->FieldList[i].Signature, tdef->FieldList[i].SignatureLength))
+									{
+										IRFieldSpec* spec = IRFieldSpec_Create();
+										spec->FieldIndex = i;
+										spec->FieldType = asmbly->Types[tdef->TableIndex - 1];
+										EMIT_IR_1ARG(IROpCode_Load_Field_Address, spec);
+										Found = TRUE;
+										break;
+									}
+								}
+								if (!Found)
+									Panic("Unable to resolve field!");
+							}
+							break;
+
+						case MetaData_Table_MemberReference:
+							//printf("Don't deal with this yet! Load Field with table index: 0x%x\n", (unsigned int)tok->Table);
+							sig = FieldSignature_Expand(((MemberReference*)tok->Data)->Signature, fil);
+							break;
+
+						default:
+							printf("Table: 0x%x\n", (unsigned int)tok->Table);
+							Panic("Definitely not good");
+							break;
+					}
+					free(tok);
+
+					StackObject* obj = StackObjectPool_Allocate();
+					obj->Type = StackObjectType_NativeInt;
+					obj->NumericType = StackObjectNumericType_Pointer;
+					SyntheticStack_Push(stack, obj);
+
+					ClearFlags();
+					break;
+				}
+
+            case ILOpCode_StFld:			// 0x7D
+				{
+					Log_WriteLine(LogFlags_ILReading, "Read StFld");
+					
+					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
+					FieldSignature* sig = NULL;
+					Field* fld = NULL;
+					switch(tok->Table)
+					{
+						case MetaData_Table_Field:
+							{
+								fld = (Field*)tok->Data;
+								sig = FieldSignature_Expand(fld->Signature, fil);
+								TypeDefinition* tdef = fld->TypeDefinition;
+								bool_t Found = FALSE;
+								for (uint32_t i = 0; i < tdef->FieldListCount; i++)
+								{
+									if (Signature_Equals(fld->Signature, fld->SignatureLength, tdef->FieldList[i].Signature, tdef->FieldList[i].SignatureLength))
+									{
+										IRFieldSpec* spec = IRFieldSpec_Create();
+										spec->FieldIndex = i;
+										spec->FieldType = asmbly->Types[tdef->TableIndex - 1];
+										EMIT_IR_1ARG(IROpCode_Store_Field, spec);
+										Found = TRUE;
+										break;
+									}
+								}
+								if (!Found)
+									Panic("Unable to resolve field!");
+							}
+							break;
+
+						case MetaData_Table_MemberReference:
+							//printf("Don't deal with this yet! Load Field with table index: 0x%x\n", (unsigned int)tok->Table);
+							sig = FieldSignature_Expand(((MemberReference*)tok->Data)->Signature, fil);
+							break;
+
+						default:
+							printf("Table: 0x%x\n", (unsigned int)tok->Table);
+							Panic("Definitely not good");
+							break;
+					}
+					free(tok);
+
+					
+					StackObjectPool_Release(SyntheticStack_Pop(stack));
+					StackObjectPool_Release(SyntheticStack_Pop(stack));
+                
+					ClearFlags();
+					break;
+				}
+
+            case ILOpCode_LdSFld:			// 0x7E
+				{
+					Log_WriteLine(LogFlags_ILReading, "Read LdSFld");
+					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
+					FieldSignature* sig = NULL;
+					switch(tok->Table)
+					{
+						case MetaData_Table_Field:
+							sig = FieldSignature_Expand(((Field*)tok->Data)->Signature, fil);
+							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Load_Static_Field, (void*)tok->Data);
+							break;
+
+						case MetaData_Table_MemberReference:
+							//printf("Don't deal with this yet! Load Static Field with table index: 0x%x\n", (unsigned int)tok->Table);
+							sig = FieldSignature_Expand(((MemberReference*)tok->Data)->Signature, fil);
+							break;
+
+						default:
+							printf("Table: 0x%x\n", (unsigned int)tok->Table);
+							Panic("Definitely not good");
+							break;
+					}
+					StackObject* obj = StackObjectPool_Allocate();
+					SetTypeOfStackObjectFromSigElementType(obj, sig->Type, fil, dom);
+					SyntheticStack_Push(stack, obj);
+
+					switch(tok->Table)
+					{
+						case MetaData_Table_Field:
+							FieldSignature_Destroy(sig);
+							break;
+
+						case MetaData_Table_MemberReference:
+							FieldSignature_Destroy(sig);
+							break;
+
+						default:
+							Panic("Unknown Table for LdSFld!");
+							break;
+					}
+					free(tok);
+	                
+					ClearFlags();
+					break;
+				}
+
+            case ILOpCode_LdSFldA:			// 0x7F
+				{
+					Log_WriteLine(LogFlags_ILReading, "Read LdSFldA");
+					
+					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
+					FieldSignature* sig = NULL;
+					switch(tok->Table)
+					{
+						case MetaData_Table_Field:
+							sig = FieldSignature_Expand(((Field*)tok->Data)->Signature, fil);
+							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Load_Static_Field_Address, (void*)tok->Data);
+							break;
+
+						case MetaData_Table_MemberReference:
+							//printf("Don't deal with this yet! Load Static Field with table index: 0x%x\n", (unsigned int)tok->Table);
+							sig = FieldSignature_Expand(((MemberReference*)tok->Data)->Signature, fil);
+							break;
+
+						default:
+							printf("Table: 0x%x\n", (unsigned int)tok->Table);
+							Panic("Definitely not good");
+							break;
+					}
+
+					switch(tok->Table)
+					{
+						case MetaData_Table_Field:
+							FieldSignature_Destroy(sig);
+							break;
+
+						case MetaData_Table_MemberReference:
+							FieldSignature_Destroy(sig);
+							break;
+
+						default:
+							Panic("Unknown Table for LdSFldA!");
+							break;
+					}
+					free(tok);
+
+					StackObject* obj = StackObjectPool_Allocate();
+					obj->Type = StackObjectType_NativeInt;
+					obj->NumericType = StackObjectNumericType_UPointer;
+					SyntheticStack_Push(stack, obj);
+					ClearFlags();
+					break;
+				}
+
+            case ILOpCode_StSFld:			// 0x80
+				{
+					Log_WriteLine(LogFlags_ILReading, "Read StSFld");
+					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
+					FieldSignature* sig = NULL;
+					switch(tok->Table)
+					{
+						case MetaData_Table_Field:
+							sig = FieldSignature_Expand(((Field*)tok->Data)->Signature, fil);
+							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Store_Static_Field, (void*)tok->Data);
+							break;
+
+						case MetaData_Table_MemberReference:
+							//printf("Don't deal with this yet! Load Static Field with table index: 0x%x\n", (unsigned int)tok->Table);
+							sig = FieldSignature_Expand(((MemberReference*)tok->Data)->Signature, fil);
+							break;
+
+						default:
+							printf("Table: 0x%x\n", (unsigned int)tok->Table);
+							Panic("Definitely not good");
+							break;
+					}
+
+					switch(tok->Table)
+					{
+						case MetaData_Table_Field:
+							FieldSignature_Destroy(sig);
+							break;
+
+						case MetaData_Table_MemberReference:
+							FieldSignature_Destroy(sig);
+							break;
+
+						default:
+							Panic("Unknown Table for StSFld!");
+							break;
+					}
+					free(tok);
+
+					StackObjectPool_Release(SyntheticStack_Pop(stack));
+
+
+					ClearFlags();
+					break;
+				}
+
+            case ILOpCode_LdObj:			// 0x71
+                {
+                    Log_WriteLine(LogFlags_ILReading, "Read LdObj");
+					StackObjectPool_Release(SyntheticStack_Pop(stack));
+					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
+					StackObject* obj = StackObjectPool_Allocate();
+					switch(tok->Table)
+					{
+						case MetaData_Table_TypeDefinition:
+						{
+							ElementType tp = ElementType_Ref;
+							GetElementTypeFromTypeDef((TypeDefinition*)tok->Data, dom, &tp);
+							SetObjectTypeFromElementType(obj, tp);
+
+		                    ElementType* et = (ElementType*)malloc(sizeof(ElementType));
+							*et = tp;
+
+							EMIT_IR_1ARG(IROpCode_Load_Object, et);
+							break;
+						}
+						default:
+							Panic("Unknown table for LdObj!");
+							break;
+					}
+					SyntheticStack_Push(stack, obj);
+					free(tok);
+
+					ClearFlags();
+	                break;			
+                }
+			
+			case ILOpCode_StObj:			// 0x81
+				{
+					Log_WriteLine(LogFlags_ILReading, "Read StObj");
+					uint32_t typeToken = ReadUInt32(dat);
+					MetaDataToken* tok = CLIFile_ResolveToken(fil, typeToken);
+					switch (tok->Table)
+					{
+						case MetaData_Table_TypeDefinition:
+						{
+							TypeDefinition* typeDef = (TypeDefinition*)tok->Data;
+		                    ElementType* et = (ElementType*)malloc(sizeof(ElementType));
+							GetElementTypeFromTypeDef(typeDef, dom, et);
+							EMIT_IR_1ARG(IROpCode_Store_Object, et);
+							break;
+						}
+						default:
+							Panic("Unknown Table for StObj!");
+							break;
+					}
+					free(tok);
+					StackObjectPool_Release(SyntheticStack_Pop(stack));
+					StackObjectPool_Release(SyntheticStack_Pop(stack));
+
+
+					ClearFlags();
+					break;
+				}
+
+            case ILOpCode_CpObj:			// 0x70
+				{
+					Log_WriteLine(LogFlags_ILReading, "Read CpObj");
+					uint32_t typeToken = ReadUInt32(dat);
+					MetaDataToken* tok = CLIFile_ResolveToken(fil, typeToken);
+					switch (tok->Table)
+					{
+						case MetaData_Table_TypeDefinition:
+						{
+							TypeDefinition* typeDef = (TypeDefinition*)tok->Data;
+		                    ElementType* et = (ElementType*)malloc(sizeof(ElementType));
+							GetElementTypeFromTypeDef(typeDef, dom, et);
+							EMIT_IR_1ARG(IROpCode_Copy_Object, et);
+							break;
+						}
+						default:
+							Panic("Unknown Table for CpObj!");
+							break;
+					}
+					free(tok);
+					StackObjectPool_Release(SyntheticStack_Pop(stack));
+					StackObjectPool_Release(SyntheticStack_Pop(stack));
+
+
+					ClearFlags();
+					break;
+				}
+
+            case ILOpCode_Conv_Ovf_I1:		// 0xB3
+                DEFINE_CONV_OVF(I1, Int32, Int8);
+            case ILOpCode_Conv_Ovf_I1_Un:	// 0x82
+                DEFINE_CONV_OVF_UN(I1, Int32, Int8);
+            case ILOpCode_Conv_Ovf_U1:		// 0xB4
+                DEFINE_CONV_OVF(U1, Int32, UInt8);
+            case ILOpCode_Conv_Ovf_U1_Un:	// 0x86
+                DEFINE_CONV_OVF_UN(U1, Int32, UInt8);
+            case ILOpCode_Conv_Ovf_I2:		// 0xB5
+                DEFINE_CONV_OVF(I2, Int32, Int16);
+            case ILOpCode_Conv_Ovf_I2_Un:	// 0x83
+                DEFINE_CONV_OVF_UN(I2, Int32, Int16);
+            case ILOpCode_Conv_Ovf_U2:		// 0xB6
+                DEFINE_CONV_OVF(U2, Int32, UInt16);
+            case ILOpCode_Conv_Ovf_U2_Un:	// 0x87
+                DEFINE_CONV_OVF_UN(U2, Int32, UInt16);
+            case ILOpCode_Conv_Ovf_I4:		// 0xB7
+                DEFINE_CONV_OVF(I4, Int32, Int32);
+            case ILOpCode_Conv_Ovf_I4_Un:	// 0x84
+                DEFINE_CONV_OVF_UN(I4, Int32, Int32);
+            case ILOpCode_Conv_Ovf_U4:		// 0xB8
+                DEFINE_CONV_OVF(U4, Int32, UInt32);
+            case ILOpCode_Conv_Ovf_U4_Un:	// 0x88
+                DEFINE_CONV_OVF_UN(U4, Int32, UInt32);
+            case ILOpCode_Conv_Ovf_I8:		// 0xB9
+                DEFINE_CONV_OVF(I8, Int64, Int64);
+            case ILOpCode_Conv_Ovf_I8_Un:	// 0x85
+                DEFINE_CONV_OVF_UN(I8, Int64, Int64);
+            case ILOpCode_Conv_Ovf_U8:		// 0xBA
+                DEFINE_CONV_OVF(U8, Int64, UInt64);
+            case ILOpCode_Conv_Ovf_U8_Un:	// 0x89
+                DEFINE_CONV_OVF_UN(U8, Int64, UInt64);
+            case ILOpCode_Conv_Ovf_I:		// 0xD4
+                DEFINE_CONV_OVF(I, NativeInt, Pointer);
+            case ILOpCode_Conv_Ovf_I_Un:	// 0x8A
+                DEFINE_CONV_OVF_UN(I, NativeInt, Pointer);
+            case ILOpCode_Conv_Ovf_U:		// 0xD5
+                DEFINE_CONV_OVF(U, NativeInt, UPointer);
+            case ILOpCode_Conv_Ovf_U_Un:	// 0x8B
+                DEFINE_CONV_OVF_UN(U, NativeInt, UPointer);
+
+
             case ILOpCode_LdLen:			// 0x8E
 				{
 					Log_WriteLine(LogFlags_ILReading, "Read LdLen");
@@ -2227,7 +2545,24 @@ Branch_Common:
             case ILOpCode_LdElemA:			// 0x8F
 				{
 					Log_WriteLine(LogFlags_ILReading, "Read NI-LdElemA");
-					ReadUInt32(dat);
+					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
+					switch(tok->Table)
+					{
+						case MetaData_Table_TypeDefinition:
+						{
+							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Load_Element_Address, (void*)tok->Data);
+							break;
+						}
+						case MetaData_Table_TypeSpecification:
+						{
+							printf("This isn't implemented.\n");
+							break;
+						}
+						default:
+							Panic(String_Format("Unknown table (%x) for StElem!", (unsigned int)tok->Table));
+							break;
+					}
+					free(tok);
 				
 					StackObjectPool_Release(SyntheticStack_Pop(stack));
 					StackObjectPool_Release(SyntheticStack_Pop(stack));
@@ -2269,7 +2604,7 @@ Branch_Common:
 
             case ILOpCode_LdElem:			// 0xA3
 				{
-					Log_WriteLine(LogFlags_ILReading, "Read NI-LdElem");
+					Log_WriteLine(LogFlags_ILReading, "Read AFI-LdElem");
 					
 					StackObjectPool_Release(SyntheticStack_Pop(stack));
 					StackObjectPool_Release(SyntheticStack_Pop(stack));
@@ -2282,6 +2617,7 @@ Branch_Common:
 							ElementType tp = ElementType_Ref;
 							GetElementTypeFromTypeDef((TypeDefinition*)tok->Data, dom, &tp);
 							SetObjectTypeFromElementType(obj, tp);
+							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Load_Element_Evil, (void*)tok->Data);
 							break;
 						}
 						case MetaData_Table_TypeSpecification:
@@ -2302,7 +2638,6 @@ Branch_Common:
 					ClearFlags();
 					break;
 				}
-
 
             case ILOpCode_StElem_I:			// 0x9B
 				DefineStElem(I);
@@ -2325,7 +2660,24 @@ Branch_Common:
             case ILOpCode_StElem:			// 0xA4
 				{
 					Log_WriteLine(LogFlags_ILReading, "Read NI-StElem");
-					ReadUInt32(dat);
+					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
+					switch(tok->Table)
+					{
+						case MetaData_Table_TypeDefinition:
+						{
+							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Store_Element_Evil, (void*)tok->Data);
+							break;
+						}
+						case MetaData_Table_TypeSpecification:
+						{
+							printf("This isn't implemented.\n");
+							break;
+						}
+						default:
+							Panic(String_Format("Unknown table (%x) for StElem!", (unsigned int)tok->Table));
+							break;
+					}
+					free(tok);
 
 					
 					StackObjectPool_Release(SyntheticStack_Pop(stack));

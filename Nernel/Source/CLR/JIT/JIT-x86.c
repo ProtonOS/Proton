@@ -407,7 +407,7 @@ char* JIT_Compile_Branch					(IRInstruction* instr, char* compMethod, IRMethod* 
 	}
 	return compMethod;
 }
-char* JIT_LinkBranches(char* compMethod, BranchRegistry* branchReg, uint32_t pLength)
+char* JIT_LinkBranches						(char* compMethod, BranchRegistry* branchReg, uint32_t pLength)
 {
 
 	for (uint32_t i = 0; i < pLength; i++)
@@ -421,7 +421,7 @@ char* JIT_LinkBranches(char* compMethod, BranchRegistry* branchReg, uint32_t pLe
 	return compMethod;}
 
 
-char* JIT_Compile_Jump						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
+char* JIT_Compile_Optimized_Jump			(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	IRInstruction* target = (IRInstruction*)instr->Arg1;
 	if (target->InstructionLocation > instr->InstructionLocation)
@@ -761,6 +761,15 @@ char* JIT_Compile_Load_Element				(IRInstruction* instr, char* compMethod, IRMet
 	return compMethod;
 }
 
+char* JIT_Compile_Load_Element_Evil			(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
+{
+	return compMethod;
+}
+
+char* JIT_Compile_Load_Element_Address		(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
+{
+	return compMethod;
+}
 
 char* JIT_Compile_Store_Element				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
@@ -777,6 +786,11 @@ char* JIT_Compile_Store_Element				(IRInstruction* instr, char* compMethod, IRMe
 	x86_imul_reg_reg_imm(compMethod, X86_EAX, X86_EAX, sizeOfElementType);
 	x86_alu_reg_reg(compMethod, X86_ADD, X86_ECX, X86_EAX);
 	x86_mov_membase_reg(compMethod, X86_ECX, 0, X86_EDX, sizeOfElementType);
+	return compMethod;
+}
+
+char* JIT_Compile_Store_Element_Evil		(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
+{
 	return compMethod;
 }
 
@@ -1223,6 +1237,12 @@ char* JIT_Compile_NewObj					(IRInstruction* instr, char* compMethod, IRMethod* 
 	return compMethod;
 }
 
+char* JIT_Compile_NewArr					(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
+{
+	
+	return compMethod;
+}
+
 
 char* JIT_Compile_Dup						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
@@ -1382,6 +1402,80 @@ char* JIT_Compile_Load_Field				(IRInstruction* instr, char* compMethod, IRMetho
 	return compMethod;
 }
 
+char* JIT_Compile_Load_Field_Address		(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
+{
+	return compMethod;
+}
+
+char* JIT_Compile_Store_Field				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
+{
+	return compMethod;
+}
+
+
+char* JIT_Compile_Load_Static_Field			(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
+{
+	return compMethod;
+}
+
+char* JIT_Compile_Load_Static_Field_Address	(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
+{
+	return compMethod;
+}
+
+char* JIT_Compile_Store_Static_Field		(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
+{
+	return compMethod;
+}
+
+
+char* JIT_Compile_Load_Object				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
+{
+	return compMethod;
+}
+
+char* JIT_Compile_Store_Object				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
+{
+	return compMethod;
+}
+
+char* JIT_Compile_Copy_Object				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
+{
+	return compMethod;
+}
+
+
+char* JIT_Compile_Switch					(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
+{
+	return compMethod;
+}
+
+
+char* JIT_Compile_CastClass					(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
+{
+	return compMethod;
+}
+
+char* JIT_Compile_IsInst					(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
+{
+	return compMethod;
+}
+
+
+char* JIT_Compile_Unbox						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
+{
+	return compMethod;
+}
+
+char* JIT_Compile_Unbox_Any					(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
+{
+	return compMethod;
+}
+
+char* JIT_Compile_Box						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
+{
+	return compMethod;
+}
 
 
 ALWAYS_INLINE char* JIT_Emit_ParamSwap(char* compMethod, uint32_t paramCount)
@@ -1503,4 +1597,9 @@ void* JIT_Trampoline_DoCall(IRMethodSpec* mth, ReferenceTypeObject* obj)
 		JIT_CompileMethod(((IRMethod*)variable));
 	}
 	return ((IRMethod*)variable)->AssembledMethod;
+}
+
+char* JIT_Compile_Jump						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
+{
+	return compMethod;
 }

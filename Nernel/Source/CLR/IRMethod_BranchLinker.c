@@ -95,5 +95,58 @@ void IRMethod_BranchLinker_LinkMethod(IRMethod* mthd)
 			mthd->IRCodes[i]->Arg2NeedsDisposing = FALSE;
 
         }
+		else if (mthd->IRCodes[i]->OpCode == IROpCode_Switch)
+        {
+            Log_WriteLine(LogFlags_ILReading_BranchLinker, "Starting Link attempt, Source Instruction Position: 0x%x", (unsigned int)mthd->IRCodes[i]->InstructionLocation);
+			uint32_t count = *(uint32_t*)(mthd->IRCodes[i]->Arg1);
+			for (uint32_t i42 = 0; i42 < count; i42++)
+			{
+				uint32_t targetInstrPos = (uint32_t)((uint32_t**)(mthd->IRCodes[i]->Arg2))[i42];
+				uint32_t AddAmnt = mthd->IRCodesCount / 4;
+				uint32_t curLoc = mthd->IRCodesCount / 2;
+				IRInstruction* targetInstruction;
+				bool_t foundTarget = FALSE;
+				Log_WriteLine(LogFlags_ILReading_BranchLinker, "Starting Link attempt, target Instruction Position: 0x%x", (unsigned int)targetInstrPos);
+				while (!foundTarget)
+				{
+					if (mthd->IRCodes[curLoc]->InstructionLocation > targetInstrPos)
+					{
+						Log_WriteLine(LogFlags_ILReading_BranchLinker, "Instruction Location (0x%x) greater than target position, CurLoc: 0x%x", (unsigned int)mthd->IRCodes[curLoc]->InstructionLocation, (unsigned int)curLoc);
+						if (AddAmnt < 1)
+						{
+							FIND_IF_NEAR(-);
+						}
+						else
+						{
+							Log_WriteLine(LogFlags_ILReading_BranchLinker, "Subtracting: %i", (int)AddAmnt);
+							curLoc -= AddAmnt;
+							AddAmnt /= 2;
+						}
+					}
+					else if (mthd->IRCodes[curLoc]->InstructionLocation < targetInstrPos)
+					{
+						Log_WriteLine(LogFlags_ILReading_BranchLinker, "Instruction Location (0x%x) less than target position, CurLoc: 0x%x", (unsigned int)mthd->IRCodes[curLoc]->InstructionLocation, (unsigned int)curLoc);
+						if (AddAmnt < 1)
+						{
+							FIND_IF_NEAR(+);
+						}
+						else
+						{
+							Log_WriteLine(LogFlags_ILReading_BranchLinker, "Adding: %i", (int)AddAmnt);
+							curLoc += AddAmnt;
+							AddAmnt /= 2;
+						}
+					}
+					else if (mthd->IRCodes[curLoc]->InstructionLocation == targetInstrPos)
+					{
+						Log_WriteLine(LogFlags_ILReading_BranchLinker, "Located Branch. curLoc: 0x%x, targetInstrPos: 0x%x, AddAmnt: %i", (unsigned int)curLoc, (unsigned int)targetInstrPos, (int)AddAmnt);
+						targetInstruction = mthd->IRCodes[curLoc];
+						foundTarget = TRUE;
+					}
+				}
+				targetInstruction->IsTargetOfBranch = TRUE;
+				((void**)mthd->IRCodes[i]->Arg2)[i42] = targetInstruction;
+			}
+        }
     }
 }
