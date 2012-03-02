@@ -1614,10 +1614,11 @@ Branch_Common:
 					uint32_t* count = (uint32_t*)malloc(sizeof(uint32_t));
 					*count = ReadUInt32(dat);
 					IRInstruction** targets = (IRInstruction**)calloc(*count, sizeof(IRInstruction*));
-					
+					uint32_t base = (((size_t)(*dat)) - orig) + (4 * *count);
+
 					for (uint32_t i = 0; i < *count; i++)
 					{
-						targets[i] = (IRInstruction*)ReadUInt32(dat);
+						targets[i] = (IRInstruction*)(base + ((int32_t)ReadUInt32(dat)));
 					}
 
 					EMIT_IR_2ARG(IROpCode_Switch, count, targets);

@@ -101,7 +101,7 @@ void IRMethod_BranchLinker_LinkMethod(IRMethod* mthd)
 			uint32_t count = *(uint32_t*)(mthd->IRCodes[i]->Arg1);
 			for (uint32_t i42 = 0; i42 < count; i42++)
 			{
-				uint32_t targetInstrPos = (uint32_t)((uint32_t**)(mthd->IRCodes[i]->Arg2))[i42];
+				uint32_t targetInstrPos = (uint32_t)((IRInstruction**)(mthd->IRCodes[i]->Arg2))[i42];
 				uint32_t AddAmnt = mthd->IRCodesCount / 4;
 				uint32_t curLoc = mthd->IRCodesCount / 2;
 				IRInstruction* targetInstruction;
