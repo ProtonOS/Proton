@@ -1818,8 +1818,11 @@ Branch_Common:
 						case MetaData_Table_TypeDefinition:
 							EMIT_IR_1ARG(IROpCode_NewArr, asmbly->Types[((TypeDefinition*)tok->Data)->TableIndex - 1]);
 							break;
+						case MetaData_Table_TypeSpecification:
+							printf("No idea what to do here!\n");
+							break;
 						default:
-							Panic("Unknown Table for NewArr!");
+							Panic(String_Format("Unknown table (0x%x) for NewArr!", (unsigned int)tok->Table));
 							break;
 					}
 					free(tok);
@@ -1841,6 +1844,9 @@ Branch_Common:
 					{
 						case MetaData_Table_TypeDefinition:
 							EMIT_IR_1ARG(IROpCode_CastClass, asmbly->Types[((TypeDefinition*)tok->Data)->TableIndex - 1]);
+							break;
+						case MetaData_Table_TypeSpecification:
+							printf("Don't know what to do here!\n");
 							break;
 						default:
 							Panic("Unknown table for CastClass!");
@@ -1866,8 +1872,11 @@ Branch_Common:
 						case MetaData_Table_TypeDefinition:
 							EMIT_IR_1ARG(IROpCode_IsInst, asmbly->Types[((TypeDefinition*)tok->Data)->TableIndex - 1]);
 							break;
+						case MetaData_Table_TypeSpecification:
+							printf("Don't know what to do here!\n");
+							break;
 						default:
-							Panic("Unknown table for IsInst!");
+							Panic(String_Format("Unknown table (0x%x) for IsInst!", (unsigned int)tok->Table));
 							break;
 					}
 					free(tok);
