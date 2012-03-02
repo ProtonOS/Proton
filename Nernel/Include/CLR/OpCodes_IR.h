@@ -695,7 +695,7 @@ typedef enum IROpCode
             N/A
 
      */
-    IROpCode_NewObj,
+    IROpCode_NewObject,
     /*
         Creates a new array, initializes it's
 		fields, and calls the constructor in
@@ -716,7 +716,7 @@ typedef enum IROpCode
             N/A
 
      */
-    IROpCode_NewArr,
+    IROpCode_NewArray,
     /*
         Pushes a duplicate of the object
 		on the top of the stack, to the 
@@ -932,7 +932,7 @@ typedef enum IROpCode
 		
         Arg1:
             A spec representing the field
-			to be loaded.
+			to be loaded from.
 			Of the type IRFieldSpec*.
 
         Arg2:
@@ -993,7 +993,7 @@ typedef enum IROpCode
 		to the top of the stack.
 		
         Arg1:
-            The field to be loaded.
+            The field to be loaded from.
 			Of the type IRField*.
 
         Arg2:
@@ -1012,7 +1012,8 @@ typedef enum IROpCode
 		field to the top of the stack.
 		
         Arg1:
-            The field to be loaded.
+            The field who's address is to
+			be loaded.
 			Of the type IRField*.
 
         Arg2:
@@ -1052,7 +1053,7 @@ typedef enum IROpCode
 		the stack
 		
         Arg1:
-            The type of the resulting value.
+            The type of object to load.
 			Of the type ElementType.
 
         Arg2:
@@ -1072,7 +1073,7 @@ typedef enum IROpCode
 		the top of the stack.
 		
         Arg1:
-            The type token of the destination argument.
+            The type of object to store.
 			Of the type ElementType.
 
         Arg2:
@@ -1092,7 +1093,7 @@ typedef enum IROpCode
 		the top of the stack.
 		
         Arg1:
-            The type token of the destination argument.
+            The the type of object to copy.
 			Of the type ElementType.
 
         Arg2:
@@ -1110,7 +1111,7 @@ typedef enum IROpCode
         Jumps from one method to another.
 		
         Arg1:
-            The method to call.
+            The method to jump into.
 			Of the type IRMethodSpec.
 
         Arg2:
@@ -1135,7 +1136,7 @@ typedef enum IROpCode
 			Of the type uint32_t.
 
         Arg2:
-            The array of IRInstruction* representing
+            An array of IRInstruction* representing
 			the array of jump targets.
 			Of the type IRInstruction*[].
 
@@ -1154,7 +1155,7 @@ typedef enum IROpCode
 		an exception.
 		
         Arg1:
-            The type of the resulting object.
+            The type to attempt to cast to.
 			Of the type IRType*.
 
         Arg2:
@@ -1174,7 +1175,7 @@ typedef enum IROpCode
 		the stack, failing returns null.
 		
         Arg1:
-            The type of the resulting object.
+            The type to cast to.
 			Of the type IRType*.
 
         Arg2:
@@ -1194,7 +1195,7 @@ typedef enum IROpCode
 		stack.
 		
         Arg1:
-            The type of the resulting object.
+            The type of value to unbox.
 			Of the type IRType*.
 
         Arg2:
@@ -1214,7 +1215,7 @@ typedef enum IROpCode
 		stack.
 		
         Arg1:
-            The type of the resulting object.
+            The type of value to unbox.
 			Of the type IRType*.
 
         Arg2:
@@ -1233,7 +1234,7 @@ typedef enum IROpCode
 		stack.
 		
         Arg1:
-            The type of the resulting object.
+            The type of object to box.
 			Of the type IRType*.
 
         Arg2:

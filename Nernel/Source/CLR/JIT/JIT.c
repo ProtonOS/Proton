@@ -128,11 +128,11 @@ void JIT_CompileMethod(IRMethod* mthd)
 			case IROpCode_LoadNull:
 				compMthd = JIT_Compile_LoadNull					(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
 				break;
-			case IROpCode_NewObj:
-				compMthd = JIT_Compile_NewObj					(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
+			case IROpCode_NewObject:
+				compMthd = JIT_Compile_NewObject				(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
 				break;
-			case IROpCode_NewArr:
-				compMthd = JIT_Compile_NewArr					(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
+			case IROpCode_NewArray:
+				compMthd = JIT_Compile_NewArray					(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
 				break;
 			case IROpCode_Dup:
 				compMthd = JIT_Compile_Dup						(mthd->IRCodes[i], compMthd, mthd, branchRegistry);

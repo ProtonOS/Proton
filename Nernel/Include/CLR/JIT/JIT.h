@@ -44,8 +44,8 @@ char* JIT_Compile_Rem						(IRInstruction* instr, char* compMethod, IRMethod* mt
 char* JIT_Compile_LoadIndirect				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry);
 char* JIT_Compile_StoreIndirect				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry);
 char* JIT_Compile_LoadNull					(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry);
-char* JIT_Compile_NewObj					(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry);
-char* JIT_Compile_NewArr					(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry);
+char* JIT_Compile_NewObject					(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry);
+char* JIT_Compile_NewArray					(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry);
 char* JIT_Compile_Dup						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry);
 char* JIT_Compile_And						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry);
 char* JIT_Compile_Or						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry);

@@ -1772,11 +1772,13 @@ Branch_Common:
 						case MetaData_Table_MethodDefinition:
 							sig = MethodSignature_Expand(((MethodDefinition*)tok->Data)->Signature, fil);
 							mthDef = (MethodDefinition*)tok->Data;
+							EMIT_IR_1ARG(IROpCode_NewObject, mthDef);
 							break;
 
 						case MetaData_Table_MemberReference:
 							//printf("Don't deal with this yet! NewObj with table index: 0x%x\n", (unsigned int)tok->Table);
 							sig = MethodSignature_Expand(((MemberReference*)tok->Data)->Signature, fil);
+							EMIT_IR(IROpCode_Nop);
 							break;
 
 						default:
@@ -1800,7 +1802,6 @@ Branch_Common:
 							break;
 					}
 					free(tok);
-					EMIT_IR_1ARG(IROpCode_NewObj, mthDef);
 	
 					StackObject* obj = StackObjectPool_Allocate();
 					obj->Type = StackObjectType_ReferenceType;
@@ -1816,7 +1817,7 @@ Branch_Common:
 					switch (tok->Table)
 					{
 						case MetaData_Table_TypeDefinition:
-							EMIT_IR_1ARG(IROpCode_NewArr, asmbly->Types[((TypeDefinition*)tok->Data)->TableIndex - 1]);
+							EMIT_IR_1ARG(IROpCode_NewArray, asmbly->Types[((TypeDefinition*)tok->Data)->TableIndex - 1]);
 							break;
 						case MetaData_Table_TypeSpecification:
 							printf("No idea what to do here!\n");

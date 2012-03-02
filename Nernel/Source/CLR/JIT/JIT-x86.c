@@ -1230,14 +1230,14 @@ char* JIT_Compile_LoadNull					(IRInstruction* instr, char* compMethod, IRMethod
 }
 
 
-char* JIT_Compile_NewObj					(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
+char* JIT_Compile_NewObject					(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	//IRMethod* mth = (IRMethod*)instr->Arg1;
 	//mth->Parameters[0]->Type->Size
 	return compMethod;
 }
 
-char* JIT_Compile_NewArr					(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
+char* JIT_Compile_NewArray					(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	
 	return compMethod;
