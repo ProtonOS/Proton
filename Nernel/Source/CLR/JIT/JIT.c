@@ -18,6 +18,7 @@ void JIT_CompileMethod(IRMethod* mthd)
 
 	JIT_Layout_Parameters(mthd);
 
+
 	compMthd = JIT_Emit_Prologue(mthd, compMthd);
 	Log_WriteLine(LogFlags_JIT, "IRCodesCount: %i", (int)mthd->IRCodesCount);
 
@@ -214,6 +215,7 @@ void JIT_CompileMethod(IRMethod* mthd)
 				break;
 		}
 	}
+
 
 	compMthd = JIT_Emit_Epilogue(mthd, compMthd);
 

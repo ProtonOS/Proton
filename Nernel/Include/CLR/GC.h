@@ -8,6 +8,14 @@ typedef struct _GCHeapStack GCHeapStack;
 
 #include <uthash.h>
 #include <CLR/ReferenceTypeObject.h>
+struct _GCString
+{
+	uint32_t Size;
+	uint8_t* Data;
+	ReferenceTypeObject* Object;
+	UT_hash_handle HashHandle;
+};
+
 #include <CLR/AppDomain.h>
 
 #define GC_Generation0ToGeneration1_RequiredAge         25
@@ -48,13 +56,6 @@ struct _GC
 	GCString* StringHashTable;
 };
 
-struct _GCString
-{
-	uint32_t Size;
-	uint8_t* Data;
-	ReferenceTypeObject* Object;
-	UT_hash_handle HashHandle;
-};
 
 struct _GCArray
 {

@@ -7,6 +7,7 @@ namespace Mernel
     {
         private static void Main()
         {
+            int x = xxx();
             Console.Write(test());
             //Console.WriteLine("Mernel: Startup");
             //string str = "Are you sure?";
@@ -32,6 +33,8 @@ namespace Mernel
         {
             return "Test";
         }
+
+        private static int xxx() { return 123; }
 
         private static string Factorial(int val, string str)
         {

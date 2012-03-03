@@ -1351,7 +1351,7 @@ char* JIT_Compile_Load_String				(IRInstruction* instr, char* compMethod, IRMeth
 	// would be root objects, thus there is no need to be
 	// trying to re-add them to the GC at runtime.
 	ReferenceTypeObject* str = GC_AllocateString(mth->ParentAssembly->ParentDomain->GarbageCollector, mth->ParentAssembly->ParentDomain->RootObject, (uint8_t*)instr->Arg2, *(uint32_t*)instr->Arg1);
-
+	
 	x86_push_imm(compMethod, str);
 
 	return compMethod;
