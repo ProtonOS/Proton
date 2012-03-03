@@ -99,7 +99,7 @@ void JIT_Layout_Parameters(IRMethod* pMethod)
 		for (uint32_t index = 0; index < pMethod->ParameterCount; ++index)
 		{
 			param = pMethod->Parameters[0];
-			//if (param->Type->TypeDef) param->Size = CalculateSize(param->Type);
+			//if (param->Type->TypeDef) param->Size = CalculateStackSize(param->Type);
 			//else param->Size = global_SizeOfPointerInBytes;
 			param->Offset = offset;
 			offset += param->Size;
