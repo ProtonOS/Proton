@@ -1,3 +1,5 @@
+//#define LOG_FREE 1
+
 /*
   This is a version (aka dlmalloc) of malloc/free/realloc written by
   Doug Lea and released to the public domain, as explained at
@@ -4603,6 +4605,11 @@ void* dlmalloc(size_t bytes) {
 /* ---------------------------- free --------------------------- */
 
 void dlfree(void* mem) {
+
+#if LOG_FREE
+	printf("Freeing 0x%x\n", (unsigned int)mem);
+#endif
+
   /*
      Consolidate freed chunks with preceeding or succeeding bordering
      free chunks, if they exist, and then place in a bin.  Intermixed

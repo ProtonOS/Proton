@@ -58,7 +58,8 @@ void Console_WriteCharacter(char pCharacter)
     	SerialWriter_WriteByte('\r');
     	SerialWriter_WriteByte('\n');
     }
-    else
+	// So that we don't write carriage returns to console.
+    else if (pCharacter != '\r')
     {
 	    uint8_t* cursor = Console_GetCursor();
 	    *cursor = pCharacter;

@@ -31,7 +31,7 @@ namespace Mernel
 
         private static string test()
         {
-            return "Test";
+            return "Test\n";
         }
 
         private static int xxx() { return 123; }
