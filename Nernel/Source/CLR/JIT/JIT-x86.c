@@ -689,7 +689,7 @@ char* JIT_Compile_Load_Parameter_Address	(IRInstruction* instr, char* compMethod
 {
 	uint32_t paramIndex = *(uint32_t*)instr->Arg1;
 	x86_mov_reg_reg(compMethod, X86_EAX, X86_EBP, global_SizeOfPointerInBytes);
-	x86_alu_reg_imm(compMethod, X86_ADD, X86_EAX, paramIndex * global_SizeOfPointerInBytes * -1);
+	x86_alu_reg_imm(compMethod, X86_SUB, X86_EAX, 4 + (paramIndex + 1) * global_SizeOfPointerInBytes);
 	//x86_alu_reg_imm(compMethod, X86_ADD, X86_EAX, mth->Parameters[paramIndex]->Offset * -1);
 	x86_push_reg(compMethod, X86_EAX);
 	return compMethod;
@@ -1080,7 +1080,6 @@ char* JIT_Compile_Div						(IRInstruction* instr, char* compMethod, IRMethod* mt
 
 	switch(ovfType)
 	{
-		case OverflowType_Unsigned:
 		case OverflowType_None:
 			switch(argEins)
 			{
@@ -1109,6 +1108,7 @@ char* JIT_Compile_Div						(IRInstruction* instr, char* compMethod, IRMethod* mt
 				default: Panic("Invalid operand ElementType"); break;
 			}
 			break;
+		case OverflowType_Unsigned:
 		case OverflowType_Signed:
 		default:
 			Panic("Unsupported OverflowType!");
@@ -1126,7 +1126,6 @@ char* JIT_Compile_Rem						(IRInstruction* instr, char* compMethod, IRMethod* mt
 
 	switch(ovfType)
 	{
-		case OverflowType_Unsigned:
 		case OverflowType_None:
 			switch(argEins)
 			{
@@ -1160,6 +1159,7 @@ char* JIT_Compile_Rem						(IRInstruction* instr, char* compMethod, IRMethod* mt
 				default: Panic("Invalid operand ElementType"); break;
 			}
 			break;
+		case OverflowType_Unsigned:
 		case OverflowType_Signed:
 		default: 
 			Panic(String_Format("Unsupported OverflowType (%i)!", (int)ovfType)); 
