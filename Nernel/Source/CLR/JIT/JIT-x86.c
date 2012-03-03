@@ -1455,6 +1455,30 @@ char* JIT_Compile_Box						(IRInstruction* instr, char* compMethod, IRMethod* mt
 }
 
 
+char* JIT_Compile_Compare					(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
+{
+	return compMethod;
+}
+
+
+char* JIT_Compile_CheckFinite				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
+{
+	return compMethod;
+}
+
+
+char* JIT_Compile_LocalAllocate				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
+{
+	return compMethod;
+}
+
+
+char* JIT_Compile_InitObject				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
+{
+	return compMethod;
+}
+
+
 ALWAYS_INLINE char* JIT_Emit_ParamSwap(char* compMethod, uint32_t paramCount)
 {
 	uint32_t swapCount = paramCount / 2;

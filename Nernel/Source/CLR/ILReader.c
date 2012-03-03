@@ -2730,7 +2730,8 @@ Branch_Common:
                 ClearFlags();
                 break;
             case ILOpCode_CkFinite:			// 0xC3
-                DefineUnSupportedOpCode(CkFinite);
+				Log_WriteLine(LogFlags_ILReading, "Read CkFinite");
+				EMIT_IR(IROpCode_CheckFinite);
                 ClearFlags();
 				break;
             // 0xC4 Doesn't exist
@@ -2827,75 +2828,15 @@ Branch_Common:
                         ClearFlags();
                         break;
                     case ILOpCodes_Extended_Ceq:			// 0x01
-						{
-							StackObjectPool_Release(SyntheticStack_Pop(stack));
-							StackObjectPool_Release(SyntheticStack_Pop(stack));
-
-							StackObject* obj = StackObjectPool_Allocate();
-							obj->Type = StackObjectType_Int32;
-							obj->NumericType = StackObjectNumericType_Int32;
-							SyntheticStack_Push(stack, obj);
-	
-							EMIT_IR(IROpCode_Nop);
-							ClearFlags();
-							break;
-						}
+						DefineCompare(Equal, Ceq);
                     case ILOpCodes_Extended_Cgt:			// 0x02
-						{
-							StackObjectPool_Release(SyntheticStack_Pop(stack));
-							StackObjectPool_Release(SyntheticStack_Pop(stack));
-
-							StackObject* obj = StackObjectPool_Allocate();
-							obj->Type = StackObjectType_Int32;
-							obj->NumericType = StackObjectNumericType_Int32;
-							SyntheticStack_Push(stack, obj);
-	
-							EMIT_IR(IROpCode_Nop);
-							ClearFlags();
-							break;
-						}
+						DefineCompare(Greater_Than, Cgt);
                     case ILOpCodes_Extended_Cgt_Un:			// 0x03
-						{
-							StackObjectPool_Release(SyntheticStack_Pop(stack));
-							StackObjectPool_Release(SyntheticStack_Pop(stack));
-
-							StackObject* obj = StackObjectPool_Allocate();
-							obj->Type = StackObjectType_Int32;
-							obj->NumericType = StackObjectNumericType_Int32;
-							SyntheticStack_Push(stack, obj);
-	
-							EMIT_IR(IROpCode_Nop);
-							ClearFlags();
-							break;
-						}
+						DefineCompare(Greater_Than_Unsigned, Cgt.Un);
                     case ILOpCodes_Extended_Clt:			// 0x04
-						{
-							StackObjectPool_Release(SyntheticStack_Pop(stack));
-							StackObjectPool_Release(SyntheticStack_Pop(stack));
-
-							StackObject* obj = StackObjectPool_Allocate();
-							obj->Type = StackObjectType_Int32;
-							obj->NumericType = StackObjectNumericType_Int32;
-							SyntheticStack_Push(stack, obj);
-	
-							EMIT_IR(IROpCode_Nop);
-							ClearFlags();
-							break;
-						}
+						DefineCompare(Less_Than, Clt);
                     case ILOpCodes_Extended_Clt_Un:			// 0x05
-						{
-							StackObjectPool_Release(SyntheticStack_Pop(stack));
-							StackObjectPool_Release(SyntheticStack_Pop(stack));
-
-							StackObject* obj = StackObjectPool_Allocate();
-							obj->Type = StackObjectType_Int32;
-							obj->NumericType = StackObjectNumericType_Int32;
-							SyntheticStack_Push(stack, obj);
-	
-							EMIT_IR(IROpCode_Nop);
-							ClearFlags();
-							break;
-						}
+						DefineCompare(Less_Than_Unsigned, Clt.Un);
                     case ILOpCodes_Extended_LdFtn:			// 0x06
                         DefineUnSupportedOpCode(LdFtn);
                         ClearFlags();
@@ -2990,7 +2931,20 @@ Branch_Common:
                         ClearFlags();
                         break;
                     case ILOpCodes_Extended_LocAlloc:		// 0x0F
-                        DefineUnSupportedOpCode(LocAlloc);
+						{
+                            Log_WriteLine(LogFlags_ILReading, "Read LocAlloc");
+							StackObject* obj = SyntheticStack_Pop(stack);
+                            ElementType* et = (ElementType*)malloc(sizeof(ElementType));
+                            GetElementTypeOfStackObject(et, obj);
+							StackObjectPool_Release(obj);
+
+                            EMIT_IR_1ARG(IROpCode_LocalAllocate, et);
+
+							obj = StackObjectPool_Allocate();
+							obj->Type = StackObjectType_NativeInt;
+							obj->NumericType = StackObjectNumericType_UPointer;
+							SyntheticStack_Push(stack, obj);
+						}
                         ClearFlags();
                         break;
 					// 0x10 Doesn't exist
@@ -3000,12 +2954,32 @@ Branch_Common:
                         break;
                     case ILOpCodes_Extended_InitObj:		// 0x15
 						{
-							Log_WriteLine(LogFlags_ILReading, "Read NI-InitObj");
-							ReadUInt32(dat);
-	
-							StackObjectPool_Release(SyntheticStack_Pop(stack));
-							//DefineUnSupportedOpCode(InitObj);
-	                        
+							Log_WriteLine(LogFlags_ILReading, "Read InitObj");
+							StackObject* obj = SyntheticStack_Pop(stack);
+							ElementType* et = (ElementType*)malloc(sizeof(ElementType));
+							GetElementTypeOfStackObject(et, obj);
+							StackObjectPool_Release(obj);
+							MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
+							IRType* type = NULL;
+							switch (tok->Table)
+							{
+								case MetaData_Table_TypeDefinition:
+									{
+										TypeDefinition* typeDef = (TypeDefinition*)tok->Data;
+										type = asmbly->Types[typeDef->TableIndex - 1];
+										break;
+									}
+								case MetaData_Table_TypeSpecification:
+									{
+										printf("InitObj requires TypeSpecification lookup\n");
+										break;
+									}
+								default:
+									Panic("Invalid Table for InitObj");
+									break;
+							}
+							free(tok);
+							EMIT_IR_2ARG_DISPOSE__NO_DISPOSE(IROpCode_InitObject, et, type);
 							ClearFlags();
 							break;
 						}

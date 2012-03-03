@@ -201,6 +201,18 @@ void JIT_CompileMethod(IRMethod* mthd)
 			case IROpCode_Box:
 				compMthd = JIT_Compile_Box						(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
 				break;
+			case IROpCode_Compare:
+				compMthd = JIT_Compile_Compare					(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
+				break;
+			case IROpCode_CheckFinite:
+				compMthd = JIT_Compile_CheckFinite				(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
+				break;
+			case IROpCode_LocalAllocate:
+				compMthd = JIT_Compile_LocalAllocate			(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
+				break;
+			case IROpCode_InitObject:
+				compMthd = JIT_Compile_InitObject				(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
+				break;
 			case IROpCode_Call:
 				compMthd = JIT_Compile_Call						(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
 				break;

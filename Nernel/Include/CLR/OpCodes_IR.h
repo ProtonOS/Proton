@@ -1248,6 +1248,91 @@ typedef enum IROpCode
 
      */
     IROpCode_Box,
+    /*
+        Compares the 2 arguments on the
+		top of the stack, using the
+		comparison condition to leave
+		the result on the top of the
+		stack.
+		
+        Arg1:
+            The comparison condition.
+			Of the type CompareCondition.
+
+        Arg2:
+			The element type of argument 1.
+			Of the type ElementType.
+
+        Arg3:
+            The element type of argument 2.
+			Of the type ElementType.
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_Compare,
+    /*
+		Check if the top value on the stack is a
+		value other than NaN or +/- infinite, and
+		leaves the value on the stack if so,
+		throws ArithmeticException otherwise.
+		
+        Arg1:
+			N/A
+
+        Arg2:
+			N/A
+
+        Arg3:
+			N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_CheckFinite,
+    /*
+		Allocate space from the local stack memory
+		for the size on the top of the stack and
+		leave the address on the top of the stack.
+		
+        Arg1:
+			The element type of the size.
+			Of the type ElementType.
+
+        Arg2:
+			N/A
+
+        Arg3:
+			N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_LocalAllocate,
+    /*
+		Initializes the destination data on the top
+		of the stack based on the pointer and object
+		types, leaving nothing on the stack.
+		
+        Arg1:
+			The type of the destination pointer.
+			Of the type ElementType.
+
+        Arg2:
+			The type of the object being initialized.
+			Of the type IRType.
+
+        Arg3:
+			N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_InitObject,
 } IROpCode;
 
 
@@ -1320,3 +1405,12 @@ typedef enum OverflowType
 	OverflowType_Signed,
 	OverflowType_Unsigned,
 } OverflowType;
+
+typedef enum CompareCondition
+{
+	CompareCondition_Equal,
+	CompareCondition_Greater_Than,
+	CompareCondition_Greater_Than_Unsigned,
+	CompareCondition_Less_Than,
+	CompareCondition_Less_Than_Unsigned,
+} CompareCondition;

@@ -725,3 +725,22 @@
 	ClearFlags();  \
 	break; }
 
+#define DefineCompare(CompCond, OpCode) \
+{   Log_WriteLine(LogFlags_ILReading, "Read " #OpCode); \
+	CompareCondition* cc = (CompareCondition*)malloc(sizeof(CompareCondition)); \
+	ElementType* a1et = (ElementType*)malloc(sizeof(ElementType)); \
+	ElementType* a2et = (ElementType*)malloc(sizeof(ElementType)); \
+	*cc = CompareCondition_##CompCond; \
+	StackObject* obj = SyntheticStack_Pop(stack); \
+	GetElementTypeOfStackObject(a1et, obj); \
+	StackObjectPool_Release(obj); \
+	obj = SyntheticStack_Pop(stack); \
+	GetElementTypeOfStackObject(a2et, obj); \
+	StackObjectPool_Release(obj); \
+	EMIT_IR_3ARG(IROpCode_Compare, cc, a1et, a2et); \
+	obj = StackObjectPool_Allocate(); \
+	obj->Type = StackObjectType_Int32; \
+	obj->NumericType = StackObjectNumericType_Int32; \
+	SyntheticStack_Push(stack, obj); \
+	ClearFlags(); \
+	break; } 
