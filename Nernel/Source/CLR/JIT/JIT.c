@@ -11,8 +11,6 @@ void JIT_CompileMethod(IRMethod* mthd)
 	Log_WriteLine(LogFlags_JIT, "JITing method %s.%s.%s", mthd->MethodDefinition->TypeDefinition->Namespace, mthd->MethodDefinition->TypeDefinition->Name, mthd->MethodDefinition->Name);
 	char* compMthd = malloc(mthd->IRCodesCount * 128);
 	Log_WriteLine(LogFlags_JIT, "Address of JIT'd Method: 0x%x Size: 0x%x", (unsigned int)compMthd, mthd->IRCodesCount * 128);
-	compMthd = realloc(compMthd, mthd->IRCodesCount * 128);
-	Log_WriteLine(LogFlags_JIT, "Address of Reallocated JIT'd Method: 0x%x Size: 0x%x", (unsigned int)compMthd, mthd->IRCodesCount * 128);
 	char* mthPtr = compMthd;
 	mthd->AssembledMethod = ((void(*)())((unsigned int)mthPtr));
 

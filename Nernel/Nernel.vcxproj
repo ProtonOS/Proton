@@ -98,6 +98,7 @@
     <ClCompile Include="Source\Core\PIC.c" />
     <ClCompile Include="Source\Core\PIT.c" />
     <ClCompile Include="Source\Core\RTC.c" />
+    <ClCompile Include="Source\DLMalloc.c" />
     <ClCompile Include="Source\Nernel.c" />
     <ClCompile Include="Source\Core\MultiBoot.c" />
     <ClCompile Include="Source\Core\SystemCalls.c" />

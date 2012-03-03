@@ -16,6 +16,9 @@ typedef struct _GCHeapStack GCHeapStack;
 #define GCHeapStack_SmallHeap_Size                      (4 * 1024)
 #define GCHeapStack_LargeHeap_Size                      (GCHeapStack_SmallHeap_Size * 1024)
 
+#define GCHeapStack_SmallHeap_InitialPoolSize           32
+#define GCHeapStack_LargeHeap_InitialPoolSize           4
+
 
 struct _GCHeapStack
 {

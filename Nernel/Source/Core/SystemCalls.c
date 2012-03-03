@@ -73,7 +73,7 @@ void* sbrk(ptrdiff_t pAdjustment)
 			memoryBlock = &gMultiBoot_MemoryBlocks[memoryBlockIndex];
 		}
 		memoryBlock->Used += adjustment;
-		printf("sbrk adjusting by %d, returning @ 0x%x\n", (int)pAdjustment, (unsigned int)(memoryBlock->Address + (memoryBlock->Used - adjustment)));
+		//printf("sbrk adjusting by %d, returning @ 0x%x\n", (int)pAdjustment, (unsigned int)(memoryBlock->Address + (memoryBlock->Used - adjustment)));
 		return (void*)(memoryBlock->Address + (memoryBlock->Used - adjustment));
 	}
 	memoryBlock->Used += pAdjustment;

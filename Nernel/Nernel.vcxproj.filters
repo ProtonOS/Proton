@@ -118,6 +118,7 @@
     <ClCompile Include="Source\CLR\InternalCalls\System.String.c" />
     <ClCompile Include="Source\CLR\JIT\BranchRegistry.c" />
     <ClCompile Include="Source\CLR\InternalCalls\System.Array.c" />
+    <ClCompile Include="Source\DLMalloc.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\CLR\AppDomain.h" />

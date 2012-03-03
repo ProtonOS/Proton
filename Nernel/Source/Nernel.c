@@ -67,7 +67,7 @@ void Main(uint32_t pMultiBootMagic,
 
 	Console_Clear(Console_CreateAttributes(Console_DarkBlack, Console_LightCyan));
 	printf("Mernel JIT'd, starting up now!\n");
-	Nernel_FinishedRunning();
+	//Nernel_FinishedRunning();
 
 	global_baseMernelDomain->IRAssemblies[0]->EntryPoint->AssembledMethod();
 	
@@ -77,7 +77,7 @@ void Main(uint32_t pMultiBootMagic,
 
 void Nernel_FinishedRunning()
 {
-	printf("Mernel, Return!");
+	printf("Mernel, Return!\n");
 }
 
 void CPU_Interrupt(InterruptRegisters pRegisters)

@@ -7,12 +7,13 @@ namespace Mernel
     {
         private static void Main()
         {
+            Console.Write(test());
             //Console.WriteLine("Mernel: Startup");
-            string str = "Are you sure?";
-            string str2 = "Definately.";
-            //str2 = str2.Replace("fin", "fan");
-            //str2 = str2.Replace("Definately", "Fosho!");
-            Console.WriteLine(str + "\n" + str2);
+            //string str = "Are you sure?";
+            //string str2 = "Definately.";
+            ////str2 = str2.Replace("fin", "fan");
+            ////str2 = str2.Replace("Definately", "Fosho!");
+            //Console.WriteLine(str + "\n" + str2);
             //int a = 2;
             //int b = 78;
             //b = 2;
@@ -25,6 +26,11 @@ namespace Mernel
             //string st4;
             //string str3 = ((uint)1).ToString();
             //Console.WriteLine((string)((uint)1).ToString());
+        }
+
+        private static string test()
+        {
+            return "Test";
         }
 
         private static string Factorial(int val, string str)

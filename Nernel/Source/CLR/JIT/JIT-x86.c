@@ -169,6 +169,7 @@ char* JIT_Compile_Nop(IRInstruction* instr, char* compMethod, IRMethod* mth, Bra
 
 char* JIT_Compile_BreakForDebugger			(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
+	//x86_breakpoint(compMethod);
 	return compMethod;
 }
 

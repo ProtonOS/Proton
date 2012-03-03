@@ -4,12 +4,12 @@
 
 #include <CLR/GC.h>
 
-GCHeapStack* GCHeapStack_Create(uint32_t pSize)
+GCHeapStack* GCHeapStack_Create(uint32_t pSize, uint32_t pInitialPoolSize)
 {
     GCHeapStack* stack = (GCHeapStack*)calloc(1, sizeof(GCHeapStack));
-    stack->ObjectPoolSize = 1;
-    stack->ObjectPool = (ReferenceTypeObject**)calloc(stack->ObjectPoolSize, sizeof(ReferenceTypeObject*));
-    stack->ObjectPool[0] = (ReferenceTypeObject*)calloc(1, sizeof(ReferenceTypeObject));
+    stack->ObjectPoolSize = pInitialPoolSize;
+    stack->ObjectPool = (ReferenceTypeObject**)calloc(pInitialPoolSize, sizeof(ReferenceTypeObject*));
+	for (uint32_t index = 0; index < pInitialPoolSize; ++index) stack->ObjectPool[index] = (ReferenceTypeObject*)calloc(1, sizeof(ReferenceTypeObject));
     stack->Size = pSize;
     stack->Available = stack->Size;
     stack->Bottom = (uint8_t*)calloc(1, stack->Size);
@@ -44,10 +44,10 @@ GC* GC_Create(AppDomain* pAppDomain)
     gc->SmallGeneration2Heap.Stacks = (GCHeapStack**)calloc(gc->SmallGeneration2Heap.StackCount, sizeof(GCHeapStack*));
     gc->LargeHeap.Stacks = (GCHeapStack**)calloc(gc->LargeHeap.StackCount, sizeof(GCHeapStack*));
 
-    gc->SmallGeneration0Heap.Stacks[0] = GCHeapStack_Create(GCHeapStack_SmallHeap_Size);
-    gc->SmallGeneration1Heap.Stacks[0] = GCHeapStack_Create(GCHeapStack_SmallHeap_Size);
-    gc->SmallGeneration2Heap.Stacks[0] = GCHeapStack_Create(GCHeapStack_SmallHeap_Size);
-    gc->LargeHeap.Stacks[0] = GCHeapStack_Create(GCHeapStack_LargeHeap_Size);
+	for (uint32_t index = 0; index < gc->SmallGeneration0Heap.StackCount; ++index) gc->SmallGeneration0Heap.Stacks[index] = GCHeapStack_Create(GCHeapStack_SmallHeap_Size, GCHeapStack_SmallHeap_InitialPoolSize);
+	for (uint32_t index = 0; index < gc->SmallGeneration1Heap.StackCount; ++index) gc->SmallGeneration1Heap.Stacks[index] = GCHeapStack_Create(GCHeapStack_SmallHeap_Size, GCHeapStack_SmallHeap_InitialPoolSize);
+	for (uint32_t index = 0; index < gc->SmallGeneration2Heap.StackCount; ++index) gc->SmallGeneration2Heap.Stacks[index] = GCHeapStack_Create(GCHeapStack_SmallHeap_Size, GCHeapStack_SmallHeap_InitialPoolSize);
+	for (uint32_t index = 0; index < gc->LargeHeap.StackCount; ++index) gc->LargeHeap.Stacks[index] = GCHeapStack_Create(GCHeapStack_LargeHeap_Size, GCHeapStack_LargeHeap_InitialPoolSize);
 
     return gc;
 }
@@ -108,8 +108,8 @@ ReferenceTypeObject* GCHeap_Allocate(GCHeap* pGCHeap, uint32_t pStackSize, uint3
         stack->ObjectPool = (ReferenceTypeObject**)calloc(stack->ObjectPoolSize, sizeof(ReferenceTypeObject*));
         stack->ObjectPool[0] = (ReferenceTypeObject*)calloc(1, sizeof(ReferenceTypeObject));
         stack->Size = pStackSize;
-        stack->Available = stack->Size;
-        stack->Bottom = (uint8_t*)calloc(1, stack->Size);
+        stack->Available = pStackSize;
+        stack->Bottom = (uint8_t*)calloc(1, pStackSize);
         stack->Top = stack->Bottom;
 
         object = stack->ObjectPool[0];
@@ -121,6 +121,7 @@ ReferenceTypeObject* GCHeap_Allocate(GCHeap* pGCHeap, uint32_t pStackSize, uint3
         stack->Allocated += pSize;
         stack->Top += pSize;
     }
+	if (!object) Panic("Whoa, how did this happen?!");
     return object;
 }
 

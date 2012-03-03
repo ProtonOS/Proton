@@ -56,6 +56,7 @@
 
 #define SOURCE(C_FILES)
 {
+	Source/DLMalloc.c
     Source/Nernel.c
 #
 	Source/Core/Console.c
