@@ -10,70 +10,77 @@
 
 void Panic(const char* msg);
 
-ALWAYS_INLINE uint32_t CalculateSize(IRType* tp)
+ALWAYS_INLINE uint32_t CalculateStackSize(IRType* tp)
 {
-	if (tp->Size > 0)
+	if (tp->Size > 0 || tp->IsVoid)
 		return tp->Size;
 
-	if (tp->TypeDef->ClassLayout)
+	if (tp->IsReferenceType)
+		return global_SizeOfPointerInBytes;
+	if (tp->IsValueType)
 	{
-		return tp->TypeDef->ClassLayout->ClassSize;
+		if (tp->TypeDef->ClassLayout)
+		{
+			tp->Size = tp->TypeDef->ClassLayout->ClassSize;
+			return tp->TypeDef->ClassLayout->ClassSize;
+		}
+		AppDomain* domain = tp->ParentAssembly->ParentDomain;
+		if (
+			(tp->TypeDef == domain->CachedType___System_Void)
+		)
+		{
+			tp->IsVoid = TRUE;
+			return 0;
+		}
+		else if (
+			(tp->TypeDef == domain->CachedType___System_Byte)
+		||  (tp->TypeDef == domain->CachedType___System_SByte)
+		||  (tp->TypeDef == domain->CachedType___System_Boolean)
+		)
+		{
+			tp->Size = 1;
+			return 1;
+		}
+		else if (
+			(tp->TypeDef == domain->CachedType___System_Int16)
+		||  (tp->TypeDef == domain->CachedType___System_UInt16)
+		||  (tp->TypeDef == domain->CachedType___System_Char)
+		)
+		{
+			tp->Size = 2;
+			return 2;
+		}
+		else if (
+			(tp->TypeDef == domain->CachedType___System_Int32)
+		||  (tp->TypeDef == domain->CachedType___System_UInt32)
+		||  (tp->TypeDef == domain->CachedType___System_Single)
+		)
+		{
+			tp->Size = 4;
+			return 4;
+		}
+		else if (
+			(tp->TypeDef == domain->CachedType___System_Int64)
+		||  (tp->TypeDef == domain->CachedType___System_UInt64)
+		||  (tp->TypeDef == domain->CachedType___System_Double)
+		)
+		{
+			tp->Size = 8;
+			return 8;
+		}
+		else if (
+			(tp->TypeDef == domain->CachedType___System_IntPtr)
+		||  (tp->TypeDef == domain->CachedType___System_UIntPtr)
+		)
+		{
+			tp->Size = global_SizeOfPointerInBytes;
+			return global_SizeOfPointerInBytes;
+		}
 	}
 
-	AppDomain* domain = tp->ParentAssembly->ParentDomain;
-	if (
-		(tp->TypeDef == domain->CachedType___System_Void)
-	)
-	{
-		tp->IsVoid = TRUE;
-		return 0;
-	}
-	else if (
-		(tp->TypeDef == domain->CachedType___System_Byte)
-	||  (tp->TypeDef == domain->CachedType___System_SByte)
-	||  (tp->TypeDef == domain->CachedType___System_Boolean)
-	)
-	{
-		tp->Size = 1;
-		return 1;
-	}
-	else if (
-		(tp->TypeDef == domain->CachedType___System_Int16)
-	||  (tp->TypeDef == domain->CachedType___System_UInt16)
-	||  (tp->TypeDef == domain->CachedType___System_Char)
-	)
-	{
-		tp->Size = 2;
-		return 2;
-	}
-	else if (
-		(tp->TypeDef == domain->CachedType___System_Int32)
-	||  (tp->TypeDef == domain->CachedType___System_UInt32)
-	||  (tp->TypeDef == domain->CachedType___System_Object)
-	||  (tp->TypeDef == domain->CachedType___System_Single)
-	)
-	{
-		tp->Size = 4;
-		return 4;
-	}
-	else if (
-		(tp->TypeDef == domain->CachedType___System_Int64)
-	||  (tp->TypeDef == domain->CachedType___System_UInt64)
-	||  (tp->TypeDef == domain->CachedType___System_Double)
-	)
-	{
-		tp->Size = 8;
-		return 8;
-	}
-	else if (
-		(tp->TypeDef == domain->CachedType___System_IntPtr)
-	||  (tp->TypeDef == domain->CachedType___System_UIntPtr)
-	||  (tp->TypeDef == domain->CachedType___System_String)
-	)
-	{
-		tp->Size = global_SizeOfPointerInBytes;
-		return global_SizeOfPointerInBytes;
-	}
+	
+
+	
 	/*
 	else
 	{
