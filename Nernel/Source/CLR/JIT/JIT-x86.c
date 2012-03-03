@@ -169,7 +169,6 @@ char* JIT_Compile_Nop(IRInstruction* instr, char* compMethod, IRMethod* mth, Bra
 
 char* JIT_Compile_BreakForDebugger			(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
-	
 	return compMethod;
 }
 
@@ -216,38 +215,6 @@ char* JIT_Compile_LoadFloat64_Val			(IRInstruction* instr, char* compMethod, IRM
 	x86_push_imm(compMethod, (value >> 32));
 	return compMethod;
 }
-
-/*
-    Branches to a specific instruction.
-    Takes it's arguments from the stack.
-
-    Arg1:
-        The condition of the branch,
-        of the type BranchCondition.
-
-    Arg2:
-        The branch target, a pointer to 
-        a structure of the type IRInstruction.
-
-    Arg3:
-        Provided that Arg1 is not
-		BranchCondition_Always, this
-		is the type of object that
-		is the first argument for 
-		the branch operation.
-		Of the type ElementType.
-
-    Arg4:
-        Provided that Arg2 is not
-		BranchCondition_Always,
-		BranchCondition_True, or
-		BranchCondition_False,
-		this is the type of object that
-		is the first argument for 
-		the branch operation.
-		Of the type ElementType.
-
-*/
 
 char* JIT_Compile_Branch					(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
