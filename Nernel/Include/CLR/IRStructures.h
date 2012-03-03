@@ -67,6 +67,9 @@ struct _IRType
 	TypeDefinition* TypeDef;
 
 	bool_t IsVoid;
+
+	bool_t HasFinalizer;
+	IRMethod* Finalizer;
 };
 
 struct _IRMethod

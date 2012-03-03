@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #include <CLR/GC.h>
+#include <CLR/JIT/JIT.h>
 
 GCHeapStack* GCHeapStack_Create(uint32_t pSize, uint32_t pInitialPoolSize)
 {
@@ -385,6 +386,17 @@ void GCHeap_Compact(GC* pGC, GCHeap* pGCHeap)
 		// Let's compact after at least 25% of the stack space is disposed
         if (stack->Disposed >= (stack->Size / 4))
         {
+			// First we need to check if any objects on this stack are pinned, if so, we can skip this stack for
+			// the time being, and deal with it when no objects are pinned.
+			bool_t skipStack = FALSE;
+            for (uint32_t objectIndex = 0; !skipStack && objectIndex < stack->ObjectPoolSize; ++objectIndex)
+            {
+				// Let's check for pinned objects, that's what we're interested in
+                skipStack = (stack->ObjectPool[objectIndex]->Flags & ReferenceTypeObject_Flags_Pinned) != 0;
+			}
+			// If we found even 1 pinned object, skip this stack till later
+			if (skipStack) continue;
+
 			// First we need to go through all the objects in the pool, and swap spots when there is gaps in the
 			// allocated objects, and count the total allocated objects in the process, unallocated objects are
 			// only preallocated placeholders, they do not represent any form of a valid object yet, and have no
@@ -460,8 +472,23 @@ void GCHeap_Compact(GC* pGC, GCHeap* pGCHeap)
 				}
 			}
 			// At this point all the allocated objects in the pool should now be sequential and ordered based on
-			// their internal object pointer to the stack. Now we can deal with compacting the disposed objects,
-			// and releasing the memory they are still holding
+			// their internal object pointer to the stack. Now we can deal with calling the disposed object finalizers
+            for (uint32_t objectIndex = 0; objectIndex < allocatedCount; ++objectIndex)
+            {
+                if ((stack->ObjectPool[objectIndex]->Flags & ReferenceTypeObject_Flags_Disposed) != 0 && !stack->ObjectPool[objectIndex]->HasCalledFinalizer)
+                {
+					IRType* type = pGC->Domain->IRAssemblies[stack->ObjectPool[objectIndex]->AssemblyIndex]->Types[stack->ObjectPool[objectIndex]->TypeIndex];
+					if (type->HasFinalizer)
+					{
+						if (!type->Finalizer->AssembledMethod) JIT_CompileMethod(type->Finalizer);
+						type->Finalizer->AssembledMethod();
+						stack->ObjectPool[objectIndex]->HasCalledFinalizer = TRUE;
+					}
+				}
+			}
+			// At this point all the allocated objects in the pool should now be sequential and ordered based on
+			// their internal object pointer to the stack, and finalizers called. Now we can deal with compacting the
+			// disposed objects, and releasing the memory they are still holding
             for (uint32_t objectIndex = 0; objectIndex < allocatedCount; ++objectIndex)
             {
                 if ((stack->ObjectPool[objectIndex]->Flags & ReferenceTypeObject_Flags_Disposed) != 0)
@@ -560,6 +587,7 @@ void GCHeap_Migrate(GCHeap* pSourceHeap, GCHeap* pDestinationHeap, uint32_t pSta
         stack = pSourceHeap->Stacks[index];
         for (uint32_t objectIndex = 0; objectIndex < stack->ObjectPoolSize; ++objectIndex)
         {
+			if ((stack->ObjectPool[objectIndex]->Flags & ReferenceTypeObject_Flags_Pinned) != 0) continue;
             if ((stack->ObjectPool[objectIndex]->Flags & (ReferenceTypeObject_Flags_Allocated | ReferenceTypeObject_Flags_Disposed)) == ReferenceTypeObject_Flags_Allocated)
             {
                 object = stack->ObjectPool[objectIndex];

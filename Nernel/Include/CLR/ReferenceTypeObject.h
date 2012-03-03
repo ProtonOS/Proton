@@ -27,6 +27,7 @@ struct _ReferenceTypeObject
 	uint32_t DomainIndex;
 	uint32_t AssemblyIndex;
 	uint32_t TypeIndex;
+	bool_t HasCalledFinalizer;
 };
 
 void ReferenceTypeObject_AddReference(ReferenceTypeObject* pReference, ReferenceTypeObject* pDependancy);
