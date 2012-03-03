@@ -1240,7 +1240,9 @@ char* JIT_Compile_And						(IRInstruction* instr, char* compMethod, IRMethod* mt
 	{
 		case ElementType_I:
 		case ElementType_I4:
-			if (arg2Type != ElementType_I && arg2Type != ElementType_I4)
+		case ElementType_U:
+		case ElementType_U4:
+			if (arg2Type != ElementType_I && arg2Type != ElementType_I4 && arg2Type != ElementType_U && arg2Type != ElementType_U4)
 				Panic("Invalid type combination for binary AND");
 			x86_pop_reg(compMethod, X86_EAX);
 			x86_alu_membase_reg(compMethod, X86_AND, X86_ESP, 0, X86_EAX);
@@ -1272,7 +1274,9 @@ char* JIT_Compile_Or						(IRInstruction* instr, char* compMethod, IRMethod* mth
 	{
 		case ElementType_I:
 		case ElementType_I4:
-			if (arg2Type != ElementType_I && arg2Type != ElementType_I4)
+		case ElementType_U:
+		case ElementType_U4:
+			if (arg2Type != ElementType_I && arg2Type != ElementType_I4 && arg2Type != ElementType_U && arg2Type != ElementType_U4)
 				Panic("Invalid type combination for binary OR");
 			x86_pop_reg(compMethod, X86_EAX);
 			x86_alu_membase_reg(compMethod, X86_OR, X86_ESP, 0, X86_EAX);
@@ -1304,7 +1308,9 @@ char* JIT_Compile_XOr						(IRInstruction* instr, char* compMethod, IRMethod* mt
 	{
 		case ElementType_I:
 		case ElementType_I4:
-			if (arg2Type != ElementType_I && arg2Type != ElementType_I4)
+		case ElementType_U:
+		case ElementType_U4:
+			if (arg2Type != ElementType_I && arg2Type != ElementType_I4 && arg2Type != ElementType_U && arg2Type != ElementType_U4)
 				Panic("Invalid type combination for binary XOR");
 			x86_pop_reg(compMethod, X86_EAX);
 			x86_alu_membase_reg(compMethod, X86_XOR, X86_ESP, 0, X86_EAX);

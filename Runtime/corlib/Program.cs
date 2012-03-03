@@ -28,6 +28,8 @@ namespace Mernel
             //string st4;
             //string str3 = ((uint)1).ToString();
             Console.WriteLine(a.ToString());
+            uint b = 120;
+            Console.WriteLine((a * b).ToString());
             Console.WriteLine("Factorial of 6 (Via Addition): " + Factorial(6).ToString());
         }
 
