@@ -511,28 +511,18 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 			//m->ReturnType = GetElementTypeFromTypeDef
 		}
 
-		uint32_t paramIndex = 0;
 		if (sig->HasThis && !sig->ExplicitThis)
 		{
-			m->ParameterCount = sig->ParameterCount + 1;
 			IRParameter* p = IRParameter_Create();
-			p->ParameterIndex = paramIndex;
 			p->Type = asmbly->Types[methodDef->TypeDefinition->TableIndex - 1];
 			IRMethod_AddParameter(m, p);
-			paramIndex++;
-		}
-		else
-		{
-			m->ParameterCount = sig->ParameterCount;
 		}
 
 		for (uint32_t i = 0; i < sig->ParameterCount; i++)
 		{
 			IRParameter* p = IRParameter_Create();
-			p->ParameterIndex = paramIndex;
 			p->Type = GetIRTypeOfSignatureType(dom, fil, asmbly, sig->Parameters[i]->Type);
 			IRMethod_AddParameter(m, p);
-			paramIndex++;
 		}
 
 		MethodSignature_Destroy(sig);
@@ -909,7 +899,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
                 break;
             case ILOpCode_LdStr:			// 0x72
                 {
-                    Log_WriteLine(LogFlags_ILReading, "Read NI-NSA-LdStr");
+                    Log_WriteLine(LogFlags_ILReading, "Read LdStr");
                     MetaDataToken* tkn = CLIFile_ResolveToken(fil, ReadUInt32(dat));
                     if (!tkn->IsUserString)
                         Panic("Invalid token after LdStr!");

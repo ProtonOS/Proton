@@ -10,14 +10,23 @@
 
 void Panic(const char* msg);
 
+
+ALWAYS_INLINE void Align(uint32_t* val)
+{
+	if (*val % 4 != 0)
+	{
+		*val += 4 - (*val % 4);
+	}
+}
+
 ALWAYS_INLINE uint32_t CalculateStackSize(IRType* tp)
 {
-	if (tp->Size > 0 || tp->IsVoid)
+	if (tp->Size > 0)
 		return tp->Size;
 
 	if (tp->IsReferenceType)
 		return global_SizeOfPointerInBytes;
-	if (tp->IsValueType)
+	else if (tp->IsValueType)
 	{
 		if (tp->TypeDef->ClassLayout)
 		{
@@ -26,13 +35,6 @@ ALWAYS_INLINE uint32_t CalculateStackSize(IRType* tp)
 		}
 		AppDomain* domain = tp->ParentAssembly->ParentDomain;
 		if (
-			(tp->TypeDef == domain->CachedType___System_Void)
-		)
-		{
-			tp->IsVoid = TRUE;
-			return 0;
-		}
-		else if (
 			(tp->TypeDef == domain->CachedType___System_Byte)
 		||  (tp->TypeDef == domain->CachedType___System_SByte)
 		||  (tp->TypeDef == domain->CachedType___System_Boolean)
@@ -76,17 +78,14 @@ ALWAYS_INLINE uint32_t CalculateStackSize(IRType* tp)
 			tp->Size = global_SizeOfPointerInBytes;
 			return global_SizeOfPointerInBytes;
 		}
+		else
+		{
+			Panic("This isn't supported yet!");
+		}
 	}
 
 	
 
-	
-	/*
-	else
-	{
-		Panic("Can't Calculate the size of this currently!");
-	}
-	*/
 	return global_SizeOfPointerInBytes;
 }
 
@@ -95,14 +94,14 @@ void JIT_Layout_Parameters(IRMethod* pMethod)
 	if (!pMethod->ParametersLayedOut)
 	{
 		IRParameter* param = NULL;
-		uint32_t offset = 0;
+		uint32_t offset = 8;
 		for (uint32_t index = 0; index < pMethod->ParameterCount; ++index)
 		{
-			param = pMethod->Parameters[0];
-			//if (param->Type->TypeDef) param->Size = CalculateStackSize(param->Type);
-			//else param->Size = global_SizeOfPointerInBytes;
+			param = pMethod->Parameters[index];
+			param->Size = CalculateStackSize(param->Type);
 			param->Offset = offset;
 			offset += param->Size;
+			Align(&offset);
 		}
 		pMethod->ParametersLayedOut = TRUE;
 	}
@@ -457,11 +456,54 @@ char* JIT_Compile_Load_LocalVar_Address		(IRInstruction* instr, char* compMethod
 	uint32_t localIndex = *(uint32_t*)instr->Arg1;
 	x86_mov_reg_reg(compMethod, X86_EAX, X86_EBP, global_SizeOfPointerInBytes);
 	x86_alu_reg_imm(compMethod, X86_SUB, X86_EAX, (localIndex + 1) * global_SizeOfPointerInBytes);
-	printf("LocalIndex: %i\n", (int)localIndex);
-	//x86_alu_reg_imm(compMethod, X86_ADD, X86_EAX, mth->LocalVariables[localIndex]->Offset);
 	x86_push_reg(compMethod, X86_EAX);
 	return compMethod;
 }
+
+
+char* JIT_Compile_Load_Parameter			(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
+{
+	uint32_t paramIndex = *(uint32_t*)instr->Arg1;
+	uint32_t size = global_SizeOfPointerInBytes;
+	if (mth->Parameters[paramIndex]->Type->IsValueType)
+		size = mth->Parameters[paramIndex]->Type->Size;
+	Align(&size);
+	uint32_t movCount = size / global_SizeOfPointerInBytes;
+	if ((size % global_SizeOfPointerInBytes) != 0) ++movCount;
+	for (uint32_t movIndex = 0; movIndex < movCount; ++movIndex)
+	{
+		x86_push_membase(compMethod, X86_EBP,  mth->Parameters[paramIndex]->Offset);
+	}
+	return compMethod;
+}
+
+
+char* JIT_Compile_Load_Parameter_Address	(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
+{
+	uint32_t paramIndex = *(uint32_t*)instr->Arg1;
+	x86_mov_reg_reg(compMethod, X86_EAX, X86_EBP, global_SizeOfPointerInBytes);
+	x86_alu_reg_imm(compMethod, X86_SUB, X86_EAX, mth->Parameters[paramIndex]->Offset);
+	x86_push_reg(compMethod, X86_EAX);
+	return compMethod;
+}
+
+
+char* JIT_Compile_Store_Parameter			(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
+{
+	uint32_t paramIndex = *(uint32_t*)instr->Arg1;
+	uint32_t size = global_SizeOfPointerInBytes;
+	if (mth->Parameters[paramIndex]->Type->IsValueType)
+		size = mth->Parameters[paramIndex]->Type->Size;
+	Align(&size);
+	uint32_t movCount = size / global_SizeOfPointerInBytes;
+	for (uint32_t movIndex = 0; movIndex < movCount; ++movIndex)
+	{
+		x86_pop_reg(compMethod, X86_EAX);
+		x86_mov_membase_reg(compMethod, X86_EBP, mth->Parameters[paramIndex]->Offset, X86_EAX, 4);
+	}
+	return compMethod;
+}
+
 
 
 char* JIT_Compile_Convert_OverflowCheck		(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
@@ -670,51 +712,6 @@ char* JIT_Compile_Convert_Unchecked			(IRInstruction* instr, char* compMethod, I
 				Panic(buf);
 			}
 			break;
-	}
-	return compMethod;
-}
-
-
-char* JIT_Compile_Load_Parameter			(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
-{
-	uint32_t paramIndex = *(uint32_t*)instr->Arg1;
-	uint32_t size = global_SizeOfPointerInBytes;
-	/*if (mth->Parameters[paramIndex]->Type->IsValueType)
-		size = mth->Parameters[paramIndex]->Type->Size;*/
-	uint32_t movCount = size / global_SizeOfPointerInBytes;
-	if ((size % global_SizeOfPointerInBytes) != 0) ++movCount;
-	for (uint32_t movIndex = 0; movIndex < movCount; ++movIndex)
-	{
-		x86_mov_reg_membase(compMethod, X86_EAX, X86_EBP, 4 + (paramIndex + 1) * global_SizeOfPointerInBytes, global_SizeOfPointerInBytes);
-		x86_push_reg(compMethod, X86_EAX);
-	}
-	return compMethod;
-}
-
-
-char* JIT_Compile_Load_Parameter_Address	(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
-{
-	uint32_t paramIndex = *(uint32_t*)instr->Arg1;
-	x86_mov_reg_reg(compMethod, X86_EAX, X86_EBP, global_SizeOfPointerInBytes);
-	x86_alu_reg_imm(compMethod, X86_SUB, X86_EAX, 4 + (paramIndex + 1) * global_SizeOfPointerInBytes);
-	//x86_alu_reg_imm(compMethod, X86_ADD, X86_EAX, mth->Parameters[paramIndex]->Offset * -1);
-	x86_push_reg(compMethod, X86_EAX);
-	return compMethod;
-}
-
-
-char* JIT_Compile_Store_Parameter			(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
-{
-	uint32_t paramIndex = *(uint32_t*)instr->Arg1;
-	uint32_t size = global_SizeOfPointerInBytes;
-	/*if (mth->Parameters[paramIndex]->Type->IsValueType)
-		size = mth->Parameters[paramIndex]->Type->Size;*/
-	uint32_t movCount = size / global_SizeOfPointerInBytes;
-	if ((size % global_SizeOfPointerInBytes) != 0) ++movCount;
-	for (uint32_t movIndex = 0; movIndex < movCount; ++movIndex)
-	{
-		x86_pop_reg(compMethod, X86_EAX);
-		x86_mov_membase_reg(compMethod, X86_EBP, 4 + (paramIndex + 1) * global_SizeOfPointerInBytes, X86_EAX, global_SizeOfPointerInBytes);
 	}
 	return compMethod;
 }
@@ -1512,14 +1509,6 @@ char* JIT_Compile_Call_Absolute				(IRInstruction* instr, char* compMethod, IRMe
 		x86_push_reg(compMethod, X86_EAX);
 	}
 	return compMethod;
-}
-
-ALWAYS_INLINE void Align(uint32_t* val)
-{
-	if (*val % 4 != 0)
-	{
-		*val += 4 - (*val % 4);
-	}
 }
 
 char* JIT_Compile_Call_Internal				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
