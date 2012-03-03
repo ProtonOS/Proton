@@ -386,7 +386,8 @@ char* JIT_LinkBranches						(char* compMethod, BranchRegistry* branchReg, uint32
 		}
 	}
 
-	return compMethod;}
+	return compMethod;
+}
 
 
 char* JIT_Compile_Optimized_Jump			(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
@@ -448,7 +449,8 @@ char* JIT_Compile_Load_LocalVar_Address		(IRInstruction* instr, char* compMethod
 {
 	uint32_t localIndex = *(uint32_t*)instr->Arg1;
 	x86_mov_reg_reg(compMethod, X86_EAX, X86_EBP, global_SizeOfPointerInBytes);
-	x86_alu_reg_imm(compMethod, X86_ADD, X86_EAX, localIndex * global_SizeOfPointerInBytes);
+	x86_alu_reg_imm(compMethod, X86_SUB, X86_EAX, (localIndex + 1) * global_SizeOfPointerInBytes);
+	printf("LocalIndex: %i\n", (int)localIndex);
 	//x86_alu_reg_imm(compMethod, X86_ADD, X86_EAX, mth->LocalVariables[localIndex]->Offset);
 	x86_push_reg(compMethod, X86_EAX);
 	return compMethod;
@@ -698,14 +700,14 @@ char* JIT_Compile_Store_Parameter			(IRInstruction* instr, char* compMethod, IRM
 {
 	uint32_t paramIndex = *(uint32_t*)instr->Arg1;
 	uint32_t size = global_SizeOfPointerInBytes;
-	if (mth->Parameters[paramIndex]->Type->IsValueType)
-		size = mth->Parameters[paramIndex]->Type->Size;
+	/*if (mth->Parameters[paramIndex]->Type->IsValueType)
+		size = mth->Parameters[paramIndex]->Type->Size;*/
 	uint32_t movCount = size / global_SizeOfPointerInBytes;
 	if ((size % global_SizeOfPointerInBytes) != 0) ++movCount;
 	for (uint32_t movIndex = 0; movIndex < movCount; ++movIndex)
 	{
 		x86_pop_reg(compMethod, X86_EAX);
-		x86_mov_membase_reg(compMethod, X86_EBP, (mth->Parameters[paramIndex]->Offset + (movIndex * global_SizeOfPointerInBytes)) * -1, X86_EAX, global_SizeOfPointerInBytes);
+		x86_mov_membase_reg(compMethod, X86_EBP, 4 + (paramIndex + 1) * global_SizeOfPointerInBytes, X86_EAX, global_SizeOfPointerInBytes);
 	}
 	return compMethod;
 }

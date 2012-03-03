@@ -95,6 +95,7 @@
 	Source/CLR/InternalCalls/System.Object.c
 	Source/CLR/InternalCalls/System.Math.c
 	Source/CLR/InternalCalls/System.String.c
+	Source/CLR/InternalCalls/System.UInt32.c
 #
 	Source/CLR/JIT/BranchRegistry.c
 	Source/CLR/JIT/JIT.c

@@ -24,28 +24,13 @@ namespace System
         }
 
         #region ToString methods
-
-        public override string ToString()
-        {
-            if (this == 0)
-            {
-                return "0";
-            }
-            const string xDigits = "0123456789";
-            string result = "";
-            //char[] xResultChars = new char[11];
-            //int xCurrentPos = 10;
-            while (this > 0)
-            {
-                int xPos = (int)(this % 10);
-                this /= 10;
-                result = xDigits[xPos].ToString() + result;
-                //xCurrentPos -= 1;
-            }
-            return result; //new String(xResultChars, xCurrentPos + 1, 10 - xCurrentPos);
-
-            //return NumberFormatter.FormatGeneral(new NumberFormatter.NumberStore(this.m_value));
-        }
+        
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public override extern string ToString();
+        //public override string ToString()
+        //{
+        //    return NumberFormatter.FormatGeneral(new NumberFormatter.NumberStore(this.m_value));
+        //}
 
         public string ToString(IFormatProvider formatProvider)
         {

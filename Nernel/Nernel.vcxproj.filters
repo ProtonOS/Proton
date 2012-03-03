@@ -116,6 +116,7 @@
     <ClCompile Include="Source\CLR\InternalCalls\System.DateTime.c" />
     <ClCompile Include="Source\CLR\InternalCalls\System.Environment.c" />
     <ClCompile Include="Source\CLR\InternalCalls\System.String.c" />
+    <ClCompile Include="Source\CLR\InternalCalls\System.UInt32.c" />
     <ClCompile Include="Source\CLR\JIT\BranchRegistry.c" />
     <ClCompile Include="Source\CLR\InternalCalls\System.Array.c" />
     <ClCompile Include="Source\DLMalloc.c" />
@@ -261,6 +262,7 @@
     <ClInclude Include="Include\CLR\InternalCalls\System.String.h" />
     <ClInclude Include="Include\CLR\JIT\BranchRegistry.h" />
     <ClInclude Include="Include\CLR\InternalCalls\System.Array.h" />
+    <ClInclude Include="Include\CLR\InternalCalls\System.UInt32.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Makefile.omake" />
@@ -273,6 +275,5 @@
     <None Include="License.txt" />
     <None Include="Source\CLR\ILReader.Notes.txt" />
     <None Include="Source\CLR\JIT\JIT-x86.Notes.txt" />
-    <None Include="Source\CLR\JIT\JIT-x86-Trampoline.asm" />
   </ItemGroup>
 </Project>

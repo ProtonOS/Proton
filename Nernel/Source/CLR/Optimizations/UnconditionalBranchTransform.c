@@ -14,7 +14,7 @@ void IROptimizer_UnconditionalBranchTransform(IRAssembly* asmb)
             {
                 if ( *((BranchCondition*)(instr->Arg1)) == BranchCondition_Always)
                 {
-                    instr->OpCode = IROpCode_Jump;
+                    instr->OpCode = IROpCode_Optimized_Jump;
                     free(instr->Arg1);
                     instr->Arg1 = instr->Arg2;
                     instr->Arg2 = (void*)0;

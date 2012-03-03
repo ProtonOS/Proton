@@ -7,6 +7,7 @@
 #include <CLR/InternalCalls/System.Math.h>
 #include <CLR/InternalCalls/System.Object.h>
 #include <CLR/InternalCalls/System.String.h>
+#include <CLR/InternalCalls/System.UInt32.h>
 
 #include <CLR/InternalCalls.h>
 #include <stdio.h>
@@ -73,6 +74,8 @@ const InternalCall InternalCallTable[] =
 	{	NULL,				NULL,				"Equals",				Signature_ElementType_Boolean,	2,	{ Signature_ElementType_String, Signature_ElementType_String }, &System_String_Equals },
 	{	NULL,				NULL,				"GetHashCode",			Signature_ElementType_I4,		0,	{ }, &System_String_GetHashCode },
 	{	NULL,				NULL,				"get_Chars",			Signature_ElementType_Char,		1,	{ Signature_ElementType_I4 }, &System_String_getChars },
+
+	{	NULL,				"UInt32",			"ToString",				Signature_ElementType_String,	0,	{ }, &System_UInt32_ToString },
 
 	{	NULL,				"Array",			"Internal_GetValue",	Signature_ElementType_Object,	1,	{ Signature_ElementType_I4 }, &System_Array_InternalGetValue },
 	{	NULL,				NULL,				"Internal_SetValue",	Signature_ElementType_Boolean,	2,	{ Signature_ElementType_Object, Signature_ElementType_I4 }, &System_Array_InternalSetValue },
