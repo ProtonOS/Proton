@@ -59,12 +59,15 @@ void Main(uint32_t pMultiBootMagic,
 	printf("Location: %x\n", (unsigned int)global_baseMernelDomain->IRAssemblies[0]);
 	printf("Location: %x\n", (unsigned int)global_baseMernelDomain->IRAssemblies[0]->EntryPoint->MethodDefinition);
 
+	/*char* blah = malloc(0xFFFFFFF);
+	printf("AddressOf Blah: 0x%x\n", (unsigned int)blah);*/
 	JIT_CompileMethod(global_baseMernelDomain->IRAssemblies[0]->EntryPoint);
 
 	printf("Now how do you like that.\n");
 
 	Console_Clear(Console_CreateAttributes(Console_DarkBlack, Console_LightCyan));
 	printf("Mernel JIT'd, starting up now!\n");
+	Nernel_FinishedRunning();
 
 	global_baseMernelDomain->IRAssemblies[0]->EntryPoint->AssembledMethod();
 	

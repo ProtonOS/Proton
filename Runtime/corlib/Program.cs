@@ -22,9 +22,9 @@ namespace Mernel
             //    Console.WriteLine("It is!");
             //else
             //    Console.WriteLine("It Isn't!");
-            string st4;
+            //string st4;
             //string str3 = ((uint)1).ToString();
-            Console.WriteLine((string)((uint)1).ToString());
+            //Console.WriteLine((string)((uint)1).ToString());
         }
 
         private static string Factorial(int val, string str)
