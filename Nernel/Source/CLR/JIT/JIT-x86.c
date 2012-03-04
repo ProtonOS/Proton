@@ -1666,16 +1666,73 @@ char* JIT_Compile_IsInst					(IRInstruction* instr, char* compMethod, IRMethod* 
 
 char* JIT_Compile_Unbox						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
+//	IRType* type = (IRType*)instr->Arg1;
+	x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, 0, 4);
+	x86_mov_reg_membase(compMethod, X86_EAX, X86_EAX, 0, 4);
+	x86_mov_membase_reg(compMethod, X86_ESP, 0, X86_EAX, 4);
 	return compMethod;
 }
 
 char* JIT_Compile_Unbox_Any					(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
+	IRType* type = (IRType*)instr->Arg1;
+	uint32_t sizeOfType = StackSizeOfType(type);
+	x86_pop_reg(compMethod, X86_EAX);
+	x86_mov_reg_membase(compMethod, X86_EAX, X86_EAX, 0, 4);
+	x86_mov_reg_reg(compMethod, X86_ECX, X86_ESP, 4);
+	uint32_t alignedSizeOfType = sizeOfType;
+	Align(&alignedSizeOfType);
+	x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, alignedSizeOfType);
+	uint32_t movCount = sizeOfType / 4;
+	for (uint32_t index = 0; index < movCount; ++index)
+	{
+		x86_mov_reg_membase(compMethod, X86_EBX, X86_EAX, index * 4, 4);
+		x86_mov_membase_reg(compMethod, X86_ECX, index * 4, X86_EBX, 4);
+	}
+	uint32_t remCount = sizeOfType % 4;
+	if (remCount)
+	{
+		x86_mov_reg_membase(compMethod, X86_EBX, X86_EAX, sizeOfType - remCount, remCount);
+		x86_mov_membase_reg(compMethod, X86_ECX, sizeOfType - remCount, X86_EBX, remCount);
+	}
+
 	return compMethod;
 }
 
 char* JIT_Compile_Box						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
+	IRType* type = (IRType*)instr->Arg1;
+	uint32_t sizeOfType = StackSizeOfType(type);
+	x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, 24);
+	x86_mov_membase_imm(compMethod, X86_ESP, 20, type->TypeIndex, 4);
+	x86_mov_membase_imm(compMethod, X86_ESP, 16, type->ParentAssembly->AssemblyIndex, 4);
+	x86_mov_membase_imm(compMethod, X86_ESP, 12, type->ParentAssembly->ParentDomain->DomainIndex, 4);
+	x86_mov_membase_imm(compMethod, X86_ESP, 8, sizeOfType, 4);
+	x86_mov_membase_imm(compMethod, X86_ESP, 4, (int)type->ParentAssembly->ParentDomain->RootObject, 4);
+	x86_mov_membase_imm(compMethod, X86_ESP, 0, (int)type->ParentAssembly->ParentDomain->GarbageCollector, 4);
+	x86_call_code(compMethod, GC_AllocateObject);
+	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 24);
+	x86_mov_reg_reg(compMethod, X86_ECX, X86_EAX, 4);
+	x86_mov_reg_reg(compMethod, X86_EDX, X86_EAX, 4);
+	x86_mov_reg_reg(compMethod, X86_EAX, X86_ESP, 4);
+	x86_mov_reg_membase(compMethod, X86_ECX, X86_ECX, 0, 4);
+	uint32_t movCount = sizeOfType / 4;
+	for (uint32_t index = 0; index < movCount; ++index)
+	{
+		x86_mov_reg_membase(compMethod, X86_EBX, X86_EAX, index * 4, 4);
+		x86_mov_membase_reg(compMethod, X86_ECX, index * 4, X86_EBX, 4);
+	}
+	uint32_t remCount = sizeOfType % 4;
+	if (remCount)
+	{
+		x86_mov_reg_membase(compMethod, X86_EBX, X86_EAX, sizeOfType - remCount, remCount);
+		x86_mov_membase_reg(compMethod, X86_ECX, sizeOfType - remCount, X86_EBX, remCount);
+	}
+	uint32_t alignedSizeOfType = sizeOfType;
+	Align(&alignedSizeOfType);
+	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, alignedSizeOfType);
+	x86_push_reg(compMethod, X86_EDX);
+
 	return compMethod;
 }
 

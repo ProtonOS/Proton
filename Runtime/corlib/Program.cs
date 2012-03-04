@@ -8,6 +8,16 @@ namespace Mernel
         private static void Main()
         {
             char[] @char = new char[4];
+            uint[] uarr = new uint[3];
+            uarr[2] = 93;
+            Console.WriteLine(uarr[2].ToString());
+            Test[] tarr = new Test[9];
+            tarr[0] = new Test();
+            Console.WriteLine(tarr[0].ToString());
+            object[] objarr = new object[2];
+            objarr[0] = (uint)4;
+            Console.WriteLine(objarr[0].ToString());
+            uint ch = (uint)objarr[0];
             @char[0] = 'T';
             @char[1] = 'E';
             @char[2] = 'S';
@@ -54,6 +64,11 @@ namespace Mernel
             public void JustATest()
             {
                 Console.WriteLine("Value of A: " + A.ToString());
+            }
+
+            public override string ToString()
+            {
+                return "It Says hello!";
             }
         }
     }

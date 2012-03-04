@@ -1193,7 +1193,7 @@ typedef enum IROpCode
      */
     IROpCode_IsInst,
     /*
-        Unboxes the value on the top of the stack,
+        Unboxes the object on the top of the stack,
 		and pushes it's address to the top of the
 		stack.
 		
