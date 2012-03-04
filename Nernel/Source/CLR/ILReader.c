@@ -203,6 +203,11 @@ IRType* GenerateType(TypeDefinition* def, CLIFile* fil, IRAssembly* asmb, AppDom
 		tp->IsGeneric = FALSE;
 		tp->IsFixedSize = TRUE;
 	}
+
+	if (IsStruct(def, dom))
+		tp->IsValueType = TRUE;
+	else
+		tp->IsReferenceType = TRUE;
 	
 	// Find the static constructor if it exists.
 	for (uint32_t i = 0; i < def->MethodDefinitionListCount; i++)
