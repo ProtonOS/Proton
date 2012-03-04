@@ -445,7 +445,6 @@ char* JIT_Compile_Load_LocalVar				(IRInstruction* instr, char* compMethod, IRMe
 	for (uint32_t movIndex = 0; movIndex < movCount; ++movIndex)
 	{
 		x86_push_membase(compMethod, X86_EBP, -((localIndex + 1) * global_SizeOfPointerInBytes));
-		//x86_push_reg(compMethod, X86_EAX);
 	}
 	return compMethod;
 }
@@ -454,9 +453,8 @@ char* JIT_Compile_Load_LocalVar				(IRInstruction* instr, char* compMethod, IRMe
 char* JIT_Compile_Load_LocalVar_Address		(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	uint32_t localIndex = *(uint32_t*)instr->Arg1;
-	x86_mov_reg_reg(compMethod, X86_EAX, X86_EBP, global_SizeOfPointerInBytes);
-	x86_alu_reg_imm(compMethod, X86_SUB, X86_EAX, (localIndex + 1) * global_SizeOfPointerInBytes);
-	x86_push_reg(compMethod, X86_EAX);
+	x86_push_reg(compMethod, X86_EBP);
+	x86_alu_membase_imm(compMethod, X86_SUB, X86_ESP, 0, (localIndex + 1) * global_SizeOfPointerInBytes);
 	return compMethod;
 }
 
@@ -481,9 +479,8 @@ char* JIT_Compile_Load_Parameter			(IRInstruction* instr, char* compMethod, IRMe
 char* JIT_Compile_Load_Parameter_Address	(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	uint32_t paramIndex = *(uint32_t*)instr->Arg1;
-	x86_mov_reg_reg(compMethod, X86_EAX, X86_EBP, global_SizeOfPointerInBytes);
-	x86_alu_reg_imm(compMethod, X86_SUB, X86_EAX, mth->Parameters[paramIndex]->Offset);
-	x86_push_reg(compMethod, X86_EAX);
+	x86_push_reg(compMethod, X86_EBP);
+	x86_alu_membase_imm(compMethod, X86_ADD, X86_ESP, 0, mth->Parameters[paramIndex]->Offset);
 	return compMethod;
 }
 
@@ -1084,6 +1081,7 @@ char* JIT_Compile_Div						(IRInstruction* instr, char* compMethod, IRMethod* mt
 
 	switch(ovfType)
 	{
+		case OverflowType_Unsigned:
 		case OverflowType_None:
 			switch(argEins)
 			{
@@ -1112,7 +1110,6 @@ char* JIT_Compile_Div						(IRInstruction* instr, char* compMethod, IRMethod* mt
 				default: Panic("Invalid operand ElementType"); break;
 			}
 			break;
-		case OverflowType_Unsigned:
 		case OverflowType_Signed:
 		default:
 			Panic("Unsupported OverflowType!");
@@ -1389,6 +1386,12 @@ char* JIT_Compile_Load_Field_Address		(IRInstruction* instr, char* compMethod, I
 
 char* JIT_Compile_Store_Field				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
+	IRFieldSpec* spec = (IRFieldSpec*)instr->Arg1;
+
+	// Still need to handle large fields.
+	x86_pop_reg(compMethod, X86_EAX);
+	x86_pop_reg(compMethod, X86_EBX); // Pop the value
+	x86_mov_membase_reg(compMethod, X86_EAX, spec->FieldIndex * global_SizeOfPointerInBytes, X86_EBX, 4);
 	return compMethod;
 }
 

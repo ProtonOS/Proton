@@ -10,7 +10,7 @@ namespace System {
 		public static readonly DateTime MaxValue = new DateTime(3155378975999999999L);
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		extern private static long InternalUtcNow();
+		extern public static long InternalUtcNow();
 
 		private TimeSpan ticks;
 		private DateTimeKind kind;
