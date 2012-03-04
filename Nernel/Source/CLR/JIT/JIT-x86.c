@@ -1474,6 +1474,7 @@ char* JIT_Compile_Load_Field				(IRInstruction* instr, char* compMethod, IRMetho
 	Align(&alSz);
 
 	x86_pop_reg(compMethod, X86_EAX); // Pop the RTO.
+	x86_mov_reg_membase(compMethod, X86_EAX, X86_EAX, 0, 4);
 
 	x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, alSz);
 
