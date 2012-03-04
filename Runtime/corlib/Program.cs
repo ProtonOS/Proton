@@ -16,6 +16,8 @@ namespace Mernel
             string str = new string('*', 40);
             Console.WriteLine(str);
             Console.WriteLine(str2);
+            Test t = new Test();
+            t.Really();
             Console.WriteLine("Mernel Started");
             Console.WriteLine("Factorial of 6 (Via Multiplication): " + Factorial(6).ToString());
         }
@@ -25,6 +27,19 @@ namespace Mernel
         private static uint Factorial(uint val)
         {
             return (val == 1) ? val : val * Factorial(val - 1);
+        }
+
+        private class Test
+        {
+            public Test()
+            {
+
+            }
+
+            public void Really()
+            {
+                Console.WriteLine("Hey look! It works!");
+            }
         }
     }
 }

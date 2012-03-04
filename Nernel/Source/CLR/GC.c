@@ -130,7 +130,7 @@ ReferenceTypeObject* GC_AllocateObject(GC* pGC, ReferenceTypeObject* pInitialRef
 {
 	printf("GC_AllocateObject of size %u\n", (unsigned int)pSize);
     if (!pInitialReference) Panic("GC_AllocateObject pInitialReference == NULL");
-    if (pSize == 0 || pSize >= 0x7FFFFFFF) Panic("GC_AllocateObject pSize == 0 || pSize >= 0x7FFFFFFF");
+    if (pSize >= 0x7FFFFFFF) Panic("GC_AllocateObject pSize >= 0x7FFFFFFF");
     ReferenceTypeObject* object = NULL;
     if (pSize <= GCHeapStack_SmallHeap_Size)
         object = GCHeap_Allocate(&pGC->SmallGeneration0Heap, GCHeapStack_SmallHeap_Size, pSize);

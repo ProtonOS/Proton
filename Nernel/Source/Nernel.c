@@ -6,7 +6,8 @@
 #include <CLR/JIT/JIT.h>
 
 static AppDomain* global_baseMernelDomain;
-void Nernel_FinishedRunning();
+void Mernel_FinishedRunning();
+void Mernel_Jitted();
 void Test();
 
 void Main(uint32_t pMultiBootMagic,
@@ -68,15 +69,19 @@ void Main(uint32_t pMultiBootMagic,
 
 	Console_Clear(Console_CreateAttributes(Console_DarkBlack, Console_LightCyan));
 	printf("Mernel JIT'd, starting up now!\n");
-	Nernel_FinishedRunning();
+	Mernel_Jitted();
 
 	global_baseMernelDomain->IRAssemblies[0]->EntryPoint->AssembledMethod();
 	
-	Nernel_FinishedRunning();
+	Mernel_FinishedRunning();
     while (TRUE) ;
 }
 
-void Nernel_FinishedRunning()
+void Mernel_Jitted()
+{
+	printf("Go Mernel!\n");
+}
+void Mernel_FinishedRunning()
 {
 	printf("Mernel, Return!\n");
 }

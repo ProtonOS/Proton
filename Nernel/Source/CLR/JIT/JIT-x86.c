@@ -1273,12 +1273,12 @@ char* JIT_Compile_NewObject					(IRInstruction* instr, char* compMethod, IRMetho
 
 		uint32_t sizeOfType = SizeOfType(type);
 		x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, 28);
-		x86_mov_membase_imm(compMethod, X86_ESP, 20, mth->MethodDefinition->TypeDefinition->TableIndex - 1, 4);
-		x86_mov_membase_imm(compMethod, X86_ESP, 16, mth->ParentAssembly->AssemblyIndex, 4);
-		x86_mov_membase_imm(compMethod, X86_ESP, 12, mth->ParentAssembly->ParentDomain->DomainIndex, 4);
+		x86_mov_membase_imm(compMethod, X86_ESP, 20, method->MethodDefinition->TypeDefinition->TableIndex - 1, 4);
+		x86_mov_membase_imm(compMethod, X86_ESP, 16, method->ParentAssembly->AssemblyIndex, 4);
+		x86_mov_membase_imm(compMethod, X86_ESP, 12, method->ParentAssembly->ParentDomain->DomainIndex, 4);
 		x86_mov_membase_imm(compMethod, X86_ESP, 8, sizeOfType, 4);
-		x86_mov_membase_imm(compMethod, X86_ESP, 4, (int)mth->ParentAssembly->ParentDomain->RootObject, 4);
-		x86_mov_membase_imm(compMethod, X86_ESP, 0, (int)mth->ParentAssembly->ParentDomain->GarbageCollector, 4);
+		x86_mov_membase_imm(compMethod, X86_ESP, 4, (int)method->ParentAssembly->ParentDomain->RootObject, 4);
+		x86_mov_membase_imm(compMethod, X86_ESP, 0, (int)method->ParentAssembly->ParentDomain->GarbageCollector, 4);
 		x86_call_code(compMethod, GC_AllocateObject);
 		x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 24);
 		x86_mov_membase_reg(compMethod, X86_ESP, 0, X86_EAX, 4);
@@ -1290,7 +1290,6 @@ char* JIT_Compile_NewObject					(IRInstruction* instr, char* compMethod, IRMetho
 	}
 	else // Strings return their new obj from constructor
 	{
-		printf("It's not a string!\n");
 		compMethod = JIT_Emit_ParamSwap(compMethod, method->ParameterCount - 1);
 		x86_push_imm(compMethod, 0);
 		x86_push_imm(compMethod, method->ParentAssembly->ParentDomain);
@@ -1584,7 +1583,7 @@ char* JIT_Compile_Load_Object				(IRInstruction* instr, char* compMethod, IRMeth
 	{
 		uint32_t sizeOfType = StackSizeOfType(type);
 		uint32_t movCount = sizeOfType / 4;
-		for (uint32_t index; index < movCount; ++index)
+		for (uint32_t index = 0; index < movCount; ++index)
 		{
 			x86_mov_reg_membase(compMethod, X86_EBX, X86_EAX, index * 4, 4);
 			x86_push_reg(compMethod, X86_EBX);
@@ -1622,7 +1621,7 @@ char* JIT_Compile_Copy_Object				(IRInstruction* instr, char* compMethod, IRMeth
 	{
 		uint32_t sizeOfType = StackSizeOfType(type);
 		uint32_t movCount = sizeOfType / 4;
-		for (uint32_t index; index < movCount; ++index)
+		for (uint32_t index = 0; index < movCount; ++index)
 		{
 			x86_mov_reg_membase(compMethod, X86_EBX, X86_EAX, index * 4, 4);
 			x86_mov_membase_reg(compMethod, X86_ECX, index * 4, X86_EBX, 4);
@@ -1713,7 +1712,7 @@ char* JIT_Compile_InitObject				(IRInstruction* instr, char* compMethod, IRMetho
 	{
 		uint32_t sizeOfType = StackSizeOfType(type);
 		uint32_t movCount = sizeOfType / 4;
-		for (uint32_t index; index < movCount; ++index) x86_mov_membase_imm(compMethod, X86_EAX, index * 4, 0, 4);
+		for (uint32_t index = 0; index < movCount; ++index) x86_mov_membase_imm(compMethod, X86_EAX, index * 4, 0, 4);
 		uint32_t remCount = sizeOfType % 4;
 		if (remCount) x86_mov_membase_imm(compMethod, X86_EAX, sizeOfType - remCount, 0, remCount);
 	}
@@ -1811,21 +1810,30 @@ void* JIT_Trampoline_DoCall(IRMethodSpec* mth, ReferenceTypeObject* obj)
 	variable = AppDomainRegistry_GetDomain(obj->DomainIndex);
 	if (obj->AssemblyIndex >= ((AppDomain*)variable)->IRAssemblyCount)
 	{
-		Panic("Assembly Index is too High!");
+		Panic(String_Format("Assembly Index (%i) is too High!", (int)obj->AssemblyIndex));
 	}
 
 	//IRAssembly* asmbly = dom->IRAssemblies[obj->AssemblyIndex];
 	variable = ((AppDomain*)variable)->IRAssemblies[obj->AssemblyIndex];
 	if (obj->TypeIndex >= ((IRAssembly*)variable)->TypeCount)
 	{
-		Panic("Type Index is too High!");
+		Panic(String_Format("Type Index (%i) is too High!", (int)obj->TypeIndex));
 	}
 
 	//IRType* tp = asmbly->Types[obj->TypeIndex];
 	variable = ((IRAssembly*)variable)->Types[obj->TypeIndex];
 	if (mth->MethodIndex >= ((IRType*)variable)->MethodCount)
 	{
-		Panic("Method Index is too High!");
+		printf("The object's DATT: %i %i %i\n", (int)obj->DomainIndex, (int)obj->AssemblyIndex, (int)obj->TypeIndex);
+		IRType* tp = (IRType*)variable;
+		printf("Type %s has %i methods\n", tp->TypeDef->Name, (int)tp->MethodCount);
+		for (uint32_t i = 0; i < tp->MethodCount; i++)
+		{
+			printf("Method at index %i is %s.%s\n", (int)i, tp->Methods[i]->MethodDefinition->TypeDefinition->Name, tp->Methods[i]->MethodDefinition->Name);
+		}
+		printf("Mth at 0x%x MethodIndex: %i\n", (unsigned int)mth, (int)mth->MethodIndex);
+		printf("IRType at 0x%x MethodCount: %i\n", (unsigned int)variable, (int)((IRType*)variable)->MethodCount);
+		Panic(String_Format("Method Index (%i) is too High!", (int)mth->MethodIndex));
 	}
 
 	//IRMethod* m = tp->Methods[mth->MethodIndex];
