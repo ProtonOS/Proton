@@ -1522,6 +1522,12 @@ char* JIT_Compile_Load_Field				(IRInstruction* instr, char* compMethod, IRMetho
 
 char* JIT_Compile_Load_Field_Address		(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
+	IRFieldSpec* spec = (IRFieldSpec*)instr->Arg1;
+	JIT_Layout_Fields(spec->ParentType);
+	x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, 0, 4); // Pop the RTO.
+	x86_mov_reg_membase(compMethod, X86_EAX, X86_EAX, 0, 4);
+	x86_alu_reg_imm(compMethod, X86_ADD, X86_EAX, spec->ParentType->Fields[spec->FieldIndex]->Offset);
+	x86_mov_membase_reg(compMethod, X86_ESP, 0, X86_EAX, 4);
 	return compMethod;
 }
 
