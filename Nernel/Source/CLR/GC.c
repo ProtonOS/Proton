@@ -179,7 +179,7 @@ ReferenceTypeObject* GC_AllocateString(GC* pGC, ReferenceTypeObject* pInitialRef
 
 ReferenceTypeObject* GC_AllocateStringFromCharAndCount(GC* pGC, ReferenceTypeObject* pInitialReference, uint16_t pChar, uint32_t pCount)
 {
-	printf("Allocating string of %u %c characters\n", (unsigned int)pCount, (char)pChar);
+	//printf("Allocating string of %u %c characters\n", (unsigned int)pCount, (char)pChar);
     if (!pInitialReference) Panic("GC_AllocateStringFromCharAndCount pInitialReference == NULL");
     if (pCount == 0 || pCount >= 0x3FFFFFFF) Panic("GC_AllocateStringFromCharAndCount pCount == 0 || pCount >= 0x3FFFFFFF");
     ReferenceTypeObject* object = NULL;

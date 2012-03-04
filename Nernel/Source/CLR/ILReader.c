@@ -2194,7 +2194,8 @@ Branch_Common:
 									{
 										IRFieldSpec* spec = IRFieldSpec_Create();
 										spec->FieldIndex = i;
-										spec->FieldType = asmbly->Types[tdef->TableIndex - 1];
+										spec->ParentType = asmbly->Types[tdef->TableIndex - 1];
+										spec->FieldType = GetIRTypeOfSignatureType(dom, fil, asmbly, sig->Type);
 										EMIT_IR_1ARG(IROpCode_Load_Field_Address, spec);
 										Found = TRUE;
 										break;
@@ -2247,7 +2248,8 @@ Branch_Common:
 									{
 										IRFieldSpec* spec = IRFieldSpec_Create();
 										spec->FieldIndex = i;
-										spec->FieldType = asmbly->Types[tdef->TableIndex - 1];
+										spec->ParentType = asmbly->Types[tdef->TableIndex - 1];
+										spec->FieldType = GetIRTypeOfSignatureType(dom, fil, asmbly, sig->Type);
 										EMIT_IR_1ARG(IROpCode_Store_Field, spec);
 										Found = TRUE;
 										break;

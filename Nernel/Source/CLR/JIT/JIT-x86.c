@@ -1523,6 +1523,7 @@ char* JIT_Compile_Store_Field				(IRInstruction* instr, char* compMethod, IRMeth
 {
 	IRFieldSpec* spec = (IRFieldSpec*)instr->Arg1;
 	JIT_Layout_Fields(spec->ParentType);
+	printf("Address of FieldType: 0x%x, ParentType: 0x%x, FieldIndex: %i\n", (unsigned int)spec->FieldType, (unsigned int)spec->ParentType, (int)spec->FieldIndex);
 
 	uint32_t fSz = StackSizeOfType(spec->FieldType);
 	uint32_t alSz = fSz;
@@ -1531,7 +1532,9 @@ char* JIT_Compile_Store_Field				(IRInstruction* instr, char* compMethod, IRMeth
 	x86_pop_reg(compMethod, X86_EAX); // Pop the RTO.
 	x86_mov_reg_membase(compMethod, X86_EAX, X86_EAX, 0, 4);
 	// The pointer to the start of the type is now in EAX.
+
 	x86_alu_reg_imm(compMethod, X86_ADD, X86_EAX, spec->ParentType->Fields[spec->FieldIndex]->Offset);
+	printf("Field offset: %i\n", (int)spec->ParentType->Fields[spec->FieldIndex]->Offset);
 
 
 	uint32_t movCount = fSz / global_SizeOfPointerInBytes;

@@ -18,6 +18,7 @@ namespace Mernel
             Console.WriteLine(str2);
             Test t = new Test();
             t.Really();
+            t.JustATest();
             Console.WriteLine("Mernel Started");
             Console.WriteLine("Factorial of 6 (Via Multiplication): " + Factorial(6).ToString());
         }
@@ -29,16 +30,25 @@ namespace Mernel
             return (val == 1) ? val : val * Factorial(val - 1);
         }
 
-        private class Test
+        private sealed class Test
         {
+            uint A;
+
             public Test()
             {
-
+                Console.WriteLine("Creating a new Test object.");
+                A = 4;
+                Console.WriteLine("Finished Creating a new Test object.");
             }
 
             public void Really()
             {
                 Console.WriteLine("Hey look! It works!");
+            }
+
+            public void JustATest()
+            {
+                Console.WriteLine("Value of A: " + A.ToString());
             }
         }
     }
