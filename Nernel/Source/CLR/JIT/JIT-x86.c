@@ -363,7 +363,9 @@ char* JIT_Compile_Branch					(IRInstruction* instr, char* compMethod, IRMethod* 
 			case ElementType_Ref:
 			case ElementType_ManagedPointer:
 			case ElementType_I:
+			case ElementType_U:
 			case ElementType_I4:
+			case ElementType_U4:
 			{
 				x86_pop_reg(compMethod, X86_EAX);
 				x86_pop_reg(compMethod, X86_EBX);
@@ -1680,6 +1682,140 @@ char* JIT_Compile_Box						(IRInstruction* instr, char* compMethod, IRMethod* mt
 
 char* JIT_Compile_Compare					(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
+	CompareCondition cond = *(CompareCondition*)instr->Arg1;
+	ElementType et1 = *(ElementType*)instr->Arg2;
+	ElementType et2 = *(ElementType*)instr->Arg3;
+	uint32_t sizeOfET1 = 0;
+	uint32_t sizeOfET2 = 0;
+	GetSizeOfElementType(sizeOfET1, et1);
+	GetSizeOfElementType(sizeOfET2, et2);
+	bool_t fCompare = FALSE;
+	bool_t is64bit = FALSE;
+	printf("We got a Compare Call!\n");
+	switch (et1)
+	{
+		case ElementType_I:
+			switch (et2)
+			{
+				case ElementType_I:
+				case ElementType_I4:
+				case ElementType_ManagedPointer:
+					if (et2 == ElementType_ManagedPointer && cond != CompareCondition_Equal) Panic("Invalid arguments for CompareCondition Equal");
+					break;
+				default:
+					Panic("Invalid arguments for Compare");
+					break;
+			}
+			break;
+		case ElementType_I4:
+			switch (et2)
+			{
+				case ElementType_I:
+				case ElementType_I4:
+					break;
+				default:
+					Panic("Invalid arguments for Compare");
+					break;
+			}
+			break;
+		case ElementType_I8:
+			if (et2 != ElementType_I8) Panic("Invalid arguments for Compare");
+			is64bit = TRUE;
+			break;
+		case ElementType_R4:
+		case ElementType_R8:
+			switch (et2)
+			{
+				case ElementType_R4:
+				case ElementType_R8:
+					fCompare = TRUE;
+					break;
+				default:
+					Panic("Invalid arguments for Compare");
+					break;
+			}
+			break;
+		case ElementType_ManagedPointer:
+			switch (et2)
+			{
+				case ElementType_I:
+				case ElementType_ManagedPointer:
+					break;
+				default:
+					Panic("Invalid arguments for Compare");
+					break;
+			}
+			break;
+		case ElementType_Ref:
+			if (et2 != ElementType_Ref) Panic("Invalid arguments for Compare");
+			break;
+		default:
+			Panic("Invalid arguments for Compare");
+			break;
+	}
+	if (!fCompare && !is64bit)
+	{
+		x86_pop_reg(compMethod, X86_EAX);
+		x86_alu_membase_reg(compMethod, X86_CMP, X86_ESP, 0, X86_EAX);
+	}
+	else
+	{
+		if (is64bit)
+		{
+			x86_fild_membase(compMethod, X86_ESP, 0, TRUE);
+			x86_fild_membase(compMethod, X86_ESP, 8, TRUE);
+			x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 12);
+		}
+		x86_fcomip(compMethod, 1);
+		x86_fdecstp(compMethod);
+	}
+	unsigned char* BranchTrue = NULL;
+	unsigned char* BranchFalse = NULL;
+
+	switch (cond)
+	{
+		case CompareCondition_Equal:
+			BranchTrue = (unsigned char*)compMethod;
+			x86_branch32(compMethod, X86_CC_EQ, 0, FALSE);
+			BranchFalse = (unsigned char*)compMethod;
+			x86_jump32(compMethod, 0);
+			break;
+		case CompareCondition_Greater_Than:
+			BranchTrue = (unsigned char*)compMethod;
+			x86_branch32(compMethod, X86_CC_GT, 0, TRUE);
+			BranchFalse = (unsigned char*)compMethod;
+			x86_jump32(compMethod, 0);
+			break;
+		case CompareCondition_Greater_Than_Unsigned:
+			BranchTrue = (unsigned char*)compMethod;
+			x86_branch32(compMethod, X86_CC_GT, 0, FALSE);
+			BranchFalse = (unsigned char*)compMethod;
+			x86_jump32(compMethod, 0);
+			break;
+		case CompareCondition_Less_Than:
+			BranchTrue = (unsigned char*)compMethod;
+			x86_branch32(compMethod, X86_CC_LT, 0, TRUE);
+			BranchFalse = (unsigned char*)compMethod;
+			x86_jump32(compMethod, 0);
+			break;
+		case CompareCondition_Less_Than_Unsigned:
+			BranchTrue = (unsigned char*)compMethod;
+			x86_branch32(compMethod, X86_CC_LT, 0, FALSE);
+			BranchFalse = (unsigned char*)compMethod;
+			x86_jump32(compMethod, 0);
+			break;
+		default:
+			Panic("Unknown CompareCondition");
+			break;
+	}
+	x86_patch(BranchTrue, (unsigned char*)compMethod);
+	x86_mov_membase_imm(compMethod, X86_ESP, 0, 1, 4);
+	unsigned char* end = (unsigned char*)compMethod;
+	x86_jump32(compMethod, 0);
+	x86_patch(BranchFalse, (unsigned char*)compMethod);
+	x86_mov_membase_imm(compMethod, X86_ESP, 0, 0, 4);
+	x86_patch(end, (unsigned char*)compMethod);
+
 	return compMethod;
 }
 
