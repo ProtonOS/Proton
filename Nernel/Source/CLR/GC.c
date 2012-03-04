@@ -126,7 +126,7 @@ ReferenceTypeObject* GCHeap_Allocate(GCHeap* pGCHeap, uint32_t pStackSize, uint3
     return object;
 }
 
-ReferenceTypeObject* GC_AllocateObject(GC* pGC, ReferenceTypeObject* pInitialReference, uint32_t pSize)
+ReferenceTypeObject* GC_AllocateObject(GC* pGC, ReferenceTypeObject* pInitialReference, uint32_t pSize, uint32_t pDomainIndex, uint32_t pAssemblyIndex, uint32_t pTypeIndex)
 {
 	printf("GC_AllocateObject of size %u\n", (unsigned int)pSize);
     if (!pInitialReference) Panic("GC_AllocateObject pInitialReference == NULL");
@@ -138,6 +138,10 @@ ReferenceTypeObject* GC_AllocateObject(GC* pGC, ReferenceTypeObject* pInitialRef
         object = GCHeap_Allocate(&pGC->LargeHeap, GCHeapStack_LargeHeap_Size, pSize);
     else object = GCHeap_Allocate(&pGC->LargeHeap, pSize, pSize);
     ReferenceTypeObject_AddReference(pInitialReference, object);
+	object->DomainIndex = pDomainIndex;
+	object->AssemblyIndex = pAssemblyIndex;
+	object->TypeIndex = pTypeIndex;
+	memset(object->Object, 0x00, pSize);
     return object;
 }
 
@@ -620,9 +624,16 @@ void GCHeap_Migrate(GCHeap* pSourceHeap, GCHeap* pDestinationHeap, uint32_t pSta
     }
 }
 
-ReferenceTypeObject* GC_AllocateArray(GC* pGC, ReferenceTypeObject* pInitialReference, uint32_t pLength, uint32_t pDomainIndex, uint32_t pAssemblyIndex, uint32_t pTypeIndex)
+ReferenceTypeObject* GC_AllocateArray(GC* pGC, ReferenceTypeObject* pInitialReference, uint32_t pLength, uint32_t pElementSize, uint32_t pDomainIndex, uint32_t pAssemblyIndex, uint32_t pTypeIndex)
 {
-	ReferenceTypeObject* object = NULL;
+	uint32_t sizeOfArray = sizeof(GCArray) + (pLength * pElementSize);
+	ReferenceTypeObject* object = GC_AllocateObject(pGC, pInitialReference, sizeOfArray, pGC->Domain->DomainIndex, 0, pGC->Domain->CachedType___System_Array->TableIndex - 1);
+	GCArray* header = (GCArray*)object->Object;
+	header->Length = pLength;
+	header->Data = object->Object + sizeof(GCArray);
+	header->DomainIndex = pDomainIndex;
+	header->AssemblyIndex = pAssemblyIndex;
+	header->TypeIndex = pTypeIndex;
 	return object;
 }
 

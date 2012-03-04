@@ -1242,12 +1242,16 @@ char* JIT_Compile_NewObject					(IRInstruction* instr, char* compMethod, IRMetho
 		compMethod = JIT_Emit_ParamSwap(compMethod, method->ParameterCount - 1);
 
 		uint32_t sizeOfType = SizeOfType(type);
-		x86_push_imm(compMethod, sizeOfType);
-		x86_push_imm(compMethod, mth->ParentAssembly->ParentDomain->RootObject);
-		x86_push_imm(compMethod, mth->ParentAssembly->ParentDomain->GarbageCollector);
+		x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, 28);
+		x86_mov_membase_imm(compMethod, X86_ESP, 20, mth->MethodDefinition->TypeDefinition->TableIndex - 1, 4);
+		x86_mov_membase_imm(compMethod, X86_ESP, 16, mth->ParentAssembly->AssemblyIndex, 4);
+		x86_mov_membase_imm(compMethod, X86_ESP, 12, mth->ParentAssembly->ParentDomain->DomainIndex, 4);
+		x86_mov_membase_imm(compMethod, X86_ESP, 8, sizeOfType, 4);
+		x86_mov_membase_imm(compMethod, X86_ESP, 4, (int)mth->ParentAssembly->ParentDomain->RootObject, 4);
+		x86_mov_membase_imm(compMethod, X86_ESP, 0, (int)mth->ParentAssembly->ParentDomain->GarbageCollector, 4);
 		x86_call_code(compMethod, GC_AllocateObject);
-		x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 12);
-		x86_push_reg(compMethod, X86_EAX);
+		x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 24);
+		x86_mov_membase_reg(compMethod, X86_ESP, 0, X86_EAX, 4);
 	
 		if (!method->AssembledMethod) JIT_CompileMethod(method);
 
@@ -1270,7 +1274,20 @@ char* JIT_Compile_NewObject					(IRInstruction* instr, char* compMethod, IRMetho
 
 char* JIT_Compile_NewArray					(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
-	
+	IRType* type = (IRType*)instr->Arg1;
+	uint32_t sizeOfType = SizeOfType(type);
+	x86_pop_reg(compMethod, X86_EAX); // Number of Elements
+	x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, 32);
+	x86_mov_membase_imm(compMethod, X86_ESP, 24, type->TypeIndex, 4);
+	x86_mov_membase_imm(compMethod, X86_ESP, 20, type->ParentAssembly->AssemblyIndex, 4);
+	x86_mov_membase_imm(compMethod, X86_ESP, 16, type->ParentAssembly->ParentDomain->DomainIndex, 4);
+	x86_mov_membase_imm(compMethod, X86_ESP, 12, sizeOfType, 4);
+	x86_mov_membase_reg(compMethod, X86_ESP, 8, X86_EAX, 4);
+	x86_mov_membase_imm(compMethod, X86_ESP, 4, (int)mth->ParentAssembly->ParentDomain->RootObject, 4);
+	x86_mov_membase_imm(compMethod, X86_ESP, 0, (int)mth->ParentAssembly->ParentDomain->GarbageCollector, 4);
+	x86_call_code(compMethod, GC_AllocateArray);
+	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 28);
+	x86_mov_membase_reg(compMethod, X86_ESP, 0, X86_EAX, 4);
 	return compMethod;
 }
 

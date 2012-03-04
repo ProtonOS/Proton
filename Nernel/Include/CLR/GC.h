@@ -70,10 +70,10 @@ void Panic(const char* pMessage);
 
 GC* GC_Create(AppDomain* pAppDomain);
 void GC_Destroy(GC* pGC);
-ReferenceTypeObject* GC_AllocateObject(GC* pGC, ReferenceTypeObject* pInitialReference, uint32_t pSize);
+ReferenceTypeObject* GC_AllocateObject(GC* pGC, ReferenceTypeObject* pInitialReference, uint32_t pSize, uint32_t pDomainIndex, uint32_t pAssemblyIndex, uint32_t pTypeIndex);
 ReferenceTypeObject* GC_AllocateString(GC* pGC, ReferenceTypeObject* pInitialReference, uint8_t* pData, uint32_t pSize);
 ReferenceTypeObject* GC_AllocateStringFromCharAndCount(GC* pGC, ReferenceTypeObject* pInitialReference, uint16_t pChar, uint32_t pCount);
 ReferenceTypeObject* GC_ConcatenateStrings(GC* pGC, ReferenceTypeObject* pInitialReference, ReferenceTypeObject* pString1, ReferenceTypeObject* pString2);
 ReferenceTypeObject* GC_SubstituteString(GC* pGC, ReferenceTypeObject* pInitialReference, ReferenceTypeObject* pSource, ReferenceTypeObject* pPattern, ReferenceTypeObject* pSubstitute);
-ReferenceTypeObject* GC_AllocateArray(GC* pGC, ReferenceTypeObject* pInitialReference, uint32_t pLength, uint32_t pDomainIndex, uint32_t pAssemblyIndex, uint32_t pTypeIndex);
+ReferenceTypeObject* GC_AllocateArray(GC* pGC, ReferenceTypeObject* pInitialReference, uint32_t pLength, uint32_t pElementSize, uint32_t pDomainIndex, uint32_t pAssemblyIndex, uint32_t pTypeIndex);
 void GC_Collect(GC* pGC);
