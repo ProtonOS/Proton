@@ -1571,6 +1571,9 @@ char* JIT_Compile_SizeOf					(IRInstruction* instr, char* compMethod, IRMethod* 
 
 char* JIT_Compile_LoadFunction				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
+	IRMethod* method = (IRMethod*)instr->Arg1;
+	if (!method->AssembledMethod) JIT_CompileMethod(method);
+	x86_push_imm(compMethod, method->AssembledMethod);
 	return compMethod;
 }
 
