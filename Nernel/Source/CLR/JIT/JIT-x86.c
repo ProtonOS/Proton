@@ -36,7 +36,7 @@ ALWAYS_INLINE char* JIT_Emit_ParamSwap(char* compMethod, uint32_t paramCount)
 }
 
 
-ALWAYS_INLINE uint32_t CalculateStackSize(IRType* tp)
+ALWAYS_INLINE uint32_t StackSizeOfType(IRType* tp)
 {
 	if (tp->Size > 0)
 		return tp->Size;
@@ -106,16 +106,20 @@ ALWAYS_INLINE uint32_t CalculateStackSize(IRType* tp)
 	return global_SizeOfPointerInBytes;
 }
 
-uint32_t SizeOfType(IRType* pType)
+ALWAYS_INLINE uint32_t SizeOfType(IRType* pType)
 {
-	if (pType->Size) return pType->Size;
-	if (pType->IsValueType) return CalculateStackSize(pType);
+	if (pType->Size) 
+		return pType->Size;
+	if (pType->IsValueType) 
+		return StackSizeOfType(pType);
 	uint32_t size = 0;
-	printf("Getting SizeOfType %u\n", (unsigned int)pType->FieldCount);
+	//printf("Getting SizeOfType %u\n", (unsigned int)pType->FieldCount);
 	for (uint32_t index = 0; index < pType->FieldCount; ++index)
 	{
-		if (pType->Fields[index]->FieldType->IsReferenceType) size += global_SizeOfPointerInBytes;
-		else size += SizeOfType(pType->Fields[index]->FieldType);
+		if (pType->Fields[index]->FieldType->IsReferenceType)
+			size += global_SizeOfPointerInBytes;
+		else  // It's a value type.
+			size += StackSizeOfType(pType->Fields[index]->FieldType);
 	}
 	pType->Size = size;
 	return size;
@@ -130,12 +134,30 @@ void JIT_Layout_Parameters(IRMethod* pMethod)
 		for (uint32_t index = 0; index < pMethod->ParameterCount; ++index)
 		{
 			param = pMethod->Parameters[index];
-			param->Size = CalculateStackSize(param->Type);
+			param->Size = StackSizeOfType(param->Type);
 			param->Offset = offset;
 			offset += param->Size;
 			Align(&offset);
 		}
 		pMethod->ParametersLayedOut = TRUE;
+	}
+}
+
+void JIT_Layout_Fields(IRType* tp)
+{
+	if (!tp->FieldsLayedOut)
+	{
+		IRField* fld = NULL;
+		uint32_t offset = 0;
+		for (uint32_t i = 0; i < tp->FieldCount; i++)
+		{
+			fld = tp->Fields[i];
+			fld->Size = StackSizeOfType(fld->FieldType);
+			fld->Offset = offset;
+			offset += fld->Size;
+			// Fields are NOT aligned.
+		}
+		tp->FieldsLayedOut = TRUE;
 	}
 }
 
@@ -820,28 +842,26 @@ char* JIT_Compile_Pop						(IRInstruction* instr, char* compMethod, IRMethod* mt
 		case ElementType_U2:
 		case ElementType_I4:
 		case ElementType_U4:
-		case ElementType_R4:
 		case ElementType_Ref:
 		case ElementType_ManagedPointer:
 			x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, (unsigned int)4);
 			break;
 		case ElementType_I8:
 		case ElementType_U8:
-		case ElementType_R8:
 			x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, (unsigned int)8);
+			break;
+		case ElementType_R4:
+		case ElementType_R8:
+			Panic("Attempted to pop a floating point value, which isn't currently supported!");
 			break;
 		case ElementType_DataType:
 			{
-				uint32_t pCount = ((IRType*)instr->Arg2)->Size / 4;
-				uint32_t extra = ((IRType*)instr->Arg2)->Size % 4;
-				if (extra)
-				{
-					pCount++;
-				}
+				uint32_t tSz = StackSizeOfType((IRType*)instr->Arg2);
+				Align(&tSz);
 				// Repeated popping would just be slow,
 				// and, as we're not using the values,
 				// it's easier just to move the stack pointer.
-				x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, (unsigned int)pCount * 4);
+				x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, tSz);
 			}
 			break;
 		default:
@@ -1447,11 +1467,44 @@ char* JIT_Compile_Load_String				(IRInstruction* instr, char* compMethod, IRMeth
 char* JIT_Compile_Load_Field				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	IRFieldSpec* spec = (IRFieldSpec*)instr->Arg1;
+	JIT_Layout_Fields(spec->ParentType);
 
-	// Still need to handle large fields.
-	x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, 0, 4);
-	x86_mov_reg_membase(compMethod, X86_EAX, X86_EAX, spec->FieldIndex * global_SizeOfPointerInBytes, 4);
-	x86_mov_membase_reg(compMethod, X86_ESP, 0, X86_EAX, 4);
+	uint32_t fSz = StackSizeOfType(spec->FieldType);
+	uint32_t alSz = fSz;
+	Align(&alSz);
+
+	x86_pop_reg(compMethod, X86_EAX); // Pop the RTO.
+
+	x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, alSz);
+
+	uint32_t movCount = fSz / global_SizeOfPointerInBytes;
+	uint32_t curBas = alSz - global_SizeOfPointerInBytes;
+	for (uint32_t i = 0; i < movCount; i++)
+	{
+		x86_mov_reg_membase(compMethod, X86_EBX, X86_EAX, i * global_SizeOfPointerInBytes, 4);
+		x86_mov_membase_reg(compMethod, X86_ESP, curBas, X86_EBX, 4);
+		curBas -= 4;
+	}
+
+	switch(fSz % 4)
+	{
+		case 0: break;
+		case 1:
+			x86_mov_reg_membase(compMethod, X86_EBX, X86_EAX, fSz - curBas, 1);
+			x86_mov_membase_reg(compMethod, X86_ESP, curBas, X86_EBX, 1);
+			break;
+		case 2:
+			x86_mov_reg_membase(compMethod, X86_EBX, X86_EAX, fSz - curBas, 2);
+			x86_mov_membase_reg(compMethod, X86_ESP, curBas, X86_EBX, 2);
+			break;
+		case 3:
+			x86_mov_reg_membase(compMethod, X86_EBX, X86_EAX, fSz - curBas, 3);
+			x86_mov_membase_reg(compMethod, X86_ESP, curBas, X86_EBX, 3);
+			break;
+		default:
+			Panic("Unsupported remainder size for load field!");
+			break;
+	}
 
 	return compMethod;
 }

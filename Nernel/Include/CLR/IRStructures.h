@@ -51,6 +51,7 @@ struct _IRType
     bool_t IsReferenceType;
 	bool_t IsGeneric;
 	bool_t IsInterface;
+	bool_t IsVoid;
     
 	bool_t HasStaticConstructor;
 	IRMethod* StaticConstructor;
@@ -60,13 +61,12 @@ struct _IRType
 
     uint32_t FieldCount;
     IRField** Fields;
+	bool_t FieldsLayedOut;
 
 	bool_t IsFixedSize;
 	uint32_t Size;
 
 	TypeDefinition* TypeDef;
-
-	bool_t IsVoid;
 
 	bool_t HasFinalizer;
 	IRMethod* Finalizer;
@@ -145,6 +145,7 @@ struct _IRField
 	IRType* ParentType;
     IRType* FieldType;
 	uint32_t Offset;
+	uint32_t Size;
 
 	Field* FieldDef;
 };
@@ -171,6 +172,10 @@ struct _IRFieldSpec
 		The index in the parent type's field list.
 	 */
 	uint32_t FieldIndex;
+	/*
+		The type that this field is in.
+	 */
+	IRType* ParentType;
 };
 
 IRAssembly* IRAssembly_Create(AppDomain* domain);
