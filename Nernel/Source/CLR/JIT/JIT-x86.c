@@ -793,6 +793,16 @@ char* JIT_Compile_Load_Element_Evil			(IRInstruction* instr, char* compMethod, I
 
 char* JIT_Compile_Load_Element_Address		(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
+	IRType* type = (IRType*)instr->Arg1;
+	uint32_t sizeOfType = StackSizeOfType(type);
+
+	x86_pop_reg(compMethod, X86_EAX); // Index
+	x86_pop_reg(compMethod, X86_ECX); // Array
+	x86_mov_reg_membase(compMethod, X86_ECX, X86_ECX, 0, global_SizeOfPointerInBytes);
+	x86_alu_reg_imm(compMethod, X86_ADD, X86_ECX, sizeof(GCArray));
+	x86_imul_reg_reg_imm(compMethod, X86_EAX, X86_EAX, sizeOfType);
+	x86_alu_reg_reg(compMethod, X86_ADD, X86_EAX, X86_ECX);
+	x86_push_reg(compMethod, X86_EAX);
 	return compMethod;
 }
 
@@ -1545,6 +1555,33 @@ char* JIT_Compile_Store_Static_Field		(IRInstruction* instr, char* compMethod, I
 
 char* JIT_Compile_Load_Object				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
+	ElementType et = *(ElementType*)instr->Arg1;
+	IRType* type = (IRType*)instr->Arg2;
+	if ((et == ElementType_I || et == ElementType_U || et == ElementType_ManagedPointer) && global_SizeOfPointerInBytes != 4) Panic("This should not happen on x86, pointers can only be 32bit");
+	x86_pop_reg(compMethod, X86_EAX);
+
+	if (type->IsValueType)
+	{
+		uint32_t sizeOfType = StackSizeOfType(type);
+		uint32_t movCount = sizeOfType / 4;
+		for (uint32_t index; index < movCount; ++index)
+		{
+			x86_mov_reg_membase(compMethod, X86_EBX, X86_EAX, index * 4, 4);
+			x86_push_reg(compMethod, X86_EBX);
+		}
+		uint32_t remCount = sizeOfType % 4;
+		if (remCount)
+		{
+			x86_mov_reg_membase(compMethod, X86_EBX, X86_EAX, sizeOfType - remCount, remCount);
+			x86_push_reg(compMethod, X86_EBX);
+		}
+	}
+	else
+	{
+		x86_mov_reg_membase(compMethod, X86_EAX, X86_EAX, 0, 4);
+		x86_push_reg(compMethod, X86_EAX);
+	}
+
 	return compMethod;
 }
 
@@ -1555,6 +1592,34 @@ char* JIT_Compile_Store_Object				(IRInstruction* instr, char* compMethod, IRMet
 
 char* JIT_Compile_Copy_Object				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
+	ElementType et = *(ElementType*)instr->Arg1;
+	IRType* type = (IRType*)instr->Arg2;
+	if ((et == ElementType_I || et == ElementType_U || et == ElementType_ManagedPointer) && global_SizeOfPointerInBytes != 4) Panic("This should not happen on x86, pointers can only be 32bit");
+	x86_pop_reg(compMethod, X86_EAX); // Source
+	x86_pop_reg(compMethod, X86_ECX); // Destination
+
+	if (type->IsValueType)
+	{
+		uint32_t sizeOfType = StackSizeOfType(type);
+		uint32_t movCount = sizeOfType / 4;
+		for (uint32_t index; index < movCount; ++index)
+		{
+			x86_mov_reg_membase(compMethod, X86_EBX, X86_EAX, index * 4, 4);
+			x86_mov_membase_reg(compMethod, X86_ECX, index * 4, X86_EBX, 4);
+		}
+		uint32_t remCount = sizeOfType % 4;
+		if (remCount)
+		{
+			x86_mov_reg_membase(compMethod, X86_EBX, X86_EAX, sizeOfType - remCount, remCount);
+			x86_mov_membase_reg(compMethod, X86_ECX, sizeOfType - remCount, X86_EBX, remCount);
+		}
+	}
+	else
+	{
+		x86_mov_reg_membase(compMethod, X86_EAX, X86_EAX, 0, 4);
+		x86_mov_membase_reg(compMethod, X86_ECX, 0, X86_EAX, 4);
+	}
+
 	return compMethod;
 }
 
@@ -1606,12 +1671,34 @@ char* JIT_Compile_CheckFinite				(IRInstruction* instr, char* compMethod, IRMeth
 
 char* JIT_Compile_LocalAllocate				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
+	ElementType et = *(ElementType*)instr->Arg1;
+	if (et == ElementType_U && global_SizeOfPointerInBytes != 4) Panic("This should not happen on x86, pointers can only be 32bit");
+
+	x86_pop_reg(compMethod, X86_EAX);
+	x86_mov_reg_reg(compMethod, X86_ECX, X86_ESP, 4);
+	x86_alu_reg_reg(compMethod, X86_SUB, X86_ESP, X86_EAX);
+	x86_push_reg(compMethod, X86_ECX);
 	return compMethod;
 }
 
 
 char* JIT_Compile_InitObject				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
+	ElementType et = *(ElementType*)instr->Arg1;
+	IRType* type = (IRType*)instr->Arg2;
+	if ((et == ElementType_I || et == ElementType_U || et == ElementType_ManagedPointer) && global_SizeOfPointerInBytes != 4) Panic("This should not happen on x86, pointers can only be 32bit");
+	x86_pop_reg(compMethod, X86_EAX);
+
+	if (type->IsValueType)
+	{
+		uint32_t sizeOfType = StackSizeOfType(type);
+		uint32_t movCount = sizeOfType / 4;
+		for (uint32_t index; index < movCount; ++index) x86_mov_membase_imm(compMethod, X86_EAX, index * 4, 0, 4);
+		uint32_t remCount = sizeOfType % 4;
+		if (remCount) x86_mov_membase_imm(compMethod, X86_EAX, sizeOfType - remCount, 0, remCount);
+	}
+	else x86_mov_membase_imm(compMethod, X86_EAX, 0, 0, 4);
+
 	return compMethod;
 }
 

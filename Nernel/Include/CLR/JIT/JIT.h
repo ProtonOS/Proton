@@ -6,7 +6,7 @@
 void JIT_CompileMethod(IRMethod* mthd);
 
 void JIT_Layout_Parameters(IRMethod* pMethod);
-void JIT_Layout_Fields(IRMethod* pMethod);
+void JIT_Layout_Fields(IRType* pType);
 char* JIT_Emit_Prologue(IRMethod* mth, char* compMethod);
 char* JIT_Emit_Epilogue(IRMethod* mth, char* compMethod);
 char* JIT_LinkBranches(char* compMethod, BranchRegistry* branchRegistry, uint32_t pLength);

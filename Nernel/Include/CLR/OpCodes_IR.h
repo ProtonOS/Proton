@@ -1053,11 +1053,12 @@ typedef enum IROpCode
 		the stack
 		
         Arg1:
-            The type of object to load.
+            The type of the pointer on the stack.
 			Of the type ElementType.
 
         Arg2:
-            N/A
+            The type of object to load.
+			Of the type IRType.
 
         Arg3:
             N/A
@@ -1073,11 +1074,12 @@ typedef enum IROpCode
 		the top of the stack.
 		
         Arg1:
-            The type of object to store.
+            The type of the pointer on the stack.
 			Of the type ElementType.
 
         Arg2:
-            N/A
+            The type of object to store.
+			Of the type IRType.
 
         Arg3:
             N/A
@@ -1093,11 +1095,12 @@ typedef enum IROpCode
 		the top of the stack.
 		
         Arg1:
-            The the type of object to copy.
+            The type of the pointers on the stack.
 			Of the type ElementType.
 
         Arg2:
-            N/A
+            The type of object to copy.
+			Of the type IRType.
 
         Arg3:
             N/A

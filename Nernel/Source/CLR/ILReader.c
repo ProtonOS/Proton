@@ -2426,14 +2426,12 @@ Branch_Common:
 					{
 						case MetaData_Table_TypeDefinition:
 						{
-							ElementType tp = ElementType_Ref;
-							GetElementTypeFromTypeDef((TypeDefinition*)tok->Data, dom, &tp);
-							SetObjectTypeFromElementType(obj, tp);
-
+							TypeDefinition* typeDef = (TypeDefinition*)tok->Data;
 		                    ElementType* et = (ElementType*)malloc(sizeof(ElementType));
-							*et = tp;
-
-							EMIT_IR_1ARG(IROpCode_Load_Object, et);
+							GetElementTypeFromTypeDef(typeDef, dom, et);
+							SetObjectTypeFromElementType(obj, *et);
+							IRType* type = asmbly->Types[typeDef->TableIndex - 1];
+							EMIT_IR_2ARG_DISPOSE__NO_DISPOSE(IROpCode_Load_Object, et, type);
 							break;
 						}
 						default:
@@ -2459,7 +2457,8 @@ Branch_Common:
 							TypeDefinition* typeDef = (TypeDefinition*)tok->Data;
 		                    ElementType* et = (ElementType*)malloc(sizeof(ElementType));
 							GetElementTypeFromTypeDef(typeDef, dom, et);
-							EMIT_IR_1ARG(IROpCode_Store_Object, et);
+							IRType* type = asmbly->Types[typeDef->TableIndex - 1];
+							EMIT_IR_2ARG_DISPOSE__NO_DISPOSE(IROpCode_Store_Object, et, type);
 							break;
 						}
 						case MetaData_Table_TypeSpecification:
@@ -2490,7 +2489,8 @@ Branch_Common:
 							TypeDefinition* typeDef = (TypeDefinition*)tok->Data;
 		                    ElementType* et = (ElementType*)malloc(sizeof(ElementType));
 							GetElementTypeFromTypeDef(typeDef, dom, et);
-							EMIT_IR_1ARG(IROpCode_Copy_Object, et);
+							IRType* type = asmbly->Types[typeDef->TableIndex - 1];
+							EMIT_IR_2ARG_DISPOSE__NO_DISPOSE(IROpCode_Copy_Object, et, type);
 							break;
 						}
 						default:
