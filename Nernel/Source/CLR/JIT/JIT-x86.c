@@ -19,6 +19,23 @@ ALWAYS_INLINE void Align(uint32_t* val)
 	}
 }
 
+ALWAYS_INLINE char* JIT_Emit_ParamSwap(char* compMethod, uint32_t paramCount)
+{
+	uint32_t swapCount = paramCount / 2;
+	// If paramCount is odd, the middle 
+	// param won't move at all.
+	for (uint32_t index = 0; index < swapCount; ++index)
+	{
+		x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, index * 4, 4);
+		x86_mov_reg_membase(compMethod, X86_EBX, X86_ESP, (paramCount - (index + 1)) * 4, 4);
+		x86_mov_membase_reg(compMethod, X86_ESP, index * 4, X86_EBX, 4);
+		x86_mov_membase_reg(compMethod, X86_ESP, (paramCount - (index + 1)) * 4, X86_EAX, 4);
+	}
+
+	return compMethod;
+}
+
+
 ALWAYS_INLINE uint32_t CalculateStackSize(IRType* tp)
 {
 	if (tp->Size > 0)
@@ -87,6 +104,21 @@ ALWAYS_INLINE uint32_t CalculateStackSize(IRType* tp)
 	
 
 	return global_SizeOfPointerInBytes;
+}
+
+uint32_t SizeOfType(IRType* pType)
+{
+	if (pType->Size) return pType->Size;
+	if (pType->IsValueType) return CalculateStackSize(pType);
+	uint32_t size = 0;
+	printf("Getting SizeOfType %u\n", (unsigned int)pType->FieldCount);
+	for (uint32_t index = 0; index < pType->FieldCount; ++index)
+	{
+		if (pType->Fields[index]->FieldType->IsReferenceType) size += global_SizeOfPointerInBytes;
+		else size += SizeOfType(pType->Fields[index]->FieldType);
+	}
+	pType->Size = size;
+	return size;
 }
 
 void JIT_Layout_Parameters(IRMethod* pMethod)
@@ -1203,8 +1235,36 @@ char* JIT_Compile_LoadNull					(IRInstruction* instr, char* compMethod, IRMethod
 
 char* JIT_Compile_NewObject					(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
-	//IRMethod* mth = (IRMethod*)instr->Arg1;
-	//mth->Parameters[0]->Type->Size
+	IRMethod* method = (IRMethod*)instr->Arg1;
+	IRType* type = method->ParentAssembly->Types[method->MethodDefinition->TypeDefinition->TableIndex - 1];
+	if (type->TypeDef != method->ParentAssembly->ParentDomain->CachedType___System_String)
+	{
+		compMethod = JIT_Emit_ParamSwap(compMethod, method->ParameterCount - 1);
+
+		uint32_t sizeOfType = SizeOfType(type);
+		x86_push_imm(compMethod, sizeOfType);
+		x86_push_imm(compMethod, mth->ParentAssembly->ParentDomain->RootObject);
+		x86_push_imm(compMethod, mth->ParentAssembly->ParentDomain->GarbageCollector);
+		x86_call_code(compMethod, GC_AllocateObject);
+		x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 12);
+		x86_push_reg(compMethod, X86_EAX);
+	
+		if (!method->AssembledMethod) JIT_CompileMethod(method);
+
+		x86_call_code(compMethod, method->AssembledMethod);
+		x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, (method->ParameterCount - 1) * 4);
+	}
+	else // Strings return their new obj from constructor
+	{
+		compMethod = JIT_Emit_ParamSwap(compMethod, method->ParameterCount - 1);
+		x86_push_imm(compMethod, 0);
+		x86_push_imm(compMethod, method->ParentAssembly->ParentDomain);
+
+		x86_call_code(compMethod, method->AssembledMethod);
+		x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, (method->ParameterCount + 1) * 4);
+		x86_push_reg(compMethod, X86_EAX);
+	}
+
 	return compMethod;
 }
 
@@ -1485,21 +1545,23 @@ char* JIT_Compile_InitObject				(IRInstruction* instr, char* compMethod, IRMetho
 }
 
 
-ALWAYS_INLINE char* JIT_Emit_ParamSwap(char* compMethod, uint32_t paramCount)
+char* JIT_Compile_SizeOf					(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
-	uint32_t swapCount = paramCount / 2;
-	// If paramCount is odd, the middle 
-	// param won't move at all.
-	for (uint32_t index = 0; index < swapCount; ++index)
-	{
-		x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, index * 4, 4);
-		x86_mov_reg_membase(compMethod, X86_EBX, X86_ESP, (paramCount - (index + 1)) * 4, 4);
-		x86_mov_membase_reg(compMethod, X86_ESP, index * 4, X86_EBX, 4);
-		x86_mov_membase_reg(compMethod, X86_ESP, (paramCount - (index + 1)) * 4, X86_EAX, 4);
-	}
-
+	x86_push_imm(compMethod, SizeOfType((IRType*)instr->Arg1));
 	return compMethod;
 }
+
+
+char* JIT_Compile_LoadFunction				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
+{
+	return compMethod;
+}
+
+char* JIT_Compile_LoadVirtualFunction		(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
+{
+	return compMethod;
+}
+
 
 char* JIT_Compile_Call_Absolute				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {

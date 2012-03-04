@@ -7,9 +7,13 @@ namespace Mernel
     {
         private static void Main()
         {
-            Console.WriteLine("Mernel Started @ " + ((uint)DateTime.InternalUtcNow()).ToString());
+            string str = new string('*', 40);
+            Console.WriteLine(str);
+            Console.WriteLine("Mernel Started");
             Console.WriteLine("Factorial of 6 (Via Multiplication): " + Factorial(6).ToString());
         }
+
+        private static void ActionTest() { Console.WriteLine("ActionTest"); }
 
         private static uint Factorial(uint val)
         {

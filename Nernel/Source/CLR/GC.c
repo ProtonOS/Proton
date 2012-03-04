@@ -128,6 +128,7 @@ ReferenceTypeObject* GCHeap_Allocate(GCHeap* pGCHeap, uint32_t pStackSize, uint3
 
 ReferenceTypeObject* GC_AllocateObject(GC* pGC, ReferenceTypeObject* pInitialReference, uint32_t pSize)
 {
+	printf("GC_AllocateObject of size %u\n", (unsigned int)pSize);
     if (!pInitialReference) Panic("GC_AllocateObject pInitialReference == NULL");
     if (pSize == 0 || pSize >= 0x7FFFFFFF) Panic("GC_AllocateObject pSize == 0 || pSize >= 0x7FFFFFFF");
     ReferenceTypeObject* object = NULL;
@@ -174,6 +175,7 @@ ReferenceTypeObject* GC_AllocateString(GC* pGC, ReferenceTypeObject* pInitialRef
 
 ReferenceTypeObject* GC_AllocateStringFromCharAndCount(GC* pGC, ReferenceTypeObject* pInitialReference, uint16_t pChar, uint32_t pCount)
 {
+	printf("Allocating string of %u %c characters\n", (unsigned int)pCount, (char)pChar);
     if (!pInitialReference) Panic("GC_AllocateStringFromCharAndCount pInitialReference == NULL");
     if (pCount == 0 || pCount >= 0x3FFFFFFF) Panic("GC_AllocateStringFromCharAndCount pCount == 0 || pCount >= 0x3FFFFFFF");
     ReferenceTypeObject* object = NULL;

@@ -543,6 +543,13 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 		//m->LocalVariableCount = methodDef->Body.LocalVariableSignatureToken
 	}
 	
+	{
+		if (methodDef->ImplFlags & MethodImplAttributes_InternalCall)
+		{
+			m->AssembledMethod = (void(*)())methodDef->InternalCall;
+		}
+	}
+
     /*Log_WriteLine(LogFlags_ILReading, "Hex value of the method: ");
     while ((size_t)(*dat) - orig < len)
     {
@@ -1755,16 +1762,16 @@ Branch_Common:
 				{
 					Log_WriteLine(LogFlags_ILReading, "Read NFI-NewObj");
 					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
-					MethodDefinition* mthDef = NULL;
 					MethodSignature* sig = NULL;
 					switch(tok->Table)
 					{
 						case MetaData_Table_MethodDefinition:
-							sig = MethodSignature_Expand(((MethodDefinition*)tok->Data)->Signature, fil);
-							mthDef = (MethodDefinition*)tok->Data;
-							EMIT_IR_1ARG(IROpCode_NewObject, mthDef);
-							break;
-
+							{
+								sig = MethodSignature_Expand(((MethodDefinition*)tok->Data)->Signature, fil);
+								IRMethod* mth = asmbly->Methods[((MethodDefinition*)tok->Data)->TableIndex - 1];
+								EMIT_IR_1ARG(IROpCode_NewObject, mth);
+								break;
+							}
 						case MetaData_Table_MemberReference:
 							//printf("Don't deal with this yet! NewObj with table index: 0x%x\n", (unsigned int)tok->Table);
 							sig = MethodSignature_Expand(((MemberReference*)tok->Data)->Signature, fil);
@@ -2828,13 +2835,111 @@ Branch_Common:
                     case ILOpCodes_Extended_Clt_Un:			// 0x05
 						DefineCompare(Less_Than_Unsigned, Clt.Un);
                     case ILOpCodes_Extended_LdFtn:			// 0x06
-                        DefineUnSupportedOpCode(LdFtn);
-                        ClearFlags();
-                        break;
+						{
+							Log_WriteLine(LogFlags_ILReading, "Read LdFtn");
+							IRMethod* method = NULL;
+							MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
+							switch (tok->Table)
+							{
+								case MetaData_Table_MethodDefinition:
+									{
+										MethodDefinition* methodDef = (MethodDefinition*)tok->Data;
+										method = asmbly->Methods[methodDef->TableIndex - 1];
+										break;
+									}
+								default:
+									Panic("Unknown Table for LdFtn");
+									break;
+							}
+							free(tok);
+
+							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_LoadFunction, method);
+
+							StackObject* obj = StackObjectPool_Allocate();
+							obj->Type = StackObjectType_ReferenceType;
+							obj->NumericType = StackObjectNumericType_Ref;
+							SyntheticStack_Push(stack, obj);
+
+							ClearFlags();
+							break;
+						}
                     case ILOpCodes_Extended_LdVirtFtn:		// 0x07
-                        DefineUnSupportedOpCode(LdVirtFtn);
-                        ClearFlags();
-                        break;
+						{
+							Log_WriteLine(LogFlags_ILReading, "Read LdVirtFtn");
+							MethodDefinition* mthDef = NULL;
+							MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
+							switch (tok->Table)
+							{
+								case MetaData_Table_MethodDefinition:
+									{
+										mthDef = (MethodDefinition*)tok->Data;
+										break;
+									}
+								default:
+									Panic("Unknown Table for LdVirtFtn");
+									break;
+							}
+							free(tok);
+
+							if (mthDef)
+							{
+								IRMethodSpec* mthSpec = IRMethodSpec_Create();
+								Log_WriteLine(LogFlags_ILReading, "Looking for Method %s.%s.%s from table index %i", mthDef->TypeDefinition->Namespace, mthDef->TypeDefinition->Name, mthDef->Name, (int)mthDef->TableIndex);
+								mthSpec->ParentType = asmbly->Types[mthDef->TypeDefinition->TableIndex - 1];
+								bool_t FoundMethod = FALSE;
+								for (uint32_t i = 0; i < mthSpec->ParentType->MethodCount; i++)
+								{
+									MethodDefinition* mthDef2 = &(fil->MethodDefinitions[(uint32_t)(mthSpec->ParentType->Methods[i])]);
+									if (mthDef2->TableIndex)
+									{
+										Log_WriteLine(LogFlags_ILReading, "Checking Method %s.%s.%s from table index %i", mthDef2->TypeDefinition->Namespace, mthDef2->TypeDefinition->Name, mthDef2->Name, (int)mthDef2->TableIndex);
+										Log_WriteLine(LogFlags_ILReading, "i: %i", (int)i);
+									}
+									else
+									{
+										Log_WriteLine(LogFlags_ILReading, "Method Index 0! This shouldn't happen!");
+									}							
+									if (!strcmp(mthDef->Name, mthDef2->Name))
+									{
+										if (mthDef->Flags & MethodAttributes_HideBySignature)
+										{
+											if (Signature_Equals(mthDef->Signature, mthDef->SignatureLength, mthDef2->Signature, mthDef2->SignatureLength))
+											{
+												mthSpec->MethodIndex = i;
+												FoundMethod = TRUE;
+												break;
+											}
+										}
+										else
+										{
+											mthSpec->MethodIndex = i;
+											FoundMethod = TRUE;
+											break;
+										}
+									}
+								}
+								if (!FoundMethod)
+								{
+									Panic("Unable to resolve method to call!");
+								}
+								EMIT_IR_1ARG(IROpCode_Load_Virtual_Function, mthSpec);
+							}
+							else
+							{
+								// This is just a temporary thing
+								// so that this can be the target
+								// of a branch (although it shouldn't be).
+								EMIT_IR(IROpCode_Nop);
+							}
+
+							StackObject* obj = StackObjectPool_Allocate();
+							obj->Type = StackObjectType_ReferenceType;
+							obj->NumericType = StackObjectNumericType_Ref;
+							SyntheticStack_Push(stack, obj);
+
+							ClearFlags();
+							break;
+						}
                     // 0x08 Doesn't exist
                     case ILOpCodes_Extended_LdArg:			// 0x09
 						{
@@ -2988,10 +3093,29 @@ Branch_Common:
                     // 0x1B Doesn't exist
                     case ILOpCodes_Extended_SizeOf:			// 0x1C
                         {	
-							Log_WriteLine(LogFlags_ILReading, "Read NI-SizeOf");
-							ReadUInt32(dat);
-							//MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
-							//EMIT_IR_1ARG(IROpCode_SizeOf, tok);
+							Log_WriteLine(LogFlags_ILReading, "Read SizeOf");
+							IRType* type = NULL;
+							MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
+							switch (tok->Table)
+							{
+								case MetaData_Table_TypeDefinition:
+									{
+										TypeDefinition* typeDef = (TypeDefinition*)tok->Data;
+										type = asmbly->Types[typeDef->TableIndex - 1];
+										break;
+									}
+								case MetaData_Table_TypeSpecification:
+									{
+										printf("Need to handle TypeSpecification for SizeOf\n");
+										break;
+									}
+								default:
+									Panic("Unknown Table for SizeOf");
+									break;
+							}
+							free(tok);
+
+							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_SizeOf, type);
 
 							StackObject* obj = StackObjectPool_Allocate();
 							obj->Type = StackObjectType_Int32;

@@ -56,9 +56,9 @@ ReferenceTypeObject* System_String_Ctor_SBytePtrAndStartAndLength(AppDomain* pAp
 	return object;
 }
 
-ReferenceTypeObject* System_String_Ctor_CharAndCount(AppDomain* pAppDomain, ReferenceTypeObject* pThis, uint16_t pChar, uint32_t pCount)
+ReferenceTypeObject* System_String_Ctor_CharAndCount(AppDomain* pAppDomain, ReferenceTypeObject* pThis, uint32_t pChar, uint32_t pCount)
 {
-	return GC_AllocateStringFromCharAndCount(pAppDomain->GarbageCollector, pAppDomain->RootObject, pChar, pCount);
+	return GC_AllocateStringFromCharAndCount(pAppDomain->GarbageCollector, pAppDomain->RootObject, (uint16_t)pChar, pCount);
 }
 
 ReferenceTypeObject* System_String_Ctor_StringAndStartAndLength(AppDomain* pAppDomain, ReferenceTypeObject* pThis, ReferenceTypeObject* pString, uint32_t pStart, uint32_t pLength)
@@ -153,7 +153,7 @@ ReferenceTypeObject* System_String_InternalTrim(AppDomain* pAppDomain, Reference
 }
 
 
-int32_t System_String_InternalIndexOf(AppDomain* pAppDomain, ReferenceTypeObject* pThis, uint16_t pChar, uint32_t pStart, uint32_t pCount, uint32_t pForwards)
+int32_t System_String_InternalIndexOf(AppDomain* pAppDomain, ReferenceTypeObject* pThis, uint32_t pChar, uint32_t pStart, uint32_t pCount, uint32_t pForwards)
 {
 	int32_t result = -1;
 	GCString* header = (GCString*)pThis->Object;

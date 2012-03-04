@@ -1333,6 +1333,61 @@ typedef enum IROpCode
 
      */
     IROpCode_InitObject,
+    /*
+		Returns the runtime size of the specified
+		type.
+		
+        Arg1:
+			The type to get the size of.
+			Of the type IRType.
+
+        Arg2:
+			N/A
+
+        Arg3:
+			N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_SizeOf,
+    /*
+		Loads the specified method to the stack.
+		
+        Arg1:
+			The method to load.
+			Of the type IRMethod.
+
+        Arg2:
+			N/A
+
+        Arg3:
+			N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_LoadFunction,
+    /*
+		Loads the specified method to the stack.
+		
+        Arg1:
+			The method to load.
+			Of the type IRMethodSpec.
+
+        Arg2:
+			N/A
+
+        Arg3:
+			N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_Load_Virtual_Function,
 } IROpCode;
 
 

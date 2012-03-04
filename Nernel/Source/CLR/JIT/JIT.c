@@ -213,6 +213,15 @@ void JIT_CompileMethod(IRMethod* mthd)
 			case IROpCode_InitObject:
 				compMthd = JIT_Compile_InitObject				(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
 				break;
+			case IROpCode_SizeOf:
+				compMthd = JIT_Compile_SizeOf					(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
+				break;
+			case IROpCode_LoadFunction:
+				compMthd = JIT_Compile_LoadFunction				(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
+				break;
+			case IROpCode_Load_Virtual_Function:
+				compMthd = JIT_Compile_LoadVirtualFunction		(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
+				break;
 			case IROpCode_Call:
 				compMthd = JIT_Compile_Call						(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
 				break;
