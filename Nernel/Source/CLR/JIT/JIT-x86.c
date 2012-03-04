@@ -108,12 +108,12 @@ ALWAYS_INLINE uint32_t StackSizeOfType(IRType* tp)
 
 ALWAYS_INLINE uint32_t SizeOfType(IRType* pType)
 {
+	//printf("Getting SizeOfType %u @ 0x%x\n", (unsigned int)pType->FieldCount, (unsigned int)pType);
 	if (pType->Size) 
 		return pType->Size;
 	if (pType->IsValueType) 
 		return StackSizeOfType(pType);
 	uint32_t size = 0;
-	//printf("Getting SizeOfType %u\n", (unsigned int)pType->FieldCount);
 	for (uint32_t index = 0; index < pType->FieldCount; ++index)
 	{
 		if (pType->Fields[index]->FieldType->IsReferenceType)
@@ -1290,6 +1290,7 @@ char* JIT_Compile_NewObject					(IRInstruction* instr, char* compMethod, IRMetho
 	}
 	else // Strings return their new obj from constructor
 	{
+		printf("It's not a string!\n");
 		compMethod = JIT_Emit_ParamSwap(compMethod, method->ParameterCount - 1);
 		x86_push_imm(compMethod, 0);
 		x86_push_imm(compMethod, method->ParentAssembly->ParentDomain);
@@ -1485,6 +1486,7 @@ char* JIT_Compile_Load_Field				(IRInstruction* instr, char* compMethod, IRMetho
 
 	x86_pop_reg(compMethod, X86_EAX); // Pop the RTO.
 	x86_mov_reg_membase(compMethod, X86_EAX, X86_EAX, 0, 4);
+	x86_alu_reg_imm(compMethod, X86_ADD, X86_EAX, spec->ParentType->Fields[spec->FieldIndex]->Offset);
 
 	x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, alSz);
 
@@ -1496,25 +1498,12 @@ char* JIT_Compile_Load_Field				(IRInstruction* instr, char* compMethod, IRMetho
 		x86_mov_membase_reg(compMethod, X86_ESP, curBas, X86_EBX, 4);
 		curBas -= 4;
 	}
-
-	switch(fSz % 4)
+	
+	uint32_t modFSz = fSz % 4;
+	if (modFSz)
 	{
-		case 0: break;
-		case 1:
-			x86_mov_reg_membase(compMethod, X86_EBX, X86_EAX, fSz - curBas, 1);
-			x86_mov_membase_reg(compMethod, X86_ESP, curBas, X86_EBX, 1);
-			break;
-		case 2:
-			x86_mov_reg_membase(compMethod, X86_EBX, X86_EAX, fSz - curBas, 2);
-			x86_mov_membase_reg(compMethod, X86_ESP, curBas, X86_EBX, 2);
-			break;
-		case 3:
-			x86_mov_reg_membase(compMethod, X86_EBX, X86_EAX, fSz - curBas, 3);
-			x86_mov_membase_reg(compMethod, X86_ESP, curBas, X86_EBX, 3);
-			break;
-		default:
-			Panic("Unsupported remainder size for load field!");
-			break;
+		x86_mov_reg_membase(compMethod, X86_EBX, X86_EAX, fSz - curBas, modFSz);
+		x86_mov_membase_reg(compMethod, X86_ESP, curBas, X86_EBX, modFSz);
 	}
 
 	return compMethod;
@@ -1534,11 +1523,36 @@ char* JIT_Compile_Load_Field_Address		(IRInstruction* instr, char* compMethod, I
 char* JIT_Compile_Store_Field				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	IRFieldSpec* spec = (IRFieldSpec*)instr->Arg1;
+	JIT_Layout_Fields(spec->ParentType);
 
-	// Still need to handle large fields.
-	x86_pop_reg(compMethod, X86_EAX);
-	x86_pop_reg(compMethod, X86_EBX); // Pop the value
-	x86_mov_membase_reg(compMethod, X86_EAX, spec->FieldIndex * global_SizeOfPointerInBytes, X86_EBX, 4);
+	uint32_t fSz = StackSizeOfType(spec->FieldType);
+	uint32_t alSz = fSz;
+	Align(&alSz);
+
+	x86_pop_reg(compMethod, X86_EAX); // Pop the RTO.
+	x86_mov_reg_membase(compMethod, X86_EAX, X86_EAX, 0, 4);
+	// The pointer to the start of the type is now in EAX.
+	x86_alu_reg_imm(compMethod, X86_ADD, X86_EAX, spec->ParentType->Fields[spec->FieldIndex]->Offset);
+
+
+	uint32_t movCount = fSz / global_SizeOfPointerInBytes;
+	uint32_t curBas = alSz - global_SizeOfPointerInBytes;
+	for (uint32_t i = 0; i < movCount; i++)
+	{
+		x86_mov_reg_membase(compMethod, X86_EBX, X86_ESP, curBas, 4);
+		x86_mov_membase_reg(compMethod, X86_EAX,  i * global_SizeOfPointerInBytes, X86_EBX, 4);
+		curBas -= 4;
+	}
+
+	uint32_t modFSz = fSz % 4;
+	if (modFSz)
+	{
+		x86_mov_reg_membase(compMethod, X86_EBX, X86_ESP, curBas, modFSz);
+		x86_mov_membase_reg(compMethod, X86_EAX, fSz - curBas, X86_EBX, modFSz);
+	}
+
+	x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, alSz);
+
 	return compMethod;
 }
 

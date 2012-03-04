@@ -3,7 +3,7 @@
 // To disable logging, all
 // you have to do is uncomment
 // this line.
-#define NO_LOG
+//#define NO_LOG
 
 
 #ifdef NO_LOG

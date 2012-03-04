@@ -468,6 +468,10 @@ void Link(IRAssembly* asmb)
 			{
 				asmb->Methods[i]->IRCodes[i2]->Arg2 = asmb->Methods[(uint32_t)asmb->Methods[i]->IRCodes[i2]->Arg2 - 1];
 			}
+			else if (asmb->Methods[i]->IRCodes[i2]->OpCode == IROpCode_NewObject)
+			{
+				asmb->Methods[i]->IRCodes[i2]->Arg1 = asmb->Methods[(uint32_t)asmb->Methods[i]->IRCodes[i2]->Arg1 - 1];
+			}
 		}
 	}
 }
@@ -1773,8 +1777,7 @@ Branch_Common:
 						case MetaData_Table_MethodDefinition:
 							{
 								sig = MethodSignature_Expand(((MethodDefinition*)tok->Data)->Signature, fil);
-								IRMethod* mth = asmbly->Methods[((MethodDefinition*)tok->Data)->TableIndex - 1];
-								EMIT_IR_1ARG(IROpCode_NewObject, mth);
+								EMIT_IR_1ARG(IROpCode_NewObject, (void*)((MethodDefinition*)tok->Data)->TableIndex);
 								break;
 							}
 						case MetaData_Table_MemberReference:
