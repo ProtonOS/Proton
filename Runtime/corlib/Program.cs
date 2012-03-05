@@ -15,9 +15,9 @@ namespace Mernel
             tarr[0] = new Test();
             Console.WriteLine(tarr[0].ToString());
             object[] objarr = new object[2];
-            objarr[0] = (uint)4;
+            objarr[0] = new Test();
             Console.WriteLine(objarr[0].ToString());
-            uint ch = (uint)objarr[0];
+            //uint ch = (uint)objarr[0];
             @char[0] = 'T';
             @char[1] = 'E';
             @char[2] = 'S';
@@ -44,32 +44,32 @@ namespace Mernel
         {
             return (val == 1) ? val : val * Factorial(val - 1);
         }
+    }
 
-        private sealed class Test
+    internal sealed class Test
+    {
+        uint A;
+
+        public Test()
         {
-            uint A;
-
-            public Test()
-            {
-                Console.WriteLine("Creating a new Test object.");
-                A = 4;
-                Console.WriteLine("Finished Creating a new Test object.");
-            }
-
-            public void Really()
-            {
-                Console.WriteLine("Hey look! It works!");
-            }
-
-            public void JustATest()
-            {
-                Console.WriteLine("Value of A: " + A.ToString());
-            }
-
-            public override string ToString()
-            {
-                return "It Says hello!";
-            }
+            Console.WriteLine("Creating a new Test object.");
+            A = 4;
+            Console.WriteLine("Finished Creating a new Test object.");
         }
+
+        public void Really()
+        {
+            Console.WriteLine("Hey look! It works!");
+        }
+
+        public void JustATest()
+        {
+            Console.WriteLine("Value of A: " + A.ToString());
+        }
+
+        //public override string ToString()
+        //{
+        //    return "It Says hello!";
+        //}
     }
 }

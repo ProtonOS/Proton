@@ -92,8 +92,9 @@
 	Source/CLR/InternalCalls/System.Console.c
 	Source/CLR/InternalCalls/System.DateTime.c
 	Source/CLR/InternalCalls/System.Environment.c
-	Source/CLR/InternalCalls/System.Object.c
 	Source/CLR/InternalCalls/System.Math.c
+	Source/CLR/InternalCalls/System.Object.c
+	Source/CLR/InternalCalls/System.RuntimeType.c
 	Source/CLR/InternalCalls/System.String.c
 	Source/CLR/InternalCalls/System.UInt32.c
 #

@@ -114,6 +114,10 @@ void AppDomain_LinkCorlib(CLIFile* corlib, AppDomain* domain)
 			{
 				domain->CachedType___System_Object = tp;
 			}
+			else if (!strcmp(tp->Name, "RuntimeType"))
+			{
+				domain->CachedType___System_RuntimeType = tp;
+			}
 			else if (!strcmp(tp->Name, "SByte"))
 			{
 				domain->CachedType___System_SByte = tp;

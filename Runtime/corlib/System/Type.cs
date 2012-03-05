@@ -7,7 +7,6 @@ namespace System
 {
     public abstract class Type : MemberInfo
     {
-
         public static readonly Type[] EmptyTypes = new Type[0];
 
         [MethodImpl(MethodImplOptions.InternalCall)]

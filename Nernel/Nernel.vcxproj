@@ -37,6 +37,7 @@
     <ClCompile Include="Source\CLR\InternalCalls\System.Environment.c" />
     <ClCompile Include="Source\CLR\InternalCalls\System.Math.c" />
     <ClCompile Include="Source\CLR\InternalCalls\System.Object.c" />
+    <ClCompile Include="Source\CLR\InternalCalls\System.RuntimeType.c" />
     <ClCompile Include="Source\CLR\InternalCalls\System.String.c" />
     <ClCompile Include="Source\CLR\InternalCalls\System.UInt32.c" />
     <ClCompile Include="Source\CLR\IRMethod_BranchLinker.c" />
@@ -115,6 +116,7 @@
     <ClInclude Include="Include\CLR\InternalCalls\Helpers.h" />
     <ClInclude Include="Include\CLR\InternalCalls\Proton.IO.MemoryIO.h" />
     <ClInclude Include="Include\CLR\InternalCalls\Proton.IO.PortIO.h" />
+    <ClInclude Include="Include\CLR\InternalCalls\System.RuntimeType.h" />
     <ClInclude Include="Include\CLR\InternalCalls\System.Array.h" />
     <ClInclude Include="Include\CLR\InternalCalls\System.Console.h" />
     <ClInclude Include="Include\CLR\InternalCalls\System.DateTime.h" />
