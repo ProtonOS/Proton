@@ -628,8 +628,8 @@ char* JIT_Compile_Convert_Unchecked			(IRInstruction* instr, char* compMethod, I
 				case ConversionArgumentType_I8:
 					x86_pop_reg(compMethod, X86_EAX);
 					x86_cdq(compMethod);
-					x86_push_reg(compMethod, X86_EDX);
 					x86_push_reg(compMethod, X86_EAX);
+					x86_push_reg(compMethod, X86_EDX);
 					break;
 				case ConversionArgumentType_U8:
 					x86_pop_reg(compMethod, X86_EAX);

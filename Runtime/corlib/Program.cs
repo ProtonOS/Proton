@@ -7,7 +7,7 @@ namespace Mernel
     {
         private static void Main()
         {
-            ulong blargh = 1;
+            ulong blargh = 0x000000FF0000FFFF;
             Console.WriteLine("Blargh! " + ((uint)blargh).ToString());
             char[] @char = new char[4];
             uint[] uarr = new uint[3];
