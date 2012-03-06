@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <string.h>
+#include <PortIO.h>
 #include <Core/Console.h>
 #include <Core/SerialWriter.h>
 
@@ -14,6 +16,8 @@ void Console_Startup()
     setbuf(stdout, NULL);
     setbuf(stderr, NULL);
 
+	outb(0x3D4, 0x0A);
+	outb(0x3D5, 0x20);
 	Console_Clear(Console_CreateAttributes(Console_LightWhite, Console_DarkBlack));
 }
 
@@ -31,7 +35,21 @@ void Console_MoveTo(uint8_t pColumn, uint8_t pRow)
 
 void Console_MoveToTopLeft() { Console_MoveTo(0, 0); }
 
-void Console_MoveToNextLine() { Console_MoveTo(0, gConsole_CursorRow + 1); }
+void Console_MoveToNextLine()
+{
+	if (gConsole_CursorRow + 1 >= gConsole_Rows)
+	{
+		uint32_t lengthToCopyUp = ((gConsole_Rows - 1) * gConsole_Columns) * 2;
+		memcpy((char*)gConsole_BaseMemory, ((char*)gConsole_BaseMemory) + (gConsole_Columns * 2), lengthToCopyUp);
+		for (uint32_t index = 0; index < gConsole_Columns; ++index)
+		{
+			*(gConsole_BaseMemory + (((gConsole_Rows - 1) * gConsole_Columns) * 2) + (index * 2)) = ' ';
+		}
+		gConsole_CursorRow = gConsole_Rows - 1;
+	}
+	else ++gConsole_CursorRow;
+	Console_MoveTo(0, gConsole_CursorRow);
+}
 
 void Console_Clear(uint8_t pAttributes)
 {
@@ -102,6 +120,5 @@ void Console_Advance()
 	if (gConsole_CursorColumn >= gConsole_Columns)
 	{
 		Console_MoveToNextLine();
-		if (gConsole_CursorRow >= gConsole_Rows) gConsole_CursorRow = 0;
 	}
 }
