@@ -145,6 +145,20 @@ ReferenceTypeObject* GC_AllocateObject(GC* pGC, ReferenceTypeObject* pInitialRef
     return object;
 }
 
+ReferenceTypeObject* GC_AllocateArray(GC* pGC, ReferenceTypeObject* pInitialReference, uint32_t pLength, uint32_t pElementSize, uint32_t pDomainIndex, uint32_t pAssemblyIndex, uint32_t pTypeIndex)
+{
+	uint32_t sizeOfArray = sizeof(GCArray) + (pLength * pElementSize);
+	ReferenceTypeObject* object = GC_AllocateObject(pGC, pInitialReference, sizeOfArray, pGC->Domain->DomainIndex, 0, pGC->Domain->CachedType___System_Array->TableIndex - 1);
+	GCArray* header = (GCArray*)object->Object;
+	header->Length = pLength;
+	header->Data = object->Object + sizeof(GCArray);
+	header->DomainIndex = pDomainIndex;
+	header->AssemblyIndex = pAssemblyIndex;
+	header->TypeIndex = pTypeIndex;
+	//printf("GC_AllocateArray of count %u x %u sized elements @ 0x%x\n", (unsigned int)pLength, (unsigned int)pElementSize, (unsigned int)object);
+	return object;
+}
+
 ReferenceTypeObject* GC_AllocateString(GC* pGC, ReferenceTypeObject* pInitialReference, uint8_t* pData, uint32_t pSize)
 {
     if (!pInitialReference) Panic("GC_AllocateString pInitialReference == NULL");
@@ -162,6 +176,7 @@ ReferenceTypeObject* GC_AllocateString(GC* pGC, ReferenceTypeObject* pInitialRef
 			object = GCHeap_Allocate(&pGC->LargeHeap, GCHeapStack_LargeHeap_Size, sizeOfGCString);
 		else object = GCHeap_Allocate(&pGC->LargeHeap, sizeOfGCString, sizeOfGCString);
 		object->Flags |= ReferenceTypeObject_Flags_String;
+		//printf("GC_AllocateString of size %u @ 0x%x\n", (unsigned int)pSize, (unsigned int)object);
 		header = (GCString*)object->Object;
 		header->Data = (object->Object + sizeof(GCString));
 		header->Size = pSize;
@@ -622,19 +637,6 @@ void GCHeap_Migrate(GCHeap* pSourceHeap, GCHeap* pDestinationHeap, uint32_t pSta
             }
         }
     }
-}
-
-ReferenceTypeObject* GC_AllocateArray(GC* pGC, ReferenceTypeObject* pInitialReference, uint32_t pLength, uint32_t pElementSize, uint32_t pDomainIndex, uint32_t pAssemblyIndex, uint32_t pTypeIndex)
-{
-	uint32_t sizeOfArray = sizeof(GCArray) + (pLength * pElementSize);
-	ReferenceTypeObject* object = GC_AllocateObject(pGC, pInitialReference, sizeOfArray, pGC->Domain->DomainIndex, 0, pGC->Domain->CachedType___System_Array->TableIndex - 1);
-	GCArray* header = (GCArray*)object->Object;
-	header->Length = pLength;
-	header->Data = object->Object + sizeof(GCArray);
-	header->DomainIndex = pDomainIndex;
-	header->AssemblyIndex = pAssemblyIndex;
-	header->TypeIndex = pTypeIndex;
-	return object;
 }
 
 void GC_Collect(GC* pGC)

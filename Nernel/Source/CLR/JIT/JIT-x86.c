@@ -143,6 +143,24 @@ void JIT_Layout_Parameters(IRMethod* pMethod)
 	}
 }
 
+void JIT_Layout_LocalVariables(IRMethod* pMethod)
+{
+	if (!pMethod->LocalsLayedOut)
+	{
+		IRLocalVariable* local = NULL;
+		uint32_t offset = 0;
+		for (uint32_t index = 0; index < pMethod->LocalVariableCount; ++index)
+		{
+			local = pMethod->LocalVariables[index];
+			local->Size = StackSizeOfType(local->VariableType);
+			local->Offset = offset;
+			offset += local->Size;
+			Align(&offset);
+		}
+		pMethod->LocalsLayedOut = TRUE;
+	}
+}
+
 void JIT_Layout_Fields(IRType* tp)
 {
 	if (!tp->FieldsLayedOut)
@@ -484,14 +502,14 @@ char* JIT_Compile_Store_LocalVar			(IRInstruction* instr, char* compMethod, IRMe
 {
 	uint32_t localIndex = *(uint32_t*)instr->Arg1;
 	uint32_t size = global_SizeOfPointerInBytes;
-	/*if (mth->LocalVariables[localIndex]->VariableType->IsValueType)
-		size = mth->LocalVariables[localIndex]->VariableType->Size;*/
+	if (mth->LocalVariables[localIndex]->VariableType->IsValueType)
+		size = StackSizeOfType(mth->LocalVariables[localIndex]->VariableType);
 	uint32_t movCount = size / global_SizeOfPointerInBytes;
-	if ((size % global_SizeOfPointerInBytes) != 0) ++movCount;
+	Align(&size);
 	for (uint32_t movIndex = 0; movIndex < movCount; ++movIndex)
 	{
 		x86_pop_reg(compMethod, X86_EAX);
-		x86_mov_membase_reg(compMethod, X86_EBP, -((localIndex + 1) * global_SizeOfPointerInBytes), X86_EAX, global_SizeOfPointerInBytes);
+		x86_mov_membase_reg(compMethod, X86_EBP, -(mth->LocalVariables[localIndex]->Offset), X86_EAX, global_SizeOfPointerInBytes);
 	}
 	return compMethod;
 }
@@ -501,13 +519,13 @@ char* JIT_Compile_Load_LocalVar				(IRInstruction* instr, char* compMethod, IRMe
 {
 	uint32_t localIndex = *(uint32_t*)instr->Arg1;
 	uint32_t size = global_SizeOfPointerInBytes;
-	/*if (mth->LocalVariables[localIndex]->VariableType->IsValueType)
-		size = mth->LocalVariables[localIndex]->VariableType->Size;*/
+	if (mth->LocalVariables[localIndex]->VariableType->IsValueType)
+		size = StackSizeOfType(mth->LocalVariables[localIndex]->VariableType);
+	Align(&size);
 	uint32_t movCount = size / global_SizeOfPointerInBytes;
-	if ((size % global_SizeOfPointerInBytes) != 0) ++movCount;
 	for (uint32_t movIndex = 0; movIndex < movCount; ++movIndex)
 	{
-		x86_push_membase(compMethod, X86_EBP, -((localIndex + 1) * global_SizeOfPointerInBytes));
+		x86_push_membase(compMethod, X86_EBP, -(mth->LocalVariables[localIndex]->Offset));
 	}
 	return compMethod;
 }
@@ -517,7 +535,7 @@ char* JIT_Compile_Load_LocalVar_Address		(IRInstruction* instr, char* compMethod
 {
 	uint32_t localIndex = *(uint32_t*)instr->Arg1;
 	x86_push_reg(compMethod, X86_EBP);
-	x86_alu_membase_imm(compMethod, X86_SUB, X86_ESP, 0, (localIndex + 1) * global_SizeOfPointerInBytes);
+	x86_alu_membase_imm(compMethod, X86_SUB, X86_ESP, 0, mth->LocalVariables[localIndex]->Offset);
 	return compMethod;
 }
 
@@ -527,10 +545,9 @@ char* JIT_Compile_Load_Parameter			(IRInstruction* instr, char* compMethod, IRMe
 	uint32_t paramIndex = *(uint32_t*)instr->Arg1;
 	uint32_t size = global_SizeOfPointerInBytes;
 	if (mth->Parameters[paramIndex]->Type->IsValueType)
-		size = mth->Parameters[paramIndex]->Type->Size;
+		size = StackSizeOfType(mth->Parameters[paramIndex]->Type);
 	Align(&size);
 	uint32_t movCount = size / global_SizeOfPointerInBytes;
-	if ((size % global_SizeOfPointerInBytes) != 0) ++movCount;
 	for (uint32_t movIndex = 0; movIndex < movCount; ++movIndex)
 	{
 		x86_push_membase(compMethod, X86_EBP,  mth->Parameters[paramIndex]->Offset);
@@ -553,7 +570,7 @@ char* JIT_Compile_Store_Parameter			(IRInstruction* instr, char* compMethod, IRM
 	uint32_t paramIndex = *(uint32_t*)instr->Arg1;
 	uint32_t size = global_SizeOfPointerInBytes;
 	if (mth->Parameters[paramIndex]->Type->IsValueType)
-		size = mth->Parameters[paramIndex]->Type->Size;
+		size = StackSizeOfType(mth->Parameters[paramIndex]->Type);
 	Align(&size);
 	uint32_t movCount = size / global_SizeOfPointerInBytes;
 	for (uint32_t movIndex = 0; movIndex < movCount; ++movIndex)
@@ -1890,7 +1907,7 @@ char* JIT_Compile_LoadVirtualFunction		(IRInstruction* instr, char* compMethod, 
 char* JIT_Compile_NewArray					(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	IRType* type = (IRType*)instr->Arg1;
-	uint32_t sizeOfType = SizeOfType(type);
+	uint32_t sizeOfType = StackSizeOfType(type);
 	x86_pop_reg(compMethod, X86_EAX); // Number of Elements
 	x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, 32);
 	x86_mov_membase_imm(compMethod, X86_ESP, 24, type->TypeIndex, 4);

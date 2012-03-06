@@ -15,8 +15,9 @@ void JIT_CompileMethod(IRMethod* mthd)
 	mthd->AssembledMethod = ((void(*)())((unsigned int)mthPtr));
 
 	BranchRegistry* branchRegistry = BranchRegistry_Create(mthd->IRCodes[mthd->IRCodesCount - 1]->InstructionLocation);
-
+	
 	JIT_Layout_Parameters(mthd);
+	JIT_Layout_LocalVariables(mthd);
 
 
 	compMthd = JIT_Emit_Prologue(mthd, compMthd);

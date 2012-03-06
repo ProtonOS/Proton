@@ -544,6 +544,13 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 			LocalsSignature* sig = LocalsSignature_Expand(((StandAloneSignature*)tok->Data)->Signature, fil);
 			
 			m->LocalVariableCount = sig->LocalVariableCount;
+			m->LocalVariables = (IRLocalVariable**)calloc(m->LocalVariableCount, sizeof(IRLocalVariable*));
+			for (uint32_t i = 0; i < m->LocalVariableCount; i++)
+			{
+				m->LocalVariables[i] = (IRLocalVariable*)calloc(1, sizeof(IRLocalVariable));
+				m->LocalVariables[i]->VariableType = GetIRTypeOfSignatureType(dom, fil, asmbly, sig->LocalVariables[i]->Type);
+				m->LocalVariables[i]->LocalVariableIndex = i;
+			}
 
 			LocalsSignature_Destroy(sig);
 			free(tok);
@@ -3883,8 +3890,7 @@ ALWAYS_INLINE IRType* GetIRTypeOfSignatureType(AppDomain* dom, CLIFile* fil, IRA
 			printf("WARNING: Not quite sure how to deal with this yet!\n");
 			return NULL;
 		case Signature_ElementType_SingleDimensionArray:
-			printf("WARNING: Not quite sure how to deal with this yet!\n");
-			return NULL;
+			return asmbly->Types[dom->CachedType___System_Array->TableIndex - 1];
 
 		case Signature_ElementType_MethodVar:
 			printf("WARNING: Generic parameters aren't supported yet!\n");

@@ -103,6 +103,7 @@ struct _IRMethod
 	IRType* ReturnType;
 
 	bool_t ParametersLayedOut;
+	bool_t LocalsLayedOut;
 };
 
 /*
@@ -137,6 +138,7 @@ struct _IRLocalVariable
 	uint32_t LocalVariableIndex;
     IRType* VariableType;
 	uint32_t Offset;
+	uint32_t Size;
 };
 
 struct _IRField
