@@ -163,6 +163,9 @@ void JIT_Layout_Fields(IRType* tp)
 
 char* JIT_Emit_Prologue(IRMethod* mth, char* compMethod)
 {
+	x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, 0, 4);
+	x86_mov_membase_reg(compMethod, X86_ESP, 4, X86_EAX, 4);
+	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 4);
 	x86_push_reg(compMethod, X86_EBP);
 
 	uint32_t localsSize = mth->LocalVariableCount * global_SizeOfPointerInBytes;
@@ -212,6 +215,7 @@ char* JIT_Emit_Epilogue(IRMethod* mth, char* compMethod)
 	}
 
 	x86_leave(compMethod);
+	x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, 4);
 	x86_ret(compMethod);
 
 	return compMethod;
@@ -241,6 +245,9 @@ char* JIT_Compile_Return					(IRInstruction* instr, char* compMethod, IRMethod* 
 		x86_pop_reg(compMethod, X86_EAX);
 	}
 	x86_leave(compMethod);
+	x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, 4);
+	x86_mov_reg_membase(compMethod, X86_EBX, X86_ESP, 4, 4);
+	x86_mov_membase_reg(compMethod, X86_ESP, 0, X86_EBX, 4);
 	x86_ret(compMethod);
 	return compMethod;
 }
@@ -1265,65 +1272,6 @@ char* JIT_Compile_LoadNull					(IRInstruction* instr, char* compMethod, IRMethod
 }
 
 
-char* JIT_Compile_NewObject					(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
-{
-	IRMethod* method = (IRMethod*)instr->Arg1;
-	IRType* type = method->ParentAssembly->Types[method->MethodDefinition->TypeDefinition->TableIndex - 1];
-	if (type->TypeDef != method->ParentAssembly->ParentDomain->CachedType___System_String)
-	{
-		compMethod = JIT_Emit_ParamSwap(compMethod, method->ParameterCount - 1);
-
-		uint32_t sizeOfType = SizeOfType(type);
-		x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, 28);
-		x86_mov_membase_imm(compMethod, X86_ESP, 20, method->MethodDefinition->TypeDefinition->TableIndex - 1, 4);
-		x86_mov_membase_imm(compMethod, X86_ESP, 16, method->ParentAssembly->AssemblyIndex, 4);
-		x86_mov_membase_imm(compMethod, X86_ESP, 12, method->ParentAssembly->ParentDomain->DomainIndex, 4);
-		x86_mov_membase_imm(compMethod, X86_ESP, 8, sizeOfType, 4);
-		x86_mov_membase_imm(compMethod, X86_ESP, 4, (int)method->ParentAssembly->ParentDomain->RootObject, 4);
-		x86_mov_membase_imm(compMethod, X86_ESP, 0, (int)method->ParentAssembly->ParentDomain->GarbageCollector, 4);
-		x86_call_code(compMethod, GC_AllocateObject);
-		x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 24);
-		x86_mov_membase_reg(compMethod, X86_ESP, 0, X86_EAX, 4);
-	
-		if (!method->AssembledMethod) JIT_CompileMethod(method);
-
-		x86_call_code(compMethod, method->AssembledMethod);
-		x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, (method->ParameterCount - 1) * 4);
-	}
-	else // Strings return their new obj from constructor
-	{
-		compMethod = JIT_Emit_ParamSwap(compMethod, method->ParameterCount - 1);
-		x86_push_imm(compMethod, 0);
-		x86_push_imm(compMethod, method->ParentAssembly->ParentDomain);
-
-		x86_call_code(compMethod, method->AssembledMethod);
-		x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, (method->ParameterCount + 1) * 4);
-		x86_push_reg(compMethod, X86_EAX);
-	}
-
-	return compMethod;
-}
-
-char* JIT_Compile_NewArray					(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
-{
-	IRType* type = (IRType*)instr->Arg1;
-	uint32_t sizeOfType = SizeOfType(type);
-	x86_pop_reg(compMethod, X86_EAX); // Number of Elements
-	x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, 32);
-	x86_mov_membase_imm(compMethod, X86_ESP, 24, type->TypeIndex, 4);
-	x86_mov_membase_imm(compMethod, X86_ESP, 20, type->ParentAssembly->AssemblyIndex, 4);
-	x86_mov_membase_imm(compMethod, X86_ESP, 16, type->ParentAssembly->ParentDomain->DomainIndex, 4);
-	x86_mov_membase_imm(compMethod, X86_ESP, 12, sizeOfType, 4);
-	x86_mov_membase_reg(compMethod, X86_ESP, 8, X86_EAX, 4);
-	x86_mov_membase_imm(compMethod, X86_ESP, 4, (int)mth->ParentAssembly->ParentDomain->RootObject, 4);
-	x86_mov_membase_imm(compMethod, X86_ESP, 0, (int)mth->ParentAssembly->ParentDomain->GarbageCollector, 4);
-	x86_call_code(compMethod, GC_AllocateArray);
-	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 28);
-	x86_mov_membase_reg(compMethod, X86_ESP, 0, X86_EAX, 4);
-	return compMethod;
-}
-
-
 char* JIT_Compile_Dup						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, 0, 4);
@@ -1938,6 +1886,66 @@ char* JIT_Compile_LoadVirtualFunction		(IRInstruction* instr, char* compMethod, 
 }
 
 
+
+char* JIT_Compile_NewArray					(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
+{
+	IRType* type = (IRType*)instr->Arg1;
+	uint32_t sizeOfType = SizeOfType(type);
+	x86_pop_reg(compMethod, X86_EAX); // Number of Elements
+	x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, 32);
+	x86_mov_membase_imm(compMethod, X86_ESP, 24, type->TypeIndex, 4);
+	x86_mov_membase_imm(compMethod, X86_ESP, 20, type->ParentAssembly->AssemblyIndex, 4);
+	x86_mov_membase_imm(compMethod, X86_ESP, 16, type->ParentAssembly->ParentDomain->DomainIndex, 4);
+	x86_mov_membase_imm(compMethod, X86_ESP, 12, sizeOfType, 4);
+	x86_mov_membase_reg(compMethod, X86_ESP, 8, X86_EAX, 4);
+	x86_mov_membase_imm(compMethod, X86_ESP, 4, (int)mth->ParentAssembly->ParentDomain->RootObject, 4);
+	x86_mov_membase_imm(compMethod, X86_ESP, 0, (int)mth->ParentAssembly->ParentDomain->GarbageCollector, 4);
+	x86_call_code(compMethod, GC_AllocateArray);
+	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 28);
+	x86_mov_membase_reg(compMethod, X86_ESP, 0, X86_EAX, 4);
+	return compMethod;
+}
+
+char* JIT_Compile_NewObject					(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
+{
+	IRMethod* method = (IRMethod*)instr->Arg1;
+	IRType* type = method->ParentAssembly->Types[method->MethodDefinition->TypeDefinition->TableIndex - 1];
+	if (type->TypeDef != method->ParentAssembly->ParentDomain->CachedType___System_String)
+	{
+		compMethod = JIT_Emit_ParamSwap(compMethod, method->ParameterCount);
+
+		uint32_t sizeOfType = SizeOfType(type);
+		x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, 28);
+		x86_mov_membase_imm(compMethod, X86_ESP, 20, method->MethodDefinition->TypeDefinition->TableIndex - 1, 4);
+		x86_mov_membase_imm(compMethod, X86_ESP, 16, method->ParentAssembly->AssemblyIndex, 4);
+		x86_mov_membase_imm(compMethod, X86_ESP, 12, method->ParentAssembly->ParentDomain->DomainIndex, 4);
+		x86_mov_membase_imm(compMethod, X86_ESP, 8, sizeOfType, 4);
+		x86_mov_membase_imm(compMethod, X86_ESP, 4, (int)method->ParentAssembly->ParentDomain->RootObject, 4);
+		x86_mov_membase_imm(compMethod, X86_ESP, 0, (int)method->ParentAssembly->ParentDomain->GarbageCollector, 4);
+		x86_call_code(compMethod, GC_AllocateObject);
+		x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 24);
+		x86_mov_membase_reg(compMethod, X86_ESP, 0, X86_EAX, 4);
+	
+		if (!method->AssembledMethod) JIT_CompileMethod(method);
+
+		x86_push_imm(compMethod, (int)method->ParentAssembly->ParentDomain);
+		x86_call_code(compMethod, method->AssembledMethod);
+		x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, (method->ParameterCount) * 4);
+	}
+	else // Strings return their new obj from constructor
+	{
+		compMethod = JIT_Emit_ParamSwap(compMethod, method->ParameterCount - 1);
+		x86_push_imm(compMethod, 0);
+		x86_push_imm(compMethod, method->ParentAssembly->ParentDomain);
+
+		x86_call_code(compMethod, method->AssembledMethod);
+		x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, (method->ParameterCount + 1) * 4);
+		x86_push_reg(compMethod, X86_EAX);
+	}
+
+	return compMethod;
+}
+
 char* JIT_Compile_Call_Absolute				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	IRMethod* m = (IRMethod*)instr->Arg1;
@@ -1947,9 +1955,10 @@ char* JIT_Compile_Call_Absolute				(IRInstruction* instr, char* compMethod, IRMe
 	}
 
 	compMethod = JIT_Emit_ParamSwap(compMethod, m->ParameterCount);
-
+	
+	x86_push_imm(compMethod, (unsigned int)m->ParentAssembly->ParentDomain);
 	x86_call_code(compMethod, m->AssembledMethod);
-	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, (m->ParameterCount * 4));
+	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, ((m->ParameterCount + 1) * 4));
 	if (m->Returns)
 	{
 		x86_push_reg(compMethod, X86_EAX);
@@ -1987,9 +1996,10 @@ char* JIT_Compile_Call						(IRInstruction* instr, char* compMethod, IRMethod* m
 	
 	x86_push_imm(compMethod, instr->Arg1);
 	x86_call_code(compMethod, JIT_Trampoline_DoCall);
-	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 4); // Fix the stack from calling the trampoline
+	x86_mov_membase_imm(compMethod, X86_ESP, 0, (unsigned int)m->ParentAssembly->ParentDomain, 4);
 	x86_call_reg(compMethod, X86_EAX);
-	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, (spec->ParentType->Methods[spec->MethodIndex]->ParameterCount * 4));
+	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, ((spec->ParentType->Methods[spec->MethodIndex]->ParameterCount + 1) * 4));
+
 	if (m->Returns)
 	{
 		x86_push_reg(compMethod, X86_EAX);
@@ -2033,11 +2043,7 @@ void* JIT_Trampoline_DoCall(IRMethodSpec* mth, ReferenceTypeObject* obj)
 
 	//IRMethod* m = tp->Methods[mth->MethodIndex];
 	variable = ((IRType*)variable)->Methods[mth->MethodIndex];
-	if (((IRMethod*)variable)->MethodDefinition->ImplFlags & MethodImplAttributes_InternalCall)
-	{
-		return (((IRMethod*)variable)->MethodDefinition->InternalCall);
-	}
-	else if (!((IRMethod*)variable)->AssembledMethod)
+	if (!((IRMethod*)variable)->AssembledMethod)
 	{
 		JIT_CompileMethod(((IRMethod*)variable));
 	}

@@ -17,16 +17,11 @@ namespace Mernel
             object[] objarr = new object[2];
             objarr[0] = new Test();
             Console.WriteLine(objarr[0].ToString());
-            //uint ch = (uint)objarr[0];
+            uint ch = (uint)objarr[0];
             @char[0] = 'T';
             @char[1] = 'E';
             @char[2] = 'S';
             @char[3] = 'T';
-            uint b = 4;
-            uint c = 2;
-            uint a = 0;
-            a = (uint)((b == c) ? 1 : 0);
-            Console.WriteLine(a.ToString());
             string str2 = new string(@char);
             string str = new string('*', 40);
             Console.WriteLine(str);

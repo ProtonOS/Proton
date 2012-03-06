@@ -26,7 +26,7 @@ ReferenceTypeObject* System_String_Ctor_SBytePtr(AppDomain* pAppDomain, Referenc
 {
 	uint32_t sizeOfString = 0;
 	int8_t* iterator = pSBytePtr;
-	while (iterator != 0)
+	while (*iterator)
 	{
 		++sizeOfString;
 		++iterator;

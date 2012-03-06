@@ -128,7 +128,6 @@ ReferenceTypeObject* GCHeap_Allocate(GCHeap* pGCHeap, uint32_t pStackSize, uint3
 
 ReferenceTypeObject* GC_AllocateObject(GC* pGC, ReferenceTypeObject* pInitialReference, uint32_t pSize, uint32_t pDomainIndex, uint32_t pAssemblyIndex, uint32_t pTypeIndex)
 {
-	printf("GC_AllocateObject of size %u\n", (unsigned int)pSize);
     if (!pInitialReference) Panic("GC_AllocateObject pInitialReference == NULL");
     if (pSize >= 0x7FFFFFFF) Panic("GC_AllocateObject pSize >= 0x7FFFFFFF");
     ReferenceTypeObject* object = NULL;
@@ -137,6 +136,7 @@ ReferenceTypeObject* GC_AllocateObject(GC* pGC, ReferenceTypeObject* pInitialRef
     else if (pSize <= GCHeapStack_LargeHeap_Size)
         object = GCHeap_Allocate(&pGC->LargeHeap, GCHeapStack_LargeHeap_Size, pSize);
     else object = GCHeap_Allocate(&pGC->LargeHeap, pSize, pSize);
+	//printf("GC_AllocateObject of size %u @ 0x%x\n", (unsigned int)pSize, (unsigned int)object);
     ReferenceTypeObject_AddReference(pInitialReference, object);
 	object->DomainIndex = pDomainIndex;
 	object->AssemblyIndex = pAssemblyIndex;
