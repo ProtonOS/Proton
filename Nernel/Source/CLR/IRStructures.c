@@ -38,6 +38,14 @@ IRType* IRType_Create()
 	return tp;
 }
 
+IRArrayType* IRArrayType_Create(IRType* pElementType, IRType* pArrayType)
+{
+	IRArrayType* tp = (IRArrayType*)calloc(1, sizeof(IRArrayType));
+	tp->ArrayElementType = pElementType;
+	tp->ArrayType = pArrayType;
+	return tp;
+}
+
 IRLocalVariable* IRLocalVariable_Create()
 {
 	IRLocalVariable* var = (IRLocalVariable*)calloc(1, sizeof(IRLocalVariable));
@@ -131,6 +139,11 @@ void IRType_Destroy(IRType* tp)
 {
 	if (tp->Fields)
 		free(tp->Fields);
+	free(tp);
+}
+
+void IRArrayType_Destroy(IRArrayType* tp)
+{
 	free(tp);
 }
 

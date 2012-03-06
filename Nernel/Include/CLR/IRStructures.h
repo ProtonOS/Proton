@@ -9,11 +9,13 @@ typedef struct _IRLocalVariable IRLocalVariable;
 typedef struct _IRField IRField;
 typedef struct _IRMethodSpec IRMethodSpec;
 typedef struct _IRFieldSpec IRFieldSpec;
+typedef struct _IRArrayType IRArrayType;
 
 
 // DO NOT put this include above the typedefs,
 // the typedefs are needed to be able to resolve
 // circular inclusions.
+#include <uthash.h>
 #include <CLR/CLIFile.h>
 #include <CLR/OpCodes_IR.h>
 #include <CLR/AppDomain.h>
@@ -40,6 +42,8 @@ struct _IRAssembly
     IRField** Fields;
     uint32_t TypeCount;
     IRType** Types;
+
+	IRArrayType* ArrayTypesHashTable;
 };
 
 struct _IRType
@@ -70,6 +74,15 @@ struct _IRType
 
 	bool_t HasFinalizer;
 	IRMethod* Finalizer;
+
+	IRArrayType* ArrayType;
+};
+
+struct _IRArrayType
+{
+	IRType* ArrayElementType;
+	IRType* ArrayType;
+	UT_hash_handle HashHandle;
 };
 
 struct _IRMethod
@@ -185,6 +198,7 @@ IRMethod* IRMethod_Create();
 IRInstruction* IRInstruction_Create();
 IRParameter* IRParameter_Create();
 IRType* IRType_Create();
+IRArrayType* IRArrayType_Create(IRType* pElementType, IRType* pArrayType);
 IRLocalVariable* IRLocalVariable_Create();
 IRField* IRField_Create();
 IRMethodSpec* IRMethodSpec_Create();
@@ -196,6 +210,7 @@ void IRMethod_Destroy(IRMethod* mth);
 void IRInstruction_Destroy(IRInstruction* instr);
 void IRParameter_Destroy(IRParameter* param);
 void IRType_Destroy(IRType* tp);
+void IRArrayType_Destroy(IRArrayType* tp);
 void IRLocalVariable_Destroy(IRLocalVariable* var);
 void IRField_Destroy(IRField* fld);
 void IRMethodSpec_Destroy(IRMethodSpec* mthspec);

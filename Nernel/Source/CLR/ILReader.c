@@ -3812,7 +3812,7 @@ ALWAYS_INLINE void EmptyStack(SyntheticStack* stack)
 	}
 }
 
-ALWAYS_INLINE IRType* GetIRTypeOfSignatureType(AppDomain* dom, CLIFile* fil, IRAssembly* asmbly, SignatureType* tp)
+IRType* GetIRTypeOfSignatureType(AppDomain* dom, CLIFile* fil, IRAssembly* asmbly, SignatureType* tp)
 {
 	switch(tp->ElementType)
 	{
@@ -3890,7 +3890,22 @@ ALWAYS_INLINE IRType* GetIRTypeOfSignatureType(AppDomain* dom, CLIFile* fil, IRA
 			printf("WARNING: Not quite sure how to deal with this yet!\n");
 			return NULL;
 		case Signature_ElementType_SingleDimensionArray:
-			return asmbly->Types[dom->CachedType___System_Array->TableIndex - 1];
+		{
+			IRType* sysArrayType = asmbly->Types[dom->CachedType___System_Array->TableIndex - 1];
+			IRType* elementType = GetIRTypeOfSignatureType(dom, fil, asmbly, tp->SZArrayType);
+			IRType* arrayType = NULL;
+			IRArrayType* lookupType = NULL;
+			HASH_FIND(HashHandle, asmbly->ArrayTypesHashTable, (void*)&elementType, sizeof(void*), lookupType);
+			if (!lookupType)
+			{
+				arrayType = IRType_Create();
+				*arrayType = *sysArrayType; // Shallow copy everything first
+				arrayType->ArrayType = IRArrayType_Create(elementType, arrayType);
+				HASH_ADD(HashHandle, asmbly->ArrayTypesHashTable, ArrayElementType, sizeof(void*), arrayType->ArrayType);
+			}
+			else arrayType = lookupType->ArrayType;
+			return arrayType;
+		}
 
 		case Signature_ElementType_MethodVar:
 			printf("WARNING: Generic parameters aren't supported yet!\n");
