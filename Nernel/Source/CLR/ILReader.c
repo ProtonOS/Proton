@@ -517,7 +517,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 		if (!sig->ReturnType->Void)
 		{
 			m->Returns = TRUE;
-			//m->ReturnType = GetElementTypeFromTypeDef
+			m->ReturnType = GetIRTypeOfSignatureType(dom, fil, asmbly, sig->ReturnType->Type);
 		}
 
 		if (sig->HasThis && !sig->ExplicitThis)

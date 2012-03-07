@@ -186,7 +186,13 @@ char* JIT_Emit_Prologue(IRMethod* mth, char* compMethod)
 	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 4);
 	x86_push_reg(compMethod, X86_EBP);
 
-	uint32_t localsSize = mth->LocalVariableCount * global_SizeOfPointerInBytes;
+	uint32_t localsSize = 0;
+	if (mth->LocalVariableCount > 0)
+	{
+		JIT_Layout_LocalVariables(mth);
+		localsSize += mth->LocalVariables[mth->LocalVariableCount - 1]->Offset + mth->LocalVariables[mth->LocalVariableCount - 1]->Size;
+		printf("Prologue: LastLocal %u Offset %u + %u Size\n", (unsigned int)mth->LocalVariableCount - 1, (unsigned int)mth->LocalVariables[mth->LocalVariableCount - 1]->Offset, (unsigned int)mth->LocalVariables[mth->LocalVariableCount - 1]->Size);
+	}
 	/*for (uint32_t i = 0; i < mth->LocalVariableCount; i++)
 	{
 		IRLocalVariable* var = mth->LocalVariables[i];
@@ -229,13 +235,17 @@ char* JIT_Emit_Epilogue(IRMethod* mth, char* compMethod)
 	
 	if (mth->Returns)
 	{
+		if (StackSizeOfType(mth->ReturnType) == 8)
+		{
+			x86_pop_reg(compMethod, X86_EDX);
+		}
 		x86_pop_reg(compMethod, X86_EAX);
 	}
-
 	x86_leave(compMethod);
 	x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, 4);
+	x86_mov_reg_membase(compMethod, X86_EBX, X86_ESP, 4, 4);
+	x86_mov_membase_reg(compMethod, X86_ESP, 0, X86_EBX, 4);
 	x86_ret(compMethod);
-
 	return compMethod;
 }
 
@@ -260,6 +270,10 @@ char* JIT_Compile_Return					(IRInstruction* instr, char* compMethod, IRMethod* 
 {
 	if (mth->Returns)
 	{
+		if (StackSizeOfType(mth->ReturnType) == 8)
+		{
+			x86_pop_reg(compMethod, X86_EDX);
+		}
 		x86_pop_reg(compMethod, X86_EAX);
 	}
 	x86_leave(compMethod);
@@ -635,8 +649,8 @@ char* JIT_Compile_Convert_Unchecked			(IRInstruction* instr, char* compMethod, I
 				case ConversionArgumentType_I8:
 					x86_pop_reg(compMethod, X86_EAX);
 					x86_cdq(compMethod);
-					x86_push_reg(compMethod, X86_EAX);
 					x86_push_reg(compMethod, X86_EDX);
+					x86_push_reg(compMethod, X86_EAX);
 					break;
 				case ConversionArgumentType_U8:
 					x86_pop_reg(compMethod, X86_EAX);
@@ -1977,7 +1991,15 @@ char* JIT_Compile_NewObject					(IRInstruction* instr, char* compMethod, IRMetho
 
 		x86_push_imm(compMethod, (int)method->ParentAssembly->ParentDomain);
 		x86_call_code(compMethod, method->AssembledMethod);
-		x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, (method->ParameterCount) * 4);
+		uint32_t paramsSize = 0;
+		if (method->ParameterCount > 0)
+		{
+			JIT_Layout_Parameters(method);
+			paramsSize += method->Parameters[method->ParameterCount - 1]->Offset + method->Parameters[method->ParameterCount - 1]->Size;
+			paramsSize -= 8; // For stack frame and return pointer
+			printf("NewObj: LastParam Offset %u + %u Size\n", (unsigned int)method->Parameters[method->ParameterCount - 1]->Offset, (unsigned int)method->Parameters[method->ParameterCount - 1]->Size);
+		}
+		x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, paramsSize);
 	}
 	else // Strings return their new obj from constructor
 	{
@@ -1986,7 +2008,15 @@ char* JIT_Compile_NewObject					(IRInstruction* instr, char* compMethod, IRMetho
 		x86_push_imm(compMethod, method->ParentAssembly->ParentDomain);
 
 		x86_call_code(compMethod, method->AssembledMethod);
-		x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, (method->ParameterCount + 1) * 4);
+		uint32_t paramsSize = global_SizeOfPointerInBytes;
+		if (method->ParameterCount > 0)
+		{
+			JIT_Layout_Parameters(method);
+			paramsSize += method->Parameters[method->ParameterCount - 1]->Offset + method->Parameters[method->ParameterCount - 1]->Size;
+			paramsSize -= 8; // For stack frame and return pointer
+			printf("NewObjString: LastParam Offset %u + %u Size\n", (unsigned int)method->Parameters[method->ParameterCount - 1]->Offset, (unsigned int)method->Parameters[method->ParameterCount - 1]->Size);
+		}
+		x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, paramsSize);
 		x86_push_reg(compMethod, X86_EAX);
 	}
 
@@ -2005,10 +2035,22 @@ char* JIT_Compile_Call_Absolute				(IRInstruction* instr, char* compMethod, IRMe
 	
 	x86_push_imm(compMethod, (unsigned int)m->ParentAssembly->ParentDomain);
 	x86_call_code(compMethod, m->AssembledMethod);
-	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, ((m->ParameterCount + 1) * 4));
+	uint32_t paramsSize = global_SizeOfPointerInBytes;
+	if (m->ParameterCount > 0)
+	{
+		JIT_Layout_Parameters(m);
+		paramsSize += m->Parameters[m->ParameterCount - 1]->Offset + m->Parameters[m->ParameterCount - 1]->Size;
+		paramsSize -= 8; // For stack frame and return pointer
+		printf("CallAbsolute: LastParam Offset %u + %u Size\n", (unsigned int)m->Parameters[m->ParameterCount - 1]->Offset, (unsigned int)m->Parameters[m->ParameterCount - 1]->Size);
+	}
+	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, paramsSize);
 	if (m->Returns)
 	{
 		x86_push_reg(compMethod, X86_EAX);
+		if (StackSizeOfType(m->ReturnType) == 8)
+		{
+			x86_push_reg(compMethod, X86_EDX);
+		}
 	}
 	return compMethod;
 }
@@ -2022,10 +2064,22 @@ char* JIT_Compile_Call_Internal				(IRInstruction* instr, char* compMethod, IRMe
 
 	x86_push_imm(compMethod, (unsigned int)m->ParentAssembly->ParentDomain); // Push the domain
 	x86_call_code(compMethod, mthd); // Call the method.
-	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, ((m->ParameterCount + 1) * 4)); // Fix the stack after calling the method
+	uint32_t paramsSize = global_SizeOfPointerInBytes;
+	if (m->ParameterCount > 0)
+	{
+		JIT_Layout_Parameters(m);
+		paramsSize += m->Parameters[m->ParameterCount - 1]->Offset + m->Parameters[m->ParameterCount - 1]->Size;
+		paramsSize -= 8; // For stack frame and return pointer
+		printf("CallInternal: LastParam Offset %u + %u Size\n", (unsigned int)m->Parameters[m->ParameterCount - 1]->Offset, (unsigned int)m->Parameters[m->ParameterCount - 1]->Size);
+	}
+	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, paramsSize);
 	if (m->Returns)
 	{
 		x86_push_reg(compMethod, X86_EAX);
+		if (StackSizeOfType(m->ReturnType) == 8)
+		{
+			x86_push_reg(compMethod, X86_EDX);
+		}
 	}
 
 	return compMethod;
@@ -2045,11 +2099,23 @@ char* JIT_Compile_Call						(IRInstruction* instr, char* compMethod, IRMethod* m
 	x86_call_code(compMethod, JIT_Trampoline_DoCall);
 	x86_mov_membase_imm(compMethod, X86_ESP, 0, (unsigned int)m->ParentAssembly->ParentDomain, 4);
 	x86_call_reg(compMethod, X86_EAX);
-	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, ((spec->ParentType->Methods[spec->MethodIndex]->ParameterCount + 1) * 4));
+	uint32_t paramsSize = global_SizeOfPointerInBytes;
+	if (m->ParameterCount > 0)
+	{
+		JIT_Layout_Parameters(m);
+		paramsSize += m->Parameters[m->ParameterCount - 1]->Offset + m->Parameters[m->ParameterCount - 1]->Size;
+		paramsSize -= 8; // For stack frame and return pointer
+		printf("Call: LastParam Offset %u + %u Size\n", (unsigned int)m->Parameters[m->ParameterCount - 1]->Offset, (unsigned int)m->Parameters[m->ParameterCount - 1]->Size);
+	}
+	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, paramsSize);
 
 	if (m->Returns)
 	{
 		x86_push_reg(compMethod, X86_EAX);
+		if (StackSizeOfType(m->ReturnType) == 8)
+		{
+			x86_push_reg(compMethod, X86_EDX);
+		}
 	}
 
 	return compMethod;
