@@ -7,12 +7,12 @@ namespace Mernel
     {
         private static void Main()
         {
-            ulong blargh = 0x000000FF0000FFFF;
-            Console.WriteLine("Blargh! " + ((uint)blargh).ToString());
-            char[] @char = new char[4];
-            uint[] uarr = new uint[3];
-            uarr[2] = 93;
-            Console.WriteLine(uarr[2].ToString());
+            //ulong blargh = 0x000000FF0000FFFF;
+            //Console.WriteLine("Blargh! " + ((uint)blargh).ToString());
+            //char[] @char = new char[4];
+            //uint[] uarr = new uint[3];
+            //uarr[2] = 93;
+            //Console.WriteLine(uarr[2].ToString());
             //Test[] tarr = new Test[9];
             //tarr[0] = new Test();
             //Console.WriteLine(tarr[0].ToString());
@@ -20,19 +20,33 @@ namespace Mernel
             //objarr[0] = new Test();
             //Console.WriteLine(objarr[0].ToString());
             //uint ch = (uint)objarr[0];
-            @char[0] = 'T';
-            @char[1] = 'E';
-            @char[2] = 'S';
-            @char[3] = 'T';
-            string str2 = new string(@char);
-            string str = new string('*', 40);
-            Console.WriteLine(str);
-            Console.WriteLine(str2);
-            Test t = new Test();
-            t.Really();
-            t.JustATest();
+            //@char[0] = 'T';
+            //@char[1] = 'E';
+            //@char[2] = 'S';
+            //@char[3] = 'T';
+            //string str2 = new string(@char);
+            //string str = new string('*', 40);
+            //Console.WriteLine(str);
+            //Console.WriteLine(str2);
+            //Test t = new Test();
+            //t.Really();
+            //t.JustATest();
+            //Console.WriteLine("Factorial of 6 (Via Multiplication): " + Factorial(6).ToString());
             Console.WriteLine("Mernel Started");
-            Console.WriteLine("Factorial of 6 (Via Multiplication): " + Factorial(6).ToString());
+
+            uint x = 10;
+            switch (x)
+            {
+                case 1:
+                    Console.WriteLine("Switched for 1");
+                    break;
+                case 2:
+                    Console.WriteLine("Switched for 2");
+                    break;
+                default:
+                    Console.WriteLine("Switched for " + x.ToString());
+                    break;
+            }
         }
 
         private static void ActionTest() { Console.WriteLine("ActionTest"); }

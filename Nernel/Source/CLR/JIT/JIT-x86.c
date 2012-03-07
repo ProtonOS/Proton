@@ -469,7 +469,14 @@ char* JIT_LinkBranches						(char* compMethod, BranchRegistry* branchReg, uint32
 	{
 		if (branchReg->BranchLocations[i] != 0)
 		{
-			x86_patch((unsigned char*)branchReg->BranchLocations[i], (unsigned char*)branchReg->InstructionLocations[branchReg->TargetLocations[i]]);
+			if (branchReg->SpecialBranch[i])
+			{
+				*(size_t*)branchReg->BranchLocations[i] = branchReg->InstructionLocations[branchReg->TargetLocations[i]];
+			}
+			else
+			{
+				x86_patch((unsigned char*)branchReg->BranchLocations[i], (unsigned char*)branchReg->InstructionLocations[branchReg->TargetLocations[i]]);
+			}
 		}
 	}
 
@@ -1614,6 +1621,29 @@ char* JIT_Compile_Copy_Object				(IRInstruction* instr, char* compMethod, IRMeth
 
 char* JIT_Compile_Switch					(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
+	uint32_t targetCount = *(uint32_t*)instr->Arg1;
+	IRInstruction** targets = (IRInstruction**)instr->Arg2;
+
+	x86_pop_reg(compMethod, X86_EAX);
+	x86_alu_reg_imm(compMethod, X86_CMP, X86_EAX, targetCount);
+	unsigned char* jumpToDefault = (unsigned char*)compMethod;
+	x86_branch32(compMethod, X86_CC_AE, 0, FALSE);
+	x86_shift_reg_imm(compMethod, X86_SHL, X86_EAX, 2);
+	unsigned char* skipTable = (unsigned char*)compMethod;
+	x86_jump32(compMethod, 0);
+	uint32_t switchTableLocation = (uint32_t)compMethod;
+	for (uint32_t index = 0; index < targetCount; ++index)
+	{
+		BranchRegistry_RegisterSpecialBranchForLink(branchRegistry, instr->InstructionLocation + index * 4, targets[index]->InstructionLocation, compMethod);
+		x86_imm_emit32(compMethod, targets[index]->InstructionLocation);
+	}
+	x86_patch(skipTable, (unsigned char*)compMethod);
+	x86_alu_reg_imm(compMethod, X86_ADD, X86_EAX, switchTableLocation);
+	x86_mov_reg_membase(compMethod, X86_EAX, X86_EAX, 0, 4);
+	x86_jump_reg(compMethod, X86_EAX);
+	// After this is the default case.
+	x86_patch(jumpToDefault, (unsigned char*)compMethod);
+
 	return compMethod;
 }
 
