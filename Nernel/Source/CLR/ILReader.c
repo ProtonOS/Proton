@@ -1162,7 +1162,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 						{
 							EMIT_IR_2ARG_NO_DISPOSE(IROpCode_Call_Internal, mthDef->InternalCall, (int*)mthDef->TableIndex);
 						}
-						else if ((mthDef->Flags & MethodAttributes_Static) || (mthDef->Flags & MethodAttributes_RTSpecialName) || (mthDef->TypeDefinition->Flags & TypeAttributes_Sealed) || IsStruct(mthDef->TypeDefinition, dom))
+						else if ((mthDef->Flags & MethodAttributes_Static) || ((mthDef->Flags & MethodAttributes_Virtual) == 0) || (mthDef->Flags & MethodAttributes_RTSpecialName) || (mthDef->TypeDefinition->Flags & TypeAttributes_Sealed) || IsStruct(mthDef->TypeDefinition, dom))
 						{
 							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Call_Absolute, (IRMethod*)(mthDef->TableIndex));
 						}
@@ -1367,7 +1367,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 						{
 							EMIT_IR_2ARG_NO_DISPOSE(IROpCode_Call_Internal, mthDef->InternalCall, (int*)mthDef->TableIndex);
 						}
-						else if ((mthDef->Flags & MethodAttributes_RTSpecialName) || (mthDef->TypeDefinition->Flags & TypeAttributes_Sealed) || IsStruct(mthDef->TypeDefinition, dom))
+						else if (((mthDef->Flags & MethodAttributes_Virtual) == 0) || (mthDef->Flags & MethodAttributes_RTSpecialName) || (mthDef->TypeDefinition->Flags & TypeAttributes_Sealed) || IsStruct(mthDef->TypeDefinition, dom))
 						{
 							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Call_Absolute, (IRMethod*)(mthDef->TableIndex));
 						}

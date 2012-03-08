@@ -72,7 +72,7 @@ namespace Mernel
         }
     }
 
-    internal sealed class Bob
+    internal class Bob
     {
         //public Bob() { }
 
