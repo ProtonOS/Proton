@@ -78,12 +78,13 @@ namespace Mernel
 
         public void FindPeter()
         {
-            Console.Write("Looking for Peter.");
-            for (uint i2 = 10; i2 < 30; i2++)
+            Console.Write("Looking for Peter");
+            for (uint i2 = 0; i2 < 5; i2++)
             {
-                for (uint i = 0; i < 5000000; i++) ;
                 Console.Write(".");
+                for (uint i = 0; i < 20000000; i++) ;
             }
+            Console.WriteLine("");
             Console.WriteLine("Failed to find Peter.");
         }
 
