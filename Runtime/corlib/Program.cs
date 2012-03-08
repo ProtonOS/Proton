@@ -14,11 +14,6 @@ namespace Mernel
         {
             long ticks = DateTime.InternalUtcNow();
             Console.WriteLine("Started @ " + ((uint)ticks).ToString());
-            for (int i = 0; i < 1000000; ++i)
-            {
-            }
-            ticks = DateTime.InternalUtcNow();
-            Console.WriteLine("Finished @ " + ((uint)ticks).ToString());
             //ulong blargh = 0x000000FF0000FFFF;
             //Console.WriteLine("Blargh! " + ((uint)blargh).ToString());
             //char[] @char = new char[4];
@@ -44,10 +39,11 @@ namespace Mernel
             //t.Really();
             //t.JustATest();
             //Console.WriteLine("Factorial of 6 (Via Multiplication): " + Factorial(6).ToString());
-            Console.WriteLine("Mernel Started");
+            //Console.WriteLine("Mernel Started");
 
             Bob b = new Bob();
             b.FindPeter();
+            
 
             uint x = 10;
             switch (x)
@@ -63,7 +59,9 @@ namespace Mernel
                     break;
             }
             b.HeWasLate();
-            Console.WriteLine("Mernel about to return");
+
+            ticks = DateTime.InternalUtcNow();
+            Console.WriteLine("Finished @ " + ((uint)ticks).ToString());
         }
 
         private static void ActionTest() { Console.WriteLine("ActionTest"); }
@@ -76,16 +74,17 @@ namespace Mernel
 
     internal sealed class Bob
     {
+        //public Bob() { }
+
         public void FindPeter()
         {
             Console.Write("Looking for Peter.");
-            for (uint i2 = 0; i2 < 30; i2++)
+            for (uint i2 = 10; i2 < 30; i2++)
             {
                 for (uint i = 0; i < 5000000; i++) ;
                 Console.Write(".");
             }
             Console.WriteLine("Failed to find Peter.");
-            for (uint i = 0; i < 50000000; i++) ;
         }
 
         public void HeWasLate()
