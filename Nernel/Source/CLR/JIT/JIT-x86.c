@@ -31,62 +31,91 @@ ALWAYS_INLINE char* JIT_Emit_ParamSwap(char* compMethod, IRMethod* pMethod, bool
 			paramsSize -= global_SizeOfPointerInBytes;
 		if (paramsSize > 0)
 		{
-			x86_adjust_stack(compMethod, -paramsSize);
-			uint32_t fParamsCount = 0;
-			for (uint32_t i = ((pIgnoreThis) ? 1 : 0); i < pMethod->ParameterCount; i++)
+			bool_t SimpleParams = TRUE;
+			for (uint32_t i = 0; i < pMethod->ParameterCount; i++)
 			{
-				if (pMethod->Parameters[i]->Type->TypeDef == pMethod->ParentAssembly->ParentDomain->CachedType___System_Single || pMethod->Parameters[i]->Type->TypeDef == pMethod->ParentAssembly->ParentDomain->CachedType___System_Double)
+				if (pMethod->Parameters[i]->Size > 4)
 				{
-					fParamsCount++;
+					SimpleParams = FALSE;
+					break;
 				}
 			}
-
-			uint32_t curFParam = 0;
-			for (uint32_t i = ((pIgnoreThis) ? 1 : 0); i < pMethod->ParameterCount; i++)
+			if (!SimpleParams)
 			{
-				if (pMethod->Parameters[i]->Type->TypeDef == pMethod->ParentAssembly->ParentDomain->CachedType___System_Single)
+				x86_adjust_stack(compMethod, -paramsSize);
+				uint32_t dParamsCount = 0; // number of double-precision values.
+				uint32_t fParamsCount = 0;
+				for (uint32_t i = ((pIgnoreThis) ? 1 : 0); i < pMethod->ParameterCount; i++)
 				{
-					curFParam++;
-					x86_fld_reg(compMethod, fParamsCount - curFParam);
-					x86_fst_membase(compMethod, X86_ESP, paramsSize - pMethod->Parameters[i]->Offset, FALSE, TRUE);
-				}
-				else if (pMethod->Parameters[i]->Type->TypeDef == pMethod->ParentAssembly->ParentDomain->CachedType___System_Double)
-				{
-					curFParam++;
-					x86_fld_reg(compMethod, fParamsCount - curFParam);
-					x86_fst_membase(compMethod, X86_ESP, paramsSize - pMethod->Parameters[i]->Offset, TRUE, TRUE);
-				}
-				else
-				{
-					for (uint32_t i2 = 0; i2 < pMethod->Parameters[i]->Size >> 2; i2++)
+					if (pMethod->Parameters[i]->Type->TypeDef == pMethod->ParentAssembly->ParentDomain->CachedType___System_Single)
 					{
-						x86_mov_reg_membase(compMethod, X86_EBX, X86_EAX, pMethod->Parameters[i]->Offset + (i2 << 2), 4);
-						x86_mov_membase_reg(compMethod, X86_ESP, paramsSize - pMethod->Parameters[i]->Offset + (i2 << 2), X86_EBX, 4);
+						fParamsCount++;
+					}
+					else if (pMethod->Parameters[i]->Type->TypeDef == pMethod->ParentAssembly->ParentDomain->CachedType___System_Double)
+					{
+						dParamsCount++;
+						fParamsCount++;
 					}
 				}
-			}
 
-			if (fParamsCount > 0)
-			{
-				for (uint32_t i = 0; i < fParamsCount; i++)
+				uint32_t curFParam = 0;
+				for (uint32_t i = ((pIgnoreThis) ? 1 : 0); i < pMethod->ParameterCount; i++)
 				{
-					x86_fdecstp(compMethod);
+					if (pMethod->Parameters[i]->Type->TypeDef == pMethod->ParentAssembly->ParentDomain->CachedType___System_Single)
+					{
+						curFParam++;
+						x86_fld_reg(compMethod, fParamsCount - curFParam);
+						x86_fst_membase(compMethod, X86_ESP, paramsSize - pMethod->Parameters[i]->Offset, FALSE, TRUE);
+					}
+					else if (pMethod->Parameters[i]->Type->TypeDef == pMethod->ParentAssembly->ParentDomain->CachedType___System_Double)
+					{
+						curFParam++;
+						x86_fld_reg(compMethod, fParamsCount - curFParam);
+						x86_fst_membase(compMethod, X86_ESP, paramsSize - pMethod->Parameters[i]->Offset, TRUE, TRUE);
+					}
+					else
+					{
+						for (uint32_t i2 = 0; i2 < pMethod->Parameters[i]->Size >> 2; i2++)
+						{
+							x86_mov_reg_membase(compMethod, X86_EBX, X86_EAX, pMethod->Parameters[i]->Offset + (i2 << 2), 4);
+							x86_mov_membase_reg(compMethod, X86_ESP, paramsSize - pMethod->Parameters[i]->Offset + (i2 << 2), X86_EBX, 4);
+						}
+					}
+				}
+
+				if (fParamsCount > 0)
+				{
+					for (uint32_t i = 0; i < fParamsCount; i++)
+					{
+						x86_fdecstp(compMethod);
+					}
+				}
+
+				// Now, everything is on the stack, and we just need to move it up a bit.
+				int32_t fValueSize = ((fParamsCount - dParamsCount) << 2) + (dParamsCount << 3);
+				for (int32_t i = 0; i < paramsSize >> 2; i++)
+				{
+					x86_mov_reg_membase(compMethod, X86_EBX, X86_ESP, i << 2, 4);
+					x86_mov_membase_reg(compMethod, X86_EAX, i << 2, X86_EBX, 4);
+				}
+				x86_adjust_stack(compMethod, paramsSize - fValueSize);
+			}
+			else // Otherwise the params can be swapped in-place.
+			{
+				uint32_t paramCount = pMethod->ParameterCount;
+				uint32_t swapCount = paramCount >> 1;
+				// If paramCount is odd, the middle 
+				// param won't move at all.
+				for (uint32_t index = 0; index < swapCount; ++index)
+				{
+					x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, index << 2, 4);
+					x86_mov_reg_membase(compMethod, X86_EBX, X86_ESP, (paramCount - (index + 1)) << 2, 4);
+					x86_mov_membase_reg(compMethod, X86_ESP, index << 2, X86_EBX, 4);
+					x86_mov_membase_reg(compMethod, X86_ESP, (paramCount - (index + 1)) << 2, X86_EAX, 4);
 				}
 			}
 		}
 	}
-
-	//uint32_t paramCount = pMethod->ParameterCount;
-	//uint32_t swapCount = paramCount >> 1;
-	//// If paramCount is odd, the middle 
-	//// param won't move at all.
-	//for (uint32_t index = 0; index < swapCount; ++index)
-	//{
-	//	x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, index << 2, 4);
-	//	x86_mov_reg_membase(compMethod, X86_EBX, X86_ESP, (paramCount - (index + 1)) << 2, 4);
-	//	x86_mov_membase_reg(compMethod, X86_ESP, index << 2, X86_EBX, 4);
-	//	x86_mov_membase_reg(compMethod, X86_ESP, (paramCount - (index + 1)) << 2, X86_EAX, 4);
-	//}
 
 
 
@@ -599,9 +628,9 @@ char* JIT_Compile_Store_LocalVar			(IRInstruction* instr, char* compMethod, IRMe
 		Align(&size);
 		for (uint32_t movIndex = 0; movIndex < movCount; ++movIndex)
 		{
-			//x86_pop_reg(compMethod, X86_EAX);
-			//x86_mov_membase_reg(compMethod, X86_EBP, , X86_EAX, global_SizeOfPointerInBytes);
-			x86_pop_membase(compMethod, X86_EBP, -(mth->LocalVariables[localIndex]->Offset));
+			x86_pop_reg(compMethod, X86_EAX);
+			x86_mov_membase_reg(compMethod, X86_EBP, -(mth->LocalVariables[localIndex]->Offset), X86_EAX, global_SizeOfPointerInBytes);
+			//x86_pop_membase(compMethod, X86_EBP, -(mth->LocalVariables[localIndex]->Offset));
 		}
 	}
 	return compMethod;
