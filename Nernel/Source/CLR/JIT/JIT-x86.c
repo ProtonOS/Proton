@@ -19,18 +19,76 @@ ALWAYS_INLINE void Align(uint32_t* val)
 	}
 }
 
-ALWAYS_INLINE char* JIT_Emit_ParamSwap(char* compMethod, uint32_t paramCount)
+ALWAYS_INLINE char* JIT_Emit_ParamSwap(char* compMethod, IRMethod* pMethod, bool_t pIgnoreThis)
 {
-	uint32_t swapCount = paramCount / 2;
-	// If paramCount is odd, the middle 
-	// param won't move at all.
-	for (uint32_t index = 0; index < swapCount; ++index)
+	JIT_Layout_Parameters(pMethod);
+	int32_t paramsSize = 0;
+	if ((pMethod->ParameterCount - 1) > 0)
 	{
-		x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, index * 4, 4);
-		x86_mov_reg_membase(compMethod, X86_EBX, X86_ESP, (paramCount - (index + 1)) * 4, 4);
-		x86_mov_membase_reg(compMethod, X86_ESP, index * 4, X86_EBX, 4);
-		x86_mov_membase_reg(compMethod, X86_ESP, (paramCount - (index + 1)) * 4, X86_EAX, 4);
+		x86_mov_reg_reg(compMethod, X86_EAX, X86_ESP, 4);
+		paramsSize += pMethod->Parameters[pMethod->ParameterCount - 1]->Offset + pMethod->Parameters[pMethod->ParameterCount - 1]->Size;
+		if (pIgnoreThis)
+			paramsSize -= global_SizeOfPointerInBytes;
+		if (paramsSize > 0)
+		{
+			x86_adjust_stack(compMethod, -paramsSize);
+			uint32_t fParamsCount = 0;
+			for (uint32_t i = ((pIgnoreThis) ? 1 : 0); i < pMethod->ParameterCount; i++)
+			{
+				if (pMethod->Parameters[i]->Type->TypeDef == pMethod->ParentAssembly->ParentDomain->CachedType___System_Single || pMethod->Parameters[i]->Type->TypeDef == pMethod->ParentAssembly->ParentDomain->CachedType___System_Double)
+				{
+					fParamsCount++;
+				}
+			}
+
+			uint32_t curFParam = 0;
+			for (uint32_t i = ((pIgnoreThis) ? 1 : 0); i < pMethod->ParameterCount; i++)
+			{
+				if (pMethod->Parameters[i]->Type->TypeDef == pMethod->ParentAssembly->ParentDomain->CachedType___System_Single)
+				{
+					curFParam++;
+					x86_fld_reg(compMethod, fParamsCount - curFParam);
+					x86_fst_membase(compMethod, X86_ESP, paramsSize - pMethod->Parameters[i]->Offset, FALSE, TRUE);
+				}
+				else if (pMethod->Parameters[i]->Type->TypeDef == pMethod->ParentAssembly->ParentDomain->CachedType___System_Double)
+				{
+					curFParam++;
+					x86_fld_reg(compMethod, fParamsCount - curFParam);
+					x86_fst_membase(compMethod, X86_ESP, paramsSize - pMethod->Parameters[i]->Offset, TRUE, TRUE);
+				}
+				else
+				{
+					for (uint32_t i2 = 0; i2 < pMethod->Parameters[i]->Size >> 2; i2++)
+					{
+						x86_mov_reg_membase(compMethod, X86_EBX, X86_EAX, pMethod->Parameters[i]->Offset + (i2 << 2), 4);
+						x86_mov_membase_reg(compMethod, X86_ESP, paramsSize - pMethod->Parameters[i]->Offset + (i2 << 2), X86_EBX, 4);
+					}
+				}
+			}
+
+			if (fParamsCount > 0)
+			{
+				for (uint32_t i = 0; i < fParamsCount; i++)
+				{
+					x86_fdecstp(compMethod);
+				}
+			}
+		}
 	}
+
+	//uint32_t paramCount = pMethod->ParameterCount;
+	//uint32_t swapCount = paramCount >> 1;
+	//// If paramCount is odd, the middle 
+	//// param won't move at all.
+	//for (uint32_t index = 0; index < swapCount; ++index)
+	//{
+	//	x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, index << 2, 4);
+	//	x86_mov_reg_membase(compMethod, X86_EBX, X86_ESP, (paramCount - (index + 1)) << 2, 4);
+	//	x86_mov_membase_reg(compMethod, X86_ESP, index << 2, X86_EBX, 4);
+	//	x86_mov_membase_reg(compMethod, X86_ESP, (paramCount - (index + 1)) << 2, X86_EAX, 4);
+	//}
+
+
 
 	return compMethod;
 }
@@ -303,16 +361,18 @@ char* JIT_Compile_LoadInt64_Val			(IRInstruction* instr, char* compMethod, IRMet
 
 char* JIT_Compile_LoadFloat32_Val			(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
-	x86_push_imm(compMethod, *((int32_t*)instr->Arg1));
+	x86_fld(compMethod, instr->Arg1, FALSE);
+	//x86_push_imm(compMethod, *((int32_t*)instr->Arg1));
 	return compMethod;
 }
 
 
 char* JIT_Compile_LoadFloat64_Val			(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
-	int64_t value = *((int64_t*)instr->Arg1);
-	x86_push_imm(compMethod, (value & 0xFFFFFFFF));
-	x86_push_imm(compMethod, (value >> 32));
+	x86_fld(compMethod, instr->Arg1, TRUE);
+	//int64_t value = *((int64_t*)instr->Arg1);
+	//x86_push_imm(compMethod, (value & 0xFFFFFFFF));
+	//x86_push_imm(compMethod, (value >> 32));
 	return compMethod;
 }
 
@@ -522,15 +582,27 @@ char* JIT_Compile_Optimized_Jump			(IRInstruction* instr, char* compMethod, IRMe
 char* JIT_Compile_Store_LocalVar			(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	uint32_t localIndex = *(uint32_t*)instr->Arg1;
-	uint32_t size = global_SizeOfPointerInBytes;
-	if (mth->LocalVariables[localIndex]->VariableType->IsValueType)
-		size = StackSizeOfType(mth->LocalVariables[localIndex]->VariableType);
-	uint32_t movCount = size / global_SizeOfPointerInBytes;
-	Align(&size);
-	for (uint32_t movIndex = 0; movIndex < movCount; ++movIndex)
+	if (mth->LocalVariables[localIndex]->VariableType->TypeDef == mth->ParentAssembly->ParentDomain->CachedType___System_Single)
 	{
-		x86_pop_reg(compMethod, X86_EAX);
-		x86_mov_membase_reg(compMethod, X86_EBP, -(mth->LocalVariables[localIndex]->Offset), X86_EAX, global_SizeOfPointerInBytes);
+		x86_fst_membase(compMethod, X86_ESP, -(mth->LocalVariables[localIndex]->Offset), FALSE, TRUE);
+	}
+	else if (mth->LocalVariables[localIndex]->VariableType->TypeDef == mth->ParentAssembly->ParentDomain->CachedType___System_Double)
+	{
+		x86_fst_membase(compMethod, X86_ESP, -(mth->LocalVariables[localIndex]->Offset), TRUE, TRUE);
+	}
+	else
+	{
+		uint32_t size = global_SizeOfPointerInBytes;
+		if (mth->LocalVariables[localIndex]->VariableType->IsValueType)
+			size = StackSizeOfType(mth->LocalVariables[localIndex]->VariableType);
+		uint32_t movCount = size / global_SizeOfPointerInBytes;
+		Align(&size);
+		for (uint32_t movIndex = 0; movIndex < movCount; ++movIndex)
+		{
+			//x86_pop_reg(compMethod, X86_EAX);
+			//x86_mov_membase_reg(compMethod, X86_EBP, , X86_EAX, global_SizeOfPointerInBytes);
+			x86_pop_membase(compMethod, X86_EBP, -(mth->LocalVariables[localIndex]->Offset));
+		}
 	}
 	return compMethod;
 }
@@ -539,15 +611,27 @@ char* JIT_Compile_Store_LocalVar			(IRInstruction* instr, char* compMethod, IRMe
 char* JIT_Compile_Load_LocalVar				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	uint32_t localIndex = *(uint32_t*)instr->Arg1;
-	uint32_t size = global_SizeOfPointerInBytes;
-	if (mth->LocalVariables[localIndex]->VariableType->IsValueType)
-		size = StackSizeOfType(mth->LocalVariables[localIndex]->VariableType);
-	Align(&size);
-	uint32_t movCount = size / global_SizeOfPointerInBytes;
-	for (uint32_t movIndex = 0; movIndex < movCount; ++movIndex)
+	if (mth->LocalVariables[localIndex]->VariableType->TypeDef == mth->ParentAssembly->ParentDomain->CachedType___System_Single)
 	{
-		x86_push_membase(compMethod, X86_EBP, -(mth->LocalVariables[localIndex]->Offset));
+		x86_fld_membase(compMethod, X86_ESP, -(mth->LocalVariables[localIndex]->Offset), FALSE);
 	}
+	else if (mth->LocalVariables[localIndex]->VariableType->TypeDef == mth->ParentAssembly->ParentDomain->CachedType___System_Double)
+	{
+		x86_fld_membase(compMethod, X86_ESP, -(mth->LocalVariables[localIndex]->Offset), TRUE);
+	}
+	else
+	{
+		uint32_t size = global_SizeOfPointerInBytes;
+		if (mth->LocalVariables[localIndex]->VariableType->IsValueType)
+			size = StackSizeOfType(mth->LocalVariables[localIndex]->VariableType);
+		Align(&size);
+		uint32_t movCount = size / global_SizeOfPointerInBytes;
+		for (uint32_t movIndex = 0; movIndex < movCount; ++movIndex)
+		{
+			x86_push_membase(compMethod, X86_EBP, -(mth->LocalVariables[localIndex]->Offset));
+		}
+	}
+
 	return compMethod;
 }
 
@@ -821,6 +905,9 @@ char* JIT_Compile_Load_Element				(IRInstruction* instr, char* compMethod, IRMet
 	//StackObjectType indexType = *(StackObjectType*)instr->Arg2;
 	uint32_t sizeOfElementType = 0;
 	GetSizeOfElementType(sizeOfElementType, elementType);
+	
+	if (sizeOfElementType >= 8)
+		Panic("64-bit values in simple arrays aren't currently supported.");
 
 	x86_pop_reg(compMethod, X86_EAX); // Index
 	x86_pop_reg(compMethod, X86_ECX); // Array
@@ -830,6 +917,17 @@ char* JIT_Compile_Load_Element				(IRInstruction* instr, char* compMethod, IRMet
 	x86_alu_reg_reg(compMethod, X86_ADD, X86_ECX, X86_EAX);
 	x86_mov_reg_membase(compMethod, X86_EAX, X86_ECX, 0, sizeOfElementType);
 	x86_push_reg(compMethod, X86_EAX);
+
+	if (elementType == ElementType_R4)
+	{
+		x86_fld_membase(compMethod, X86_ESP, 0, FALSE);
+		x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 4);
+	}
+	else if (elementType == ElementType_R8)
+	{
+		Panic("Did we really manage to get here?");
+	}
+
 	return compMethod;
 }
 
@@ -859,7 +957,20 @@ char* JIT_Compile_Store_Element				(IRInstruction* instr, char* compMethod, IRMe
 	//StackObjectType indexType = *(StackObjectType*)instr->Arg2;
 	uint32_t sizeOfElementType = 0;
 	GetSizeOfElementType(sizeOfElementType, elementType);
+	
+	if (sizeOfElementType >= 8)
+		Panic("64-bit values in simple arrays aren't currently supported.");
 
+
+	if (elementType == ElementType_R4)
+	{
+		x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, 4);
+		x86_fst_membase(compMethod, X86_ESP, 0, FALSE, TRUE);
+	}
+	else if (elementType == ElementType_R8)
+	{
+		Panic("Arrays of double's aren't currently supported!");
+	}
 	x86_pop_reg(compMethod, X86_EDX); // Value
 	x86_pop_reg(compMethod, X86_ECX); // Index
 	x86_pop_reg(compMethod, X86_EAX); // Array
@@ -909,7 +1020,7 @@ char* JIT_Compile_Pop						(IRInstruction* instr, char* compMethod, IRMethod* mt
 			break;
 		case ElementType_R4:
 		case ElementType_R8:
-			Panic("Attempted to pop a floating point value, which isn't currently supported!");
+			x86_fdecstp(compMethod);
 			break;
 		case ElementType_DataType:
 			{
@@ -1284,9 +1395,22 @@ char* JIT_Compile_LoadIndirect				(IRInstruction* instr, char* compMethod, IRMet
 	ElementType elementType = *(ElementType*)instr->Arg1;
 	uint32_t sizeOfElementType = 0;
 	GetSizeOfElementType(sizeOfElementType, elementType);
+
+	if (sizeOfElementType >= 8)
+		Panic("Load Indirect with a size of 8 or more isn't currently supported!");
+
 	x86_pop_reg(compMethod, X86_ECX);
 	x86_mov_reg_membase(compMethod, X86_ECX, X86_ECX, 0, sizeOfElementType);
 	x86_push_reg(compMethod, X86_ECX);
+	if (elementType == ElementType_R4)
+	{
+		x86_fld_membase(compMethod, X86_ESP, 0, FALSE);
+		x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 4);
+	}
+	else if (elementType == ElementType_R4)
+	{
+		Panic("No, just no.");
+	}
 	return compMethod;
 }
 
@@ -1296,6 +1420,18 @@ char* JIT_Compile_StoreIndirect				(IRInstruction* instr, char* compMethod, IRMe
 	ElementType elementType = *(ElementType*)instr->Arg1;
 	uint32_t sizeOfElementType = 0;
 	GetSizeOfElementType(sizeOfElementType, elementType);
+	if (sizeOfElementType >= 8)
+		Panic("Store indirect with a size of 8 or greater isn't currently supported.");
+
+	if (elementType == ElementType_R4)
+	{
+		x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, 4);
+		x86_fst_membase(compMethod, X86_ESP, 0, FALSE, TRUE);
+	}
+	else if (elementType == ElementType_R8)
+	{
+		Panic("I thought I said to go away, did I not?");
+	}
 	x86_pop_reg(compMethod, X86_EAX);
 	x86_pop_reg(compMethod, X86_ECX);
 	x86_mov_membase_reg(compMethod, X86_ECX, 0, X86_EAX, sizeOfElementType);
@@ -1312,13 +1448,18 @@ char* JIT_Compile_LoadNull					(IRInstruction* instr, char* compMethod, IRMethod
 
 char* JIT_Compile_Dup						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
+	ElementType elemTp = *(ElementType*)instr->Arg1;
+	uint32_t size = 0;
+	if (elemTp == ElementType_R4 ||elemTp == ElementType_R8)
+		Panic("Duplicating floats on the stack isn't currently supported.");
+	GetSizeOfElementType(size, elemTp);
+	if (size >= 8)
+		Panic("Values larger than or equal to 8 bytes can't currently be duplicated on the stack.");
+
 	x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, 0, 4);
 	x86_push_reg(compMethod, X86_EAX);
-	if (*(ElementType*)instr->Arg1 == ElementType_I8 || *(ElementType*)instr->Arg1 == ElementType_U8)
-	{
-		x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, 8, 4);
-		x86_push_reg(compMethod, X86_EAX);
-	}
+	x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, 8, 4);
+	x86_push_reg(compMethod, X86_EAX);
 	return compMethod;
 }
 
@@ -1493,6 +1634,17 @@ char* JIT_Compile_Load_Field				(IRInstruction* instr, char* compMethod, IRMetho
 		x86_mov_membase_reg(compMethod, X86_ESP, curBas, X86_EBX, modFSz);
 	}
 
+	if (spec->FieldType->TypeDef == spec->FieldType->ParentAssembly->ParentDomain->CachedType___System_Single)
+	{
+		x86_fld_membase(compMethod, X86_ESP, 0, FALSE);
+		x86_adjust_stack(compMethod, 4);
+	}
+	else if (spec->FieldType->TypeDef == spec->FieldType->ParentAssembly->ParentDomain->CachedType___System_Double)
+	{
+		x86_fld_membase(compMethod, X86_ESP, 0, TRUE);
+		x86_adjust_stack(compMethod, 8);
+	}
+
 	return compMethod;
 }
 
@@ -1523,7 +1675,16 @@ char* JIT_Compile_Store_Field				(IRInstruction* instr, char* compMethod, IRMeth
 
 	x86_alu_reg_imm(compMethod, X86_ADD, X86_EAX, spec->ParentType->Fields[spec->FieldIndex]->Offset);
 
-
+	if (spec->FieldType->TypeDef == spec->FieldType->ParentAssembly->ParentDomain->CachedType___System_Single)
+	{
+		x86_adjust_stack(compMethod, -4);
+		x86_fst_membase(compMethod, X86_ESP, 0, FALSE, TRUE);
+	}
+	else if (spec->FieldType->TypeDef == spec->FieldType->ParentAssembly->ParentDomain->CachedType___System_Double)
+	{
+		x86_adjust_stack(compMethod, -8);
+		x86_fst_membase(compMethod, X86_ESP, 0, TRUE, TRUE);
+	}
 	uint32_t movCount = fSz / global_SizeOfPointerInBytes;
 	uint32_t curBas = alSz - global_SizeOfPointerInBytes;
 	for (uint32_t i = 0; i < movCount; i++)
@@ -1539,7 +1700,6 @@ char* JIT_Compile_Store_Field				(IRInstruction* instr, char* compMethod, IRMeth
 		x86_mov_reg_membase(compMethod, X86_EBX, X86_ESP, curBas, modFSz);
 		x86_mov_membase_reg(compMethod, X86_EAX, fSz - curBas, X86_EBX, modFSz);
 	}
-
 	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, alSz + 4);
 
 	return compMethod;
@@ -1570,12 +1730,12 @@ char* JIT_Compile_Load_Object				(IRInstruction* instr, char* compMethod, IRMeth
 	x86_pop_reg(compMethod, X86_EAX);
 
 	if (type->IsValueType)
-	{
+	{		
 		uint32_t sizeOfType = StackSizeOfType(type);
-		uint32_t movCount = sizeOfType / 4;
+		uint32_t movCount = sizeOfType >> 2;
 		for (uint32_t index = 0; index < movCount; ++index)
 		{
-			x86_mov_reg_membase(compMethod, X86_EBX, X86_EAX, index * 4, 4);
+			x86_mov_reg_membase(compMethod, X86_EBX, X86_EAX, index << 2, 4);
 			x86_push_reg(compMethod, X86_EBX);
 		}
 		uint32_t remCount = sizeOfType % 4;
@@ -1583,6 +1743,17 @@ char* JIT_Compile_Load_Object				(IRInstruction* instr, char* compMethod, IRMeth
 		{
 			x86_mov_reg_membase(compMethod, X86_EBX, X86_EAX, sizeOfType - remCount, remCount);
 			x86_push_reg(compMethod, X86_EBX);
+		}
+		
+		if (type->TypeDef == type->ParentAssembly->ParentDomain->CachedType___System_Single)
+		{
+			x86_fld_membase(compMethod, X86_ESP, 0, FALSE);
+			x86_adjust_stack(compMethod, 4);
+		}
+		else if (type->TypeDef == type->ParentAssembly->ParentDomain->CachedType___System_Single)
+		{
+			x86_fld_membase(compMethod, X86_ESP, 0, TRUE);
+			x86_adjust_stack(compMethod, 8);
 		}
 	}
 	else
@@ -1675,10 +1846,11 @@ char* JIT_Compile_IsInst					(IRInstruction* instr, char* compMethod, IRMethod* 
 
 char* JIT_Compile_Unbox						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
-//	IRType* type = (IRType*)instr->Arg1;
+	//IRType* type = (IRType*)instr->Arg1;
 	x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, 0, 4);
 	x86_mov_reg_membase(compMethod, X86_EAX, X86_EAX, 0, 4);
 	x86_mov_membase_reg(compMethod, X86_ESP, 0, X86_EAX, 4);
+
 	return compMethod;
 }
 
@@ -1704,6 +1876,16 @@ char* JIT_Compile_Unbox_Any					(IRInstruction* instr, char* compMethod, IRMetho
 		x86_mov_reg_membase(compMethod, X86_EBX, X86_EAX, sizeOfType - remCount, remCount);
 		x86_mov_membase_reg(compMethod, X86_ECX, sizeOfType - remCount, X86_EBX, remCount);
 	}
+	if (type->TypeDef == type->ParentAssembly->ParentDomain->CachedType___System_Single)
+	{
+		x86_fld_membase(compMethod, X86_ESP, 0, FALSE);
+		x86_adjust_stack(compMethod, 4);
+	}
+	else if (type->TypeDef == type->ParentAssembly->ParentDomain->CachedType___System_Double)
+	{
+		x86_fld_membase(compMethod, X86_ESP, 0, TRUE);
+		x86_adjust_stack(compMethod, 8);
+	}
 
 	return compMethod;
 }
@@ -1712,6 +1894,18 @@ char* JIT_Compile_Box						(IRInstruction* instr, char* compMethod, IRMethod* mt
 {
 	IRType* type = (IRType*)instr->Arg1;
 	uint32_t sizeOfType = StackSizeOfType(type);
+
+	if (type->TypeDef == type->ParentAssembly->ParentDomain->CachedType___System_Single)
+	{
+		x86_adjust_stack(compMethod, -4);
+		x86_fst_membase(compMethod, X86_ESP, 0, FALSE, TRUE);
+	}
+	else if (type->TypeDef == type->ParentAssembly->ParentDomain->CachedType___System_Double)
+	{
+		x86_adjust_stack(compMethod, -8);
+		x86_fst_membase(compMethod, X86_ESP, 0, TRUE, TRUE);
+	}
+
 	x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, 24);
 	x86_mov_membase_imm(compMethod, X86_ESP, 20, type->TypeIndex, 4);
 	x86_mov_membase_imm(compMethod, X86_ESP, 16, type->ParentAssembly->AssemblyIndex, 4);
@@ -1973,7 +2167,7 @@ char* JIT_Compile_NewObject					(IRInstruction* instr, char* compMethod, IRMetho
 	IRType* type = method->ParentAssembly->Types[method->MethodDefinition->TypeDefinition->TableIndex - 1];
 	if (type->TypeDef != method->ParentAssembly->ParentDomain->CachedType___System_String)
 	{
-		compMethod = JIT_Emit_ParamSwap(compMethod, method->ParameterCount);
+		compMethod = JIT_Emit_ParamSwap(compMethod, method, FALSE);
 
 		uint32_t sizeOfType = SizeOfType(type);
 		x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, 28);
@@ -1994,7 +2188,6 @@ char* JIT_Compile_NewObject					(IRInstruction* instr, char* compMethod, IRMetho
 		uint32_t paramsSize = 0;
 		if (method->ParameterCount > 0)
 		{
-			JIT_Layout_Parameters(method);
 			paramsSize += method->Parameters[method->ParameterCount - 1]->Offset + method->Parameters[method->ParameterCount - 1]->Size;
 			paramsSize -= 8; // For stack frame and return pointer
 			//printf("NewObj: LastParam Offset %u + %u Size\n", (unsigned int)method->Parameters[method->ParameterCount - 1]->Offset, (unsigned int)method->Parameters[method->ParameterCount - 1]->Size);
@@ -2003,7 +2196,7 @@ char* JIT_Compile_NewObject					(IRInstruction* instr, char* compMethod, IRMetho
 	}
 	else // Strings return their new obj from constructor
 	{
-		compMethod = JIT_Emit_ParamSwap(compMethod, method->ParameterCount - 1);
+		compMethod = JIT_Emit_ParamSwap(compMethod, method, TRUE);
 		x86_push_imm(compMethod, 0);
 		x86_push_imm(compMethod, method->ParentAssembly->ParentDomain);
 
@@ -2031,7 +2224,7 @@ char* JIT_Compile_Call_Absolute				(IRInstruction* instr, char* compMethod, IRMe
 		JIT_CompileMethod(m);
 	}
 
-	compMethod = JIT_Emit_ParamSwap(compMethod, m->ParameterCount);
+	compMethod = JIT_Emit_ParamSwap(compMethod, m, FALSE);
 	
 	x86_push_imm(compMethod, (unsigned int)m->ParentAssembly->ParentDomain);
 	x86_call_code(compMethod, m->AssembledMethod);
@@ -2060,7 +2253,7 @@ char* JIT_Compile_Call_Internal				(IRInstruction* instr, char* compMethod, IRMe
 	void* mthd = instr->Arg1; // This is the method we will be calling.
 	IRMethod* m = (IRMethod*)instr->Arg2;
 	
-	compMethod = JIT_Emit_ParamSwap(compMethod, m->ParameterCount);
+	compMethod = JIT_Emit_ParamSwap(compMethod, m, FALSE);
 
 	x86_push_imm(compMethod, (unsigned int)m->ParentAssembly->ParentDomain); // Push the domain
 	x86_call_code(compMethod, mthd); // Call the method.
@@ -2093,7 +2286,7 @@ char* JIT_Compile_Call						(IRInstruction* instr, char* compMethod, IRMethod* m
 	IRMethod* m = spec->ParentType->Methods[spec->MethodIndex];
 
 	
-	compMethod = JIT_Emit_ParamSwap(compMethod, m->ParameterCount);
+	compMethod = JIT_Emit_ParamSwap(compMethod, m, FALSE);
 	
 	x86_push_imm(compMethod, instr->Arg1);
 	x86_call_code(compMethod, JIT_Trampoline_DoCall);

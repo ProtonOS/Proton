@@ -27,3 +27,5 @@
 
 
 #define x86_fdecstp(inst) do { x86_codegen_pre(&(inst), 2); *(inst)++ = (unsigned char)0xd9; *(inst)++ = (unsigned char)0xf6; } while (0)
+
+#define x86_adjust_stack(inst, size) if (size < 0) { x86_alu_reg_imm(inst, X86_SUB, X86_ESP, -(size)); } else { x86_alu_reg_imm(inst, X86_ADD, X86_ESP, size); }
