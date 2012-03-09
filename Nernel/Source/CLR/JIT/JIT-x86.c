@@ -34,7 +34,9 @@ ALWAYS_INLINE char* JIT_Emit_ParamSwap(char* compMethod, IRMethod* pMethod, bool
 			bool_t SimpleParams = TRUE;
 			for (uint32_t i = 0; i < pMethod->ParameterCount; i++)
 			{
-				if (pMethod->Parameters[i]->Size > 4)
+				if (pMethod->Parameters[i]->Size > 4 
+				   || pMethod->Parameters[i]->Type->TypeDef == pMethod->ParentAssembly->ParentDomain->CachedType___System_Single 
+				   || pMethod->Parameters[i]->Type->TypeDef == pMethod->ParentAssembly->ParentDomain->CachedType___System_Double)
 				{
 					SimpleParams = FALSE;
 					break;
