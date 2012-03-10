@@ -1814,16 +1814,88 @@ char* JIT_Compile_Store_Field				(IRInstruction* instr, char* compMethod, IRMeth
 
 char* JIT_Compile_Load_Static_Field			(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
+	IRField* fld = (IRField*)instr->Arg1;
+	uint32_t fieldSize = StackSizeOfType(fld->FieldType);
+	Align(&fieldSize);
+	if (!fld->StaticValue)
+		fld->StaticValue = (void*)calloc(1, fieldSize);
+
+	x86_mov_reg_imm(compMethod, X86_EAX, (unsigned int)fld->StaticValue);
+	if (fld->FieldType->IsValueType)
+	{
+		uint32_t movCount = fieldSize >> 2;
+		for (uint32_t index = 0; index < movCount; ++index)
+		{
+			x86_mov_reg_membase(compMethod, X86_EBX, X86_EAX, index << 2, 4);
+			x86_push_reg(compMethod, X86_EBX);
+		}
+		
+		if (fld->FieldType->TypeDef == fld->ParentAssembly->ParentDomain->CachedType___System_Single)
+		{
+			x86_fld_membase(compMethod, X86_ESP, 0, FALSE);
+			x86_adjust_stack(compMethod, 4);
+		}
+		else if (fld->FieldType->TypeDef == fld->ParentAssembly->ParentDomain->CachedType___System_Double)
+		{
+			x86_fld_membase(compMethod, X86_ESP, 0, TRUE);
+			x86_adjust_stack(compMethod, 8);
+		}
+	}
+	else
+	{
+		x86_mov_reg_membase(compMethod, X86_EAX, X86_EAX, 0, 4);
+		x86_push_reg(compMethod, X86_EAX);
+	}
+
 	return compMethod;
 }
 
 char* JIT_Compile_Load_Static_Field_Address	(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
+	IRField* fld = (IRField*)instr->Arg1;
+	uint32_t fieldSize = StackSizeOfType(fld->FieldType);
+	Align(&fieldSize);
+	if (!fld->StaticValue)
+		fld->StaticValue = (void*)calloc(1, fieldSize);
+	x86_push_imm(compMethod, (unsigned int)fld->StaticValue);
 	return compMethod;
 }
 
 char* JIT_Compile_Store_Static_Field		(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
+	IRField* fld = (IRField*)instr->Arg1;
+	uint32_t fieldSize = StackSizeOfType(fld->FieldType);
+	Align(&fieldSize);
+	if (!fld->StaticValue)
+		fld->StaticValue = (void*)calloc(1, fieldSize);
+
+	x86_mov_reg_imm(compMethod, X86_EAX, (unsigned int)fld->StaticValue);
+	if (fld->FieldType->IsValueType)
+	{	
+		if (fld->FieldType->TypeDef == fld->ParentAssembly->ParentDomain->CachedType___System_Single)
+		{
+			x86_fst_membase(compMethod, X86_EAX, 0, FALSE, TRUE);
+		}
+		else if (fld->FieldType->TypeDef == fld->ParentAssembly->ParentDomain->CachedType___System_Double)
+		{
+			x86_fst_membase(compMethod, X86_EAX, 0, TRUE, TRUE);
+		}
+		else 
+		{
+			uint32_t movCount = fieldSize >> 2;
+			for (uint32_t index = 0; index < movCount; ++index)
+			{
+				x86_pop_reg(compMethod, X86_EBX);
+				x86_mov_membase_reg(compMethod, X86_EAX, index << 2, X86_EBX, 4);
+			}
+		}
+	}
+	else
+	{
+		x86_pop_reg(compMethod, X86_EBX);
+		x86_mov_membase_reg(compMethod, X86_EAX, 0, X86_EBX, 4);
+	}
+
 	return compMethod;
 }
 
@@ -1856,7 +1928,7 @@ char* JIT_Compile_Load_Object				(IRInstruction* instr, char* compMethod, IRMeth
 			x86_fld_membase(compMethod, X86_ESP, 0, FALSE);
 			x86_adjust_stack(compMethod, 4);
 		}
-		else if (type->TypeDef == type->ParentAssembly->ParentDomain->CachedType___System_Single)
+		else if (type->TypeDef == type->ParentAssembly->ParentDomain->CachedType___System_Double)
 		{
 			x86_fld_membase(compMethod, X86_ESP, 0, TRUE);
 			x86_adjust_stack(compMethod, 8);

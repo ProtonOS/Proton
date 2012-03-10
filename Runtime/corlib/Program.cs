@@ -10,10 +10,20 @@ namespace Mernel
             return 42;
         }
 
+        private static uint aStatic;
+
         private static void Main()
         {
+            aStatic = 3;
+            uint bStatic = aStatic;
+            Console.WriteLine("aStatic = " + aStatic.ToString());
+            Console.WriteLine("bStatic = " + bStatic.ToString());
+
             long ticks = DateTime.InternalUtcNow();
             Console.WriteLine("Started @ " + ((uint)ticks).ToString());
+            string str = new string('*', 40);
+            Console.WriteLine(str);
+
             //ulong blargh = 0x000000FF0000FFFF;
             //Console.WriteLine("Blargh! " + ((uint)blargh).ToString());
             //char[] @char = new char[4];
@@ -32,8 +42,6 @@ namespace Mernel
             //@char[2] = 'S';
             //@char[3] = 'T';
             //string str2 = new string(@char);
-            //string str = new string('*', 40);
-            //Console.WriteLine(str);
             //Console.WriteLine(str2);
             //Test t = new Test();
             //t.Really();
@@ -69,8 +77,14 @@ namespace Mernel
     }
 
     #region TestRunner
-    public static class TestRunner
+    internal static class TestRunner
     {
+        public static Test[] Tests = new Test[]
+        {
+            new SwitchTest(),
+            new BobFindPeterTest(),
+        };
+
         public static void RunTests()
         {
 

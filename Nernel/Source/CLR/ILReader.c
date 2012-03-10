@@ -91,6 +91,9 @@ IRAssembly* ILReader_CreateAssembly(CLIFile* fil, AppDomain* dom)
 IRField* GenerateField(Field* def, CLIFile* fil, IRAssembly* asmb, AppDomain* dom)
 {
 	IRField* fld = IRField_Create();
+	if (def->Flags & FieldAttributes_Static)
+		fld->IsStatic = TRUE;
+	fld->ParentAssembly = asmb;
 	fld->FieldDef = def;
 	FieldSignature* sig = FieldSignature_Expand(def->Signature, fil);
 	switch(sig->Type->ElementType)

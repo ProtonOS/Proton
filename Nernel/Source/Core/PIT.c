@@ -47,9 +47,9 @@ void PIT_Interrupt(InterruptRegisters pRegisters)
             gPIT_MillisecondsElapsed = 0;
             ++gPIT_SecondsElapsed;
 
-			//time_t t = time(NULL);
-			//printf("Time = %u %s", (unsigned int)gPIT_MillisecondsElapsedSinceStartup, ctime(&t));
         }
+		//time_t t = time(NULL);
+		//printf("Time = %u %s", (unsigned int)gPIT_MillisecondsElapsedSinceStartup, ctime(&t));
     }
 }
 

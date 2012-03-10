@@ -163,6 +163,11 @@ struct _IRField
 	uint32_t Size;
 
 	Field* FieldDef;
+
+	bool_t IsStatic;
+	void* StaticValue;
+
+	IRAssembly* ParentAssembly;
 };
 
 struct _IRMethodSpec
