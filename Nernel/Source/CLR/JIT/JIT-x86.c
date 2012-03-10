@@ -108,7 +108,7 @@ ALWAYS_INLINE char* JIT_Emit_ParamSwap(char* compMethod, IRMethod* pMethod, bool
 			}
 			else // Otherwise the params can be swapped in-place.
 			{
-				uint32_t paramCount = pMethod->ParameterCount;
+				uint32_t paramCount = pMethod->ParameterCount - ((pIgnoreThis) ? 1 : 0);
 				uint32_t swapCount = paramCount >> 1;
 				// If paramCount is odd, the middle 
 				// param won't move at all.
