@@ -389,8 +389,8 @@ char* JIT_Compile_LoadInt32_Val			(IRInstruction* instr, char* compMethod, IRMet
 char* JIT_Compile_LoadInt64_Val			(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	int64_t value = *((int64_t*)instr->Arg1);
-	x86_push_imm(compMethod, (value & 0xFFFFFFFF));
 	x86_push_imm(compMethod, (value >> 32));
+	x86_push_imm(compMethod, (value & 0xFFFFFFFF));
 	return compMethod;
 }
 
