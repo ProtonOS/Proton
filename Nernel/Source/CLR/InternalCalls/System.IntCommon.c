@@ -20,7 +20,7 @@
 
 ReferenceTypeObject* System_IntCommon_ToString(AppDomain* pAppDomain, uint64_t* pThis, bool_t pSigned, uint32_t pSize)
 {
-	printf("Hello, val is %llu @ 0x%x!\n", (unsigned long long)(*pThis), (unsigned int)pThis);
+	//printf("Hello, val is %llu @ 0x%x!\n", (unsigned long long)(*pThis), (unsigned int)pThis);
 	//if (*pThis == 0)
 	//{
 	//	return GC_AllocateString(pAppDomain->GarbageCollector, pAppDomain->RootObject, Zero, 2);
@@ -93,7 +93,7 @@ ReferenceTypeObject* System_IntCommon_ToString(AppDomain* pAppDomain, uint64_t* 
 					val = (uint64_t)(-val);
 				}
 			}
-			printf("Hello, val is %llu @ 0x%x!\n", (unsigned long long)(*pThis), (unsigned int)pThis);
+			//printf("Hello, val is 0x%llx @ 0x%x!\n", (unsigned long long)(*pThis), (unsigned int)pThis);
 			break;
 		default:
 			Panic("Invalid pSize!");

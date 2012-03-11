@@ -115,6 +115,7 @@ IRField* GenerateField(Field* def, CLIFile* fil, IRAssembly* asmb, AppDomain* do
 			break;
 		case Signature_ElementType_I8:
 			fld->FieldType = (IRType*)dom->CachedType___System_Int64->TableIndex;
+			printf("fld %s.%s @ 0x%x FieldType = 0x%x!\n", def->TypeDefinition->Name, def->Name, (unsigned int)fld, (unsigned int)fld->FieldType);
 			break;
 		case Signature_ElementType_IPointer:
 			fld->FieldType = (IRType*)dom->CachedType___System_IntPtr->TableIndex;
@@ -159,7 +160,10 @@ IRField* GenerateField(Field* def, CLIFile* fil, IRAssembly* asmb, AppDomain* do
 		case Signature_ElementType_Array:
 			fld->FieldType = (IRType*)dom->CachedType___System_Array->TableIndex;
 			break;
-			
+		
+		default:
+			//printf("Not setting the type of %s.%s!\n", def->TypeDefinition->Name, def->Name);
+			break;
 	}
 	FieldSignature_Destroy(sig);
 	return fld;
@@ -2307,7 +2311,7 @@ Branch_Common:
 					{
 						case MetaData_Table_Field:
 							sig = FieldSignature_Expand(((Field*)tok->Data)->Signature, fil);
-							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Load_Static_Field, (void*)tok->Data);
+							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Load_Static_Field, asmbly->Fields[((Field*)tok->Data)->TableIndex - 1]);
 							break;
 
 						case MetaData_Table_MemberReference:
@@ -2354,7 +2358,7 @@ Branch_Common:
 					{
 						case MetaData_Table_Field:
 							sig = FieldSignature_Expand(((Field*)tok->Data)->Signature, fil);
-							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Load_Static_Field_Address, (void*)tok->Data);
+							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Load_Static_Field_Address, asmbly->Fields[((Field*)tok->Data)->TableIndex - 1]);
 							break;
 
 						case MetaData_Table_MemberReference:
@@ -2401,7 +2405,7 @@ Branch_Common:
 					{
 						case MetaData_Table_Field:
 							sig = FieldSignature_Expand(((Field*)tok->Data)->Signature, fil);
-							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Store_Static_Field, (void*)tok->Data);
+							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Store_Static_Field, asmbly->Fields[((Field*)tok->Data)->TableIndex - 1]);
 							break;
 
 						case MetaData_Table_MemberReference:

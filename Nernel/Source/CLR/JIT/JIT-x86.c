@@ -1134,11 +1134,11 @@ char* JIT_Compile_Pop						(IRInstruction* instr, char* compMethod, IRMethod* mt
 		case ElementType_U4:
 		case ElementType_Ref:
 		case ElementType_ManagedPointer:
-			x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, (unsigned int)4);
+			x86_adjust_stack(compMethod, 4);
 			break;
 		case ElementType_I8:
 		case ElementType_U8:
-			x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, (unsigned int)8);
+			x86_adjust_stack(compMethod, 8);
 			break;
 		case ElementType_R4:
 		case ElementType_R8:
@@ -1857,20 +1857,25 @@ char* JIT_Compile_Load_Static_Field			(IRInstruction* instr, char* compMethod, I
 	uint32_t fieldSize = StackSizeOfType(fld->FieldType);
 	Align(&fieldSize);
 	if (!fld->StaticValue)
+	{
 		fld->StaticValue = (void*)calloc(1, fieldSize);
+		printf("Allocating a static field @ 0x%x fieldtype = 0x%x (size %i) at 0x%x\n", (unsigned int)fld, (unsigned int)fld->FieldType, (int)fieldSize, (unsigned int)fld->StaticValue);
+	}
+	printf("Loading static field @ 0x%x\n", (unsigned int)fld->StaticValue);
 
 	x86_mov_reg_imm(compMethod, X86_EAX, (unsigned int)fld->StaticValue);
 	if (fld->FieldType->IsValueType)
 	{
-		x86_adjust_stack(compMethod, (int32_t)-fieldSize);
+		x86_adjust_stack(compMethod, -((int32_t)fieldSize));
 		uint32_t movCount = fieldSize / global_SizeOfPointerInBytes;
-		uint32_t curBas = fieldSize - global_SizeOfPointerInBytes;
+		uint32_t curBas = 0;
 		for (uint32_t i = 0; i < movCount; i++)
 		{
 			x86_mov_reg_membase(compMethod, X86_EBX, X86_EAX, i << 2, 4);
 			x86_mov_membase_reg(compMethod, X86_ESP, curBas, X86_EBX, 4);
-			curBas -= 4;
+			curBas += 4;
 		}
+
 		/*uint32_t movCount = fieldSize >> 2;
 		for (uint32_t index = 0; index < movCount; ++index)
 		{
@@ -1915,7 +1920,10 @@ char* JIT_Compile_Store_Static_Field		(IRInstruction* instr, char* compMethod, I
 	uint32_t fieldSize = StackSizeOfType(fld->FieldType);
 	Align(&fieldSize);
 	if (!fld->StaticValue)
+	{
 		fld->StaticValue = (void*)calloc(1, fieldSize);
+		printf("Allocating a static field @ 0x%x fieldtype = 0x%x (size %i) at 0x%x\n", (unsigned int)fld, (unsigned int)fld->FieldType, (int)fieldSize, (unsigned int)fld->StaticValue);
+	}
 
 	x86_mov_reg_imm(compMethod, X86_EAX, (unsigned int)fld->StaticValue);
 	if (fld->FieldType->IsValueType)
@@ -1930,12 +1938,15 @@ char* JIT_Compile_Store_Static_Field		(IRInstruction* instr, char* compMethod, I
 		}
 		else 
 		{
-			uint32_t movCount = fieldSize >> 2;
-			for (uint32_t index = 0; index < movCount; ++index)
+			uint32_t movCount = fieldSize / global_SizeOfPointerInBytes;
+			uint32_t curBas = 0;
+			for (uint32_t i = 0; i < movCount; i++)
 			{
-				x86_pop_reg(compMethod, X86_EBX);
-				x86_mov_membase_reg(compMethod, X86_EAX, index << 2, X86_EBX, 4);
+				x86_mov_reg_membase(compMethod, X86_EBX, X86_ESP, curBas, 4);
+				x86_mov_membase_reg(compMethod, X86_EAX, i << 2, X86_EBX, 4);
+				curBas += 4;
 			}
+			x86_adjust_stack(compMethod, (int32_t)fieldSize);
 		}
 	}
 	else
