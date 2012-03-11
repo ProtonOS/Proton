@@ -8,6 +8,7 @@
 #include <CLR/InternalCalls/System.Object.h>
 #include <CLR/InternalCalls/System.String.h>
 #include <CLR/InternalCalls/System.UInt32.h>
+#include <CLR/InternalCalls/System.UInt64.h>
 #include <CLR/InternalCalls/System.RuntimeType.h>
 
 #include <CLR/InternalCalls.h>
@@ -82,6 +83,8 @@ const InternalCall InternalCallTable[] =
 	{	NULL,				NULL,				"get_Chars",			Signature_ElementType_Char,		1,	{ Signature_ElementType_I4 }, &System_String_getChars },
 
 	{	NULL,				"UInt32",			"ToString",				Signature_ElementType_String,	0,	{ }, &System_UInt32_ToString },
+
+	{	NULL,				"UInt64",			"ToString",				Signature_ElementType_String,	0,	{ }, &System_UInt64_ToString },
 
 	{	NULL,				"Array",			"Internal_GetValue",	Signature_ElementType_Object,	1,	{ Signature_ElementType_I4 }, &System_Array_InternalGetValue },
 	{	NULL,				NULL,				"Internal_SetValue",	Signature_ElementType_Boolean,	2,	{ Signature_ElementType_Object, Signature_ElementType_I4 }, &System_Array_InternalSetValue },

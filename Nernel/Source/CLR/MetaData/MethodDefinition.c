@@ -58,6 +58,7 @@ const uint8_t* MethodDefinition_Load(CLIFile* pFile, const uint8_t* pTableData)
         if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Blobs32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { heapIndex = *(uint16_t*)pTableData; pTableData += 2; }
         pFile->MethodDefinitions[index].Signature = MetaData_GetCompressedUnsigned(pFile->BlobsHeap + heapIndex, &pFile->MethodDefinitions[index].SignatureLength);
+		printf("MethodDef Loading %s, heapIndex %u, sig @ 0x%x, blob @ 0x%x\n", pFile->MethodDefinitions[index].Name, (unsigned int)heapIndex, (unsigned int)pFile->MethodDefinitions[index].Signature, (unsigned int)pFile->BlobsHeap);
         if (pFile->ParameterCount > 0xFFFF) { parameterListIndex = *(uint32_t*)pTableData; pTableData += 4; }
         else { parameterListIndex = *(uint16_t*)pTableData; pTableData += 2; }
         if (parameterListIndex == 0 || parameterListIndex > pFile->ParameterCount + 1) Panic("MethodDefinition_Load Parameter");
@@ -255,5 +256,10 @@ void MethodDefinition_Link(CLIFile* pFile)
     for (uint32_t index = 1; index <= pFile->MethodDefinitionCount; ++index)
     {
 		if ((pFile->MethodDefinitions[index].ImplFlags & MethodImplAttributes_InternalCall) != 0) pFile->MethodDefinitions[index].InternalCall = ResolveInternalCall(&pFile->MethodDefinitions[index], pFile);
+	}
+
+	for (uint32_t index = 1; index  < pFile->MethodDefinitionCount; ++index)
+	{
+		printf("MethodDef Linkage %s.%s.%s has sig @ 0x%x\n", pFile->MethodDefinitions[index].TypeDefinition->Namespace, pFile->MethodDefinitions[index].TypeDefinition->Name, pFile->MethodDefinitions[index].Name, (unsigned int)pFile->MethodDefinitions[index].Signature);
 	}
 }

@@ -10,19 +10,26 @@ namespace Mernel
             return 42;
         }
 
-        private static uint aStatic;
+        //private static ulong aStatic;
 
-        private static void Main()
+        public static void Main()
         {
-            aStatic = 3;
-            uint bStatic = aStatic;
-            Console.WriteLine("aStatic = " + aStatic.ToString());
-            Console.WriteLine("bStatic = " + bStatic.ToString());
+            ulong boxTest = 4;
+            Console.WriteLine("Unboxed Test = " + boxTest.ToString());
 
-            long ticks = DateTime.InternalUtcNow();
-            Console.WriteLine("Started @ " + ((uint)ticks).ToString());
-            string str = new string('*', 40);
-            Console.WriteLine(str);
+            //aStatic = Blarh342();// unchecked((uint)-1);
+            // 0b00011010001001100001100000000000000000000000000000101010
+            //uint bStatic = (uint)(aStatic);
+            //Console.WriteLine("aStatic = " + aStatic.ToString());
+            //Console.WriteLine("bStatic = ");
+            //object boxedTest = boxTest;
+            //ulong unboxTest = (ulong)boxedTest;
+            //uint unboxTest2 = (uint)boxTest;
+
+            //long ticks = DateTime.InternalUtcNow();
+            //Console.WriteLine("Started @ " + ((uint)ticks).ToString());
+            //string str = new string('*', 40);
+            //Console.WriteLine(str);
 
             //ulong blargh = 0x000000FF0000FFFF;
             //Console.WriteLine("Blargh! " + ((uint)blargh).ToString());
@@ -48,10 +55,10 @@ namespace Mernel
             //t.JustATest();
             //Console.WriteLine("Factorial of 6 (Via Multiplication): " + Factorial(6).ToString());
             //Console.WriteLine("Mernel Started");
-            
 
-            ticks = DateTime.InternalUtcNow();
-            Console.WriteLine("Finished @ " + ((uint)ticks).ToString());
+
+            //long ticks = DateTime.InternalUtcNow();
+            //Console.WriteLine("Finished @ " + ((uint)ticks).ToString());
         }
 
         private static void ActionTest() { Console.WriteLine("ActionTest"); }

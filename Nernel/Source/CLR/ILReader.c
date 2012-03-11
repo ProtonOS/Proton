@@ -520,6 +520,7 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 		if (!sig->ReturnType->Void)
 		{
 			m->Returns = TRUE;
+			printf("Method %s.%s.%s Sig ReturnType @ 0x%x from sig @ 0x%x\n", methodDef->TypeDefinition->Namespace, methodDef->TypeDefinition->Name, methodDef->Name, (unsigned int)sig->ReturnType, (unsigned int)methodDef->Signature);
 			m->ReturnType = GetIRTypeOfSignatureType(dom, fil, asmbly, sig->ReturnType->Type);
 		}
 
@@ -3921,7 +3922,7 @@ IRType* GetIRTypeOfSignatureType(AppDomain* dom, CLIFile* fil, IRAssembly* asmbl
 			return NULL;
 
 		default:
-			Panic(String_Format("Unknown Signature Element Type (0x%x)!", (unsigned int)tp->ElementType));
+			Panic(String_Format("Unknown Signature Element Type (0x%x) from SignatureType @ 0x%x!", (unsigned int)tp->ElementType, (unsigned int)tp));
 			break;
 	}
 }

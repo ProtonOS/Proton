@@ -89,7 +89,12 @@ CLIFile* CLIFile_Create(PEFile* pFile)
         else if (!strcmp(streamName, "#US")) cliFile->UserStringsHeap = streamData;
         else if (!strcmp(streamName, "#Blob")) cliFile->BlobsHeap = streamData;
         else if (!strcmp(streamName, "#GUID")) cliFile->GUIDsHeap = streamData;
+		printf("Loading stream data for %s\n", streamName);
     }
+	printf("Blob @ 0x%x\n", (unsigned int)cliFile->BlobsHeap);
+	printf("Strings @ 0x%x\n", (unsigned int)cliFile->StringsHeap);
+	printf("UserStrings @ 0x%x\n", (unsigned int)cliFile->UserStringsHeap);
+	printf("Guids @ 0x%x\n", (unsigned int)cliFile->GUIDsHeap);
 
     cliFile->TablesHeader = (MetaDataTablesHeader*)cliFile->Tables;
     const uint8_t* tableData = cliFile->Tables + sizeof(MetaDataTablesHeader);
