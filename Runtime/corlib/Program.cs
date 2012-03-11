@@ -5,9 +5,9 @@ namespace Mernel
 {
     internal static class Program
     {
-        private static ulong Blarh342()
+        private static long Blarh342()
         {
-            return 42;
+            return 0x00000000000000FF;
         }
 
         //private static ulong aStatic;
@@ -15,12 +15,12 @@ namespace Mernel
         public static void Main()
         {
             long ticks = DateTime.InternalUtcNow();
-            Console.WriteLine("Started @ " + ((ulong)DateTime.InternalUtcNow()).ToString());
-            string str = new string('*', 40);
-            Console.WriteLine(str);
+            Console.WriteLine("Started @ " + ((ulong)ticks).ToString());
+            //string str = new string('*', 40);
+            //Console.WriteLine(str);
 
-            ulong boxTest = 4;
-            Console.WriteLine("Unboxed Test = " + boxTest.ToString());
+            //ulong boxTest = 4;
+            //Console.WriteLine("Unboxed Test = " + boxTest.ToString());
 
             //aStatic = Blarh342();// unchecked((uint)-1);
             // 0b00011010001001100001100000000000000000000000000000101010
@@ -57,8 +57,8 @@ namespace Mernel
             //Console.WriteLine("Mernel Started");
 
 
-            ticks = DateTime.InternalUtcNow();
-            Console.WriteLine("Finished @ " + ((uint)ticks).ToString());
+            //ticks = DateTime.InternalUtcNow();
+            //Console.WriteLine("Finished @ " + ((uint)ticks).ToString());
         }
 
         private static void ActionTest() { Console.WriteLine("ActionTest"); }

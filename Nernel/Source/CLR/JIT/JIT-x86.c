@@ -329,11 +329,11 @@ char* JIT_Emit_Epilogue(IRMethod* mth, char* compMethod)
 	
 	if (mth->Returns)
 	{
+		x86_pop_reg(compMethod, X86_EAX);
 		if (StackSizeOfType(mth->ReturnType) == 8)
 		{
 			x86_pop_reg(compMethod, X86_EDX);
 		}
-		x86_pop_reg(compMethod, X86_EAX);
 	}
 	x86_leave(compMethod);
 	x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, 4);
@@ -364,11 +364,11 @@ char* JIT_Compile_Return					(IRInstruction* instr, char* compMethod, IRMethod* 
 {
 	if (mth->Returns)
 	{
+		x86_pop_reg(compMethod, X86_EAX);
 		if (StackSizeOfType(mth->ReturnType) == 8)
 		{
 			x86_pop_reg(compMethod, X86_EDX);
 		}
-		x86_pop_reg(compMethod, X86_EAX);
 	}
 	x86_leave(compMethod);
 	x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, 4);
@@ -620,11 +620,11 @@ char* JIT_Compile_Store_LocalVar			(IRInstruction* instr, char* compMethod, IRMe
 	uint32_t localIndex = *(uint32_t*)instr->Arg1;
 	if (mth->LocalVariables[localIndex]->VariableType->TypeDef == mth->ParentAssembly->ParentDomain->CachedType___System_Single)
 	{
-		x86_fst_membase(compMethod, X86_ESP, -(mth->LocalVariables[localIndex]->Offset), FALSE, TRUE);
+		x86_fst_membase(compMethod, X86_EBP, -(mth->LocalVariables[localIndex]->Offset), FALSE, TRUE);
 	}
 	else if (mth->LocalVariables[localIndex]->VariableType->TypeDef == mth->ParentAssembly->ParentDomain->CachedType___System_Double)
 	{
-		x86_fst_membase(compMethod, X86_ESP, -(mth->LocalVariables[localIndex]->Offset), TRUE, TRUE);
+		x86_fst_membase(compMethod, X86_EBP, -(mth->LocalVariables[localIndex]->Offset), TRUE, TRUE);
 	}
 	else
 	{
@@ -2464,11 +2464,11 @@ char* JIT_Compile_Call_Absolute				(IRInstruction* instr, char* compMethod, IRMe
 	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, paramsSize);
 	if (m->Returns)
 	{
-		x86_push_reg(compMethod, X86_EAX);
 		if (StackSizeOfType(m->ReturnType) == 8)
 		{
 			x86_push_reg(compMethod, X86_EDX);
 		}
+		x86_push_reg(compMethod, X86_EAX);
 	}
 	return compMethod;
 }
@@ -2493,11 +2493,11 @@ char* JIT_Compile_Call_Internal				(IRInstruction* instr, char* compMethod, IRMe
 	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, paramsSize);
 	if (m->Returns)
 	{
-		x86_push_reg(compMethod, X86_EAX);
 		if (StackSizeOfType(m->ReturnType) == 8)
 		{
 			x86_push_reg(compMethod, X86_EDX);
 		}
+		x86_push_reg(compMethod, X86_EAX);
 	}
 
 	return compMethod;
@@ -2531,11 +2531,11 @@ char* JIT_Compile_Call						(IRInstruction* instr, char* compMethod, IRMethod* m
 
 	if (m->Returns)
 	{
-		x86_push_reg(compMethod, X86_EAX);
 		if (StackSizeOfType(m->ReturnType) == 8)
 		{
 			x86_push_reg(compMethod, X86_EDX);
 		}
+		x86_push_reg(compMethod, X86_EAX);
 	}
 
 	return compMethod;
