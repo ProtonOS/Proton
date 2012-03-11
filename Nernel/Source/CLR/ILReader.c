@@ -520,14 +520,20 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 		if (!sig->ReturnType->Void)
 		{
 			m->Returns = TRUE;
-			printf("Method %s.%s.%s Sig ReturnType @ 0x%x from sig @ 0x%x\n", methodDef->TypeDefinition->Namespace, methodDef->TypeDefinition->Name, methodDef->Name, (unsigned int)sig->ReturnType, (unsigned int)methodDef->Signature);
 			m->ReturnType = GetIRTypeOfSignatureType(dom, fil, asmbly, sig->ReturnType->Type);
 		}
 
 		if (sig->HasThis && !sig->ExplicitThis)
 		{
 			IRParameter* p = IRParameter_Create();
-			p->Type = asmbly->Types[methodDef->TypeDefinition->TableIndex - 1];
+			if (IsStruct(methodDef->TypeDefinition, dom))
+			{
+				p->Type = asmbly->Types[dom->CachedType___System_IntPtr->TableIndex - 1];
+			}
+			else
+			{
+				p->Type = asmbly->Types[methodDef->TypeDefinition->TableIndex - 1];
+			}
 			IRMethod_AddParameter(m, p);
 		}
 

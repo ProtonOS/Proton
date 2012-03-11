@@ -93,6 +93,7 @@ ReferenceTypeObject* System_IntCommon_ToString(AppDomain* pAppDomain, uint64_t* 
 					val = (uint64_t)(-val);
 				}
 			}
+			printf("Hello, val is %llu @ 0x%x!\n", (unsigned long long)(*pThis), (unsigned int)pThis);
 			break;
 		default:
 			Panic("Invalid pSize!");
@@ -143,6 +144,7 @@ ReferenceTypeObject* System_IntCommon_ToString(AppDomain* pAppDomain, uint64_t* 
 
 	//ReferenceTypeObject* result = System_String_Ctor_CharPtrAndStartAndLength(pAppDomain, 0, ResultChars, (uint)(CurrentPos + 1), pSize - CurrentPos);
 	//free(ResultChars);
+
 	char buf[32];
 	snprintf(buf + isNegative, 32 - isNegative, "%llu", (unsigned long long)val);
 	if (isNegative) buf[0] = '-';

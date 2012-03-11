@@ -14,6 +14,11 @@ namespace Mernel
 
         public static void Main()
         {
+            long ticks = DateTime.InternalUtcNow();
+            Console.WriteLine("Started @ " + ((ulong)DateTime.InternalUtcNow()).ToString());
+            string str = new string('*', 40);
+            Console.WriteLine(str);
+
             ulong boxTest = 4;
             Console.WriteLine("Unboxed Test = " + boxTest.ToString());
 
@@ -25,11 +30,6 @@ namespace Mernel
             //object boxedTest = boxTest;
             //ulong unboxTest = (ulong)boxedTest;
             //uint unboxTest2 = (uint)boxTest;
-
-            //long ticks = DateTime.InternalUtcNow();
-            //Console.WriteLine("Started @ " + ((uint)ticks).ToString());
-            //string str = new string('*', 40);
-            //Console.WriteLine(str);
 
             //ulong blargh = 0x000000FF0000FFFF;
             //Console.WriteLine("Blargh! " + ((uint)blargh).ToString());
@@ -57,8 +57,8 @@ namespace Mernel
             //Console.WriteLine("Mernel Started");
 
 
-            //long ticks = DateTime.InternalUtcNow();
-            //Console.WriteLine("Finished @ " + ((uint)ticks).ToString());
+            ticks = DateTime.InternalUtcNow();
+            Console.WriteLine("Finished @ " + ((uint)ticks).ToString());
         }
 
         private static void ActionTest() { Console.WriteLine("ActionTest"); }

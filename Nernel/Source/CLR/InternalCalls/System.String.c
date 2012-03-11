@@ -86,6 +86,7 @@ ReferenceTypeObject* System_String_Ctor_CharArrayAndStartAndLength(AppDomain* pA
 
 ReferenceTypeObject* System_String_InternalConcat(AppDomain* pAppDomain, ReferenceTypeObject* pString1, ReferenceTypeObject* pString2)
 {
+	printf("InternalConcat pString1 @ 0x%x %u bytes, pString2 @ 0x%x %u bytes\n", (unsigned int)pString1, (unsigned int)pString1->Size, (unsigned int)pString2, (unsigned int)pString2->Size);
 	return GC_ConcatenateStrings(pAppDomain->GarbageCollector, pAppDomain->RootObject, pString1, pString2);
 }
 

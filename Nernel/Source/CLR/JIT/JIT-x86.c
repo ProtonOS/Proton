@@ -639,7 +639,7 @@ char* JIT_Compile_Store_LocalVar			(IRInstruction* instr, char* compMethod, IRMe
 		for (uint32_t i = 0; i < movCount; i++)
 		{
 			x86_mov_reg_membase(compMethod, X86_EBX, X86_ESP, curBas, 4);
-			x86_mov_membase_reg(compMethod, X86_EBP, -(mth->LocalVariables[localIndex]->Offset + (i << 2)), X86_EBX, 4);
+			x86_mov_membase_reg(compMethod, X86_EBP, -(mth->LocalVariables[localIndex]->Offset - (i << 2)), X86_EBX, 4);
 			curBas += 4;
 		}
 		x86_adjust_stack(compMethod, (int32_t)size);
@@ -675,14 +675,14 @@ char* JIT_Compile_Load_LocalVar				(IRInstruction* instr, char* compMethod, IRMe
 		Align(&size);
 
 
-		x86_adjust_stack(compMethod, (int32_t)-size);
+		x86_adjust_stack(compMethod, -((int32_t)size));
 		uint32_t movCount = size / global_SizeOfPointerInBytes;
-		uint32_t curBas = size - global_SizeOfPointerInBytes;
+		uint32_t curBas = 0;
 		for (uint32_t i = 0; i < movCount; i++)
 		{
-			x86_mov_reg_membase(compMethod, X86_EBX, X86_EBP, -(mth->LocalVariables[localIndex]->Offset + (i << 2)), 4);
+			x86_mov_reg_membase(compMethod, X86_EBX, X86_EBP, -(mth->LocalVariables[localIndex]->Offset - (i << 2)), 4);
 			x86_mov_membase_reg(compMethod, X86_ESP, curBas, X86_EBX, 4);
-			curBas -= 4;
+			curBas += 4;
 		}
 
 		/*uint32_t movCount = size / global_SizeOfPointerInBytes;
@@ -2412,7 +2412,7 @@ char* JIT_Compile_NewObject					(IRInstruction* instr, char* compMethod, IRMetho
 		uint32_t paramsSize = 0;
 		if (method->ParameterCount > 0)
 		{
-			paramsSize += method->Parameters[method->ParameterCount - 1]->Offset + method->Parameters[method->ParameterCount - 1]->Size;
+			paramsSize += method->Parameters[method->ParameterCount - 1]->Offset  + StackSizeOfType(method->Parameters[method->ParameterCount - 1]->Type);
 			paramsSize -= 8; // For stack frame and return pointer
 			//printf("NewObj: LastParam Offset %u + %u Size\n", (unsigned int)method->Parameters[method->ParameterCount - 1]->Offset, (unsigned int)method->Parameters[method->ParameterCount - 1]->Size);
 		}
@@ -2430,7 +2430,7 @@ char* JIT_Compile_NewObject					(IRInstruction* instr, char* compMethod, IRMetho
 		if (method->ParameterCount > 0)
 		{
 			JIT_Layout_Parameters(method);
-			paramsSize += method->Parameters[method->ParameterCount - 1]->Offset + method->Parameters[method->ParameterCount - 1]->Size;
+			paramsSize += method->Parameters[method->ParameterCount - 1]->Offset + StackSizeOfType(method->Parameters[method->ParameterCount - 1]->Type);
 			paramsSize -= 8; // For stack frame and return pointer
 			//printf("NewObjString: LastParam Offset %u + %u Size\n", (unsigned int)method->Parameters[method->ParameterCount - 1]->Offset, (unsigned int)method->Parameters[method->ParameterCount - 1]->Size);
 		}
@@ -2457,7 +2457,7 @@ char* JIT_Compile_Call_Absolute				(IRInstruction* instr, char* compMethod, IRMe
 	if (m->ParameterCount > 0)
 	{
 		JIT_Layout_Parameters(m);
-		paramsSize += m->Parameters[m->ParameterCount - 1]->Offset + m->Parameters[m->ParameterCount - 1]->Size;
+		paramsSize += m->Parameters[m->ParameterCount - 1]->Offset + StackSizeOfType(m->Parameters[m->ParameterCount - 1]->Type);
 		paramsSize -= 8; // For stack frame and return pointer
 		//printf("CallAbsolute: LastParam Offset %u + %u Size\n", (unsigned int)m->Parameters[m->ParameterCount - 1]->Offset, (unsigned int)m->Parameters[m->ParameterCount - 1]->Size);
 	}
@@ -2486,9 +2486,9 @@ char* JIT_Compile_Call_Internal				(IRInstruction* instr, char* compMethod, IRMe
 	if (m->ParameterCount > 0)
 	{
 		JIT_Layout_Parameters(m);
-		paramsSize += m->Parameters[m->ParameterCount - 1]->Offset + m->Parameters[m->ParameterCount - 1]->Size;
+		paramsSize += m->Parameters[m->ParameterCount - 1]->Offset + StackSizeOfType(m->Parameters[m->ParameterCount - 1]->Type);
 		paramsSize -= 8; // For stack frame and return pointer
-		//printf("CallInternal: LastParam Offset %u + %u Size\n", (unsigned int)m->Parameters[m->ParameterCount - 1]->Offset, (unsigned int)m->Parameters[m->ParameterCount - 1]->Size);
+		//printf("CallInternal: LastParam Offset %u + %u Size\n", (unsigned int)m->Parameters[m->ParameterCount - 1]->Offset, (unsigned int)StackSizeOfType(m->Parameters[m->ParameterCount - 1]->Type));
 	}
 	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, paramsSize);
 	if (m->Returns)
@@ -2523,7 +2523,7 @@ char* JIT_Compile_Call						(IRInstruction* instr, char* compMethod, IRMethod* m
 	if (m->ParameterCount > 0)
 	{
 		JIT_Layout_Parameters(m);
-		paramsSize += m->Parameters[m->ParameterCount - 1]->Offset + m->Parameters[m->ParameterCount - 1]->Size;
+		paramsSize += m->Parameters[m->ParameterCount - 1]->Offset + StackSizeOfType(m->Parameters[m->ParameterCount - 1]->Type);
 		paramsSize -= 8; // For stack frame and return pointer
 		//printf("Call: LastParam Offset %u + %u Size\n", (unsigned int)m->Parameters[m->ParameterCount - 1]->Offset, (unsigned int)m->Parameters[m->ParameterCount - 1]->Size);
 	}
