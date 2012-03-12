@@ -10,6 +10,7 @@ typedef struct _IRField IRField;
 typedef struct _IRMethodSpec IRMethodSpec;
 typedef struct _IRFieldSpec IRFieldSpec;
 typedef struct _IRArrayType IRArrayType;
+typedef struct _IRInterfaceImpl IRInterfaceImpl;
 
 
 // DO NOT put this include above the typedefs,
@@ -44,6 +45,8 @@ struct _IRAssembly
     IRType** Types;
 
 	IRArrayType* ArrayTypesHashTable;
+
+	CLIFile* ParentFile;
 };
 
 struct _IRType
@@ -76,6 +79,19 @@ struct _IRType
 	IRMethod* Finalizer;
 
 	IRArrayType* ArrayType;
+
+
+	IRInterfaceImpl* InterfaceTable;
+};
+
+struct _IRInterfaceImpl
+{
+	IRType* InterfaceType;
+
+	uint32_t MethodCount;
+	uint32_t* MethodIndexes;
+
+	UT_hash_handle HashHandle;
 };
 
 struct _IRArrayType

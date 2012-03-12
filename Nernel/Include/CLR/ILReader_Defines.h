@@ -341,7 +341,7 @@
 
 #define DefineLdcI4(nmb) \
 	{ Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4." #nmb); \
-	uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t)); \
+	uint32_t* dt = (uint32_t*)calloc(1, sizeof(uint32_t)); \
 	*dt = (uint32_t)nmb; \
 	EMIT_IR_1ARG(IROpCode_LoadInt32_Val, dt); \
 	StackObject* s = StackObjectPool_Allocate(); \
@@ -353,7 +353,7 @@
 
 #define DefineShift(SftType, opCode) \
 	{ Log_WriteLine(LogFlags_ILReading, "Read " #opCode); \
-	ShiftType* sType = (ShiftType*)malloc(sizeof(ShiftType)); \
+	ShiftType* sType = (ShiftType*)malloc(sizeof(ShiftType));  \
 	*sType = ShiftType_##SftType; \
 	StackObjectType* sValType = (StackObjectType*)malloc(sizeof(StackObjectType)); \
 	StackObjectType* sAmntType = (StackObjectType*)malloc(sizeof(StackObjectType)); \

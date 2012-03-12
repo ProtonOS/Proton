@@ -25,6 +25,7 @@ IRField** TypeDefinition_GetLayedOutFields(TypeDefinition* tdef, CLIFile* fil, u
 IRMethod** TypeDefinition_GetLayedOutMethods(TypeDefinition* tdef, CLIFile* fil, uint* destLength, AppDomain* dom);
 IRType* GenerateType(TypeDefinition* def, CLIFile* fil, IRAssembly* asmb, AppDomain* dom);
 IRField* GenerateField(Field* def, CLIFile* fil, IRAssembly* asmb, AppDomain* dom);
+IRMethod* GenerateMethod(MethodDefinition* methodDef, CLIFile* fil, IRAssembly* asmb, AppDomain* dom);
 
 
 void EmptyStack(SyntheticStack* stack);
@@ -40,12 +41,13 @@ bool_t IsStruct(TypeDefinition* tdef, AppDomain* dom);
 
 
 
-IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* fil, AppDomain* dom, IRAssembly* asmbly);
+void ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* fil, AppDomain* dom, IRAssembly* asmbly, IRMethod* m);
 
 IRAssembly* ILReader_CreateAssembly(CLIFile* fil, AppDomain* dom)
 {
     StackObjectPool_Initialize();
 	IRAssembly* asmbly = IRAssembly_Create(dom);
+	asmbly->ParentFile = fil;
 	
 	for (uint32_t i = 1; i <= fil->FieldCount; i++)
 	{
@@ -63,11 +65,9 @@ IRAssembly* ILReader_CreateAssembly(CLIFile* fil, AppDomain* dom)
 
     for (uint32_t i = 1; i <= fil->MethodDefinitionCount; i++)
     {
-        uint8_t* ilLoc = (uint8_t*)fil->MethodDefinitions[i].Body.Code;
         Log_WriteLine(LogFlags_ILReading, "Reading Method %s.%s.%s", fil->MethodDefinitions[i].TypeDefinition->Namespace, fil->MethodDefinitions[i].TypeDefinition->Name, fil->MethodDefinitions[i].Name);
 		Log_WriteLine(LogFlags_ILReading, "Method index: %i", (int)i);
-        IRMethod* irMeth = ReadIL(&ilLoc, fil->MethodDefinitions[i].Body.CodeSize, &fil->MethodDefinitions[i], fil, dom, asmbly);
-        IRMethod_BranchLinker_LinkMethod(irMeth);
+        IRMethod* irMeth = GenerateMethod(&fil->MethodDefinitions[i], fil, asmbly, dom);
 		irMeth->MethodDefinition = &fil->MethodDefinitions[i];
         IRAssembly_AddMethod(asmbly, irMeth);
     }
@@ -75,7 +75,7 @@ IRAssembly* ILReader_CreateAssembly(CLIFile* fil, AppDomain* dom)
     StackObjectPool_Destroy();
 	Link(asmbly);
 	
-    IROptimizer_Optimize(asmbly);
+    //IROptimizer_Optimize(asmbly);
 
 	if (fil->CLIHeader->EntryPointToken)
 	{
@@ -86,6 +86,14 @@ IRAssembly* ILReader_CreateAssembly(CLIFile* fil, AppDomain* dom)
 		free(tok);
 	}
 	return asmbly;
+}
+
+void DecomposeMethod(IRMethod* mth)
+{
+	printf("DecomposeMethod mth @ 0x%x, 0x%x, 0x%x, 0x%x, 0x%x\n", (unsigned int)mth, (unsigned int)mth->MethodDefinition, (unsigned int)mth->ParentAssembly, (unsigned int)mth->ParentAssembly->ParentDomain, (unsigned int)mth->ParentAssembly->ParentFile);
+    uint8_t* ilLoc = (uint8_t*)mth->MethodDefinition->Body.Code;
+	ReadIL(&ilLoc, mth->MethodDefinition->Body.CodeSize, mth->MethodDefinition, mth->ParentAssembly->ParentFile, mth->ParentAssembly->ParentDomain, mth->ParentAssembly, mth);
+    IRMethod_BranchLinker_LinkMethod(mth);
 }
 
 IRField* GenerateField(Field* def, CLIFile* fil, IRAssembly* asmb, AppDomain* dom)
@@ -461,62 +469,94 @@ void Link(IRAssembly* asmb)
 		}
 	}
 
-	// Resolve the target of the methods
-	// that have definite targets.
-	for (uint32_t i = 0; i < asmb->MethodCount; i++)
-	{
-		for (uint32_t i2 = 0; i2 < asmb->Methods[i]->IRCodesCount; i2++)
-		{
-			if (asmb->Methods[i]->IRCodes[i2]->OpCode == IROpCode_Call_Absolute)
-			{
-				asmb->Methods[i]->IRCodes[i2]->Arg1 = asmb->Methods[(uint32_t)asmb->Methods[i]->IRCodes[i2]->Arg1 - 1];
-			}
-			else if (asmb->Methods[i]->IRCodes[i2]->OpCode == IROpCode_Call_Internal)
-			{
-				asmb->Methods[i]->IRCodes[i2]->Arg2 = asmb->Methods[(uint32_t)asmb->Methods[i]->IRCodes[i2]->Arg2 - 1];
-			}
-			else if (asmb->Methods[i]->IRCodes[i2]->OpCode == IROpCode_NewObject)
-			{
-				asmb->Methods[i]->IRCodes[i2]->Arg1 = asmb->Methods[(uint32_t)asmb->Methods[i]->IRCodes[i2]->Arg1 - 1];
-			}
-		}
-	}
+
+	//for (uint32_t i = 0; i < asmb->TypeCount; i++)
+	//{
+	//	IRType* tp = asmb->Types[i];
+	//	for (uint32_t i2 = 0; i2 < tp->TypeDef->InterfaceImplementationCount; i2++)
+	//	{
+	//		InterfaceImplementation* interfaceImpl = tp->TypeDef->InterfaceImplementations[i2];
+	//		IRType* intfcTp = NULL;
+	//		switch(interfaceImpl->TypeOfInterface)
+	//		{
+	//			case TypeDefOrRef_Type_TypeDefinition:
+	//				intfcTp = asmb->Types[interfaceImpl->Interface.TypeDefinition->TableIndex - 1];
+	//				break;
+	//			case TypeDefOrRef_Type_TypeSpecification:
+	//				printf("Generic interface implementations aren't supported yet!\n");
+	//				break;
+	//			default:
+	//				Panic("Unknown type of extends for the type of an interface!");
+	//				break;
+	//		}
+	//		IRInterfaceImpl* intrfc = (IRInterfaceImpl*)calloc(1, sizeof(IRInterfaceImpl));
+	//		intrfc->InterfaceType = intfcTp;
+	//		intrfc->MethodCount = intfcTp->MethodCount;
+	//		intrfc->MethodIndexes = (uint32_t*)calloc(1, sizeof(uint32_t) * intfcTp->MethodCount);
+
+	//		for (uint32_t i3 = 0; i3 < tp->TypeDef->MethodImplementationCount; i3++)
+	//		{
+	//			MethodImplementation* methodImpl = tp->TypeDef->MethodImplementations[i3];
+	//			// Make sure this is a method impl for the current interface.
+	//			if (methodImpl->Parent == intfcTp->TypeDef)
+	//			{
+	//				IRMethod* intfcMth = NULL;
+	//				switch(methodImpl->TypeOfMethodDeclaration)
+	//				{
+	//					case MethodDefOrRef_Type_MethodDefinition:
+	//						intfcMth = asmb->Methods[methodImpl->MethodDeclaration.MethodDefinition->TableIndex - 1];
+	//						break;
+	//					case MethodDefOrRef_Type_MemberReference:
+	//						printf("Member reference implementations aren't supported yet!\n");
+	//						break;
+	//					default:
+	//						Panic("Unknown type of extends for the type of an interface!");
+	//						break;
+	//				}
+	//				for (uint32_t i4 = 0; i4 < intfcTp->MethodCount; i4++)
+	//				{
+	//					// Now find the method in the interface that this maps to.
+	//					if (intfcMth == intfcTp->Methods[i4])
+	//					{
+	//						IRMethod* tdefMth = NULL;
+	//						switch(methodImpl->TypeOfMethodBody)
+	//						{
+	//							case MethodDefOrRef_Type_MethodDefinition:
+	//								tdefMth = asmb->Methods[methodImpl->MethodBody.MethodDefinition->TableIndex - 1];
+	//								break;
+	//							case MethodDefOrRef_Type_MemberReference:
+	//								printf("Member reference implementations aren't supported yet!\n");
+	//								break;
+	//							default:
+	//								Panic("Unknown type of extends for the type of an interface!");
+	//								break;
+	//						}
+	//						for (uint32_t i5 = 0; i5 < tp->MethodCount; i5++)
+	//						{
+	//							if (tp->Methods[i5] == tdefMth)
+	//							{
+	//								// We mow have the index in the interface  the index in the
+	//								// typedef's VMT's.
+	//								intrfc->MethodIndexes[i4] = i5;
+	//								break;
+	//							}
+	//						}
+
+	//						break;
+	//					}
+	//				}
+	//			}
+	//		}
+
+	//		HASH_ADD(HashHandle, tp->InterfaceTable, InterfaceType, sizeof(void*), intrfc);
+
+	//	}
+	//}
 }
 
-IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* fil, AppDomain* dom, IRAssembly* asmbly)
+IRMethod* GenerateMethod(MethodDefinition* methodDef, CLIFile* fil, IRAssembly* asmbly, AppDomain* dom)
 {
-	uint32_t CatchHandlerIndex = 0;
-	uint32_t TryHandlerIndex = 0;
-	uint32_t ExceptionHandlerCount = methodDef->ExceptionCount;
-	uint32_t* ExceptionCatchStatementOffsets = (uint32_t*)calloc(ExceptionHandlerCount, sizeof(uint32_t));
-	uint32_t* ExceptionCatchStatementLengths = (uint32_t*)calloc(ExceptionHandlerCount, sizeof(uint32_t));
-	uint32_t* ExceptionTryStatementOffsets = (uint32_t*)calloc(ExceptionHandlerCount, sizeof(uint32_t));
-	uint32_t* ExceptionTryStatementLengths = (uint32_t*)calloc(ExceptionHandlerCount, sizeof(uint32_t));
-	for (uint32_t i = 0; i < ExceptionHandlerCount; i++)
-	{
-		Log_WriteLine(LogFlags_ILReading_ExceptionBlocks, "Catch handler %i (Length: 0x%x) at offset 0x%x", (int)i, (unsigned int)methodDef->Exceptions[i].HandlerLength, (unsigned int)methodDef->Exceptions[i].HandlerOffset);
-		ExceptionCatchStatementOffsets[i] = methodDef->Exceptions[i].HandlerOffset;
-		ExceptionCatchStatementLengths[i] = methodDef->Exceptions[i].HandlerLength;
-		Log_WriteLine(LogFlags_ILReading_ExceptionBlocks, "Try statement %i (Length: 0x%x) at offset 0x%x", (int)i, (unsigned int)methodDef->Exceptions[i].TryLength, (unsigned int)methodDef->Exceptions[i].TryOffset);
-		ExceptionTryStatementOffsets[i] = methodDef->Exceptions[i].TryOffset;
-		ExceptionTryStatementOffsets[i] = methodDef->Exceptions[i].TryLength;
-	}
-
-    SyntheticStack* stack = SyntheticStack_Create();
-    bool_t Constrained = FALSE;
-    bool_t No = FALSE;
-    bool_t ReadOnly = FALSE;
-    bool_t Tail = FALSE;
-    bool_t UnAligned = FALSE;
-    bool_t Volatile = FALSE;
-    BranchCondition branch_Condition = (BranchCondition)0;
-    uint32_t branch_Target;
-	StackObject* branch_Arg1 = NULL;
-	StackObject* branch_Arg2 = NULL;
-	size_t orig = (size_t)(*dat);
-    size_t CurInstructionBase;
-    uint8_t b;
-    IRMethod* m = IRMethod_Create();
+	IRMethod* m = IRMethod_Create();
 	m->ParentAssembly = asmbly;
 
 	{   // Setup Parameters
@@ -550,6 +590,43 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 
 		MethodSignature_Destroy(sig);
 	}
+	return m;
+}
+
+void ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* fil, AppDomain* dom, IRAssembly* asmbly, IRMethod* m)
+{
+	uint32_t CatchHandlerIndex = 0;
+	uint32_t TryHandlerIndex = 0;
+	uint32_t ExceptionHandlerCount = methodDef->ExceptionCount;
+	uint32_t* ExceptionCatchStatementOffsets = (uint32_t*)calloc(ExceptionHandlerCount, sizeof(uint32_t));
+	uint32_t* ExceptionCatchStatementLengths = (uint32_t*)calloc(ExceptionHandlerCount, sizeof(uint32_t));
+	uint32_t* ExceptionTryStatementOffsets = (uint32_t*)calloc(ExceptionHandlerCount, sizeof(uint32_t));
+	uint32_t* ExceptionTryStatementLengths = (uint32_t*)calloc(ExceptionHandlerCount, sizeof(uint32_t));
+	for (uint32_t i = 0; i < ExceptionHandlerCount; i++)
+	{
+		Log_WriteLine(LogFlags_ILReading_ExceptionBlocks, "Catch handler %i (Length: 0x%x) at offset 0x%x", (int)i, (unsigned int)methodDef->Exceptions[i].HandlerLength, (unsigned int)methodDef->Exceptions[i].HandlerOffset);
+		ExceptionCatchStatementOffsets[i] = methodDef->Exceptions[i].HandlerOffset;
+		ExceptionCatchStatementLengths[i] = methodDef->Exceptions[i].HandlerLength;
+		Log_WriteLine(LogFlags_ILReading_ExceptionBlocks, "Try statement %i (Length: 0x%x) at offset 0x%x", (int)i, (unsigned int)methodDef->Exceptions[i].TryLength, (unsigned int)methodDef->Exceptions[i].TryOffset);
+		ExceptionTryStatementOffsets[i] = methodDef->Exceptions[i].TryOffset;
+		ExceptionTryStatementOffsets[i] = methodDef->Exceptions[i].TryLength;
+	}
+
+    SyntheticStack* stack = SyntheticStack_Create();
+    bool_t Constrained = FALSE;
+    bool_t No = FALSE;
+    bool_t ReadOnly = FALSE;
+    bool_t Tail = FALSE;
+    bool_t UnAligned = FALSE;
+    bool_t Volatile = FALSE;
+    BranchCondition branch_Condition = (BranchCondition)0;
+    uint32_t branch_Target;
+	StackObject* branch_Arg1 = NULL;
+	StackObject* branch_Arg2 = NULL;
+	size_t orig = (size_t)(*dat);
+    size_t CurInstructionBase;
+    uint8_t b;
+
 
 	{   // Setup Locals
 		if (methodDef->Body.LocalVariableSignatureToken)
@@ -975,7 +1052,27 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
             case ILOpCode_Ldc_I4_1:			// 0x17
                 DefineLdcI4(1);
             case ILOpCode_Ldc_I4_2:			// 0x18
-                DefineLdcI4(2);
+                //DefineLdcI4(2);
+				{ Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.2" );
+				uint32_t* dt = (uint32_t*)calloc(1, sizeof(uint32_t));
+				*dt = (uint32_t)2;
+				 { 
+					IRInstruction* instr = IRInstruction_Create(); 
+					instr->InstructionLocation = (CurInstructionBase - orig); 
+					Log_WriteLine(LogFlags_IREmitting, "instr->InstructionLocation = 0x%x", (unsigned int)instr->InstructionLocation); 
+					GetInstrOffset(); 
+					instr->Arg1 = dt; 
+					instr->OpCode = IROpCode_LoadInt32_Val; 
+					Log_WriteLine(LogFlags_IREmitting, "Emitting IROpCode_LoadInt32_Val With 1 argument ('dt')"); 
+					IRMethod_AddInstruction(m, instr); 
+				 }
+				//EMIT_IR_1ARG(IROpCode_LoadInt32_Val, dt);
+				StackObject* s = StackObjectPool_Allocate();
+				s->Type = StackObjectType_Int32;
+				s->NumericType = StackObjectNumericType_Int32;
+				SyntheticStack_Push(stack, s);
+				ClearFlags();
+				break; }
             case ILOpCode_Ldc_I4_3:			// 0x19
                 DefineLdcI4(3);
             case ILOpCode_Ldc_I4_4:			// 0x1A
@@ -1174,11 +1271,11 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 					{
 						if (mthDef->InternalCall)
 						{
-							EMIT_IR_2ARG_NO_DISPOSE(IROpCode_Call_Internal, mthDef->InternalCall, (int*)mthDef->TableIndex);
+							EMIT_IR_2ARG_NO_DISPOSE(IROpCode_Call_Internal, mthDef->InternalCall, asmbly->Methods[mthDef->TableIndex - 1]);
 						}
 						else if ((mthDef->Flags & MethodAttributes_Static) || ((mthDef->Flags & MethodAttributes_Virtual) == 0) || (mthDef->Flags & MethodAttributes_RTSpecialName) || (mthDef->TypeDefinition->Flags & TypeAttributes_Sealed) || IsStruct(mthDef->TypeDefinition, dom))
 						{
-							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Call_Absolute, (IRMethod*)(mthDef->TableIndex));
+							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Call_Absolute, asmbly->Methods[mthDef->TableIndex - 1]);
 						}
 						else
 						{
@@ -1379,11 +1476,11 @@ IRMethod* ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFi
 					{
 						if (mthDef->InternalCall)
 						{
-							EMIT_IR_2ARG_NO_DISPOSE(IROpCode_Call_Internal, mthDef->InternalCall, (int*)mthDef->TableIndex);
+							EMIT_IR_2ARG_NO_DISPOSE(IROpCode_Call_Internal, mthDef->InternalCall, asmbly->Methods[mthDef->TableIndex - 1]);
 						}
 						else if (((mthDef->Flags & MethodAttributes_Virtual) == 0) || (mthDef->Flags & MethodAttributes_RTSpecialName) || (mthDef->TypeDefinition->Flags & TypeAttributes_Sealed) || IsStruct(mthDef->TypeDefinition, dom))
 						{
-							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Call_Absolute, (IRMethod*)(mthDef->TableIndex));
+							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Call_Absolute, asmbly->Methods[mthDef->TableIndex - 1]);
 						}
 						else
 						{
@@ -1798,7 +1895,7 @@ Branch_Common:
 						case MetaData_Table_MethodDefinition:
 							{
 								sig = MethodSignature_Expand(((MethodDefinition*)tok->Data)->Signature, fil);
-								EMIT_IR_1ARG(IROpCode_NewObject, (void*)((MethodDefinition*)tok->Data)->TableIndex);
+								EMIT_IR_1ARG_NO_DISPOSE(IROpCode_NewObject, asmbly->Methods[((MethodDefinition*)tok->Data)->TableIndex - 1]);
 								break;
 							}
 						case MetaData_Table_MemberReference:
@@ -1843,7 +1940,7 @@ Branch_Common:
 					switch (tok->Table)
 					{
 						case MetaData_Table_TypeDefinition:
-							EMIT_IR_1ARG(IROpCode_NewArray, asmbly->Types[((TypeDefinition*)tok->Data)->TableIndex - 1]);
+							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_NewArray, asmbly->Types[((TypeDefinition*)tok->Data)->TableIndex - 1]);
 							break;
 						case MetaData_Table_TypeSpecification:
 							printf("No idea what to do here!\n");
@@ -1975,7 +2072,7 @@ Branch_Common:
 							ElementType et = (ElementType)0;
 							GetElementTypeFromTypeDef(tdef, dom, &et);
 							SetObjectTypeFromElementType(obj, et);
-							EMIT_IR_1ARG(IROpCode_Unbox_Any, asmbly->Types[tdef->TableIndex - 1]);
+							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Unbox_Any, asmbly->Types[tdef->TableIndex - 1]);
 							break;
 						}
 						case MetaData_Table_TypeSpecification:
@@ -2066,7 +2163,7 @@ Branch_Common:
 										break;
 								}
 							}
-							EMIT_IR_1ARG(IROpCode_Box, asmbly->Types[tdef->TableIndex - 1]);
+							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Box, asmbly->Types[tdef->TableIndex - 1]);
 							break;
 						case MetaData_Table_TypeSpecification:
 							//tspec = (TypeSpecification*)tok->Data;
@@ -3191,7 +3288,6 @@ Branch_Common:
         }
     }
 	SyntheticStack_Destroy(stack);
-    return m;
 }
 
 ALWAYS_INLINE uint8_t ReadUInt8(uint8_t** dat)

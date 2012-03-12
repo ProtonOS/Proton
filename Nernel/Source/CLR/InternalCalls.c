@@ -130,8 +130,8 @@ InternalCallPointer ResolveInternalCall(MethodDefinition* methodDef, CLIFile* fi
 		{
 			MethodSignature* sig = MethodSignature_Expand(methodDef->Signature, fil);
 			bool_t sigMatch = TRUE;
-			if (sig->ReturnType->Type->ElementType == ic->ReturnType ||
-				(ic->ReturnType == Signature_ElementType_Void && sig->ReturnType->Void))
+			if ((ic->ReturnType == Signature_ElementType_Void && sig->ReturnType->Void) ||
+				sig->ReturnType->Type->ElementType == ic->ReturnType)
 			{
 				for (uint32_t arg = 0, param = 0; param < ic->ParameterCount; arg++, param++)
 				{

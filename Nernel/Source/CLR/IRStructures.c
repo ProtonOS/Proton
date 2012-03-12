@@ -173,8 +173,8 @@ void IRFieldSpec_Destroy(IRFieldSpec* fldspec)
 
 void IRAssembly_AddMethod(IRAssembly* asmb, IRMethod* mth)
 {
-	asmb->MethodCount++;
 	mth->MethodIndex = asmb->MethodCount;
+	asmb->MethodCount++;
 	// The reason this is safe to do even if
 	// we haven't allocated for it yet, is because
 	// realloc acts like a normal malloc if the first
@@ -186,16 +186,16 @@ void IRAssembly_AddMethod(IRAssembly* asmb, IRMethod* mth)
 void IRAssembly_AddType(IRAssembly* asmb, IRType* tp)
 {
 	tp->ParentAssembly = asmb;
-	asmb->TypeCount++;
 	tp->TypeIndex = asmb->TypeCount;
+	asmb->TypeCount++;
 	asmb->Types = (IRType**)realloc(asmb->Types, sizeof(IRType*) * asmb->TypeCount);
 	asmb->Types[asmb->TypeCount - 1] = tp;
 }
 
 void IRAssembly_AddField(IRAssembly* asmb, IRField* fld)
 {
-	asmb->FieldCount++;
 	fld->FieldIndex = asmb->FieldCount;
+	asmb->FieldCount++;
 	asmb->Fields = (IRField**)realloc(asmb->Fields, sizeof(IRField*) * asmb->FieldCount);
 	asmb->Fields[asmb->FieldCount - 1] = fld;
 }

@@ -12,8 +12,8 @@
 #else
 #define ActiveLogFlags ((LogFlags)( \
 		LogFlags_JIT \
-        /* | LogFlags_ILReading */ \
-        /* | LogFlags_IREmitting */ \
+        | LogFlags_ILReading \
+        | LogFlags_IREmitting \
         /* | LogFlags_SyntheticStack */ \
         /* | LogFlags_MetaData_Loading */ \
         /* | LogFlags_AppDomain_Loading  */ \

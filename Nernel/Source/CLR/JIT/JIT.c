@@ -3,11 +3,13 @@
 #include <stdlib.h>
 #include <Core/Console.h>
 #include <CLR/Log.h>
+#include <CLR/ILReader.h>
 
 
 void DumpMethod(IRMethod* mth, uint32_t len);
 void JIT_CompileMethod(IRMethod* mthd)
 {
+	DecomposeMethod(mthd);
 	Log_WriteLine(LogFlags_JIT, "JITing method %s.%s.%s", mthd->MethodDefinition->TypeDefinition->Namespace, mthd->MethodDefinition->TypeDefinition->Name, mthd->MethodDefinition->Name);
 	char* compMthd = malloc(mthd->IRCodesCount * 128);
 	Log_WriteLine(LogFlags_JIT, "Address of JIT'd Method: 0x%x Size: 0x%x", (unsigned int)compMthd, mthd->IRCodesCount * 128);
