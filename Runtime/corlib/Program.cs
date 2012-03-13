@@ -19,14 +19,15 @@ namespace Mernel
 
         public static void Main()
         {
-            long ticks = DateTime.InternalUtcNow();
-            Console.WriteLine(((ulong)ticks).ToString());
+            //long ticks = DateTime.InternalUtcNow();
+            //Console.WriteLine(((ulong)ticks).ToString());
             //string str = new string('*', 40);
             //Console.WriteLine(str);
+            uint bStatic = (uint)(aStatic);
+            bStatic++;
 
             aStatic = Blarh342();// unchecked((uint)-1);
             Testr(4);
-            //uint bStatic = (uint)(aStatic);
             //Console.WriteLine("aStatic = " + ((ulong)aStatic).ToString());
 
             //ulong boxTest = 4;
