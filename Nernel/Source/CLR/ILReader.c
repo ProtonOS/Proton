@@ -880,12 +880,11 @@ void ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* f
                     *dt = (uint32_t)0;
                     EMIT_IR_1ARG(IROpCode_Load_LocalVar, dt);
 					
-                    MetaDataToken* tok = CLIFile_ResolveToken(fil, methodDef->Body.LocalVariableSignatureToken);
-					LocalsSignature* sig = LocalsSignature_Expand(((StandAloneSignature*)tok->Data)->Signature, fil);
+
+					ElementType mTp = (ElementType)NULL;
+					GetElementTypeFromTypeDef(m->LocalVariables[0]->VariableType->TypeDef, dom, &mTp);
 					StackObject* obj = StackObjectPool_Allocate();
-					SetTypeOfStackObjectFromSigElementType(obj, sig->LocalVariables[0]->Type, fil, dom);
-					LocalsSignature_Destroy(sig);
-					free(tok);
+					SetObjectTypeFromElementType(obj, mTp);
 					SyntheticStack_Push(stack, obj);
                 }
                 ClearFlags();
@@ -897,12 +896,11 @@ void ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* f
                     *dt = (uint32_t)1;
                     EMIT_IR_1ARG(IROpCode_Load_LocalVar, dt);
 					
-                    MetaDataToken* tok = CLIFile_ResolveToken(fil, methodDef->Body.LocalVariableSignatureToken);
-					LocalsSignature* sig = LocalsSignature_Expand(((StandAloneSignature*)tok->Data)->Signature, fil);
+
+					ElementType mTp = (ElementType)NULL;
+					GetElementTypeFromTypeDef(m->LocalVariables[1]->VariableType->TypeDef, dom, &mTp);
 					StackObject* obj = StackObjectPool_Allocate();
-					SetTypeOfStackObjectFromSigElementType(obj, sig->LocalVariables[1]->Type, fil, dom);
-					LocalsSignature_Destroy(sig);
-					free(tok);
+					SetObjectTypeFromElementType(obj, mTp);
 					SyntheticStack_Push(stack, obj);
                 }
                 ClearFlags();
@@ -914,12 +912,11 @@ void ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* f
                     *dt = (uint32_t)2;
                     EMIT_IR_1ARG(IROpCode_Load_LocalVar, dt);
 					
-                    MetaDataToken* tok = CLIFile_ResolveToken(fil, methodDef->Body.LocalVariableSignatureToken);
-					LocalsSignature* sig = LocalsSignature_Expand(((StandAloneSignature*)tok->Data)->Signature, fil);
+
+					ElementType mTp = (ElementType)NULL;
+					GetElementTypeFromTypeDef(m->LocalVariables[2]->VariableType->TypeDef, dom, &mTp);
 					StackObject* obj = StackObjectPool_Allocate();
-					SetTypeOfStackObjectFromSigElementType(obj, sig->LocalVariables[2]->Type, fil, dom);
-					LocalsSignature_Destroy(sig);
-					free(tok);
+					SetObjectTypeFromElementType(obj, mTp);
 					SyntheticStack_Push(stack, obj);
                 }
                 ClearFlags();
@@ -930,13 +927,11 @@ void ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* f
                     uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
                     *dt = (uint32_t)3;
                     EMIT_IR_1ARG(IROpCode_Load_LocalVar, dt);
-					
-                    MetaDataToken* tok = CLIFile_ResolveToken(fil, methodDef->Body.LocalVariableSignatureToken);
-					LocalsSignature* sig = LocalsSignature_Expand(((StandAloneSignature*)tok->Data)->Signature, fil);
+
+					ElementType mTp = (ElementType)NULL;
+					GetElementTypeFromTypeDef(m->LocalVariables[3]->VariableType->TypeDef, dom, &mTp);
 					StackObject* obj = StackObjectPool_Allocate();
-					SetTypeOfStackObjectFromSigElementType(obj, sig->LocalVariables[3]->Type, fil, dom);
-					LocalsSignature_Destroy(sig);
-					free(tok);
+					SetObjectTypeFromElementType(obj, mTp);
 					SyntheticStack_Push(stack, obj);
                 }
                 ClearFlags();
@@ -948,12 +943,11 @@ void ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* f
                     *dt = (uint32_t)ReadUInt8(dat);
                     EMIT_IR_1ARG(IROpCode_Load_LocalVar, dt);
 					
-                    MetaDataToken* tok = CLIFile_ResolveToken(fil, methodDef->Body.LocalVariableSignatureToken);
-					LocalsSignature* sig = LocalsSignature_Expand(((StandAloneSignature*)tok->Data)->Signature, fil);
+
+					ElementType mTp = (ElementType)NULL;
+					GetElementTypeFromTypeDef(m->LocalVariables[*dt]->VariableType->TypeDef, dom, &mTp);
 					StackObject* obj = StackObjectPool_Allocate();
-					SetTypeOfStackObjectFromSigElementType(obj, sig->LocalVariables[*dt]->Type, fil, dom);
-					LocalsSignature_Destroy(sig);
-					free(tok);
+					SetObjectTypeFromElementType(obj, mTp);
 					SyntheticStack_Push(stack, obj);
                 }
                 ClearFlags();
@@ -3055,10 +3049,10 @@ Branch_Common:
 							*dt = (uint32_t)ReadUInt16(dat);
 							EMIT_IR_1ARG(IROpCode_Load_Parameter, dt);
 							
-							MethodSignature* mthSig = MethodSignature_Expand(methodDef->Signature, fil);
+							ElementType mTp = (ElementType)NULL;
+							GetElementTypeFromTypeDef(m->Parameters[*dt]->Type->TypeDef, dom, &mTp);
 							StackObject* obj = StackObjectPool_Allocate();
-							SetTypeOfStackObjectFromSigElementType(obj, mthSig->Parameters[*dt]->Type, fil, dom);
-							MethodSignature_Destroy(mthSig);
+							SetObjectTypeFromElementType(obj, mTp);
 							SyntheticStack_Push(stack, obj);
 						}
                         ClearFlags();
@@ -3095,13 +3089,11 @@ Branch_Common:
 							uint32_t* dt = (uint32_t*)malloc(sizeof(uint32_t));
 							*dt = (uint32_t)ReadUInt16(dat);
 							EMIT_IR_1ARG(IROpCode_Load_LocalVar, dt);
-
-							MetaDataToken* tok = CLIFile_ResolveToken(fil, methodDef->Body.LocalVariableSignatureToken);
-							LocalsSignature* sig = LocalsSignature_Expand(((StandAloneSignature*)tok->Data)->Signature, fil);
+							
+							ElementType mTp = (ElementType)NULL;
+							GetElementTypeFromTypeDef(m->LocalVariables[*dt]->VariableType->TypeDef, dom, &mTp);
 							StackObject* obj = StackObjectPool_Allocate();
-							SetTypeOfStackObjectFromSigElementType(obj, sig->LocalVariables[*dt]->Type, fil, dom);
-							LocalsSignature_Destroy(sig);
-							free(tok);
+							SetObjectTypeFromElementType(obj, mTp);
 							SyntheticStack_Push(stack, obj);
                         }
                         ClearFlags();
