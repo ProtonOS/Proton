@@ -590,6 +590,34 @@ IRMethod* GenerateMethod(MethodDefinition* methodDef, CLIFile* fil, IRAssembly* 
 
 		MethodSignature_Destroy(sig);
 	}
+
+	
+	{   // Setup internal call stuff.
+		if (methodDef->ImplFlags & MethodImplAttributes_InternalCall)
+		{
+			m->AssembledMethod = (void(*)())methodDef->InternalCall;
+		}
+	}
+
+	{   // Setup Locals
+		if (methodDef->Body.LocalVariableSignatureToken)
+		{
+			MetaDataToken* tok = CLIFile_ResolveToken(fil, methodDef->Body.LocalVariableSignatureToken);
+			LocalsSignature* sig = LocalsSignature_Expand(((StandAloneSignature*)tok->Data)->Signature, fil);
+			
+			m->LocalVariableCount = sig->LocalVariableCount;
+			m->LocalVariables = (IRLocalVariable**)calloc(m->LocalVariableCount, sizeof(IRLocalVariable*));
+			for (uint32_t i = 0; i < m->LocalVariableCount; i++)
+			{
+				m->LocalVariables[i] = (IRLocalVariable*)calloc(1, sizeof(IRLocalVariable));
+				m->LocalVariables[i]->VariableType = GetIRTypeOfSignatureType(dom, fil, asmbly, sig->LocalVariables[i]->Type);
+				m->LocalVariables[i]->LocalVariableIndex = i;
+			}
+
+			LocalsSignature_Destroy(sig);
+			free(tok);
+		}
+	}
 	return m;
 }
 
@@ -626,36 +654,6 @@ void ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* f
 	size_t orig = (size_t)(*dat);
     size_t CurInstructionBase;
     uint8_t b;
-
-
-	{   // Setup Locals
-		if (methodDef->Body.LocalVariableSignatureToken)
-		{
-			MetaDataToken* tok = CLIFile_ResolveToken(fil, methodDef->Body.LocalVariableSignatureToken);
-			LocalsSignature* sig = LocalsSignature_Expand(((StandAloneSignature*)tok->Data)->Signature, fil);
-			
-			m->LocalVariableCount = sig->LocalVariableCount;
-			m->LocalVariables = (IRLocalVariable**)calloc(m->LocalVariableCount, sizeof(IRLocalVariable*));
-			for (uint32_t i = 0; i < m->LocalVariableCount; i++)
-			{
-				m->LocalVariables[i] = (IRLocalVariable*)calloc(1, sizeof(IRLocalVariable));
-				m->LocalVariables[i]->VariableType = GetIRTypeOfSignatureType(dom, fil, asmbly, sig->LocalVariables[i]->Type);
-				m->LocalVariables[i]->LocalVariableIndex = i;
-			}
-
-			LocalsSignature_Destroy(sig);
-			free(tok);
-		}
-		//LocalsSignature* sig = LocalsSignature_Expand(
-		//m->LocalVariableCount = methodDef->Body.LocalVariableSignatureToken
-	}
-	
-	{
-		if (methodDef->ImplFlags & MethodImplAttributes_InternalCall)
-		{
-			m->AssembledMethod = (void(*)())methodDef->InternalCall;
-		}
-	}
 
     /*Log_WriteLine(LogFlags_ILReading, "Hex value of the method: ");
     while ((size_t)(*dat) - orig < len)
@@ -1052,27 +1050,7 @@ void ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* f
             case ILOpCode_Ldc_I4_1:			// 0x17
                 DefineLdcI4(1);
             case ILOpCode_Ldc_I4_2:			// 0x18
-                //DefineLdcI4(2);
-				{ Log_WriteLine(LogFlags_ILReading, "Read Ldc.I4.2" );
-				uint32_t* dt = (uint32_t*)calloc(1, sizeof(uint32_t));
-				*dt = (uint32_t)2;
-				 { 
-					IRInstruction* instr = IRInstruction_Create(); 
-					instr->InstructionLocation = (CurInstructionBase - orig); 
-					Log_WriteLine(LogFlags_IREmitting, "instr->InstructionLocation = 0x%x", (unsigned int)instr->InstructionLocation); 
-					GetInstrOffset(); 
-					instr->Arg1 = dt; 
-					instr->OpCode = IROpCode_LoadInt32_Val; 
-					Log_WriteLine(LogFlags_IREmitting, "Emitting IROpCode_LoadInt32_Val With 1 argument ('dt')"); 
-					IRMethod_AddInstruction(m, instr); 
-				 }
-				//EMIT_IR_1ARG(IROpCode_LoadInt32_Val, dt);
-				StackObject* s = StackObjectPool_Allocate();
-				s->Type = StackObjectType_Int32;
-				s->NumericType = StackObjectNumericType_Int32;
-				SyntheticStack_Push(stack, s);
-				ClearFlags();
-				break; }
+                DefineLdcI4(2);
             case ILOpCode_Ldc_I4_3:			// 0x19
                 DefineLdcI4(3);
             case ILOpCode_Ldc_I4_4:			// 0x1A
@@ -1285,7 +1263,7 @@ void ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* f
 							bool_t FoundMethod = FALSE;
 							for (uint32_t i = 0; i < mthSpec->ParentType->MethodCount; i++)
 							{
-								MethodDefinition* mthDef2 = &(fil->MethodDefinitions[(uint32_t)(mthSpec->ParentType->Methods[i])]);
+								MethodDefinition* mthDef2 = mthSpec->ParentType->Methods[i]->MethodDefinition;
 								if (mthDef2->TableIndex)
 								{
 									Log_WriteLine(LogFlags_ILReading, "Checking Method %s.%s.%s from table index %i", mthDef2->TypeDefinition->Namespace, mthDef2->TypeDefinition->Name, mthDef2->Name, (int)mthDef2->TableIndex);
@@ -1490,7 +1468,7 @@ void ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* f
 							bool_t FoundMethod = FALSE;
 							for (uint32_t i = 0; i < mthSpec->ParentType->MethodCount; i++)
 							{
-								MethodDefinition* mthDef2 = &(fil->MethodDefinitions[(uint32_t)(mthSpec->ParentType->Methods[i])]);
+								MethodDefinition* mthDef2 = mthSpec->ParentType->Methods[i]->MethodDefinition;
 								if (mthDef2->TableIndex)
 								{
 									Log_WriteLine(LogFlags_ILReading, "Checking Method %s.%s.%s from table index %i", mthDef2->TypeDefinition->Namespace, mthDef2->TypeDefinition->Name, mthDef2->Name, (int)mthDef2->TableIndex);
@@ -1545,7 +1523,7 @@ void ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* f
 				{
 					case MetaData_Table_MethodDefinition:
 						mthDef = (MethodDefinition*)tok->Data;
-					break;
+						break;
 					default:
 						Panic("Invalid Table for Jmp!");
 						break;
@@ -1570,7 +1548,7 @@ void ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* f
 						bool_t FoundMethod = FALSE;
 						for (uint32_t i = 0; i < mthSpec->ParentType->MethodCount; i++)
 						{
-							MethodDefinition* mthDef2 = &(fil->MethodDefinitions[(uint32_t)(mthSpec->ParentType->Methods[i])]);
+							MethodDefinition* mthDef2 = mthSpec->ParentType->Methods[i]->MethodDefinition;
 							if (mthDef2->TableIndex)
 							{
 								Log_WriteLine(LogFlags_ILReading, "Checking Method %s.%s.%s from table index %i", mthDef2->TypeDefinition->Namespace, mthDef2->TypeDefinition->Name, mthDef2->Name, (int)mthDef2->TableIndex);
@@ -3018,7 +2996,7 @@ Branch_Common:
 								bool_t FoundMethod = FALSE;
 								for (uint32_t i = 0; i < mthSpec->ParentType->MethodCount; i++)
 								{
-									MethodDefinition* mthDef2 = &(fil->MethodDefinitions[(uint32_t)(mthSpec->ParentType->Methods[i])]);
+									MethodDefinition* mthDef2 = mthSpec->ParentType->Methods[i]->MethodDefinition;
 									if (mthDef2->TableIndex)
 									{
 										Log_WriteLine(LogFlags_ILReading, "Checking Method %s.%s.%s from table index %i", mthDef2->TypeDefinition->Namespace, mthDef2->TypeDefinition->Name, mthDef2->Name, (int)mthDef2->TableIndex);
