@@ -45,7 +45,6 @@ void ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* f
 
 IRAssembly* ILReader_CreateAssembly(CLIFile* fil, AppDomain* dom)
 {
-    StackObjectPool_Initialize();
 	IRAssembly* asmbly = IRAssembly_Create(dom);
 	asmbly->ParentFile = fil;
 	
@@ -72,7 +71,6 @@ IRAssembly* ILReader_CreateAssembly(CLIFile* fil, AppDomain* dom)
         IRAssembly_AddMethod(asmbly, irMeth);
     }
 	printf("Loaded Methods\n");
-    StackObjectPool_Destroy();
 	Link(asmbly);
 	
     //IROptimizer_Optimize(asmbly);
@@ -122,7 +120,6 @@ IRField* GenerateField(Field* def, CLIFile* fil, IRAssembly* asmb, AppDomain* do
 			break;
 		case Signature_ElementType_I8:
 			fld->FieldType = (IRType*)dom->CachedType___System_Int64->TableIndex;
-			printf("fld %s.%s @ 0x%x FieldType = 0x%x!\n", def->TypeDefinition->Name, def->Name, (unsigned int)fld, (unsigned int)fld->FieldType);
 			break;
 		case Signature_ElementType_IPointer:
 			fld->FieldType = (IRType*)dom->CachedType___System_IntPtr->TableIndex;
@@ -169,7 +166,7 @@ IRField* GenerateField(Field* def, CLIFile* fil, IRAssembly* asmb, AppDomain* do
 			break;
 		
 		default:
-			//printf("Not setting the type of %s.%s!\n", def->TypeDefinition->Name, def->Name);
+			printf("Not setting the type of %s.%s!\n", def->TypeDefinition->Name, def->Name);
 			break;
 	}
 	FieldSignature_Destroy(sig);
@@ -463,88 +460,88 @@ void Link(IRAssembly* asmb)
 	}
 
 
-	//for (uint32_t i = 0; i < asmb->TypeCount; i++)
-	//{
-	//	IRType* tp = asmb->Types[i];
-	//	for (uint32_t i2 = 0; i2 < tp->TypeDef->InterfaceImplementationCount; i2++)
-	//	{
-	//		InterfaceImplementation* interfaceImpl = tp->TypeDef->InterfaceImplementations[i2];
-	//		IRType* intfcTp = NULL;
-	//		switch(interfaceImpl->TypeOfInterface)
-	//		{
-	//			case TypeDefOrRef_Type_TypeDefinition:
-	//				intfcTp = asmb->Types[interfaceImpl->Interface.TypeDefinition->TableIndex - 1];
-	//				break;
-	//			case TypeDefOrRef_Type_TypeSpecification:
-	//				printf("Generic interface implementations aren't supported yet!\n");
-	//				break;
-	//			default:
-	//				Panic("Unknown type of extends for the type of an interface!");
-	//				break;
-	//		}
-	//		IRInterfaceImpl* intrfc = (IRInterfaceImpl*)calloc(1, sizeof(IRInterfaceImpl));
-	//		intrfc->InterfaceType = intfcTp;
-	//		intrfc->MethodCount = intfcTp->MethodCount;
-	//		intrfc->MethodIndexes = (uint32_t*)calloc(1, sizeof(uint32_t) * intfcTp->MethodCount);
+	for (uint32_t i = 0; i < asmb->TypeCount; i++)
+	{
+		IRType* tp = asmb->Types[i];
+		for (uint32_t i2 = 0; i2 < tp->TypeDef->InterfaceImplementationCount; i2++)
+		{
+			InterfaceImplementation* interfaceImpl = tp->TypeDef->InterfaceImplementations[i2];
+			IRType* intfcTp = NULL;
+			switch(interfaceImpl->TypeOfInterface)
+			{
+				case TypeDefOrRef_Type_TypeDefinition:
+					intfcTp = asmb->Types[interfaceImpl->Interface.TypeDefinition->TableIndex - 1];
+					break;
+				case TypeDefOrRef_Type_TypeSpecification:
+					printf("Generic interface implementations aren't supported yet!\n");
+					break;
+				default:
+					Panic("Unknown type of extends for the type of an interface!");
+					break;
+			}
+			IRInterfaceImpl* intrfc = (IRInterfaceImpl*)calloc(1, sizeof(IRInterfaceImpl));
+			intrfc->InterfaceType = intfcTp;
+			intrfc->MethodCount = intfcTp->MethodCount;
+			intrfc->MethodIndexes = (uint32_t*)calloc(1, sizeof(uint32_t) * intfcTp->MethodCount);
 
-	//		for (uint32_t i3 = 0; i3 < tp->TypeDef->MethodImplementationCount; i3++)
-	//		{
-	//			MethodImplementation* methodImpl = tp->TypeDef->MethodImplementations[i3];
-	//			// Make sure this is a method impl for the current interface.
-	//			if (methodImpl->Parent == intfcTp->TypeDef)
-	//			{
-	//				IRMethod* intfcMth = NULL;
-	//				switch(methodImpl->TypeOfMethodDeclaration)
-	//				{
-	//					case MethodDefOrRef_Type_MethodDefinition:
-	//						intfcMth = asmb->Methods[methodImpl->MethodDeclaration.MethodDefinition->TableIndex - 1];
-	//						break;
-	//					case MethodDefOrRef_Type_MemberReference:
-	//						printf("Member reference implementations aren't supported yet!\n");
-	//						break;
-	//					default:
-	//						Panic("Unknown type of extends for the type of an interface!");
-	//						break;
-	//				}
-	//				for (uint32_t i4 = 0; i4 < intfcTp->MethodCount; i4++)
-	//				{
-	//					// Now find the method in the interface that this maps to.
-	//					if (intfcMth == intfcTp->Methods[i4])
-	//					{
-	//						IRMethod* tdefMth = NULL;
-	//						switch(methodImpl->TypeOfMethodBody)
-	//						{
-	//							case MethodDefOrRef_Type_MethodDefinition:
-	//								tdefMth = asmb->Methods[methodImpl->MethodBody.MethodDefinition->TableIndex - 1];
-	//								break;
-	//							case MethodDefOrRef_Type_MemberReference:
-	//								printf("Member reference implementations aren't supported yet!\n");
-	//								break;
-	//							default:
-	//								Panic("Unknown type of extends for the type of an interface!");
-	//								break;
-	//						}
-	//						for (uint32_t i5 = 0; i5 < tp->MethodCount; i5++)
-	//						{
-	//							if (tp->Methods[i5] == tdefMth)
-	//							{
-	//								// We mow have the index in the interface  the index in the
-	//								// typedef's VMT's.
-	//								intrfc->MethodIndexes[i4] = i5;
-	//								break;
-	//							}
-	//						}
+			for (uint32_t i3 = 0; i3 < tp->TypeDef->MethodImplementationCount; i3++)
+			{
+				MethodImplementation* methodImpl = tp->TypeDef->MethodImplementations[i3];
+				// Make sure this is a method impl for the current interface.
+				if (methodImpl->Parent == intfcTp->TypeDef)
+				{
+					IRMethod* intfcMth = NULL;
+					switch(methodImpl->TypeOfMethodDeclaration)
+					{
+						case MethodDefOrRef_Type_MethodDefinition:
+							intfcMth = asmb->Methods[methodImpl->MethodDeclaration.MethodDefinition->TableIndex - 1];
+							break;
+						case MethodDefOrRef_Type_MemberReference:
+							printf("Member reference implementations aren't supported yet!\n");
+							break;
+						default:
+							Panic("Unknown type of extends for the type of an interface!");
+							break;
+					}
+					for (uint32_t i4 = 0; i4 < intfcTp->MethodCount; i4++)
+					{
+						// Now find the method in the interface that this maps to.
+						if (intfcMth == intfcTp->Methods[i4])
+						{
+							IRMethod* tdefMth = NULL;
+							switch(methodImpl->TypeOfMethodBody)
+							{
+								case MethodDefOrRef_Type_MethodDefinition:
+									tdefMth = asmb->Methods[methodImpl->MethodBody.MethodDefinition->TableIndex - 1];
+									break;
+								case MethodDefOrRef_Type_MemberReference:
+									printf("Member reference implementations aren't supported yet!\n");
+									break;
+								default:
+									Panic("Unknown type of extends for the type of an interface!");
+									break;
+							}
+							for (uint32_t i5 = 0; i5 < tp->MethodCount; i5++)
+							{
+								if (tp->Methods[i5] == tdefMth)
+								{
+									// We mow have the index in the interface  the index in the
+									// typedef's VMT's.
+									intrfc->MethodIndexes[i4] = i5;
+									break;
+								}
+							}
 
-	//						break;
-	//					}
-	//				}
-	//			}
-	//		}
+							break;
+						}
+					}
+				}
+			}
 
-	//		HASH_ADD(HashHandle, tp->InterfaceTable, InterfaceType, sizeof(void*), intrfc);
+			HASH_ADD(HashHandle, tp->InterfaceTable, InterfaceType, sizeof(void*), intrfc);
 
-	//	}
-	//}
+		}
+	}
 }
 
 IRMethod* GenerateMethod(MethodDefinition* methodDef, CLIFile* fil, IRAssembly* asmbly, AppDomain* dom)
@@ -592,25 +589,6 @@ IRMethod* GenerateMethod(MethodDefinition* methodDef, CLIFile* fil, IRAssembly* 
 		}
 	}
 
-	{   // Setup Locals
-		if (methodDef->Body.LocalVariableSignatureToken)
-		{
-			MetaDataToken* tok = CLIFile_ResolveToken(fil, methodDef->Body.LocalVariableSignatureToken);
-			LocalsSignature* sig = LocalsSignature_Expand(((StandAloneSignature*)tok->Data)->Signature, fil);
-			
-			m->LocalVariableCount = sig->LocalVariableCount;
-			m->LocalVariables = (IRLocalVariable**)calloc(m->LocalVariableCount, sizeof(IRLocalVariable*));
-			for (uint32_t i = 0; i < m->LocalVariableCount; i++)
-			{
-				m->LocalVariables[i] = (IRLocalVariable*)calloc(1, sizeof(IRLocalVariable));
-				m->LocalVariables[i]->VariableType = GetIRTypeOfSignatureType(dom, fil, asmbly, sig->LocalVariables[i]->Type);
-				m->LocalVariables[i]->LocalVariableIndex = i;
-			}
-
-			LocalsSignature_Destroy(sig);
-			free(tok);
-		}
-	}
 	return m;
 }
 
@@ -647,6 +625,26 @@ void ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* f
 	size_t orig = (size_t)(*dat);
     size_t CurInstructionBase;
     uint8_t b;
+	
+	{   // Setup Locals
+		if (methodDef->Body.LocalVariableSignatureToken)
+		{
+			MetaDataToken* tok = CLIFile_ResolveToken(fil, methodDef->Body.LocalVariableSignatureToken);
+			LocalsSignature* sig = LocalsSignature_Expand(((StandAloneSignature*)tok->Data)->Signature, fil);
+			
+			m->LocalVariableCount = sig->LocalVariableCount;
+			m->LocalVariables = (IRLocalVariable**)calloc(m->LocalVariableCount, sizeof(IRLocalVariable*));
+			for (uint32_t i = 0; i < m->LocalVariableCount; i++)
+			{
+				m->LocalVariables[i] = (IRLocalVariable*)calloc(1, sizeof(IRLocalVariable));
+				m->LocalVariables[i]->VariableType = GetIRTypeOfSignatureType(dom, fil, asmbly, sig->LocalVariables[i]->Type);
+				m->LocalVariables[i]->LocalVariableIndex = i;
+			}
+
+			LocalsSignature_Destroy(sig);
+			free(tok);
+		}
+	}
 
     /*Log_WriteLine(LogFlags_ILReading, "Hex value of the method: ");
     while ((size_t)(*dat) - orig < len)

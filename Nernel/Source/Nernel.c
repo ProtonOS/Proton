@@ -4,6 +4,7 @@
 #include <CLR/ILReader.h>
 #include <CLR/Log.h>
 #include <CLR/JIT/JIT.h>
+#include <CLR/SyntheticStack.h>
 
 static AppDomain* global_baseMernelDomain;
 void Mernel_FinishedRunning();
@@ -56,6 +57,7 @@ void Main(uint32_t pMultiBootMagic,
 
 	Console_Clear(Console_CreateAttributes(Console_DarkBlack, Console_LightGreen));
 	printf("Startup Successful!\n");
+    StackObjectPool_Initialize();
 	
 	printf("Location: %x\n", (unsigned int)global_baseMernelDomain->IRAssemblies[0]);
 	printf("Location: %x\n", (unsigned int)global_baseMernelDomain->IRAssemblies[0]->EntryPoint->MethodDefinition);
@@ -75,6 +77,7 @@ void Main(uint32_t pMultiBootMagic,
 	
 	//Console_Clear(Console_CreateAttributes(Console_DarkBlack, Console_LightYellow));
 	Mernel_FinishedRunning();
+    StackObjectPool_Destroy();
     while (TRUE) ;
 }
 

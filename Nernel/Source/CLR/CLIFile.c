@@ -137,9 +137,7 @@ const uint8_t* CLIFile_GetGUID(CLIFile* pFile, uint32_t pVirtualAddress)
 
 MetaDataToken* CLIFile_ResolveToken(CLIFile* pFile, uint32_t pToken)
 {
-	printf("Resolving Token 0x%x\n", (unsigned int)pToken);
     MetaDataToken* token = (MetaDataToken*)calloc(1, sizeof(MetaDataToken));
-	printf("Got Here\n");
     token->Table = pToken >> 24;
     token->Data = NULL;
     uint32_t index = pToken & 0x00FFFFFF;
