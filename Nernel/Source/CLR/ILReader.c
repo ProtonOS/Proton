@@ -661,6 +661,7 @@ void ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* f
 
     SyntheticStack* stack = SyntheticStack_Create();
     bool_t Constrained = FALSE;
+	uint32_t ConstrainedToken = 0;
     bool_t No = FALSE;
     bool_t ReadOnly = FALSE;
     bool_t Tail = FALSE;
@@ -1492,6 +1493,10 @@ void ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* f
 						else if (((mthDef->Flags & MethodAttributes_Virtual) == 0) || (mthDef->Flags & MethodAttributes_RTSpecialName) || (mthDef->TypeDefinition->Flags & TypeAttributes_Sealed) || IsStruct(mthDef->TypeDefinition, dom))
 						{
 							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Call_Absolute, asmbly->Methods[mthDef->TableIndex - 1]);
+						}
+						else if (ConstrainedToken)
+						{
+							Panic("The Constrained prefix isn't currently supported!");
 						}
 						else
 						{
@@ -3270,9 +3275,8 @@ Branch_Common:
 
 
                     case ILOpCodes_Extended_Constrained__:	// 0x16
-						Log_WriteLine(LogFlags_ILReading, "NI-Read Constrained");
-						ReadUInt32(dat);
-                        
+						Log_WriteLine(LogFlags_ILReading, "Read Constrained");
+						ConstrainedToken = ReadUInt32(dat);
 						Constrained = TRUE;
                         break;
                     case ILOpCodes_Extended_No__:			// 0x19
