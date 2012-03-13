@@ -165,6 +165,7 @@ IRField* GenerateField(Field* def, CLIFile* fil, IRAssembly* asmb, AppDomain* do
 		case Signature_ElementType_Array:
 			fld->FieldType = (IRType*)dom->CachedType___System_Array->TableIndex;
 			break;
+		case Signature_ElementType_ValueType:
 		case Signature_ElementType_Class:
 			{
 				MetaDataToken* tok = CLIFile_ResolveTypeDefOrRefOrSpecToken(fil, sig->Type->ClassTypeDefOrRefOrSpecToken);
