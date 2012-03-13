@@ -165,7 +165,24 @@ IRField* GenerateField(Field* def, CLIFile* fil, IRAssembly* asmb, AppDomain* do
 		case Signature_ElementType_Array:
 			fld->FieldType = (IRType*)dom->CachedType___System_Array->TableIndex;
 			break;
-		
+		case Signature_ElementType_Class:
+			{
+				MetaDataToken* tok = CLIFile_ResolveTypeDefOrRefOrSpecToken(fil, sig->Type->ClassTypeDefOrRefOrSpecToken);
+				switch (tok->Table)
+				{
+					case MetaData_Table_TypeDefinition:
+						{
+							fld->FieldType = (IRType*)((TypeDefinition*)tok->Data)->TableIndex;
+							break;
+						}
+					default:
+						Panic("Unknown table for class lookup");
+						break;
+				}
+				free(tok);
+				break;
+			}
+
 		default:
 			printf("Not setting the type of %s.%s!\n", def->TypeDefinition->Name, def->Name);
 			break;
@@ -2252,15 +2269,18 @@ Branch_Common:
 								bool_t Found = FALSE;
 								for (uint32_t i = 0; i < tdef->FieldListCount; i++)
 								{
-									if (Signature_Equals(fld->Signature, fld->SignatureLength, tdef->FieldList[i].Signature, tdef->FieldList[i].SignatureLength))
+									if (!strcmp(fld->Name, tdef->FieldList[i].Name))
 									{
-										IRFieldSpec* spec = IRFieldSpec_Create();
-										spec->FieldIndex = i;
-										spec->ParentType = asmbly->Types[tdef->TableIndex - 1];
-										spec->FieldType = GetIRTypeOfSignatureType(dom, fil, asmbly, sig->Type);
-										EMIT_IR_1ARG(IROpCode_Load_Field, spec);
-										Found = TRUE;
-										break;
+										if (Signature_Equals(fld->Signature, fld->SignatureLength, tdef->FieldList[i].Signature, tdef->FieldList[i].SignatureLength))
+										{
+											IRFieldSpec* spec = IRFieldSpec_Create();
+											spec->FieldIndex = i;
+											spec->ParentType = asmbly->Types[tdef->TableIndex - 1];
+											spec->FieldType = GetIRTypeOfSignatureType(dom, fil, asmbly, sig->Type);
+											EMIT_IR_1ARG(IROpCode_Load_Field, spec);
+											Found = TRUE;
+											break;
+										}
 									}
 								}
 								if (!Found)
@@ -2326,15 +2346,18 @@ Branch_Common:
 								bool_t Found = FALSE;
 								for (uint32_t i = 0; i < tdef->FieldListCount; i++)
 								{
-									if (Signature_Equals(fld->Signature, fld->SignatureLength, tdef->FieldList[i].Signature, tdef->FieldList[i].SignatureLength))
+									if (!strcmp(fld->Name, tdef->FieldList[i].Name))
 									{
-										IRFieldSpec* spec = IRFieldSpec_Create();
-										spec->FieldIndex = i;
-										spec->ParentType = asmbly->Types[tdef->TableIndex - 1];
-										spec->FieldType = GetIRTypeOfSignatureType(dom, fil, asmbly, sig->Type);
-										EMIT_IR_1ARG(IROpCode_Load_Field_Address, spec);
-										Found = TRUE;
-										break;
+										if (Signature_Equals(fld->Signature, fld->SignatureLength, tdef->FieldList[i].Signature, tdef->FieldList[i].SignatureLength))
+										{
+											IRFieldSpec* spec = IRFieldSpec_Create();
+											spec->FieldIndex = i;
+											spec->ParentType = asmbly->Types[tdef->TableIndex - 1];
+											spec->FieldType = GetIRTypeOfSignatureType(dom, fil, asmbly, sig->Type);
+											EMIT_IR_1ARG(IROpCode_Load_Field_Address, spec);
+											Found = TRUE;
+											break;
+										}
 									}
 								}
 								if (!Found)
@@ -2380,15 +2403,18 @@ Branch_Common:
 								bool_t Found = FALSE;
 								for (uint32_t i = 0; i < tdef->FieldListCount; i++)
 								{
-									if (Signature_Equals(fld->Signature, fld->SignatureLength, tdef->FieldList[i].Signature, tdef->FieldList[i].SignatureLength))
+									if (!strcmp(fld->Name, tdef->FieldList[i].Name))
 									{
-										IRFieldSpec* spec = IRFieldSpec_Create();
-										spec->FieldIndex = i;
-										spec->ParentType = asmbly->Types[tdef->TableIndex - 1];
-										spec->FieldType = GetIRTypeOfSignatureType(dom, fil, asmbly, sig->Type);
-										EMIT_IR_1ARG(IROpCode_Store_Field, spec);
-										Found = TRUE;
-										break;
+										if (Signature_Equals(fld->Signature, fld->SignatureLength, tdef->FieldList[i].Signature, tdef->FieldList[i].SignatureLength))
+										{
+											IRFieldSpec* spec = IRFieldSpec_Create();
+											spec->FieldIndex = i;
+											spec->ParentType = asmbly->Types[tdef->TableIndex - 1];
+											spec->FieldType = GetIRTypeOfSignatureType(dom, fil, asmbly, sig->Type);
+											EMIT_IR_1ARG(IROpCode_Store_Field, spec);
+											Found = TRUE;
+											break;
+										}
 									}
 								}
 								if (!Found)

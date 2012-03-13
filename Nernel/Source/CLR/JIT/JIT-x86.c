@@ -25,7 +25,6 @@ ALWAYS_INLINE char* JIT_Emit_ParamSwap(char* compMethod, IRMethod* pMethod, bool
 	int32_t paramsSize = 0;
 	if ((pMethod->ParameterCount - 1) > 0)
 	{
-		x86_mov_reg_reg(compMethod, X86_EAX, X86_ESP, 4);
 		paramsSize += pMethod->Parameters[pMethod->ParameterCount - 1]->Offset + pMethod->Parameters[pMethod->ParameterCount - 1]->Size - 8;
 		if (pIgnoreThis)
 			paramsSize -= global_SizeOfPointerInBytes;
@@ -44,6 +43,7 @@ ALWAYS_INLINE char* JIT_Emit_ParamSwap(char* compMethod, IRMethod* pMethod, bool
 			}
 			if (!SimpleParams)
 			{
+				x86_mov_reg_reg(compMethod, X86_EAX, X86_ESP, 4);
 				//printf("\nParams aren't simple, size = %u.\n\n", (unsigned int)paramsSize);
 				x86_adjust_stack(compMethod, -paramsSize);
 				uint32_t dParamsCount = 0; // number of double-precision values.
@@ -1747,7 +1747,6 @@ char* JIT_Compile_Load_String				(IRInstruction* instr, char* compMethod, IRMeth
 	return compMethod;
 }
 
-
 char* JIT_Compile_Load_Field				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	IRFieldSpec* spec = (IRFieldSpec*)instr->Arg1;
@@ -1757,29 +1756,46 @@ char* JIT_Compile_Load_Field				(IRInstruction* instr, char* compMethod, IRMetho
 	uint32_t alSz = fSz;
 	Align(&alSz);
 
-	x86_pop_reg(compMethod, X86_EAX); // Pop the RTO.
+	//x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, 0, 4);
+
+	//x86_adjust_stack(compMethod, -(global_SizeOfPointerInBytes << 1));
+	//x86_mov_membase_reg(compMethod, X86_ESP, 0, X86_EAX, global_SizeOfPointerInBytes);
+	//x86_mov_membase_imm(compMethod, X86_ESP, global_SizeOfPointerInBytes, (unsigned int)mth->ParentAssembly->ParentDomain->RootObject, global_SizeOfPointerInBytes);
+	//x86_call_code(compMethod, ReferenceTypeObject_RemoveReference);
+	//x86_adjust_stack(compMethod, (global_SizeOfPointerInBytes << 1));
+	x86_pop_reg(compMethod, X86_EAX);
+
+	x86_mov_reg_reg(compMethod, X86_ECX, X86_EAX, 4);
 	x86_mov_reg_membase(compMethod, X86_EAX, X86_EAX, 0, 4);
 	x86_alu_reg_imm(compMethod, X86_ADD, X86_EAX, spec->ParentType->Fields[spec->FieldIndex]->Offset);
 
 	x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, alSz);
 
 	uint32_t movCount = fSz / global_SizeOfPointerInBytes;
-	uint32_t curBas = alSz - global_SizeOfPointerInBytes;
+	uint32_t curBas = 0;
 	for (uint32_t i = 0; i < movCount; i++)
 	{
-		x86_mov_reg_membase(compMethod, X86_EBX, X86_EAX, i * global_SizeOfPointerInBytes, 4);
+		x86_mov_reg_membase(compMethod, X86_EBX, X86_EAX, curBas, 4);
 		x86_mov_membase_reg(compMethod, X86_ESP, curBas, X86_EBX, 4);
-		curBas -= 4;
+		curBas += 4;
 	}
 	
 	uint32_t modFSz = fSz % 4;
 	if (modFSz)
 	{
-		x86_mov_reg_membase(compMethod, X86_EBX, X86_EAX, fSz - curBas, modFSz);
+		x86_mov_reg_membase(compMethod, X86_EBX, X86_EAX, curBas, modFSz);
 		x86_mov_membase_reg(compMethod, X86_ESP, curBas, X86_EBX, modFSz);
 	}
 
-	if (spec->FieldType->TypeDef == spec->FieldType->ParentAssembly->ParentDomain->CachedType___System_Single)
+	if (spec->FieldType->IsReferenceType)
+	{
+		//x86_adjust_stack(compMethod, -(global_SizeOfPointerInBytes << 1));
+		//x86_mov_membase_reg(compMethod, X86_ESP, 0, X86_ECX, global_SizeOfPointerInBytes);
+		//x86_mov_membase_imm(compMethod, X86_ESP, global_SizeOfPointerInBytes, (unsigned int)mth->ParentAssembly->ParentDomain->RootObject, global_SizeOfPointerInBytes);
+		//x86_call_code(compMethod, ReferenceTypeObject_AddReference);
+		//x86_adjust_stack(compMethod, (global_SizeOfPointerInBytes << 1));
+	}
+	else if (spec->FieldType->TypeDef == spec->FieldType->ParentAssembly->ParentDomain->CachedType___System_Single)
 	{
 		x86_fld_membase(compMethod, X86_ESP, 0, FALSE);
 		x86_adjust_stack(compMethod, 4);
@@ -1798,10 +1814,20 @@ char* JIT_Compile_Load_Field_Address		(IRInstruction* instr, char* compMethod, I
 	IRFieldSpec* spec = (IRFieldSpec*)instr->Arg1;
 	JIT_Layout_Fields(spec->ParentType);
 	//printf("Spec 0x%x, ParentType 0x%x, FieldIndex %u, Offset @ %u\n", (unsigned int)spec, (unsigned int)spec->ParentType, (unsigned int)spec->FieldIndex, (unsigned int)spec->ParentType->Fields[spec->FieldIndex]->Offset);
-	x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, 0, 4); // Pop the RTO.
-	x86_mov_reg_membase(compMethod, X86_EAX, X86_EAX, 0, 4);
-	x86_alu_reg_imm(compMethod, X86_ADD, X86_EAX, spec->ParentType->Fields[spec->FieldIndex]->Offset);
-	x86_mov_membase_reg(compMethod, X86_ESP, 0, X86_EAX, 4);
+
+	//x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, 0, 4); // Get the RTO.
+	//x86_adjust_stack(compMethod, -(global_SizeOfPointerInBytes << 1));
+	//x86_mov_membase_reg(compMethod, X86_ESP, 0, X86_EAX, global_SizeOfPointerInBytes);
+	//x86_mov_membase_imm(compMethod, X86_ESP, global_SizeOfPointerInBytes, (unsigned int)mth->ParentAssembly->ParentDomain->RootObject, global_SizeOfPointerInBytes);
+	//x86_call_code(compMethod, ReferenceTypeObject_RemoveReference);
+	//x86_adjust_stack(compMethod, (global_SizeOfPointerInBytes << 1));
+
+	x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, 0, 4); // Get the RTO
+	x86_mov_reg_membase(compMethod, X86_EAX, X86_EAX, 0, 4); // Get the object
+	printf("Loading Field Address for index %u from offset %u\n", (unsigned int)spec->FieldIndex, (unsigned int)spec->ParentType->Fields[spec->FieldIndex]->Offset);
+	x86_alu_reg_imm(compMethod, X86_ADD, X86_EAX, spec->ParentType->Fields[spec->FieldIndex]->Offset); // Get the field
+	x86_mov_membase_reg(compMethod, X86_ESP, 0, X86_EAX, 4); // Store the field address
+
 	return compMethod;
 }
 
@@ -1814,13 +1840,61 @@ char* JIT_Compile_Store_Field				(IRInstruction* instr, char* compMethod, IRMeth
 	uint32_t alSz = fSz;
 	Align(&alSz);
 
+	//x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, alSz, 4); // Get the RTO.
+
+	//x86_adjust_stack(compMethod, -(global_SizeOfPointerInBytes << 1));
+	//x86_mov_membase_reg(compMethod, X86_ESP, 0, X86_EAX, global_SizeOfPointerInBytes);
+	//x86_mov_membase_imm(compMethod, X86_ESP, global_SizeOfPointerInBytes, (unsigned int)mth->ParentAssembly->ParentDomain->RootObject, global_SizeOfPointerInBytes);
+	//x86_call_code(compMethod, ReferenceTypeObject_RemoveReference);
+	//x86_adjust_stack(compMethod, (global_SizeOfPointerInBytes << 1));
+
 	x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, alSz, 4); // Get the RTO.
+
 	x86_mov_reg_membase(compMethod, X86_EAX, X86_EAX, 0, 4);
 	// The pointer to the start of the type is now in EAX.
 
+	printf("Storing Field index %u @ offset %u\n", (unsigned int)spec->FieldIndex, (unsigned int)spec->ParentType->Fields[spec->FieldIndex]->Offset);
 	x86_alu_reg_imm(compMethod, X86_ADD, X86_EAX, spec->ParentType->Fields[spec->FieldIndex]->Offset);
+	// The pointer to the start of the field is now in EAX.
 
-	if (spec->FieldType->TypeDef == spec->FieldType->ParentAssembly->ParentDomain->CachedType___System_Single)
+	if (spec->FieldType->IsReferenceType)
+	{
+		//x86_mov_reg_membase(compMethod, X86_EBX, X86_ESP, alSz, 4); // Store the main RTO pointer in EBX
+		//x86_mov_reg_membase(compMethod, X86_ECX, X86_ESP, 0, 4); // Since the type is a ReferenceType, value on stack must be RTO pointer, save it in ECX
+		//x86_adjust_stack(compMethod, -(global_SizeOfPointerInBytes * 3)); // Adjust the stack to save 3 pointer we need to keep easy track of
+		//x86_mov_membase_reg(compMethod, X86_ESP, 0, X86_EAX, global_SizeOfPointerInBytes); // Save field offset pointer, EAX must contain this when we leave here
+		//x86_mov_membase_reg(compMethod, X86_ESP, global_SizeOfPointerInBytes, X86_EBX, global_SizeOfPointerInBytes); // Save the main RTO pointer, dependancy object
+		//x86_mov_membase_reg(compMethod, X86_ESP, (global_SizeOfPointerInBytes << 1), X86_ECX, global_SizeOfPointerInBytes); // Save new RTO pointer, may be null
+		//// At this point, EAX only contains the pointer offset used for copying larger fields
+		//
+		//x86_mov_reg_membase(compMethod, X86_EAX, X86_EAX, 0, 4); // Get the RTO pointer that EAX points to, which is the current field value
+		//x86_test_reg_reg(compMethod, X86_EAX, X86_EAX); // Test if the current field value is null
+		//unsigned char* fieldRefIsNull = (unsigned char*)compMethod;
+		//x86_branch32(compMethod, X86_CC_Z, 0, FALSE); // If the current field value is not null, we need to remove the reference
+		//x86_mov_reg_membase(compMethod, X86_ECX, X86_ESP, global_SizeOfPointerInBytes, 4); // Store the main RTO pointer in ECX
+		//x86_adjust_stack(compMethod, -(global_SizeOfPointerInBytes << 1)); // Adjust stack for RemoveReference args
+		//x86_mov_membase_reg(compMethod, X86_ESP, 0, X86_EAX, global_SizeOfPointerInBytes); // First arg is the RTO pointer of the current field value
+		//x86_mov_membase_reg(compMethod, X86_ESP, global_SizeOfPointerInBytes, X86_ECX, global_SizeOfPointerInBytes); // Second arg is the RTO pointer of the main object
+		//x86_call_code(compMethod, ReferenceTypeObject_RemoveReference); // Call RemoveReference
+		//x86_adjust_stack(compMethod, (global_SizeOfPointerInBytes << 1)); // Adjust stack to remove arg space for RemoveReference
+		//x86_patch(fieldRefIsNull, (unsigned char*)compMethod); // Patch the earlier branch, if current field value is null we skip to here
+
+		//x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, (global_SizeOfPointerInBytes << 1), 4); // Get the RTO pointer of the new value
+		//x86_test_reg_reg(compMethod, X86_EAX, X86_EAX); // Test if the new RTO pointer is null
+		//unsigned char* newRefIsNull = (unsigned char*)compMethod;
+		//x86_branch32(compMethod, X86_CC_Z, 0, FALSE); // If the new RTO pointer is not null, we need to add the reference
+		//x86_mov_reg_membase(compMethod, X86_ECX, X86_ESP, global_SizeOfPointerInBytes, 4); // Store the main RTO pointer in ECX
+		//x86_adjust_stack(compMethod, -(global_SizeOfPointerInBytes << 1)); // Adjust stack for AddReference args
+		//x86_mov_membase_reg(compMethod, X86_ESP, 0, X86_EAX, global_SizeOfPointerInBytes); // First arg is the new RTO pointer
+		//x86_mov_membase_reg(compMethod, X86_ESP, global_SizeOfPointerInBytes, X86_ECX, global_SizeOfPointerInBytes); // Second arg is the RTF pointer of the main object
+		//x86_call_code(compMethod, ReferenceTypeObject_AddReference); // Call AddReference
+		//x86_adjust_stack(compMethod, (global_SizeOfPointerInBytes << 1)); // Adjust stack to remove arg space for AddReference
+		//x86_patch(newRefIsNull, (unsigned char*)compMethod); // Patch the earlier branch, if new RTO pointer is null we skip to here
+
+		//x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, 0, 4); // Restore EAX to the field offset pointer, which we need for setting the pointer itself after this
+		//x86_adjust_stack(compMethod, -(global_SizeOfPointerInBytes * 3)); // Adjust the stack to remove the 3 pointer values we were keeping track of
+	}
+	else if (spec->FieldType->TypeDef == spec->FieldType->ParentAssembly->ParentDomain->CachedType___System_Single)
 	{
 		x86_adjust_stack(compMethod, -4);
 		x86_fst_membase(compMethod, X86_ESP, 0, FALSE, TRUE);
@@ -1831,19 +1905,19 @@ char* JIT_Compile_Store_Field				(IRInstruction* instr, char* compMethod, IRMeth
 		x86_fst_membase(compMethod, X86_ESP, 0, TRUE, TRUE);
 	}
 	uint32_t movCount = fSz / global_SizeOfPointerInBytes;
-	uint32_t curBas = alSz - global_SizeOfPointerInBytes;
+	uint32_t curBas = 0;
 	for (uint32_t i = 0; i < movCount; i++)
 	{
 		x86_mov_reg_membase(compMethod, X86_EBX, X86_ESP, curBas, 4);
-		x86_mov_membase_reg(compMethod, X86_EAX,  i * global_SizeOfPointerInBytes, X86_EBX, 4);
-		curBas -= 4;
+		x86_mov_membase_reg(compMethod, X86_EAX, curBas, X86_EBX, 4);
+		curBas += 4;
 	}
 
 	uint32_t modFSz = fSz % 4;
 	if (modFSz)
 	{
 		x86_mov_reg_membase(compMethod, X86_EBX, X86_ESP, curBas, modFSz);
-		x86_mov_membase_reg(compMethod, X86_EAX, fSz - curBas, X86_EBX, modFSz);
+		x86_mov_membase_reg(compMethod, X86_EAX, curBas, X86_EBX, modFSz);
 	}
 	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, alSz + 4);
 
@@ -1870,9 +1944,9 @@ ALWAYS_INLINE char* EmitStaticConstructorCall(char* compMethod, IRType* tp)
 
 		x86_patch(finalBranch, (unsigned char*)compMethod);
 
-		x86_mov_mem_imm(compMethod, (unsigned int)finalBranch - 12, 0xE9, 1); // Now patch ourselves.
+		x86_mov_mem_imm(compMethod, (unsigned int)finalBranch - 13, 0xE9, 1); // Now patch ourselves.
 		uint32_t compMthVal = (uint32_t)compMethod;
-		x86_mov_mem_imm(compMethod, (unsigned int)finalBranch - 11, compMthVal + 10, 4); 
+		x86_mov_mem_imm(compMethod, (unsigned int)finalBranch - 12, (compMthVal - (uint32_t)finalBranch + 18), 4); 
 	}
 	return compMethod;
 }
@@ -2444,11 +2518,14 @@ char* JIT_Compile_NewObject					(IRInstruction* instr, char* compMethod, IRMetho
 		x86_call_code(compMethod, GC_AllocateObject);
 		x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 24);
 		x86_mov_membase_reg(compMethod, X86_ESP, 0, X86_EAX, 4);
+		//x86_push_reg(compMethod, X86_EAX);
 	
 		if (!method->AssembledMethod) JIT_CompileMethod(method);
 
 		x86_push_imm(compMethod, (int)method->ParentAssembly->ParentDomain);
 		x86_call_code(compMethod, method->AssembledMethod);
+		x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, 4, 4);
+
 		uint32_t paramsSize = 0;
 		if (method->ParameterCount > 0)
 		{
@@ -2457,6 +2534,7 @@ char* JIT_Compile_NewObject					(IRInstruction* instr, char* compMethod, IRMetho
 			//printf("NewObj: LastParam Offset %u + %u Size\n", (unsigned int)method->Parameters[method->ParameterCount - 1]->Offset, (unsigned int)method->Parameters[method->ParameterCount - 1]->Size);
 		}
 		x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, paramsSize);
+		x86_push_reg(compMethod, X86_EAX);
 	}
 	else // Strings return their new obj from constructor
 	{

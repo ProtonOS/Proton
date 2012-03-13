@@ -136,12 +136,12 @@ ReferenceTypeObject* GC_AllocateObject(GC* pGC, ReferenceTypeObject* pInitialRef
     else if (pSize <= GCHeapStack_LargeHeap_Size)
         object = GCHeap_Allocate(&pGC->LargeHeap, GCHeapStack_LargeHeap_Size, pSize);
     else object = GCHeap_Allocate(&pGC->LargeHeap, pSize, pSize);
-	//printf("GC_AllocateObject of size %u @ 0x%x\n", (unsigned int)pSize, (unsigned int)object);
     ReferenceTypeObject_AddReference(pInitialReference, object);
 	object->DomainIndex = pDomainIndex;
 	object->AssemblyIndex = pAssemblyIndex;
 	object->TypeIndex = pTypeIndex;
 	memset(object->Object, 0x00, pSize);
+	printf("GC_AllocateObject of size %u @ 0x%x\n", (unsigned int)pSize, (unsigned int)object);
     return object;
 }
 
@@ -236,6 +236,7 @@ ReferenceTypeObject* GC_AllocateStringFromCharAndCount(GC* pGC, ReferenceTypeObj
 
 ReferenceTypeObject* GC_ConcatenateStrings(GC* pGC, ReferenceTypeObject* pInitialReference, ReferenceTypeObject* pString1, ReferenceTypeObject* pString2)
 {
+	//printf("GC_ConcatenateStrings pString1 @ 0x%x, pString2 @ 0x%x\n", (unsigned int)pString1, (unsigned int)pString2);
 	GCString* string1 = (GCString*)pString1->Object;
 	GCString* string2 = (GCString*)pString2->Object;
 	ReferenceTypeObject* object = NULL;

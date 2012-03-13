@@ -48,9 +48,11 @@ namespace Mernel
             //strArr[3] = 'T';
             //string str2 = new string(strArr);
             //Console.WriteLine("strArr .ctor = " + str2);
-            //Test2 t = new Test2();
-            //t.Really();
-            //t.JustATest();
+            Test2 t = new Test2();
+            //t.A = 10;
+            //t.B = new Test2();
+            t.Really();
+            t.JustATest();
             //Console.WriteLine("Factorial of 6 (Via Multiplication): " + Factorial(6).ToString());
             //Console.WriteLine("Mernel Started");
 
@@ -59,7 +61,7 @@ namespace Mernel
 
 
             ticks = DateTime.InternalUtcNow();
-            Console.WriteLine("Finished @ " + ((uint)ticks).ToString());
+            Console.WriteLine("Finished @ " + ((ulong)ticks).ToString());
         }
 
         private static void ActionTest() { Console.WriteLine("ActionTest"); }
@@ -195,12 +197,14 @@ namespace Mernel
 
     internal sealed class Test2
     {
-        uint A;
+        public uint A;
+        public uint B;
 
         public Test2()
         {
             Console.WriteLine("Creating a new Test object.");
             A = 4;
+            B = 4;
             Console.WriteLine("Finished Creating a new Test object.");
         }
 
