@@ -90,8 +90,7 @@ IRAssembly* ILReader_CreateAssembly(CLIFile* fil, AppDomain* dom)
 
 void DecomposeMethod(IRMethod* mth)
 {
-	printf("DecomposeMethod mth @ 0x%x, 0x%x, 0x%x, 0x%x, 0x%x\n", (unsigned int)mth, (unsigned int)mth->MethodDefinition, (unsigned int)mth->ParentAssembly, (unsigned int)mth->ParentAssembly->ParentDomain, (unsigned int)mth->ParentAssembly->ParentFile);
-    uint8_t* ilLoc = (uint8_t*)mth->MethodDefinition->Body.Code;
+	uint8_t* ilLoc = (uint8_t*)mth->MethodDefinition->Body.Code;
 	ReadIL(&ilLoc, mth->MethodDefinition->Body.CodeSize, mth->MethodDefinition, mth->ParentAssembly->ParentFile, mth->ParentAssembly->ParentDomain, mth->ParentAssembly, mth);
     IRMethod_BranchLinker_LinkMethod(mth);
 }
@@ -183,12 +182,6 @@ IRType* GenerateType(TypeDefinition* def, CLIFile* fil, IRAssembly* asmb, AppDom
 	Log_WriteLine(LogFlags_ILReading_MethodLayout, "Generating %s.%s", def->Namespace, def->Name);
 	IRType* tp = IRType_Create();
 	tp->TypeDef = def;
-
-	// Add the fields in.
-	for(uint32_t i = 0; i < def->FieldListCount; i++)
-	{
-		IRType_AddField(tp, asmb->Fields[def->FieldList[i].TableIndex - 1]);
-	}
 	
 	// Check if it's an interface.
 	if (def->Flags & TypeAttributes_Interface)
@@ -1183,12 +1176,12 @@ void ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* f
 							break;
 
 						case MetaData_Table_MemberReference:
-							//printf("Don't deal with this yet! Call with table index: 0x%x\n", (unsigned int)tok->Table);
+							printf("Don't deal with this yet! Call with Member Reference!\n");
 							sig = MethodSignature_Expand(((MemberReference*)tok->Data)->Signature, fil);
 							break;
 							
 						case MetaData_Table_MethodSpecification:
-							//printf("Don't deal with this yet! Call with table index: 0x%x\n", (unsigned int)tok->Table);
+							printf("Don't deal with this yet! Call with Method Spec!\n");
 							if (((MethodSpecification*)tok->Data)->TypeOfMethod == MethodDefOrRef_Type_MethodDefinition)
 							{
 								sig = MethodSignature_Expand(((MethodSpecification*)tok->Data)->Method.MethodDefinition->Signature, fil);
