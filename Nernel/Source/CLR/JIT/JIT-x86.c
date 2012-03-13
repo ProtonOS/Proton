@@ -1850,10 +1850,38 @@ char* JIT_Compile_Store_Field				(IRInstruction* instr, char* compMethod, IRMeth
 	return compMethod;
 }
 
+ALWAYS_INLINE char* EmitStaticConstructorCall(char* compMethod, IRType* tp)
+{
+	if (tp->HasStaticConstructor)
+	{
+		x86_mov_reg_mem(compMethod, X86_EAX, &tp->StaticConstructorCalled, 1);
+		x86_test_reg_reg(compMethod, X86_EAX, X86_EAX);
+		
+		unsigned char* finalBranch = (unsigned char*)compMethod;
+		x86_branch32(compMethod, X86_CC_NZ, 0, FALSE);
+		x86_mov_mem_imm(compMethod, &tp->StaticConstructorCalled, 1, 1);
+
+		if (!tp->StaticConstructor->AssembledMethod)
+			JIT_CompileMethod(tp->StaticConstructor);
+		x86_push_imm(compMethod, (unsigned int)tp->ParentAssembly->ParentDomain);
+		x86_call_code(compMethod, tp->StaticConstructor->AssembledMethod);
+		x86_adjust_stack(compMethod, 4);
+
+
+		x86_patch(finalBranch, (unsigned char*)compMethod);
+
+		x86_mov_mem_imm(compMethod, (unsigned int)finalBranch - 12, 0xE9, 1); // Now patch ourselves.
+		uint32_t compMthVal = (uint32_t)compMethod;
+		x86_mov_mem_imm(compMethod, (unsigned int)finalBranch - 11, compMthVal + 10, 4); 
+	}
+	return compMethod;
+}
 
 char* JIT_Compile_Load_Static_Field			(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	IRField* fld = (IRField*)instr->Arg1;
+	compMethod = EmitStaticConstructorCall(compMethod, fld->ParentType);
+
 	uint32_t fieldSize = StackSizeOfType(fld->FieldType);
 	Align(&fieldSize);
 	if (!fld->StaticValue)
@@ -1861,7 +1889,6 @@ char* JIT_Compile_Load_Static_Field			(IRInstruction* instr, char* compMethod, I
 		fld->StaticValue = (void*)calloc(1, fieldSize);
 		printf("Allocating a static field @ 0x%x fieldtype = 0x%x (size %i) at 0x%x\n", (unsigned int)fld, (unsigned int)fld->FieldType, (int)fieldSize, (unsigned int)fld->StaticValue);
 	}
-	printf("Loading static field @ 0x%x\n", (unsigned int)fld->StaticValue);
 
 	x86_mov_reg_imm(compMethod, X86_EAX, (unsigned int)fld->StaticValue);
 	if (fld->FieldType->IsValueType)
@@ -1906,6 +1933,7 @@ char* JIT_Compile_Load_Static_Field			(IRInstruction* instr, char* compMethod, I
 char* JIT_Compile_Load_Static_Field_Address	(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	IRField* fld = (IRField*)instr->Arg1;
+	compMethod = EmitStaticConstructorCall(compMethod, fld->ParentType);
 	uint32_t fieldSize = StackSizeOfType(fld->FieldType);
 	Align(&fieldSize);
 	if (!fld->StaticValue)
@@ -1917,6 +1945,7 @@ char* JIT_Compile_Load_Static_Field_Address	(IRInstruction* instr, char* compMet
 char* JIT_Compile_Store_Static_Field		(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	IRField* fld = (IRField*)instr->Arg1;
+	compMethod = EmitStaticConstructorCall(compMethod, fld->ParentType);
 	uint32_t fieldSize = StackSizeOfType(fld->FieldType);
 	Align(&fieldSize);
 	if (!fld->StaticValue)

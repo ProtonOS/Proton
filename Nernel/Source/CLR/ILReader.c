@@ -100,6 +100,7 @@ IRField* GenerateField(Field* def, CLIFile* fil, IRAssembly* asmb, AppDomain* do
 		fld->IsStatic = TRUE;
 	fld->ParentAssembly = asmb;
 	fld->FieldDef = def;
+	fld->ParentType = (IRType*)def->TypeDefinition->TableIndex;
 	FieldSignature* sig = FieldSignature_Expand(def->Signature, fil);
 	switch(sig->Type->ElementType)
 	{
@@ -424,6 +425,7 @@ void Link(IRAssembly* asmb)
 	{
 		IRField* fld = asmb->Fields[i];
 		fld->FieldType = asmb->Types[(uint32_t)fld->FieldType - 1];
+		fld->ParentType = asmb->Types[(uint32_t)fld->ParentType - 1];
 	}
 		
 	// Resolve the static constructors 
@@ -433,7 +435,7 @@ void Link(IRAssembly* asmb)
 		IRType* tp = asmb->Types[i];
 		if (tp->HasStaticConstructor)
 		{
-			tp->StaticConstructor = asmb->Methods[(uint32_t)tp->StaticConstructor];
+			tp->StaticConstructor = asmb->Methods[(uint32_t)tp->StaticConstructor - 1];
 		}
 	}
 

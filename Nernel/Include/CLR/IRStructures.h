@@ -61,6 +61,7 @@ struct _IRType
 	bool_t IsVoid;
     
 	bool_t HasStaticConstructor;
+	bool_t StaticConstructorCalled;
 	IRMethod* StaticConstructor;
 
 	uint32_t MethodCount;
