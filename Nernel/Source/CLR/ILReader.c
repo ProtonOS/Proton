@@ -474,7 +474,7 @@ void Link(IRAssembly* asmb)
 					break;
 				case TypeDefOrRef_Type_TypeSpecification:
 					printf("Generic interface implementations aren't supported yet!\n");
-					break;
+					continue;
 				default:
 					Panic("Unknown type of extends for the type of an interface!");
 					break;
@@ -487,22 +487,22 @@ void Link(IRAssembly* asmb)
 			for (uint32_t i3 = 0; i3 < tp->TypeDef->MethodImplementationCount; i3++)
 			{
 				MethodImplementation* methodImpl = tp->TypeDef->MethodImplementations[i3];
-				// Make sure this is a method impl for the current interface.
-				if (methodImpl->Parent == intfcTp->TypeDef)
+				IRMethod* intfcMth = NULL;
+				switch(methodImpl->TypeOfMethodDeclaration)
 				{
-					IRMethod* intfcMth = NULL;
-					switch(methodImpl->TypeOfMethodDeclaration)
-					{
-						case MethodDefOrRef_Type_MethodDefinition:
-							intfcMth = asmb->Methods[methodImpl->MethodDeclaration.MethodDefinition->TableIndex - 1];
-							break;
-						case MethodDefOrRef_Type_MemberReference:
-							printf("Member reference implementations aren't supported yet!\n");
-							break;
-						default:
-							Panic("Unknown type of extends for the type of an interface!");
-							break;
-					}
+					case MethodDefOrRef_Type_MethodDefinition:
+						intfcMth = asmb->Methods[methodImpl->MethodDeclaration.MethodDefinition->TableIndex - 1];
+						break;
+					case MethodDefOrRef_Type_MemberReference:
+						printf("Member reference implementations aren't supported yet!\n");
+						continue;
+					default:
+						Panic("Unknown type of extends for the type of an interface!");
+						break;
+				}
+				// Make sure this is a method impl for the current interface.
+				if (intfcMth->MethodDefinition->TypeDefinition == intfcTp->TypeDef)
+				{
 					for (uint32_t i4 = 0; i4 < intfcTp->MethodCount; i4++)
 					{
 						// Now find the method in the interface that this maps to.
@@ -538,10 +538,58 @@ void Link(IRAssembly* asmb)
 				}
 			}
 
-			HASH_ADD(HashHandle, tp->InterfaceTable, InterfaceType, sizeof(void*), intrfc);
+			for (uint32_t i3 = 0; i3 < intrfc->MethodCount; i3++)
+			{
+				if (!intrfc->MethodIndexes[i3])
+				{
+					// Either it's trying to force you to implement System.Object.Finalize,
+					// or it's not an explicitly layed out interface method.
+					MethodDefinition* mthDef = intfcTp->Methods[i3]->MethodDefinition;
+					bool_t FoundMethod = FALSE;
+					for (uint32_t i4 = 0; i4 < tp->MethodCount; i4++)
+					{
+						MethodDefinition* mthDef2 = tp->Methods[i4]->MethodDefinition;
+						if (mthDef2->TableIndex)
+						{
+							Log_WriteLine(LogFlags_ILReading, "Checking Method %s.%s.%s from table index %i", mthDef2->TypeDefinition->Namespace, mthDef2->TypeDefinition->Name, mthDef2->Name, (int)mthDef2->TableIndex);
+							Log_WriteLine(LogFlags_ILReading, "i: %i", (int)i4);
+						}
+						else
+						{
+							Log_WriteLine(LogFlags_ILReading, "Method Index 0! This shouldn't happen!");
+						}							
+						if (!strcmp(mthDef->Name, mthDef2->Name))
+						{
+							if (mthDef->Flags & MethodAttributes_HideBySignature)
+							{
+								if (Signature_Equals(mthDef->Signature, mthDef->SignatureLength, mthDef2->Signature, mthDef2->SignatureLength))
+								{
+									intrfc->MethodIndexes[i3] = i4;
+									FoundMethod = TRUE;
+									break;
+								}
+							}
+							else
+							{
+								intrfc->MethodIndexes[i3] = i4;
+								FoundMethod = TRUE;
+								break;
+							}
+						}
+					}
+					if (!FoundMethod)
+					{
+						printf("WARNING: Unable to resolve method for interface %s @ 0x%x implemented on %s\n", intfcTp->TypeDef->Name, (unsigned int)intfcTp->TypeDef, tp->TypeDef->Name);
+					}
+				}
+			}
 
+			HASH_ADD(HashHandle, tp->InterfaceTable, InterfaceType, sizeof(void*), intrfc);
 		}
 	}
+
+
+
 }
 
 IRMethod* GenerateMethod(MethodDefinition* methodDef, CLIFile* fil, IRAssembly* asmbly, AppDomain* dom)
@@ -1236,11 +1284,11 @@ void ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* f
 						{
 							EMIT_IR_2ARG_NO_DISPOSE(IROpCode_Call_Internal, mthDef->InternalCall, asmbly->Methods[mthDef->TableIndex - 1]);
 						}
-						else if ((mthDef->Flags & MethodAttributes_Static) || ((mthDef->Flags & MethodAttributes_Virtual) == 0) || (mthDef->Flags & MethodAttributes_RTSpecialName) || (mthDef->TypeDefinition->Flags & TypeAttributes_Sealed) || IsStruct(mthDef->TypeDefinition, dom))
+						else// if ((mthDef->Flags & MethodAttributes_Static) || ((mthDef->Flags & MethodAttributes_Virtual) == 0) || (mthDef->Flags & MethodAttributes_RTSpecialName) || (mthDef->TypeDefinition->Flags & TypeAttributes_Sealed) || IsStruct(mthDef->TypeDefinition, dom))
 						{
 							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Call_Absolute, asmbly->Methods[mthDef->TableIndex - 1]);
 						}
-						else
+						/*else
 						{
 							IRMethodSpec* mthSpec = IRMethodSpec_Create();
 							Log_WriteLine(LogFlags_ILReading, "Looking for Method %s.%s.%s from table index %i", mthDef->TypeDefinition->Namespace, mthDef->TypeDefinition->Name, mthDef->Name, (int)mthDef->TableIndex);
@@ -1282,7 +1330,7 @@ void ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* f
 								Panic("Unable to resolve method to call!");
 							}
 							EMIT_IR_1ARG(IROpCode_Call, mthSpec);
-						}
+						}*/
 					}
 					else
 					{

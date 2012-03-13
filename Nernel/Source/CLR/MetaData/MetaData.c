@@ -30,7 +30,7 @@ const uint8_t* MetaData_GetStream(const uint8_t* pMetaDataHeader, uint16_t pStre
     {
         stream += MetaData_Stream_Offset_Name;
         while (*stream) ++stream;
-        while (!(*stream)) ++stream;
+		stream += 4 - ((unsigned int)stream & 0x03);
         --pStreamIndex;
     }
     return stream;

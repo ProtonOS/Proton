@@ -2561,9 +2561,8 @@ void* JIT_Trampoline_DoCall(IRMethodSpec* mth, ReferenceTypeObject* obj)
 	//printf("Arg5 @ 0x%x *@ 0x%x\n", (unsigned int)arg5, (unsigned int)&arg5);
 	//printf("Arg6 @ 0x%x *@ 0x%x\n", (unsigned int)arg6, (unsigned int)&arg6);
 	//printf("Arg7 @ 0x%x *@ 0x%x\n", (unsigned int)arg7, (unsigned int)&arg7);
-	void* variable;
+	register void* variable = AppDomainRegistry_GetDomain(obj->DomainIndex);
 	//AppDomain* dom = AppDomainRegistry_GetDomain(obj->DomainIndex);
-	variable = AppDomainRegistry_GetDomain(obj->DomainIndex);
 	if (obj->AssemblyIndex >= ((AppDomain*)variable)->IRAssemblyCount)
 	{
 		Panic(String_Format("Assembly Index (%i) is too High!", (int)obj->AssemblyIndex));
@@ -2594,8 +2593,43 @@ void* JIT_Trampoline_DoCall(IRMethodSpec* mth, ReferenceTypeObject* obj)
 		Panic(String_Format("Method Index (%i) is too High!", (int)mth->MethodIndex));
 	}
 
-	//IRMethod* m = tp->Methods[mth->MethodIndex];
-	variable = ((IRType*)variable)->Methods[mth->MethodIndex];
+	if (mth->ParentType->IsInterface)
+	{
+		IRInterfaceImpl* impl = NULL;
+		for (impl = ((IRType*)variable)->InterfaceTable; impl; impl = (IRInterfaceImpl*)impl->HashHandle.next)
+		{
+			printf("The type implements interface %s @ 0x%x\n", impl->InterfaceType->TypeDef->Name, (unsigned int)impl->InterfaceType);
+		}
+		HASH_FIND(HashHandle, ((IRType*)variable)->InterfaceTable, &mth->ParentType, sizeof(void*), impl);
+		if (impl)
+		{
+			if (mth->MethodIndex < impl->MethodCount)
+			{
+				printf("Top object is %s, new method is at index %i, type has %i methods\n", ((IRType*)variable)->TypeDef->Name, (int)impl->MethodIndexes[mth->MethodIndex], (int)((IRType*)variable)->MethodCount);
+				if (impl->MethodIndexes[mth->MethodIndex] < ((IRType*)variable)->MethodCount)
+				{
+					variable = ((IRType*)variable)->Methods[impl->MethodIndexes[mth->MethodIndex]];
+				}
+				else
+				{
+					Panic("Interface mapped method doesn't exist!");
+				}
+			}
+			else
+			{
+				Panic("Requested method doesn't exist in the interface!");
+			}
+		}
+		else
+		{
+			Panic("Requested type doesn't implement the requested interface!");
+		}
+	}
+	else
+	{
+		//IRMethod* m = tp->Methods[mth->MethodIndex];
+		variable = ((IRType*)variable)->Methods[mth->MethodIndex];
+	}
 	if (!((IRMethod*)variable)->AssembledMethod)
 	{
 		JIT_CompileMethod(((IRMethod*)variable));
