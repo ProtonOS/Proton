@@ -73,15 +73,14 @@ ReferenceTypeObject* System_String_Ctor_CharArray(AppDomain* pAppDomain, Referen
 	GCArray* header = (GCArray*)pCharArray->Object;
 	uint32_t sizeOfString = header->Length * 2;
 	if (sizeOfString >= 0x7FFFFFFF) Panic("System_String_Ctor_CharArray parameter is too long");
-	return GC_AllocateString(pAppDomain->GarbageCollector, pAppDomain->RootObject, header->Data, sizeOfString);
+	return GC_AllocateString(pAppDomain->GarbageCollector, pAppDomain->RootObject, (pCharArray->Object + sizeof(GCArray)), sizeOfString);
 }
 
 ReferenceTypeObject* System_String_Ctor_CharArrayAndStartAndLength(AppDomain* pAppDomain, ReferenceTypeObject* pThis, ReferenceTypeObject* pCharArray, uint32_t pStart, uint32_t pLength)
 {
-	GCArray* header = (GCArray*)pCharArray->Object;
 	uint32_t sizeOfString = pLength * 2;
 	if (sizeOfString >= 0x7FFFFFFF) Panic("System_String_Ctor_CharArrayAndStartAndLength parameter is too long");
-	return GC_AllocateString(pAppDomain->GarbageCollector, pAppDomain->RootObject, header->Data + (pStart * 2), sizeOfString);
+	return GC_AllocateString(pAppDomain->GarbageCollector, pAppDomain->RootObject, (pCharArray->Object + sizeof(GCArray)) + (pStart * 2), sizeOfString);
 }
 
 ReferenceTypeObject* System_String_InternalConcat(AppDomain* pAppDomain, ReferenceTypeObject* pString1, ReferenceTypeObject* pString2)
@@ -110,7 +109,7 @@ ReferenceTypeObject* System_String_InternalTrim(AppDomain* pAppDomain, Reference
 			found = FALSE;
 			for (uint32_t index2 = 0; index2 < trimHeader->Length; ++index2)
 			{
-				if (*(((uint16_t*)thisHeader->Data) + index) == *(((uint16_t*)trimHeader->Data) + index2))
+				if (*(((uint16_t*)thisHeader->Data) + index) == *(((uint16_t*)(pTrimCharsArray->Object + sizeof(GCArray))) + index2))
 				{
 					found = TRUE;
 					break;
@@ -133,7 +132,7 @@ ReferenceTypeObject* System_String_InternalTrim(AppDomain* pAppDomain, Reference
 		found = FALSE;
 		for (uint32_t index2 = 0; index2 < trimHeader->Length; ++index2)
 		{
-			if (*(((uint16_t*)thisHeader->Data) + (index - 1)) == *(((uint16_t*)trimHeader->Data) + index2))
+			if (*(((uint16_t*)thisHeader->Data) + (index - 1)) == *(((uint16_t*)(pTrimCharsArray->Object + sizeof(GCArray))) + index2))
 			{
 				found = TRUE;
 				break;
@@ -175,7 +174,7 @@ int32_t System_String_InternalIndexOfAny(AppDomain* pAppDomain, ReferenceTypeObj
 	GCString* thisHeader = (GCString*)pThis->Object;
 	GCArray* arrayHeader = (GCArray*)pCharArray->Object;
 	uint16_t* thisData = (uint16_t*)thisHeader->Data;
-	uint16_t* arrayData = (uint16_t*)arrayHeader->Data;
+	uint16_t* arrayData = (uint16_t*)(pCharArray->Object + sizeof(GCArray));
 
 	for (uint32_t index = 0; result == -1 && index < pCount; ++index)
 	{

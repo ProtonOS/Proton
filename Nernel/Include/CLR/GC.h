@@ -18,8 +18,10 @@ struct _GCString
 
 #include <CLR/AppDomain.h>
 
-#define GC_Generation0ToGeneration1_RequiredAge         25
-#define GC_Generation1ToGeneration2_RequiredAge         200
+#define GC_Generation0ToGeneration1_RequiredAge         32
+#define GC_Generation1ToGeneration2_RequiredAge         128
+
+#define GC_CollectCounterDelay							16
 
 #define GCHeapStack_SmallHeap_Size                      (4 * 1024)
 #define GCHeapStack_LargeHeap_Size                      (GCHeapStack_SmallHeap_Size * 1024)
@@ -38,6 +40,7 @@ struct _GCHeapStack
     uint32_t Disposed;
     uint8_t* Bottom;
     uint8_t* Top;
+	ReferenceTypeObject* DisposingTop;
 };
 
 struct _GCHeap
@@ -54,6 +57,7 @@ struct _GC
     GCHeap SmallGeneration2Heap;
     GCHeap LargeHeap;
 	GCString* StringHashTable;
+	uint32_t CollectCounter;
 };
 
 
@@ -63,7 +67,6 @@ struct _GCArray
 	uint32_t DomainIndex;
 	uint32_t AssemblyIndex;
 	uint32_t TypeIndex;
-	uint8_t* Data;
 };
 
 void Panic(const char* pMessage);

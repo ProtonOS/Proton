@@ -21,7 +21,6 @@ namespace Mernel
 
             Console.WriteLine("aStatic = " + aStatic.ToString());
 
-
             //aStatic = Blarh342();// unchecked((uint)-1);
             //uint bStatic = (uint)(aStatic);
             //Console.WriteLine("aStatic = " + ((ulong)aStatic).ToString());
@@ -53,12 +52,17 @@ namespace Mernel
             //t.B = new Test2();
             t.Really();
             t.JustATest();
-            //Console.WriteLine("Factorial of 6 (Via Multiplication): " + Factorial(6).ToString());
+            Console.WriteLine("Factorial of 6 (Via Multiplication): " + Factorial(6).ToString());
             //Console.WriteLine("Mernel Started");
 
             //InterfaceTest iface = new InterfaceTestImpl();
             //iface.TestMe();
 
+            for (uint i = 0; i < 10000; i++)
+            {
+                Test2 t1 = new Test2();
+                t1.Really();
+            }
 
             ticks = DateTime.InternalUtcNow();
             Console.WriteLine("Finished @ " + ((ulong)ticks).ToString());
@@ -202,10 +206,10 @@ namespace Mernel
 
         public Test2()
         {
-            Console.WriteLine("Creating a new Test object.");
-            A = 4;
-            B = 4;
-            Console.WriteLine("Finished Creating a new Test object.");
+            //Console.WriteLine("Creating a new Test object.");
+            //A = 4;
+            //B = 4;
+            //Console.WriteLine("Finished Creating a new Test object.");
         }
 
         public void Really()

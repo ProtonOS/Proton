@@ -28,9 +28,10 @@ struct _ReferenceTypeObject
 	uint32_t AssemblyIndex;
 	uint32_t TypeIndex;
 	bool_t HasCalledFinalizer;
+	ReferenceTypeObject* DisposingNext;
 };
 
-void ReferenceTypeObject_AddReference(ReferenceTypeObject* pReference, ReferenceTypeObject* pDependancy);
-void ReferenceTypeObject_RemoveReference(ReferenceTypeObject* pReference, ReferenceTypeObject* pDependancy);
+void ReferenceTypeObject_AddReference(ReferenceTypeObject* pParent, ReferenceTypeObject* pReferenced);
+void ReferenceTypeObject_RemoveReference(ReferenceTypeObject* pParent, ReferenceTypeObject* pReferenced);
 void ReferenceTypeObject_Dispose(ReferenceTypeObject* pObject);
 void ReferenceTypeObject_Reset(ReferenceTypeObject* pObject);

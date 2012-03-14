@@ -141,7 +141,7 @@ ReferenceTypeObject* GC_AllocateObject(GC* pGC, ReferenceTypeObject* pInitialRef
 	object->AssemblyIndex = pAssemblyIndex;
 	object->TypeIndex = pTypeIndex;
 	memset(object->Object, 0x00, pSize);
-	printf("GC_AllocateObject of size %u @ 0x%x\n", (unsigned int)pSize, (unsigned int)object);
+	//printf("GC_AllocateObject of size %u @ 0x%x\n", (unsigned int)pSize, (unsigned int)object);
     return object;
 }
 
@@ -151,7 +151,6 @@ ReferenceTypeObject* GC_AllocateArray(GC* pGC, ReferenceTypeObject* pInitialRefe
 	ReferenceTypeObject* object = GC_AllocateObject(pGC, pInitialReference, sizeOfArray, pGC->Domain->DomainIndex, 0, pGC->Domain->CachedType___System_Array->TableIndex - 1);
 	GCArray* header = (GCArray*)object->Object;
 	header->Length = pLength;
-	header->Data = object->Object + sizeof(GCArray);
 	header->DomainIndex = pDomainIndex;
 	header->AssemblyIndex = pAssemblyIndex;
 	header->TypeIndex = pTypeIndex;
@@ -383,18 +382,9 @@ void GCHeap_Collect(GCHeap* pGCHeap, bool_t pAgeObjects)
     for (uint32_t index = 0; index < pGCHeap->StackCount; ++index)
     {
         stack = pGCHeap->Stacks[index];
-        for (uint32_t objectIndex = 0; objectIndex < stack->ObjectPoolSize; ++objectIndex)
-        {
-            if ((stack->ObjectPool[objectIndex]->Flags & ReferenceTypeObject_Flags_Allocated) != 0)
-            {
-                if (pAgeObjects) ++stack->ObjectPool[objectIndex]->Age;
-                if ((stack->ObjectPool[objectIndex]->Flags & ReferenceTypeObject_Flags_Disposing) != 0)
-                {
-                    object = stack->ObjectPool[objectIndex];
-                    ReferenceTypeObject_Dispose(object);
-                }
-            }
-        }
+		for (object = stack->DisposingTop; object; object = object->DisposingNext)
+			ReferenceTypeObject_Dispose(object);
+		stack->DisposingTop = NULL;
     }
 }
 
@@ -406,7 +396,7 @@ void GCHeap_Compact(GC* pGC, GCHeap* pGCHeap)
     {
         stack = pGCHeap->Stacks[index];
 		// Let's compact after at least 25% of the stack space is disposed
-        if (stack->Disposed >= (stack->Size / 4))
+        if (stack->Disposed >= (stack->Size >> 2))
         {
 			// First we need to check if any objects on this stack are pinned, if so, we can skip this stack for
 			// the time being, and deal with it when no objects are pinned.
@@ -600,7 +590,7 @@ void GCHeap_Compact(GC* pGC, GCHeap* pGCHeap)
     }
 }
 
-void GCHeap_Migrate(GCHeap* pSourceHeap, GCHeap* pDestinationHeap, uint32_t pStackSize, uint8_t pRequiredAge)
+void GCHeap_Migrate(GC* pGC, GCHeap* pSourceHeap, GCHeap* pDestinationHeap, uint32_t pStackSize, uint8_t pRequiredAge)
 {
     ReferenceTypeObject* object = NULL;
     GCHeapStack* stack = NULL;
@@ -613,8 +603,13 @@ void GCHeap_Migrate(GCHeap* pSourceHeap, GCHeap* pDestinationHeap, uint32_t pSta
             if ((stack->ObjectPool[objectIndex]->Flags & (ReferenceTypeObject_Flags_Allocated | ReferenceTypeObject_Flags_Disposed)) == ReferenceTypeObject_Flags_Allocated)
             {
                 object = stack->ObjectPool[objectIndex];
+                object->Age++;
                 if (object->Age >= pRequiredAge)
                 {
+					if ((object->Flags & ReferenceTypeObject_Flags_String) != 0)
+					{
+						HASH_DELETE(HashHandle, pGC->StringHashTable, (GCString*)object->Object);
+					}
                     ReferenceTypeObject* replacement = GCHeap_Allocate(pDestinationHeap, pStackSize, object->Size);
                     memcpy(replacement->Object, object->Object, object->Size);
                     uint8_t* tempObject = replacement->Object;
@@ -634,6 +629,12 @@ void GCHeap_Migrate(GCHeap* pSourceHeap, GCHeap* pDestinationHeap, uint32_t pSta
                     }
                     object->Age = 0;
                     ReferenceTypeObject_Dispose(replacement);
+					if ((object->Flags & ReferenceTypeObject_Flags_String) != 0)
+					{
+						GCString* header = (GCString*)object->Object;
+						header->Data = object->Object + sizeof(GCString);
+						HASH_ADD(HashHandle, pGC->StringHashTable, Data, object->Size, header);
+					}
                 }
             }
         }
@@ -642,17 +643,23 @@ void GCHeap_Migrate(GCHeap* pSourceHeap, GCHeap* pDestinationHeap, uint32_t pSta
 
 void GC_Collect(GC* pGC)
 {
-    GCHeap_Collect(&pGC->SmallGeneration0Heap, TRUE);
-    GCHeap_Collect(&pGC->SmallGeneration1Heap, TRUE);
-    GCHeap_Collect(&pGC->SmallGeneration2Heap, FALSE);
-    GCHeap_Collect(&pGC->LargeHeap, FALSE);
+	++pGC->CollectCounter;
+	if (pGC->CollectCounter >= GC_CollectCounterDelay)
+	{
+		pGC->CollectCounter = 0;
 
-    GCHeap_Migrate(&pGC->SmallGeneration1Heap, &pGC->SmallGeneration2Heap, GCHeapStack_SmallHeap_Size, GC_Generation0ToGeneration1_RequiredAge);
-    GCHeap_Migrate(&pGC->SmallGeneration0Heap, &pGC->SmallGeneration1Heap, GCHeapStack_SmallHeap_Size, GC_Generation1ToGeneration2_RequiredAge);
+		GCHeap_Collect(&pGC->SmallGeneration0Heap, TRUE);
+		GCHeap_Collect(&pGC->SmallGeneration1Heap, TRUE);
+		GCHeap_Collect(&pGC->SmallGeneration2Heap, FALSE);
+		GCHeap_Collect(&pGC->LargeHeap, FALSE);
 
-    GCHeap_Compact(pGC, &pGC->SmallGeneration0Heap);
-    GCHeap_Compact(pGC, &pGC->SmallGeneration1Heap);
-    GCHeap_Compact(pGC, &pGC->SmallGeneration2Heap);
-    GCHeap_Compact(pGC, &pGC->LargeHeap);
+		GCHeap_Migrate(pGC, &pGC->SmallGeneration1Heap, &pGC->SmallGeneration2Heap, GCHeapStack_SmallHeap_Size, GC_Generation0ToGeneration1_RequiredAge);
+		GCHeap_Migrate(pGC, &pGC->SmallGeneration0Heap, &pGC->SmallGeneration1Heap, GCHeapStack_SmallHeap_Size, GC_Generation1ToGeneration2_RequiredAge);
+
+		GCHeap_Compact(pGC, &pGC->SmallGeneration0Heap);
+		GCHeap_Compact(pGC, &pGC->SmallGeneration1Heap);
+		GCHeap_Compact(pGC, &pGC->SmallGeneration2Heap);
+		GCHeap_Compact(pGC, &pGC->LargeHeap);
+	}
 }
 

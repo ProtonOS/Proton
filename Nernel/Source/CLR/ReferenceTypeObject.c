@@ -4,60 +4,63 @@
 #include <CLR/ReferenceTypeObject.h>
 #include <CLR/GC.h>
 
-void ReferenceTypeObject_AddReference(ReferenceTypeObject* pReference, ReferenceTypeObject* pDependancy)
+void ReferenceTypeObject_AddReference(ReferenceTypeObject* pParent, ReferenceTypeObject* pReferenced)
 {
-    if (!pReference || !pDependancy) return;
+    if (!pParent || !pReferenced) return;
 
-    ++pDependancy->ReferenceCount;
+    ++pReferenced->ReferenceCount;
 
-    if (!pReference->DependancyPool)
+    if (!pParent->DependancyPool)
     {
-        pReference->DependancyPoolSize = 1;
-        pReference->DependancyPoolCount = 1;
-        pReference->DependancyPool = (ReferenceTypeObject**)calloc(pReference->DependancyPoolSize, sizeof(ReferenceTypeObject*));
-        pReference->DependancyPool[0] = pDependancy;
+        pParent->DependancyPoolSize = 1;
+        pParent->DependancyPoolCount = 1;
+        pParent->DependancyPool = (ReferenceTypeObject**)calloc(pParent->DependancyPoolSize, sizeof(ReferenceTypeObject*));
+        pParent->DependancyPool[0] = pReferenced;
     }
-    else if (pReference->DependancyPoolCount < pReference->DependancyPoolSize)
+    else if (pParent->DependancyPoolCount < pParent->DependancyPoolSize)
     {
-        for (uint32_t index = 0; index < pReference->DependancyPoolSize; ++index)
+        for (uint32_t index = 0; index < pParent->DependancyPoolSize; ++index)
         {
-            if (!pReference->DependancyPool[index])
+            if (!pParent->DependancyPool[index])
             {
-                ++pReference->DependancyPoolCount;
-                pReference->DependancyPool[index] = pDependancy;
+                ++pParent->DependancyPoolCount;
+                pParent->DependancyPool[index] = pReferenced;
                 break;
             }
         }
     }
     else
     {
-        pReference->DependancyPoolSize <<= 1;
-        pReference->DependancyPool = (ReferenceTypeObject**)realloc(pReference->DependancyPool, sizeof(ReferenceTypeObject*) * pReference->DependancyPoolSize);
-        for (uint32_t objectIndex = pReference->DependancyPoolSize >> 1; objectIndex < pReference->DependancyPoolSize; ++objectIndex)
-            pReference->DependancyPool[objectIndex] = NULL;
-        ++pReference->DependancyPoolCount;
-        pReference->DependancyPool[pReference->DependancyPoolSize >> 1] = pDependancy;
+        pParent->DependancyPoolSize <<= 1;
+        pParent->DependancyPool = (ReferenceTypeObject**)realloc(pParent->DependancyPool, sizeof(ReferenceTypeObject*) * pParent->DependancyPoolSize);
+        for (uint32_t objectIndex = pParent->DependancyPoolSize >> 1; objectIndex < pParent->DependancyPoolSize; ++objectIndex)
+            pParent->DependancyPool[objectIndex] = NULL;
+        ++pParent->DependancyPoolCount;
+        pParent->DependancyPool[pParent->DependancyPoolSize >> 1] = pReferenced;
     }
 }
 
-void ReferenceTypeObject_RemoveReference(ReferenceTypeObject* pReference, ReferenceTypeObject* pDependancy)
+void ReferenceTypeObject_RemoveReference(ReferenceTypeObject* pParent, ReferenceTypeObject* pReferenced)
 {
-    if (!pReference->DependancyPool || !pDependancy) return;
-
-    --pDependancy->ReferenceCount;
-
-    for (uint32_t index = 0; index < pReference->DependancyPoolSize; ++index)
+    if (!pParent->DependancyPool || !pReferenced) return;
+	bool_t found = FALSE;
+    for (uint32_t index = 0; !found && index < pParent->DependancyPoolSize; ++index)
     {
-        if (pReference->DependancyPool[index] == pDependancy)
+        if (pParent->DependancyPool[index] == pReferenced)
         {
-            --pReference->DependancyPoolCount;
-            pReference->DependancyPool[index] = NULL;
-            break;
+		    --pReferenced->ReferenceCount;
+            --pParent->DependancyPoolCount;
+            pParent->DependancyPool[index] = NULL;
+			found = TRUE;
         }
     }
-
-    if (pDependancy->ReferenceCount == 0)
-        pDependancy->Flags |= ReferenceTypeObject_Flags_Disposing;
+	if (!found) Panic("Attempting to remove reference to object which isn't in dependancy pool!");
+    if (pReferenced->ReferenceCount == 0)
+	{
+        pReferenced->Flags |= ReferenceTypeObject_Flags_Disposing;
+		if (pReferenced->Stack->DisposingTop) pReferenced->DisposingNext = pReferenced->Stack->DisposingTop;
+		pReferenced->Stack->DisposingTop = pReferenced;
+	}
 }
 
 void ReferenceTypeObject_Dispose(ReferenceTypeObject* pObject)
@@ -90,4 +93,5 @@ void ReferenceTypeObject_Reset(ReferenceTypeObject* pObject)
     if (pObject->DependancyPool)
         free(pObject->DependancyPool);
     pObject->DependancyPool = NULL;
+	pObject->DisposingNext = NULL;
 }
