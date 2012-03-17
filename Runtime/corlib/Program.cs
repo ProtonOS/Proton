@@ -3,6 +3,14 @@ using System.Runtime.CompilerServices;
 
 namespace Mernel
 {
+
+    internal enum TestEnum
+    {
+        TestValA,
+        TestValB,
+        TestValC,
+        TestValD,
+    }
     internal static class Program
     {
         private static long Blarh342()
@@ -16,6 +24,7 @@ namespace Mernel
         {
             long ticks = DateTime.InternalUtcNow();
             Console.WriteLine("Started @ " + ((ulong)ticks).ToString());
+
             //string str = new string('*', 40);
             //Console.WriteLine(str);
 
@@ -58,12 +67,19 @@ namespace Mernel
             //InterfaceTest iface = new InterfaceTestImpl();
             //iface.TestMe();
 
-            Test2 t1 = null;
-            for (uint i = 0; i < 1000; i++)
-            {
-                t1 = new Test2();
-                t1.Really();
-            }
+            //Test2 t1 = null;
+            //for (uint i = 0; i < 1000; i++)
+            //{
+            //    t1 = new Test2();
+            //    t1.Really();
+            //}
+
+            TestEnum te = TestEnum.TestValA;
+            Console.WriteLine("Enum Test 1: " + ((uint)te).ToString());
+            te = TestEnum.TestValC;
+            Console.WriteLine("Enum Test 2: " + ((uint)te).ToString());
+            te = TestEnum.TestValD;
+            Console.WriteLine("Enum Test 3: " + ((uint)te).ToString());
 
             ticks = DateTime.InternalUtcNow();
             Console.WriteLine("Finished @ " + ((ulong)ticks).ToString());

@@ -129,7 +129,7 @@ ALWAYS_INLINE char* JIT_Emit_ParamSwap(char* compMethod, IRMethod* pMethod, bool
 }
 
 
-ALWAYS_INLINE uint32_t StackSizeOfType(IRType* tp)
+uint32_t StackSizeOfType(IRType* tp)
 {
 	if (tp->IsReferenceType)
 		return global_SizeOfPointerInBytes;
@@ -189,7 +189,16 @@ ALWAYS_INLINE uint32_t StackSizeOfType(IRType* tp)
 		{
 			if (tp->Size > 0)
 				return tp->Size;
-			Panic("Not yet supported!");
+			uint32_t size = 0;
+			for (uint32_t index = 0; index < tp->FieldCount; ++index)
+			{
+				if (tp->Fields[index]->FieldType->IsReferenceType)
+					size += global_SizeOfPointerInBytes;
+				else  // It's a value type.
+					size += StackSizeOfType(tp->Fields[index]->FieldType);
+			}
+			tp->Size = size;
+			return size;
 		}
 	}
 
