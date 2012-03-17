@@ -312,6 +312,10 @@ char* JIT_Emit_Prologue(IRMethod* mth, char* compMethod)
 	if (localsSize > 0)
 	{
 		x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, (unsigned int)(localsSize));
+		for (uint32_t count = 0; count < localsSize; count += 4)
+		{
+			x86_mov_membase_imm(compMethod, X86_ESP, count, 0, 4);
+		}
 	}
 
 
@@ -361,6 +365,25 @@ char* JIT_Compile_BreakForDebugger			(IRInstruction* instr, char* compMethod, IR
 
 char* JIT_Compile_Return					(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
+	for (uint32_t index = 0; index < mth->LocalVariableCount; ++index)
+	{
+		if (mth->LocalVariables[index]->VariableType->IsReferenceType)
+		{
+			// Remove 1 RootObject reference for removing the local reference as we leave scope
+			x86_mov_reg_membase(compMethod, X86_EAX, X86_EBP, -((int)mth->LocalVariables[index]->Offset), global_SizeOfPointerInBytes);
+			x86_test_reg_reg(compMethod, X86_EAX, X86_EAX);
+			unsigned char* skipRemove = (unsigned char*)compMethod;
+			x86_branch32(compMethod, X86_CC_Z, 0, FALSE);
+
+			x86_adjust_stack(compMethod, -(global_SizeOfPointerInBytes << 1));
+			x86_mov_membase_reg(compMethod, X86_ESP, global_SizeOfPointerInBytes, X86_EAX, global_SizeOfPointerInBytes);
+			x86_mov_membase_imm(compMethod, X86_ESP, 0, (unsigned int)mth->ParentAssembly->ParentDomain->RootObject, global_SizeOfPointerInBytes);
+			x86_call_code(compMethod, ReferenceTypeObject_RemoveReference);
+			x86_adjust_stack(compMethod, (global_SizeOfPointerInBytes << 1));
+
+			x86_patch(skipRemove, (unsigned char*)compMethod);
+		}
+	}
 	x86_push_imm(compMethod, (unsigned int)mth->ParentAssembly->ParentDomain->GarbageCollector);
 	x86_call_code(compMethod, GC_Collect);
 	x86_adjust_stack(compMethod, global_SizeOfPointerInBytes);
@@ -1150,12 +1173,12 @@ char* JIT_Compile_Load_Element				(IRInstruction* instr, char* compMethod, IRMet
 	{
 		if (elementType == ElementType_Ref)
 		{
+			// Add 1 RootObject reference for pushing element to the stack
 			x86_mov_reg_membase(compMethod, X86_EAX, X86_ECX, 0, global_SizeOfPointerInBytes);
 			x86_test_reg_reg(compMethod, X86_EAX, X86_EAX);
 			unsigned char* skipAdd = (unsigned char*)compMethod;
 			x86_branch32(compMethod, X86_CC_Z, 0, FALSE);
 
-			// Add 1 RootObject reference for pushing element to the stack
 			x86_adjust_stack(compMethod, -(global_SizeOfPointerInBytes << 1));
 			x86_mov_membase_reg(compMethod, X86_ESP, global_SizeOfPointerInBytes, X86_EAX, global_SizeOfPointerInBytes);
 			x86_mov_membase_imm(compMethod, X86_ESP, 0, (unsigned int)mth->ParentAssembly->ParentDomain->RootObject, global_SizeOfPointerInBytes);
@@ -1346,7 +1369,26 @@ char* JIT_Compile_Load_Array_Length			(IRInstruction* instr, char* compMethod, I
 
 char* JIT_Compile_Pop						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
-	switch(*((ElementType*)instr->Arg1))
+	ElementType et = *((ElementType*)instr->Arg1);
+
+	if (et == ElementType_Ref)
+	{
+		// Remove 1 RootObject reference for popping element from the stack
+		x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, 0, global_SizeOfPointerInBytes);
+		x86_test_reg_reg(compMethod, X86_EAX, X86_EAX);
+		unsigned char* skipRemove = (unsigned char*)compMethod;
+		x86_branch32(compMethod, X86_CC_Z, 0, FALSE);
+
+		x86_adjust_stack(compMethod, -(global_SizeOfPointerInBytes << 1));
+		x86_mov_membase_reg(compMethod, X86_ESP, global_SizeOfPointerInBytes, X86_EAX, global_SizeOfPointerInBytes);
+		x86_mov_membase_imm(compMethod, X86_ESP, 0, (unsigned int)mth->ParentAssembly->ParentDomain->RootObject, global_SizeOfPointerInBytes);
+		x86_call_code(compMethod, ReferenceTypeObject_RemoveReference);
+		x86_adjust_stack(compMethod, (global_SizeOfPointerInBytes << 1));
+
+		x86_patch(skipRemove, (unsigned char*)compMethod);
+	}
+
+	switch(et)
 	{
 		case ElementType_I:
 		case ElementType_U:
@@ -1822,6 +1864,24 @@ char* JIT_Compile_Dup						(IRInstruction* instr, char* compMethod, IRMethod* mt
 	uint32_t size = 0;
 	GetSizeOfElementType(size, elemTp);
 	Align(&size);
+
+	if (elemTp == ElementType_Ref)
+	{
+		// Add 1 RootObject reference for pushing duped element to the stack
+		x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, 0, global_SizeOfPointerInBytes);
+		x86_test_reg_reg(compMethod, X86_EAX, X86_EAX);
+		unsigned char* skipAdd = (unsigned char*)compMethod;
+		x86_branch32(compMethod, X86_CC_Z, 0, FALSE);
+
+		x86_adjust_stack(compMethod, -(global_SizeOfPointerInBytes << 1));
+		x86_mov_membase_reg(compMethod, X86_ESP, global_SizeOfPointerInBytes, X86_EAX, global_SizeOfPointerInBytes);
+		x86_mov_membase_imm(compMethod, X86_ESP, 0, (unsigned int)mth->ParentAssembly->ParentDomain->RootObject, global_SizeOfPointerInBytes);
+		x86_call_code(compMethod, ReferenceTypeObject_AddReference);
+		x86_adjust_stack(compMethod, (global_SizeOfPointerInBytes << 1));
+
+		x86_patch(skipAdd, (unsigned char*)compMethod);
+	}
+
 	x86_mov_reg_reg(compMethod, X86_EAX, X86_ESP, 4);
 	x86_adjust_stack(compMethod, -((int)size));
 	for (uint32_t i = 0; i < size; i += 4)
@@ -1968,6 +2028,14 @@ char* JIT_Compile_Load_String				(IRInstruction* instr, char* compMethod, IRMeth
 	
 	x86_push_imm(compMethod, str);
 
+	// Add 1 RootObject reference for pushing to the stack
+	x86_mov_reg_imm(compMethod, X86_EAX, (unsigned int)str);
+	x86_adjust_stack(compMethod, -(global_SizeOfPointerInBytes << 1));
+	x86_mov_membase_reg(compMethod, X86_ESP, global_SizeOfPointerInBytes, X86_EAX, global_SizeOfPointerInBytes);
+	x86_mov_membase_imm(compMethod, X86_ESP, 0, (unsigned int)mth->ParentAssembly->ParentDomain->RootObject, global_SizeOfPointerInBytes);
+	x86_call_code(compMethod, ReferenceTypeObject_AddReference);
+	x86_adjust_stack(compMethod, (global_SizeOfPointerInBytes << 1));
+
 	return compMethod;
 }
 
@@ -1980,19 +2048,47 @@ char* JIT_Compile_Load_Field				(IRInstruction* instr, char* compMethod, IRMetho
 	uint32_t alSz = fSz;
 	Align(&alSz);
 
-	x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, 0, 4);
+	// Remove 1 RootObject reference for popping object from the stack
+	x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, 0, global_SizeOfPointerInBytes);
+	x86_test_reg_reg(compMethod, X86_EAX, X86_EAX);
+	unsigned char* skipRemove = (unsigned char*)compMethod;
+	x86_branch32(compMethod, X86_CC_Z, 0, FALSE);
 
 	x86_adjust_stack(compMethod, -(global_SizeOfPointerInBytes << 1));
-	x86_mov_membase_reg(compMethod, X86_ESP, 0, X86_EAX, global_SizeOfPointerInBytes);
-	x86_mov_membase_imm(compMethod, X86_ESP, global_SizeOfPointerInBytes, (unsigned int)mth->ParentAssembly->ParentDomain->RootObject, global_SizeOfPointerInBytes);
+	x86_mov_membase_reg(compMethod, X86_ESP, global_SizeOfPointerInBytes, X86_EAX, global_SizeOfPointerInBytes);
+	x86_mov_membase_imm(compMethod, X86_ESP, 0, (unsigned int)mth->ParentAssembly->ParentDomain->RootObject, global_SizeOfPointerInBytes);
 	x86_call_code(compMethod, ReferenceTypeObject_RemoveReference);
 	x86_adjust_stack(compMethod, (global_SizeOfPointerInBytes << 1));
+
+	x86_patch(skipRemove, (unsigned char*)compMethod);
 
 	x86_pop_reg(compMethod, X86_EAX);
 
 	x86_mov_reg_reg(compMethod, X86_ECX, X86_EAX, 4);
 	x86_mov_reg_membase(compMethod, X86_EAX, X86_EAX, 0, 4);
 	x86_alu_reg_imm(compMethod, X86_ADD, X86_EAX, spec->ParentType->Fields[spec->FieldIndex]->Offset);
+
+	if (spec->FieldType->IsReferenceType)
+	{
+		x86_push_reg(compMethod, X86_EAX);
+
+		// Add 1 RootObject reference for pushing field to the stack
+		x86_mov_reg_membase(compMethod, X86_EAX, X86_EAX, 0, global_SizeOfPointerInBytes);
+		x86_test_reg_reg(compMethod, X86_EAX, X86_EAX);
+		unsigned char* skipRemove = (unsigned char*)compMethod;
+		x86_branch32(compMethod, X86_CC_Z, 0, FALSE);
+
+		x86_adjust_stack(compMethod, -(global_SizeOfPointerInBytes << 1));
+		x86_mov_membase_reg(compMethod, X86_ESP, global_SizeOfPointerInBytes, X86_EAX, global_SizeOfPointerInBytes);
+		x86_mov_membase_imm(compMethod, X86_ESP, 0, (unsigned int)mth->ParentAssembly->ParentDomain->RootObject, global_SizeOfPointerInBytes);
+		x86_call_code(compMethod, ReferenceTypeObject_AddReference);
+		x86_adjust_stack(compMethod, (global_SizeOfPointerInBytes << 1));
+
+		x86_patch(skipRemove, (unsigned char*)compMethod);
+
+		x86_pop_reg(compMethod, X86_EAX);
+	}
+
 
 	x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, alSz);
 
@@ -2012,15 +2108,7 @@ char* JIT_Compile_Load_Field				(IRInstruction* instr, char* compMethod, IRMetho
 		x86_mov_membase_reg(compMethod, X86_ESP, curBas, X86_EBX, modFSz);
 	}
 
-	if (spec->FieldType->IsReferenceType)
-	{
-		x86_adjust_stack(compMethod, -(global_SizeOfPointerInBytes << 1));
-		x86_mov_membase_reg(compMethod, X86_ESP, 0, X86_ECX, global_SizeOfPointerInBytes);
-		x86_mov_membase_imm(compMethod, X86_ESP, global_SizeOfPointerInBytes, (unsigned int)mth->ParentAssembly->ParentDomain->RootObject, global_SizeOfPointerInBytes);
-		x86_call_code(compMethod, ReferenceTypeObject_AddReference);
-		x86_adjust_stack(compMethod, (global_SizeOfPointerInBytes << 1));
-	}
-	else if (spec->FieldType->TypeDef == spec->FieldType->ParentAssembly->ParentDomain->CachedType___System_Single)
+	if (spec->FieldType->TypeDef == spec->FieldType->ParentAssembly->ParentDomain->CachedType___System_Single)
 	{
 		x86_fld_membase(compMethod, X86_ESP, 0, FALSE);
 		x86_adjust_stack(compMethod, 4);
@@ -2038,15 +2126,20 @@ char* JIT_Compile_Load_Field_Address		(IRInstruction* instr, char* compMethod, I
 {
 	IRFieldSpec* spec = (IRFieldSpec*)instr->Arg1;
 	JIT_Layout_Fields(spec->ParentType);
-	//printf("Spec 0x%x, ParentType 0x%x, FieldIndex %u, Offset @ %u\n", (unsigned int)spec, (unsigned int)spec->ParentType, (unsigned int)spec->FieldIndex, (unsigned int)spec->ParentType->Fields[spec->FieldIndex]->Offset);
 
-	x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, 0, 4); // Get the RTO.
+	// Remove 1 RootObject reference for popping object from the stack
+	x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, 0, global_SizeOfPointerInBytes);
+	x86_test_reg_reg(compMethod, X86_EAX, X86_EAX);
+	unsigned char* skipRemove = (unsigned char*)compMethod;
+	x86_branch32(compMethod, X86_CC_Z, 0, FALSE);
 
 	x86_adjust_stack(compMethod, -(global_SizeOfPointerInBytes << 1));
-	x86_mov_membase_reg(compMethod, X86_ESP, 0, X86_EAX, global_SizeOfPointerInBytes);
-	x86_mov_membase_imm(compMethod, X86_ESP, global_SizeOfPointerInBytes, (unsigned int)mth->ParentAssembly->ParentDomain->RootObject, global_SizeOfPointerInBytes);
+	x86_mov_membase_reg(compMethod, X86_ESP, global_SizeOfPointerInBytes, X86_EAX, global_SizeOfPointerInBytes);
+	x86_mov_membase_imm(compMethod, X86_ESP, 0, (unsigned int)mth->ParentAssembly->ParentDomain->RootObject, global_SizeOfPointerInBytes);
 	x86_call_code(compMethod, ReferenceTypeObject_RemoveReference);
 	x86_adjust_stack(compMethod, (global_SizeOfPointerInBytes << 1));
+
+	x86_patch(skipRemove, (unsigned char*)compMethod);
 
 	x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, 0, 4); // Get the RTO
 	x86_mov_reg_membase(compMethod, X86_EAX, X86_EAX, 0, 4); // Get the object
@@ -2065,17 +2158,39 @@ char* JIT_Compile_Store_Field				(IRInstruction* instr, char* compMethod, IRMeth
 	uint32_t alSz = fSz;
 	Align(&alSz);
 
-	x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, alSz, 4); // Get the RTO.
+	// Remove 1 RootObject reference for popping object from the stack
+	x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, alSz, global_SizeOfPointerInBytes);
+	x86_test_reg_reg(compMethod, X86_EAX, X86_EAX);
+	unsigned char* skipRemove = (unsigned char*)compMethod;
+	x86_branch32(compMethod, X86_CC_Z, 0, FALSE);
 
 	x86_adjust_stack(compMethod, -(global_SizeOfPointerInBytes << 1));
-	x86_mov_membase_reg(compMethod, X86_ESP, 0, X86_EAX, global_SizeOfPointerInBytes);
-	x86_mov_membase_imm(compMethod, X86_ESP, global_SizeOfPointerInBytes, (unsigned int)mth->ParentAssembly->ParentDomain->RootObject, global_SizeOfPointerInBytes);
+	x86_mov_membase_reg(compMethod, X86_ESP, global_SizeOfPointerInBytes, X86_EAX, global_SizeOfPointerInBytes);
+	x86_mov_membase_imm(compMethod, X86_ESP, 0, (unsigned int)mth->ParentAssembly->ParentDomain->RootObject, global_SizeOfPointerInBytes);
 	x86_call_code(compMethod, ReferenceTypeObject_RemoveReference);
 	x86_adjust_stack(compMethod, (global_SizeOfPointerInBytes << 1));
 
-	x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, alSz, 4); // Get the RTO.
+	x86_patch(skipRemove, (unsigned char*)compMethod);
 
-	x86_mov_reg_membase(compMethod, X86_EAX, X86_EAX, 0, 4);
+	if (spec->FieldType->IsReferenceType)
+	{
+		// Remove 1 RootObject reference for popping value from the stack
+		x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, 0, global_SizeOfPointerInBytes);
+		x86_test_reg_reg(compMethod, X86_EAX, X86_EAX);
+		skipRemove = (unsigned char*)compMethod;
+		x86_branch32(compMethod, X86_CC_Z, 0, FALSE);
+
+		x86_adjust_stack(compMethod, -(global_SizeOfPointerInBytes << 1));
+		x86_mov_membase_reg(compMethod, X86_ESP, global_SizeOfPointerInBytes, X86_EAX, global_SizeOfPointerInBytes);
+		x86_mov_membase_imm(compMethod, X86_ESP, 0, (unsigned int)mth->ParentAssembly->ParentDomain->RootObject, global_SizeOfPointerInBytes);
+		x86_call_code(compMethod, ReferenceTypeObject_RemoveReference);
+		x86_adjust_stack(compMethod, (global_SizeOfPointerInBytes << 1));
+
+		x86_patch(skipRemove, (unsigned char*)compMethod);
+	}
+
+	x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, alSz, 4); // Get the RTO.
+	x86_mov_reg_membase(compMethod, X86_EAX, X86_EAX, 0, 4); // Get the object
 	// The pointer to the start of the type is now in EAX.
 
 	x86_alu_reg_imm(compMethod, X86_ADD, X86_EAX, spec->ParentType->Fields[spec->FieldIndex]->Offset);
@@ -2083,40 +2198,39 @@ char* JIT_Compile_Store_Field				(IRInstruction* instr, char* compMethod, IRMeth
 
 	if (spec->FieldType->IsReferenceType)
 	{
-		x86_mov_reg_membase(compMethod, X86_EBX, X86_ESP, alSz, 4); // Store the main RTO pointer in EBX
-		x86_mov_reg_membase(compMethod, X86_ECX, X86_ESP, 0, 4); // Since the type is a ReferenceType, value on stack must be RTO pointer, save it in ECX
-		x86_adjust_stack(compMethod, -(global_SizeOfPointerInBytes * 3)); // Adjust the stack to save 3 pointer we need to keep easy track of
-		x86_mov_membase_reg(compMethod, X86_ESP, 0, X86_EAX, global_SizeOfPointerInBytes); // Save field offset pointer, EAX must contain this when we leave here
-		x86_mov_membase_reg(compMethod, X86_ESP, global_SizeOfPointerInBytes, X86_EBX, global_SizeOfPointerInBytes); // Save the main RTO pointer, dependancy object
-		x86_mov_membase_reg(compMethod, X86_ESP, (global_SizeOfPointerInBytes << 1), X86_ECX, global_SizeOfPointerInBytes); // Save new RTO pointer, may be null
-		// At this point, EAX only contains the pointer offset used for copying larger fields
-		
-		x86_mov_reg_membase(compMethod, X86_EAX, X86_EAX, 0, 4); // Get the RTO pointer that EAX points to, which is the current field value
-		x86_test_reg_reg(compMethod, X86_EAX, X86_EAX); // Test if the current field value is null
-		unsigned char* fieldRefIsNull = (unsigned char*)compMethod;
-		x86_branch32(compMethod, X86_CC_Z, 0, FALSE); // If the current field value is not null, we need to remove the reference
-		x86_mov_reg_membase(compMethod, X86_ECX, X86_ESP, global_SizeOfPointerInBytes, 4); // Store the main RTO pointer in ECX
-		x86_adjust_stack(compMethod, -(global_SizeOfPointerInBytes << 1)); // Adjust stack for RemoveReference args
-		x86_mov_membase_reg(compMethod, X86_ESP, 0, X86_EAX, global_SizeOfPointerInBytes); // First arg is the RTO pointer of the current field value
-		x86_mov_membase_reg(compMethod, X86_ESP, global_SizeOfPointerInBytes, X86_ECX, global_SizeOfPointerInBytes); // Second arg is the RTO pointer of the main object
-		x86_call_code(compMethod, ReferenceTypeObject_RemoveReference); // Call RemoveReference
-		x86_adjust_stack(compMethod, (global_SizeOfPointerInBytes << 1)); // Adjust stack to remove arg space for RemoveReference
-		x86_patch(fieldRefIsNull, (unsigned char*)compMethod); // Patch the earlier branch, if current field value is null we skip to here
+		x86_mov_reg_membase(compMethod, X86_ECX, X86_ESP, alSz, 4);
+		x86_push_reg(compMethod, X86_EAX);
 
-		x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, (global_SizeOfPointerInBytes << 1), 4); // Get the RTO pointer of the new value
-		x86_test_reg_reg(compMethod, X86_EAX, X86_EAX); // Test if the new RTO pointer is null
-		unsigned char* newRefIsNull = (unsigned char*)compMethod;
-		x86_branch32(compMethod, X86_CC_Z, 0, FALSE); // If the new RTO pointer is not null, we need to add the reference
-		x86_mov_reg_membase(compMethod, X86_ECX, X86_ESP, global_SizeOfPointerInBytes, 4); // Store the main RTO pointer in ECX
-		x86_adjust_stack(compMethod, -(global_SizeOfPointerInBytes << 1)); // Adjust stack for AddReference args
-		x86_mov_membase_reg(compMethod, X86_ESP, 0, X86_EAX, global_SizeOfPointerInBytes); // First arg is the new RTO pointer
-		x86_mov_membase_reg(compMethod, X86_ESP, global_SizeOfPointerInBytes, X86_ECX, global_SizeOfPointerInBytes); // Second arg is the RTF pointer of the main object
-		x86_call_code(compMethod, ReferenceTypeObject_AddReference); // Call AddReference
-		x86_adjust_stack(compMethod, (global_SizeOfPointerInBytes << 1)); // Adjust stack to remove arg space for AddReference
-		x86_patch(newRefIsNull, (unsigned char*)compMethod); // Patch the earlier branch, if new RTO pointer is null we skip to here
+		// Remove 1 reference of old value from object
+		x86_mov_reg_membase(compMethod, X86_EAX, X86_EAX, 0, global_SizeOfPointerInBytes);
+		x86_test_reg_reg(compMethod, X86_EAX, X86_EAX);
+		skipRemove = (unsigned char*)compMethod;
+		x86_branch32(compMethod, X86_CC_Z, 0, FALSE);
 
-		x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, 0, 4); // Restore EAX to the field offset pointer, which we need for setting the pointer itself after this
-		x86_adjust_stack(compMethod, -(global_SizeOfPointerInBytes * 3)); // Adjust the stack to remove the 3 pointer values we were keeping track of
+		x86_adjust_stack(compMethod, -(global_SizeOfPointerInBytes << 1));
+		x86_mov_membase_reg(compMethod, X86_ESP, global_SizeOfPointerInBytes, X86_EAX, global_SizeOfPointerInBytes);
+		x86_mov_membase_reg(compMethod, X86_ESP, 0, X86_ECX, global_SizeOfPointerInBytes);
+		x86_call_code(compMethod, ReferenceTypeObject_RemoveReference);
+		x86_adjust_stack(compMethod, (global_SizeOfPointerInBytes << 1));
+
+		x86_patch(skipRemove, (unsigned char*)compMethod);
+
+		// Add 1 reference of value to object
+		x86_mov_reg_membase(compMethod, X86_ECX, X86_ESP, alSz + 4, 4);
+		x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, 4, global_SizeOfPointerInBytes);
+		x86_test_reg_reg(compMethod, X86_EAX, X86_EAX);
+		unsigned char* skipAdd = (unsigned char*)compMethod;
+		x86_branch32(compMethod, X86_CC_Z, 0, FALSE);
+
+		x86_adjust_stack(compMethod, -(global_SizeOfPointerInBytes << 1));
+		x86_mov_membase_reg(compMethod, X86_ESP, global_SizeOfPointerInBytes, X86_EAX, global_SizeOfPointerInBytes);
+		x86_mov_membase_reg(compMethod, X86_ESP, 0, X86_ECX, global_SizeOfPointerInBytes);
+		x86_call_code(compMethod, ReferenceTypeObject_AddReference);
+		x86_adjust_stack(compMethod, (global_SizeOfPointerInBytes << 1));
+
+		x86_patch(skipAdd, (unsigned char*)compMethod);
+
+		x86_pop_reg(compMethod, X86_EAX);
 	}
 	else if (spec->FieldType->TypeDef == spec->FieldType->ParentAssembly->ParentDomain->CachedType___System_Single)
 	{
@@ -2223,6 +2337,19 @@ char* JIT_Compile_Load_Static_Field			(IRInstruction* instr, char* compMethod, I
 	{
 		x86_mov_reg_membase(compMethod, X86_EAX, X86_EAX, 0, 4);
 		x86_push_reg(compMethod, X86_EAX);
+
+		// Add 1 RootObject reference for pushing field to the stack
+		x86_test_reg_reg(compMethod, X86_EAX, X86_EAX);
+		unsigned char* skipAdd = (unsigned char*)compMethod;
+		x86_branch32(compMethod, X86_CC_Z, 0, FALSE);
+
+		x86_adjust_stack(compMethod, -(global_SizeOfPointerInBytes << 1));
+		x86_mov_membase_reg(compMethod, X86_ESP, global_SizeOfPointerInBytes, X86_EAX, global_SizeOfPointerInBytes);
+		x86_mov_membase_imm(compMethod, X86_ESP, 0, (unsigned int)mth->ParentAssembly->ParentDomain->RootObject, global_SizeOfPointerInBytes);
+		x86_call_code(compMethod, ReferenceTypeObject_AddReference);
+		x86_adjust_stack(compMethod, (global_SizeOfPointerInBytes << 1));
+
+		x86_patch(skipAdd, (unsigned char*)compMethod);
 	}
 
 	return compMethod;
@@ -2278,8 +2405,58 @@ char* JIT_Compile_Store_Static_Field		(IRInstruction* instr, char* compMethod, I
 	}
 	else
 	{
+		x86_push_reg(compMethod, X86_EAX); // Save this, need it in the middle of the following code
+
+		// Remove 1 RootObject reference for popping value from the stack
+		x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, global_SizeOfPointerInBytes, global_SizeOfPointerInBytes);
+		x86_test_reg_reg(compMethod, X86_EAX, X86_EAX);
+		unsigned char* skipRemove = (unsigned char*)compMethod;
+		x86_branch32(compMethod, X86_CC_Z, 0, FALSE);
+
+		x86_adjust_stack(compMethod, -(global_SizeOfPointerInBytes << 1));
+		x86_mov_membase_reg(compMethod, X86_ESP, global_SizeOfPointerInBytes, X86_EAX, global_SizeOfPointerInBytes);
+		x86_mov_membase_imm(compMethod, X86_ESP, 0, (unsigned int)mth->ParentAssembly->ParentDomain->RootObject, global_SizeOfPointerInBytes);
+		x86_call_code(compMethod, ReferenceTypeObject_RemoveReference);
+		x86_adjust_stack(compMethod, (global_SizeOfPointerInBytes << 1));
+
+		x86_patch(skipRemove, (unsigned char*)compMethod);
+
+
+		// Remove 1 RootObject reference for removing value from the static field
+		x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, 0, global_SizeOfPointerInBytes);
+		x86_mov_reg_membase(compMethod, X86_EAX, X86_EAX, 0, global_SizeOfPointerInBytes);
+		x86_test_reg_reg(compMethod, X86_EAX, X86_EAX);
+		skipRemove = (unsigned char*)compMethod;
+		x86_branch32(compMethod, X86_CC_Z, 0, FALSE);
+
+		x86_adjust_stack(compMethod, -(global_SizeOfPointerInBytes << 1));
+		x86_mov_membase_reg(compMethod, X86_ESP, global_SizeOfPointerInBytes, X86_EAX, global_SizeOfPointerInBytes);
+		x86_mov_membase_imm(compMethod, X86_ESP, 0, (unsigned int)mth->ParentAssembly->ParentDomain->RootObject, global_SizeOfPointerInBytes);
+		x86_call_code(compMethod, ReferenceTypeObject_RemoveReference);
+		x86_adjust_stack(compMethod, (global_SizeOfPointerInBytes << 1));
+
+		x86_patch(skipRemove, (unsigned char*)compMethod);
+
+
+		x86_pop_reg(compMethod, X86_EAX);
 		x86_pop_reg(compMethod, X86_EBX);
 		x86_mov_membase_reg(compMethod, X86_EAX, 0, X86_EBX, 4);
+
+
+		// Add 1 RootObject reference for setting the static field
+		x86_test_reg_reg(compMethod, X86_EBX, X86_EBX);
+		unsigned char* skipAdd = (unsigned char*)compMethod;
+		x86_branch32(compMethod, X86_CC_Z, 0, FALSE);
+
+		x86_adjust_stack(compMethod, -(global_SizeOfPointerInBytes << 1));
+		x86_mov_membase_reg(compMethod, X86_ESP, global_SizeOfPointerInBytes, X86_EBX, global_SizeOfPointerInBytes);
+		x86_mov_membase_imm(compMethod, X86_ESP, 0, (unsigned int)mth->ParentAssembly->ParentDomain->RootObject, global_SizeOfPointerInBytes);
+		x86_call_code(compMethod, ReferenceTypeObject_AddReference);
+		x86_adjust_stack(compMethod, (global_SizeOfPointerInBytes << 1));
+
+		x86_patch(skipAdd, (unsigned char*)compMethod);
+
+		x86_pop_reg(compMethod, X86_EAX);
 	}
 
 	return compMethod;
@@ -2294,7 +2471,7 @@ char* JIT_Compile_Load_Object				(IRInstruction* instr, char* compMethod, IRMeth
 	x86_pop_reg(compMethod, X86_EAX);
 
 	if (type->IsValueType)
-	{		
+	{
 		uint32_t sizeOfType = StackSizeOfType(type);
 		uint32_t movCount = sizeOfType >> 2;
 		for (uint32_t index = 0; index < movCount; ++index)
@@ -2324,6 +2501,19 @@ char* JIT_Compile_Load_Object				(IRInstruction* instr, char* compMethod, IRMeth
 	{
 		x86_mov_reg_membase(compMethod, X86_EAX, X86_EAX, 0, 4);
 		x86_push_reg(compMethod, X86_EAX);
+
+		// Add 1 RootObject reference for pushing the object to the stack
+		x86_test_reg_reg(compMethod, X86_EAX, X86_EAX);
+		unsigned char* skipAdd = (unsigned char*)compMethod;
+		x86_branch32(compMethod, X86_CC_Z, 0, FALSE);
+
+		x86_adjust_stack(compMethod, -(global_SizeOfPointerInBytes << 1));
+		x86_mov_membase_reg(compMethod, X86_ESP, global_SizeOfPointerInBytes, X86_EAX, global_SizeOfPointerInBytes);
+		x86_mov_membase_imm(compMethod, X86_ESP, 0, (unsigned int)mth->ParentAssembly->ParentDomain->RootObject, global_SizeOfPointerInBytes);
+		x86_call_code(compMethod, ReferenceTypeObject_AddReference);
+		x86_adjust_stack(compMethod, (global_SizeOfPointerInBytes << 1));
+
+		x86_patch(skipAdd, (unsigned char*)compMethod);
 	}
 
 	return compMethod;
@@ -2362,6 +2552,19 @@ char* JIT_Compile_Copy_Object				(IRInstruction* instr, char* compMethod, IRMeth
 	{
 		x86_mov_reg_membase(compMethod, X86_EAX, X86_EAX, 0, 4);
 		x86_mov_membase_reg(compMethod, X86_ECX, 0, X86_EAX, 4);
+
+		// Add 1 RootObject reference for copying the reference to another location
+		x86_test_reg_reg(compMethod, X86_EAX, X86_EAX);
+		unsigned char* skipAdd = (unsigned char*)compMethod;
+		x86_branch32(compMethod, X86_CC_Z, 0, FALSE);
+
+		x86_adjust_stack(compMethod, -(global_SizeOfPointerInBytes << 1));
+		x86_mov_membase_reg(compMethod, X86_ESP, global_SizeOfPointerInBytes, X86_EAX, global_SizeOfPointerInBytes);
+		x86_mov_membase_imm(compMethod, X86_ESP, 0, (unsigned int)mth->ParentAssembly->ParentDomain->RootObject, global_SizeOfPointerInBytes);
+		x86_call_code(compMethod, ReferenceTypeObject_AddReference);
+		x86_adjust_stack(compMethod, (global_SizeOfPointerInBytes << 1));
+
+		x86_patch(skipAdd, (unsigned char*)compMethod);
 	}
 
 	return compMethod;
@@ -2411,6 +2614,21 @@ char* JIT_Compile_IsInst					(IRInstruction* instr, char* compMethod, IRMethod* 
 char* JIT_Compile_Unbox						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	//IRType* type = (IRType*)instr->Arg1;
+
+	// Remove 1 RootObject reference for popping object from the stack
+	x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, 0, global_SizeOfPointerInBytes);
+	x86_test_reg_reg(compMethod, X86_EAX, X86_EAX);
+	unsigned char* skipRemove = (unsigned char*)compMethod;
+	x86_branch32(compMethod, X86_CC_Z, 0, FALSE);
+
+	x86_adjust_stack(compMethod, -(global_SizeOfPointerInBytes << 1));
+	x86_mov_membase_reg(compMethod, X86_ESP, global_SizeOfPointerInBytes, X86_EAX, global_SizeOfPointerInBytes);
+	x86_mov_membase_imm(compMethod, X86_ESP, 0, (unsigned int)mth->ParentAssembly->ParentDomain->RootObject, global_SizeOfPointerInBytes);
+	x86_call_code(compMethod, ReferenceTypeObject_RemoveReference);
+	x86_adjust_stack(compMethod, (global_SizeOfPointerInBytes << 1));
+
+	x86_patch(skipRemove, (unsigned char*)compMethod);
+
 	x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, 0, 4);
 	x86_mov_reg_membase(compMethod, X86_EAX, X86_EAX, 0, 4);
 	x86_mov_membase_reg(compMethod, X86_ESP, 0, X86_EAX, 4);
@@ -2422,6 +2640,21 @@ char* JIT_Compile_Unbox_Any					(IRInstruction* instr, char* compMethod, IRMetho
 {
 	IRType* type = (IRType*)instr->Arg1;
 	uint32_t sizeOfType = StackSizeOfType(type);
+
+	// Remove 1 RootObject reference for popping object from the stack
+	x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, 0, global_SizeOfPointerInBytes);
+	x86_test_reg_reg(compMethod, X86_EAX, X86_EAX);
+	unsigned char* skipRemove = (unsigned char*)compMethod;
+	x86_branch32(compMethod, X86_CC_Z, 0, FALSE);
+
+	x86_adjust_stack(compMethod, -(global_SizeOfPointerInBytes << 1));
+	x86_mov_membase_reg(compMethod, X86_ESP, global_SizeOfPointerInBytes, X86_EAX, global_SizeOfPointerInBytes);
+	x86_mov_membase_imm(compMethod, X86_ESP, 0, (unsigned int)mth->ParentAssembly->ParentDomain->RootObject, global_SizeOfPointerInBytes);
+	x86_call_code(compMethod, ReferenceTypeObject_RemoveReference);
+	x86_adjust_stack(compMethod, (global_SizeOfPointerInBytes << 1));
+
+	x86_patch(skipRemove, (unsigned char*)compMethod);
+
 	x86_pop_reg(compMethod, X86_EAX);
 	x86_mov_reg_membase(compMethod, X86_EAX, X86_EAX, 0, 4);
 	uint32_t alignedSizeOfType = sizeOfType;
@@ -2804,7 +3037,33 @@ char* JIT_Compile_Call_Absolute				(IRInstruction* instr, char* compMethod, IRMe
 		paramsSize -= 8; // For stack frame and return pointer
 		printf("CallAbsolute: LastParam index %i Offset %u + %u Size, Type = %s\n", (int)m->ParameterCount - 1, (unsigned int)m->Parameters[m->ParameterCount - 1]->Offset, (unsigned int)StackSizeOfType(m->Parameters[m->ParameterCount - 1]->Type), m->Parameters[m->ParameterCount - 1]->Type->TypeDef->Name);
 	}
+	
+	x86_push_reg(compMethod, X86_EAX);
+	x86_push_reg(compMethod, X86_EDX);
+	for (uint32_t index = 0; index < m->ParameterCount; ++index)
+	{
+		if (m->Parameters[index]->Type->IsReferenceType)
+		{
+			// Remove 1 RootObject reference for removing the parameter reference as we leave scope
+			x86_mov_reg_membase(compMethod, X86_EBX, X86_ESP, (int)m->Parameters[index]->Offset + 4, global_SizeOfPointerInBytes);
+			x86_test_reg_reg(compMethod, X86_EBX, X86_EBX);
+			unsigned char* skipRemove = (unsigned char*)compMethod;
+			x86_branch32(compMethod, X86_CC_Z, 0, FALSE);
+
+			x86_adjust_stack(compMethod, -(global_SizeOfPointerInBytes << 1));
+			x86_mov_membase_reg(compMethod, X86_ESP, global_SizeOfPointerInBytes, X86_EBX, global_SizeOfPointerInBytes);
+			x86_mov_membase_imm(compMethod, X86_ESP, 0, (unsigned int)m->ParentAssembly->ParentDomain->RootObject, global_SizeOfPointerInBytes);
+			x86_call_code(compMethod, ReferenceTypeObject_RemoveReference);
+			x86_adjust_stack(compMethod, (global_SizeOfPointerInBytes << 1));
+
+			x86_patch(skipRemove, (unsigned char*)compMethod);
+		}
+	}
+	x86_pop_reg(compMethod, X86_EDX);
+	x86_pop_reg(compMethod, X86_EAX);
 	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, paramsSize);
+
+
 	if (m->Returns)
 	{
 		if (StackSizeOfType(m->ReturnType) == 8)
@@ -2833,7 +3092,33 @@ char* JIT_Compile_Call_Internal				(IRInstruction* instr, char* compMethod, IRMe
 		paramsSize -= 8; // For stack frame and return pointer
 		//printf("CallInternal: LastParam Offset %u + %u Size\n", (unsigned int)m->Parameters[m->ParameterCount - 1]->Offset, (unsigned int)StackSizeOfType(m->Parameters[m->ParameterCount - 1]->Type));
 	}
+
+	x86_push_reg(compMethod, X86_EAX);
+	x86_push_reg(compMethod, X86_EDX);
+	for (uint32_t index = 0; index < m->ParameterCount; ++index)
+	{
+		if (m->Parameters[index]->Type->IsReferenceType)
+		{
+			// Remove 1 RootObject reference for removing the parameter reference as we leave scope
+			x86_mov_reg_membase(compMethod, X86_EBX, X86_ESP, (int)m->Parameters[index]->Offset + 4, global_SizeOfPointerInBytes);
+			x86_test_reg_reg(compMethod, X86_EBX, X86_EBX);
+			unsigned char* skipRemove = (unsigned char*)compMethod;
+			x86_branch32(compMethod, X86_CC_Z, 0, FALSE);
+
+			x86_adjust_stack(compMethod, -(global_SizeOfPointerInBytes << 1));
+			x86_mov_membase_reg(compMethod, X86_ESP, global_SizeOfPointerInBytes, X86_EBX, global_SizeOfPointerInBytes);
+			x86_mov_membase_imm(compMethod, X86_ESP, 0, (unsigned int)m->ParentAssembly->ParentDomain->RootObject, global_SizeOfPointerInBytes);
+			x86_call_code(compMethod, ReferenceTypeObject_RemoveReference);
+			x86_adjust_stack(compMethod, (global_SizeOfPointerInBytes << 1));
+
+			x86_patch(skipRemove, (unsigned char*)compMethod);
+		}
+	}
+	x86_pop_reg(compMethod, X86_EDX);
+	x86_pop_reg(compMethod, X86_EAX);
 	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, paramsSize);
+
+
 	if (m->Returns)
 	{
 		if (StackSizeOfType(m->ReturnType) == 8)
@@ -2870,6 +3155,30 @@ char* JIT_Compile_Call						(IRInstruction* instr, char* compMethod, IRMethod* m
 		paramsSize -= 8; // For stack frame and return pointer
 		//printf("Call: LastParam Offset %u + %u Size\n", (unsigned int)m->Parameters[m->ParameterCount - 1]->Offset, (unsigned int)m->Parameters[m->ParameterCount - 1]->Size);
 	}
+
+	x86_push_reg(compMethod, X86_EAX);
+	x86_push_reg(compMethod, X86_EDX);
+	for (uint32_t index = 0; index < m->ParameterCount; ++index)
+	{
+		if (m->Parameters[index]->Type->IsReferenceType)
+		{
+			// Remove 1 RootObject reference for removing the parameter reference as we leave scope
+			x86_mov_reg_membase(compMethod, X86_EBX, X86_ESP, (int)m->Parameters[index]->Offset + 4, global_SizeOfPointerInBytes);
+			x86_test_reg_reg(compMethod, X86_EBX, X86_EBX);
+			unsigned char* skipRemove = (unsigned char*)compMethod;
+			x86_branch32(compMethod, X86_CC_Z, 0, FALSE);
+
+			x86_adjust_stack(compMethod, -(global_SizeOfPointerInBytes << 1));
+			x86_mov_membase_reg(compMethod, X86_ESP, global_SizeOfPointerInBytes, X86_EBX, global_SizeOfPointerInBytes);
+			x86_mov_membase_imm(compMethod, X86_ESP, 0, (unsigned int)m->ParentAssembly->ParentDomain->RootObject, global_SizeOfPointerInBytes);
+			x86_call_code(compMethod, ReferenceTypeObject_RemoveReference);
+			x86_adjust_stack(compMethod, (global_SizeOfPointerInBytes << 1));
+
+			x86_patch(skipRemove, (unsigned char*)compMethod);
+		}
+	}
+	x86_pop_reg(compMethod, X86_EDX);
+	x86_pop_reg(compMethod, X86_EAX);
 	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, paramsSize);
 
 	if (m->Returns)

@@ -374,16 +374,21 @@ ReferenceTypeObject* GC_SubstituteString(GC* pGC, ReferenceTypeObject* pInitialR
     return object;
 }
 
-
 void GCHeap_Collect(GCHeap* pGCHeap, bool_t pAgeObjects)
 {
     ReferenceTypeObject* object = NULL;
+    ReferenceTypeObject* objectNext = NULL;
     GCHeapStack* stack = NULL;
     for (uint32_t index = 0; index < pGCHeap->StackCount; ++index)
     {
         stack = pGCHeap->Stacks[index];
-		for (object = stack->DisposingTop; object; object = object->DisposingNext)
+		for (object = stack->DisposingTop; object; object = objectNext)
+		{
+			objectNext = object->DisposingNext;
+			//printf("Disposing @ 0x%x, #%d\n", (unsigned int)object, (int)dCount);
 			ReferenceTypeObject_Dispose(object);
+			object->DisposingNext = NULL;
+		}
 		stack->DisposingTop = NULL;
     }
 }
@@ -398,6 +403,7 @@ void GCHeap_Compact(GC* pGC, GCHeap* pGCHeap)
 		// Let's compact after at least 25% of the stack space is disposed
         if (stack->Disposed >= (stack->Size >> 2))
         {
+			//printf("Compacting Stack @ 0x%x\n", (unsigned int)stack);
 			// First we need to check if any objects on this stack are pinned, if so, we can skip this stack for
 			// the time being, and deal with it when no objects are pinned.
 			bool_t skipStack = FALSE;

@@ -27,7 +27,7 @@ void JIT_CompileMethod(IRMethod* mthd)
 
 	for (uint32_t i = 0; i < mthd->IRCodesCount; i++)
 	{
-		Log_WriteLine(LogFlags_JIT, "OpCode: %u", (unsigned int)mthd->IRCodes[i]->OpCode);
+		Log_WriteLine(LogFlags_JIT, "OpCode: %u being emitted at 0x%x", (unsigned int)mthd->IRCodes[i]->OpCode, (unsigned int)compMthd);
 		branchRegistry->InstructionLocations[mthd->IRCodes[i]->InstructionLocation] = (size_t)compMthd;
 		// Because of the fact that IROpCode is an enum
 		// We know that we have all the op-codes at compile-time.

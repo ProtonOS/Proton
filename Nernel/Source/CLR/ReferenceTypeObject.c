@@ -6,7 +6,8 @@
 
 void ReferenceTypeObject_AddReference(ReferenceTypeObject* pParent, ReferenceTypeObject* pReferenced)
 {
-    if (!pParent || !pReferenced) return;
+	//printf("Adding reference from parent @ 0x%x to object @ 0x%x, refcount %u\n", (unsigned int)pParent, (unsigned int)pReferenced, (unsigned int)pReferenced->ReferenceCount);
+    if (!pParent || !pReferenced) Panic("Attempting to add a reference to null parent or with null object");
 
     ++pReferenced->ReferenceCount;
 
@@ -42,7 +43,9 @@ void ReferenceTypeObject_AddReference(ReferenceTypeObject* pParent, ReferenceTyp
 
 void ReferenceTypeObject_RemoveReference(ReferenceTypeObject* pParent, ReferenceTypeObject* pReferenced)
 {
-    if (!pParent->DependancyPool || !pReferenced) return;
+	//printf("Removing reference from parent @ 0x%x to object @ 0x%x, refcount %u\n", (unsigned int)pParent, (unsigned int)pReferenced, (unsigned int)pReferenced->ReferenceCount);
+    if (!pParent || !pReferenced) Panic("Attempting to remove a reference from null parent or with null object");
+
 	bool_t found = FALSE;
     for (uint32_t index = 0; !found && index < pParent->DependancyPoolSize; ++index)
     {

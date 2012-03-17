@@ -10,16 +10,16 @@ namespace Mernel
             return 42;
         }
 
-        private static ulong aStatic = 69;
+        //private static ulong aStatic = 69;
 
         public static void Main()
         {
             long ticks = DateTime.InternalUtcNow();
             Console.WriteLine("Started @ " + ((ulong)ticks).ToString());
-            string str = new string('*', 40);
-            Console.WriteLine(str);
+            //string str = new string('*', 40);
+            //Console.WriteLine(str);
 
-            Console.WriteLine("aStatic = " + aStatic.ToString());
+            //Console.WriteLine("aStatic = " + aStatic.ToString());
 
             //aStatic = Blarh342();// unchecked((uint)-1);
             //uint bStatic = (uint)(aStatic);
@@ -47,20 +47,21 @@ namespace Mernel
             //strArr[3] = 'T';
             //string str2 = new string(strArr);
             //Console.WriteLine("strArr .ctor = " + str2);
-            Test2 t = new Test2();
+            //Test2 t = new Test2();
             //t.A = 10;
             //t.B = new Test2();
-            t.Really();
-            t.JustATest();
-            Console.WriteLine("Factorial of 6 (Via Multiplication): " + Factorial(6).ToString());
+            //t.Really();
+            //t.JustATest();
+            //Console.WriteLine("Factorial of 6 (Via Multiplication): " + Factorial(6).ToString());
             //Console.WriteLine("Mernel Started");
 
             //InterfaceTest iface = new InterfaceTestImpl();
             //iface.TestMe();
 
-            for (uint i = 0; i < 10000; i++)
+            Test2 t1 = null;
+            for (uint i = 0; i < 1000; i++)
             {
-                Test2 t1 = new Test2();
+                t1 = new Test2();
                 t1.Really();
             }
 

@@ -1213,7 +1213,7 @@ typedef enum IROpCode
      */
     IROpCode_Unbox,
     /*
-        Unboxes the value on the top of the stack,
+        Unboxes the object on the top of the stack,
 		and pushes it's value to the top of the 
 		stack.
 		
