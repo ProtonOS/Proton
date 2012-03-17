@@ -5,7 +5,7 @@
 
 const uint8_t* AssemblyReference_Initialize(CLIFile* pFile, const uint8_t* pTableData)
 {
-    if ((pFile->TablesHeader->PresentTables & (1ull << MetaData_Table_AssemblyReference)) != 0)
+    if (((unsigned long long)pFile->TablesHeader->PresentTables & (1ull << MetaData_Table_AssemblyReference)) != 0)
     {
         pFile->AssemblyReferenceCount = *(uint32_t*)pTableData; pTableData += 4;
         pFile->AssemblyReferences = (AssemblyReference*)calloc(pFile->AssemblyReferenceCount + 1, sizeof(AssemblyReference));

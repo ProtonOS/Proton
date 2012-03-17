@@ -8,7 +8,7 @@ void AppDomainRegistry_AddDomain(AppDomain* dom);
 
 AppDomain* AppDomain_CreateDomain()
 {
-	MultiBoot_LoadedModule* loadedModule = MultiBoot_GetLoadedModuleByFileName("corlib.dll");
+	MultiBoot_LoadedModule* loadedModule = MultiBoot_GetLoadedModuleByFileName("/gac/corlib.dll");
     PEFile* peFile = PEFile_Create((uint8_t*)loadedModule->Address, loadedModule->Length);
     if (peFile)
     {

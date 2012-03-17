@@ -4,6 +4,7 @@
 #include <CLR/SyntheticStack.h>
 #include <CLR/IROptimizer.h>
 #include <CLR/IRMethod_BranchLinker.h>
+#include <Core/Multiboot.h>
 #include <CLR/Log.h>
 #include <String_Format.h>
 #include <stdlib.h>
@@ -45,6 +46,41 @@ void ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* f
 
 IRAssembly* ILReader_CreateAssembly(CLIFile* fil, AppDomain* dom)
 {
+	printf("Fil = 0x%x, ref count = %u\n", (unsigned int)fil, (unsigned int)fil->AssemblyReferenceCount);
+	if (fil->AssemblyReferenceCount > 0)
+	{
+		char buf[FILENAME_MAX];
+		for (uint32_t i = 1; i <= fil->AssemblyReferenceCount; i++)
+		{
+			AssemblyReference* r = &fil->AssemblyReferences[i];
+
+			printf("Attempting to resolve %s\n", r->Name);
+			snprintf(buf, FILENAME_MAX, "/gac/%s.dll", r->Name);
+			MultiBoot_LoadedModule* mod = MultiBoot_GetLoadedModuleByFileName(buf);
+			//if (!mod)
+			//{
+			//	snprintf(buf, FILENAME_MAX, "/gac/%s.exe", r->Name);
+			//	mod = MultiBoot_GetLoadedModuleByFileName(buf);
+			//}
+			if (!mod)
+			{
+				snprintf(buf, FILENAME_MAX, "/gac/proton/%s.dll", r->Name);
+				mod = MultiBoot_GetLoadedModuleByFileName(buf);
+			}
+			//if (!mod)
+			//{
+			//	snprintf(buf, FILENAME_MAX, "/gac/proton/%s.exe", r->Name);
+			//	mod = MultiBoot_GetLoadedModuleByFileName(buf);
+			//}
+			if (!mod)
+			{
+				Panic("Unable to resolve dependancy!");
+			}
+			CLIFile* clFil = CLIFile_Create(PEFile_Create((uint8_t*)mod->Address, mod->Length));
+			IRAssembly* asmb = ILReader_CreateAssembly(clFil, dom);
+			AppDomain_AddAssembly(dom, asmb);
+		}
+	}
 	IRAssembly* asmbly = IRAssembly_Create(dom);
 	asmbly->ParentFile = fil;
 	

@@ -49,10 +49,6 @@
       <Project>{6A77A7C0-FB66-4CAA-94EE-142DBA20655D}</Project>
       <Name>corlib</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Runtime\System\System.csproj">
-      <Project>{388F5D73-0211-4A64-B501-92CDC4E32ACF}</Project>
-      <Name>System</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

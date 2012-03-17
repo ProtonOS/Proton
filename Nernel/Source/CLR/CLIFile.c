@@ -93,8 +93,8 @@ CLIFile* CLIFile_Create(PEFile* pFile)
     cliFile->TablesHeader = (MetaDataTablesHeader*)cliFile->Tables;
     const uint8_t* tableData = cliFile->Tables + sizeof(MetaDataTablesHeader);
     uint32_t tableCount = 0;
+	printf("Valid = 0x%llx, Sorted = 0x%llx\n", (unsigned long long)cliFile->TablesHeader->PresentTables, (unsigned long long)cliFile->TablesHeader->SortedTables);
     while (CLIFile_MetaDataTables[tableCount].Initialize) ++tableCount;
-
     for (uint32_t tableIndex = 0; tableIndex < tableCount; ++tableIndex) tableData = CLIFile_MetaDataTables[tableIndex].Initialize(cliFile, tableData);
     for (uint32_t tableIndex = 0; tableIndex < tableCount; ++tableIndex) tableData = CLIFile_MetaDataTables[tableIndex].Load(cliFile, tableData);
     for (uint32_t tableIndex = 0; tableIndex < tableCount; ++tableIndex) CLIFile_MetaDataTables[tableIndex].Link(cliFile);
