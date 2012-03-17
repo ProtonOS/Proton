@@ -77,9 +77,12 @@ void ReferenceTypeObject_Dispose(ReferenceTypeObject* pObject)
     for (uint32_t dependancyIndex = 0; pObject->DependancyPoolCount > 0 && dependancyIndex < pObject->DependancyPoolSize; ++dependancyIndex)
     {
         dependancy = pObject->DependancyPool[dependancyIndex];
-        ReferenceTypeObject_RemoveReference(pObject, dependancy);
-        if ((dependancy->Flags & ReferenceTypeObject_Flags_Disposing) != 0)
-            ReferenceTypeObject_Dispose(dependancy);
+		if (dependancy)
+		{
+			ReferenceTypeObject_RemoveReference(pObject, dependancy);
+			if ((dependancy->Flags & ReferenceTypeObject_Flags_Disposing) != 0)
+				ReferenceTypeObject_Dispose(dependancy);
+		}
     }
 }
 
