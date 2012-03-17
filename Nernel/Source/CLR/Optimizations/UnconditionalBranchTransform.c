@@ -2,23 +2,19 @@
 #include <CLR/Optimizations/UnconditionalBranchTransform.h>
 #include <stdlib.h>
 
-void IROptimizer_UnconditionalBranchTransform(IRAssembly* asmb)
+void IROptimizer_UnconditionalBranchTransform(IRMethod* mth)
 {
-    for (uint32_t i = 0; i < asmb->MethodCount; i++)
+    for (uint32_t i2 = 0; i2 < mth->IRCodesCount; i2++)
     {
-        IRMethod* mth = asmb->Methods[i];
-        for (uint32_t i2 = 0; i2 < mth->IRCodesCount; i2++)
+        IRInstruction* instr = mth->IRCodes[i2];
+        if (instr->OpCode == IROpCode_Branch)
         {
-            IRInstruction* instr = mth->IRCodes[i2];
-            if (instr->OpCode == IROpCode_Branch)
+            if ( *((BranchCondition*)(instr->Arg1)) == BranchCondition_Always)
             {
-                if ( *((BranchCondition*)(instr->Arg1)) == BranchCondition_Always)
-                {
-                    instr->OpCode = IROpCode_Optimized_Jump;
-                    free(instr->Arg1);
-                    instr->Arg1 = instr->Arg2;
-                    instr->Arg2 = (void*)0;
-                }
+                instr->OpCode = IROpCode_Optimized_Jump;
+                free(instr->Arg1);
+                instr->Arg1 = instr->Arg2;
+                instr->Arg2 = NULL;
             }
         }
     }

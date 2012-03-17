@@ -2,9 +2,10 @@
 
 #include <CLR/Optimizations/UnconditionalBranchTransform.h>
 
-void IROptimizer_Optimize(IRAssembly* asmb)
+void IROptimizer_Optimize(IRMethod* mth)
 {
-    IROptimizer_UnconditionalBranchTransform(asmb);
+
+    IROptimizer_UnconditionalBranchTransform(mth);
 
 
 }

@@ -4,13 +4,17 @@
 #include <Core/Console.h>
 #include <CLR/Log.h>
 #include <CLR/ILReader.h>
+#include <CLR/IROptimizer.h>
 
 
 void DumpMethod(IRMethod* mth, uint32_t len);
 void JIT_CompileMethod(IRMethod* mthd)
 {
-	DecomposeMethod(mthd);
 	Log_WriteLine(LogFlags_JIT, "JITing method %s.%s.%s", mthd->MethodDefinition->TypeDefinition->Namespace, mthd->MethodDefinition->TypeDefinition->Name, mthd->MethodDefinition->Name);
+	DecomposeMethod(mthd);
+	Log_WriteLine(LogFlags_JIT, "Finished decomposition.");
+	IROptimizer_Optimize(mthd);
+	Log_WriteLine(LogFlags_JIT, "Applied Optimizations.");
 	char* compMthd = malloc(mthd->IRCodesCount * 128);
 	Log_WriteLine(LogFlags_JIT, "Address of JIT'd Method: 0x%x Size: 0x%x", (unsigned int)compMthd, mthd->IRCodesCount * 128);
 	char* mthPtr = compMthd;

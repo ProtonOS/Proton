@@ -6,4 +6,4 @@
     Transforms unconditional branch instructions
     into jump instructions.
  */
-void IROptimizer_UnconditionalBranchTransform(IRAssembly* asmb);
+void IROptimizer_UnconditionalBranchTransform(IRMethod* mth);

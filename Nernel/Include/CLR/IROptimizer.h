@@ -3,5 +3,5 @@
 #include <CLR/IRStructures.h>
 
 
-void IROptimizer_Optimize(IRAssembly* asmb);
+void IROptimizer_Optimize(IRMethod* mth);
 

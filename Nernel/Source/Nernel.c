@@ -54,18 +54,19 @@ void Main(uint32_t pMultiBootMagic,
     */
 
     global_baseMernelDomain = AppDomain_CreateDomain();
-	MultiBoot_LoadedModule* mernelModule = MultiBoot_GetLoadedModuleByFileName("/boot/mernel.exe");
-	CLIFile* mernelFile = CLIFile_Create(PEFile_Create((uint8_t*)mernelModule->Address, mernelModule->Length));
-	IRAssembly* mernelAssembly = ILReader_CreateAssembly(mernelFile, global_baseMernelDomain);
-	AppDomain_AddAssembly(global_baseMernelDomain, mernelAssembly);
+
+	//MultiBoot_LoadedModule* mernelModule = MultiBoot_GetLoadedModuleByFileName("/boot/mernel.exe");
+	//CLIFile* mernelFile = CLIFile_Create(PEFile_Create((uint8_t*)mernelModule->Address, mernelModule->Length));
+	//IRAssembly* mernelAssembly = ILReader_CreateAssembly(mernelFile, global_baseMernelDomain);
+	//AppDomain_AddAssembly(global_baseMernelDomain, mernelAssembly);
 
 
 	Console_Clear(Console_CreateAttributes(Console_DarkBlack, Console_LightGreen));
 	printf("Startup Successful!\n");
     StackObjectPool_Initialize();
 	
-	printf("Location: %x\n", (unsigned int)global_baseMernelDomain->IRAssemblies[0]);
-	printf("Location: %x\n", (unsigned int)global_baseMernelDomain->IRAssemblies[0]->EntryPoint->MethodDefinition);
+	//printf("Location: %x\n", (unsigned int)global_baseMernelDomain->IRAssemblies[0]);
+	//printf("Location: %x\n", (unsigned int)global_baseMernelDomain->IRAssemblies[0]->EntryPoint->MethodDefinition);
 	
 	//Nernel_FinishedRunning();
 	/*char* blah = malloc(0xFFFFFFF);

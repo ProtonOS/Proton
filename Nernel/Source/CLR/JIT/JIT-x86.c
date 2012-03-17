@@ -448,7 +448,6 @@ char* JIT_Compile_LoadFloat64_Val			(IRInstruction* instr, char* compMethod, IRM
 
 char* JIT_Compile_Branch					(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
-	// it would be something like this:
 	BranchCondition condition = *(BranchCondition*)instr->Arg1;
 	IRInstruction* target = (IRInstruction*)instr->Arg2;
 	if (condition == BranchCondition_Always)
@@ -548,7 +547,6 @@ char* JIT_Compile_Branch					(IRInstruction* instr, char* compMethod, IRMethod* 
 				x86_fcomip(compMethod, 1);
 				x86_fdecstp(compMethod);
 				x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 16);
-				// Not fun on a 32-bit system
 				break;
 			}
 			case ElementType_R4:
