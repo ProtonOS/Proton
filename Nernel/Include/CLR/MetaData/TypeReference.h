@@ -6,9 +6,9 @@ struct _TypeReference
 {
 	uint32_t TableIndex;
     ResolutionScopeUnion(ResolutionScope)
+	ExportedType* ExportedType;
     const char* Name;
     const char* Namespace;
-	bool_t IsResolved;
 	TypeDefinition* ResolvedType;
 
     uint32_t CustomAttributeCount;

@@ -13,10 +13,6 @@
 #include <CLR/ILReader_Defines.h>
 #include <Inline.h>
 
-void ResolveTypeReferences(CLIFile* fil, AppDomain* dom)
-{
-
-}
 
 uint8_t ReadUInt8(uint8_t** dat);
 uint16_t ReadUInt16(uint8_t** dat);
@@ -51,6 +47,7 @@ IRAssembly* ILReader_CreateAssembly(CLIFile* fil, AppDomain* dom)
 	if (fil->AssemblyReferenceCount > 0)
 	{
 		char buf[FILENAME_MAX];
+		char buf2[FILENAME_MAX];
 		for (uint32_t i = 1; i <= fil->AssemblyReferenceCount; i++)
 		{
 			AssemblyReference* r = &fil->AssemblyReferences[i];
@@ -72,6 +69,7 @@ IRAssembly* ILReader_CreateAssembly(CLIFile* fil, AppDomain* dom)
 			else
 			{
 				snprintf(buf, FILENAME_MAX, "/gac/%s.dll", r->Name);
+				snprintf(buf2, FILENAME_MAX, "%s.dll", r->Name);
 				MultiBoot_LoadedModule* mod = MultiBoot_GetLoadedModuleByFileName(buf);
 				//if (!mod)
 				//{
@@ -93,15 +91,16 @@ IRAssembly* ILReader_CreateAssembly(CLIFile* fil, AppDomain* dom)
 					Panic("Unable to resolve dependancy!");
 				}
 				Log_WriteLine(LogFlags_AssemblyReferenceResolution, "Resolved %s by loading it from a module.", r->Name);
-				CLIFile* clFil = CLIFile_Create(PEFile_Create((uint8_t*)mod->Address, mod->Length));
+				CLIFile* clFil = CLIFile_Create(PEFile_Create((uint8_t*)mod->Address, mod->Length), buf2);
 				IRAssembly* asmb = ILReader_CreateAssembly(clFil, dom);
 				AppDomain_AddAssembly(dom, asmb);
 			}
 		}
-		ResolveTypeReferences(fil, dom);
+		AppDomain_ResolveMetaReferences(fil, dom);
 	}
 	IRAssembly* asmbly = IRAssembly_Create(dom);
 	asmbly->ParentFile = fil;
+	fil->Assembly = asmbly;
 	
 	for (uint32_t i = 1; i <= fil->FieldCount; i++)
 	{
@@ -320,7 +319,11 @@ IRField** TypeDefinition_GetLayedOutFields(TypeDefinition* tdef, CLIFile* fil, u
 		}
 		else if (tdef->TypeOfExtends == TypeDefOrRef_Type_TypeReference)
 		{
-			Panic("Type Ref!");
+			if (tdef->Extends.TypeReference != NULL)
+			{
+				flds = TypeDefinition_GetLayedOutFields(tdef->Extends.TypeReference->ResolvedType, fil, &fldsCount, dom);
+			}
+			else Panic("TypeRef Extends NULL!");
 		}
 	}
 
@@ -380,7 +383,11 @@ IRMethod** TypeDefinition_GetLayedOutMethods(TypeDefinition* tdef, CLIFile* fil,
 		}
 		else if (tdef->TypeOfExtends == TypeDefOrRef_Type_TypeReference)
 		{
-			Panic("Type Ref!");
+			if (tdef->Extends.TypeReference != NULL)
+			{
+				mths = TypeDefinition_GetLayedOutMethods(tdef->Extends.TypeReference->ResolvedType, fil, &mthsCount, dom);
+			}
+			else Panic("TypeRef Extends NULL!");
 		}
 	}
 
@@ -1288,18 +1295,20 @@ void ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* f
 					Log_WriteLine(LogFlags_ILReading, "Read NFI-Call");
 					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
 					MethodDefinition* mthDef = NULL;
+					IRAssembly* parAssmbly = NULL;
 					MethodSignature* sig = NULL;
 					switch(tok->Table)
 					{
 						case MetaData_Table_MethodDefinition:
 							sig = MethodSignature_Expand(((MethodDefinition*)tok->Data)->Signature, fil);
 							mthDef = (MethodDefinition*)tok->Data;
-
+							parAssmbly = asmbly;
 							break;
 
 						case MetaData_Table_MemberReference:
-							printf("Don't deal with this yet! Call with Member Reference!\n");
+							mthDef = ((MemberReference*)tok->Data)->Resolved.MethodDefinition;
 							sig = MethodSignature_Expand(((MemberReference*)tok->Data)->Signature, fil);
+							parAssmbly = mthDef->File->Assembly;
 							break;
 							
 						case MetaData_Table_MethodSpecification:
@@ -1358,11 +1367,11 @@ void ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* f
 					{
 						if (mthDef->InternalCall)
 						{
-							EMIT_IR_2ARG_NO_DISPOSE(IROpCode_Call_Internal, mthDef->InternalCall, asmbly->Methods[mthDef->TableIndex - 1]);
+							EMIT_IR_2ARG_NO_DISPOSE(IROpCode_Call_Internal, mthDef->InternalCall, parAssmbly->Methods[mthDef->TableIndex - 1]);
 						}
 						else// if ((mthDef->Flags & MethodAttributes_Static) || ((mthDef->Flags & MethodAttributes_Virtual) == 0) || (mthDef->Flags & MethodAttributes_RTSpecialName) || (mthDef->TypeDefinition->Flags & TypeAttributes_Sealed) || IsStruct(mthDef->TypeDefinition, dom))
 						{
-							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Call_Absolute, asmbly->Methods[mthDef->TableIndex - 1]);
+							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Call_Absolute, parAssmbly->Methods[mthDef->TableIndex - 1]);
 						}
 						/*else
 						{
@@ -1495,19 +1504,22 @@ void ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* f
 					Log_WriteLine(LogFlags_ILReading, "Read NI-CallVirt");
 					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
 					MethodSignature* sig = NULL;
+					IRAssembly* parAssmbly = NULL;
 					MethodDefinition* mthDef = NULL;
 					switch(tok->Table)
 					{
 						case MetaData_Table_MethodDefinition:
 							sig = MethodSignature_Expand(((MethodDefinition*)tok->Data)->Signature, fil);
 							mthDef = (MethodDefinition*)tok->Data;
+							parAssmbly = asmbly;
 							break;
 
 						case MetaData_Table_MemberReference:
-							//printf("Don't deal with this yet! Call with table index: 0x%x\n", (unsigned int)tok->Table);
+							mthDef = ((MemberReference*)tok->Data)->Resolved.MethodDefinition;
 							sig = MethodSignature_Expand(((MemberReference*)tok->Data)->Signature, fil);
+							parAssmbly = mthDef->File->Assembly;
 							break;
-							
+
 						case MetaData_Table_MethodSpecification:
 							//printf("Don't deal with this yet! Call with table index: 0x%x\n", (unsigned int)tok->Table);
 							if (((MethodSpecification*)tok->Data)->TypeOfMethod == MethodDefOrRef_Type_MethodDefinition)
@@ -1563,11 +1575,11 @@ void ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* f
 					{
 						if (mthDef->InternalCall)
 						{
-							EMIT_IR_2ARG_NO_DISPOSE(IROpCode_Call_Internal, mthDef->InternalCall, asmbly->Methods[mthDef->TableIndex - 1]);
+							EMIT_IR_2ARG_NO_DISPOSE(IROpCode_Call_Internal, mthDef->InternalCall, parAssmbly->Methods[mthDef->TableIndex - 1]);
 						}
 						else if (((mthDef->Flags & MethodAttributes_Virtual) == 0) || (mthDef->Flags & MethodAttributes_RTSpecialName) || (mthDef->TypeDefinition->Flags & TypeAttributes_Sealed) || IsStruct(mthDef->TypeDefinition, dom))
 						{
-							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Call_Absolute, asmbly->Methods[mthDef->TableIndex - 1]);
+							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Call_Absolute, parAssmbly->Methods[mthDef->TableIndex - 1]);
 						}
 						else if (ConstrainedToken)
 						{
@@ -1577,7 +1589,7 @@ void ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* f
 						{
 							IRMethodSpec* mthSpec = IRMethodSpec_Create();
 							Log_WriteLine(LogFlags_ILReading, "Looking for Method %s.%s.%s from table index %i", mthDef->TypeDefinition->Namespace, mthDef->TypeDefinition->Name, mthDef->Name, (int)mthDef->TableIndex);
-							mthSpec->ParentType = asmbly->Types[mthDef->TypeDefinition->TableIndex - 1];
+							mthSpec->ParentType = parAssmbly->Types[mthDef->TypeDefinition->TableIndex - 1];
 							bool_t FoundMethod = FALSE;
 							for (uint32_t i = 0; i < mthSpec->ParentType->MethodCount; i++)
 							{
@@ -4024,41 +4036,41 @@ IRType* GetIRTypeOfSignatureType(AppDomain* dom, CLIFile* fil, IRAssembly* asmbl
 	switch(tp->ElementType)
 	{
 		case Signature_ElementType_I1:
-			return asmbly->Types[dom->CachedType___System_SByte->TableIndex - 1];
+			return dom->IRAssemblies[0]->Types[dom->CachedType___System_SByte->TableIndex - 1];
 		case Signature_ElementType_U1:
-			return asmbly->Types[dom->CachedType___System_Byte->TableIndex - 1];
+			return dom->IRAssemblies[0]->Types[dom->CachedType___System_Byte->TableIndex - 1];
 		case Signature_ElementType_I2:
-			return asmbly->Types[dom->CachedType___System_Int16->TableIndex - 1];
+			return dom->IRAssemblies[0]->Types[dom->CachedType___System_Int16->TableIndex - 1];
 		case Signature_ElementType_U2:
-			return asmbly->Types[dom->CachedType___System_UInt16->TableIndex - 1];
+			return dom->IRAssemblies[0]->Types[dom->CachedType___System_UInt16->TableIndex - 1];
 		case Signature_ElementType_I4:
-			return asmbly->Types[dom->CachedType___System_Int32->TableIndex - 1];
+			return dom->IRAssemblies[0]->Types[dom->CachedType___System_Int32->TableIndex - 1];
 		case Signature_ElementType_U4:
-			return asmbly->Types[dom->CachedType___System_UInt32->TableIndex - 1];
+			return dom->IRAssemblies[0]->Types[dom->CachedType___System_UInt32->TableIndex - 1];
 		case Signature_ElementType_I8:
-			return asmbly->Types[dom->CachedType___System_Int64->TableIndex - 1];
+			return dom->IRAssemblies[0]->Types[dom->CachedType___System_Int64->TableIndex - 1];
 		case Signature_ElementType_U8:
-			return asmbly->Types[dom->CachedType___System_UInt64->TableIndex - 1];
+			return dom->IRAssemblies[0]->Types[dom->CachedType___System_UInt64->TableIndex - 1];
 		case Signature_ElementType_R4:
-			return asmbly->Types[dom->CachedType___System_Single->TableIndex - 1];
+			return dom->IRAssemblies[0]->Types[dom->CachedType___System_Single->TableIndex - 1];
 		case Signature_ElementType_R8:
-			return asmbly->Types[dom->CachedType___System_Double->TableIndex - 1];
+			return dom->IRAssemblies[0]->Types[dom->CachedType___System_Double->TableIndex - 1];
 		case Signature_ElementType_Boolean:
-			return asmbly->Types[dom->CachedType___System_Boolean->TableIndex - 1];
+			return dom->IRAssemblies[0]->Types[dom->CachedType___System_Boolean->TableIndex - 1];
 		case Signature_ElementType_Char:
-			return asmbly->Types[dom->CachedType___System_Char->TableIndex - 1];
+			return dom->IRAssemblies[0]->Types[dom->CachedType___System_Char->TableIndex - 1];
 		case Signature_ElementType_IPointer:
-			return asmbly->Types[dom->CachedType___System_IntPtr->TableIndex - 1];
+			return dom->IRAssemblies[0]->Types[dom->CachedType___System_IntPtr->TableIndex - 1];
 		case Signature_ElementType_UPointer:
-			return asmbly->Types[dom->CachedType___System_UIntPtr->TableIndex - 1];
+			return dom->IRAssemblies[0]->Types[dom->CachedType___System_UIntPtr->TableIndex - 1];
 		case Signature_ElementType_Object:
-			return asmbly->Types[dom->CachedType___System_Object->TableIndex - 1];
+			return dom->IRAssemblies[0]->Types[dom->CachedType___System_Object->TableIndex - 1];
 		case Signature_ElementType_String:
-			return asmbly->Types[dom->CachedType___System_String->TableIndex - 1];
+			return dom->IRAssemblies[0]->Types[dom->CachedType___System_String->TableIndex - 1];
 		case Signature_ElementType_Type:
-			return asmbly->Types[dom->CachedType___System_Type->TableIndex - 1];
+			return dom->IRAssemblies[0]->Types[dom->CachedType___System_Type->TableIndex - 1];
 		case Signature_ElementType_Void:
-			return asmbly->Types[dom->CachedType___System_Void->TableIndex - 1];
+			return dom->IRAssemblies[0]->Types[dom->CachedType___System_Void->TableIndex - 1];
 		case Signature_ElementType_Class:
 		{
 			MetaDataToken* tok = CLIFile_ResolveTypeDefOrRefOrSpecToken(fil, tp->ClassTypeDefOrRefOrSpecToken);
@@ -4067,6 +4079,10 @@ IRType* GetIRTypeOfSignatureType(AppDomain* dom, CLIFile* fil, IRAssembly* asmbl
 			{
 				case MetaData_Table_TypeDefinition:
 					retVal = asmbly->Types[((TypeDefinition*)tok->Data)->TableIndex - 1];
+					break;
+
+				case MetaData_Table_TypeReference:
+					retVal = ((TypeReference*)tok->Data)->ResolvedType->File->Assembly->Types[((TypeReference*)tok->Data)->ResolvedType->TableIndex - 1];
 					break;
 
 				default:
@@ -4085,7 +4101,11 @@ IRType* GetIRTypeOfSignatureType(AppDomain* dom, CLIFile* fil, IRAssembly* asmbl
 				case MetaData_Table_TypeDefinition:
 					retVal = asmbly->Types[((TypeDefinition*)tok->Data)->TableIndex - 1];
 					break;
-
+					
+				case MetaData_Table_TypeReference:
+					retVal = ((TypeReference*)tok->Data)->ResolvedType->File->Assembly->Types[((TypeReference*)tok->Data)->ResolvedType->TableIndex - 1];
+					break;
+					
 				default:
 					Panic(String_Format("Unknown table (0x%x)!", (unsigned int)tok->Table));
 					break;
@@ -4098,7 +4118,7 @@ IRType* GetIRTypeOfSignatureType(AppDomain* dom, CLIFile* fil, IRAssembly* asmbl
 			return NULL;
 		case Signature_ElementType_SingleDimensionArray:
 		{
-			IRType* sysArrayType = asmbly->Types[dom->CachedType___System_Array->TableIndex - 1];
+			IRType* sysArrayType = dom->IRAssemblies[0]->Types[dom->CachedType___System_Array->TableIndex - 1];
 			IRType* elementType = GetIRTypeOfSignatureType(dom, fil, asmbly, tp->SZArrayType);
 			IRType* arrayType = NULL;
 			IRArrayType* lookupType = NULL;

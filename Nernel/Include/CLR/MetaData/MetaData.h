@@ -244,6 +244,13 @@ typedef struct _GenericParameterConstraint GenericParameterConstraint;
 #define TypeOrMethodDef_Type_MaxRows16Bit                   (0xFFFF >> TypeOrMethodDef_Type_Bits)
 
 
+#define FieldOrMethodDef_Type_Field                          0x00
+#define FieldOrMethodDef_Type_MethodDefinition               0x01
+#define FieldOrMethodDef_Type_Bits                           0x01
+#define FieldOrMethodDef_Type_Mask                           0x01
+#define FieldOrMethodDef_Type_MaxRows16Bit                   (0xFFFF >> FieldOrMethodDef_Type_Bits)
+
+
 #define AssemblyHashAlgorithm_None                                      0x0000
 #define AssemblyHashAlgorithm_MD5                                       0x8003
 #define AssemblyHashAlgorithm_SHA1                                      0x8004

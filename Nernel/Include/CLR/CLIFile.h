@@ -1,13 +1,14 @@
 #pragma once
 
+typedef struct _CLIHeader CLIHeader;
+typedef struct _CLIFile CLIFile;
+
 #include <CLR/PEFile.h>
 #include <CLR/MetaData/MetaData.h>
 #include <CLR/MetaData/Signature.h>
+#include <CLR/IRStructures.h>
 
 #define CLIFile_Machine                             0x014C
-
-typedef struct _CLIHeader CLIHeader;
-typedef struct _CLIFile CLIFile;
 
 struct _CLIHeader
 {
@@ -35,6 +36,7 @@ struct _CLIHeader
 struct _CLIFile
 {
     const PEFile* PEFile;
+	const char* Filename;
     const CLIHeader* CLIHeader;
     const uint8_t* MetaDataHeader;
     const uint8_t* Tables;
@@ -120,9 +122,11 @@ struct _CLIFile
     GenericParameterConstraint* GenericParameterConstraints;
     uint32_t MethodSpecificationCount;
     MethodSpecification* MethodSpecifications;
+
+	IRAssembly* Assembly;
 };
 
-CLIFile* CLIFile_Create(PEFile* pFile);
+CLIFile* CLIFile_Create(PEFile* pFile, const char* pFilename);
 void CLIFile_Destroy(CLIFile* pFile);
 const char* CLIFile_GetString(CLIFile* pFile, uint32_t pVirtualAddress);
 const uint8_t* CLIFile_GetUserString(CLIFile* pFile, uint32_t pVirtualAddress);

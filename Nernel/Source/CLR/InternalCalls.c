@@ -95,7 +95,7 @@ const InternalCall InternalCallTable[] =
 	{	NULL,				NULL,				NULL,					Signature_ElementType_End,		0,	{ }, NULL }
 };
 
-InternalCallPointer ResolveInternalCall(MethodDefinition* methodDef, CLIFile* fil)
+void* ResolveInternalCall(MethodDefinition* methodDef, CLIFile* fil)
 {
 	const InternalCall* result = NULL;
 	const InternalCall* ic = NULL;
@@ -190,7 +190,7 @@ InternalCallPointer ResolveInternalCall(MethodDefinition* methodDef, CLIFile* fi
 	}
 	MethodSignature_Destroy(sig);
     //Panic("Unable to resolve internal call!");
-    return 0;
+    return NULL;
 }
 
 

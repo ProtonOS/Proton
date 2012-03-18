@@ -12,7 +12,7 @@ AppDomain* AppDomain_CreateDomain()
     PEFile* peFile = PEFile_Create((uint8_t*)loadedModule->Address, loadedModule->Length);
     if (peFile)
     {
-        CLIFile* cliFile = CLIFile_Create(peFile);
+        CLIFile* cliFile = CLIFile_Create(peFile, "corlib.dll");
         if (cliFile)
         {
 			AppDomain* domain = (AppDomain*)calloc(1, sizeof(AppDomain));
@@ -165,6 +165,185 @@ void AppDomain_LinkCorlib(CLIFile* corlib, AppDomain* domain)
 		}
 	}
 }
+
+void AppDomain_ResolveMetaReferences(CLIFile* fil, AppDomain* dom)
+{
+	for (uint32_t index = 1; index <= fil->TypeReferenceCount; ++index)
+	{
+		TypeReference* typeRef = &fil->TypeReferences[index];
+
+		if (typeRef->ExportedType)
+		{
+			switch(typeRef->ExportedType->TypeOfImplementation)
+			{
+				case Implementation_Type_File:
+				{
+					CLIFile* asmFil = NULL;
+					for (uint32_t i2 = 0; i2 < dom->IRAssemblyCount; i2++)
+					{
+						if (!strcmp(dom->IRAssemblies[i2]->ParentFile->Filename, typeRef->ExportedType->Implementation.File->Name))
+						{
+							asmFil = dom->IRAssemblies[i2]->ParentFile;
+							break;
+						}
+					}
+					if (!asmFil) Panic("Failed to resolve assembly reference for exported type file resolution.");
+					for (uint32_t i2 = 1; i2 <= asmFil->TypeDefinitionCount; ++i2)
+					{
+						if (!strcmp(asmFil->TypeDefinitions[i2].Name , typeRef->Name) &&
+							!strcmp(asmFil->TypeDefinitions[i2].Namespace, typeRef->Namespace))
+						{
+							typeRef->ResolvedType = &asmFil->TypeDefinitions[i2];
+							break;
+						}
+					}
+					if (!typeRef->ResolvedType) Panic("Failed to resolve type reference through assembly reference.");
+					break;
+				}
+				case Implementation_Type_AssemblyReference:
+				{
+					AssemblyReference* asmRef = typeRef->ExportedType->Implementation.AssemblyReference;
+					CLIFile* asmFil = NULL;
+					for (uint32_t i2 = 0; i2 < dom->IRAssemblyCount; i2++)
+					{
+						if (!strcmp(dom->IRAssemblies[i2]->ParentFile->AssemblyDefinitions[1].Name, asmRef->Name))
+						{
+							asmFil = dom->IRAssemblies[i2]->ParentFile;
+							break;
+						}
+					}
+					if (!asmFil) Panic("Failed to resolve assembly reference for exported type assembly reference resolution.");
+					for (uint32_t i2 = 1; i2 <= asmFil->TypeDefinitionCount; ++i2)
+					{
+						if (!strcmp(asmFil->TypeDefinitions[i2].Name , typeRef->Name) &&
+							!strcmp(asmFil->TypeDefinitions[i2].Namespace, typeRef->Namespace))
+						{
+							typeRef->ResolvedType = &asmFil->TypeDefinitions[i2];
+							break;
+						}
+					}
+					if (!typeRef->ResolvedType) Panic("Failed to resolve type reference through assembly reference.");
+					break;
+				}
+				default: Panic("Unhandled type reference resolution through exported type"); break;
+			}
+		}
+		else
+		{
+			switch (typeRef->TypeOfResolutionScope)
+			{
+				case ResolutionScope_Type_AssemblyReference:
+				{
+					AssemblyReference* asmRef = typeRef->ResolutionScope.AssemblyReference;
+					CLIFile* asmFil = NULL;
+					for (uint32_t i2 = 0; i2 < dom->IRAssemblyCount; i2++)
+					{
+						if (!strcmp(dom->IRAssemblies[i2]->ParentFile->AssemblyDefinitions[1].Name, asmRef->Name))
+						{
+							asmFil = dom->IRAssemblies[i2]->ParentFile;
+							break;
+						}
+					}
+					if (!asmFil) Panic("Failed to resolve assembly reference for type reference resolution.");
+					for (uint32_t i2 = 1; i2 <= asmFil->TypeDefinitionCount; ++i2)
+					{
+						if (!strcmp(asmFil->TypeDefinitions[i2].Name , typeRef->Name) &&
+							!strcmp(asmFil->TypeDefinitions[i2].Namespace, typeRef->Namespace))
+						{
+							typeRef->ResolvedType = &asmFil->TypeDefinitions[i2];
+							break;
+						}
+					}
+					if (!typeRef->ResolvedType) Panic("Failed to resolve type reference through assembly reference.");
+					break;
+				}
+				default: Panic("Unhandled type reference resolution"); break;
+			}
+		}
+	}
+
+	for (uint32_t index = 1; index <= fil->MemberReferenceCount; ++index)
+	{
+		MemberReference* membRef = &fil->MemberReferences[index];
+
+		switch (membRef->TypeOfParent)
+		{
+			case MemberRefParent_Type_TypeDefinition:
+			{
+				TypeDefinition* typeDef = membRef->Parent.TypeDefinition;
+				bool_t isField = membRef->Signature[0] == 0x06;
+				if (isField)
+				{
+					for (uint32_t i2 = 0; i2 <= typeDef->FieldListCount; ++i2)
+					{
+						if (!strcmp(typeDef->FieldList[i2].Name, membRef->Name))
+						{
+							membRef->TypeOfResolved = FieldOrMethodDef_Type_Field;
+							membRef->Resolved.Field = &typeDef->FieldList[i2];
+							break;
+						}
+					}
+					if (!membRef->Resolved.Field) Panic("Failed to resolve member reference through type definition for field.");
+				}
+				else
+				{
+					for (uint32_t i2 = 0; i2 <= typeDef->MethodDefinitionListCount; ++i2)
+					{
+						if (!strcmp(typeDef->MethodDefinitionList[i2].Name, membRef->Name) &&
+							!memcmp(typeDef->MethodDefinitionList[i2].Signature, membRef->Signature, membRef->SignatureLength))
+						{
+							membRef->TypeOfResolved = FieldOrMethodDef_Type_MethodDefinition;
+							membRef->Resolved.MethodDefinition = &typeDef->MethodDefinitionList[i2];
+							break;
+						}
+					}
+					if (!membRef->Resolved.MethodDefinition) Panic("Failed to resolve member reference through type reference for method definition.");
+				}
+				break;
+			}
+			case MemberRefParent_Type_TypeReference:
+			{
+				TypeDefinition* typeDef = membRef->Parent.TypeReference->ResolvedType;
+				bool_t isField = membRef->Signature[0] == 0x06;
+				if (isField)
+				{
+					for (uint32_t i2 = 0; i2 <= typeDef->FieldListCount; ++i2)
+					{
+						if (!strcmp(typeDef->FieldList[i2].Name, membRef->Name))
+						{
+							membRef->TypeOfResolved = FieldOrMethodDef_Type_Field;
+							membRef->Resolved.Field = &typeDef->FieldList[i2];
+							break;
+						}
+					}
+					if (!membRef->Resolved.Field) Panic("Failed to resolve member reference through type reference for field.");
+				}
+				else
+				{
+					for (uint32_t i2 = 0; i2 <= typeDef->MethodDefinitionListCount; ++i2)
+					{
+						if (!strcmp(typeDef->MethodDefinitionList[i2].Name, membRef->Name) &&
+							!memcmp(typeDef->MethodDefinitionList[i2].Signature, membRef->Signature, membRef->SignatureLength))
+						{
+							membRef->TypeOfResolved = FieldOrMethodDef_Type_MethodDefinition;
+							membRef->Resolved.MethodDefinition = &typeDef->MethodDefinitionList[i2];
+							break;
+						}
+					}
+					if (!membRef->Resolved.MethodDefinition) Panic("Failed to resolve member reference through type reference for method definition.");
+				}
+				break;
+			}
+			case MemberRefParent_Type_TypeSpecification:
+			{
+				printf("Member reference resolution through TypeSpec not yet supported!");
+				break;
+			}
+			default: Panic("Unhandled member reference resolution"); break;
+		}
+	}
+}
+
 
 #include <String_Format.h>
 AppDomain** DomainRegistry;

@@ -116,4 +116,3 @@ const uint8_t* MetaData_GetCompressedSigned(const uint8_t* pData, int32_t* pValu
     *pValue = 0;
     return pData;
 }
-

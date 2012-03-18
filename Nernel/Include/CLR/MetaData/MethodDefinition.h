@@ -72,10 +72,9 @@ struct _MethodDefinitionException
     uint32_t ClassTokenOrFilterOffset;
 };
 
-typedef void(*InternalCallPointer)(AppDomain* pAppDomain, uint32_t pArgCount, void** pArgs, void* pReturn);
-
 struct _MethodDefinition
 {
+	CLIFile* File;
 	uint32_t TableIndex;
     MethodDefinitionBody Body;
     uint32_t ExceptionCount;
@@ -98,7 +97,7 @@ struct _MethodDefinition
     MemberReference** MemberReferences;
     TypeDefinition* TypeDefinition;
 
-	InternalCallPointer InternalCall;
+	void* InternalCall;
 };
 
 const uint8_t* MethodDefinition_Initialize(CLIFile* pFile, const uint8_t* pTableData);

@@ -58,7 +58,7 @@ struct
     { NULL,                                             NULL,                                       NULL,                                       NULL }
 };
 
-CLIFile* CLIFile_Create(PEFile* pFile)
+CLIFile* CLIFile_Create(PEFile* pFile, const char* pFilename)
 {
     if (pFile->PEHeader->Machine != CLIFile_Machine) return NULL;
 
@@ -74,6 +74,8 @@ CLIFile* CLIFile_Create(PEFile* pFile)
     CLIFile* cliFile = (CLIFile*)calloc(1, sizeof(CLIFile));
 
     cliFile->PEFile = pFile;
+	cliFile->Filename = calloc(1, strlen(pFilename) + 1);
+	strcpy((char*)cliFile->Filename, pFilename);
     cliFile->CLIHeader = cliHeader;
     cliFile->MetaDataHeader = cliMetaDataHeader;
 
@@ -108,7 +110,7 @@ void CLIFile_Destroy(CLIFile* pFile)
     uint32_t tableCount = 0;
     while (CLIFile_MetaDataTables[tableCount].Initialize) ++tableCount;
     for (uint32_t tableIndex = 0; tableIndex < tableCount; ++tableIndex) CLIFile_MetaDataTables[tableIndex].Cleanup(pFile);
-
+	free((char*)pFile->Filename);
     free(pFile);
 }
 

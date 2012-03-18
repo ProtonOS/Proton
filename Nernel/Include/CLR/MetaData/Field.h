@@ -4,6 +4,7 @@
 
 struct _Field
 {
+	CLIFile* File;
 	uint32_t TableIndex;
     uint16_t Flags;
     const char* Name;

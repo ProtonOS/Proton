@@ -7,7 +7,12 @@ namespace Mernel
     {
         private static void Main()
         {
-            //Console.WriteLine("Mernel: Startup");
+            long ticks = DateTime.InternalUtcNow();
+            Console.WriteLine("Started @ " + ((ulong)ticks).ToString());
+            Console.WriteLine("Mernel: Hello World!");
+
+            ticks = DateTime.InternalUtcNow();
+            Console.WriteLine("Finished @ " + ((ulong)ticks).ToString());
         }
     }
 }

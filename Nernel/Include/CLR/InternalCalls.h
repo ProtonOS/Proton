@@ -17,4 +17,4 @@ struct _InternalCall
 	void* TargetMethod;
 };
 
-InternalCallPointer ResolveInternalCall(MethodDefinition* methodDef, CLIFile* fil);
+void* ResolveInternalCall(MethodDefinition* methodDef, CLIFile* fil);

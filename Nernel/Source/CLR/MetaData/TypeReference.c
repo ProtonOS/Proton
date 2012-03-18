@@ -113,4 +113,18 @@ void TypeReference_Link(CLIFile* pFile)
             }
         }
     }
+    for (uint32_t index = 1; index <= pFile->TypeReferenceCount; ++index)
+    {
+		if (!pFile->TypeReferences[index].ResolutionScope.AssemblyReference)
+		{
+			for (uint32_t searchIndex = 1; searchIndex <= pFile->ExportedTypeCount; ++searchIndex)
+			{
+				if (!strcmp(pFile->ExportedTypes[searchIndex].Name, pFile->TypeReferences[index].Name) &&
+					!strcmp(pFile->ExportedTypes[searchIndex].Namespace, pFile->TypeReferences[index].Namespace))
+				{
+					pFile->TypeReferences[index].ExportedType = &pFile->ExportedTypes[searchIndex];
+				}
+			}
+		}
+	}
 }

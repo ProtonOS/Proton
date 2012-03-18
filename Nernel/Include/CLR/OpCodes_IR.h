@@ -888,7 +888,7 @@ typedef enum IROpCode
 
         Arg1:
             The method to call.
-			Of the type InternalCallPointer.
+			Of the type void*.
 
         Arg2:
             The IR representation of

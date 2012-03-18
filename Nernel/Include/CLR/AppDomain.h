@@ -50,5 +50,6 @@ void AppDomain_Destroy(AppDomain* domain);
 
 
 void AppDomain_AddAssembly(AppDomain* domain, IRAssembly* assembly);
+void AppDomain_ResolveMetaReferences(CLIFile* fil, AppDomain* dom);
 
 AppDomain* AppDomainRegistry_GetDomain(uint32_t domNumber);

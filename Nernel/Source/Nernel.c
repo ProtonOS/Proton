@@ -24,7 +24,7 @@ void Main(uint32_t pMultiBootMagic,
     PEFile* peFile = PEFile_Create((uint8_t*)loadedModule->Address, loadedModule->Length);
     if (peFile)
     {
-        CLIFile* cliFile = CLIFile_Create(peFile);
+        CLIFile* cliFile = CLIFile_Create(peFile, "corlib.dll");
         if (cliFile)
         {
             printf("MethodDefinition[4]: %s SignatureLength = %u\n", cliFile->MethodDefinitions[4].Name, (unsigned int)cliFile->MethodDefinitions[4].SignatureLength);
@@ -55,10 +55,10 @@ void Main(uint32_t pMultiBootMagic,
 
     global_baseMernelDomain = AppDomain_CreateDomain();
 
-	//MultiBoot_LoadedModule* mernelModule = MultiBoot_GetLoadedModuleByFileName("/boot/mernel.exe");
-	//CLIFile* mernelFile = CLIFile_Create(PEFile_Create((uint8_t*)mernelModule->Address, mernelModule->Length));
-	//IRAssembly* mernelAssembly = ILReader_CreateAssembly(mernelFile, global_baseMernelDomain);
-	//AppDomain_AddAssembly(global_baseMernelDomain, mernelAssembly);
+	MultiBoot_LoadedModule* mernelModule = MultiBoot_GetLoadedModuleByFileName("/boot/mernel.exe");
+	CLIFile* mernelFile = CLIFile_Create(PEFile_Create((uint8_t*)mernelModule->Address, mernelModule->Length), "mernel.exe");
+	IRAssembly* mernelAssembly = ILReader_CreateAssembly(mernelFile, global_baseMernelDomain);
+	AppDomain_AddAssembly(global_baseMernelDomain, mernelAssembly);
 
 
 	Console_Clear(Console_CreateAttributes(Console_DarkBlack, Console_LightGreen));
@@ -71,15 +71,17 @@ void Main(uint32_t pMultiBootMagic,
 	//Nernel_FinishedRunning();
 	/*char* blah = malloc(0xFFFFFFF);
 	printf("AddressOf Blah: 0x%x\n", (unsigned int)blah);*/
-	JIT_CompileMethod(global_baseMernelDomain->IRAssemblies[0]->EntryPoint);
-
+	//JIT_CompileMethod(global_baseMernelDomain->IRAssemblies[0]->EntryPoint);
+	JIT_CompileMethod(mernelAssembly->EntryPoint);
+	
 	printf("Now how do you like that.\n");
 
 	Console_Clear(Console_CreateAttributes(Console_DarkBlack, Console_LightCyan));
 	printf("Mernel JIT'd, starting up now!\n");
 	Mernel_Jitted();
 
-	((void(*)(uint32_t))global_baseMernelDomain->IRAssemblies[0]->EntryPoint->AssembledMethod)(0);
+	//((void(*)(uint32_t))global_baseMernelDomain->IRAssemblies[0]->EntryPoint->AssembledMethod)(0);
+	((void(*)(uint32_t))mernelAssembly->EntryPoint->AssembledMethod)(0);
 	
 	//Console_Clear(Console_CreateAttributes(Console_DarkBlack, Console_LightYellow));
 	Mernel_FinishedRunning();

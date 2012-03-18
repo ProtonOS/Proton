@@ -41,6 +41,7 @@ const uint8_t* TypeDefinition_Load(CLIFile* pFile, const uint8_t* pTableData)
     uint32_t* methodDefinitionListIndexes = (uint32_t*)calloc(pFile->TypeDefinitionCount + 1, sizeof(uint32_t));
     for (uint32_t index = 1, heapIndex = 0; index <= pFile->TypeDefinitionCount; ++index)
     {
+		pFile->TypeDefinitions[index].File = pFile;
         pFile->TypeDefinitions[index].TableIndex = index;
         pFile->TypeDefinitions[index].Flags = *(uint32_t*)pTableData; pTableData += 4;
         if ((pFile->TablesHeader->HeapOffsetSizes & MetaDataTablesHeader_HeapOffsetSizes_Strings32Bit) != 0) { heapIndex = *(uint32_t*)pTableData; pTableData += 4; }
