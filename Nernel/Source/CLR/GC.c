@@ -2,8 +2,11 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <Inline.h>
+
 #include <CLR/GC.h>
 #include <CLR/JIT/JIT.h>
+#include <CLR/Log.h>
 
 GCHeapStack* GCHeapStack_Create(uint32_t pSize, uint32_t pInitialPoolSize)
 {
@@ -80,8 +83,11 @@ ReferenceTypeObject* GCHeap_Allocate(GCHeap* pGCHeap, uint32_t pStackSize, uint3
         if (stack->Available >= pSize)
         {
             for (uint32_t objectIndex = 0; !object && objectIndex < stack->ObjectPoolSize; ++objectIndex)
-                if (!stack->ObjectPool[objectIndex]->Object)
-                    object = stack->ObjectPool[objectIndex];
+			{
+				ReferenceTypeObject* obj = stack->ObjectPool[objectIndex];
+                if (!obj->Object || ((obj->Flags & ReferenceTypeObject_Flags_Disposed) && (pSize == obj->Size)))
+                    object = obj;
+			}
             if (!object)
             {
                 stack->ObjectPoolSize <<= 1;
@@ -141,7 +147,14 @@ ReferenceTypeObject* GC_AllocateObject(GC* pGC, ReferenceTypeObject* pInitialRef
 	object->AssemblyIndex = pAssemblyIndex;
 	object->TypeIndex = pTypeIndex;
 	memset(object->Object, 0x00, pSize);
-	//printf("GC_AllocateObject of size %u @ 0x%x\n", (unsigned int)pSize, (unsigned int)object);
+
+	//Log_WriteLine(
+	//	LogFlags_GC_ObjectAllocation, 
+	//	"GC_AllocateObject of size %u @ 0x%x", 
+	//	(unsigned int)pSize, 
+	//	(unsigned int)object
+	//);
+	
     return object;
 }
 
@@ -225,8 +238,6 @@ ReferenceTypeObject* GC_AllocateStringFromCharAndCount(GC* pGC, ReferenceTypeObj
 	}
 	else
 	{
-		object->Flags ^= ReferenceTypeObject_Flags_String;
-		object->Flags &= ReferenceTypeObject_Flags_Disposing;
 		object = searchHeader->Object;
 	}
 	ReferenceTypeObject_AddReference(pInitialReference, object);
@@ -265,8 +276,6 @@ ReferenceTypeObject* GC_ConcatenateStrings(GC* pGC, ReferenceTypeObject* pInitia
 	}
 	else
 	{
-		object->Flags ^= ReferenceTypeObject_Flags_String;
-		object->Flags &= ReferenceTypeObject_Flags_Disposing;
 		object = searchHeader->Object;
 	}
 	ReferenceTypeObject_AddReference(pInitialReference, object);
@@ -366,31 +375,10 @@ ReferenceTypeObject* GC_SubstituteString(GC* pGC, ReferenceTypeObject* pInitialR
 	}
 	else
 	{
-		object->Flags ^= ReferenceTypeObject_Flags_String;
-		object->Flags &= ReferenceTypeObject_Flags_Disposing;
 		object = searchHeader->Object;
 	}
 	ReferenceTypeObject_AddReference(pInitialReference, object);
     return object;
-}
-
-void GCHeap_Collect(GCHeap* pGCHeap, bool_t pAgeObjects)
-{
-    ReferenceTypeObject* object = NULL;
-    ReferenceTypeObject* objectNext = NULL;
-    GCHeapStack* stack = NULL;
-    for (uint32_t index = 0; index < pGCHeap->StackCount; ++index)
-    {
-        stack = pGCHeap->Stacks[index];
-		for (object = stack->DisposingTop; object; object = objectNext)
-		{
-			objectNext = object->DisposingNext;
-			//printf("Disposing @ 0x%x, #%d\n", (unsigned int)object, (int)dCount);
-			ReferenceTypeObject_Dispose(object);
-			object->DisposingNext = NULL;
-		}
-		stack->DisposingTop = NULL;
-    }
 }
 
 void GCHeap_Compact(GC* pGC, GCHeap* pGCHeap)
@@ -609,7 +597,6 @@ void GCHeap_Migrate(GC* pGC, GCHeap* pSourceHeap, GCHeap* pDestinationHeap, uint
             if ((stack->ObjectPool[objectIndex]->Flags & (ReferenceTypeObject_Flags_Allocated | ReferenceTypeObject_Flags_Disposed)) == ReferenceTypeObject_Flags_Allocated)
             {
                 object = stack->ObjectPool[objectIndex];
-                object->Age++;
                 if (object->Age >= pRequiredAge)
                 {
 					if ((object->Flags & ReferenceTypeObject_Flags_String) != 0)
@@ -633,7 +620,6 @@ void GCHeap_Migrate(GC* pGC, GCHeap* pSourceHeap, GCHeap* pDestinationHeap, uint
                             break;
                         }
                     }
-                    object->Age = 0;
                     ReferenceTypeObject_Dispose(replacement);
 					if ((object->Flags & ReferenceTypeObject_Flags_String) != 0)
 					{
@@ -647,17 +633,56 @@ void GCHeap_Migrate(GC* pGC, GCHeap* pSourceHeap, GCHeap* pDestinationHeap, uint
     }
 }
 
+void Mark(ReferenceTypeObject* obj)
+{
+	obj->Flags |= ReferenceTypeObject_Flags_Marked;
+	obj->Age++;
+    ReferenceTypeObject* childObj = NULL;
+    for (uint32_t i = 0; i < obj->DependancyPoolCount; i++)
+    {
+		childObj = obj->DependancyPool[i];
+		if (!(childObj->Flags & ReferenceTypeObject_Flags_Marked))
+			Mark(childObj);
+    }
+}
+
+ALWAYS_INLINE void GCHeap_Collect(GCHeap* hp)
+{
+	ReferenceTypeObject* obj = NULL;
+	GCHeapStack* stk = NULL;
+	for (uint32_t i = 0; i < hp->StackCount; i++)
+	{
+		stk = hp->Stacks[i];
+		for (uint32_t i2 = 0; i2 < stk->ObjectPoolSize; i2++)
+		{
+			obj = stk->ObjectPool[i2];
+			if (!(obj->Flags & ReferenceTypeObject_Flags_Marked))
+			{
+				ReferenceTypeObject_Dispose(obj);
+			}
+			else
+			{
+				// Otherwise reset the marked flag.
+				obj->Flags &= ~ReferenceTypeObject_Flags_Marked;
+			}
+		}
+	}
+}
+
+
 void GC_Collect(GC* pGC)
 {
 	++pGC->CollectCounter;
 	if (pGC->CollectCounter >= GC_CollectCounterDelay)
 	{
 		pGC->CollectCounter = 0;
+		//printf("Collecting Garbage!\n");
 
-		GCHeap_Collect(&pGC->SmallGeneration0Heap, TRUE);
-		GCHeap_Collect(&pGC->SmallGeneration1Heap, TRUE);
-		GCHeap_Collect(&pGC->SmallGeneration2Heap, FALSE);
-		GCHeap_Collect(&pGC->LargeHeap, FALSE);
+		Mark(pGC->Domain->RootObject);
+		GCHeap_Collect(&pGC->SmallGeneration0Heap);
+		GCHeap_Collect(&pGC->SmallGeneration1Heap);
+		GCHeap_Collect(&pGC->SmallGeneration2Heap);
+		GCHeap_Collect(&pGC->LargeHeap);
 
 		GCHeap_Migrate(pGC, &pGC->SmallGeneration1Heap, &pGC->SmallGeneration2Heap, GCHeapStack_SmallHeap_Size, GC_Generation0ToGeneration1_RequiredAge);
 		GCHeap_Migrate(pGC, &pGC->SmallGeneration0Heap, &pGC->SmallGeneration1Heap, GCHeapStack_SmallHeap_Size, GC_Generation1ToGeneration2_RequiredAge);

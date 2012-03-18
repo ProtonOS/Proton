@@ -2,9 +2,9 @@
 
 #define ReferenceTypeObject_Flags_String            0x01
 #define ReferenceTypeObject_Flags_Pinned            0x02
+#define ReferenceTypeObject_Flags_Marked			0x10
 #define ReferenceTypeObject_Flags_Allocated         0x20
-#define ReferenceTypeObject_Flags_Disposing         0x40
-#define ReferenceTypeObject_Flags_Disposed          0x80
+#define ReferenceTypeObject_Flags_Disposed			0x80
 
 typedef struct _ReferenceTypeObject ReferenceTypeObject;
 typedef struct _GCHeapStack GCHeapStack;
@@ -28,7 +28,6 @@ struct _ReferenceTypeObject
 	uint32_t AssemblyIndex;
 	uint32_t TypeIndex;
 	bool_t HasCalledFinalizer;
-	ReferenceTypeObject* DisposingNext;
 };
 
 void ReferenceTypeObject_AddReference(ReferenceTypeObject* pParent, ReferenceTypeObject* pReferenced);

@@ -68,18 +68,18 @@ namespace Mernel
             //iface.TestMe();
 
             //Test2 t1 = null;
-            //for (uint i = 0; i < 1000; i++)
+            //for (uint i = 0; i < 100000; i++)
             //{
             //    t1 = new Test2();
             //    t1.Really();
             //}
 
-            TestEnum te = TestEnum.TestValA;
-            Console.WriteLine("Enum Test 1: " + ((uint)te).ToString());
-            te = TestEnum.TestValC;
-            Console.WriteLine("Enum Test 2: " + ((uint)te).ToString());
-            te = TestEnum.TestValD;
-            Console.WriteLine("Enum Test 3: " + ((uint)te).ToString());
+            //TestEnum te = TestEnum.TestValA;
+            //Console.WriteLine("Enum Test 1: " + ((uint)te).ToString());
+            //te = TestEnum.TestValC;
+            //Console.WriteLine("Enum Test 2: " + ((uint)te).ToString());
+            //te = TestEnum.TestValD;
+            //Console.WriteLine("Enum Test 3: " + ((uint)te).ToString());
 
             ticks = DateTime.InternalUtcNow();
             Console.WriteLine("Finished @ " + ((ulong)ticks).ToString());

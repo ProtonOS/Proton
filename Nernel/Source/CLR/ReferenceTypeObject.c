@@ -3,17 +3,25 @@
 
 #include <CLR/ReferenceTypeObject.h>
 #include <CLR/GC.h>
+#include <CLR/Log.h>
 
 void ReferenceTypeObject_AddReference(ReferenceTypeObject* pParent, ReferenceTypeObject* pReferenced)
 {
-	//printf("Adding reference from parent @ 0x%x to object @ 0x%x, refcount %u\n", (unsigned int)pParent, (unsigned int)pReferenced, (unsigned int)pReferenced->ReferenceCount);
+	//Log_WriteLine(
+	//	LogFlags_GC_ReferenceManagement, 
+	//	"Adding reference from parent @ 0x%x to object @ 0x%x, refcount %u", 
+	//	(unsigned int)pParent,
+	//	(unsigned int)pReferenced, 
+	//	(unsigned int)pReferenced->ReferenceCount
+	//);
+
     if (!pParent || !pReferenced) Panic("Attempting to add a reference to null parent or with null object");
 
     ++pReferenced->ReferenceCount;
 
     if (!pParent->DependancyPool)
     {
-        pParent->DependancyPoolSize = 1;
+        pParent->DependancyPoolSize = 4;
         pParent->DependancyPoolCount = 1;
         pParent->DependancyPool = (ReferenceTypeObject**)calloc(pParent->DependancyPoolSize, sizeof(ReferenceTypeObject*));
         pParent->DependancyPool[0] = pReferenced;
@@ -43,8 +51,15 @@ void ReferenceTypeObject_AddReference(ReferenceTypeObject* pParent, ReferenceTyp
 
 void ReferenceTypeObject_RemoveReference(ReferenceTypeObject* pParent, ReferenceTypeObject* pReferenced)
 {
-	//printf("Removing reference from parent @ 0x%x to object @ 0x%x, refcount %u\n", (unsigned int)pParent, (unsigned int)pReferenced, (unsigned int)pReferenced->ReferenceCount);
-    if (!pParent || !pReferenced) Panic("Attempting to remove a reference from null parent or with null object");
+	//Log_WriteLine(
+	//	LogFlags_GC_ReferenceManagement, "Removing reference from parent @ 0x%x to object @ 0x%x, refcount %u", 
+	//	(unsigned int)pParent, 
+	//	(unsigned int)pReferenced, 
+	//	(unsigned int)pReferenced->ReferenceCount	
+	//);
+
+    if (!pParent || !pReferenced)
+		Panic("Attempting to remove a reference from null parent or with null object");
 
 	bool_t found = FALSE;
     for (uint32_t index = 0; !found && index < pParent->DependancyPoolSize; ++index)
@@ -57,33 +72,16 @@ void ReferenceTypeObject_RemoveReference(ReferenceTypeObject* pParent, Reference
 			found = TRUE;
         }
     }
-	if (!found) Panic("Attempting to remove reference to object which isn't in dependancy pool!");
-    if (pReferenced->ReferenceCount == 0)
-	{
-        pReferenced->Flags |= ReferenceTypeObject_Flags_Disposing;
-		if (pReferenced->Stack->DisposingTop) pReferenced->DisposingNext = pReferenced->Stack->DisposingTop;
-		pReferenced->Stack->DisposingTop = pReferenced;
-	}
+	if (!found)
+		Panic("Attempting to remove reference to object which isn't in dependancy pool!");
 }
 
 void ReferenceTypeObject_Dispose(ReferenceTypeObject* pObject)
 {
     // TODO: Call object finalizer callback here
-    pObject->Flags = (pObject->Flags & (~ReferenceTypeObject_Flags_Disposing)) | ReferenceTypeObject_Flags_Disposed;
+    pObject->Flags = pObject->Flags | ReferenceTypeObject_Flags_Disposed;
     pObject->Stack->Allocated -= pObject->Size;
     pObject->Stack->Disposed += pObject->Size;
-
-    ReferenceTypeObject* dependancy = NULL;
-    for (uint32_t dependancyIndex = 0; pObject->DependancyPoolCount > 0 && dependancyIndex < pObject->DependancyPoolSize; ++dependancyIndex)
-    {
-        dependancy = pObject->DependancyPool[dependancyIndex];
-		if (dependancy)
-		{
-			ReferenceTypeObject_RemoveReference(pObject, dependancy);
-			if ((dependancy->Flags & ReferenceTypeObject_Flags_Disposing) != 0)
-				ReferenceTypeObject_Dispose(dependancy);
-		}
-    }
 }
 
 void ReferenceTypeObject_Reset(ReferenceTypeObject* pObject)
@@ -99,5 +97,4 @@ void ReferenceTypeObject_Reset(ReferenceTypeObject* pObject)
     if (pObject->DependancyPool)
         free(pObject->DependancyPool);
     pObject->DependancyPool = NULL;
-	pObject->DisposingNext = NULL;
 }

@@ -40,7 +40,6 @@ struct _GCHeapStack
     uint32_t Disposed;
     uint8_t* Bottom;
     uint8_t* Top;
-	ReferenceTypeObject* DisposingTop;
 };
 
 struct _GCHeap
