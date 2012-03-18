@@ -2601,6 +2601,90 @@ char* JIT_Compile_Load_Object				(IRInstruction* instr, char* compMethod, IRMeth
 
 char* JIT_Compile_Store_Object				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
+	ElementType et = *(ElementType*)instr->Arg1;
+	IRType* type = (IRType*)instr->Arg2;
+	uint32_t sizeOfType = StackSizeOfType(type);
+	uint32_t alignedSizeOfType = sizeOfType;
+	Align(&alignedSizeOfType);
+
+	if (et == ElementType_R4)
+	{
+		x86_adjust_stack(compMethod, -4);
+		x86_fst_membase(compMethod, X86_ESP, 0, FALSE, TRUE);
+	}
+	else if (et == ElementType_R8)
+	{
+		x86_adjust_stack(compMethod, -8);
+		x86_fst_membase(compMethod, X86_ESP, 0, TRUE, TRUE);
+	}
+
+	x86_mov_reg_reg(compMethod, X86_EAX, X86_ESP, 4); // Source
+	x86_mov_reg_membase(compMethod, X86_ECX, X86_ESP, alignedSizeOfType, 4); // Destination
+
+	if (type->IsValueType)
+	{
+		uint32_t movCount = sizeOfType >> 2;
+		for (uint32_t index = 0; index < movCount; ++index)
+		{
+			x86_mov_reg_membase(compMethod, X86_EBX, X86_EAX, index << 2, 4);
+			x86_mov_membase_reg(compMethod, X86_ECX, index << 2, X86_EBX, 4);
+		}
+		uint32_t remCount = sizeOfType & 0x03;
+		if (remCount)
+		{
+			x86_mov_reg_membase(compMethod, X86_EBX, X86_EAX, sizeOfType - remCount, remCount);
+			x86_mov_membase_reg(compMethod, X86_ECX, sizeOfType - remCount, X86_EBX, remCount);
+		}
+	}
+	else
+	{
+		// Remove 1 RootObject reference for popping from the stack
+		x86_mov_reg_membase(compMethod, X86_EAX, X86_EAX, 0, global_SizeOfPointerInBytes);
+		x86_test_reg_reg(compMethod, X86_EAX, X86_EAX);
+		unsigned char* skipRemove = (unsigned char*)compMethod;
+		x86_branch32(compMethod, X86_CC_Z, 0, FALSE);
+
+		x86_adjust_stack(compMethod, -(global_SizeOfPointerInBytes << 1));
+		x86_mov_membase_reg(compMethod, X86_ESP, global_SizeOfPointerInBytes, X86_EAX, global_SizeOfPointerInBytes);
+		x86_mov_membase_imm(compMethod, X86_ESP, 0, (unsigned int)mth->ParentAssembly->ParentDomain->RootObject, global_SizeOfPointerInBytes);
+		x86_call_code(compMethod, ReferenceTypeObject_RemoveReference);
+		x86_adjust_stack(compMethod, (global_SizeOfPointerInBytes << 1));
+
+		x86_patch(skipRemove, (unsigned char*)compMethod);
+
+		// Remove 1 RootObject reference if value at destination is not null
+		x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, global_SizeOfPointerInBytes, global_SizeOfPointerInBytes);
+		x86_mov_reg_membase(compMethod, X86_EAX, X86_EAX, 0, global_SizeOfPointerInBytes);
+		x86_test_reg_reg(compMethod, X86_EAX, X86_EAX);
+		skipRemove = (unsigned char*)compMethod;
+		x86_branch32(compMethod, X86_CC_Z, 0, FALSE);
+
+		x86_adjust_stack(compMethod, -(global_SizeOfPointerInBytes << 1));
+		x86_mov_membase_reg(compMethod, X86_ESP, global_SizeOfPointerInBytes, X86_EAX, global_SizeOfPointerInBytes);
+		x86_mov_membase_imm(compMethod, X86_ESP, 0, (unsigned int)mth->ParentAssembly->ParentDomain->RootObject, global_SizeOfPointerInBytes);
+		x86_call_code(compMethod, ReferenceTypeObject_RemoveReference);
+		x86_adjust_stack(compMethod, (global_SizeOfPointerInBytes << 1));
+
+		x86_patch(skipRemove, (unsigned char*)compMethod);
+
+		x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, 0, global_SizeOfPointerInBytes); // Source
+		x86_mov_reg_membase(compMethod, X86_ECX, X86_ESP, global_SizeOfPointerInBytes, global_SizeOfPointerInBytes); // Destination
+		x86_mov_membase_reg(compMethod, X86_ECX, 0, X86_EAX, global_SizeOfPointerInBytes);
+
+		// Add 1 RootObject reference for copying the reference to another location
+		x86_test_reg_reg(compMethod, X86_EAX, X86_EAX);
+		unsigned char* skipAdd = (unsigned char*)compMethod;
+		x86_branch32(compMethod, X86_CC_Z, 0, FALSE);
+
+		x86_adjust_stack(compMethod, -(global_SizeOfPointerInBytes << 1));
+		x86_mov_membase_reg(compMethod, X86_ESP, global_SizeOfPointerInBytes, X86_EAX, global_SizeOfPointerInBytes);
+		x86_mov_membase_imm(compMethod, X86_ESP, 0, (unsigned int)mth->ParentAssembly->ParentDomain->RootObject, global_SizeOfPointerInBytes);
+		x86_call_code(compMethod, ReferenceTypeObject_AddReference);
+		x86_adjust_stack(compMethod, (global_SizeOfPointerInBytes << 1));
+
+		x86_patch(skipAdd, (unsigned char*)compMethod);
+	}
+
 	return compMethod;
 }
 
