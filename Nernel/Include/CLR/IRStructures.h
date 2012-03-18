@@ -151,7 +151,12 @@ struct _IRInstruction
     void* Arg3;
     bool_t Arg4NeedsDisposing;
     void* Arg4;
-    bool_t IsTargetOfBranch;
+	
+	bool_t HasConstant32Arg1;
+	uint32_t Constant32Arg1;
+	bool_t HasConstant32Arg2;
+	uint32_t Constant32Arg2;
+	
 };
 
 struct _IRParameter

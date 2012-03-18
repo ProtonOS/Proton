@@ -89,7 +89,6 @@ void IRMethod_BranchLinker_LinkMethod(IRMethod* mthd)
                     foundTarget = TRUE;
                 }
             }
-            targetInstruction->IsTargetOfBranch = TRUE;
             free(mthd->IRCodes[i]->Arg2);
             mthd->IRCodes[i]->Arg2 = targetInstruction;
 			mthd->IRCodes[i]->Arg2NeedsDisposing = FALSE;
@@ -144,7 +143,6 @@ void IRMethod_BranchLinker_LinkMethod(IRMethod* mthd)
 						foundTarget = TRUE;
 					}
 				}
-				targetInstruction->IsTargetOfBranch = TRUE;
 				((void**)mthd->IRCodes[i]->Arg2)[i42] = targetInstruction;
 			}
         }

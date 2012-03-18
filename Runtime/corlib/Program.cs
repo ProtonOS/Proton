@@ -25,6 +25,10 @@ namespace Mernel
             long ticks = DateTime.InternalUtcNow();
             Console.WriteLine("Started @ " + ((ulong)ticks).ToString());
 
+            for (uint i = 0; i < 5; i += 3)
+            {
+
+            }
 
             //Tester.TestDriver.RunTests();
 

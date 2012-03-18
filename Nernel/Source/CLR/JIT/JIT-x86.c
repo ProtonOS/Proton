@@ -1582,8 +1582,25 @@ char* JIT_Compile_Add						(IRInstruction* instr, char* compMethod, IRMethod* mt
 				case ElementType_U2:
 				case ElementType_U:
 				case ElementType_U4:
-					x86_pop_reg(compMethod, X86_EAX);
-					x86_alu_membase_reg(compMethod, X86_ADD, X86_ESP, 0, X86_EAX);
+					if (instr->HasConstant32Arg1)
+					{
+						if (instr->Constant32Arg1 == 1)
+							x86_inc_membase(compMethod, X86_ESP, 0);
+						else
+							x86_alu_membase_imm(compMethod, X86_ADD, X86_ESP, 0, instr->Constant32Arg1);
+					}
+					else if (instr->HasConstant32Arg2)
+					{
+						if (instr->Constant32Arg2 == 1)
+							x86_inc_membase(compMethod, X86_ESP, 0);
+						else
+							x86_alu_membase_imm(compMethod, X86_ADD, X86_ESP, 0, instr->Constant32Arg2);
+					}
+					else
+					{
+						x86_pop_reg(compMethod, X86_EAX);
+						x86_alu_membase_reg(compMethod, X86_ADD, X86_ESP, 0, X86_EAX);
+					}
 					break;
 				case ElementType_I8:
 				case ElementType_U8:
