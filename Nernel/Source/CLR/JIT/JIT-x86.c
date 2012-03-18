@@ -1669,7 +1669,11 @@ char* JIT_Compile_Mul						(IRInstruction* instr, char* compMethod, IRMethod* mt
 					break;
 				case ElementType_I8:
 				case ElementType_U8:
-					Panic("Unsupported! No, it doesn't matter what this is.");
+					x86_fild_membase(compMethod, X86_ESP, 8, TRUE);
+					x86_fild_membase(compMethod, X86_ESP, 0, TRUE);
+					x86_adjust_stack(compMethod, 8);
+					x86_fp_op_reg(compMethod, X86_FMUL, 1, TRUE);
+					x86_fist_pop_membase(compMethod, X86_ESP, 0, TRUE);
 					break;
 				case ElementType_R4:
 					x86_sse_alu_ss_reg_reg(compMethod, X86_SSE_MUL, X86_XMM1, X86_XMM0);
@@ -1714,7 +1718,11 @@ char* JIT_Compile_Div						(IRInstruction* instr, char* compMethod, IRMethod* mt
 					break;
 				case ElementType_I8:
 				case ElementType_U8:
-					Panic("Unsupported! No, it doesn't matter what this is.");
+					x86_fild_membase(compMethod, X86_ESP, 8, TRUE);
+					x86_fild_membase(compMethod, X86_ESP, 0, TRUE);
+					x86_adjust_stack(compMethod, 8);
+					x86_fp_op_reg(compMethod, X86_FDIV, 1, TRUE);
+					x86_fist_pop_membase(compMethod, X86_ESP, 0, TRUE);
 					break;
 				case ElementType_R4:
 					x86_sse_alu_ss_reg_reg(compMethod, X86_SSE_DIV, X86_XMM1, X86_XMM0);
@@ -1742,6 +1750,7 @@ char* JIT_Compile_Rem						(IRInstruction* instr, char* compMethod, IRMethod* mt
 
 	switch(ovfType)
 	{
+		case OverflowType_Unsigned:
 		case OverflowType_None:
 			switch(argEins)
 			{
@@ -1760,7 +1769,12 @@ char* JIT_Compile_Rem						(IRInstruction* instr, char* compMethod, IRMethod* mt
 					break;
 				case ElementType_I8:
 				case ElementType_U8:
-					Panic("Unsupported! No, it doesn't matter what this is.");
+					x86_fild_membase(compMethod, X86_ESP, 0, TRUE);
+					x86_fild_membase(compMethod, X86_ESP, 8, TRUE);
+					x86_adjust_stack(compMethod, 8);
+					x86_fprem(compMethod);
+					x86_fist_pop_membase(compMethod, X86_ESP, 0, TRUE);
+					x86_fdecstp(compMethod);
 					break;
 				case ElementType_R4:
 					x86_sse_alu_ps_reg_reg(compMethod, X86_SSE_XOR, X86_XMM2, X86_XMM2);
@@ -1775,7 +1789,6 @@ char* JIT_Compile_Rem						(IRInstruction* instr, char* compMethod, IRMethod* mt
 				default: Panic("Invalid operand ElementType"); break;
 			}
 			break;
-		case OverflowType_Unsigned:
 		case OverflowType_Signed:
 		default: 
 			Panic(String_Format("Unsupported OverflowType (%i)!", (int)ovfType)); 

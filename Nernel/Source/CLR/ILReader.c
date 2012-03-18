@@ -4096,13 +4096,13 @@ IRType* GetIRTypeOfSignatureType(AppDomain* dom, CLIFile* fil, IRAssembly* asmbl
 		}
 
 		case Signature_ElementType_MethodVar:
-			printf("WARNING: Generic parameters aren't supported yet!\n");
+			printf("WARNING: Generics  aren't supported yet!\n");
 			return NULL;
 		case Signature_ElementType_Var:
-			printf("WARNING: Generic parameters aren't supported yet!\n");
+			printf("WARNING: Generics aren't supported yet!\n");
 			return NULL;
 		case Signature_ElementType_GenericInstantiation:
-			printf("WARNING: Generic parameters aren't supported yet!\n");
+			printf("WARNING: Generics aren't supported yet!\n");
 			return NULL;
 
 		default:
