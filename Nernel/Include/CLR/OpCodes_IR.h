@@ -697,9 +697,8 @@ typedef enum IROpCode
      */
     IROpCode_NewObject,
     /*
-        Creates a new array, initializes it's
-		fields, and calls the constructor in
-		Arg1.
+        Creates a new array of the type in Arg1
+		and initializes it's values.
 
         Arg1:
             The type of object to store in the
