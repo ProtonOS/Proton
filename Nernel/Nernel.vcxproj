@@ -89,7 +89,7 @@
     <ClCompile Include="Source\CLR\MetaData\TypeReference.c" />
     <ClCompile Include="Source\CLR\MetaData\TypeSpecification.c" />
     <ClCompile Include="Source\CLR\Metadata_Search.c" />
-    <ClCompile Include="Source\CLR\Optimizations\ConstantFolding.c" />
+    <ClCompile Include="Source\CLR\Optimizations\ConstantOperandFolding.c" />
     <ClCompile Include="Source\CLR\Optimizations\UnconditionalBranchTransform.c" />
     <ClCompile Include="Source\CLR\PEFile.c" />
     <ClCompile Include="Source\CLR\ReferenceTypeObject.c" />
@@ -182,7 +182,7 @@
     <ClInclude Include="Include\CLR\Metadata_Search.h" />
     <ClInclude Include="Include\CLR\OpCodes_IL.h" />
     <ClInclude Include="Include\CLR\OpCodes_IR.h" />
-    <ClInclude Include="Include\CLR\Optimizations\ConstantFolding.h" />
+    <ClInclude Include="Include\CLR\Optimizations\ConstantOperandFolding.h" />
     <ClInclude Include="Include\CLR\Optimizations\UnconditionalBranchTransform.h" />
     <ClInclude Include="Include\CLR\PEFile.h" />
     <ClInclude Include="Include\CLR\ReferenceTypeObject.h" />

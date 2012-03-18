@@ -6,4 +6,4 @@
     Folds constant integers into operands
 	for certain operations.
  */
-void IROptimizer_ConstantFolding(IRMethod* mth);
+void IROptimizer_ConstantOperandFolding(IRMethod* mth);

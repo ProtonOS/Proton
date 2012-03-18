@@ -1,5 +1,5 @@
 #include <CLR/OpCodes_IR.h>
-#include <CLR/Optimizations/ConstantFolding.h>
+#include <CLR/Optimizations/ConstantOperandFolding.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -158,7 +158,7 @@ ConstantStackObject* Stack_Pop(Stack* stack)
 	return obj;
 }
 
-void IROptimizer_ConstantFolding(IRMethod* mth)
+void IROptimizer_ConstantOperandFolding(IRMethod* mth)
 {
 	Stack* stack = (Stack*)calloc(1, sizeof(Stack));
 	// Create the root object.
