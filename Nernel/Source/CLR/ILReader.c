@@ -4059,6 +4059,7 @@ IRType* GetIRTypeOfSignatureType(AppDomain* dom, CLIFile* fil, IRAssembly* asmbl
 			return dom->IRAssemblies[0]->Types[dom->CachedType___System_Boolean->TableIndex - 1];
 		case Signature_ElementType_Char:
 			return dom->IRAssemblies[0]->Types[dom->CachedType___System_Char->TableIndex - 1];
+		case Signature_ElementType_Pointer:
 		case Signature_ElementType_IPointer:
 			return dom->IRAssemblies[0]->Types[dom->CachedType___System_IntPtr->TableIndex - 1];
 		case Signature_ElementType_UPointer:
@@ -4071,6 +4072,7 @@ IRType* GetIRTypeOfSignatureType(AppDomain* dom, CLIFile* fil, IRAssembly* asmbl
 			return dom->IRAssemblies[0]->Types[dom->CachedType___System_Type->TableIndex - 1];
 		case Signature_ElementType_Void:
 			return dom->IRAssemblies[0]->Types[dom->CachedType___System_Void->TableIndex - 1];
+		case Signature_ElementType_ValueType:
 		case Signature_ElementType_Class:
 		{
 			MetaDataToken* tok = CLIFile_ResolveTypeDefOrRefOrSpecToken(fil, tp->ClassTypeDefOrRefOrSpecToken);
@@ -4092,30 +4094,6 @@ IRType* GetIRTypeOfSignatureType(AppDomain* dom, CLIFile* fil, IRAssembly* asmbl
 			free(tok);
 			return retVal;
 		}
-		case Signature_ElementType_ValueType:
-		{
-			MetaDataToken* tok = CLIFile_ResolveTypeDefOrRefOrSpecToken(fil, tp->ValueTypeDefOrRefOrSpecToken);
-			IRType* retVal = NULL;
-			switch(tok->Table)
-			{
-				case MetaData_Table_TypeDefinition:
-					retVal = asmbly->Types[((TypeDefinition*)tok->Data)->TableIndex - 1];
-					break;
-					
-				case MetaData_Table_TypeReference:
-					retVal = ((TypeReference*)tok->Data)->ResolvedType->File->Assembly->Types[((TypeReference*)tok->Data)->ResolvedType->TableIndex - 1];
-					break;
-					
-				default:
-					Panic(String_Format("Unknown table (0x%x)!", (unsigned int)tok->Table));
-					break;
-			}
-			free(tok);
-			return retVal;
-		}
-		case Signature_ElementType_Pointer:
-			printf("WARNING: Not quite sure how to deal with this yet!\n");
-			return NULL;
 		case Signature_ElementType_SingleDimensionArray:
 		{
 			IRType* sysArrayType = dom->IRAssemblies[0]->Types[dom->CachedType___System_Array->TableIndex - 1];

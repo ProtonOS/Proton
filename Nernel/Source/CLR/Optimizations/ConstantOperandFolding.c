@@ -41,7 +41,7 @@ static const signed char OpCodeStackTable[] =
 		1,				2,					// 29
 		1,				1,					// 30
 		0,				2,					// 31
-		0,				1,					// 32
+		1,				0,					// 32
 		1,		  VariableCount,			// 33	(NewObject)
 		1,				1,					// 34
 		1,				0,					// 35

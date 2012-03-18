@@ -456,20 +456,10 @@ char* JIT_Compile_Branch					(IRInstruction* instr, char* compMethod, IRMethod* 
 	IRInstruction* target = (IRInstruction*)instr->Arg2;
 	if (condition == BranchCondition_Always)
 	{
-		if (target->InstructionLocation > instr->InstructionLocation)
-		{
-			unsigned char* comp = (unsigned char*)compMethod;
-			x86_jump_code(comp, 0);
-			BranchRegistry_RegisterBranchForLink(branchRegistry, instr->InstructionLocation, target->InstructionLocation, compMethod);
-			compMethod = (char*)comp;
-		}
-		else
-		{
-			unsigned char* targLoc = (unsigned char*)BranchRegistry_GetInstructionLocation(branchRegistry, target->InstructionLocation);
-			unsigned char* comp = (unsigned char*)compMethod;
-			x86_jump_code(comp, targLoc);
-			compMethod = (char*)comp;
-		}
+		unsigned char* comp = (unsigned char*)compMethod;
+		x86_jump_code(comp, 0);
+		BranchRegistry_RegisterBranchForLink(branchRegistry, instr->InstructionLocation, target->InstructionLocation, compMethod);
+		compMethod = (char*)comp;
 	}
 	else if(condition == BranchCondition_False || condition == BranchCondition_True)
 	{
@@ -488,33 +478,18 @@ char* JIT_Compile_Branch					(IRInstruction* instr, char* compMethod, IRMethod* 
 			case ElementType_Ref:
 				{
 					x86_pop_reg(compMethod, X86_EAX);
-					x86_alu_reg_imm(compMethod, X86_CMP, X86_EAX, 0);
+					x86_test_reg_reg(compMethod, X86_EAX, X86_EAX);
 
 					unsigned char* comp = (unsigned char*)compMethod;
-					if (target->InstructionLocation > instr->InstructionLocation)
+					if (condition == BranchCondition_False)
 					{
-						if (condition == BranchCondition_False)
-						{
-								x86_branch32(comp, X86_CC_E, 0, FALSE);
-						}
-						else
-						{
-								x86_branch32(comp, X86_CC_NE, 0, FALSE);
-						}
-						BranchRegistry_RegisterBranchForLink(branchRegistry, instr->InstructionLocation, target->InstructionLocation, compMethod);
+							x86_branch32(comp, X86_CC_Z, 0, FALSE);
 					}
 					else
 					{
-						unsigned char* targLoc = (unsigned char*)BranchRegistry_GetInstructionLocation(branchRegistry, target->InstructionLocation);
-						if (condition == BranchCondition_False)
-						{
-								x86_branch32(comp, X86_CC_E, targLoc, FALSE);
-						}
-						else
-						{
-								x86_branch32(comp, X86_CC_NE, targLoc, FALSE);
-						}
+							x86_branch32(comp, X86_CC_NZ, 0, FALSE);
 					}
+					BranchRegistry_RegisterBranchForLink(branchRegistry, instr->InstructionLocation, target->InstructionLocation, compMethod);
 					compMethod = (char*)comp;
 				}
 				break;
@@ -638,20 +613,10 @@ char* JIT_LinkBranches						(char* compMethod, BranchRegistry* branchReg, uint32
 char* JIT_Compile_Optimized_Jump			(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	IRInstruction* target = (IRInstruction*)instr->Arg1;
-	if (target->InstructionLocation > instr->InstructionLocation)
-	{
-		unsigned char* comp = (unsigned char*)compMethod;
-		x86_jump_code(comp, 0);
-		BranchRegistry_RegisterBranchForLink(branchRegistry, instr->InstructionLocation, target->InstructionLocation, compMethod);
-		compMethod = (char*)comp;
-	}
-	else
-	{
-		unsigned char* targLoc = (unsigned char*)BranchRegistry_GetInstructionLocation(branchRegistry, target->InstructionLocation);
-		unsigned char* comp = (unsigned char*)compMethod;
-		x86_jump_code(comp, targLoc);
-		compMethod = (char*)comp;
-	}
+	unsigned char* comp = (unsigned char*)compMethod;
+	x86_jump_code(comp, 0);
+	BranchRegistry_RegisterBranchForLink(branchRegistry, instr->InstructionLocation, target->InstructionLocation, compMethod);
+	compMethod = (char*)comp;
 	return compMethod;
 }
 
@@ -673,6 +638,7 @@ char* JIT_Compile_Store_LocalVar			(IRInstruction* instr, char* compMethod, IRMe
 		if (mth->LocalVariables[localIndex]->VariableType->IsValueType)
 			size = StackSizeOfType(mth->LocalVariables[localIndex]->VariableType);
 		Align(&size);
+		//printf("Storing to local variable %i of type %s\n", (int)localIndex, mth->LocalVariables[localIndex]->VariableType->TypeDef->Name);
 
 		if (mth->LocalVariables[localIndex]->VariableType->IsReferenceType)
 		{
@@ -1457,7 +1423,6 @@ char* JIT_Compile_Shift						(IRInstruction* instr, char* compMethod, IRMethod* 
 	switch (shiftType)
 	{
 		case ShiftType_Right_Sign_Extended:
-		case ShiftType_Right:
 			switch (shiftedType)
 			{
 				case StackObjectType_Int32:
@@ -1497,6 +1462,57 @@ char* JIT_Compile_Shift						(IRInstruction* instr, char* compMethod, IRMethod* 
 								// 33-64bit shift
 								x86_alu_reg_imm(compMethod, X86_AND, X86_ECX, 0x1F);
 								x86_shift_reg(compMethod, X86_SAR, X86_EAX);
+								x86_push_reg(compMethod, X86_EAX);
+								x86_mov_membase_imm(compMethod, X86_ESP, 4, 0, 4);
+								x86_patch(jumpEnd, (unsigned char *)compMethod);
+								break;
+							}
+						default: Panic("Invalid shifter type"); break;
+					}
+					break;
+				default: Panic("Invalid shifted type"); break;
+			}
+			break;
+		case ShiftType_Right:
+			switch (shiftedType)
+			{
+				case StackObjectType_Int32:
+				case StackObjectType_NativeInt:
+					switch (shifterType)
+					{
+						case StackObjectType_Int32:
+						case StackObjectType_NativeInt:
+							x86_pop_reg(compMethod, X86_ECX);
+							x86_pop_reg(compMethod, X86_EAX);
+							x86_shift_reg(compMethod, X86_SHR, X86_EAX);
+							x86_push_reg(compMethod, X86_EAX);
+							break;
+						default: Panic("Invalid shifter type"); break;
+					}
+					break;
+				case StackObjectType_Int64:
+					switch (shifterType)
+					{
+						case StackObjectType_Int32:
+						case StackObjectType_NativeInt:
+							{
+								x86_pop_reg(compMethod, X86_ECX);
+								x86_mov_reg_membase(compMethod, X86_EAX, X86_ESP, 4, 4);
+								x86_test_membase_imm(compMethod, X86_ECX, 0, 32);
+								unsigned char* jumpHighPartIsZero = (unsigned char *)compMethod;
+								x86_branch8(compMethod, X86_CC_AE, 0, FALSE);
+								// 32bit or less shift
+								x86_pop_reg(compMethod, X86_EBX);
+								x86_shrd_reg(compMethod, X86_EBX, X86_EBX);
+								x86_push_reg(compMethod, X86_EBX);
+								x86_shift_reg(compMethod, X86_SHR, X86_EAX);
+								x86_mov_membase_reg(compMethod, X86_ESP, 4, X86_EAX, 4);
+								unsigned char* jumpEnd = (unsigned char *)compMethod;
+								x86_jump8(compMethod, 0);
+								x86_patch(jumpHighPartIsZero, (unsigned char *)compMethod);
+								// 33-64bit shift
+								x86_alu_reg_imm(compMethod, X86_AND, X86_ECX, 0x1F);
+								x86_shift_reg(compMethod, X86_SHR, X86_EAX);
 								x86_push_reg(compMethod, X86_EAX);
 								x86_mov_membase_imm(compMethod, X86_ESP, 4, 0, 4);
 								x86_patch(jumpEnd, (unsigned char *)compMethod);
@@ -1761,9 +1777,11 @@ char* JIT_Compile_Div						(IRInstruction* instr, char* compMethod, IRMethod* mt
 				case ElementType_U2:
 				case ElementType_U:
 				case ElementType_U4:
-					x86_pop_reg(compMethod, X86_EAX);
-					x86_cdq(compMethod);
-					x86_div_membase(compMethod, X86_ESP, 0, TRUE);
+					x86_fild_membase(compMethod, X86_ESP, 4, FALSE);
+					x86_fild_membase(compMethod, X86_ESP, 0, FALSE);
+					x86_adjust_stack(compMethod, 4);
+					x86_fp_op_reg(compMethod, X86_FDIV, 1, TRUE);
+					x86_fisttp_membase(compMethod, X86_ESP, 0, FALSE);
 					break;
 				case ElementType_I8:
 				case ElementType_U8:
@@ -1771,7 +1789,7 @@ char* JIT_Compile_Div						(IRInstruction* instr, char* compMethod, IRMethod* mt
 					x86_fild_membase(compMethod, X86_ESP, 0, TRUE);
 					x86_adjust_stack(compMethod, 8);
 					x86_fp_op_reg(compMethod, X86_FDIV, 1, TRUE);
-					x86_fist_pop_membase(compMethod, X86_ESP, 0, TRUE);
+					x86_fisttp_membase(compMethod, X86_ESP, 0, TRUE);
 					break;
 				case ElementType_R4:
 					x86_sse_alu_ss_reg_reg(compMethod, X86_SSE_DIV, X86_XMM1, X86_XMM0);
@@ -1811,10 +1829,12 @@ char* JIT_Compile_Rem						(IRInstruction* instr, char* compMethod, IRMethod* mt
 				case ElementType_U2:
 				case ElementType_U:
 				case ElementType_U4:
-					x86_pop_reg(compMethod, X86_EAX);
-					x86_cdq(compMethod);
-					x86_div_membase(compMethod, X86_ESP, 0, TRUE);
-					x86_mov_membase_reg(compMethod, X86_ESP, 0, X86_EDX, 4);
+					x86_fild_membase(compMethod, X86_ESP, 0, FALSE);
+					x86_fild_membase(compMethod, X86_ESP, 4, FALSE);
+					x86_adjust_stack(compMethod, 4);
+					x86_fprem(compMethod);
+					x86_fisttp_membase(compMethod, X86_ESP, 0, FALSE);
+					x86_fdecstp(compMethod);
 					break;
 				case ElementType_I8:
 				case ElementType_U8:
@@ -1822,7 +1842,7 @@ char* JIT_Compile_Rem						(IRInstruction* instr, char* compMethod, IRMethod* mt
 					x86_fild_membase(compMethod, X86_ESP, 8, TRUE);
 					x86_adjust_stack(compMethod, 8);
 					x86_fprem(compMethod);
-					x86_fist_pop_membase(compMethod, X86_ESP, 0, TRUE);
+					x86_fisttp_membase(compMethod, X86_ESP, 0, TRUE);
 					x86_fdecstp(compMethod);
 					break;
 				case ElementType_R4:

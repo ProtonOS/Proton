@@ -1,22 +1,17 @@
 
-Need to pass the IRType for Load_Element, not an ElementType.
+Need to properly handle pointer types.
 
-Need to set the return types of methods correctly.
+Need to pass the IRType for Load_Element, not an ElementType.
 
 Need to handle recursive exception handlers aka. try{try{}catch(SomeException){}catch{rethrow;}}catch{}
 
 Need to handle extends types other than TypeDefinition when laying out methods.
 
 
-LdStr needs to actually emit the correct op-code, it currently emits a NoOp so that it doesn't break branch linking.
 Need to deal with MemberReference in NewObj.
 The synthetic stack needs to track the physical type of the objects of the stack.
 We need to make the log be optimized out if the call isn't actually being made.
-We need to figure out how a "ref" to a ReferenceTypeObject is handled.
-The IRType_GetSize method needs to deal with generics.
 
-
-CallVirt, Call, and CallI still need to emit actual Call IR codes.
 
 Total number of OpCodes:
 	219

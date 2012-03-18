@@ -41,3 +41,16 @@
 	} while (0)
 
 
+
+#define x86_fisttp_membase(inst,basereg,disp,is_long)	\
+	do {	\
+		x86_codegen_pre(&(inst), 1 + kMaxMembaseEmitPadding); \
+		if ((is_long)) {	\
+			*(inst)++ = (unsigned char)0xdd;	\
+			x86_membase_emit ((inst), 1, (basereg), (disp));	\
+		} else {	\
+			*(inst)++ = (unsigned char)0xdb;	\
+			x86_membase_emit ((inst), 1, (basereg), (disp));	\
+		}	\
+	} while (0)
+
