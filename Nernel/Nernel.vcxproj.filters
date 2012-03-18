@@ -84,6 +84,7 @@
     <ClCompile Include="Source\CLR\InternalCalls\System.RuntimeType.c" />
     <ClCompile Include="Source\CLR\InternalCalls\System.UInt64.c" />
     <ClCompile Include="Source\CLR\InternalCalls\System.IntCommon.c" />
+    <ClCompile Include="Source\CLR\Optimizations\ConstantFolding.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\CLR\AppDomain.h" />
@@ -183,6 +184,7 @@
     <ClInclude Include="Include\CLR\InternalCalls\System.RuntimeType.h" />
     <ClInclude Include="Include\CLR\InternalCalls\System.UInt64.h" />
     <ClInclude Include="Include\CLR\InternalCalls\System.IntCommon.h" />
+    <ClInclude Include="Include\CLR\Optimizations\ConstantFolding.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Makefile.omake" />

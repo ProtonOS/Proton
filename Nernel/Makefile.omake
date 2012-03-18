@@ -104,6 +104,7 @@
 	Source/CLR/JIT/JIT.c
 	Source/CLR/JIT/JIT-x86.c
 #
+	Source/CLR/Optimizations/ConstantFolding.c
 	Source/CLR/Optimizations/UnconditionalBranchTransform.c
 #
 	Source/CLR/MetaData/AssemblyDefinition.c
