@@ -13,8 +13,10 @@
 #include <CLR/ILReader_Defines.h>
 #include <Inline.h>
 
-//#define NEVER_INLINE
+void ResolveTypeReferences(CLIFile* fil, AppDomain* dom)
+{
 
+}
 
 uint8_t ReadUInt8(uint8_t** dat);
 uint16_t ReadUInt16(uint8_t** dat);
@@ -46,40 +48,57 @@ void ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* f
 
 IRAssembly* ILReader_CreateAssembly(CLIFile* fil, AppDomain* dom)
 {
-	printf("Fil = 0x%x, ref count = %u\n", (unsigned int)fil, (unsigned int)fil->AssemblyReferenceCount);
 	if (fil->AssemblyReferenceCount > 0)
 	{
 		char buf[FILENAME_MAX];
 		for (uint32_t i = 1; i <= fil->AssemblyReferenceCount; i++)
 		{
 			AssemblyReference* r = &fil->AssemblyReferences[i];
-
-			printf("Attempting to resolve %s\n", r->Name);
-			snprintf(buf, FILENAME_MAX, "/gac/%s.dll", r->Name);
-			MultiBoot_LoadedModule* mod = MultiBoot_GetLoadedModuleByFileName(buf);
-			//if (!mod)
-			//{
-			//	snprintf(buf, FILENAME_MAX, "/gac/%s.exe", r->Name);
-			//	mod = MultiBoot_GetLoadedModuleByFileName(buf);
-			//}
-			if (!mod)
+			Log_WriteLine(LogFlags_AssemblyReferenceResolution, "Attempting to resolve %s", r->Name);
+			bool_t FoundAssembly = FALSE;
+			for (uint32_t i2 = 0; i2 < dom->IRAssemblyCount; i2++)
 			{
-				snprintf(buf, FILENAME_MAX, "/gac/proton/%s.dll", r->Name);
-				mod = MultiBoot_GetLoadedModuleByFileName(buf);
+				if (!strcmp(dom->IRAssemblies[i2]->ParentFile->AssemblyDefinitions[1].Name, r->Name))
+				{
+					Log_WriteLine(LogFlags_AssemblyReferenceResolution, "Found assembly with matching name");
+					FoundAssembly = TRUE;
+					break;
+				}
 			}
-			//if (!mod)
-			//{
-			//	snprintf(buf, FILENAME_MAX, "/gac/proton/%s.exe", r->Name);
-			//	mod = MultiBoot_GetLoadedModuleByFileName(buf);
-			//}
-			if (!mod)
+			if (FoundAssembly)
 			{
-				Panic("Unable to resolve dependancy!");
+				Log_WriteLine(LogFlags_AssemblyReferenceResolution, "Resolved %s by finding it in the app domain.", r->Name);
 			}
-			CLIFile* clFil = CLIFile_Create(PEFile_Create((uint8_t*)mod->Address, mod->Length));
-			IRAssembly* asmb = ILReader_CreateAssembly(clFil, dom);
-			AppDomain_AddAssembly(dom, asmb);
+			else
+			{
+				snprintf(buf, FILENAME_MAX, "/gac/%s.dll", r->Name);
+				MultiBoot_LoadedModule* mod = MultiBoot_GetLoadedModuleByFileName(buf);
+				//if (!mod)
+				//{
+				//	snprintf(buf, FILENAME_MAX, "/gac/%s.exe", r->Name);
+				//	mod = MultiBoot_GetLoadedModuleByFileName(buf);
+				//}
+				if (!mod)
+				{
+					snprintf(buf, FILENAME_MAX, "/gac/proton/%s.dll", r->Name);
+					mod = MultiBoot_GetLoadedModuleByFileName(buf);
+				}
+				//if (!mod)
+				//{
+				//	snprintf(buf, FILENAME_MAX, "/gac/proton/%s.exe", r->Name);
+				//	mod = MultiBoot_GetLoadedModuleByFileName(buf);
+				//}
+				if (!mod)
+				{
+					Panic("Unable to resolve dependancy!");
+				}
+				Log_WriteLine(LogFlags_AssemblyReferenceResolution, "Resolved %s by loading it from a module.", r->Name);
+				CLIFile* clFil = CLIFile_Create(PEFile_Create((uint8_t*)mod->Address, mod->Length));
+				IRAssembly* asmb = ILReader_CreateAssembly(clFil, dom);
+				AppDomain_AddAssembly(dom, asmb);
+			}
 		}
+		ResolveTypeReferences(fil, dom);
 	}
 	IRAssembly* asmbly = IRAssembly_Create(dom);
 	asmbly->ParentFile = fil;

@@ -12,8 +12,8 @@
 #else
 #define ActiveLogFlags ((LogFlags)( \
 		LogFlags_JIT \
-        | LogFlags_GC_ReferenceManagement \
-        | LogFlags_GC_ObjectAllocation \
+        /* | LogFlags_GC_ReferenceManagement */ \
+        /* | LogFlags_GC_ObjectAllocation */ \
         /* | LogFlags_ILReading */ \
         /* | LogFlags_IREmitting */ \
         /* | LogFlags_SyntheticStack */ \
@@ -24,6 +24,7 @@
 		/* | LogFlags_ILReading_MethodLayout */ \
 		/* | LogFlags_ILReading_ExceptionBlocks */ \
 		/* | LogFlags_ILReading_FieldLayout */ \
+		| LogFlags_AssemblyReferenceResolution \
         ))
 #endif
 
@@ -47,6 +48,7 @@ typedef enum LogFlags
     LogFlags_ILReading_FieldLayout =		1 << 10,
     LogFlags_GC_ReferenceManagement =		1 << 11,
     LogFlags_GC_ObjectAllocation =			1 << 12,
+    LogFlags_AssemblyReferenceResolution =	1 << 13,
 
 } LogFlags;
 
