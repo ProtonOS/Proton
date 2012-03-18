@@ -534,6 +534,10 @@ char* JIT_Compile_Branch					(IRInstruction* instr, char* compMethod, IRMethod* 
 			case ElementType_U:
 			case ElementType_I4:
 			case ElementType_U4:
+			case ElementType_I2:
+			case ElementType_I1:
+			case ElementType_U2:
+			case ElementType_U1:
 			{
 				x86_pop_reg(compMethod, X86_EAX);
 				x86_pop_reg(compMethod, X86_EBX);
@@ -541,6 +545,7 @@ char* JIT_Compile_Branch					(IRInstruction* instr, char* compMethod, IRMethod* 
 				break;
 			}
 			case ElementType_I8:
+			case ElementType_U8:
 			{
 				x86_fild_membase(compMethod, X86_ESP, 0, TRUE);
 				x86_fild_membase(compMethod, X86_ESP, 8, TRUE);
@@ -558,7 +563,7 @@ char* JIT_Compile_Branch					(IRInstruction* instr, char* compMethod, IRMethod* 
 			}
 
 			default:
-				Panic("Invalid type for branch equal comparison.");
+				Panic("Invalid type for non-simple branch comparison.");
 				break;
 		}
 		unsigned char* comp = (unsigned char*)compMethod;
@@ -943,6 +948,10 @@ char* JIT_Compile_Convert_Unchecked			(IRInstruction* instr, char* compMethod, I
 		case ConversionArgumentType_I:
 		case ConversionArgumentType_U:
 		case ConversionArgumentType_I4:
+		case ConversionArgumentType_I1:
+		case ConversionArgumentType_I2:
+		case ConversionArgumentType_U1:
+		case ConversionArgumentType_U2:
 			switch (toType)
 			{
 				case ConversionArgumentType_I1:
@@ -1443,6 +1452,7 @@ char* JIT_Compile_Shift						(IRInstruction* instr, char* compMethod, IRMethod* 
 
 	switch (shiftType)
 	{
+		case ShiftType_Right_Sign_Extended:
 		case ShiftType_Right:
 			switch (shiftedType)
 			{
@@ -1559,6 +1569,8 @@ char* JIT_Compile_Add						(IRInstruction* instr, char* compMethod, IRMethod* mt
 
 	switch(ovfType)
 	{
+		case OverflowType_Signed:
+		case OverflowType_Unsigned:
 		case OverflowType_None:
 			switch(argEins)
 			{
@@ -1589,8 +1601,6 @@ char* JIT_Compile_Add						(IRInstruction* instr, char* compMethod, IRMethod* mt
 				default: Panic("Invalid operand ElementType"); break;
 			}
 			break;
-		case OverflowType_Signed:
-		case OverflowType_Unsigned:
 		default: Panic("Unsupported OverflowType!"); break;
 	}
 	return compMethod;
@@ -1605,6 +1615,8 @@ char* JIT_Compile_Sub						(IRInstruction* instr, char* compMethod, IRMethod* mt
 
 	switch(ovfType)
 	{
+		case OverflowType_Signed:
+		case OverflowType_Unsigned:
 		case OverflowType_None:
 			switch(argEins)
 			{
@@ -1635,8 +1647,6 @@ char* JIT_Compile_Sub						(IRInstruction* instr, char* compMethod, IRMethod* mt
 				default: Panic("Invalid operand ElementType"); break;
 			}
 			break;
-		case OverflowType_Signed:
-		case OverflowType_Unsigned:
 		default: Panic("Unsupported OverflowType!"); break;
 	}
 	return compMethod;
@@ -1651,6 +1661,8 @@ char* JIT_Compile_Mul						(IRInstruction* instr, char* compMethod, IRMethod* mt
 
 	switch(ovfType)
 	{
+		case OverflowType_Signed:
+		case OverflowType_Unsigned:
 		case OverflowType_None:
 			switch(argEins)
 			{
@@ -1684,8 +1696,6 @@ char* JIT_Compile_Mul						(IRInstruction* instr, char* compMethod, IRMethod* mt
 				default: Panic("Invalid operand ElementType"); break;
 			}
 			break;
-		case OverflowType_Signed:
-		case OverflowType_Unsigned:
 		default: Panic("Unsupported OverflowType!"); break;
 	}
 	return compMethod;
@@ -1701,6 +1711,7 @@ char* JIT_Compile_Div						(IRInstruction* instr, char* compMethod, IRMethod* mt
 	switch(ovfType)
 	{
 		case OverflowType_Unsigned:
+		case OverflowType_Signed:
 		case OverflowType_None:
 			switch(argEins)
 			{
@@ -1733,7 +1744,6 @@ char* JIT_Compile_Div						(IRInstruction* instr, char* compMethod, IRMethod* mt
 				default: Panic("Invalid operand ElementType"); break;
 			}
 			break;
-		case OverflowType_Signed:
 		default:
 			Panic("Unsupported OverflowType!");
 			break;
@@ -1751,6 +1761,7 @@ char* JIT_Compile_Rem						(IRInstruction* instr, char* compMethod, IRMethod* mt
 	switch(ovfType)
 	{
 		case OverflowType_Unsigned:
+		case OverflowType_Signed:
 		case OverflowType_None:
 			switch(argEins)
 			{
@@ -1789,7 +1800,6 @@ char* JIT_Compile_Rem						(IRInstruction* instr, char* compMethod, IRMethod* mt
 				default: Panic("Invalid operand ElementType"); break;
 			}
 			break;
-		case OverflowType_Signed:
 		default: 
 			Panic(String_Format("Unsupported OverflowType (%i)!", (int)ovfType)); 
 			break;
@@ -1922,9 +1932,13 @@ char* JIT_Compile_And						(IRInstruction* instr, char* compMethod, IRMethod* mt
 	{
 		case ElementType_I:
 		case ElementType_I4:
+		case ElementType_I2:
+		case ElementType_I1:
 		case ElementType_U:
 		case ElementType_U4:
-			if (arg2Type != ElementType_I && arg2Type != ElementType_I4 && arg2Type != ElementType_U && arg2Type != ElementType_U4)
+		case ElementType_U2:
+		case ElementType_U1:
+			if (arg2Type != ElementType_I && arg2Type != ElementType_I1 && arg2Type != ElementType_I2 && arg2Type != ElementType_I4 && arg2Type != ElementType_U && arg2Type != ElementType_U1 && arg2Type != ElementType_U2 && arg2Type != ElementType_U4)
 				Panic("Invalid type combination for binary AND");
 			x86_pop_reg(compMethod, X86_EAX);
 			x86_alu_membase_reg(compMethod, X86_AND, X86_ESP, 0, X86_EAX);
@@ -1956,9 +1970,13 @@ char* JIT_Compile_Or						(IRInstruction* instr, char* compMethod, IRMethod* mth
 	{
 		case ElementType_I:
 		case ElementType_I4:
+		case ElementType_I2:
+		case ElementType_I1:
 		case ElementType_U:
 		case ElementType_U4:
-			if (arg2Type != ElementType_I && arg2Type != ElementType_I4 && arg2Type != ElementType_U && arg2Type != ElementType_U4)
+		case ElementType_U2:
+		case ElementType_U1:
+			if (arg2Type != ElementType_I && arg2Type != ElementType_I1 && arg2Type != ElementType_I2 && arg2Type != ElementType_I4 && arg2Type != ElementType_U && arg2Type != ElementType_U1 && arg2Type != ElementType_U2 && arg2Type != ElementType_U4)
 				Panic("Invalid type combination for binary OR");
 			x86_pop_reg(compMethod, X86_EAX);
 			x86_alu_membase_reg(compMethod, X86_OR, X86_ESP, 0, X86_EAX);
@@ -1990,9 +2008,13 @@ char* JIT_Compile_XOr						(IRInstruction* instr, char* compMethod, IRMethod* mt
 	{
 		case ElementType_I:
 		case ElementType_I4:
+		case ElementType_I2:
+		case ElementType_I1:
 		case ElementType_U:
 		case ElementType_U4:
-			if (arg2Type != ElementType_I && arg2Type != ElementType_I4 && arg2Type != ElementType_U && arg2Type != ElementType_U4)
+		case ElementType_U2:
+		case ElementType_U1:
+			if (arg2Type != ElementType_I && arg2Type != ElementType_I1 && arg2Type != ElementType_I2 && arg2Type != ElementType_I4 && arg2Type != ElementType_U && arg2Type != ElementType_U1 && arg2Type != ElementType_U2 && arg2Type != ElementType_U4)
 				Panic("Invalid type combination for binary XOR");
 			x86_pop_reg(compMethod, X86_EAX);
 			x86_alu_membase_reg(compMethod, X86_XOR, X86_ESP, 0, X86_EAX);
@@ -2770,10 +2792,17 @@ char* JIT_Compile_Compare					(IRInstruction* instr, char* compMethod, IRMethod*
 	switch (et1)
 	{
 		case ElementType_I:
+		case ElementType_U:
 			switch (et2)
 			{
 				case ElementType_I:
+				case ElementType_U:
 				case ElementType_I4:
+				case ElementType_U4:
+				case ElementType_I2:
+				case ElementType_I1:
+				case ElementType_U2:
+				case ElementType_U1:
 				case ElementType_ManagedPointer:
 					if (et2 == ElementType_ManagedPointer && cond != CompareCondition_Equal) Panic("Invalid arguments for CompareCondition Equal");
 					break;
@@ -2783,10 +2812,21 @@ char* JIT_Compile_Compare					(IRInstruction* instr, char* compMethod, IRMethod*
 			}
 			break;
 		case ElementType_I4:
+		case ElementType_U4:
+		case ElementType_I2:
+		case ElementType_I1:
+		case ElementType_U2:
+		case ElementType_U1:
 			switch (et2)
 			{
 				case ElementType_I:
+				case ElementType_U:
 				case ElementType_I4:
+				case ElementType_U4:
+				case ElementType_I2:
+				case ElementType_I1:
+				case ElementType_U2:
+				case ElementType_U1:
 					break;
 				default:
 					Panic("Invalid arguments for Compare");
@@ -2794,7 +2834,8 @@ char* JIT_Compile_Compare					(IRInstruction* instr, char* compMethod, IRMethod*
 			}
 			break;
 		case ElementType_I8:
-			if (et2 != ElementType_I8) Panic("Invalid arguments for Compare");
+		case ElementType_U8:
+			if (et2 != ElementType_I8 && et2 != ElementType_U8) Panic("Invalid arguments for Compare");
 			is64bit = TRUE;
 			break;
 		case ElementType_R4:
@@ -2814,6 +2855,7 @@ char* JIT_Compile_Compare					(IRInstruction* instr, char* compMethod, IRMethod*
 			switch (et2)
 			{
 				case ElementType_I:
+				case ElementType_U:
 				case ElementType_ManagedPointer:
 					break;
 				default:
@@ -3055,7 +3097,7 @@ char* JIT_Compile_Call_Absolute				(IRInstruction* instr, char* compMethod, IRMe
 		JIT_Layout_Parameters(m);
 		paramsSize += m->Parameters[m->ParameterCount - 1]->Offset + StackSizeOfType(m->Parameters[m->ParameterCount - 1]->Type);
 		paramsSize -= 8; // For stack frame and return pointer
-		printf("CallAbsolute: LastParam index %i Offset %u + %u Size, Type = %s\n", (int)m->ParameterCount - 1, (unsigned int)m->Parameters[m->ParameterCount - 1]->Offset, (unsigned int)StackSizeOfType(m->Parameters[m->ParameterCount - 1]->Type), m->Parameters[m->ParameterCount - 1]->Type->TypeDef->Name);
+		//printf("CallAbsolute: LastParam index %i Offset %u + %u Size, Type = %s\n", (int)m->ParameterCount - 1, (unsigned int)m->Parameters[m->ParameterCount - 1]->Offset, (unsigned int)StackSizeOfType(m->Parameters[m->ParameterCount - 1]->Type), m->Parameters[m->ParameterCount - 1]->Type->TypeDef->Name);
 	}
 	
 	x86_push_reg(compMethod, X86_EAX);

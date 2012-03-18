@@ -438,6 +438,9 @@
     <Compile Include="System\WeakReference.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Testing\basic-calls.cs" />
+    <Compile Include="Testing\basic.cs" />
+    <Compile Include="Testing\TestDriver.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

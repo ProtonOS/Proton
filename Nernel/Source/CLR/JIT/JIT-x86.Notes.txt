@@ -1,16 +1,7 @@
 
 
-In Branch Registry Destruction:
-	Massive memory leak, because it won't free InstructionLocations.
-
-
-In the Prologue and Epilogue:
-
-	We need to figure out if pushad & popad are really needed here.
-
-
 In Load_Element:
-	Need to support value types & non-32-bit indexes.
+	Need to support non-32-bit indexes.
 
 In Store_Element:
 	See Load_Element.
@@ -23,11 +14,5 @@ In Shift:
 
 In Div:
 	Need to differentiate between signed/unsigned.
-
-In LoadIndirect:
-	Need to deal with structures larger than 4-bytes.
-
-In StoreIndirect:
-	See LoadIndirect.
 
 
