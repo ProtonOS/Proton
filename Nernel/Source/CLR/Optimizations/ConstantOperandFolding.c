@@ -176,8 +176,9 @@ void IROptimizer_ConstantOperandFolding(IRMethod* mth)
 			case IROpCode_LoadInt64_Val:
 				Stack_PushConstant64(stack, *((uint64_t*)instr->Arg1), i);
 				break;
-
+				
 			case IROpCode_Add:
+			case IROpCode_Sub:
 			{
 				ConstantStackObject* objA = Stack_Pop(stack);
 				ConstantStackObject* objB = Stack_Pop(stack);
@@ -188,6 +189,8 @@ void IROptimizer_ConstantOperandFolding(IRMethod* mth)
 					// Now deal with the op-code that pushed this value.
 					free(mth->IRCodes[objA->IROpLoc]->Arg1);
 					mth->IRCodes[objA->IROpLoc]->OpCode = IROpCode_Nop;
+					mth->IRCodes[objA->IROpLoc]->Arg1NeedsDisposing = FALSE;
+					mth->IRCodes[objA->IROpLoc]->Arg1 = (uint32_t*)1;
 				}
 				else if (objB->IsConstant32)
 				{
@@ -196,6 +199,8 @@ void IROptimizer_ConstantOperandFolding(IRMethod* mth)
 					// Now deal with the op-code that pushed this value.
 					free(mth->IRCodes[objB->IROpLoc]->Arg1);
 					mth->IRCodes[objB->IROpLoc]->OpCode = IROpCode_Nop;
+					mth->IRCodes[objB->IROpLoc]->Arg1NeedsDisposing = FALSE;
+					mth->IRCodes[objB->IROpLoc]->Arg1 = (uint32_t*)1;
 				}
 				// Cleanup a bit.
 				Destroy_StackObj(objA);

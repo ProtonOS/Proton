@@ -360,7 +360,11 @@ char* JIT_Emit_Epilogue(IRMethod* mth, char* compMethod)
 
 char* JIT_Compile_Nop(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
-	x86_nop(compMethod);
+	// Only emit a nop if this was
+	// a nop emitted by the decomp,
+	// not a nop created by the optimizers.
+	if ((uint32_t)instr->Arg1 != 1)
+		x86_nop(compMethod);
 	return compMethod;
 }
 
@@ -1645,8 +1649,25 @@ char* JIT_Compile_Sub						(IRInstruction* instr, char* compMethod, IRMethod* mt
 				case ElementType_U2:
 				case ElementType_U:
 				case ElementType_U4:
-					x86_pop_reg(compMethod, X86_EAX);
-					x86_alu_membase_reg(compMethod, X86_SUB, X86_ESP, 0, X86_EAX);
+					if (instr->HasConstant32Arg1)
+					{
+						if (instr->Constant32Arg1 == 1)
+							x86_dec_membase(compMethod, X86_ESP, 0);
+						else
+							x86_alu_membase_imm(compMethod, X86_SUB, X86_ESP, 0, instr->Constant32Arg1);
+					}
+					else if (instr->HasConstant32Arg2)
+					{
+						x86_mov_reg_imm(compMethod, X86_EAX, instr->Constant32Arg2);
+						x86_mov_reg_membase(compMethod, X86_EBX, X86_ESP, 0, 4);
+						x86_alu_reg_reg(compMethod, X86_SUB, X86_EAX, X86_EBX);
+						x86_mov_membase_reg(compMethod, X86_ESP, 0, X86_EAX, 4);
+					}
+					else
+					{
+						x86_pop_reg(compMethod, X86_EAX);
+						x86_alu_membase_reg(compMethod, X86_SUB, X86_ESP, 0, X86_EAX);
+					}
 					break;
 				case ElementType_I8:
 				case ElementType_U8:
