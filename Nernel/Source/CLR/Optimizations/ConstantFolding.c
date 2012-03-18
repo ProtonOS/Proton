@@ -55,7 +55,30 @@ static const signed char OpCodeStackTable[] =
   VariableCount,  VariableCount,			// 41
   VariableCount,  VariableCount,			// 42
   VariableCount,  VariableCount,			// 43
-  // Load String
+		1,				0,					// 44
+		1,				1,					// 45
+		1,				1,					// 46
+		0,				2,					// 47
+		1,				0,					// 48
+		1,				0,					// 49
+		0,				1,					// 50
+		1,				1,					// 51
+		0,				2,					// 52
+		0,				2,					// 53
+		0,		  VariableCount,			// 54
+		0,				1,					// 55
+		1,				1,					// 56
+		1,				1,					// 57
+		1,				1,					// 58
+		1,				1,					// 59
+		1,				1,					// 60
+		1,				2,					// 61
+		0,				0,					// 62
+		1,				1,					// 63
+		0,				1,					// 64
+		1,				0,					// 65
+		1,				0,					// 66
+		1,				0,					// 67
 };
 
 void IROptimizer_ConstantFolding(IRMethod* mth)

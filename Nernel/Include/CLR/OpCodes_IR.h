@@ -1336,8 +1336,8 @@ typedef enum IROpCode
      */
     IROpCode_InitObject,
     /*
-		Returns the runtime size of the specified
-		type.
+		Pushes the runtime size of the specified
+		type to the top of the stack.
 		
         Arg1:
 			The type to get the size of.
