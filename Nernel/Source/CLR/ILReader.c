@@ -127,8 +127,6 @@ IRAssembly* ILReader_CreateAssembly(CLIFile* fil, AppDomain* dom)
 	printf("Loaded Methods\n");
 	Link(asmbly);
 	
-    //IROptimizer_Optimize(asmbly);
-
 	if (fil->CLIHeader->EntryPointToken)
 	{
 		MetaDataToken* tok = CLIFile_ResolveToken(fil, fil->CLIHeader->EntryPointToken);
@@ -154,70 +152,70 @@ IRField* GenerateField(Field* def, CLIFile* fil, IRAssembly* asmb, AppDomain* do
 		fld->IsStatic = TRUE;
 	fld->ParentAssembly = asmb;
 	fld->FieldDef = def;
-	fld->ParentType = (IRType*)def->TypeDefinition->TableIndex;
+	fld->ParentType = (IRType*)def->TypeDefinition;
 	FieldSignature* sig = FieldSignature_Expand(def->Signature, fil);
 	switch(sig->Type->ElementType)
 	{
 		case Signature_ElementType_Boolean:
-			fld->FieldType = (IRType*)dom->CachedType___System_Boolean->TableIndex;
+			fld->FieldType = (IRType*)dom->CachedType___System_Boolean;
 			break;
 		case Signature_ElementType_Char:
-			fld->FieldType = (IRType*)dom->CachedType___System_Char->TableIndex;
+			fld->FieldType = (IRType*)dom->CachedType___System_Char;
 			break;
 		case Signature_ElementType_I1:
-			fld->FieldType = (IRType*)dom->CachedType___System_SByte->TableIndex;
+			fld->FieldType = (IRType*)dom->CachedType___System_SByte;
 			break;
 		case Signature_ElementType_I2:
-			fld->FieldType = (IRType*)dom->CachedType___System_Int16->TableIndex;
+			fld->FieldType = (IRType*)dom->CachedType___System_Int16;
 			break;
 		case Signature_ElementType_I4:
-			fld->FieldType = (IRType*)dom->CachedType___System_Int32->TableIndex;
+			fld->FieldType = (IRType*)dom->CachedType___System_Int32;
 			break;
 		case Signature_ElementType_I8:
-			fld->FieldType = (IRType*)dom->CachedType___System_Int64->TableIndex;
+			fld->FieldType = (IRType*)dom->CachedType___System_Int64;
 			break;
 		case Signature_ElementType_IPointer:
-			fld->FieldType = (IRType*)dom->CachedType___System_IntPtr->TableIndex;
+			fld->FieldType = (IRType*)dom->CachedType___System_IntPtr;
 			break;
 		case Signature_ElementType_U1:
-			fld->FieldType = (IRType*)dom->CachedType___System_Byte->TableIndex;
+			fld->FieldType = (IRType*)dom->CachedType___System_Byte;
 			break;
 		case Signature_ElementType_U2:
-			fld->FieldType = (IRType*)dom->CachedType___System_UInt16->TableIndex;
+			fld->FieldType = (IRType*)dom->CachedType___System_UInt16;
 			break;
 		case Signature_ElementType_U4:
-			fld->FieldType = (IRType*)dom->CachedType___System_UInt32->TableIndex;
+			fld->FieldType = (IRType*)dom->CachedType___System_UInt32;
 			break;
 		case Signature_ElementType_U8:
-			fld->FieldType = (IRType*)dom->CachedType___System_UInt64->TableIndex;
+			fld->FieldType = (IRType*)dom->CachedType___System_UInt64;
 			break;
 		case Signature_ElementType_UPointer:
-			fld->FieldType = (IRType*)dom->CachedType___System_UIntPtr->TableIndex;
+			fld->FieldType = (IRType*)dom->CachedType___System_UIntPtr;
 			break;
 		case Signature_ElementType_R4:
-			fld->FieldType = (IRType*)dom->CachedType___System_Single->TableIndex;
+			fld->FieldType = (IRType*)dom->CachedType___System_Single;
 			break;
 		case Signature_ElementType_R8:
-			fld->FieldType = (IRType*)dom->CachedType___System_Double->TableIndex;
+			fld->FieldType = (IRType*)dom->CachedType___System_Double;
 			break;
 
 		case Signature_ElementType_String:
-			fld->FieldType = (IRType*)dom->CachedType___System_String->TableIndex;
+			fld->FieldType = (IRType*)dom->CachedType___System_String;
 			break;
 		case Signature_ElementType_Type:
-			fld->FieldType = (IRType*)dom->CachedType___System_Type->TableIndex;
+			fld->FieldType = (IRType*)dom->CachedType___System_Type;
 			break;
 		case Signature_ElementType_Object:
-			fld->FieldType = (IRType*)dom->CachedType___System_Object->TableIndex;
+			fld->FieldType = (IRType*)dom->CachedType___System_Object;
 			break;
 		case Signature_ElementType_Void:
-			fld->FieldType = (IRType*)dom->CachedType___System_Void->TableIndex;
+			fld->FieldType = (IRType*)dom->CachedType___System_Void;
 			break;
 		case Signature_ElementType_TypedByReference:
-			fld->FieldType = (IRType*)dom->CachedType___System_TypedReference->TableIndex;
+			fld->FieldType = (IRType*)dom->CachedType___System_TypedReference;
 			break;
 		case Signature_ElementType_Array:
-			fld->FieldType = (IRType*)dom->CachedType___System_Array->TableIndex;
+			fld->FieldType = (IRType*)dom->CachedType___System_Array;
 			break;
 		case Signature_ElementType_ValueType:
 		case Signature_ElementType_Class:
@@ -227,7 +225,12 @@ IRField* GenerateField(Field* def, CLIFile* fil, IRAssembly* asmb, AppDomain* do
 				{
 					case MetaData_Table_TypeDefinition:
 						{
-							fld->FieldType = (IRType*)((TypeDefinition*)tok->Data)->TableIndex;
+							fld->FieldType = (IRType*)((TypeDefinition*)tok->Data);
+							break;
+						}
+					case MetaData_Table_TypeReference:
+						{
+							fld->FieldType = (IRType*)(((TypeReference*)tok->Data)->ResolvedType);
 							break;
 						}
 					default:
@@ -306,30 +309,29 @@ IRType* GenerateType(TypeDefinition* def, CLIFile* fil, IRAssembly* asmb, AppDom
 
 IRField** TypeDefinition_GetLayedOutFields(TypeDefinition* tdef, CLIFile* fil, uint* destLength, AppDomain* dom)
 {
-	Log_WriteLine(LogFlags_ILReading_FieldLayout, "Laying out the fields of %s.%s", tdef->Namespace, tdef->Name);
+	Log_WriteLine(LogFlags_ILReading_FieldLayout, "Laying out the fields of %s.%s, TypeOfExtends = %u", tdef->Namespace, tdef->Name, (unsigned int)tdef->TypeOfExtends);
 	IRField** flds = NULL;
 	uint fldsCount = 0;
-	if (tdef->TypeOfExtends != TypeDefOrRef_Type_TypeDefinition)
+	if (tdef->TypeOfExtends == TypeDefOrRef_Type_TypeDefinition)
 	{
-		if (tdef->TypeOfExtends == TypeDefOrRef_Type_TypeSpecification)
+		if (tdef->Extends.TypeDefinition != NULL)
 		{
-			*destLength = 0;
-			return NULL;
-			//Panic("Type Spec!");
-		}
-		else if (tdef->TypeOfExtends == TypeDefOrRef_Type_TypeReference)
-		{
-			if (tdef->Extends.TypeReference != NULL)
-			{
-				flds = TypeDefinition_GetLayedOutFields(tdef->Extends.TypeReference->ResolvedType, fil, &fldsCount, dom);
-			}
-			else Panic("TypeRef Extends NULL!");
+			flds = TypeDefinition_GetLayedOutFields(tdef->Extends.TypeDefinition, fil, &fldsCount, dom);
 		}
 	}
-
-	if (tdef->Extends.TypeDefinition != NULL)
+	else if (tdef->TypeOfExtends == TypeDefOrRef_Type_TypeReference)
 	{
-		flds = TypeDefinition_GetLayedOutFields(tdef->Extends.TypeDefinition, fil, &fldsCount, dom);
+		if (tdef->Extends.TypeReference != NULL)
+		{
+			flds = TypeDefinition_GetLayedOutFields(tdef->Extends.TypeReference->ResolvedType, tdef->Extends.TypeReference->ResolvedType->File, &fldsCount, dom);
+		}
+		else 
+			Panic("TypeRef Extends NULL!");
+	}
+	else if (tdef->TypeOfExtends == TypeDefOrRef_Type_TypeSpecification)
+	{
+		*destLength = 0;
+		return NULL;
 	}
 
 	uint32_t newFieldsCount = 0;
@@ -353,7 +355,7 @@ IRField** TypeDefinition_GetLayedOutFields(TypeDefinition* tdef, CLIFile* fil, u
 	{
 		if (!(tdef->FieldList[i].Flags & FieldAttributes_Static))
 		{
-			fnlFields[fldIndex + fldsCount] = (IRField*)tdef->FieldList[i].TableIndex;
+			fnlFields[fldIndex + fldsCount] = (IRField*)&tdef->FieldList[i];
 			Log_WriteLine(LogFlags_ILReading_FieldLayout, "Adding Field %s.%s.%s from table index %i at %i", tdef->Namespace, tdef->Name, tdef->FieldList[i].Name, (int)tdef->FieldList[i].TableIndex, fldIndex + fldsCount);
 			fldIndex++;
 		}
@@ -370,30 +372,30 @@ IRField** TypeDefinition_GetLayedOutFields(TypeDefinition* tdef, CLIFile* fil, u
 
 IRMethod** TypeDefinition_GetLayedOutMethods(TypeDefinition* tdef, CLIFile* fil, uint* destLength, AppDomain* dom)
 {
-	Log_WriteLine(LogFlags_ILReading_MethodLayout, "Laying out %s.%s", tdef->Namespace, tdef->Name);
+	Log_WriteLine(LogFlags_ILReading_MethodLayout, "Laying out the methods of %s.%s, TypeOfExtends = %u", tdef->Namespace, tdef->Name, (unsigned int)tdef->TypeOfExtends);
 	IRMethod** mths = NULL;
 	uint mthsCount = 0;
-	if (tdef->TypeOfExtends != TypeDefOrRef_Type_TypeDefinition)
+	if (tdef->TypeOfExtends == TypeDefOrRef_Type_TypeDefinition)
 	{
-		if (tdef->TypeOfExtends == TypeDefOrRef_Type_TypeSpecification)
+		if (tdef->Extends.TypeDefinition != NULL)
 		{
-			*destLength = 0;
-			return NULL;
-			//Panic("Type Spec!");
-		}
-		else if (tdef->TypeOfExtends == TypeDefOrRef_Type_TypeReference)
-		{
-			if (tdef->Extends.TypeReference != NULL)
-			{
-				mths = TypeDefinition_GetLayedOutMethods(tdef->Extends.TypeReference->ResolvedType, fil, &mthsCount, dom);
-			}
-			else Panic("TypeRef Extends NULL!");
-		}
+			mths = TypeDefinition_GetLayedOutMethods(tdef->Extends.TypeDefinition, fil, &mthsCount, dom);
+		}	
 	}
-
-	if (tdef->Extends.TypeDefinition != NULL)
+	else if (tdef->TypeOfExtends == TypeDefOrRef_Type_TypeReference)
 	{
-		mths = TypeDefinition_GetLayedOutMethods(tdef->Extends.TypeDefinition, fil, &mthsCount, dom);
+		if (tdef->Extends.TypeReference != NULL)
+		{
+			mths = TypeDefinition_GetLayedOutMethods(tdef->Extends.TypeReference->ResolvedType, tdef->Extends.TypeReference->ResolvedType->File, &mthsCount, dom);
+		}
+		else
+			Panic("TypeRef Extends NULL!");
+	}
+	else if (tdef->TypeOfExtends == TypeDefOrRef_Type_TypeSpecification)
+	{
+		*destLength = 0;
+		return NULL;
+		//Panic("Type Spec!");
 	}
 
 	uint32_t newMethodsCount = 0;
@@ -431,7 +433,7 @@ IRMethod** TypeDefinition_GetLayedOutMethods(TypeDefinition* tdef, CLIFile* fil,
 		{
 			if (tdef->MethodDefinitionList[i].Flags & MethodAttributes_NewSlot)
 			{
-				fnlMethods[mthIndex + mthsCount] = (IRMethod*)tdef->MethodDefinitionList[i].TableIndex;
+				fnlMethods[mthIndex + mthsCount] = (IRMethod*)&tdef->MethodDefinitionList[i];
 				Log_WriteLine(LogFlags_ILReading_MethodLayout, "Adding method %s.%s.%s from table index %i at %i", tdef->Namespace, tdef->Name, tdef->MethodDefinitionList[i].Name, (int)tdef->MethodDefinitionList[i].TableIndex, mthIndex + mthsCount);
 				mthIndex++;
 			}
@@ -441,7 +443,7 @@ IRMethod** TypeDefinition_GetLayedOutMethods(TypeDefinition* tdef, CLIFile* fil,
 				Log_WriteLine(LogFlags_ILReading_MethodLayout, "Looking for base method of %s.%s.%s (Table Index %i)", tdef->Namespace, tdef->Name, tdef->MethodDefinitionList[i].Name, (int)(tdef->MethodDefinitionList[i].TableIndex));
 				for (uint32_t i2 = 0; i2 < mthsCount; i2++)
 				{
-					MethodDefinition* mthDef = &(fil->MethodDefinitions[(uint32_t)(mths[i2])]);
+					MethodDefinition* mthDef = (MethodDefinition*)mths[i2];
 					if (mthDef->TableIndex)
 					{
 						Log_WriteLine(LogFlags_ILReading_MethodLayout, "Checking Method %s.%s.%s from table index %i", mthDef->TypeDefinition->Namespace, mthDef->TypeDefinition->Name, mthDef->Name, (int)mthDef->TableIndex);
@@ -458,7 +460,7 @@ IRMethod** TypeDefinition_GetLayedOutMethods(TypeDefinition* tdef, CLIFile* fil,
 						if (Signature_Equals(tdef->MethodDefinitionList[i].Signature, tdef->MethodDefinitionList[i].SignatureLength, mthDef->Signature, mthDef->SignatureLength))
 						{
 							Log_WriteLine(LogFlags_ILReading_MethodLayout, "Found Match!");
-							fnlMethods[i2] = (IRMethod*)tdef->MethodDefinitionList[i].TableIndex; 
+							fnlMethods[i2] = (IRMethod*)&tdef->MethodDefinitionList[i]; 
 							Log_WriteLine(LogFlags_ILReading_MethodLayout, "Overloading method %s.%s.%s from table index %i at %i", tdef->Namespace, tdef->Name, tdef->MethodDefinitionList[i].Name, (int)tdef->MethodDefinitionList[i].TableIndex, i2);
 							Found = TRUE;
 							break;
@@ -477,7 +479,7 @@ IRMethod** TypeDefinition_GetLayedOutMethods(TypeDefinition* tdef, CLIFile* fil,
 				!(tdef->MethodDefinitionList[i].Flags & MethodAttributes_RTSpecialName)
 				)
 			{
-				fnlMethods[mthIndex + mthsCount] = (IRMethod*)tdef->MethodDefinitionList[i].TableIndex;
+				fnlMethods[mthIndex + mthsCount] = (IRMethod*)&tdef->MethodDefinitionList[i];
 				Log_WriteLine(LogFlags_ILReading_MethodLayout, "Adding method %s.%s.%s from table index %i at %i", tdef->Namespace, tdef->Name, tdef->MethodDefinitionList[i].Name, (int)tdef->MethodDefinitionList[i].TableIndex, mthIndex + mthsCount);
 				mthIndex++;
 			}
@@ -504,8 +506,8 @@ void Link(IRAssembly* asmb)
 	for (uint32_t i = 0; i < asmb->FieldCount; i++)
 	{
 		IRField* fld = asmb->Fields[i];
-		fld->FieldType = asmb->Types[(uint32_t)fld->FieldType - 1];
-		fld->ParentType = asmb->Types[(uint32_t)fld->ParentType - 1];
+		fld->FieldType = ((TypeDefinition*)fld->FieldType)->File->Assembly->Types[((TypeDefinition*)fld->FieldType)->TableIndex - 1];
+		fld->ParentType = ((TypeDefinition*)fld->ParentType)->File->Assembly->Types[((TypeDefinition*)fld->ParentType)->TableIndex - 1];
 	}
 		
 	// Resolve the static constructors 
@@ -524,9 +526,11 @@ void Link(IRAssembly* asmb)
 	for (uint32_t i = 0; i < asmb->TypeCount; i++)
 	{
 		IRType* tp = asmb->Types[i];
+		MethodDefinition* methodDef = NULL;
 		for (uint32_t i2 = 0; i2 < tp->MethodCount; i2++)
 		{
-			tp->Methods[i2] = asmb->Methods[(uint32_t)tp->Methods[i2] - 1];
+			methodDef = (MethodDefinition*)tp->Methods[i2];
+			tp->Methods[i2] = methodDef->File->Assembly->Methods[methodDef->TableIndex - 1];
 		}
 	}
 
@@ -535,9 +539,11 @@ void Link(IRAssembly* asmb)
 	for (uint32_t i = 0; i < asmb->TypeCount; i++)
 	{
 		IRType* tp = asmb->Types[i];
+		Field* field = NULL;
 		for (uint32_t i2 = 0; i2 < tp->FieldCount; i2++)
 		{
-			tp->Fields[i2] = asmb->Fields[(uint32_t)tp->Fields[i2] - 1];
+			field = (Field*)tp->Fields[i2];
+			tp->Fields[i2] = field->File->Assembly->Fields[field->TableIndex - 1];
 		}
 	}
 
@@ -553,6 +559,9 @@ void Link(IRAssembly* asmb)
 			{
 				case TypeDefOrRef_Type_TypeDefinition:
 					intfcTp = asmb->Types[interfaceImpl->Interface.TypeDefinition->TableIndex - 1];
+					break;
+				case TypeDefOrRef_Type_TypeReference:
+					intfcTp = interfaceImpl->Interface.TypeReference->ResolvedType->File->Assembly->Types[interfaceImpl->Interface.TypeReference->ResolvedType->TableIndex - 1];
 					break;
 				case TypeDefOrRef_Type_TypeSpecification:
 					printf("Generic interface implementations aren't supported yet!\n");
@@ -576,7 +585,7 @@ void Link(IRAssembly* asmb)
 						intfcMth = asmb->Methods[methodImpl->MethodDeclaration.MethodDefinition->TableIndex - 1];
 						break;
 					case MethodDefOrRef_Type_MemberReference:
-						printf("Member reference implementations aren't supported yet!\n");
+						intfcMth = methodImpl->MethodDeclaration.MemberReference->Resolved.MethodDefinition->File->Assembly->Methods[methodImpl->MethodDeclaration.MemberReference->Resolved.MethodDefinition->TableIndex - 1];
 						continue;
 					default:
 						Panic("Unknown type of extends for the type of an interface!");
@@ -597,7 +606,7 @@ void Link(IRAssembly* asmb)
 									tdefMth = asmb->Methods[methodImpl->MethodBody.MethodDefinition->TableIndex - 1];
 									break;
 								case MethodDefOrRef_Type_MemberReference:
-									printf("Member reference implementations aren't supported yet!\n");
+									tdefMth = methodImpl->MethodBody.MemberReference->Resolved.MethodDefinition->File->Assembly->Methods[methodImpl->MethodBody.MemberReference->Resolved.MethodDefinition->TableIndex - 1];
 									break;
 								default:
 									Panic("Unknown type of extends for the type of an interface!");
@@ -842,7 +851,14 @@ void ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* f
 					StackObject* obj = StackObjectPool_Allocate();
 					if (mthSig->HasThis && !(mthSig->ExplicitThis))
 					{
-						if (methodDef->TypeDefinition->Extends.TypeDefinition == dom->CachedType___System_ValueType)
+						if (methodDef->TypeDefinition->TypeOfExtends == TypeDefOrRef_Type_TypeDefinition &&
+							methodDef->TypeDefinition->Extends.TypeDefinition == dom->CachedType___System_ValueType)
+						{
+							obj->Type = StackObjectType_ManagedPointer;
+							obj->NumericType = StackObjectNumericType_ManagedPointer;
+						}
+						else if (methodDef->TypeDefinition->TypeOfExtends == TypeDefOrRef_Type_TypeReference &&
+								 methodDef->TypeDefinition->Extends.TypeReference->ResolvedType == dom->CachedType___System_ValueType)
 						{
 							obj->Type = StackObjectType_ManagedPointer;
 							obj->NumericType = StackObjectNumericType_ManagedPointer;
@@ -941,7 +957,14 @@ void ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* f
 					{
 						if (*dt == 0)
 						{
-							if (methodDef->TypeDefinition->Extends.TypeDefinition == dom->CachedType___System_ValueType)
+							if (methodDef->TypeDefinition->TypeOfExtends == TypeDefOrRef_Type_TypeDefinition &&
+								methodDef->TypeDefinition->Extends.TypeDefinition == dom->CachedType___System_ValueType)
+							{
+								obj->Type = StackObjectType_ManagedPointer;
+								obj->NumericType = StackObjectNumericType_ManagedPointer;
+							}
+							else if (methodDef->TypeDefinition->TypeOfExtends == TypeDefOrRef_Type_TypeReference &&
+									 methodDef->TypeDefinition->Extends.TypeReference->ResolvedType == dom->CachedType___System_ValueType)
 							{
 								obj->Type = StackObjectType_ManagedPointer;
 								obj->NumericType = StackObjectNumericType_ManagedPointer;
@@ -1439,7 +1462,6 @@ void ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* f
 							break;
 							
 						case MetaData_Table_MemberReference:
-							//printf("Don't deal with this yet! Call with table index: 0x%x\n", (unsigned int)tok->Table);
 							sig = MethodSignature_Expand(((MemberReference*)tok->Data)->Signature, fil);
 							break;
 
@@ -1461,7 +1483,7 @@ void ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* f
 
 						default:
 							printf("Table: 0x%x\n", (unsigned int)tok->Table);
-							Panic("Unknown Table for Call!");
+							Panic("Unknown Table for CallI!");
 							break;
 					}
 					if (sig->HasThis)
@@ -1491,7 +1513,7 @@ void ReadIL(uint8_t** dat, uint32_t len, MethodDefinition* methodDef, CLIFile* f
 							break;
 
 						default:
-							Panic("Unknown Table for Call!");
+							Panic("Unknown Table for CallI!");
 							break;
 					}
 					free(tok);
@@ -2002,10 +2024,13 @@ Branch_Common:
 								break;
 							}
 						case MetaData_Table_MemberReference:
-							//printf("Don't deal with this yet! NewObj with table index: 0x%x\n", (unsigned int)tok->Table);
-							sig = MethodSignature_Expand(((MemberReference*)tok->Data)->Signature, fil);
-							EMIT_IR(IROpCode_Nop);
-							break;
+							{
+								MemberReference* membRef = (MemberReference*)tok->Data;
+								sig = MethodSignature_Expand(membRef->Signature, fil);
+								MethodDefinition* methodDef = membRef->Resolved.MethodDefinition;
+								EMIT_IR_1ARG_NO_DISPOSE(IROpCode_NewObject, methodDef->File->Assembly->Methods[methodDef->TableIndex - 1]);
+								break;
+							}
 
 						default:
 							printf("Table: 0x%x\n", (unsigned int)tok->Table);
@@ -2045,6 +2070,12 @@ Branch_Common:
 						case MetaData_Table_TypeDefinition:
 							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_NewArray, asmbly->Types[((TypeDefinition*)tok->Data)->TableIndex - 1]);
 							break;
+						case MetaData_Table_TypeReference:
+							{
+								TypeDefinition* typeDef = ((TypeReference*)tok->Data)->ResolvedType;
+								EMIT_IR_1ARG_NO_DISPOSE(IROpCode_NewArray, typeDef->File->Assembly->Types[typeDef->TableIndex - 1]);
+								break;
+							}
 						case MetaData_Table_TypeSpecification:
 							printf("No idea what to do here!\n");
 							break;
@@ -2072,6 +2103,12 @@ Branch_Common:
 						case MetaData_Table_TypeDefinition:
 							EMIT_IR_1ARG(IROpCode_CastClass, asmbly->Types[((TypeDefinition*)tok->Data)->TableIndex - 1]);
 							break;
+						case MetaData_Table_TypeReference:
+							{
+								TypeDefinition* typeDef = ((TypeReference*)tok->Data)->ResolvedType;
+								EMIT_IR_1ARG(IROpCode_CastClass, typeDef->File->Assembly->Types[typeDef->TableIndex - 1]);
+								break;
+							}
 						case MetaData_Table_TypeSpecification:
 							printf("Don't know what to do here!\n");
 							break;
@@ -2099,6 +2136,12 @@ Branch_Common:
 						case MetaData_Table_TypeDefinition:
 							EMIT_IR_1ARG(IROpCode_IsInst, asmbly->Types[((TypeDefinition*)tok->Data)->TableIndex - 1]);
 							break;
+						case MetaData_Table_TypeReference:
+							{
+								TypeDefinition* typeDef = ((TypeReference*)tok->Data)->ResolvedType;
+								EMIT_IR_1ARG(IROpCode_IsInst, typeDef->File->Assembly->Types[typeDef->TableIndex - 1]);
+								break;
+							}
 						case MetaData_Table_TypeSpecification:
 							printf("Don't know what to do here!\n");
 							break;
@@ -2143,6 +2186,22 @@ Branch_Common:
 							EMIT_IR_1ARG(IROpCode_Unbox, asmbly->Types[tdef->TableIndex - 1]);
 							break;
 						}
+						case MetaData_Table_TypeReference:
+						{
+							TypeDefinition* tdef = ((TypeReference*)tok->Data)->ResolvedType;
+							if (IsStruct(tdef, dom))
+							{
+								obj->Type = StackObjectType_ManagedPointer;
+								obj->NumericType = StackObjectNumericType_ManagedPointer;
+							}
+							else
+							{
+								obj->Type = StackObjectType_ReferenceType;
+								obj->NumericType = StackObjectNumericType_Ref;
+							}
+							EMIT_IR_1ARG(IROpCode_Unbox, tdef->File->Assembly->Types[tdef->TableIndex - 1]);
+							break;
+						}
 						case MetaData_Table_TypeSpecification:
 						{
 							printf("WARNING: This is only a temporary hack, and might not work in the future.\n");
@@ -2178,6 +2237,15 @@ Branch_Common:
 							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Unbox_Any, asmbly->Types[tdef->TableIndex - 1]);
 							break;
 						}
+						case MetaData_Table_TypeReference:
+						{
+							TypeDefinition* tdef = ((TypeReference*)tok->Data)->ResolvedType;
+							ElementType et = (ElementType)0;
+							GetElementTypeFromTypeDef(tdef, dom, &et);
+							SetObjectTypeFromElementType(obj, et);
+							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Unbox_Any, tdef->File->Assembly->Types[tdef->TableIndex - 1]);
+							break;
+						}
 						case MetaData_Table_TypeSpecification:
 						{
 							printf("WARNING: This is only a temporary hack, and might not work in the future.\n");
@@ -2210,7 +2278,7 @@ Branch_Common:
 					{
 						case MetaData_Table_TypeDefinition:
 							tdef = (TypeDefinition*)tok->Data;
-							if (tdef->Flags & TypeAttributes_Class)
+							if ((tdef->Flags & TypeAttributes_Interface) == 0)
 							{
 								obj->Type = StackObjectType_ReferenceType;
 								obj->NumericType = StackObjectNumericType_Ref;
@@ -2267,6 +2335,66 @@ Branch_Common:
 								}
 							}
 							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Box, asmbly->Types[tdef->TableIndex - 1]);
+							break;
+						case MetaData_Table_TypeReference:
+							tdef = ((TypeReference*)tok->Data)->ResolvedType;
+							if ((tdef->Flags & TypeAttributes_Interface) == 0)
+							{
+								obj->Type = StackObjectType_ReferenceType;
+								obj->NumericType = StackObjectNumericType_Ref;
+							}
+							else
+							{
+								switch(tdef->TypeOfExtends)
+								{
+									case TypeDefOrRef_Type_TypeDefinition:
+										if (tdef->Extends.TypeDefinition == dom->CachedType___System_ValueType)
+										{
+											ElementType elmType;
+											GetElementTypeFromTypeDef(tdef, dom, &elmType);
+											SetObjectTypeFromElementType(obj, elmType);
+										}
+										else if (tdef->Extends.TypeDefinition == dom->CachedType___System_Enum)
+										{
+											for (uint32_t i = 0; i < tdef->FieldListCount; i++) 
+											{ 
+												Field* fld = &(tdef->FieldList[i]); 
+												if (!strcmp(fld->Name, "value__")) 
+												{ 
+													FieldSignature* sig2 = FieldSignature_Expand(fld->Signature, fld->File); 
+													switch (sig2->Type->ElementType)
+													{
+														case Signature_ElementType_I1:
+														case Signature_ElementType_I2:
+														case Signature_ElementType_I4:
+														case Signature_ElementType_I8:
+														case Signature_ElementType_U1:
+														case Signature_ElementType_U2:
+														case Signature_ElementType_U4:
+														case Signature_ElementType_U8:
+															SetTypeOfStackObjectFromSigElementType(obj, sig2->Type, fld->File, dom);
+															break;
+														default:
+															Panic("Invalid value type for an Enum!");
+															break;
+													}
+													FieldSignature_Destroy(sig2);
+													break;
+												}
+											}
+										}
+										else
+										{
+											Panic("Don't know what to do here!");						
+										}
+										break;
+
+									default:
+										Panic("Don't know what to do here!");
+										break;
+								}
+							}
+							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Box, tdef->File->Assembly->Types[tdef->TableIndex - 1]);
 							break;
 						case MetaData_Table_TypeSpecification:
 							//tspec = (TypeSpecification*)tok->Data;
@@ -2357,9 +2485,32 @@ Branch_Common:
 							break;
 
 						case MetaData_Table_MemberReference:
-							//printf("Don't deal with this yet! Load Field with table index: 0x%x\n", (unsigned int)tok->Table);
-							sig = FieldSignature_Expand(((MemberReference*)tok->Data)->Signature, fil);
-							break;
+							{
+								fld = ((MemberReference*)tok->Data)->Resolved.Field;
+								sig = FieldSignature_Expand(fld->Signature, fld->File);
+								TypeDefinition* tdef = fld->TypeDefinition;
+								bool_t Found = FALSE;
+								for (uint32_t i = 0; i < tdef->FieldListCount; i++)
+								{
+									if (!strcmp(fld->Name, tdef->FieldList[i].Name))
+									{
+										if (Signature_Equals(fld->Signature, fld->SignatureLength, tdef->FieldList[i].Signature, tdef->FieldList[i].SignatureLength))
+										{
+											IRFieldSpec* spec = IRFieldSpec_Create();
+											spec->FieldIndex = i;
+											spec->ParentType = tdef->File->Assembly->Types[tdef->TableIndex - 1];
+											spec->FieldType = GetIRTypeOfSignatureType(dom, tdef->File, tdef->File->Assembly, sig->Type);
+											EMIT_IR_1ARG(IROpCode_Load_Field_Address, spec);
+											Found = TRUE;
+											break;
+										}
+									}
+								}
+								FieldSignature_Destroy(sig);
+								if (!Found)
+									Panic("Unable to resolve field!");
+								break;
+							}
 
 						default:
 							printf("Table: 0x%x\n", (unsigned int)tok->Table);
@@ -2434,9 +2585,32 @@ Branch_Common:
 							break;
 
 						case MetaData_Table_MemberReference:
-							//printf("Don't deal with this yet! Load Field with table index: 0x%x\n", (unsigned int)tok->Table);
-							sig = FieldSignature_Expand(((MemberReference*)tok->Data)->Signature, fil);
-							break;
+							{
+								fld = ((MemberReference*)tok->Data)->Resolved.Field;
+								sig = FieldSignature_Expand(fld->Signature, fld->File);
+								TypeDefinition* tdef = fld->TypeDefinition;
+								bool_t Found = FALSE;
+								for (uint32_t i = 0; i < tdef->FieldListCount; i++)
+								{
+									if (!strcmp(fld->Name, tdef->FieldList[i].Name))
+									{
+										if (Signature_Equals(fld->Signature, fld->SignatureLength, tdef->FieldList[i].Signature, tdef->FieldList[i].SignatureLength))
+										{
+											IRFieldSpec* spec = IRFieldSpec_Create();
+											spec->FieldIndex = i;
+											spec->ParentType = tdef->File->Assembly->Types[tdef->TableIndex - 1];
+											spec->FieldType = GetIRTypeOfSignatureType(dom, tdef->File, tdef->File->Assembly, sig->Type);
+											EMIT_IR_1ARG(IROpCode_Load_Field_Address, spec);
+											Found = TRUE;
+											break;
+										}
+									}
+								}
+								FieldSignature_Destroy(sig);
+								if (!Found)
+									Panic("Unable to resolve field!");
+								break;
+							}
 
 						default:
 							printf("Table: 0x%x\n", (unsigned int)tok->Table);
@@ -2485,16 +2659,39 @@ Branch_Common:
 										}
 									}
 								}
+								FieldSignature_Destroy(sig);
 								if (!Found)
 									Panic("Unable to resolve field!");
 							}
 							break;
 
 						case MetaData_Table_MemberReference:
-							//printf("Don't deal with this yet! Load Field with table index: 0x%x\n", (unsigned int)tok->Table);
-							EMIT_IR(IROpCode_Nop);
-							sig = FieldSignature_Expand(((MemberReference*)tok->Data)->Signature, fil);
-							break;
+							{
+								fld = ((MemberReference*)tok->Data)->Resolved.Field;
+								sig = FieldSignature_Expand(fld->Signature, fld->File);
+								TypeDefinition* tdef = fld->TypeDefinition;
+								bool_t Found = FALSE;
+								for (uint32_t i = 0; i < tdef->FieldListCount; i++)
+								{
+									if (!strcmp(fld->Name, tdef->FieldList[i].Name))
+									{
+										if (Signature_Equals(fld->Signature, fld->SignatureLength, tdef->FieldList[i].Signature, tdef->FieldList[i].SignatureLength))
+										{
+											IRFieldSpec* spec = IRFieldSpec_Create();
+											spec->FieldIndex = i;
+											spec->ParentType = tdef->File->Assembly->Types[tdef->TableIndex - 1];
+											spec->FieldType = GetIRTypeOfSignatureType(dom, tdef->File, tdef->File->Assembly, sig->Type);
+											EMIT_IR_1ARG(IROpCode_Store_Field, spec);
+											Found = TRUE;
+											break;
+										}
+									}
+								}
+								FieldSignature_Destroy(sig);
+								if (!Found)
+									Panic("Unable to resolve field!");
+								break;
+							}
 
 						default:
 							printf("Table: 0x%x\n", (unsigned int)tok->Table);
@@ -2524,9 +2721,12 @@ Branch_Common:
 							break;
 
 						case MetaData_Table_MemberReference:
-							//printf("Don't deal with this yet! Load Static Field with table index: 0x%x\n", (unsigned int)tok->Table);
-							sig = FieldSignature_Expand(((MemberReference*)tok->Data)->Signature, fil);
-							break;
+							{
+								Field* field = ((MemberReference*)tok->Data)->Resolved.Field;
+								sig = FieldSignature_Expand(field->Signature, field->File);
+								EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Load_Static_Field, field->File->Assembly->Fields[field->TableIndex - 1]);
+								break;
+							}
 
 						default:
 							printf("Table: 0x%x\n", (unsigned int)tok->Table);
@@ -2571,9 +2771,12 @@ Branch_Common:
 							break;
 
 						case MetaData_Table_MemberReference:
-							//printf("Don't deal with this yet! Load Static Field with table index: 0x%x\n", (unsigned int)tok->Table);
-							sig = FieldSignature_Expand(((MemberReference*)tok->Data)->Signature, fil);
-							break;
+							{
+								Field* field = ((MemberReference*)tok->Data)->Resolved.Field;
+								sig = FieldSignature_Expand(field->Signature, field->File);
+								EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Load_Static_Field_Address, field->File->Assembly->Fields[field->TableIndex - 1]);
+								break;
+							}
 
 						default:
 							printf("Table: 0x%x\n", (unsigned int)tok->Table);
@@ -2618,9 +2821,12 @@ Branch_Common:
 							break;
 
 						case MetaData_Table_MemberReference:
-							//printf("Don't deal with this yet! Load Static Field with table index: 0x%x\n", (unsigned int)tok->Table);
-							sig = FieldSignature_Expand(((MemberReference*)tok->Data)->Signature, fil);
-							break;
+							{
+								Field* field = ((MemberReference*)tok->Data)->Resolved.Field;
+								sig = FieldSignature_Expand(field->Signature, field->File);
+								EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Store_Static_Field, field->File->Assembly->Fields[field->TableIndex - 1]);
+								break;
+							}
 
 						default:
 							printf("Table: 0x%x\n", (unsigned int)tok->Table);
@@ -2669,6 +2875,19 @@ Branch_Common:
 							EMIT_IR_2ARG_DISPOSE__NO_DISPOSE(IROpCode_Load_Object, et, type);
 							break;
 						}
+						case MetaData_Table_TypeReference:
+						{
+							TypeDefinition* typeDef = ((TypeReference*)tok->Data)->ResolvedType;
+		                    ElementType* et = (ElementType*)malloc(sizeof(ElementType));
+							GetElementTypeFromTypeDef(typeDef, dom, et);
+							SetObjectTypeFromElementType(obj, *et);
+							IRType* type = typeDef->File->Assembly->Types[typeDef->TableIndex - 1];
+							EMIT_IR_2ARG_DISPOSE__NO_DISPOSE(IROpCode_Load_Object, et, type);
+							break;
+						}
+						case MetaData_Table_TypeSpecification:
+							printf("Not Sure what to do here!\n");
+							break;
 						default:
 							Panic("Unknown table for LdObj!");
 							break;
@@ -2693,6 +2912,15 @@ Branch_Common:
 		                    ElementType* et = (ElementType*)malloc(sizeof(ElementType));
 							GetElementTypeFromTypeDef(typeDef, dom, et);
 							IRType* type = asmbly->Types[typeDef->TableIndex - 1];
+							EMIT_IR_2ARG_DISPOSE__NO_DISPOSE(IROpCode_Store_Object, et, type);
+							break;
+						}
+						case MetaData_Table_TypeReference:
+						{
+							TypeDefinition* typeDef = ((TypeReference*)tok->Data)->ResolvedType;
+		                    ElementType* et = (ElementType*)malloc(sizeof(ElementType));
+							GetElementTypeFromTypeDef(typeDef, dom, et);
+							IRType* type = typeDef->File->Assembly->Types[typeDef->TableIndex - 1];
 							EMIT_IR_2ARG_DISPOSE__NO_DISPOSE(IROpCode_Store_Object, et, type);
 							break;
 						}
@@ -2728,6 +2956,18 @@ Branch_Common:
 							EMIT_IR_2ARG_DISPOSE__NO_DISPOSE(IROpCode_Copy_Object, et, type);
 							break;
 						}
+						case MetaData_Table_TypeReference:
+						{
+							TypeDefinition* typeDef = ((TypeReference*)tok->Data)->ResolvedType;
+		                    ElementType* et = (ElementType*)malloc(sizeof(ElementType));
+							GetElementTypeFromTypeDef(typeDef, dom, et);
+							IRType* type = typeDef->File->Assembly->Types[typeDef->TableIndex - 1];
+							EMIT_IR_2ARG_DISPOSE__NO_DISPOSE(IROpCode_Copy_Object, et, type);
+							break;
+						}
+						case MetaData_Table_TypeSpecification:
+							printf("Not Sure what to do here!\n");
+							break;
 						default:
 							Panic("Unknown Table for CpObj!");
 							break;
@@ -2803,7 +3043,14 @@ Branch_Common:
 					{
 						case MetaData_Table_TypeDefinition:
 						{
-							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Load_Element_Address, (void*)tok->Data);
+							TypeDefinition* typeDef = (TypeDefinition*)tok->Data;
+							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Load_Element_Address, (void*)asmbly->Types[typeDef->TableIndex - 1]);
+							break;
+						}
+						case MetaData_Table_TypeReference:
+						{
+							TypeDefinition* typeDef = ((TypeReference*)tok->Data)->ResolvedType;
+							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Load_Element_Address, (void*)typeDef->File->Assembly->Types[typeDef->TableIndex - 1]);
 							break;
 						}
 						case MetaData_Table_TypeSpecification:
@@ -2867,10 +3114,22 @@ Branch_Common:
 					{
 						case MetaData_Table_TypeDefinition:
 						{
+							TypeDefinition* typeDef = (TypeDefinition*)tok->Data;
 							ElementType tp = ElementType_Ref;
-							GetElementTypeFromTypeDef((TypeDefinition*)tok->Data, dom, &tp);
+							GetElementTypeFromTypeDef(typeDef, dom, &tp);
 							SetObjectTypeFromElementType(obj, tp);
-							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Load_Element_Evil, (void*)tok->Data);
+
+							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Load_Element_Evil, (void*)asmbly->Types[typeDef->TableIndex - 1]);
+							break;
+						}
+						case MetaData_Table_TypeReference:
+						{
+							TypeDefinition* typeDef = ((TypeReference*)tok->Data)->ResolvedType;
+							ElementType tp = ElementType_Ref;
+							GetElementTypeFromTypeDef(typeDef, dom, &tp);
+							SetObjectTypeFromElementType(obj, tp);
+
+							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Load_Element_Evil, (void*)typeDef->File->Assembly->Types[typeDef->TableIndex - 1]);
 							break;
 						}
 						case MetaData_Table_TypeSpecification:
@@ -2912,13 +3171,20 @@ Branch_Common:
 
             case ILOpCode_StElem:			// 0xA4
 				{
-					Log_WriteLine(LogFlags_ILReading, "Read NI-StElem");
+					Log_WriteLine(LogFlags_ILReading, "Read NFI-StElem");
 					MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
 					switch(tok->Table)
 					{
 						case MetaData_Table_TypeDefinition:
 						{
-							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Store_Element_Evil, (void*)tok->Data);
+							TypeDefinition* typeDef = (TypeDefinition*)tok->Data;
+							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Store_Element_Evil, (void*)asmbly->Types[typeDef->TableIndex - 1]);
+							break;
+						}
+						case MetaData_Table_TypeReference:
+						{
+							TypeDefinition* typeDef = ((TypeReference*)tok->Data)->ResolvedType;
+							EMIT_IR_1ARG_NO_DISPOSE(IROpCode_Store_Element_Evil, (void*)typeDef->File->Assembly->Types[typeDef->TableIndex - 1]);
 							break;
 						}
 						case MetaData_Table_TypeSpecification:
@@ -3088,6 +3354,13 @@ Branch_Common:
 										method = asmbly->Methods[methodDef->TableIndex - 1];
 										break;
 									}
+								case MetaData_Table_MemberReference:
+									{
+										MemberReference* membRef = (MemberReference*)tok->Data;
+										MethodDefinition* methodDef = membRef->Resolved.MethodDefinition;
+										method = methodDef->File->Assembly->Methods[methodDef->TableIndex - 1];
+										break;
+									}
 								default:
 									Panic("Unknown Table for LdFtn");
 									break;
@@ -3116,6 +3389,12 @@ Branch_Common:
 										mthDef = (MethodDefinition*)tok->Data;
 										break;
 									}
+								case MetaData_Table_MemberReference:
+									{
+										MemberReference* membRef = (MemberReference*)tok->Data;
+										mthDef = membRef->Resolved.MethodDefinition;
+										break;
+									}
 								default:
 									Panic("Unknown Table for LdVirtFtn");
 									break;
@@ -3126,7 +3405,7 @@ Branch_Common:
 							{
 								IRMethodSpec* mthSpec = IRMethodSpec_Create();
 								Log_WriteLine(LogFlags_ILReading, "Looking for Method %s.%s.%s from table index %i", mthDef->TypeDefinition->Namespace, mthDef->TypeDefinition->Name, mthDef->Name, (int)mthDef->TableIndex);
-								mthSpec->ParentType = asmbly->Types[mthDef->TypeDefinition->TableIndex - 1];
+								mthSpec->ParentType = mthDef->File->Assembly->Types[mthDef->TypeDefinition->TableIndex - 1];
 								bool_t FoundMethod = FALSE;
 								for (uint32_t i = 0; i < mthSpec->ParentType->MethodCount; i++)
 								{
@@ -3303,6 +3582,12 @@ Branch_Common:
 										type = asmbly->Types[typeDef->TableIndex - 1];
 										break;
 									}
+								case MetaData_Table_TypeReference:
+									{
+										TypeReference* typeRef = (TypeReference*)tok->Data;
+										type = typeRef->ResolvedType->File->Assembly->Types[typeRef->ResolvedType->TableIndex - 1];
+										break;
+									}
 								case MetaData_Table_TypeSpecification:
 									{
 										printf("InitObj requires TypeSpecification lookup\n");
@@ -3341,6 +3626,12 @@ Branch_Common:
 									{
 										TypeDefinition* typeDef = (TypeDefinition*)tok->Data;
 										type = asmbly->Types[typeDef->TableIndex - 1];
+										break;
+									}
+								case MetaData_Table_TypeReference:
+									{
+										TypeReference* typeRef = (TypeReference*)tok->Data;
+										type = typeRef->ResolvedType->File->Assembly->Types[typeRef->ResolvedType->TableIndex - 1];
 										break;
 									}
 								case MetaData_Table_TypeSpecification:
@@ -3429,7 +3720,7 @@ ALWAYS_INLINE uint64_t ReadUInt64(uint8_t** dat)
 
 ALWAYS_INLINE void GetElementTypeFromTypeDef(TypeDefinition* tdef, AppDomain* dom, ElementType* dst)
 {
-	if (tdef->Flags & TypeAttributes_Class)
+	if ((tdef->Flags & TypeAttributes_Interface) == 0)
 	{
 		*dst = ElementType_Ref;
 	}
@@ -3582,6 +3873,72 @@ ALWAYS_INLINE void SetTypeOfStackObjectFromSigElementType(StackObject* obj, Sign
 								if (!strcmp(fld->Name, "value__")) 
 								{ 
 									FieldSignature* sig2 = FieldSignature_Expand(fld->Signature, fil); 
+									switch (sig2->Type->ElementType) 
+									{ 
+										case Signature_ElementType_I1: 
+											Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type I1"); 
+											obj->NumericType = StackObjectNumericType_Int8; 
+											obj->Type = StackObjectType_Int32; 
+											break; 
+										case Signature_ElementType_I2: 
+											Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type I2"); 
+											obj->NumericType = StackObjectNumericType_Int16; 
+											obj->Type = StackObjectType_Int32; 
+											break; 
+										case Signature_ElementType_I4: 
+											Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type I4"); 
+											obj->NumericType = StackObjectNumericType_Int32; 
+											obj->Type = StackObjectType_Int32; 
+											break; 
+										case Signature_ElementType_I8: 
+											Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type I8"); 
+											obj->NumericType = StackObjectNumericType_Int64; 
+											obj->Type = StackObjectType_Int64; 
+											break; 
+										case Signature_ElementType_U1: 
+											Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type U1"); 
+											obj->NumericType = StackObjectNumericType_UInt8; 
+											obj->Type = StackObjectType_Int32; 
+											break;
+										case Signature_ElementType_U2: 
+											Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type U2"); 
+											obj->NumericType = StackObjectNumericType_UInt16; 
+											obj->Type = StackObjectType_Int32; 
+											break; 
+										case Signature_ElementType_U4: 
+											Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type U4"); 
+											obj->NumericType = StackObjectNumericType_UInt32; 
+											obj->Type = StackObjectType_Int32; 
+											break; 
+										case Signature_ElementType_U8: 
+											Log_WriteLine(LogFlags_ILReading_ElementTypes, "Element Type U8"); 
+											obj->NumericType = StackObjectNumericType_UInt64; 
+											obj->Type = StackObjectType_Int64; 
+											break; 
+										default:
+											Panic("Invalid value type for Enum!");
+									}
+									FieldSignature_Destroy(sig2); 
+									break; 
+								} 
+							} 
+						} 
+						else 
+						{ 
+							obj->NumericType = StackObjectNumericType_DataType; 
+							obj->Type = StackObjectType_DataType; 
+						} 
+					} 
+					else if (tdef->TypeOfExtends == TypeDefOrRef_Type_TypeReference) 
+					{ 
+						if (tdef->Extends.TypeReference->ResolvedType == dom->CachedType___System_Enum) 
+						{ 
+							for (uint32_t i = 0; i < tdef->FieldListCount; i++) 
+							{ 
+								Field* fld = &(tdef->FieldList[i]); 
+								if (!strcmp(fld->Name, "value__")) 
+								{ 
+									FieldSignature* sig2 = FieldSignature_Expand(fld->Signature, tdef->Extends.TypeReference->ResolvedType->File); 
 									switch (sig2->Type->ElementType) 
 									{ 
 										case Signature_ElementType_I1: 
@@ -4007,6 +4364,21 @@ ALWAYS_INLINE bool_t IsStruct(TypeDefinition* tdef, AppDomain* dom)
 			return TRUE;
 		}
 		else if (tdef->Extends.TypeDefinition == dom->CachedType___System_ValueType)
+		{
+			return TRUE;
+		}
+		else
+		{
+			return FALSE;
+		}
+	}
+	else if (tdef->TypeOfExtends == TypeDefOrRef_Type_TypeReference) 
+	{ 
+		if (tdef->Extends.TypeReference->ResolvedType == dom->CachedType___System_Enum) 
+		{ 
+			return TRUE;
+		}
+		else if (tdef->Extends.TypeReference->ResolvedType == dom->CachedType___System_ValueType)
 		{
 			return TRUE;
 		}

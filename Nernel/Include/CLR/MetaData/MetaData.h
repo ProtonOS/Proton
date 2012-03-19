@@ -264,7 +264,7 @@ typedef struct _GenericParameterConstraint GenericParameterConstraint;
 #define EventAttributes_RTSpecialName                                   0x0400
 
 #define FieldAttributes_FieldAccessMask                                 0x0007
-#define FieldAttributes_CompilerControlled                              0x0000
+//#define FieldAttributes_CompilerControlled                              0x0000
 #define FieldAttributes_Private                                         0x0001
 #define FieldAttributes_FamilyAndAssembly                               0x0002
 #define FieldAttributes_Assembly                                        0x0003
@@ -282,11 +282,11 @@ typedef struct _GenericParameterConstraint GenericParameterConstraint;
 #define FieldAttributes_HasDefault                                      0x8000
 #define FieldAttributes_HasFieldRVA                                     0x0100
 
-#define FileAttributes_ContainsMetaData                                 0x0000
+//#define FileAttributes_ContainsMetaData                                 0x0000
 #define FileAttributes_ContainsNoMetaData                               0x0001
 
 #define GenericParameterAttributes_VarianceMask                         0x0003
-#define GenericParameterAttributes_None                                 0x0000
+//#define GenericParameterAttributes_None                                 0x0000
 #define GenericParameterAttributes_Covariant                            0x0001
 #define GenericParameterAttributes_Contravariant                        0x0002
 #define GenericParameterAttributes_SpecialConstraintMask                0x001C
@@ -296,7 +296,7 @@ typedef struct _GenericParameterConstraint GenericParameterConstraint;
 
 #define PInvokeAttributes_NoMangle                                      0x0001
 #define PInvokeAttributes_CharacterSetMask                              0x0006
-#define PInvokeAttributes_CharacterSetNotSpecified                      0x0000
+//#define PInvokeAttributes_CharacterSetNotSpecified                      0x0000
 #define PInvokeAttributes_CharacterSetAnsi                              0x0002
 #define PInvokeAttributes_CharacterSetUnicode                           0x0004
 #define PInvokeAttributes_CharacterSetAuto                              0x0006
@@ -313,7 +313,7 @@ typedef struct _GenericParameterConstraint GenericParameterConstraint;
 #define ManifestResourceAttributes_Private                              0x0002
 
 #define MethodAttributes_MemberAccessMask                               0x0007
-#define MethodAttributes_CompilerControlled                             0x0000
+//#define MethodAttributes_CompilerControlled                             0x0000
 #define MethodAttributes_Private                                        0x0001
 #define MethodAttributes_FamilyAndAssembly                              0x0002
 #define MethodAttributes_Assembly                                       0x0003
@@ -325,7 +325,7 @@ typedef struct _GenericParameterConstraint GenericParameterConstraint;
 #define MethodAttributes_Virtual                                        0x0040
 #define MethodAttributes_HideBySignature                                0x0080
 #define MethodAttributes_VTableLayoutMask                               0x0100
-#define MethodAttributes_ReuseSlot                                      0x0000
+//#define MethodAttributes_ReuseSlot                                      0x0000
 #define MethodAttributes_NewSlot                                        0x0100
 #define MethodAttributes_Strict                                         0x0200
 #define MethodAttributes_Abstract                                       0x0400
@@ -337,13 +337,13 @@ typedef struct _GenericParameterConstraint GenericParameterConstraint;
 #define MethodAttributes_RequireSecurityObject                          0x8000
 
 #define MethodImplAttributes_CodeTypeMask                     0x0003
-#define MethodImplAttributes_IL                               0x0000
+//#define MethodImplAttributes_IL                               0x0000
 #define MethodImplAttributes_Native                           0x0001
 #define MethodImplAttributes_OPTIL                            0x0002
 #define MethodImplAttributes_Runtime                          0x0003
 #define MethodImplAttributes_ManagedMask                      0x0004
 #define MethodImplAttributes_Unmanaged                        0x0004
-#define MethodImplAttributes_Managed                          0x0000
+//#define MethodImplAttributes_Managed                          0x0000
 #define MethodImplAttributes_ForwardReference                 0x0010
 #define MethodImplAttributes_PreserveSignature                0x0080
 #define MethodImplAttributes_InternalCall                     0x1000
@@ -381,11 +381,11 @@ typedef struct _GenericParameterConstraint GenericParameterConstraint;
 #define TypeAttributes_NestedFamilyAndAssembly                          0x00000006
 #define TypeAttributes_NestedFamilyOrAssembly                           0x00000007
 #define TypeAttributes_LayoutMask                                       0x00000018
-#define TypeAttributes_AutoLayout                                       0x00000000
+//#define TypeAttributes_AutoLayout                                       0x00000000
 #define TypeAttributes_SequentialLayout                                 0x00000008
 #define TypeAttributes_ExplicitLayout                                   0x00000010
 #define TypeAttributes_ClassSemanticsMask                               0x00000020
-#define TypeAttributes_Class                                            0x00000000
+//#define TypeAttributes_Class                                            0x00000000
 #define TypeAttributes_Interface                                        0x00000020
 #define TypeAttributes_Abstract                                         0x00000080
 #define TypeAttributes_Sealed                                           0x00000100
@@ -393,7 +393,7 @@ typedef struct _GenericParameterConstraint GenericParameterConstraint;
 #define TypeAttributes_Import                                           0x00001000
 #define TypeAttributes_Serializable                                     0x00002000
 #define TypeAttributes_StringFormatMask                                 0x00030000
-#define TypeAttributes_AnsiClass                                        0x00000000
+//#define TypeAttributes_AnsiClass                                        0x00000000
 #define TypeAttributes_UnicodeClass                                     0x00010000
 #define TypeAttributes_AutoClass                                        0x00020000
 #define TypeAttributes_CustomFormatClass                                0x00030000
