@@ -77,6 +77,8 @@ char* JIT_Compile_InitObject				(IRInstruction* instr, char* compMethod, IRMetho
 char* JIT_Compile_SizeOf					(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry);
 char* JIT_Compile_LoadFunction				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry);
 char* JIT_Compile_LoadVirtualFunction		(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry);
+char* JIT_Compile_Copy_Block				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry);
+char* JIT_Compile_Init_Block				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry);
 
 char* JIT_Compile_Call						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry);
 char* JIT_Compile_Call_Absolute				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry);

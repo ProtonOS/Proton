@@ -3143,6 +3143,22 @@ char* JIT_Compile_LoadVirtualFunction		(IRInstruction* instr, char* compMethod, 
 	return compMethod;
 }
 
+char* JIT_Compile_Copy_Block				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
+{
+	x86_call_code(compMethod, memcpy);
+	x86_adjust_stack(compMethod, 12);
+	
+	return compMethod;
+}
+
+char* JIT_Compile_Init_Block				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
+{
+	x86_call_code(compMethod, memset);
+	x86_adjust_stack(compMethod, 12);
+
+	return compMethod;
+}
+
 
 
 char* JIT_Compile_NewArray					(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)

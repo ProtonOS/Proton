@@ -1390,6 +1390,46 @@ typedef enum IROpCode
 
      */
     IROpCode_Load_Virtual_Function,
+    /*
+		Copies the bytes from the destination address
+		about to be almost at the top of the stack to
+		the source address almost at the top of the
+		stack, using the size at the top of the stack.
+		
+        Arg1:
+			N/A
+
+        Arg2:
+			N/A
+
+        Arg3:
+			N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_Copy_Block,
+    /*
+		Sets the bytes from the destination address
+		about to be almost at the top of the stack to
+		the byte value almost at the top of the
+		stack, using the size at the top of the stack.
+		
+        Arg1:
+			N/A
+
+        Arg2:
+			N/A
+
+        Arg3:
+			N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_Init_Block,
 } IROpCode;
 
 

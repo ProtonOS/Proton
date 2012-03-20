@@ -3603,7 +3603,7 @@ Branch_Common:
                         break;
                     case ILOpCodes_Extended_InitObj:		// 0x15
 						{
-							Log_WriteLine(LogFlags_ILReading, "Read InitObj");
+							Log_WriteLine(LogFlags_ILReading, "Read NFI-InitObj");
 							StackObject* obj = SyntheticStack_Pop(stack);
 							ElementType* et = (ElementType*)malloc(sizeof(ElementType));
 							GetElementTypeOfStackObject(et, obj);
@@ -3639,13 +3639,25 @@ Branch_Common:
 							break;
 						}
                     case ILOpCodes_Extended_CpBlk:			// 0x17
-                        DefineUnSupportedOpCode(CpBlk);
-                        ClearFlags();
-                        break;
+						{
+							Log_WriteLine(LogFlags_ILReading, "Read CpBlk");
+							StackObjectPool_Release(SyntheticStack_Pop(stack));
+							StackObjectPool_Release(SyntheticStack_Pop(stack));
+							StackObjectPool_Release(SyntheticStack_Pop(stack));
+							EMIT_IR(IROpCode_Copy_Block);
+							ClearFlags();
+							break;
+						}
                     case ILOpCodes_Extended_InitBlk:		// 0x18
-                        DefineUnSupportedOpCode(InitBlk);
-                        ClearFlags();
-                        break;
+						{
+							Log_WriteLine(LogFlags_ILReading, "Read InitBlk");
+							StackObjectPool_Release(SyntheticStack_Pop(stack));
+							StackObjectPool_Release(SyntheticStack_Pop(stack));
+							StackObjectPool_Release(SyntheticStack_Pop(stack));
+							EMIT_IR(IROpCode_Init_Block);
+							ClearFlags();
+							break;
+						}
                     case ILOpCodes_Extended_ReThrow:		// 0x1A
 						DefineUnSupportedOpCode(ReThrow);
 						ClearFlags();
@@ -3653,7 +3665,7 @@ Branch_Common:
                     // 0x1B Doesn't exist
                     case ILOpCodes_Extended_SizeOf:			// 0x1C
                         {	
-							Log_WriteLine(LogFlags_ILReading, "Read SizeOf");
+							Log_WriteLine(LogFlags_ILReading, "Read NFI-SizeOf");
 							IRType* type = NULL;
 							MetaDataToken* tok = CLIFile_ResolveToken(fil, ReadUInt32(dat));
 							switch (tok->Table)

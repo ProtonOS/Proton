@@ -229,6 +229,12 @@ void JIT_CompileMethod(IRMethod* mthd)
 			case IROpCode_Load_Virtual_Function:
 				compMthd = JIT_Compile_LoadVirtualFunction		(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
 				break;
+			case IROpCode_Copy_Block:
+				compMthd = JIT_Compile_Copy_Block				(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
+				break;
+			case IROpCode_Init_Block:
+				compMthd = JIT_Compile_Init_Block				(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
+				break;
 			case IROpCode_Call:
 				compMthd = JIT_Compile_Call						(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
 				break;
