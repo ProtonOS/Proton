@@ -321,9 +321,12 @@ char* JIT_Emit_Prologue(IRMethod* mth, char* compMethod)
 	if (localsSize > 0)
 	{
 		x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, (unsigned int)(localsSize));
-		for (uint32_t count = 0; count < localsSize; count += 4)
+		if (mth->MethodDefinition->Body.Flags & MethodDefinitionBody_Fat_Flags_InitializeLocals)
 		{
-			x86_mov_membase_imm(compMethod, X86_ESP, count, 0, 4);
+			for (uint32_t count = 0; count < localsSize; count += 4)
+			{
+				x86_mov_membase_imm(compMethod, X86_ESP, count, 0, 4);
+			}
 		}
 	}
 
@@ -3195,7 +3198,7 @@ char* JIT_Compile_NewObject					(IRInstruction* instr, char* compMethod, IRMetho
 			paramsSize -= 8; // For stack frame and return pointer
 			//printf("NewObj: LastParam Offset %u + %u Size\n", (unsigned int)method->Parameters[method->ParameterCount - 1]->Offset, (unsigned int)method->Parameters[method->ParameterCount - 1]->Size);
 		}
-		x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, paramsSize);
+		x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, paramsSize + global_SizeOfPointerInBytes);
 		x86_push_reg(compMethod, X86_EAX);
 	}
 	else // Strings return their new obj from constructor

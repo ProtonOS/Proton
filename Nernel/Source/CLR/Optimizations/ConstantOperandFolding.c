@@ -167,7 +167,7 @@ void IROptimizer_ConstantOperandFolding(IRMethod* mth)
 	for (uint32_t i = 0; i < mth->IRCodesCount; i++)
 	{
 		IRInstruction* instr = mth->IRCodes[i];
-		//printf("Constant folding for op-code: %i\n", (int)instr->OpCode);
+		printf("Constant folding for op-code: %i\n", (int)instr->OpCode);
 		switch(instr->OpCode)
 		{
 			case IROpCode_LoadInt32_Val:
@@ -236,7 +236,7 @@ void IROptimizer_ConstantOperandFolding(IRMethod* mth)
 						break;
 					
 					case IROpCode_NewObject:
-						popCount = (((IRMethod*)instr->Arg1)->ParameterCount);
+						popCount = (((IRMethod*)instr->Arg1)->ParameterCount) - 1;
 						break;
 
 					case IROpCode_Call:

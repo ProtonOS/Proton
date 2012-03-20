@@ -102,19 +102,17 @@ IRAssembly* ILReader_CreateAssembly(CLIFile* fil, AppDomain* dom)
 	asmbly->ParentFile = fil;
 	fil->Assembly = asmbly;
 	
-	for (uint32_t i = 1; i <= fil->FieldCount; i++)
-	{
-		IRAssembly_AddField(asmbly, GenerateField(&fil->Fields[i], fil, asmbly, dom));
-	}
-
-	printf("Loaded Fields\n");
-
 	for (uint32_t i = 1; i <= fil->TypeDefinitionCount; i++)
 	{
 		IRAssembly_AddType(asmbly, GenerateType(&fil->TypeDefinitions[i], fil, asmbly, dom));
 	}
-	
 	printf("Loaded Types\n");
+	
+	for (uint32_t i = 1; i <= fil->FieldCount; i++)
+	{
+		IRAssembly_AddField(asmbly, GenerateField(&fil->Fields[i], fil, asmbly, dom));
+	}
+	printf("Loaded Fields\n");
 
     for (uint32_t i = 1; i <= fil->MethodDefinitionCount; i++)
     {
@@ -154,97 +152,135 @@ IRField* GenerateField(Field* def, CLIFile* fil, IRAssembly* asmb, AppDomain* do
 	fld->FieldDef = def;
 	fld->ParentType = (IRType*)def->TypeDefinition;
 	FieldSignature* sig = FieldSignature_Expand(def->Signature, fil);
-	switch(sig->Type->ElementType)
-	{
-		case Signature_ElementType_Boolean:
-			fld->FieldType = (IRType*)dom->CachedType___System_Boolean;
-			break;
-		case Signature_ElementType_Char:
-			fld->FieldType = (IRType*)dom->CachedType___System_Char;
-			break;
-		case Signature_ElementType_I1:
-			fld->FieldType = (IRType*)dom->CachedType___System_SByte;
-			break;
-		case Signature_ElementType_I2:
-			fld->FieldType = (IRType*)dom->CachedType___System_Int16;
-			break;
-		case Signature_ElementType_I4:
-			fld->FieldType = (IRType*)dom->CachedType___System_Int32;
-			break;
-		case Signature_ElementType_I8:
-			fld->FieldType = (IRType*)dom->CachedType___System_Int64;
-			break;
-		case Signature_ElementType_IPointer:
-			fld->FieldType = (IRType*)dom->CachedType___System_IntPtr;
-			break;
-		case Signature_ElementType_U1:
-			fld->FieldType = (IRType*)dom->CachedType___System_Byte;
-			break;
-		case Signature_ElementType_U2:
-			fld->FieldType = (IRType*)dom->CachedType___System_UInt16;
-			break;
-		case Signature_ElementType_U4:
-			fld->FieldType = (IRType*)dom->CachedType___System_UInt32;
-			break;
-		case Signature_ElementType_U8:
-			fld->FieldType = (IRType*)dom->CachedType___System_UInt64;
-			break;
-		case Signature_ElementType_UPointer:
-			fld->FieldType = (IRType*)dom->CachedType___System_UIntPtr;
-			break;
-		case Signature_ElementType_R4:
-			fld->FieldType = (IRType*)dom->CachedType___System_Single;
-			break;
-		case Signature_ElementType_R8:
-			fld->FieldType = (IRType*)dom->CachedType___System_Double;
-			break;
+	fld->FieldType = GetIRTypeOfSignatureType(dom, fil, asmb, sig->Type);
+	//switch(sig->Type->ElementType)
+	//{
+	//	case Signature_ElementType_Boolean:
+	//		fld->FieldType = dom->CachedType___System_Boolean->File->Assembly->Types[dom->CachedType___System_Boolean->TableIndex - 1];
+	//		break;
+	//	case Signature_ElementType_Char:
+	//		fld->FieldType = dom->CachedType___System_Char->File->Assembly->Types[dom->CachedType___System_Char->TableIndex - 1];
+	//		break;
+	//	case Signature_ElementType_I1:
+	//		fld->FieldType = dom->CachedType___System_SByte->File->Assembly->Types[dom->CachedType___System_SByte->TableIndex - 1];
+	//		fld->FieldType = (IRType*)dom->CachedType___System_SByte;
+	//		break;
+	//	case Signature_ElementType_I2:
+	//		fld->FieldType = dom->CachedType___System_Int16->File->Assembly->Types[dom->CachedType___System_Int16->TableIndex - 1];
+	//		fld->FieldType = (IRType*)dom->CachedType___System_Int16;
+	//		break;
+	//	case Signature_ElementType_I4:
+	//		fld->FieldType = dom->CachedType___System_Int32->File->Assembly->Types[dom->CachedType___System_Int32->TableIndex - 1];
+	//		fld->FieldType = (IRType*)dom->CachedType___System_Int32;
+	//		break;
+	//	case Signature_ElementType_I8:
+	//		fld->FieldType = dom->CachedType___System_Int64->File->Assembly->Types[dom->CachedType___System_Int64->TableIndex - 1];
+	//		fld->FieldType = (IRType*)dom->CachedType___System_Int64;
+	//		break;
+	//	case Signature_ElementType_IPointer:
+	//		fld->FieldType = dom->CachedType___System_IntPtr->File->Assembly->Types[dom->CachedType___System_IntPtr->TableIndex - 1];
+	//		fld->FieldType = (IRType*)dom->CachedType___System_IntPtr;
+	//		break;
+	//	case Signature_ElementType_U1:
+	//		fld->FieldType = dom->CachedType___System_Byte->File->Assembly->Types[dom->CachedType___System_Byte->TableIndex - 1];
+	//		fld->FieldType = (IRType*)dom->CachedType___System_Byte;
+	//		break;
+	//	case Signature_ElementType_U2:
+	//		fld->FieldType = dom->CachedType___System_UInt16->File->Assembly->Types[dom->CachedType___System_UInt16->TableIndex - 1];
+	//		fld->FieldType = (IRType*)dom->CachedType___System_UInt16;
+	//		break;
+	//	case Signature_ElementType_U4:
+	//		fld->FieldType = dom->CachedType___System_UInt32->File->Assembly->Types[dom->CachedType___System_UInt32->TableIndex - 1];
+	//		fld->FieldType = (IRType*)dom->CachedType___System_UInt32;
+	//		break;
+	//	case Signature_ElementType_U8:
+	//		fld->FieldType = dom->CachedType___System_UInt64->File->Assembly->Types[dom->CachedType___System_UInt64->TableIndex - 1];
+	//		fld->FieldType = (IRType*)dom->CachedType___System_UInt64;
+	//		break;
+	//	case Signature_ElementType_UPointer:
+	//		fld->FieldType = dom->CachedType___System_UIntPtr->File->Assembly->Types[dom->CachedType___System_UIntPtr->TableIndex - 1];
+	//		fld->FieldType = (IRType*)dom->CachedType___System_UIntPtr;
+	//		break;
+	//	case Signature_ElementType_R4:
+	//		fld->FieldType = dom->CachedType___System_Single->File->Assembly->Types[dom->CachedType___System_Single->TableIndex - 1];
+	//		fld->FieldType = (IRType*)dom->CachedType___System_Single;
+	//		break;
+	//	case Signature_ElementType_R8:
+	//		fld->FieldType = dom->CachedType___System_Double->File->Assembly->Types[dom->CachedType___System_Double->TableIndex - 1];
+	//		fld->FieldType = (IRType*)dom->CachedType___System_Double;
+	//		break;
 
-		case Signature_ElementType_String:
-			fld->FieldType = (IRType*)dom->CachedType___System_String;
-			break;
-		case Signature_ElementType_Type:
-			fld->FieldType = (IRType*)dom->CachedType___System_Type;
-			break;
-		case Signature_ElementType_Object:
-			fld->FieldType = (IRType*)dom->CachedType___System_Object;
-			break;
-		case Signature_ElementType_Void:
-			fld->FieldType = (IRType*)dom->CachedType___System_Void;
-			break;
-		case Signature_ElementType_TypedByReference:
-			fld->FieldType = (IRType*)dom->CachedType___System_TypedReference;
-			break;
-		case Signature_ElementType_Array:
-			fld->FieldType = (IRType*)dom->CachedType___System_Array;
-			break;
-		case Signature_ElementType_ValueType:
-		case Signature_ElementType_Class:
-			{
-				MetaDataToken* tok = CLIFile_ResolveTypeDefOrRefOrSpecToken(fil, sig->Type->ClassTypeDefOrRefOrSpecToken);
-				switch (tok->Table)
-				{
-					case MetaData_Table_TypeDefinition:
-						{
-							fld->FieldType = (IRType*)((TypeDefinition*)tok->Data);
-							break;
-						}
-					case MetaData_Table_TypeReference:
-						{
-							fld->FieldType = (IRType*)(((TypeReference*)tok->Data)->ResolvedType);
-							break;
-						}
-					default:
-						Panic("Unknown table for class lookup");
-						break;
-				}
-				free(tok);
-				break;
-			}
+	//	case Signature_ElementType_String:
+	//		fld->FieldType = dom->CachedType___System_String->File->Assembly->Types[dom->CachedType___System_String->TableIndex - 1];
+	//		fld->FieldType = (IRType*)dom->CachedType___System_String;
+	//		break;
+	//	case Signature_ElementType_Type:
+	//		fld->FieldType = dom->CachedType___System_Type->File->Assembly->Types[dom->CachedType___System_Type->TableIndex - 1];
+	//		fld->FieldType = (IRType*)dom->CachedType___System_Type;
+	//		break;
+	//	case Signature_ElementType_Object:
+	//		fld->FieldType = dom->CachedType___System_Object->File->Assembly->Types[dom->CachedType___System_Object->TableIndex - 1];
+	//		fld->FieldType = (IRType*)dom->CachedType___System_Object;
+	//		break;
+	//	case Signature_ElementType_Void:
+	//		fld->FieldType = dom->CachedType___System_Void->File->Assembly->Types[dom->CachedType___System_Void->TableIndex - 1];
+	//		fld->FieldType = (IRType*)dom->CachedType___System_Void;
+	//		break;
+	//	case Signature_ElementType_TypedByReference:
+	//		fld->FieldType = dom->CachedType___System_TypedReference->File->Assembly->Types[dom->CachedType___System_TypedReference->TableIndex - 1];
+	//		fld->FieldType = (IRType*)dom->CachedType___System_TypedReference;
+	//		break;
+	//	case Signature_ElementType_Array:
+	//		fld->FieldType = dom->CachedType___System_Array->File->Assembly->Types[dom->CachedType___System_Array->TableIndex - 1];
+	//		fld->FieldType = (IRType*)dom->CachedType___System_Array;
+	//		break;
+	//	case Signature_ElementType_ValueType:
+	//	case Signature_ElementType_Class:
+	//		{
+	//			MetaDataToken* tok = CLIFile_ResolveTypeDefOrRefOrSpecToken(fil, sig->Type->ClassTypeDefOrRefOrSpecToken);
+	//			switch (tok->Table)
+	//			{
+	//				case MetaData_Table_TypeDefinition:
+	//					{
+	//						fld->FieldType = (IRType*)((TypeDefinition*)tok->Data);
+	//						break;
+	//					}
+	//				case MetaData_Table_TypeReference:
+	//					{
+	//						fld->FieldType = (IRType*)(((TypeReference*)tok->Data)->ResolvedType);
+	//						break;
+	//					}
+	//				default:
+	//					Panic("Unknown table for class lookup");
+	//					break;
+	//			}
+	//			free(tok);
+	//			break;
+	//		}
+	//		
+	//	case Signature_ElementType_SingleDimensionArray:
+	//	{
+	//		fld->FieldType = (IRType*)dom->CachedType___System_Array;
+	//		//IRType* sysArrayType = dom->IRAssemblies[0]->Types[dom->CachedType___System_Array->TableIndex - 1];
+	//		//IRType* elementType = GetIRTypeOfSignatureType(dom, fil, asmbly, tp->SZArrayType);
+	//		//IRType* arrayType = NULL;
+	//		//IRArrayType* lookupType = NULL;
+	//		//HASH_FIND(HashHandle, asmbly->ArrayTypesHashTable, (void*)&elementType, sizeof(void*), lookupType);
+	//		//if (!lookupType)
+	//		//{
+	//		//	arrayType = IRType_Create();
+	//		//	*arrayType = *sysArrayType; // Shallow copy everything first
+	//		//	arrayType->ArrayType = IRArrayType_Create(elementType, arrayType);
+	//		//	HASH_ADD(HashHandle, asmbly->ArrayTypesHashTable, ArrayElementType, sizeof(void*), arrayType->ArrayType);
+	//		//}
+	//		//else arrayType = lookupType->ArrayType;
+	//		//return arrayType;
+	//	}
 
-		default:
-			printf("Not setting the type of %s.%s!\n", def->TypeDefinition->Name, def->Name);
-			break;
-	}
+	//	default:
+	//		printf("Not setting the type of %s.%s!\n", def->TypeDefinition->Name, def->Name);
+	//		break;
+	//}
 	FieldSignature_Destroy(sig);
 	return fld;
 }
@@ -506,7 +542,7 @@ void Link(IRAssembly* asmb)
 	for (uint32_t i = 0; i < asmb->FieldCount; i++)
 	{
 		IRField* fld = asmb->Fields[i];
-		fld->FieldType = ((TypeDefinition*)fld->FieldType)->File->Assembly->Types[((TypeDefinition*)fld->FieldType)->TableIndex - 1];
+		//fld->FieldType = ((TypeDefinition*)fld->FieldType)->File->Assembly->Types[((TypeDefinition*)fld->FieldType)->TableIndex - 1];
 		fld->ParentType = ((TypeDefinition*)fld->ParentType)->File->Assembly->Types[((TypeDefinition*)fld->ParentType)->TableIndex - 1];
 	}
 		
@@ -3720,11 +3756,7 @@ ALWAYS_INLINE uint64_t ReadUInt64(uint8_t** dat)
 
 ALWAYS_INLINE void GetElementTypeFromTypeDef(TypeDefinition* tdef, AppDomain* dom, ElementType* dst)
 {
-	if ((tdef->Flags & TypeAttributes_Interface) == 0)
-	{
-		*dst = ElementType_Ref;
-	}
-	else if (
+	if (
 		(tdef == dom->CachedType___System_Byte)
 	||  (tdef == dom->CachedType___System_Boolean)
 	)
@@ -3777,6 +3809,10 @@ ALWAYS_INLINE void GetElementTypeFromTypeDef(TypeDefinition* tdef, AppDomain* do
 	else if (tdef == dom->CachedType___System_UIntPtr)
 	{
 		*dst = ElementType_U;
+	}
+	else if ((tdef->Flags & TypeAttributes_Interface) == 0)
+	{
+		*dst = ElementType_Ref;
 	}
 	else
 	{
@@ -4203,6 +4239,8 @@ ALWAYS_INLINE void CheckBinaryNumericOperandTypesAndSetResult(ElementType* Opera
 {
 	Log_WriteLine(LogFlags_ILReading_ElementTypes, "Operand A: 0x%x", (unsigned int)*OperandA); 
 	Log_WriteLine(LogFlags_ILReading_ElementTypes, "Operand B: 0x%x", (unsigned int)*OperandB);
+	//printf("Operand A: 0x%x\n", (unsigned int)*OperandA); 
+	//printf("Operand B: 0x%x\n", (unsigned int)*OperandB);
 	switch(*OperandA) 
 	{ 
 		case ElementType_U1: 

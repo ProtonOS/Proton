@@ -152,8 +152,8 @@ StackObject* SyntheticStack_Pop(SyntheticStack* stack)
 	if (stack->StackID != 1)
 	{
 		Log_WriteLine(LogFlags_SyntheticStack, "Stack: 0x%x", (unsigned int)stack->StackID);
-		Log_WriteLine(LogFlags_SyntheticStack, "Popped object to stack. Top Object Type: 0x%x", (unsigned int)obj->Type);
-		Log_WriteLine(LogFlags_SyntheticStack, "Popped object to stack. Top Object Numeric Type: 0x%x", (unsigned int)obj->NumericType);
+		Log_WriteLine(LogFlags_SyntheticStack, "Popped object from stack. Top Object Type: 0x%x", (unsigned int)obj->Type);
+		Log_WriteLine(LogFlags_SyntheticStack, "Popped object from stack. Top Object Numeric Type: 0x%x", (unsigned int)obj->NumericType);
 		Log_WriteLine(LogFlags_SyntheticStack, "Popped object from stack. Current number on stack: %i", (int)stack->StackDepth);
 	}
     return obj;
