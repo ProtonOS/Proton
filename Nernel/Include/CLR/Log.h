@@ -1,5 +1,5 @@
 #pragma once
-
+#include <stdio.h>
 // To disable logging, all
 // you have to do is uncomment
 // this line.
@@ -52,4 +52,13 @@ typedef enum LogFlags
 
 } LogFlags;
 
-void Log_WriteLine(LogFlags logCondition, char* fmt, ...);
+#ifndef NO_LOG
+#define Log_WriteLine(logCondition, ...) \
+	if (ActiveLogFlags & logCondition) \
+    { \
+        printf(__VA_ARGS__); \
+        printf("\n"); \
+    }
+#else
+#define Log_WriteLine(logCondition, ...)
+#endif

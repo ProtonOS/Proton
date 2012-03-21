@@ -78,7 +78,7 @@
 	Source/CLR/IRMethod_BranchLinker.c
 	Source/CLR/IROptimizer.c
 	Source/CLR/IRStructures.c
-	Source/CLR/Log.c
+#	Source/CLR/Log.c
 	Source/CLR/Metadata_Search.c
 	Source/CLR/PEFile.c
 	Source/CLR/ReferenceTypeObject.c
