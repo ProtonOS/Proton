@@ -7,6 +7,7 @@ IRAssembly* IRAssembly_Create(AppDomain* domain)
 {
     IRAssembly* asmb = (IRAssembly*)calloc(1, sizeof(IRAssembly));
 	asmb->ParentDomain = domain;
+	AppDomain_AddAssembly(domain, asmb);
     return asmb;
 }
 

@@ -5,32 +5,18 @@ namespace Mernel
 {
     internal static class Kernel
     {
-        private static uint[] barr = new uint[] 
-        {
-            0x000000FF, 0xFF000000
-        };
-
         private static void Main()
         {
-            //uint[] aarr = new uint[] 
-            //{
-            //    0x000000FF, 0xFF000000
-            //};
-            long ticks = DateTime.InternalUtcNow();
-            Console.WriteLine("Started @ " + ((ulong)ticks).ToString());
-            //Console.WriteLine("Mernel: Hello World!");
+            long startedAt = DateTime.InternalUtcNow();
+            Console.WriteLine("Started @ " + ((ulong)startedAt).ToString());
 
-            //Test t = new Test();
-            for (uint x = 0; x < 1000000; x++) ;
-            //Console.WriteLine("aarr[0] : " + aarr[0].ToString());
-            Console.WriteLine("barr[0] : " + barr[0].ToString());
-            //Console.WriteLine("carr[0] : " + t.carr[0].ToString());
-            //uint test = 0;
-            Console.WriteLine("barr[0] : " + barr[0].ToString());
-            //Console.WriteLine("test : " + test.ToString());
+            if (startedAt > 0) throw new Exception();
 
-            ticks = DateTime.InternalUtcNow();
-            Console.WriteLine("Finished @ " + ((ulong)ticks).ToString());
+            for (uint x = 0; x < 10000000; x++) ;
+
+            long finishedAt = DateTime.InternalUtcNow();
+            //Console.WriteLine("Finished @ " + ((ulong)finishedAt).ToString());
+            Console.WriteLine("Finished @ " + ((ulong)finishedAt).ToString() + ", " + ((ulong)finishedAt - (ulong)startedAt).ToString() + "MS");
         }
 
         public class Test

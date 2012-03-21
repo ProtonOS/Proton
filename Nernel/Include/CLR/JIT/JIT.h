@@ -85,3 +85,4 @@ char* JIT_Compile_Call_Absolute				(IRInstruction* instr, char* compMethod, IRMe
 char* JIT_Compile_Call_Internal				(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry);
 char* JIT_Compile_Jump						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry);
 
+char* JIT_Compile_Throw						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry);

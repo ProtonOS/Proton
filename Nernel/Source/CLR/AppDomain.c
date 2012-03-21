@@ -23,7 +23,6 @@ AppDomain* AppDomain_CreateDomain()
 			Log_WriteLine(LogFlags_AppDomain_Loading, "Domain address: 0x%x", (unsigned int)domain);
             IRAssembly* asmb = ILReader_CreateAssembly(cliFile, domain);
             Log_WriteLine(LogFlags_AppDomain_Loading, "Method Count: %u\n", (unsigned int)asmb->MethodCount);
-			AppDomain_AddAssembly(domain, asmb);
 			return domain;
         }
 		else

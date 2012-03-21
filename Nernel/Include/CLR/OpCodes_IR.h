@@ -1430,6 +1430,24 @@ typedef enum IROpCode
 
      */
     IROpCode_Init_Block,
+    /*
+		Throws the exception object on the top of the
+		stack.
+		
+        Arg1:
+			N/A
+
+        Arg2:
+			N/A
+
+        Arg3:
+			N/A
+
+        Arg4:
+            N/A
+
+     */
+    IROpCode_Throw,
 } IROpCode;
 
 

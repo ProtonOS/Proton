@@ -150,11 +150,14 @@ namespace System {
 			if (values == null) {
 				throw new ArgumentNullException("args");
 			}
-			StringBuilder sb = new StringBuilder();
+            string res = "";
+			//StringBuilder sb = new StringBuilder();
 			for (int i = 0; i < values.Length; i++) {
-				sb.Append(values[i]);
+				//sb.Append(values[i]);
+                res += values[i];
 			}
-			return sb.ToString();
+            return res;
+			//return sb.ToString();
 		}
 
 		public static string Concat(object obj0) {

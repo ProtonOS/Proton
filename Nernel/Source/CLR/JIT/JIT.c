@@ -247,6 +247,9 @@ void JIT_CompileMethod(IRMethod* mthd)
 			case IROpCode_Jump:
 				compMthd = JIT_Compile_Jump						(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
 				break;
+			case IROpCode_Throw:
+				compMthd = JIT_Compile_Throw					(mthd->IRCodes[i], compMthd, mthd, branchRegistry);
+				break;
 		}
 	}
 

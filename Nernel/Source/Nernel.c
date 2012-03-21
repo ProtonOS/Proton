@@ -58,7 +58,6 @@ void Main(uint32_t pMultiBootMagic,
 	MultiBoot_LoadedModule* mernelModule = MultiBoot_GetLoadedModuleByFileName("/boot/mernel.exe");
 	CLIFile* mernelFile = CLIFile_Create(PEFile_Create((uint8_t*)mernelModule->Address, mernelModule->Length), "mernel.exe");
 	IRAssembly* mernelAssembly = ILReader_CreateAssembly(mernelFile, global_baseMernelDomain);
-	AppDomain_AddAssembly(global_baseMernelDomain, mernelAssembly);
 
 
 	Console_Clear(Console_CreateAttributes(Console_DarkBlack, Console_LightGreen));

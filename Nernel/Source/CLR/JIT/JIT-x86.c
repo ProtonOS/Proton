@@ -2369,9 +2369,11 @@ ALWAYS_INLINE char* EmitStaticConstructorCall(char* compMethod, IRType* tp)
 {
 	if (tp->HasStaticConstructor)
 	{
+		printf("EmitStaticConstructorCall: tp @ 0x%x, Called = %u\n", (unsigned int)tp, (unsigned int)tp->StaticConstructorCalled);
+		x86_alu_reg_reg(compMethod, X86_XOR, X86_EAX, X86_EAX);
 		x86_mov_reg_mem(compMethod, X86_EAX, &tp->StaticConstructorCalled, 1);
 		x86_test_reg_reg(compMethod, X86_EAX, X86_EAX);
-		
+
 		unsigned char* finalBranch = (unsigned char*)compMethod;
 		x86_branch32(compMethod, X86_CC_NZ, 0, FALSE);
 		x86_mov_mem_imm(compMethod, &tp->StaticConstructorCalled, 1, 1);
@@ -2408,6 +2410,7 @@ char* JIT_Compile_Load_Static_Field			(IRInstruction* instr, char* compMethod, I
 	x86_mov_reg_imm(compMethod, X86_EAX, (unsigned int)fld->StaticValue);
 	if (fld->FieldType->IsValueType)
 	{
+		printf("LoadStaticField: Value Type = %s @ 0x%x\n", fld->FieldType->TypeDef->Name, (unsigned int)fld->StaticValue);
 		x86_adjust_stack(compMethod, -((int32_t)fieldSize));
 		uint32_t movCount = fieldSize / global_SizeOfPointerInBytes;
 		uint32_t curBas = 0;
@@ -2438,6 +2441,7 @@ char* JIT_Compile_Load_Static_Field			(IRInstruction* instr, char* compMethod, I
 	}
 	else
 	{
+		printf("LoadStaticField: Ref Type = %s @ 0x%x\n", fld->FieldType->TypeDef->Name, (unsigned int)fld->StaticValue);
 		x86_mov_reg_membase(compMethod, X86_EAX, X86_EAX, 0, 4);
 		x86_push_reg(compMethod, X86_EAX);
 
@@ -2466,6 +2470,7 @@ char* JIT_Compile_Load_Static_Field_Address	(IRInstruction* instr, char* compMet
 	Align(&fieldSize);
 	if (!fld->StaticValue)
 		fld->StaticValue = (void*)calloc(1, fieldSize);
+	printf("LoadStaticFieldAddress: Type = %s @ 0x%x\n", fld->FieldType->TypeDef->Name, (unsigned int)fld->StaticValue);
 	x86_push_imm(compMethod, (unsigned int)fld->StaticValue);
 	return compMethod;
 }
@@ -2485,6 +2490,7 @@ char* JIT_Compile_Store_Static_Field		(IRInstruction* instr, char* compMethod, I
 	x86_mov_reg_imm(compMethod, X86_EAX, (unsigned int)fld->StaticValue);
 	if (fld->FieldType->IsValueType)
 	{	
+		printf("StoreStaticField: Value Type = %s @ 0x%x\n", fld->FieldType->TypeDef->Name, (unsigned int)fld->StaticValue);
 		if (fld->FieldType->TypeDef == fld->ParentAssembly->ParentDomain->CachedType___System_Single)
 		{
 			x86_fst_membase(compMethod, X86_EAX, 0, FALSE, TRUE);
@@ -2508,6 +2514,7 @@ char* JIT_Compile_Store_Static_Field		(IRInstruction* instr, char* compMethod, I
 	}
 	else
 	{
+		printf("StoreStaticField: Ref Type = %s @ 0x%x\n", fld->FieldType->TypeDef->Name, (unsigned int)fld->StaticValue);
 		x86_push_reg(compMethod, X86_EAX); // Save this, need it in the middle of the following code
 
 		// Remove 1 RootObject reference for popping value from the stack
@@ -3504,5 +3511,12 @@ void* JIT_Trampoline_DoCall(IRMethodSpec* mth, ReferenceTypeObject* obj)
 char* JIT_Compile_Jump						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
 {
 	Panic("JIT_Compile_Jump not yet implemented!");
+	return compMethod;
+}
+
+char* JIT_Compile_Throw						(IRInstruction* instr, char* compMethod, IRMethod* mth, BranchRegistry* branchRegistry)
+{
+	x86_adjust_stack(compMethod, global_SizeOfPointerInBytes);
+	//Panic("JIT_Compile_Throw not yet implemented!");
 	return compMethod;
 }

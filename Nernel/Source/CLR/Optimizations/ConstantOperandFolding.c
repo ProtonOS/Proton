@@ -1,5 +1,6 @@
 #include <CLR/OpCodes_IR.h>
 #include <CLR/Optimizations/ConstantOperandFolding.h>
+#include <String_Format.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -77,6 +78,9 @@ static const signed char OpCodeStackTable[] =
 		1,				0,					// 65
 		1,				0,					// 66
 		1,				0,					// 67
+		0,				3,					// 68
+		0,				3,					// 69
+		0,				1,					// 70
 };
 
 typedef struct _ConstantStackObject ConstantStackObject;
@@ -277,7 +281,7 @@ void IROptimizer_ConstantOperandFolding(IRMethod* mth)
 	}
 	
 	if (stack->StackDepth > 0)
-		Panic("Something went wrong in the constant folding, there are objects left on the stack!");
+		Panic(String_Format("Something went wrong in the constant folding, there are/is %i object(s) left on the stack!", (int)stack->StackDepth));
 
 	Destroy_StackObj(stack->TopObj); // destroy the root object.
 

@@ -92,8 +92,7 @@ IRAssembly* ILReader_CreateAssembly(CLIFile* fil, AppDomain* dom)
 				}
 				Log_WriteLine(LogFlags_AssemblyReferenceResolution, "Resolved %s by loading it from a module.", r->Name);
 				CLIFile* clFil = CLIFile_Create(PEFile_Create((uint8_t*)mod->Address, mod->Length), buf2);
-				IRAssembly* asmb = ILReader_CreateAssembly(clFil, dom);
-				AppDomain_AddAssembly(dom, asmb);
+				ILReader_CreateAssembly(clFil, dom);
 			}
 		}
 		AppDomain_ResolveMetaReferences(fil, dom);
@@ -2478,7 +2477,7 @@ Branch_Common:
 				Log_WriteLine(LogFlags_ILReading, "Read NI-Throw");
 				
 				StackObjectPool_Release(SyntheticStack_Pop(stack));
-                
+                EMIT_IR(IROpCode_Throw);
                 ClearFlags();
                 break;
 
@@ -4455,6 +4454,9 @@ ALWAYS_INLINE void EmptyStack(SyntheticStack* stack)
 
 IRType* GetIRTypeOfSignatureType(AppDomain* dom, CLIFile* fil, IRAssembly* asmbly, SignatureType* tp)
 {
+	//printf("GetIRTypeOfSignatureType, CachedType__UInt32 @ 0x%x, IRType @ 0x%x\n", (unsigned int)dom->CachedType___System_UInt32, (unsigned int)dom->IRAssemblies[0]->Types[dom->CachedType___System_UInt32->TableIndex - 1]);
+	//printf("GetIRTypeOfSignatureType, CachedType__String @ 0x%x, IRType @ 0x%x\n", (unsigned int)dom->CachedType___System_String, (unsigned int)dom->IRAssemblies[0]->Types[dom->CachedType___System_String->TableIndex - 1]);
+	//printf("From Dom @ 0x%x, Dom->IRAssemblies @ 0x%x, Assembly @ 0x%x, index = %u, name = %s\n", (unsigned int)dom, (unsigned int)dom->IRAssemblies, (unsigned int)dom->IRAssemblies[0], (unsigned int)dom->IRAssemblies[0]->AssemblyIndex, dom->IRAssemblies[0]->ParentFile->Filename);
 	switch(tp->ElementType)
 	{
 		case Signature_ElementType_I1:
