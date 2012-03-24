@@ -34,7 +34,6 @@ void GetElementTypeFromTypeDef(TypeDefinition* tdef, AppDomain* dom, ElementType
 void GetElementTypeOfStackObject(ElementType* dest, StackObject* stkObj);
 void SetObjectTypeFromElementType(StackObject* obj, ElementType elemType);
 void SetTypeOfStackObjectFromSigElementType(StackObject* obj, SignatureType* TypeSig, CLIFile* fil, AppDomain* dom);
-IRType* GetIRTypeOfSignatureType(AppDomain* dom, CLIFile* fil, IRAssembly* asmbly, SignatureType* tp);
 
 bool_t IsStruct(TypeDefinition* tdef, AppDomain* dom);
 
@@ -391,7 +390,7 @@ IRField** TypeDefinition_GetLayedOutFields(TypeDefinition* tdef, CLIFile* fil, u
 		if (!(tdef->FieldList[i].Flags & FieldAttributes_Static))
 		{
 			fnlFields[fldIndex + fldsCount] = (IRField*)&tdef->FieldList[i];
-			Log_WriteLine(LogFlags_ILReading_FieldLayout, "Adding Field %s.%s.%s from table index %i at %i", tdef->Namespace, tdef->Name, tdef->FieldList[i].Name, (int)tdef->FieldList[i].TableIndex, fldIndex + fldsCount);
+			Log_WriteLine(LogFlags_ILReading_FieldLayout, "Adding Field %s.%s.%s from table index %i at %i", tdef->Namespace, tdef->Name, tdef->FieldList[i].Name, (int)tdef->FieldList[i].TableIndex, (int)(fldIndex + fldsCount));
 			fldIndex++;
 		}
 	}
@@ -469,7 +468,7 @@ IRMethod** TypeDefinition_GetLayedOutMethods(TypeDefinition* tdef, CLIFile* fil,
 			if (tdef->MethodDefinitionList[i].Flags & MethodAttributes_NewSlot)
 			{
 				fnlMethods[mthIndex + mthsCount] = (IRMethod*)&tdef->MethodDefinitionList[i];
-				Log_WriteLine(LogFlags_ILReading_MethodLayout, "Adding method %s.%s.%s from table index %i at %i", tdef->Namespace, tdef->Name, tdef->MethodDefinitionList[i].Name, (int)tdef->MethodDefinitionList[i].TableIndex, mthIndex + mthsCount);
+				Log_WriteLine(LogFlags_ILReading_MethodLayout, "Adding method %s.%s.%s from table index %i at %i", tdef->Namespace, tdef->Name, tdef->MethodDefinitionList[i].Name, (int)tdef->MethodDefinitionList[i].TableIndex, (int)(mthIndex + mthsCount));
 				mthIndex++;
 			}
 			else
@@ -496,7 +495,7 @@ IRMethod** TypeDefinition_GetLayedOutMethods(TypeDefinition* tdef, CLIFile* fil,
 						{
 							Log_WriteLine(LogFlags_ILReading_MethodLayout, "Found Match!");
 							fnlMethods[i2] = (IRMethod*)&tdef->MethodDefinitionList[i]; 
-							Log_WriteLine(LogFlags_ILReading_MethodLayout, "Overloading method %s.%s.%s from table index %i at %i", tdef->Namespace, tdef->Name, tdef->MethodDefinitionList[i].Name, (int)tdef->MethodDefinitionList[i].TableIndex, i2);
+							Log_WriteLine(LogFlags_ILReading_MethodLayout, "Overloading method %s.%s.%s from table index %i at %i", tdef->Namespace, tdef->Name, tdef->MethodDefinitionList[i].Name, (int)tdef->MethodDefinitionList[i].TableIndex, (int)i2);
 							Found = TRUE;
 							break;
 						}
@@ -515,7 +514,7 @@ IRMethod** TypeDefinition_GetLayedOutMethods(TypeDefinition* tdef, CLIFile* fil,
 				)
 			{
 				fnlMethods[mthIndex + mthsCount] = (IRMethod*)&tdef->MethodDefinitionList[i];
-				Log_WriteLine(LogFlags_ILReading_MethodLayout, "Adding method %s.%s.%s from table index %i at %i", tdef->Namespace, tdef->Name, tdef->MethodDefinitionList[i].Name, (int)tdef->MethodDefinitionList[i].TableIndex, mthIndex + mthsCount);
+				Log_WriteLine(LogFlags_ILReading_MethodLayout, "Adding method %s.%s.%s from table index %i at %i", tdef->Namespace, tdef->Name, tdef->MethodDefinitionList[i].Name, (int)tdef->MethodDefinitionList[i].TableIndex, (int)(mthIndex + mthsCount));
 				mthIndex++;
 			}
 			else
@@ -605,10 +604,7 @@ void Link(IRAssembly* asmb)
 					Panic("Unknown type of extends for the type of an interface!");
 					break;
 			}
-			IRInterfaceImpl* intrfc = (IRInterfaceImpl*)calloc(1, sizeof(IRInterfaceImpl));
-			intrfc->InterfaceType = intfcTp;
-			intrfc->MethodCount = intfcTp->MethodCount;
-			intrfc->MethodIndexes = (uint32_t*)calloc(1, sizeof(uint32_t) * intfcTp->MethodCount);
+			IRInterfaceImpl* intrfc = IRInterfaceImpl_Create(intfcTp);
 
 			for (uint32_t i3 = 0; i3 < tp->TypeDef->MethodImplementationCount; i3++)
 			{

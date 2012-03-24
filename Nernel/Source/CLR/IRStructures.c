@@ -1,5 +1,6 @@
 #include <CLR/IRStructures.h>
 #include <CLR/Architecture.h>
+#include <CLR/ILReader.h>
 #include <stdlib.h>
 
 
@@ -45,6 +46,64 @@ IRArrayType* IRArrayType_Create(IRType* pElementType, IRType* pArrayType)
 	tp->ArrayElementType = pElementType;
 	tp->ArrayType = pArrayType;
 	return tp;
+}
+
+IRInterfaceImpl* IRInterfaceImpl_Create(IRType* pInterfaceType)
+{
+	IRInterfaceImpl* impl = (IRInterfaceImpl*)calloc(1, sizeof(IRInterfaceImpl));
+	impl->InterfaceType = pInterfaceType;
+	impl->MethodCount = pInterfaceType->MethodCount;
+	impl->MethodIndexes = (uint32_t*)calloc(1, sizeof(uint32_t) * pInterfaceType->MethodCount);
+	return impl;
+}
+
+IRGenericTypeVariant* IRGenericTypeVariant_Create(TypeSpecification* pTypeSpec, IRType* pParentType)
+{
+	IRGenericTypeVariant* type = (IRGenericTypeVariant*)calloc(1, sizeof(IRGenericTypeVariant));
+	type->ParentType = pParentType;
+	SignatureType* sig = SignatureType_Expand(pTypeSpec->Signature, pTypeSpec->File);
+	type->ParameterCount = sig->GenericInstGenericArgumentCount;
+	for (uint32_t index = 0; index < type->ParameterCount; ++index)
+	{
+		type->Parameters[index] = GetIRTypeOfSignatureType(pTypeSpec->File->Assembly->ParentDomain, pTypeSpec->File, pTypeSpec->File->Assembly, sig->GenericInstGenericArguments[index]);
+	}
+	type->VariantType = IRType_Create();
+	*type->VariantType = *pParentType; // Shallow copy, must fix any allocated fields
+	type->VariantType->IsGenericInstantiation = TRUE;
+
+	type->VariantType->StaticConstructor = NULL;
+	type->VariantType->StaticConstructorCalled = FALSE;
+	type->VariantType->VariantTable = NULL;
+	type->VariantType->FieldsLayedOut = FALSE;
+	type->VariantType->Finalizer = NULL;
+
+	type->VariantType->Fields = (IRField**)calloc(1, pParentType->FieldCount * sizeof(IRField*));
+	for (uint32_t index = 0; index < pParentType->FieldCount; ++index)
+	{
+		IRField* field = IRField_Create();
+		type->VariantType->Fields[index] = field;
+		*field = *pParentType->Fields[index]; // Shallow copy, must fix any allocated fields
+		field->StaticValue = NULL;
+		if (pParentType->Fields[index]->FieldType->IsGeneric && !pParentType->Fields[index]->FieldType->IsGenericInstantiation)
+		{
+			
+		}
+
+		public class Test<T>
+		{
+			List<string> fld2;
+			List<T> fld;
+		}
+	}
+	type->VariantType->Methods = (IRMethod**)calloc(1, pParentType->MethodCount * sizeof(IRMethod*));
+	for (uint32_t index = 0; index < pParentType->MethodCount; ++index)
+	{
+		type->VariantType->Methods[index] = pParentType->Methods[index];
+	}
+
+	type->VariantType->InterfaceTable = NULL;
+	SignatureType_Destroy(sig);
+	return type;
 }
 
 IRLocalVariable* IRLocalVariable_Create()
@@ -144,6 +203,17 @@ void IRType_Destroy(IRType* tp)
 }
 
 void IRArrayType_Destroy(IRArrayType* tp)
+{
+	free(tp);
+}
+
+void IRInterfaceImpl_Destroy(IRInterfaceImpl* impl)
+{
+	free(impl->MethodIndexes);
+	free(impl);
+}
+
+void IRGenericTypeVariant_Destroy(IRGenericTypeVariant* tp)
 {
 	free(tp);
 }

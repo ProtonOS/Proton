@@ -11,7 +11,7 @@ typedef struct _IRMethodSpec IRMethodSpec;
 typedef struct _IRFieldSpec IRFieldSpec;
 typedef struct _IRArrayType IRArrayType;
 typedef struct _IRInterfaceImpl IRInterfaceImpl;
-
+typedef struct _IRGenericTypeVariant IRGenericTypeVariant;
 
 // DO NOT put this include above the typedefs,
 // the typedefs are needed to be able to resolve
@@ -57,6 +57,7 @@ struct _IRType
     bool_t IsValueType;
     bool_t IsReferenceType;
 	bool_t IsGeneric;
+	bool_t IsGenericInstantiation;
 	bool_t IsInterface;
 	bool_t IsVoid;
     
@@ -83,6 +84,20 @@ struct _IRType
 
 
 	IRInterfaceImpl* InterfaceTable;
+	IRGenericTypeVariant* VariantTable;
+};
+
+#define MAX_GENERIC_TYPE_VARIANT_PARAMETERS 32
+
+struct _IRGenericTypeVariant
+{
+	IRType* ParentType;
+
+	uint32_t ParameterCount;
+	IRType* Parameters[MAX_GENERIC_TYPE_VARIANT_PARAMETERS];
+
+	IRType* VariantType;
+	UT_hash_handle HashHandle;
 };
 
 struct _IRInterfaceImpl
@@ -226,6 +241,8 @@ IRInstruction* IRInstruction_Create();
 IRParameter* IRParameter_Create();
 IRType* IRType_Create();
 IRArrayType* IRArrayType_Create(IRType* pElementType, IRType* pArrayType);
+IRInterfaceImpl* IRInterfaceImpl_Create(IRType* pInterfaceType);
+IRGenericTypeVariant* IRGenericTypeVariant_Create(TypeSpecification* pTypeSpec, IRType* pParentType);
 IRLocalVariable* IRLocalVariable_Create();
 IRField* IRField_Create();
 IRMethodSpec* IRMethodSpec_Create();
@@ -238,6 +255,8 @@ void IRInstruction_Destroy(IRInstruction* instr);
 void IRParameter_Destroy(IRParameter* param);
 void IRType_Destroy(IRType* tp);
 void IRArrayType_Destroy(IRArrayType* tp);
+void IRInterfaceImpl_Destroy(IRInterfaceImpl* impl);
+void IRGenericTypeVariant_Destroy(IRGenericTypeVariant* tp);
 void IRLocalVariable_Destroy(IRLocalVariable* var);
 void IRField_Destroy(IRField* fld);
 void IRMethodSpec_Destroy(IRMethodSpec* mthspec);

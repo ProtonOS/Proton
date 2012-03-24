@@ -9,6 +9,7 @@
 typedef struct _ReferenceTypeObject ReferenceTypeObject;
 typedef struct _GCHeapStack GCHeapStack;
 
+#include <CLR/IRStructures.h>
 // Do not change this structure without
 // consulting the JIT first, because a
 // large portion of the JIT requires offsets
@@ -24,10 +25,8 @@ struct _ReferenceTypeObject
     uint32_t DependancyPoolSize;
     uint32_t DependancyPoolCount;
     ReferenceTypeObject** DependancyPool;
-	uint32_t DomainIndex;
-	uint32_t AssemblyIndex;
-	uint32_t TypeIndex;
 	bool_t HasCalledFinalizer;
+	IRType* Type;
 };
 
 void ReferenceTypeObject_AddReference(ReferenceTypeObject* pParent, ReferenceTypeObject* pReferenced);

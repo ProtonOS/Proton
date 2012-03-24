@@ -132,7 +132,7 @@ ReferenceTypeObject* GCHeap_Allocate(GCHeap* pGCHeap, uint32_t pStackSize, uint3
     return object;
 }
 
-ReferenceTypeObject* GC_AllocateObject(GC* pGC, ReferenceTypeObject* pInitialReference, uint32_t pSize, uint32_t pDomainIndex, uint32_t pAssemblyIndex, uint32_t pTypeIndex)
+ReferenceTypeObject* GC_AllocateObject(GC* pGC, ReferenceTypeObject* pInitialReference, uint32_t pSize, IRType* pType)
 {
     if (!pInitialReference) Panic("GC_AllocateObject pInitialReference == NULL");
     if (pSize >= 0x7FFFFFFF) Panic("GC_AllocateObject pSize >= 0x7FFFFFFF");
@@ -143,9 +143,7 @@ ReferenceTypeObject* GC_AllocateObject(GC* pGC, ReferenceTypeObject* pInitialRef
         object = GCHeap_Allocate(&pGC->LargeHeap, GCHeapStack_LargeHeap_Size, pSize);
     else object = GCHeap_Allocate(&pGC->LargeHeap, pSize, pSize);
     ReferenceTypeObject_AddReference(pInitialReference, object);
-	object->DomainIndex = pDomainIndex;
-	object->AssemblyIndex = pAssemblyIndex;
-	object->TypeIndex = pTypeIndex;
+	object->Type = pType;
 	memset(object->Object, 0x00, pSize);
 
 	//Log_WriteLine(
@@ -158,15 +156,13 @@ ReferenceTypeObject* GC_AllocateObject(GC* pGC, ReferenceTypeObject* pInitialRef
     return object;
 }
 
-ReferenceTypeObject* GC_AllocateArray(GC* pGC, ReferenceTypeObject* pInitialReference, uint32_t pLength, uint32_t pElementSize, uint32_t pDomainIndex, uint32_t pAssemblyIndex, uint32_t pTypeIndex)
+ReferenceTypeObject* GC_AllocateArray(GC* pGC, ReferenceTypeObject* pInitialReference, uint32_t pLength, uint32_t pElementSize, IRType* pType)
 {
 	uint32_t sizeOfArray = sizeof(GCArray) + (pLength * pElementSize);
-	ReferenceTypeObject* object = GC_AllocateObject(pGC, pInitialReference, sizeOfArray, pGC->Domain->DomainIndex, 0, pGC->Domain->CachedType___System_Array->TableIndex - 1);
+	ReferenceTypeObject* object = GC_AllocateObject(pGC, pInitialReference, sizeOfArray, pGC->Domain->IRAssemblies[0]->Types[pGC->Domain->CachedType___System_Array->TableIndex - 1]);
 	GCArray* header = (GCArray*)object->Object;
 	header->Length = pLength;
-	header->DomainIndex = pDomainIndex;
-	header->AssemblyIndex = pAssemblyIndex;
-	header->TypeIndex = pTypeIndex;
+	header->Type = pType;
 	//printf("GC_AllocateArray of count %u x %u sized elements @ 0x%x\n", (unsigned int)pLength, (unsigned int)pElementSize, (unsigned int)object);
 	return object;
 }
@@ -195,9 +191,7 @@ ReferenceTypeObject* GC_AllocateString(GC* pGC, ReferenceTypeObject* pInitialRef
 		header->Object = object;
 		memcpy(header->Data, pData, pSize);
 		HASH_ADD(HashHandle, pGC->StringHashTable, Data, pSize, header);
-		object->DomainIndex = pGC->Domain->DomainIndex;
-		object->AssemblyIndex = 0;
-		object->TypeIndex = pGC->Domain->CachedType___System_String->TableIndex - 1;
+		object->Type = pGC->Domain->IRAssemblies[0]->Types[pGC->Domain->CachedType___System_String->TableIndex - 1];
 	}
 	else object = header->Object;
 	ReferenceTypeObject_AddReference(pInitialReference, object);
@@ -232,9 +226,7 @@ ReferenceTypeObject* GC_AllocateStringFromCharAndCount(GC* pGC, ReferenceTypeObj
 	if (!searchHeader)
 	{
 		HASH_ADD(HashHandle, pGC->StringHashTable, Data, pCount * 2, header);
-		object->DomainIndex = pGC->Domain->DomainIndex;
-		object->AssemblyIndex = 0;
-		object->TypeIndex = pGC->Domain->CachedType___System_String->TableIndex - 1;
+		object->Type = pGC->Domain->IRAssemblies[0]->Types[pGC->Domain->CachedType___System_String->TableIndex - 1];
 	}
 	else
 	{
@@ -270,9 +262,7 @@ ReferenceTypeObject* GC_ConcatenateStrings(GC* pGC, ReferenceTypeObject* pInitia
 	if (!searchHeader)
 	{
 		HASH_ADD(HashHandle, pGC->StringHashTable, Data, string1->Size + string2->Size, header);
-		object->DomainIndex = pGC->Domain->DomainIndex;
-		object->AssemblyIndex = 0;
-		object->TypeIndex = pGC->Domain->CachedType___System_String->TableIndex - 1;
+		object->Type = pGC->Domain->IRAssemblies[0]->Types[pGC->Domain->CachedType___System_String->TableIndex - 1];
 	}
 	else
 	{
@@ -369,9 +359,7 @@ ReferenceTypeObject* GC_SubstituteString(GC* pGC, ReferenceTypeObject* pInitialR
 	if (!searchHeader)
 	{
 		HASH_ADD(HashHandle, pGC->StringHashTable, Data, header->Size, header);
-		object->DomainIndex = pGC->Domain->DomainIndex;
-		object->AssemblyIndex = 0;
-		object->TypeIndex = pGC->Domain->CachedType___System_String->TableIndex - 1;
+		object->Type = pGC->Domain->IRAssemblies[0]->Types[pGC->Domain->CachedType___System_String->TableIndex - 1];
 	}
 	else
 	{
@@ -483,7 +471,7 @@ void GCHeap_Compact(GC* pGC, GCHeap* pGCHeap)
             {
                 if ((stack->ObjectPool[objectIndex]->Flags & ReferenceTypeObject_Flags_Disposed) != 0 && !stack->ObjectPool[objectIndex]->HasCalledFinalizer)
                 {
-					IRType* type = pGC->Domain->IRAssemblies[stack->ObjectPool[objectIndex]->AssemblyIndex]->Types[stack->ObjectPool[objectIndex]->TypeIndex];
+					IRType* type = stack->ObjectPool[objectIndex]->Type;
 					if (type->HasFinalizer)
 					{
 						if (!type->Finalizer->AssembledMethod) JIT_CompileMethod(type->Finalizer);

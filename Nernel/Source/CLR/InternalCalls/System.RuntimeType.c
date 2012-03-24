@@ -7,16 +7,16 @@
 
 ReferenceTypeObject* System_RuntimeType_CreateFromObject(ReferenceTypeObject* obj)
 {
-	AppDomain* dom = AppDomainRegistry_GetDomain(obj->DomainIndex);
-	ReferenceTypeObject* Rt = GC_AllocateObject(dom->GarbageCollector, dom->RootObject, global_SizeOfPointerInBytes, dom->DomainIndex, 0, dom->CachedType___System_RuntimeType->TableIndex - 1);
-	*(size_t*)Rt->Object = (size_t)dom->IRAssemblies[0]->Types[obj->TypeIndex];
+	AppDomain* dom = obj->Type->ParentAssembly->ParentDomain;
+	ReferenceTypeObject* Rt = GC_AllocateObject(dom->GarbageCollector, dom->RootObject, global_SizeOfPointerInBytes, dom->IRAssemblies[0]->Types[dom->CachedType___System_RuntimeType->TableIndex - 1]);
+	*(size_t*)Rt->Object = (size_t)obj->Type;
 	return Rt;
 }
 
 ReferenceTypeObject* System_RuntimeType_CreateFromIRType(IRType* tp)
 {
-	AppDomain* dom = AppDomainRegistry_GetDomain(tp->ParentAssembly->ParentDomain->DomainIndex);
-	ReferenceTypeObject* Rt = GC_AllocateObject(dom->GarbageCollector, dom->RootObject, global_SizeOfPointerInBytes, dom->DomainIndex, 0, dom->CachedType___System_RuntimeType->TableIndex - 1);
+	AppDomain* dom = tp->ParentAssembly->ParentDomain;
+	ReferenceTypeObject* Rt = GC_AllocateObject(dom->GarbageCollector, dom->RootObject, global_SizeOfPointerInBytes, dom->IRAssemblies[0]->Types[dom->CachedType___System_RuntimeType->TableIndex - 1]);
 	*(size_t*)Rt->Object = (size_t)tp;
 	return Rt;
 }

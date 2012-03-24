@@ -2896,15 +2896,13 @@ char* JIT_Compile_Box						(IRInstruction* instr, char* compMethod, IRMethod* mt
 		x86_fst_membase(compMethod, X86_ESP, 0, TRUE, TRUE);
 	}
 
-	x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, 24);
-	x86_mov_membase_imm(compMethod, X86_ESP, 20, type->TypeIndex, 4);
-	x86_mov_membase_imm(compMethod, X86_ESP, 16, type->ParentAssembly->AssemblyIndex, 4);
-	x86_mov_membase_imm(compMethod, X86_ESP, 12, type->ParentAssembly->ParentDomain->DomainIndex, 4);
+	x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, 16);
+	x86_mov_membase_imm(compMethod, X86_ESP, 12, (uint32_t)type, 4);
 	x86_mov_membase_imm(compMethod, X86_ESP, 8, sizeOfType, 4);
 	x86_mov_membase_imm(compMethod, X86_ESP, 4, (int)type->ParentAssembly->ParentDomain->RootObject, 4);
 	x86_mov_membase_imm(compMethod, X86_ESP, 0, (int)type->ParentAssembly->ParentDomain->GarbageCollector, 4);
 	x86_call_code(compMethod, GC_AllocateObject);
-	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 24);
+	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 16);
 	x86_mov_reg_reg(compMethod, X86_ECX, X86_EAX, 4);
 	x86_mov_reg_reg(compMethod, X86_EDX, X86_EAX, 4);
 	x86_mov_reg_membase(compMethod, X86_ECX, X86_ECX, 0, 4);
@@ -3173,16 +3171,14 @@ char* JIT_Compile_NewArray					(IRInstruction* instr, char* compMethod, IRMethod
 	IRType* type = (IRType*)instr->Arg1;
 	uint32_t sizeOfType = StackSizeOfType(type);
 	x86_pop_reg(compMethod, X86_EAX); // Number of Elements
-	x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, 32);
-	x86_mov_membase_imm(compMethod, X86_ESP, 24, type->TypeIndex, 4);
-	x86_mov_membase_imm(compMethod, X86_ESP, 20, type->ParentAssembly->AssemblyIndex, 4);
-	x86_mov_membase_imm(compMethod, X86_ESP, 16, type->ParentAssembly->ParentDomain->DomainIndex, 4);
+	x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, 24);
+	x86_mov_membase_imm(compMethod, X86_ESP, 16, (uint32_t)type, 4);
 	x86_mov_membase_imm(compMethod, X86_ESP, 12, sizeOfType, 4);
 	x86_mov_membase_reg(compMethod, X86_ESP, 8, X86_EAX, 4);
 	x86_mov_membase_imm(compMethod, X86_ESP, 4, (int)mth->ParentAssembly->ParentDomain->RootObject, 4);
 	x86_mov_membase_imm(compMethod, X86_ESP, 0, (int)mth->ParentAssembly->ParentDomain->GarbageCollector, 4);
 	x86_call_code(compMethod, GC_AllocateArray);
-	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 28);
+	x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 20);
 	x86_mov_membase_reg(compMethod, X86_ESP, 0, X86_EAX, 4);
 	return compMethod;
 }
@@ -3196,15 +3192,13 @@ char* JIT_Compile_NewObject					(IRInstruction* instr, char* compMethod, IRMetho
 		compMethod = JIT_Emit_ParamSwap(compMethod, method, FALSE);
 
 		uint32_t sizeOfType = SizeOfType(type);
-		x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, 28);
-		x86_mov_membase_imm(compMethod, X86_ESP, 20, method->MethodDefinition->TypeDefinition->TableIndex - 1, 4);
-		x86_mov_membase_imm(compMethod, X86_ESP, 16, method->ParentAssembly->AssemblyIndex, 4);
-		x86_mov_membase_imm(compMethod, X86_ESP, 12, method->ParentAssembly->ParentDomain->DomainIndex, 4);
+		x86_alu_reg_imm(compMethod, X86_SUB, X86_ESP, 20);
+		x86_mov_membase_imm(compMethod, X86_ESP, 12, (uint32_t)type, 4);
 		x86_mov_membase_imm(compMethod, X86_ESP, 8, sizeOfType, 4);
 		x86_mov_membase_imm(compMethod, X86_ESP, 4, (int)method->ParentAssembly->ParentDomain->RootObject, 4);
 		x86_mov_membase_imm(compMethod, X86_ESP, 0, (int)method->ParentAssembly->ParentDomain->GarbageCollector, 4);
 		x86_call_code(compMethod, GC_AllocateObject);
-		x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 24);
+		x86_alu_reg_imm(compMethod, X86_ADD, X86_ESP, 16);
 		x86_mov_membase_reg(compMethod, X86_ESP, 0, X86_EAX, 4);
 		//x86_push_reg(compMethod, X86_EAX);
 	
@@ -3432,27 +3426,12 @@ void* JIT_Trampoline_DoCall(IRMethodSpec* mth, ReferenceTypeObject* obj)
 	//printf("Arg5 @ 0x%x *@ 0x%x\n", (unsigned int)arg5, (unsigned int)&arg5);
 	//printf("Arg6 @ 0x%x *@ 0x%x\n", (unsigned int)arg6, (unsigned int)&arg6);
 	//printf("Arg7 @ 0x%x *@ 0x%x\n", (unsigned int)arg7, (unsigned int)&arg7);
-	register void* variable = AppDomainRegistry_GetDomain(obj->DomainIndex);
-	//AppDomain* dom = AppDomainRegistry_GetDomain(obj->DomainIndex);
-	if (obj->AssemblyIndex >= ((AppDomain*)variable)->IRAssemblyCount)
-	{
-		Panic(String_Format("Assembly Index (%i) is too High!", (int)obj->AssemblyIndex));
-	}
 
-	//IRAssembly* asmbly = dom->IRAssemblies[obj->AssemblyIndex];
-	variable = ((AppDomain*)variable)->IRAssemblies[obj->AssemblyIndex];
-	if (obj->TypeIndex >= ((IRAssembly*)variable)->TypeCount)
-	{
-		Panic(String_Format("Type Index (%i) is too High!", (int)obj->TypeIndex));
-	}
-
-	//IRType* tp = asmbly->Types[obj->TypeIndex];
-	variable = ((IRAssembly*)variable)->Types[obj->TypeIndex];
+	register void* variable = obj->Type;
 	if (mth->MethodIndex >= ((IRType*)variable)->MethodCount)
 	{
 		printf("Object @ 0x%x\n", (unsigned int)obj);
 		printf("Method Spec @ 0x%x\n", (unsigned int)mth);
-		printf("The object's DATT: %i %i %i\n", (int)obj->DomainIndex, (int)obj->AssemblyIndex, (int)obj->TypeIndex);
 		IRType* tp = (IRType*)variable;
 		printf("Type %s has %i methods\n", tp->TypeDef->Name, (int)tp->MethodCount);
 		for (uint32_t i = 0; i < tp->MethodCount; i++)

@@ -16,7 +16,7 @@ void JIT_CompileMethod(IRMethod* mthd)
 	IROptimizer_Optimize(mthd);
 	Log_WriteLine(LogFlags_JIT, "Applied Optimizations.");
 	char* compMthd = malloc(mthd->IRCodesCount * 128);
-	Log_WriteLine(LogFlags_JIT, "Address of JIT'd Method: 0x%x Size: 0x%x", (unsigned int)compMthd, mthd->IRCodesCount * 128);
+	Log_WriteLine(LogFlags_JIT, "Address of JIT'd Method: 0x%x Size: 0x%x", (unsigned int)compMthd, (unsigned int)(mthd->IRCodesCount * 128));
 	char* mthPtr = compMthd;
 	mthd->AssembledMethod = ((void(*)())((unsigned int)mthPtr));
 

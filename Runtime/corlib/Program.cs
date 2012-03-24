@@ -30,7 +30,7 @@ namespace Mernel
             {
 
             }
-            //Tester.TestDriver.RunTests();
+            Tester.TestDriver.RunTests();
 
 
             //string str = new string('*', 40);
