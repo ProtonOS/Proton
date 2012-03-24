@@ -1,0 +1,98 @@
+#define PLATFORM(WINDOWS_X32);
+#define PLATFORM_ALIAS(WINDOWS_X32, WINDOWS_32);
+#define PLATFORM_ALIAS(WINDOWS_X32, WIN32);
+
+#define PLATFORM(LINUX_X32);
+#define PLATFORM_ALIAS(LINUX_X32, LINUX_32);
+#define PLATFORM_ALIAS(LINUX_X32, LINUX32);
+
+#define PLATFORM(MAC_OSX_X32);
+#define PLATFORM_ALIAS(MAC_OSX_X32, MAC_OSX_32);
+#define PLATFORM_ALIAS(MAC_OSX_X32, MAC32);
+
+#define TOOL(GCC, ../SDK/bin/i686-elf-gcc);
+#define TOOL_WIN32(GCC, ../SDK/bin/i686-elf-gcc.exe);
+
+#define TOOL(AS, ../SDK/bin/i686-elf-as);
+#define TOOL_WIN32(AS, ../SDK/bin/i686-elf-as.exe);
+
+#define TOOL(LD, ../SDK/bin/i686-elf-ld);
+#define TOOL_WIN32(LD, ../SDK/bin/i686-elf-ld.exe);
+
+#define TOOL(RM, ../SDK/bin/rm);
+#define TOOL_WIN32(RM, ../SDK/bin/rm.exe);
+
+#define TOOL(CP, ../SDK/bin/cp);
+#define TOOL_WIN32(CP, ../SDK/bin/cp.exe);
+
+#define TOOL(MKDIR, ../SDK/bin/mkdir);
+#define TOOL_WIN32(MKDIR, ../SDK/bin/mkdir.exe);
+
+#define TOOL(MKISOFS, ../SDK/bin/mkisofs);
+#define TOOL_WIN32(MKISOFS, ../SDK/bin/mkisofs.exe);
+
+#define CONST(GCC_ARGS, -I../SDK/include -I./Include -include types.h -g -O0 -Wall -Wextra -Werror -Wno-return-type -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -fno-builtin -nostdlib -std=c99 -fpack-struct=1 -nostartfiles -nodefaultlibs -c);
+#define CONST(LD_ARGS, -L../SDK/lib -T Nernel.ld -g);
+#define CONST(LD_LIBS, -lc -lm -lgcc);
+#define CONST(RM_ARGS, -rf);
+#define CONST(CP_ARGS, -f);
+#define CONST(MKDIR_ARGS, -p);
+#define CONST(MKISOFS_ARGS, -quiet -rational-rock -b boot/grub/stage2_eltorito -no-emul-boot -boot-load-size 4 -boot-info-table);
+
+#define CONST(OBJECT, ./Object);
+#define CONST(LOGS, ../Logs);
+#define CONST(BUILD, ../Build);
+#define CONST(OUT, ${BUILD}/boot/nernel.bin);
+#define CONST(ISO, ../Proton.iso);
+#define CONST(CACHE, ./Makefile.omake.cache);
+
+#define SOURCE(ASM_FILES)
+{
+    System/Boot.asm
+}
+
+#define SOURCE(C_FILES)
+{
+#	System/DLMalloc.c
+	System/MultiBoot.c
+	System/Nernel.c
+}
+
+
+#define TARGET(build)
+{
+	MKDIR ${MKDIR_ARGS} ${LOGS}
+	MKDIR ${MKDIR_ARGS} ${OBJECT}
+	MKDIR ${MKDIR_ARGS} ${BUILD}/boot/grub
+
+	CP ${CP_ARGS} ../SDK/grub/stage2_eltorito ${BUILD}/boot/grub
+
+	file CREATE_OR_TRUNCATE(${BUILD}/boot/grub/menu.lst)
+	{
+		timeout 0
+		default 0
+		title Proton
+		kernel /boot/nernel.bin
+	}
+
+	common TOOL(AS -o ) : ASM_FILES
+	{
+		#prefix{${OBJECT}/$(FILENAME.NO_EXTENSION.DIR_TO_FILENAME).o} : ALL
+	}
+
+	common TOOL(GCC ${GCC_ARGS} -o ) : C_FILES
+	{
+		#prefix{${OBJECT}/$(FILENAME.NO_EXTENSION.DIR_TO_FILENAME).o} : ALL
+	}
+
+	LD ${LD_ARGS} -o ${OUT} ${${OBJECT}/&([ASM_FILES].NO_EXTENSION.DIR_TO_FILENAME).o} ${${OBJECT}/&([C_FILES].NO_EXTENSION.DIR_TO_FILENAME).o} ${LD_LIBS}
+
+	MKISOFS ${MKISOFS_ARGS} -o ${ISO} ${BUILD}
+
+	file TRY_DELETE(${LOGS}/ComPort2Out.txt);
+}
+
+#define TARGET(clean)
+{
+	RM ${RM_ARGS} ${LOGS} ${BUILD} ${OBJECT} ${CACHE}
+}
