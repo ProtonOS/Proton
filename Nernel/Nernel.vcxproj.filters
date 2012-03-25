@@ -42,6 +42,9 @@
     <ClCompile Include="System\SystemClock.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="System\CPUID.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="System\Multiboot.h">
@@ -77,6 +80,9 @@
     <ClInclude Include="System\SystemClock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="System\CPUID.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="System\x86\Boot.asm">
@@ -89,6 +95,9 @@
       <Filter>Source Files</Filter>
     </None>
     <None Include="System\x86\InterruptDescriptorTable_Update.asm">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="System\x86\CPUID.asm">
       <Filter>Source Files</Filter>
     </None>
   </ItemGroup>

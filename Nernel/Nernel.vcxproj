@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="System\Console.c" />
+    <ClCompile Include="System\CPUID.c" />
     <ClCompile Include="System\GlobalDescriptorTable.c" />
     <ClCompile Include="System\InterruptDescriptorTable.c" />
     <ClCompile Include="System\Log.c" />
@@ -23,6 +24,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="System\x86\Boot.asm" />
+    <None Include="System\x86\CPUID.asm" />
     <None Include="System\x86\GlobalDescriptorTable_Update.asm" />
     <None Include="System\x86\InterruptDescriptorTable_Stubs.asm" />
     <None Include="System\x86\InterruptDescriptorTable_Update.asm" />
@@ -30,6 +32,7 @@
   <ItemGroup>
     <ClInclude Include="System\Common.h" />
     <ClInclude Include="System\Console.h" />
+    <ClInclude Include="System\CPUID.h" />
     <ClInclude Include="System\GlobalDescriptorTable.h" />
     <ClInclude Include="System\InterruptDescriptorTable.h" />
     <ClInclude Include="System\InterruptDescriptorTable_InitializeStubs.h" />

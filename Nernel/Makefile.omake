@@ -49,6 +49,7 @@
 #define SOURCE(ASM_FILES)
 {
     System/x86/Boot.asm
+	System/x86/CPUID.asm
 	System/x86/GlobalDescriptorTable_Update.asm
 	System/x86/InterruptDescriptorTable_Stubs.asm
 	System/x86/InterruptDescriptorTable_Update.asm
@@ -57,6 +58,7 @@
 #define SOURCE(C_FILES)
 {
 	System/Console.c
+	System/CPUID.c
 	System/GlobalDescriptorTable.c
 	System/InterruptDescriptorTable.c
 	System/Log.c
