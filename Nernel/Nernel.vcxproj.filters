@@ -23,7 +23,15 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="System\Boot.asm">
+    <ClInclude Include="System\Multiboot.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="System\Common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="System\x86\Boot.asm">
       <Filter>Source Files</Filter>
     </None>
   </ItemGroup>

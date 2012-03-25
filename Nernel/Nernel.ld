@@ -4,7 +4,7 @@ SECTIONS
 {
     . = 0x00100000;
 
-	__BOF = .;
+	__SOK = .;
 
 	.text ALIGN (0x1000) :
 	{
@@ -29,5 +29,5 @@ SECTIONS
 		ebss = .;
 	}
 
-	__EOF = .;
+	__EOK = .;
 }

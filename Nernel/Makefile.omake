@@ -48,7 +48,7 @@
 
 #define SOURCE(ASM_FILES)
 {
-    System/Boot.asm
+    System/x86/Boot.asm
 }
 
 #define SOURCE(C_FILES)
