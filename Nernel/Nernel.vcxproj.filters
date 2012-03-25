@@ -30,6 +30,9 @@
     <ClCompile Include="System\Log.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="System\GlobalDescriptorTable.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="System\Multiboot.h">
@@ -47,9 +50,15 @@
     <ClInclude Include="System\Log.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="System\GlobalDescriptorTable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="System\x86\Boot.asm">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="System\x86\GlobalDescriptorTable_Update.asm">
       <Filter>Source Files</Filter>
     </None>
   </ItemGroup>

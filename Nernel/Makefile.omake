@@ -49,11 +49,13 @@
 #define SOURCE(ASM_FILES)
 {
     System/x86/Boot.asm
+	System/x86/GlobalDescriptorTable_Update.asm
 }
 
 #define SOURCE(C_FILES)
 {
 	System/Console.c
+	System/GlobalDescriptorTable.c
 	System/Log.c
 	System/MultiBoot.c
 	System/Nernel.c
