@@ -4,6 +4,17 @@
 #include "InterruptDescriptorTable.h"
 #include "Log.h"
 #include "Multiboot.h"
+#include "RealTimeClock.h"
+#include "SystemClock.h"
+
+#include <time.h>
+
+void CPUInterruptHandler(InterruptRegisters pRegisters)
+{
+	char buf[128];
+	snprintf(buf, 128, "CPU Exception: %d", (int)pRegisters.int_no);
+	Panic(buf);
+}
 
 void Main(uint32_t pMultibootMagic, MultibootHeader* pMultibootHeader)
 {
@@ -12,8 +23,12 @@ void Main(uint32_t pMultibootMagic, MultibootHeader* pMultibootHeader)
 	Log_Startup();
 	GlobalDescriptorTable_Startup();
 	InterruptDescriptorTable_Startup();
+	for (uint8_t interrupt = 0; interrupt < INTERRUPTDESCRIPTORTABLE_REMAPPEDIRQBASE; ++interrupt) InterruptDescriptorTable_RegisterHandler(interrupt, &CPUInterruptHandler);
+	RealTimeClock_Startup();
+	SystemClock_Startup();
 
-	Log_WriteLine(LOGLEVEL_INFORMATION, "Nernel Started");
+	time_t startupTime = time(NULL);
+	Log_WriteLine(LOGLEVEL_INFORMATION, "Nernel Started @ %24.24s", ctime(&startupTime));
 }
 
 void Panic(const char* pMessage)

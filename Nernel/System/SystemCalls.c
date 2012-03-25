@@ -1,9 +1,11 @@
 #include "Common.h"
 #include "Console.h"
 #include "Multiboot.h"
+#include "SystemClock.h"
 
-#include <unistd.h>
 #include <sys/stat.h>
+#include <sys/time.h>
+#include <unistd.h>
 
 void* sbrk(ptrdiff_t pAdjustment)
 {
@@ -92,4 +94,25 @@ int read(int pDescriptorIndex, void* pData, size_t pLength)
     Panic("READ");
     errno = EBADF;
     return -1;
+}
+
+int gettimeofday(struct timeval* pTime, void* pTimeZone)
+{
+	if (pTime)
+	{
+        pTime->tv_sec = 0;
+        pTime->tv_usec = 0;
+        if (SystemClock_IsReady())
+        {
+	        pTime->tv_sec = (time_t)SystemClock_GetSecondsSinceEpoch();
+	        pTime->tv_usec = (suseconds_t)SystemClock_GetMilliseconds();
+        }
+	}
+	if (pTimeZone)
+	{
+		struct timezone* tz = (struct timezone*)pTimeZone;
+		tz->tz_minuteswest = 0;
+		tz->tz_dsttime = 0;
+	}
+	return 0;
 }

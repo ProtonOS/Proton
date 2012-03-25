@@ -62,7 +62,9 @@
 	System/Log.c
 	System/MultiBoot.c
 	System/Nernel.c
+	System/RealTimeClock.c
 	System/SystemCalls.c
+	System/SystemClock.c
 }
 
 

@@ -36,6 +36,12 @@
     <ClCompile Include="System\InterruptDescriptorTable.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="System\RealTimeClock.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="System\SystemClock.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="System\Multiboot.h">
@@ -63,6 +69,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="System\InterruptDescriptorTable_ExternalStubs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="System\RealTimeClock.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="System\SystemClock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
