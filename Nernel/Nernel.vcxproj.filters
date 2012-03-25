@@ -21,6 +21,9 @@
     <ClCompile Include="System\Nernel.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="System\SystemCalls.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="System\Multiboot.h">

@@ -79,4 +79,7 @@ void Multiboot_Startup(uint32_t pMultibootMagic, MultibootHeader* pMultibootHead
 void Multiboot_Shutdown();
 
 extern const char* gMultiboot_CommandLine;
+extern LoadedModule gLoadedModules[];
 extern uint8_t gLoadedModuleCount;
+extern MemoryBlock gMemoryBlocks[];
+extern uint8_t gMemoryBlockCount;
