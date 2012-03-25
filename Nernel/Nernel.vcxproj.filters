@@ -24,12 +24,27 @@
     <ClCompile Include="System\SystemCalls.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="System\Console.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="System\Log.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="System\Multiboot.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="System\Common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="System\Console.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="System\x86\PortIO.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="System\Log.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

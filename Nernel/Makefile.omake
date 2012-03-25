@@ -53,7 +53,8 @@
 
 #define SOURCE(C_FILES)
 {
-#	System/DLMalloc.c
+	System/Console.c
+	System/Log.c
 	System/MultiBoot.c
 	System/Nernel.c
 	System/SystemCalls.c
