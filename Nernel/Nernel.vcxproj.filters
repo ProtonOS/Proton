@@ -33,6 +33,9 @@
     <ClCompile Include="System\GlobalDescriptorTable.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="System\InterruptDescriptorTable.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="System\Multiboot.h">
@@ -53,12 +56,27 @@
     <ClInclude Include="System\GlobalDescriptorTable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="System\InterruptDescriptorTable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="System\InterruptDescriptorTable_InitializeStubs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="System\InterruptDescriptorTable_ExternalStubs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="System\x86\Boot.asm">
       <Filter>Source Files</Filter>
     </None>
     <None Include="System\x86\GlobalDescriptorTable_Update.asm">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="System\x86\InterruptDescriptorTable_Stubs.asm">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="System\x86\InterruptDescriptorTable_Update.asm">
       <Filter>Source Files</Filter>
     </None>
   </ItemGroup>

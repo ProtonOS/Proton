@@ -1,6 +1,7 @@
 #include "Common.h"
 #include "Console.h"
 #include "GlobalDescriptorTable.h"
+#include "InterruptDescriptorTable.h"
 #include "Log.h"
 #include "Multiboot.h"
 
@@ -10,6 +11,7 @@ void Main(uint32_t pMultibootMagic, MultibootHeader* pMultibootHeader)
 	Console_Startup();
 	Log_Startup();
 	GlobalDescriptorTable_Startup();
+	InterruptDescriptorTable_Startup();
 
 	Log_WriteLine(LOGLEVEL_INFORMATION, "Nernel Started");
 }
