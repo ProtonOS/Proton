@@ -7,6 +7,7 @@
 #include "Log.h"
 #include "Multiboot.h"
 #include "PIC.h"
+#include "PIT.h"
 #include "RTC.h"
 #include "SystemClock.h"
 
@@ -25,8 +26,11 @@ void Main(uint32_t pMultibootMagic, MultibootHeader* pMultibootHeader)
 	IDT_Startup();
 	for (uint8_t interrupt = 0; interrupt < IDT__IRQ__RemappedBase; ++interrupt) IDT_RegisterHandler(interrupt, &CPUInterruptHandler);
 	PIC_Startup();
+	PIT_Startup();
+	PIC_StartInterrupts();
 	RTC_Startup();
-	APIC_Startup();
+	APIC_Create(APIC__LocalMSR);
+	//APIC_Startup();
 	SystemClock_Startup();
 
 	//CPUID_Startup();

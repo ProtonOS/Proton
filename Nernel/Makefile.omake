@@ -68,6 +68,7 @@
 	System/MultiBoot.c
 	System/Nernel.c
 	System/PIC.c
+	System/PIT.c
 	System/RTC.c
 	System/SystemCalls.c
 	System/SystemClock.c

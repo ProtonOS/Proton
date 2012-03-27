@@ -50,6 +50,11 @@ void IDT_SetInterrupt(uint8_t pIndex, uint32_t pAddress, uint16_t pSelector, uin
     gIDT_Descriptors[pIndex].TypeAndFlags = pTypeAndFlags;
 }
 
+uint32_t IDT_GetInterrupt(uint8_t pIndex)
+{
+	return gIDT_Descriptors[pIndex].AddressLow | (gIDT_Descriptors[pIndex].AddressHigh << 16);
+}
+
 void IDT_ISRHandler(InterruptRegisters pRegisters)
 {
 	//printf("ISRHandler: %u\n", (unsigned int)pRegisters.int_no);

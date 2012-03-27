@@ -64,6 +64,7 @@ void IDT_Startup();
 void IDT_Shutdown();
 
 void IDT_SetInterrupt(uint8_t pIndex, uint32_t pAddress, uint16_t pSelector, uint8_t pTypeAndFlags);
+uint32_t IDT_GetInterrupt(uint8_t pIndex);
 void IDT_Schedule(uint8_t pInterrupt);
 void IDT_Unschedule(uint8_t pInterrupt);
 void IDT_WaitFor(uint8_t pInterrupt);

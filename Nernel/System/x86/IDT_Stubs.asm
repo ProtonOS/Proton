@@ -16,14 +16,7 @@
 .global IDT_IRQ0D
 .global IDT_IRQ0E
 .global IDT_IRQ0F
-.global IDT_IRQ10
-.global IDT_IRQ11
-.global IDT_IRQ12
-.global IDT_IRQ13
-.global IDT_IRQ14
-.global IDT_IRQ15
-.global IDT_IRQ16
-.global IDT_IRQ17
+
 
 .global IDT_ISR00
 .global IDT_ISR01

@@ -1,4 +1,4 @@
-#include "APIC.h"
+#include "PIT.h"
 #include "RTC.h"
 #include "SystemClock.h"
 
@@ -16,8 +16,8 @@ void SystemClock_Shutdown()
 
 bool_t SystemClock_IsReady() { return gSystemClock_StartupTime != 0; }
 
-uint32_t SystemClock_GetSecondsSinceEpoch() { return gSystemClock_StartupTime + gAPIC_SecondsElapsed; }
+uint32_t SystemClock_GetSecondsSinceEpoch() { return gSystemClock_StartupTime + gPIT_SecondsElapsed; }
 
-uint16_t SystemClock_GetMilliseconds() { return gAPIC_MillisecondsElapsed; }
+uint16_t SystemClock_GetMilliseconds() { return gPIT_MillisecondsElapsed; }
 
-uint64_t SystemClock_GetTicks() { return gAPIC_MillisecondsElapsed + (gAPIC_SecondsElapsed * 1000); }
+uint64_t SystemClock_GetTicks() { return gPIT_MillisecondsElapsed + (gPIT_SecondsElapsed * 1000); }

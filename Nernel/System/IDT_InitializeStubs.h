@@ -50,7 +50,7 @@
 	IDT_SetInterrupt(0x2D, (uint32_t)IDT_IRQ0D, IDT__Selector__DescriptorIndex, IDT__Type__Interrupt386_Gate32Bit | IDT__Type__Present);
 	IDT_SetInterrupt(0x2E, (uint32_t)IDT_IRQ0E, IDT__Selector__DescriptorIndex, IDT__Type__Interrupt386_Gate32Bit | IDT__Type__Present);
 	IDT_SetInterrupt(0x2F, (uint32_t)IDT_IRQ0F, IDT__Selector__DescriptorIndex, IDT__Type__Interrupt386_Gate32Bit | IDT__Type__Present);
-	// Reserved for IOAPIC
+	// Usable
 	IDT_SetInterrupt(0x30, (uint32_t)IDT_ISR30, IDT__Selector__DescriptorIndex, IDT__Type__Interrupt386_Gate32Bit | IDT__Type__Present);
 	IDT_SetInterrupt(0x31, (uint32_t)IDT_ISR31, IDT__Selector__DescriptorIndex, IDT__Type__Interrupt386_Gate32Bit | IDT__Type__Present);
 	IDT_SetInterrupt(0x32, (uint32_t)IDT_ISR32, IDT__Selector__DescriptorIndex, IDT__Type__Interrupt386_Gate32Bit | IDT__Type__Present);
@@ -132,6 +132,7 @@
 	IDT_SetInterrupt(0x7D, (uint32_t)IDT_ISR7D, IDT__Selector__DescriptorIndex, IDT__Type__Interrupt386_Gate32Bit | IDT__Type__Present);
 	IDT_SetInterrupt(0x7E, (uint32_t)IDT_ISR7E, IDT__Selector__DescriptorIndex, IDT__Type__Interrupt386_Gate32Bit | IDT__Type__Present);
 	IDT_SetInterrupt(0x7F, (uint32_t)IDT_ISR7F, IDT__Selector__DescriptorIndex, IDT__Type__Interrupt386_Gate32Bit | IDT__Type__Present);
+	// Reserved for APIC's
 	IDT_SetInterrupt(0x80, (uint32_t)IDT_ISR80, IDT__Selector__DescriptorIndex, IDT__Type__Interrupt386_Gate32Bit | IDT__Type__Present);
 	IDT_SetInterrupt(0x81, (uint32_t)IDT_ISR81, IDT__Selector__DescriptorIndex, IDT__Type__Interrupt386_Gate32Bit | IDT__Type__Present);
 	IDT_SetInterrupt(0x82, (uint32_t)IDT_ISR82, IDT__Selector__DescriptorIndex, IDT__Type__Interrupt386_Gate32Bit | IDT__Type__Present);

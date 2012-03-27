@@ -19,6 +19,7 @@
     <ClCompile Include="System\Multiboot.c" />
     <ClCompile Include="System\Nernel.c" />
     <ClCompile Include="System\PIC.c" />
+    <ClCompile Include="System\PIT.c" />
     <ClCompile Include="System\RTC.c" />
     <ClCompile Include="System\SystemCalls.c" />
     <ClCompile Include="System\SystemClock.c" />
@@ -46,6 +47,7 @@
     <ClInclude Include="System\Multiboot.h" />
     <ClInclude Include="System\IDT_ExternalStubs.h" />
     <ClInclude Include="System\PIC.h" />
+    <ClInclude Include="System\PIT.h" />
     <ClInclude Include="System\RTC.h" />
     <ClInclude Include="System\SystemClock.h" />
     <ClInclude Include="System\x86\PortIO.h" />
