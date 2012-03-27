@@ -20,10 +20,10 @@ void PIT_Channel0(InterruptRegisters pRegisters)
 		{
 			*(size_t*)(gPIT_FrequencyTesting->BaseAddress + APIC__Register__Timer__InitialCount) = 0xFFFFFFFF;
 		}
-		else if (gPIT_FrequencyCount == (unsigned int)(gPIT_CycleHertz + 1))
+		else if (gPIT_FrequencyCount == 11)//(unsigned int)(gPIT_CycleHertz + 1))
 		{
 			*(size_t*)(gPIT_FrequencyTesting->BaseAddress + APIC__Register__LVT__Timer) = APIC__Flags__Disable;
-			gPIT_FrequencyTesting->BusFrequency = (((0xFFFFFFFF - *(size_t*)(gPIT_FrequencyTesting->BaseAddress + APIC__Register__Timer__CurrentCount)) + 1) * 16);
+			gPIT_FrequencyTesting->BusFrequency = (((0xFFFFFFFF - *(size_t*)(gPIT_FrequencyTesting->BaseAddress + APIC__Register__Timer__CurrentCount)) + 1) * 16) * (gPIT_CycleHertz / 10);
 			gPIT_FrequencyCount = 0;
 			gPIT_FrequencyTesting = NULL;
 		}
