@@ -66,7 +66,7 @@ void APIC_LegacyTimer(InterruptRegisters pRegisters)
 		{
 			*(size_t*)(gAPIC_BaseAddress + APIC__Register__Timer__InitialCount) = 0xFFFFFFFF;
 		}
-		else if (frequencyTimerCount == 101)
+		else if (frequencyTimerCount == (unsigned int)(gAPIC_LegacyTimer_Hertz + 1))
 		{
 			*(size_t*)(gAPIC_BaseAddress + APIC__Register__LVT__Timer) = APIC__Flags__Disable;
 			gAPIC_CPUBusFrequency = (((0xFFFFFFFF - *(size_t*)(gAPIC_BaseAddress + APIC__Register__Timer__CurrentCount)) + 1) * 16);
