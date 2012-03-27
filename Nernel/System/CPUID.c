@@ -6,17 +6,17 @@ extern uint32_t CPUID_GetEBX(uint32_t pFunction);
 extern uint32_t CPUID_GetECX(uint32_t pFunction);
 extern uint32_t CPUID_GetEDX(uint32_t pFunction);
 
-#define CPUID_FUNCTION__LARGEST_STANDARD_FUNCTION_NUMBER						0
-#define CPUID_FUNCTION__PROCESSOR_VENDOR										0
-#define CPUID_FUNCTION__FAMILY_MODEL_STEPPING_IDENTIFIERS						1
-#define CPUID_FUNCTION__LOCAL_APIC_ID_LOGICAL_PROCESSOR_COUNT_CLFLUSH_BRAND		1
-#define CPUID_FUNCTION__FEATURE_IDENTIFIERS_1									1
-#define CPUID_FUNCTION__FEATURE_IDENTIFIERS_2									1
+#define CPUID__Function__LargestStandardFunction							0
+#define CPUID__Function__ProcessorVendor									0
+#define CPUID__Function__Family_Model_Stepping								1
+#define CPUID__Function__LocalApicID_LogicalProcessorCount_CLFlush_Brand	1
+#define CPUID__Function__Features_1											1
+#define CPUID__Function__Features_2											1
 
-#define CPUID_PROCESSORVENDOR_MAXLENGTH											12
+#define CPUID__ProcessorVendor__MaxLength									12
 
 uint32_t gCPUID_LargestStandardFunction = 0;
-char gCPUID_ProcessorVendor[CPUID_PROCESSORVENDOR_MAXLENGTH + 1];
+char gCPUID_ProcessorVendor[CPUID__ProcessorVendor__MaxLength + 1];
 uint8_t gCPUID_ProcessorFamily = 0;
 uint8_t gCPUID_ProcessorModel = 0;
 uint8_t gCPUID_ProcessorStepping = 0;
@@ -30,10 +30,10 @@ uint32_t gCPUID_Features2 = 0;
 
 void CPUID_Startup()
 {
-	uint32_t eax = CPUID_GetEAX(CPUID_FUNCTION__LARGEST_STANDARD_FUNCTION_NUMBER);
-	uint32_t ebx = CPUID_GetEBX(CPUID_FUNCTION__PROCESSOR_VENDOR);
-	uint32_t ecx = CPUID_GetECX(CPUID_FUNCTION__PROCESSOR_VENDOR);
-	uint32_t edx = CPUID_GetEDX(CPUID_FUNCTION__PROCESSOR_VENDOR);
+	uint32_t eax = CPUID_GetEAX(CPUID__Function__LargestStandardFunction);
+	uint32_t ebx = CPUID_GetEBX(CPUID__Function__ProcessorVendor);
+	uint32_t ecx = CPUID_GetECX(CPUID__Function__ProcessorVendor);
+	uint32_t edx = CPUID_GetEDX(CPUID__Function__ProcessorVendor);
 	gCPUID_LargestStandardFunction = eax;
 	gCPUID_ProcessorVendor[0] = (ebx >> 0) & 0xFF;
 	gCPUID_ProcessorVendor[1] = (ebx >> 8) & 0xFF;
@@ -49,10 +49,10 @@ void CPUID_Startup()
 	gCPUID_ProcessorVendor[11] = (ecx >> 24) & 0xFF;
 	gCPUID_ProcessorVendor[12] = 0;
 
-	eax = CPUID_GetEAX(CPUID_FUNCTION__FAMILY_MODEL_STEPPING_IDENTIFIERS);
-	ebx = CPUID_GetEBX(CPUID_FUNCTION__LOCAL_APIC_ID_LOGICAL_PROCESSOR_COUNT_CLFLUSH_BRAND);
-	ecx = CPUID_GetECX(CPUID_FUNCTION__FEATURE_IDENTIFIERS_1);
-	edx = CPUID_GetEDX(CPUID_FUNCTION__FEATURE_IDENTIFIERS_2);
+	eax = CPUID_GetEAX(CPUID__Function__Family_Model_Stepping);
+	ebx = CPUID_GetEBX(CPUID__Function__LocalApicID_LogicalProcessorCount_CLFlush_Brand);
+	ecx = CPUID_GetECX(CPUID__Function__Features_1);
+	edx = CPUID_GetEDX(CPUID__Function__Features_2);
 
 	bool_t extendedReserved = ((eax >> 8) & 0xF) < 0xF;
 	gCPUID_ProcessorFamily = (eax >> 8) & 0xF;
@@ -76,6 +76,13 @@ void CPUID_Startup()
 	gCPUID_BrandID = (ebx >> 0) & 0xFF;
 	gCPUID_Features1 = ecx;
 	gCPUID_Features2 = edx;
+
+
+	Log_WriteLine(LOGLEVEL__Information, "CPU Supports: Largest Standard Function = %u", (unsigned int)gCPUID_LargestStandardFunction);
+	Log_WriteLine(LOGLEVEL__Information, "Processor Vendor: %s", gCPUID_ProcessorVendor);
+	Log_WriteLine(LOGLEVEL__Information, "Processor Family: %u, Model: %u, Stepping: %u", (unsigned int)gCPUID_ProcessorFamily, (unsigned int)gCPUID_ProcessorModel, (unsigned int)gCPUID_ProcessorStepping);
+	Log_WriteLine(LOGLEVEL__Information, "Local APIC ID: %u, Logical Processor Count: %u, Cache Flush Size: %u", (unsigned int)gCPUID_LocalAPICID, (unsigned int)gCPUID_LogicalProcessorCount, (unsigned int)gCPUID_CacheLineFlushSize);
+	Log_WriteLine(LOGLEVEL__Information, "Brand ID: %u, Features1: 0x%x, Features2: 0x%x", (unsigned int)gCPUID_BrandID, (unsigned int)gCPUID_Features1, (unsigned int)gCPUID_Features2);
 }
 
 void CPUID_Shutdown()

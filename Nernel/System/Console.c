@@ -3,17 +3,17 @@
 //#include <Core/SerialWriter.h>
 #include "x86/PortIO.h"
 
-#define CONSOLE_BASEMEMORY          0x000B8000
-#define CONSOLE_DEFAULTCOLUMNS      80
-#define CONSOLE_DEFAULTROWS         25
-#define CONSOLE_DEFAULTATTRIBUTES   0x0F
+#define CONSOLE__BaseMemory          0x000B8000
+#define CONSOLE__DefaultColumns      80
+#define CONSOLE__DefaultRows         25
+#define CONSOLE__DefaultAttributes   0x0F
 
-uint8_t* gConsole_BaseMemory = (uint8_t*)CONSOLE_BASEMEMORY;
-uint8_t gConsole_Columns = CONSOLE_DEFAULTCOLUMNS;
-uint8_t gConsole_Rows = CONSOLE_DEFAULTROWS;
+uint8_t* gConsole_BaseMemory = (uint8_t*)CONSOLE__BaseMemory;
+uint8_t gConsole_Columns = CONSOLE__DefaultColumns;
+uint8_t gConsole_Rows = CONSOLE__DefaultRows;
 uint8_t gConsole_CursorColumn = 0;
 uint8_t gConsole_CursorRow = 0;
-uint8_t gConsole_Attributes = CONSOLE_DEFAULTATTRIBUTES;
+uint8_t gConsole_Attributes = CONSOLE__DefaultAttributes;
 
 void Console_Startup()
 {
@@ -22,7 +22,7 @@ void Console_Startup()
 
 	outb(0x3D4, 0x0A);
 	outb(0x3D5, 0x20);
-	Console_Clear(CONSOLE_CREATEATTRIBUTES(CONSOLE_LIGHTWHITE, CONSOLE_DARKBLACK));
+	Console_Clear(Console_CreateAttributes(CONSOLE__LightWhite, CONSOLE__DarkBlack));
 }
 
 void Console_Shutdown()

@@ -1,7 +1,7 @@
 .intel_syntax noprefix
-.global GlobalDescriptorTable_Update
+.global GDT_Update
 
-GlobalDescriptorTable_Update:
+GDT_Update:
 	cli
     mov eax, [esp+4]
     lgdt [eax]
@@ -12,6 +12,6 @@ GlobalDescriptorTable_Update:
     mov fs, ax
     mov gs, ax
     mov ss, ax
-    jmp 0x08:GlobalDescriptorTable_Flush
-GlobalDescriptorTable_Flush:
+    jmp 0x08:GDT_Flush
+GDT_Flush:
     ret

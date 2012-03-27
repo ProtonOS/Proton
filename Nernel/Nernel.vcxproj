@@ -11,35 +11,42 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="System\APIC.c" />
     <ClCompile Include="System\Console.c" />
     <ClCompile Include="System\CPUID.c" />
-    <ClCompile Include="System\GlobalDescriptorTable.c" />
-    <ClCompile Include="System\InterruptDescriptorTable.c" />
-    <ClCompile Include="System\Log.c" />
+    <ClCompile Include="System\GDT.c" />
+    <ClCompile Include="System\IDT.c" />
     <ClCompile Include="System\Multiboot.c" />
     <ClCompile Include="System\Nernel.c" />
-    <ClCompile Include="System\RealTimeClock.c" />
+    <ClCompile Include="System\PIC.c" />
+    <ClCompile Include="System\RTC.c" />
     <ClCompile Include="System\SystemCalls.c" />
     <ClCompile Include="System\SystemClock.c" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="System\x86\APIC.asm" />
     <None Include="System\x86\Boot.asm" />
     <None Include="System\x86\CPUID.asm" />
-    <None Include="System\x86\GlobalDescriptorTable_Update.asm" />
-    <None Include="System\x86\InterruptDescriptorTable_Stubs.asm" />
-    <None Include="System\x86\InterruptDescriptorTable_Update.asm" />
+    <None Include="System\x86\GDT_Update.asm" />
+    <None Include="System\x86\IDT_Stubs.asm" />
+    <None Include="System\x86\IDT_Update.asm" />
+    <None Include="System\x86\MSR.asm" />
+    <None Include="System\x86\PIC.asm" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="System\APIC.h" />
     <ClInclude Include="System\Common.h" />
     <ClInclude Include="System\Console.h" />
     <ClInclude Include="System\CPUID.h" />
-    <ClInclude Include="System\GlobalDescriptorTable.h" />
-    <ClInclude Include="System\InterruptDescriptorTable.h" />
-    <ClInclude Include="System\InterruptDescriptorTable_InitializeStubs.h" />
+    <ClInclude Include="System\GDT.h" />
+    <ClInclude Include="System\IDT.h" />
+    <ClInclude Include="System\IDT_InitializeStubs.h" />
     <ClInclude Include="System\Log.h" />
+    <ClInclude Include="System\MSR.h" />
     <ClInclude Include="System\Multiboot.h" />
-    <ClInclude Include="System\InterruptDescriptorTable_ExternalStubs.h" />
-    <ClInclude Include="System\RealTimeClock.h" />
+    <ClInclude Include="System\IDT_ExternalStubs.h" />
+    <ClInclude Include="System\PIC.h" />
+    <ClInclude Include="System\RTC.h" />
     <ClInclude Include="System\SystemClock.h" />
     <ClInclude Include="System\x86\PortIO.h" />
   </ItemGroup>

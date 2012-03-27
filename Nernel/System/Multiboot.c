@@ -23,13 +23,13 @@ void Multiboot_Startup(uint32_t pMultibootMagic, MultibootHeader* pMultibootHead
 
     extern char __SOK;
     extern char __EOK;
-	extern char stack;
-	extern char SSIZE;
+	extern char gStack;
+	extern char gStackSize;
 	size_t kernelStart = (size_t)&__SOK;
 	size_t kernelEnd = (size_t)&__EOK;
 	size_t kernelSize = kernelEnd - kernelStart;
-	size_t stackStart = (size_t)&stack;
-	size_t stackSize = *(size_t*)&SSIZE;
+	size_t stackStart = (size_t)&gStack;
+	size_t stackSize = *(size_t*)&gStackSize;
 
 	ReservedMemoryBlock reservedMemoryBlocks[RESERVEDMEMORYBLOCK_MAX] = { { kernelStart, kernelSize }, { stackStart, stackSize } };
 	uint8_t reservedMemoryBlockCount = 2;

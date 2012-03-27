@@ -1,18 +1,18 @@
 .intel_syntax noprefix
-.global InterruptDescriptorTable_Update
-.global InterruptDescriptorTable_ISRDispatch
-.global InterruptDescriptorTable_IRQDispatch
+.global IDT_Update
+.global IDT_ISRDispatch
+.global IDT_IRQDispatch
 
-.extern InterruptDescriptorTable_ISRHandler
-.extern InterruptDescriptorTable_IRQHandler
+.extern IDT_ISRHandler
+.extern IDT_IRQHandler
 
-InterruptDescriptorTable_Update:
+IDT_Update:
 	cli
     mov eax, [esp]+4 
     lidt [eax]      
     ret 
 
-InterruptDescriptorTable_ISRDispatch:
+IDT_ISRDispatch:
     pusha
     mov ax, ds
     push eax
@@ -23,7 +23,7 @@ InterruptDescriptorTable_ISRDispatch:
     mov fs, ax
     mov gs, ax
  
-    call InterruptDescriptorTable_ISRHandler
+    call IDT_ISRHandler
  
 	pop eax
     mov ds, ax
@@ -36,7 +36,7 @@ InterruptDescriptorTable_ISRDispatch:
     sti
     iret
  
-InterruptDescriptorTable_IRQDispatch:
+IDT_IRQDispatch:
     pusha
     mov ax, ds
     push eax
@@ -47,7 +47,7 @@ InterruptDescriptorTable_IRQDispatch:
     mov fs, ax
     mov gs, ax
  
-    call InterruptDescriptorTable_IRQHandler
+    call IDT_IRQHandler
  
     pop ebx
     mov ds, bx

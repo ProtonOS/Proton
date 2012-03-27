@@ -1,23 +1,23 @@
 #pragma once
 
-#define CONSOLE_DARKBLACK           0x00
-#define CONSOLE_DARKBLUE            0x01
-#define CONSOLE_DARKGREEN           0x02
-#define CONSOLE_DARKCYAN            0x03
-#define CONSOLE_DARKRED             0x04
-#define CONSOLE_DARKMAGENTA         0x05
-#define CONSOLE_DARKYELLOW          0x06
-#define CONSOLE_DARKWHITE           0x07
-#define CONSOLE_LIGHTBLACK          0x08
-#define CONSOLE_LIGHTBLUE           0x09
-#define CONSOLE_LIGHTGREEN          0x0A
-#define CONSOLE_LIGHTCYAN           0x0B
-#define CONSOLE_LIGHTRED            0x0C
-#define CONSOLE_LIGHTMAGENTA        0x0D
-#define CONSOLE_LIGHTYELLOW         0x0E
-#define CONSOLE_LIGHTWHITE          0x0F
+#define CONSOLE__DarkBlack           							0x00
+#define CONSOLE__DarkBlue            							0x01
+#define CONSOLE__DarkGreen           							0x02
+#define CONSOLE__DarkCyan            							0x03
+#define CONSOLE__DarkRed             							0x04
+#define CONSOLE__DarkMagenta         							0x05
+#define CONSOLE__DarkYellow          							0x06
+#define CONSOLE__DarkWhite           							0x07
+#define CONSOLE__LightBlack          							0x08
+#define CONSOLE__LightBlue           							0x09
+#define CONSOLE__LightGreen          							0x0A
+#define CONSOLE__LightCyan           							0x0B
+#define CONSOLE__LightRed            							0x0C
+#define CONSOLE__LightMagenta        							0x0D
+#define CONSOLE__LightYellow									0x0E
+#define CONSOLE__LightWhite										0x0F
 
-#define CONSOLE_CREATEATTRIBUTES(pForeground, pBackground)		(pForeground | (pBackground << 4))
+#define Console_CreateAttributes(pForeground, pBackground)		(pForeground | (pBackground << 4))
 
 void Console_Startup();
 void Console_Shutdown();

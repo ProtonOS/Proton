@@ -27,22 +27,25 @@
     <ClCompile Include="System\Console.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="System\Log.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="System\GlobalDescriptorTable.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="System\InterruptDescriptorTable.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="System\RealTimeClock.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="System\SystemClock.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="System\CPUID.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="System\APIC.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="System\IDT.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="System\GDT.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="System\PIC.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="System\RTC.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -62,25 +65,34 @@
     <ClInclude Include="System\Log.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="System\GlobalDescriptorTable.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="System\InterruptDescriptorTable.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="System\InterruptDescriptorTable_InitializeStubs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="System\InterruptDescriptorTable_ExternalStubs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="System\RealTimeClock.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="System\SystemClock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="System\CPUID.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="System\APIC.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="System\MSR.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="System\PIC.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="System\IDT_ExternalStubs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="System\IDT_InitializeStubs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="System\IDT.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="System\GDT.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="System\RTC.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -88,16 +100,25 @@
     <None Include="System\x86\Boot.asm">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="System\x86\GlobalDescriptorTable_Update.asm">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="System\x86\InterruptDescriptorTable_Stubs.asm">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="System\x86\InterruptDescriptorTable_Update.asm">
-      <Filter>Source Files</Filter>
-    </None>
     <None Include="System\x86\CPUID.asm">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="System\x86\PIC.asm">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="System\x86\APIC.asm">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="System\x86\GDT_Update.asm">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="System\x86\IDT_Stubs.asm">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="System\x86\IDT_Update.asm">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="System\x86\MSR.asm">
       <Filter>Source Files</Filter>
     </None>
   </ItemGroup>

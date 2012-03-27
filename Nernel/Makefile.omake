@@ -48,23 +48,27 @@
 
 #define SOURCE(ASM_FILES)
 {
+	System/x86/APIC.asm
     System/x86/Boot.asm
 	System/x86/CPUID.asm
-	System/x86/GlobalDescriptorTable_Update.asm
-	System/x86/InterruptDescriptorTable_Stubs.asm
-	System/x86/InterruptDescriptorTable_Update.asm
+	System/x86/GDT_Update.asm
+	System/x86/IDT_Stubs.asm
+	System/x86/IDT_Update.asm
+	System/x86/MSR.asm
+	System/x86/PIC.asm
 }
 
 #define SOURCE(C_FILES)
 {
+	System/APIC.c
 	System/Console.c
 	System/CPUID.c
-	System/GlobalDescriptorTable.c
-	System/InterruptDescriptorTable.c
-	System/Log.c
+	System/GDT.c
+	System/IDT.c
 	System/MultiBoot.c
 	System/Nernel.c
-	System/RealTimeClock.c
+	System/PIC.c
+	System/RTC.c
 	System/SystemCalls.c
 	System/SystemClock.c
 }
