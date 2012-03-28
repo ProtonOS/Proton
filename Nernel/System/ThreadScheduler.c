@@ -133,7 +133,7 @@ Retry:
 			Atomic_ReleaseLock(&pAPIC->CurrentThread->Busy);
 			//printf("Thread ReleaseLock: CurrentThread\n");
 		}
-		*(size_t*)(pRegisters->esp + 4) = found->SavedRegisterState.eip;
+		*(size_t*)(pRegisters->esp + 8) = found->SavedRegisterState.eip;
 		*pRegisters = found->SavedRegisterState;
 		pAPIC->CurrentThread = found;
 	}
