@@ -20,12 +20,17 @@
     <ClCompile Include="System\Nernel.c" />
     <ClCompile Include="System\PIC.c" />
     <ClCompile Include="System\PIT.c" />
+    <ClCompile Include="System\Process.c" />
     <ClCompile Include="System\RTC.c" />
+    <ClCompile Include="System\SerialLogger.c" />
     <ClCompile Include="System\SystemCalls.c" />
     <ClCompile Include="System\SystemClock.c" />
+    <ClCompile Include="System\Thread.c" />
+    <ClCompile Include="System\ThreadScheduler.c" />
   </ItemGroup>
   <ItemGroup>
     <None Include="System\x86\APIC.asm" />
+    <None Include="System\x86\Atomics.asm" />
     <None Include="System\x86\Boot.asm" />
     <None Include="System\x86\CPUID.asm" />
     <None Include="System\x86\GDT_Update.asm" />
@@ -33,9 +38,11 @@
     <None Include="System\x86\IDT_Update.asm" />
     <None Include="System\x86\MSR.asm" />
     <None Include="System\x86\PIC.asm" />
+    <None Include="System\x86\Registers.asm" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="System\APIC.h" />
+    <ClInclude Include="System\Atomics.h" />
     <ClInclude Include="System\Common.h" />
     <ClInclude Include="System\Console.h" />
     <ClInclude Include="System\CPUID.h" />
@@ -48,9 +55,14 @@
     <ClInclude Include="System\IDT_ExternalStubs.h" />
     <ClInclude Include="System\PIC.h" />
     <ClInclude Include="System\PIT.h" />
+    <ClInclude Include="System\Process.h" />
     <ClInclude Include="System\RTC.h" />
+    <ClInclude Include="System\SerialLogger.h" />
     <ClInclude Include="System\SystemClock.h" />
+    <ClInclude Include="System\Thread.h" />
+    <ClInclude Include="System\ThreadScheduler.h" />
     <ClInclude Include="System\x86\PortIO.h" />
+    <ClInclude Include="System\x86\Registers.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E5D2B815-40D4-4B6F-A622-0F402DADAD28}</ProjectGuid>
@@ -85,10 +97,10 @@
     <NMakeCleanCommandLine>..\SDK\bin\omake clean</NMakeCleanCommandLine>
     <NMakeReBuildCommandLine>..\SDK\bin\omake rebuild</NMakeReBuildCommandLine>
     <NMakePreprocessorDefinitions>DEBUG</NMakePreprocessorDefinitions>
-    <NMakeIncludeSearchPath>..\SDK\include</NMakeIncludeSearchPath>
+    <NMakeIncludeSearchPath>..\SDK\include;.\System</NMakeIncludeSearchPath>
     <NMakeForcedIncludes>types.h</NMakeForcedIncludes>
     <ExecutablePath />
-    <IncludePath>..\SDK\include</IncludePath>
+    <IncludePath>..\SDK\include;.\System</IncludePath>
     <ReferencePath />
     <LibraryPath />
     <SourcePath />
@@ -101,10 +113,10 @@
     <NMakeReBuildCommandLine>..\SDK\bin\omake rebuild</NMakeReBuildCommandLine>
     <NMakePreprocessorDefinitions>
     </NMakePreprocessorDefinitions>
-    <NMakeIncludeSearchPath>..\SDK\include</NMakeIncludeSearchPath>
+    <NMakeIncludeSearchPath>..\SDK\include;.\System</NMakeIncludeSearchPath>
     <NMakeForcedIncludes>types.h</NMakeForcedIncludes>
     <ExecutablePath />
-    <IncludePath>..\SDK\include</IncludePath>
+    <IncludePath>..\SDK\include;.\System</IncludePath>
     <ReferencePath />
     <LibraryPath />
     <SourcePath />

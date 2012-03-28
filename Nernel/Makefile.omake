@@ -49,6 +49,7 @@
 #define SOURCE(ASM_FILES)
 {
 	System/x86/APIC.asm
+	System/x86/Atomics.asm
     System/x86/Boot.asm
 	System/x86/CPUID.asm
 	System/x86/GDT_Update.asm
@@ -56,6 +57,7 @@
 	System/x86/IDT_Update.asm
 	System/x86/MSR.asm
 	System/x86/PIC.asm
+	System/x86/Registers.asm
 }
 
 #define SOURCE(C_FILES)
@@ -69,9 +71,13 @@
 	System/Nernel.c
 	System/PIC.c
 	System/PIT.c
+	System/Process.c
 	System/RTC.c
+	System/SerialLogger.c
 	System/SystemCalls.c
 	System/SystemClock.c
+	System/Thread.c
+	System/ThreadScheduler.c
 }
 
 

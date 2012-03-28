@@ -51,6 +51,18 @@
     <ClCompile Include="System\PIT.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="System\SerialLogger.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="System\Thread.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="System\Process.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="System\ThreadScheduler.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="System\Multiboot.h">
@@ -101,6 +113,24 @@
     <ClInclude Include="System\PIT.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="System\SerialLogger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="System\Thread.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="System\Process.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="System\Atomics.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="System\ThreadScheduler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="System\x86\Registers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="System\x86\Boot.asm">
@@ -125,6 +155,12 @@
       <Filter>Source Files</Filter>
     </None>
     <None Include="System\x86\MSR.asm">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="System\x86\Atomics.asm">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="System\x86\Registers.asm">
       <Filter>Source Files</Filter>
     </None>
   </ItemGroup>

@@ -9,7 +9,9 @@
 #include "PIC.h"
 #include "PIT.h"
 #include "RTC.h"
+#include "SerialLogger.h"
 #include "SystemClock.h"
+#include "ThreadScheduler.h"
 
 void CPUInterruptHandler(InterruptRegisters pRegisters)
 {
@@ -18,9 +20,17 @@ void CPUInterruptHandler(InterruptRegisters pRegisters)
 	Panic(buf);
 }
 
+void Startup()
+{
+	time_t startupTime = time(NULL);
+	Log_WriteLine(LOGLEVEL__Information, "Nernel Started @ %24.24s", ctime(&startupTime));
+	while(TRUE);
+}
+
 void Main(uint32_t pMultibootMagic, MultibootHeader* pMultibootHeader)
 {
 	Multiboot_Startup(pMultibootMagic, pMultibootHeader);
+	SerialLogger_Startup();
 	Console_Startup();
 	GDT_Startup();
 	IDT_Startup();
@@ -30,13 +40,10 @@ void Main(uint32_t pMultibootMagic, MultibootHeader* pMultibootHeader)
 	PIC_StartInterrupts();
 	RTC_Startup();
 	APIC_Create(APIC__LocalMSR);
-	//APIC_Startup();
 	SystemClock_Startup();
-
 	//CPUID_Startup();
-
-	time_t startupTime = time(NULL);
-	Log_WriteLine(LOGLEVEL__Information, "Nernel Started @ %24.24s", ctime(&startupTime));
+	ThreadScheduler_Startup((size_t)&Startup, 0x1000000);
+	printf("Got Here!\n");
 	while(TRUE);
 }
 

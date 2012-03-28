@@ -1,6 +1,7 @@
 #pragma once
 
 #include "IDT.h"
+#include "Thread.h"
 
 #define APIC__LocalMSR								0x1B
 #define APIC__MSR_Enable							0x800
@@ -46,8 +47,10 @@ struct _APIC
 	uint64_t BusFrequency;
 	uint8_t Index;
 	uint32_t TickCount;
+	Thread* CurrentThread;
 };
 
 APIC* APIC_Create(uint32_t pMSR);
 void APIC_Destroy(APIC* pAPIC);
 
+extern APIC* gAPIC_Array[];

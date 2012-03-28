@@ -1,6 +1,6 @@
 #include "Common.h"
 #include "Console.h"
-//#include <Core/SerialWriter.h>
+#include "SerialLogger.h"
 #include "x86/PortIO.h"
 
 #define CONSOLE__BaseMemory          0x000B8000
@@ -75,8 +75,8 @@ void Console_WriteCharacter(char pCharacter)
     if (pCharacter == '\n')
     {
         Console_MoveToNextLine();
-    	//SerialWriter_WriteByte('\r');
-    	//SerialWriter_WriteByte('\n');
+    	SerialLogger_WriteByte('\r');
+    	SerialLogger_WriteByte('\n');
     }
     else if (pCharacter != '\r')
     {
@@ -84,7 +84,7 @@ void Console_WriteCharacter(char pCharacter)
 	    *cursor = pCharacter;
 	    *(cursor + 1) = gConsole_Attributes;
 	    Console_Advance();
-    	//SerialWriter_WriteByte(pCharacter);
+    	SerialLogger_WriteByte(pCharacter);
     }
 }
 
@@ -109,8 +109,8 @@ void Console_WriteLine(const char* pString)
 {
 	Console_WriteString(pString, 0);
 	if (gConsole_CursorColumn > 0) Console_MoveToNextLine();
-    //SerialWriter_WriteByte('\r');
-    //SerialWriter_WriteByte('\n');
+    SerialLogger_WriteByte('\r');
+    SerialLogger_WriteByte('\n');
 }
 
 uint8_t* Console_GetCursor() { return gConsole_BaseMemory + (((gConsole_CursorRow * gConsole_Columns) + gConsole_CursorColumn) * 2); }

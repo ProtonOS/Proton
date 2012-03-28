@@ -5,7 +5,7 @@
 #include "MSR.h"
 #include "PIC.h"
 #include "PIT.h"
-#include "x86/PortIO.h"
+#include "ThreadScheduler.h"
 
 
 #define APIC__BaseAddress_Mask						0xFFFFF000
@@ -19,12 +19,6 @@ extern void APIC_CycleTimer(InterruptRegisters pRegisters);
 APIC* gAPIC_Array[APIC__Max];
 uint8_t gAPIC_Count = 0;
 
-void APIC_SchedulerTimer(InterruptRegisters pRegisters)
-{
-	APIC* apic = gAPIC_Array[(pRegisters.int_no - 128) >> 1];
-	if ((++apic->TickCount % APIC__Timer__CycleHertz) == 0) printf("Tick\n");
-	*(size_t*)(apic->BaseAddress + APIC__Register__EndOfInterrupt) = 0;
-}
 
 void APIC_FrequencyTimer(InterruptRegisters pRegisters)
 {
@@ -34,6 +28,7 @@ void APIC_FrequencyTimer(InterruptRegisters pRegisters)
 APIC* APIC_Create(uint32_t pMSR)
 {
 	APIC* apic = (APIC*)calloc(1, sizeof(APIC));
+	Log_WriteLine(LOGLEVEL__Memory, "Memory: APIC_Create @ 0x%x", (unsigned int)apic);
 	gAPIC_Array[gAPIC_Count] = apic;
 	apic->Index = gAPIC_Count++;
 	apic->BaseAddress = MSR_Read(pMSR) & APIC__BaseAddress_Mask;
@@ -52,7 +47,7 @@ APIC* APIC_Create(uint32_t pMSR)
 	printf("Logical Processor %u Bus Frequency = %u MHz\n", (unsigned int)apic->Index, (unsigned int)(apic->BusFrequency / 1000 / 1000));	
 
 	uint32_t divisor = apic->BusFrequency / 16 / APIC__Timer__CycleHertz;
-	IDT_RegisterHandler(128 + (apic->Index * 2) + 0, &APIC_SchedulerTimer);
+	IDT_RegisterHandler(128 + (apic->Index * 2) + 0, &ThreadScheduler_Timer);
 
 	*(size_t*)(apic->BaseAddress + APIC__Register__Timer__InitialCount) = divisor < 16 ? 16 : divisor;
 	*(size_t*)(apic->BaseAddress + APIC__Register__LVT__Timer) = (128 + (apic->Index * 2) + 0) | APIC__Timer__Periodic;
@@ -61,6 +56,7 @@ APIC* APIC_Create(uint32_t pMSR)
 
 void APIC_Destroy(APIC* pAPIC)
 {
+	Log_WriteLine(LOGLEVEL__Memory, "Memory: APIC_Destroy @ 0x%x", (unsigned int)pAPIC);
 	free(pAPIC);
 }
 
