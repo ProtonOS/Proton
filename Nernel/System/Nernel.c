@@ -25,19 +25,22 @@ void Startup()
 	time_t startupTime = time(NULL);
 	Log_WriteLine(LOGLEVEL__Information, "Nernel Started @ %24.24s", ctime(&startupTime));
 	uint32_t tickCount = 0;
+	uint32_t trueTickCount = 0;
 	while(TRUE)
 	{
 		++tickCount;
 		if ((tickCount % 50000000) == 0)
 		{
 			tickCount = 0;
-			printf("Startup Tick!\n");
+			trueTickCount++;
+			printf("Startup Tick %i!\n", (int)trueTickCount);
 		}
 	}
 }
 
 void Startup2()
 {
+	uint32_t trueTickCount = 0;
 	uint32_t tickCount = 0;
 	while(TRUE)
 	{
@@ -45,7 +48,56 @@ void Startup2()
 		if ((tickCount % 50000000) == 0)
 		{
 			tickCount = 0;
-			printf("Startup2 Tick!\n");
+			trueTickCount++;
+			printf("Startup2 Tick %i!\n", (int)trueTickCount);
+		}
+	}
+}
+
+void Startup3()
+{
+	uint32_t trueTickCount = 0;
+	uint32_t tickCount = 0;
+	while(TRUE)
+	{
+		++tickCount;
+		if ((tickCount % 50000000) == 0)
+		{
+			tickCount = 0;
+			trueTickCount++;
+			printf("Startup3 Tick %i!\n", (int)trueTickCount);
+		}
+	}
+}
+
+void Startup4()
+{
+	uint32_t trueTickCount = 0;
+	uint32_t tickCount = 0;
+	while(TRUE)
+	{
+		++tickCount;
+		if ((tickCount % 50000000) == 0)
+		{
+			tickCount = 0;
+			trueTickCount++;
+			printf("Startup4 Tick %i!\n", (int)trueTickCount);
+		}
+	}
+}
+
+void Startup5()
+{
+	uint32_t trueTickCount = 0;
+	uint32_t tickCount = 0;
+	while(TRUE)
+	{
+		++tickCount;
+		if ((tickCount % 50000000) == 0)
+		{
+			tickCount = 0;
+			trueTickCount++;
+			printf("Startup5 Tick %i!\n", (int)trueTickCount);
 		}
 	}
 }
@@ -67,6 +119,9 @@ void Main(uint32_t pMultibootMagic, MultibootHeader* pMultibootHeader)
 	//CPUID_Startup();
 	ThreadScheduler_Startup((size_t)&Startup, 0x100000);
 	Process_Create((size_t)&Startup2, 0x100000);
+	Process_Create((size_t)&Startup3, 0x100000);
+	Process_Create((size_t)&Startup4, 0x100000);
+	Process_Create((size_t)&Startup5, 0x100000);
 	while(TRUE);
 }
 
