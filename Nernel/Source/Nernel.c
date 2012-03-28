@@ -20,6 +20,7 @@ void CPUInterruptHandler(InterruptRegisters pRegisters)
 	Panic(buf);
 }
 
+#define LocalDef__TickCountMod 5000000
 void Startup()
 {
 	time_t startupTime = time(NULL);
@@ -29,7 +30,7 @@ void Startup()
 	while(TRUE)
 	{
 		++tickCount;
-		if ((tickCount % 5000000) == 0)
+		if ((tickCount % LocalDef__TickCountMod) == 0)
 		{
 			tickCount = 0;
 			trueTickCount++;
@@ -45,7 +46,7 @@ void Startup2()
 	while(TRUE)
 	{
 		++tickCount;
-		if ((tickCount % 5000000) == 0)
+		if ((tickCount % LocalDef__TickCountMod) == 0)
 		{
 			tickCount = 0;
 			trueTickCount++;
@@ -61,7 +62,7 @@ void Startup3()
 	while(TRUE)
 	{
 		++tickCount;
-		if ((tickCount % 5000000) == 0)
+		if ((tickCount % LocalDef__TickCountMod) == 0)
 		{
 			tickCount = 0;
 			trueTickCount++;
@@ -77,7 +78,7 @@ void Startup4()
 	while(TRUE)
 	{
 		++tickCount;
-		if ((tickCount % 5000000) == 0)
+		if ((tickCount % LocalDef__TickCountMod) == 0)
 		{
 			tickCount = 0;
 			trueTickCount++;
@@ -93,7 +94,7 @@ void Startup5()
 	while(TRUE)
 	{
 		++tickCount;
-		if ((tickCount % 5000000) == 0)
+		if ((tickCount % LocalDef__TickCountMod) == 0)
 		{
 			tickCount = 0;
 			trueTickCount++;
