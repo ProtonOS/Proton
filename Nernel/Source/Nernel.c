@@ -20,11 +20,17 @@ void CPUInterruptHandler(InterruptRegisters pRegisters)
 	Panic(buf);
 }
 
-#define LocalDef__TickCountMod 5000000
+void Startup();
+void Startup2();
+void Startup3();
+void Startup4();
+void Startup5();
+#define LocalDef__TickCountMod 50000000
 void Startup()
 {
 	time_t startupTime = time(NULL);
 	Log_WriteLine(LOGLEVEL__Information, "Nernel Started @ %24.24s", ctime(&startupTime));
+	Process_Create((size_t)&Startup2, 0x100000);
 	uint32_t tickCount = 0;
 	uint32_t trueTickCount = 0;
 	while(TRUE)
@@ -41,6 +47,7 @@ void Startup()
 
 void Startup2()
 {
+	Process_Create((size_t)&Startup3, 0x100000);
 	uint32_t trueTickCount = 0;
 	uint32_t tickCount = 0;
 	while(TRUE)
@@ -57,6 +64,7 @@ void Startup2()
 
 void Startup3()
 {
+	Process_Create((size_t)&Startup4, 0x100000);
 	uint32_t trueTickCount = 0;
 	uint32_t tickCount = 0;
 	while(TRUE)
@@ -73,6 +81,7 @@ void Startup3()
 
 void Startup4()
 {
+	Process_Create((size_t)&Startup5, 0x100000);
 	uint32_t trueTickCount = 0;
 	uint32_t tickCount = 0;
 	while(TRUE)
@@ -119,10 +128,10 @@ void Main(uint32_t pMultibootMagic, MultibootHeader* pMultibootHeader)
 	SystemClock_Startup();
 	//CPUID_Startup();
 	ThreadScheduler_Startup((size_t)&Startup, 0x100000);
-	Process_Create((size_t)&Startup2, 0x100000);
-	Process_Create((size_t)&Startup3, 0x100000);
-	Process_Create((size_t)&Startup4, 0x100000);
-	Process_Create((size_t)&Startup5, 0x100000);
+	//Process_Create((size_t)&Startup2, 0x100000);
+	//Process_Create((size_t)&Startup3, 0x100000);
+	//Process_Create((size_t)&Startup4, 0x100000);
+	//Process_Create((size_t)&Startup5, 0x100000);
 	while(TRUE);
 }
 

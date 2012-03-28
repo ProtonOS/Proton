@@ -18,7 +18,7 @@ Thread* Thread_Create(Process* pProcess, size_t pEntryPoint, size_t pStackSize)
 	thread->SavedRegisterState.eip = pEntryPoint;
 	thread->SavedRegisterState.cs = Register_GetCodeSegment();
 	thread->SavedRegisterState.ds = Register_GetDataSegment();
-	thread->SavedRegisterState.ss = Register_GetStackSegment();
+	thread->SavedRegisterState.ss = (uint32_t)thread->Stack;
 	ThreadScheduler_Add(thread);
 	return thread;
 }

@@ -130,13 +130,14 @@ Retry:
 		if (pAPIC->CurrentThread)
 		{
 			pAPIC->CurrentThread->SavedRegisterState = *pRegisters;
+			printf("ThreadScheduler: pAPIC, CurrentThread: 0x%x ESP: 0x%x SS: 0x%x\n", (unsigned int)pAPIC->CurrentThread, pAPIC->CurrentThread->SavedRegisterState.esp, pAPIC->CurrentThread->SavedRegisterState.ss);
 			Atomic_ReleaseLock(&pAPIC->CurrentThread->Busy);
 			//printf("Thread ReleaseLock: CurrentThread\n");
 		}
 		*(size_t*)(pRegisters->esp + 8) = found->SavedRegisterState.eip;
 		*pRegisters = found->SavedRegisterState;
 		pAPIC->CurrentThread = found;
-		//printf("ThreadScheduler: Found\n");
+		printf("ThreadScheduler: Found, found: 0x%x ESP: 0x%x SS: 0x%x\n", (unsigned int)found, found->SavedRegisterState.esp, found->SavedRegisterState.ss);
 	}
 	else
 	{
