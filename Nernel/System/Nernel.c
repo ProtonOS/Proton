@@ -24,7 +24,30 @@ void Startup()
 {
 	time_t startupTime = time(NULL);
 	Log_WriteLine(LOGLEVEL__Information, "Nernel Started @ %24.24s", ctime(&startupTime));
-	while(TRUE);
+	uint32_t tickCount = 0;
+	while(TRUE)
+	{
+		++tickCount;
+		if ((tickCount % 50000000) == 0)
+		{
+			tickCount = 0;
+			printf("Startup Tick!\n");
+		}
+	}
+}
+
+void Startup2()
+{
+	uint32_t tickCount = 0;
+	while(TRUE)
+	{
+		++tickCount;
+		if ((tickCount % 50000000) == 0)
+		{
+			tickCount = 0;
+			printf("Startup2 Tick!\n");
+		}
+	}
 }
 
 void Main(uint32_t pMultibootMagic, MultibootHeader* pMultibootHeader)
@@ -42,7 +65,8 @@ void Main(uint32_t pMultibootMagic, MultibootHeader* pMultibootHeader)
 	APIC_Create(APIC__LocalMSR);
 	SystemClock_Startup();
 	//CPUID_Startup();
-	ThreadScheduler_Startup((size_t)&Startup, 0x1000000);
+	ThreadScheduler_Startup((size_t)&Startup, 0x100000);
+	Process_Create((size_t)&Startup2, 0x100000);
 	while(TRUE);
 }
 

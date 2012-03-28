@@ -9,7 +9,7 @@ Thread* Thread_Create(Process* pProcess, size_t pEntryPoint, size_t pStackSize)
 	Log_WriteLine(LOGLEVEL__Memory, "Memory: Thread_Create @ 0x%x", (unsigned int)thread);
 	thread->Process = pProcess;
 	thread->EntryPoint = pEntryPoint;
-	thread->Stack = calloc(1, pStackSize);
+	thread->Stack = (uint8_t*)calloc(1, pStackSize);
 	thread->StackSize = pStackSize;
 	thread->Priority = 2;
 	thread->SavedRegisterState.esp = (uint32_t)(thread->Stack + thread->StackSize);

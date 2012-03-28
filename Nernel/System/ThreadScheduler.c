@@ -15,7 +15,6 @@ void ThreadScheduler_Timer(InterruptRegisters pRegisters)
 	if (gThreadScheduler_Window)
 	{
 		ThreadScheduler_Schedule(&pRegisters, apic);
-		//printf("Done Scheduling\n");
 	}
 	if ((++apic->TickCount % APIC__Timer__CycleHertz) == 0) printf("Tick\n");
 	*(size_t*)(apic->BaseAddress + APIC__Register__EndOfInterrupt) = 0;
@@ -89,6 +88,7 @@ Retry:
 			found = gThreadScheduler_Window;
 			break;
 		}
+		//printf("Window = 0x%x, Next = 0x%x\n", (unsigned int)gThreadScheduler_Window, (unsigned int)gThreadScheduler_Window->Next);
 		gThreadScheduler_Window = gThreadScheduler_Window->Next;
 		if (gThreadScheduler_Window == firstThread) break;
 	}
@@ -136,6 +136,7 @@ Retry:
 		*(size_t*)(pRegisters->esp + 8) = found->SavedRegisterState.eip;
 		*pRegisters = found->SavedRegisterState;
 		pAPIC->CurrentThread = found;
+		//printf("ThreadScheduler: Found\n");
 	}
 	else
 	{
