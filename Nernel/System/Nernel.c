@@ -43,7 +43,6 @@ void Main(uint32_t pMultibootMagic, MultibootHeader* pMultibootHeader)
 	SystemClock_Startup();
 	//CPUID_Startup();
 	ThreadScheduler_Startup((size_t)&Startup, 0x1000000);
-	printf("Got Here!\n");
 	while(TRUE);
 }
 

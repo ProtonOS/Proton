@@ -121,7 +121,7 @@ Retry:
 		Atomic_ReleaseLock(&gThreadScheduler_Busy);
 		pAPIC->CurrentThread->SavedRegisterState = *pRegisters;
 		Atomic_ReleaseLock(&pAPIC->CurrentThread->Busy);
-		*(size_t*)(pRegisters->esp - 4) = found->SavedRegisterState.eip;
+		*(size_t*)(pRegisters->esp + 4) = found->SavedRegisterState.eip;
 		*pRegisters = found->SavedRegisterState;
 		pAPIC->CurrentThread = found;
 	}

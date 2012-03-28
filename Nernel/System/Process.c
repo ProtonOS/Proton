@@ -27,6 +27,7 @@ Process* Process_Create(size_t pEntryPoint, size_t pThreadStackSize)
 	process->Threads[0] = Thread_Create(process, pEntryPoint, pThreadStackSize);
 	process->ThreadCount = 1;
 	Atomic_ReleaseLock(&gProcess_Busy);
+	return process;
 }
 
 void Process_Destroy(Process* pProcess)

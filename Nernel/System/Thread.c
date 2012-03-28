@@ -19,6 +19,7 @@ Thread* Thread_Create(Process* pProcess, size_t pEntryPoint, size_t pStackSize)
 	thread->SavedRegisterState.ds = Register_GetDataSegment();
 	thread->SavedRegisterState.ss = Register_GetStackSegment();
 	ThreadScheduler_Add(thread);
+	return thread;
 }
 
 void Thread_Destroy(Thread* pThread)
