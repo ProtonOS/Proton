@@ -1,7 +1,7 @@
-#include "APIC.h"
-#include "IDT.h"
-#include "PIC.h"
-#include "x86/PortIO.h"
+#include <System/APIC.h>
+#include <System/IDT.h>
+#include <System/PIC.h>
+#include <System/x86/PortIO.h>
 
 #include <stdio.h>
 

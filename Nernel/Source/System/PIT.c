@@ -1,7 +1,7 @@
-#include "APIC.h"
-#include "Common.h"
-#include "PIT.h"
-#include "x86/PortIO.h"
+#include <System/APIC.h>
+#include <Common.h>
+#include <System/PIT.h>
+#include <System/x86/PortIO.h>
 
 uint32_t gPIT_MaxHertz = 1193182;
 uint16_t gPIT_CycleHertz = 100;

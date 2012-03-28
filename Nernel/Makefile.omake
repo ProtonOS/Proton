@@ -31,7 +31,7 @@
 #define TOOL(MKISOFS, ../SDK/bin/mkisofs);
 #define TOOL_WIN32(MKISOFS, ../SDK/bin/mkisofs.exe);
 
-#define CONST(GCC_ARGS, -I../SDK/include -I./Include -include types.h -g -O0 -Wall -Wextra -Werror -Wno-return-type -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -fno-builtin -nostdlib -std=c99 -fpack-struct=1 -nostartfiles -nodefaultlibs -c);
+#define CONST(GCC_ARGS, -I../SDK/include -I./Source -include types.h -include Common.h -g -O0 -Wall -Wextra -Werror -Wno-return-type -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -fno-builtin -nostdlib -std=c99 -fpack-struct=1 -nostartfiles -nodefaultlibs -c);
 #define CONST(LD_ARGS, -L../SDK/lib -T Nernel.ld -g);
 #define CONST(LD_LIBS, -lc -lm -lgcc);
 #define CONST(RM_ARGS, -rf);
@@ -48,36 +48,36 @@
 
 #define SOURCE(ASM_FILES)
 {
-	System/x86/APIC.asm
-	System/x86/Atomics.asm
-    System/x86/Boot.asm
-	System/x86/CPUID.asm
-	System/x86/GDT_Update.asm
-	System/x86/IDT_Stubs.asm
-	System/x86/IDT_Update.asm
-	System/x86/MSR.asm
-	System/x86/PIC.asm
-	System/x86/Registers.asm
+	Source/System/x86/APIC.asm
+	Source/System/x86/Atomics.asm
+    Source/System/x86/Boot.asm
+	Source/System/x86/CPUID.asm
+	Source/System/x86/GDT_Update.asm
+	Source/System/x86/IDT_Stubs.asm
+	Source/System/x86/IDT_Update.asm
+	Source/System/x86/MSR.asm
+	Source/System/x86/PIC.asm
+	Source/System/x86/Registers.asm
 }
 
 #define SOURCE(C_FILES)
 {
-	System/APIC.c
-	System/Console.c
-	System/CPUID.c
-	System/GDT.c
-	System/IDT.c
-	System/MultiBoot.c
-	System/Nernel.c
-	System/PIC.c
-	System/PIT.c
-	System/Process.c
-	System/RTC.c
-	System/SerialLogger.c
-	System/SystemCalls.c
-	System/SystemClock.c
-	System/Thread.c
-	System/ThreadScheduler.c
+	Source/System/APIC.c
+	Source/System/Console.c
+	Source/System/CPUID.c
+	Source/System/GDT.c
+	Source/System/IDT.c
+	Source/System/MultiBoot.c
+	Source/Nernel.c
+	Source/System/PIC.c
+	Source/System/PIT.c
+	Source/System/Process.c
+	Source/System/RTC.c
+	Source/System/SerialLogger.c
+	Source/System/SystemCalls.c
+	Source/System/SystemClock.c
+	Source/System/Thread.c
+	Source/System/ThreadScheduler.c
 }
 
 

@@ -1,7 +1,7 @@
-#include "Common.h"
-#include "Console.h"
-#include "SerialLogger.h"
-#include "x86/PortIO.h"
+#include <Common.h>
+#include <System/Console.h>
+#include <System/SerialLogger.h>
+#include <System/x86/PortIO.h>
 
 #define CONSOLE__BaseMemory          0x000B8000
 #define CONSOLE__DefaultColumns      80

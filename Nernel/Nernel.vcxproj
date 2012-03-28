@@ -11,58 +11,60 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="System\APIC.c" />
-    <ClCompile Include="System\Console.c" />
-    <ClCompile Include="System\CPUID.c" />
-    <ClCompile Include="System\GDT.c" />
-    <ClCompile Include="System\IDT.c" />
-    <ClCompile Include="System\Multiboot.c" />
-    <ClCompile Include="System\Nernel.c" />
-    <ClCompile Include="System\PIC.c" />
-    <ClCompile Include="System\PIT.c" />
-    <ClCompile Include="System\Process.c" />
-    <ClCompile Include="System\RTC.c" />
-    <ClCompile Include="System\SerialLogger.c" />
-    <ClCompile Include="System\SystemCalls.c" />
-    <ClCompile Include="System\SystemClock.c" />
-    <ClCompile Include="System\Thread.c" />
-    <ClCompile Include="System\ThreadScheduler.c" />
+    <ClCompile Include="Source\System\APIC.c" />
+    <ClCompile Include="Source\System\Console.c" />
+    <ClCompile Include="Source\System\CPUID.c" />
+    <ClCompile Include="Source\System\GDT.c" />
+    <ClCompile Include="Source\System\IDT.c" />
+    <ClCompile Include="Source\System\Multiboot.c" />
+    <ClCompile Include="Source\Nernel.c" />
+    <ClCompile Include="Source\System\PIC.c" />
+    <ClCompile Include="Source\System\PIT.c" />
+    <ClCompile Include="Source\System\Process.c" />
+    <ClCompile Include="Source\System\RTC.c" />
+    <ClCompile Include="Source\System\SerialLogger.c" />
+    <ClCompile Include="Source\System\SystemCalls.c" />
+    <ClCompile Include="Source\System\SystemClock.c" />
+    <ClCompile Include="Source\System\Thread.c" />
+    <ClCompile Include="Source\System\ThreadScheduler.c" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="System\x86\APIC.asm" />
-    <None Include="System\x86\Atomics.asm" />
-    <None Include="System\x86\Boot.asm" />
-    <None Include="System\x86\CPUID.asm" />
-    <None Include="System\x86\GDT_Update.asm" />
-    <None Include="System\x86\IDT_Stubs.asm" />
-    <None Include="System\x86\IDT_Update.asm" />
-    <None Include="System\x86\MSR.asm" />
-    <None Include="System\x86\PIC.asm" />
-    <None Include="System\x86\Registers.asm" />
+    <None Include="Source\System\x86\APIC.asm" />
+    <None Include="Source\System\x86\Atomics.asm" />
+    <None Include="Source\System\x86\Boot.asm" />
+    <None Include="Source\System\x86\CPUID.asm" />
+    <None Include="Source\System\x86\GDT_Update.asm" />
+    <None Include="Source\System\x86\IDT_Stubs.asm" />
+    <None Include="Source\System\x86\IDT_Update.asm" />
+    <None Include="Source\System\x86\MSR.asm" />
+    <None Include="Source\System\x86\PIC.asm" />
+    <None Include="Source\System\x86\Registers.asm" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="System\APIC.h" />
-    <ClInclude Include="System\Atomics.h" />
-    <ClInclude Include="System\Common.h" />
-    <ClInclude Include="System\Console.h" />
-    <ClInclude Include="System\CPUID.h" />
-    <ClInclude Include="System\GDT.h" />
-    <ClInclude Include="System\IDT.h" />
-    <ClInclude Include="System\IDT_InitializeStubs.h" />
-    <ClInclude Include="System\Log.h" />
-    <ClInclude Include="System\MSR.h" />
-    <ClInclude Include="System\Multiboot.h" />
-    <ClInclude Include="System\IDT_ExternalStubs.h" />
-    <ClInclude Include="System\PIC.h" />
-    <ClInclude Include="System\PIT.h" />
-    <ClInclude Include="System\Process.h" />
-    <ClInclude Include="System\RTC.h" />
-    <ClInclude Include="System\SerialLogger.h" />
-    <ClInclude Include="System\SystemClock.h" />
-    <ClInclude Include="System\Thread.h" />
-    <ClInclude Include="System\ThreadScheduler.h" />
-    <ClInclude Include="System\x86\PortIO.h" />
-    <ClInclude Include="System\x86\Registers.h" />
+    <ClInclude Include="Source\Inline.h" />
+    <ClInclude Include="Source\System\APIC.h" />
+    <ClInclude Include="Source\System\Atomics.h" />
+    <ClInclude Include="Source\Common.h" />
+    <ClInclude Include="Source\System\Console.h" />
+    <ClInclude Include="Source\System\CPUID.h" />
+    <ClInclude Include="Source\System\GDT.h" />
+    <ClInclude Include="Source\System\IDT.h" />
+    <ClInclude Include="Source\System\IDT_InitializeStubs.h" />
+    <ClInclude Include="Source\IntellisenseFixes.h" />
+    <ClInclude Include="Source\System\Log.h" />
+    <ClInclude Include="Source\System\MSR.h" />
+    <ClInclude Include="Source\System\Multiboot.h" />
+    <ClInclude Include="Source\System\IDT_ExternalStubs.h" />
+    <ClInclude Include="Source\System\PIC.h" />
+    <ClInclude Include="Source\System\PIT.h" />
+    <ClInclude Include="Source\System\Process.h" />
+    <ClInclude Include="Source\System\RTC.h" />
+    <ClInclude Include="Source\System\SerialLogger.h" />
+    <ClInclude Include="Source\System\SystemClock.h" />
+    <ClInclude Include="Source\System\Thread.h" />
+    <ClInclude Include="Source\System\ThreadScheduler.h" />
+    <ClInclude Include="Source\System\x86\PortIO.h" />
+    <ClInclude Include="Source\System\x86\Registers.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E5D2B815-40D4-4B6F-A622-0F402DADAD28}</ProjectGuid>
@@ -97,10 +99,10 @@
     <NMakeCleanCommandLine>..\SDK\bin\omake clean</NMakeCleanCommandLine>
     <NMakeReBuildCommandLine>..\SDK\bin\omake rebuild</NMakeReBuildCommandLine>
     <NMakePreprocessorDefinitions>DEBUG</NMakePreprocessorDefinitions>
-    <NMakeIncludeSearchPath>..\SDK\include;.\System</NMakeIncludeSearchPath>
+    <NMakeIncludeSearchPath>..\SDK\include;.\Source</NMakeIncludeSearchPath>
     <NMakeForcedIncludes>types.h</NMakeForcedIncludes>
     <ExecutablePath />
-    <IncludePath>..\SDK\include;.\System</IncludePath>
+    <IncludePath>..\SDK\include;.\Source</IncludePath>
     <ReferencePath />
     <LibraryPath />
     <SourcePath />
@@ -113,10 +115,10 @@
     <NMakeReBuildCommandLine>..\SDK\bin\omake rebuild</NMakeReBuildCommandLine>
     <NMakePreprocessorDefinitions>
     </NMakePreprocessorDefinitions>
-    <NMakeIncludeSearchPath>..\SDK\include;.\System</NMakeIncludeSearchPath>
+    <NMakeIncludeSearchPath>..\SDK\include;.\Source</NMakeIncludeSearchPath>
     <NMakeForcedIncludes>types.h</NMakeForcedIncludes>
     <ExecutablePath />
-    <IncludePath>..\SDK\include;.\System</IncludePath>
+    <IncludePath>..\SDK\include;.\Source</IncludePath>
     <ReferencePath />
     <LibraryPath />
     <SourcePath />

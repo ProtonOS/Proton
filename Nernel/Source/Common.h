@@ -6,9 +6,10 @@
 #include <string.h>
 #include <time.h>
 
-#include "Log.h"
+#include <System/Log.h>
 
 #ifdef _WIN32
+#include <IntellisenseFixes.h>
 __declspec(noreturn) extern void Halt();
 __declspec(noreturn) void Panic(const char* pMessage);
 #else

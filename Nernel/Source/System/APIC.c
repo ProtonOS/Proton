@@ -1,11 +1,11 @@
-#include "APIC.h"
-#include "Common.h"
-#include "IDT.h"
-#include "IDT_ExternalStubs.h"
-#include "MSR.h"
-#include "PIC.h"
-#include "PIT.h"
-#include "ThreadScheduler.h"
+#include <System/APIC.h>
+#include <Common.h>
+#include <System/IDT.h>
+#include <System/IDT_ExternalStubs.h>
+#include <System/MSR.h>
+#include <System/PIC.h>
+#include <System/PIT.h>
+#include <System/ThreadScheduler.h>
 
 
 #define APIC__BaseAddress_Mask						0xFFFFF000

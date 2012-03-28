@@ -1,9 +1,9 @@
-#include "APIC.h"
-#include "Atomics.h"
-#include "Common.h"
-#include "Process.h"
-#include "SystemClock.h"
-#include "ThreadScheduler.h"
+#include <System/APIC.h>
+#include <System/Atomics.h>
+#include <Common.h>
+#include <System/Process.h>
+#include <System/SystemClock.h>
+#include <System/ThreadScheduler.h>
 
 uint8_t gThreadScheduler_Busy = 0;
 Thread* gThreadScheduler_Window = NULL;
@@ -70,7 +70,7 @@ void ThreadScheduler_Schedule(InterruptRegisters* pRegisters, APIC* pAPIC)
 		pAPIC->CurrentThread->TimeConsumed += 10;
 		if (pAPIC->CurrentThread->TimeConsumed < pAPIC->CurrentThread->Priority * (1000 / APIC__Timer__CycleHertz))
 		{
-			printf("ThreadScheduler ReleaseLock: Another Slice\n");
+			//printf("ThreadScheduler ReleaseLock: Another Slice\n");
 			Atomic_ReleaseLock(&gThreadScheduler_Busy);
 			return;
 		}

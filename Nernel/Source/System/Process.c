@@ -1,7 +1,7 @@
-#include "Atomics.h"
-#include "Common.h"
-#include "Process.h"
-#include "x86/PortIO.h"
+#include <System/Atomics.h>
+#include <Common.h>
+#include <System/Process.h>
+#include <System/x86/PortIO.h>
 
 #define PROCESS__DefaultThreadPool_Max		128
 

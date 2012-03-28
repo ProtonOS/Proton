@@ -1,7 +1,8 @@
-#include "Common.h"
-#include "Thread.h"
-#include "ThreadScheduler.h"
-#include "x86/Registers.h"
+#include <Common.h>
+#include <System/Thread.h>
+#include <System/ThreadScheduler.h>
+#include <System/x86/Registers.h>
+
 
 Thread* Thread_Create(Process* pProcess, size_t pEntryPoint, size_t pStackSize)
 {
@@ -27,5 +28,5 @@ void Thread_Destroy(Thread* pThread)
 	ThreadScheduler_Remove(pThread);
 	Log_WriteLine(LOGLEVEL__Memory, "Memory: Thread_Destroy @ 0x%x", (unsigned int)pThread);
 	free(pThread->Stack);
-	free (pThread);
+	free(pThread);
 }

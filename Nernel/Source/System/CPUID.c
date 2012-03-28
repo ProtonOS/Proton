@@ -1,5 +1,5 @@
-#include "Common.h"
-#include "CPUID.h"
+#include <Common.h>
+#include <System/CPUID.h>
 
 extern uint32_t CPUID_GetEAX(uint32_t pFunction);
 extern uint32_t CPUID_GetEBX(uint32_t pFunction);

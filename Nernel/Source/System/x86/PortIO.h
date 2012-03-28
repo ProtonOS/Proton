@@ -1,7 +1,39 @@
 #pragma once
 
 #ifdef _WIN32
-#define PORTIO(bwl, bw, type)
+#define PORTIO(bwl, bw, type)                               \
+static inline void out##bwl(int pPort,                      \
+                            unsigned type pValue)           \
+{                                                           \
+}                                                           \
+                                                            \
+static inline unsigned type in##bwl(int pPort)              \
+{                                                           \
+	return 0;				                                \
+}                                                           \
+                                                            \
+static inline void out##bwl##_p(int pPort,                  \
+                                unsigned type pValue)       \
+{                                                           \
+	out##bwl(pPort, pValue);                                \
+}                                                           \
+                                                            \
+static inline unsigned type in##bwl##_p(int pPort)          \
+{                                                           \
+	return 0;											    \
+}                                                           \
+                                                            \
+static inline void outs##bwl(int pPort,                     \
+                             const void *pAddress,          \
+                             unsigned long pCount)          \
+{                                                           \
+}                                                           \
+                                                            \
+static inline void ins##bwl(int pPort,                      \
+                            void *pAddress,                 \
+                            unsigned long pCount)           \
+{                                                           \
+}
 #else
 
 #define PORTIO(bwl, bw, type)                               \

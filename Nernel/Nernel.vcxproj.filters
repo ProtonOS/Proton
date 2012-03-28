@@ -15,152 +15,158 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="System\Multiboot.c">
+    <ClCompile Include="Source\System\Multiboot.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="System\Nernel.c">
+    <ClCompile Include="Source\Nernel.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="System\SystemCalls.c">
+    <ClCompile Include="Source\System\SystemCalls.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="System\Console.c">
+    <ClCompile Include="Source\System\Console.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="System\SystemClock.c">
+    <ClCompile Include="Source\System\SystemClock.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="System\CPUID.c">
+    <ClCompile Include="Source\System\CPUID.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="System\APIC.c">
+    <ClCompile Include="Source\System\APIC.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="System\IDT.c">
+    <ClCompile Include="Source\System\IDT.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="System\GDT.c">
+    <ClCompile Include="Source\System\GDT.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="System\PIC.c">
+    <ClCompile Include="Source\System\PIC.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="System\RTC.c">
+    <ClCompile Include="Source\System\RTC.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="System\PIT.c">
+    <ClCompile Include="Source\System\PIT.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="System\SerialLogger.c">
+    <ClCompile Include="Source\System\SerialLogger.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="System\Thread.c">
+    <ClCompile Include="Source\System\Thread.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="System\Process.c">
+    <ClCompile Include="Source\System\Process.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="System\ThreadScheduler.c">
+    <ClCompile Include="Source\System\ThreadScheduler.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="System\Multiboot.h">
+    <ClInclude Include="Source\System\Multiboot.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="System\Common.h">
+    <ClInclude Include="Source\Common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="System\Console.h">
+    <ClInclude Include="Source\System\Console.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="System\x86\PortIO.h">
+    <ClInclude Include="Source\System\x86\PortIO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="System\Log.h">
+    <ClInclude Include="Source\System\Log.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="System\SystemClock.h">
+    <ClInclude Include="Source\System\SystemClock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="System\CPUID.h">
+    <ClInclude Include="Source\System\CPUID.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="System\APIC.h">
+    <ClInclude Include="Source\System\APIC.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="System\MSR.h">
+    <ClInclude Include="Source\System\MSR.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="System\PIC.h">
+    <ClInclude Include="Source\System\PIC.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="System\IDT_ExternalStubs.h">
+    <ClInclude Include="Source\System\IDT_ExternalStubs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="System\IDT_InitializeStubs.h">
+    <ClInclude Include="Source\System\IDT_InitializeStubs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="System\IDT.h">
+    <ClInclude Include="Source\System\IDT.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="System\GDT.h">
+    <ClInclude Include="Source\System\GDT.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="System\RTC.h">
+    <ClInclude Include="Source\System\RTC.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="System\PIT.h">
+    <ClInclude Include="Source\System\PIT.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="System\SerialLogger.h">
+    <ClInclude Include="Source\System\SerialLogger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="System\Thread.h">
+    <ClInclude Include="Source\System\Thread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="System\Process.h">
+    <ClInclude Include="Source\System\Process.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="System\Atomics.h">
+    <ClInclude Include="Source\System\Atomics.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="System\ThreadScheduler.h">
+    <ClInclude Include="Source\System\ThreadScheduler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="System\x86\Registers.h">
+    <ClInclude Include="Source\System\x86\Registers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\IntellisenseFixes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Inline.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="System\x86\Boot.asm">
+    <None Include="Source\System\x86\Boot.asm">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="System\x86\CPUID.asm">
+    <None Include="Source\System\x86\CPUID.asm">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="System\x86\PIC.asm">
+    <None Include="Source\System\x86\PIC.asm">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="System\x86\APIC.asm">
+    <None Include="Source\System\x86\APIC.asm">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="System\x86\GDT_Update.asm">
+    <None Include="Source\System\x86\GDT_Update.asm">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="System\x86\IDT_Stubs.asm">
+    <None Include="Source\System\x86\IDT_Stubs.asm">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="System\x86\IDT_Update.asm">
+    <None Include="Source\System\x86\IDT_Update.asm">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="System\x86\MSR.asm">
+    <None Include="Source\System\x86\MSR.asm">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="System\x86\Atomics.asm">
+    <None Include="Source\System\x86\Atomics.asm">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="System\x86\Registers.asm">
+    <None Include="Source\System\x86\Registers.asm">
       <Filter>Source Files</Filter>
     </None>
   </ItemGroup>

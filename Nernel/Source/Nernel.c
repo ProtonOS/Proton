@@ -1,17 +1,17 @@
-#include "APIC.h"
-#include "Common.h"
-#include "Console.h"
-#include "CPUID.h"
-#include "GDT.h"
-#include "IDT.h"
-#include "Log.h"
-#include "Multiboot.h"
-#include "PIC.h"
-#include "PIT.h"
-#include "RTC.h"
-#include "SerialLogger.h"
-#include "SystemClock.h"
-#include "ThreadScheduler.h"
+#include <System/APIC.h>
+#include <Common.h>
+#include <System/Console.h>
+#include <System/CPUID.h>
+#include <System/GDT.h>
+#include <System/IDT.h>
+#include <System/Log.h>
+#include <System/Multiboot.h>
+#include <System/PIC.h>
+#include <System/PIT.h>
+#include <System/RTC.h>
+#include <System/SerialLogger.h>
+#include <System/SystemClock.h>
+#include <System/ThreadScheduler.h>
 
 void CPUInterruptHandler(InterruptRegisters pRegisters)
 {

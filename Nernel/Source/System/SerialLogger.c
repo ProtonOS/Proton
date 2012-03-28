@@ -1,5 +1,5 @@
-#include "SerialLogger.h"
-#include "x86/PortIO.h"
+#include <System/SerialLogger.h>
+#include <System/x86/PortIO.h>
 
 #define SERIALLOGGER__BaseIOPort			0x02F8
 #define SERIALLOGGER__IOPort__Data			SERIALLOGGER__BaseIOPort + 0x00

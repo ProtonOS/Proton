@@ -1,6 +1,6 @@
-#include "IDT.h"
-#include "RTC.h"
-#include "x86/PortIO.h"
+#include <System/IDT.h>
+#include <System/RTC.h>
+#include <System/x86/PortIO.h>
 
 #define RTC__BaseIOPort			0x0070
 #define RTC__IOPort__Address	RTC__BaseIOPort + 0x00

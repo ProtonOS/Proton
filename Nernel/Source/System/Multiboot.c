@@ -1,5 +1,5 @@
-#include "Common.h"
-#include "Multiboot.h"
+#include <Common.h>
+#include <System/Multiboot.h>
 
 #define MULTIBOOT_MAGIC								0x2BADB002
 #define MULTIBOOT_MEMORYMAP_TYPE_AVAILABLE			1

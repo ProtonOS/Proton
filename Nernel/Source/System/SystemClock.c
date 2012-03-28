@@ -1,6 +1,6 @@
-#include "PIT.h"
-#include "RTC.h"
-#include "SystemClock.h"
+#include <System/PIT.h>
+#include <System/RTC.h>
+#include <System/SystemClock.h>
 
 uint32_t gSystemClock_StartupTime = 0;
 

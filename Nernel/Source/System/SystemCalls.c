@@ -1,7 +1,7 @@
-#include "Common.h"
-#include "Console.h"
-#include "Multiboot.h"
-#include "SystemClock.h"
+#include <Common.h>
+#include <System/Console.h>
+#include <System/Multiboot.h>
+#include <System/SystemClock.h>
 
 #include <sys/stat.h>
 #include <sys/time.h>
