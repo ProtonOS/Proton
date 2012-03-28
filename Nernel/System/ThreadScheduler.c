@@ -15,6 +15,7 @@ void ThreadScheduler_Timer(InterruptRegisters pRegisters)
 	if (gThreadScheduler_Window)
 	{
 		ThreadScheduler_Schedule(&pRegisters, apic);
+		//printf("Done Scheduling\n");
 	}
 	if ((++apic->TickCount % APIC__Timer__CycleHertz) == 0) printf("Tick\n");
 	*(size_t*)(apic->BaseAddress + APIC__Register__EndOfInterrupt) = 0;
@@ -64,11 +65,13 @@ void ThreadScheduler_Remove(Thread* pThread)
 void ThreadScheduler_Schedule(InterruptRegisters* pRegisters, APIC* pAPIC)
 {
 	Atomic_AquireLock(&gThreadScheduler_Busy);
+	//printf("ThreadScheduler AquireLock\n");
 	if (pAPIC->CurrentThread)
 	{
 		pAPIC->CurrentThread->TimeConsumed += (1000 / APIC__Timer__CycleHertz);
 		if (pAPIC->CurrentThread->TimeConsumed < pAPIC->CurrentThread->Priority * (1000 / APIC__Timer__CycleHertz))
 		{
+			//printf("ThreadScheduler ReleaseLock: Another Slice\n");
 			Atomic_ReleaseLock(&gThreadScheduler_Busy);
 			return;
 		}
@@ -92,7 +95,8 @@ Retry:
 	if (firstRetry && !found)
 	{
 		firstThread = gThreadScheduler_Window;
-		while (firstThread != gThreadScheduler_Window)
+		//printf("ThreadScheduler Resetting TimeConsumed\n");
+		while (firstThread != gThreadScheduler_Window || gThreadScheduler_Window->TimeConsumed)
 		{
 			gThreadScheduler_Window->TimeConsumed = 0;
 			gThreadScheduler_Window = gThreadScheduler_Window->Next;
@@ -102,25 +106,33 @@ Retry:
 	}
 	else if (!firstRetry && !found)
 	{
+		//printf("ThreadScheduler ReleaseLock: All Busy, Another Slice\n");
 		Atomic_ReleaseLock(&gThreadScheduler_Busy);
-		uint64_t started = SystemClock_GetTicks();
-		while (SystemClock_GetTicks() == started)
+
+		/*
+		Atomic_ReleaseLock(&gThreadScheduler_Busy);
+		for (uint32_t count = 0; count < 100; ++count)
 		{
-			IOWAIT();
-			IOWAIT();
-			IOWAIT();
 			IOWAIT();
 		}
 		Atomic_AquireLock(&gThreadScheduler_Busy);
+		//printf("ThreadScheduler AquireLock: Waking\n");
 		firstRetry = TRUE;
 		goto Retry;
+		*/
 	}
 	else if (found)
 	{
 		Atomic_AquireLock(&found->Busy);
+		//printf("Thread AquireLock: Found\n");
 		Atomic_ReleaseLock(&gThreadScheduler_Busy);
-		pAPIC->CurrentThread->SavedRegisterState = *pRegisters;
-		Atomic_ReleaseLock(&pAPIC->CurrentThread->Busy);
+		//printf("ThreadScheduler ReleaseLock: Found\n");
+		if (pAPIC->CurrentThread)
+		{
+			pAPIC->CurrentThread->SavedRegisterState = *pRegisters;
+			Atomic_ReleaseLock(&pAPIC->CurrentThread->Busy);
+			//printf("Thread ReleaseLock: CurrentThread\n");
+		}
 		*(size_t*)(pRegisters->esp + 4) = found->SavedRegisterState.eip;
 		*pRegisters = found->SavedRegisterState;
 		pAPIC->CurrentThread = found;
