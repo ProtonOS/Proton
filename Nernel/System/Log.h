@@ -11,6 +11,9 @@ typedef enum LogLevel
 #ifdef LOG__DISABLE
 #define LOGLEVEL__Current					(LOGLEVEL__None)
 #define Log_WriteLine(logCondition, ...)
+#elif defined _WIN32
+#define LOGLEVEL__Current					(LOGLEVEL__None)
+#define Log_WriteLine(logCondition, ...)
 #else
 #define LOGLEVEL__Current ((LogLevel)( \
 		LOGLEVEL__Information \

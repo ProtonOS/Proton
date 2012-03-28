@@ -67,10 +67,10 @@ void ThreadScheduler_Schedule(InterruptRegisters* pRegisters, APIC* pAPIC)
 	//printf("ThreadScheduler AquireLock\n");
 	if (pAPIC->CurrentThread)
 	{
-		pAPIC->CurrentThread->TimeConsumed += (1000 / APIC__Timer__CycleHertz);
+		pAPIC->CurrentThread->TimeConsumed += 10;
 		if (pAPIC->CurrentThread->TimeConsumed < pAPIC->CurrentThread->Priority * (1000 / APIC__Timer__CycleHertz))
 		{
-			//printf("ThreadScheduler ReleaseLock: Another Slice\n");
+			printf("ThreadScheduler ReleaseLock: Another Slice\n");
 			Atomic_ReleaseLock(&gThreadScheduler_Busy);
 			return;
 		}

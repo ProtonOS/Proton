@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef _WIN32
+#define PORTIO(bwl, bw, type)
+#else
+
 #define PORTIO(bwl, bw, type)                               \
 static inline void out##bwl(int pPort,                      \
                             unsigned type pValue)           \
@@ -43,9 +47,11 @@ static inline void ins##bwl(int pPort,                      \
 	__asm volatile("rep; ins" #bwl                          \
 		     : "+D"(pAddress), "+c"(pCount) : "d"(pPort));  \
 }
+#endif
 
 PORTIO(b, b, char)
 PORTIO(w, w, short)
 PORTIO(l, , int)
 
 #define IOWAIT()		__asm volatile( "outb %%al, $0x80" : : "a"(0) )
+

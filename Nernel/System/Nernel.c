@@ -29,7 +29,7 @@ void Startup()
 	while(TRUE)
 	{
 		++tickCount;
-		if ((tickCount % 50000000) == 0)
+		if ((tickCount % 5000000) == 0)
 		{
 			tickCount = 0;
 			trueTickCount++;
@@ -45,7 +45,7 @@ void Startup2()
 	while(TRUE)
 	{
 		++tickCount;
-		if ((tickCount % 50000000) == 0)
+		if ((tickCount % 5000000) == 0)
 		{
 			tickCount = 0;
 			trueTickCount++;
@@ -61,7 +61,7 @@ void Startup3()
 	while(TRUE)
 	{
 		++tickCount;
-		if ((tickCount % 50000000) == 0)
+		if ((tickCount % 5000000) == 0)
 		{
 			tickCount = 0;
 			trueTickCount++;
@@ -77,7 +77,7 @@ void Startup4()
 	while(TRUE)
 	{
 		++tickCount;
-		if ((tickCount % 50000000) == 0)
+		if ((tickCount % 5000000) == 0)
 		{
 			tickCount = 0;
 			trueTickCount++;
@@ -93,7 +93,7 @@ void Startup5()
 	while(TRUE)
 	{
 		++tickCount;
-		if ((tickCount % 50000000) == 0)
+		if ((tickCount % 5000000) == 0)
 		{
 			tickCount = 0;
 			trueTickCount++;
