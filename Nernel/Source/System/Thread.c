@@ -11,6 +11,7 @@ Thread* Thread_Create(Process* pProcess, size_t pEntryPoint, size_t pStackSize)
 	thread->Process = pProcess;
 	thread->EntryPoint = pEntryPoint;
 	thread->Stack = (uint8_t*)calloc(1, pStackSize);
+	printf("Stack memory: 0x%x\n", (unsigned int)thread->Stack);
 	thread->StackSize = pStackSize;
 	thread->Priority = 2;
 	thread->SavedRegisterState.esp = (uint32_t)(thread->Stack + thread->StackSize);
@@ -18,7 +19,7 @@ Thread* Thread_Create(Process* pProcess, size_t pEntryPoint, size_t pStackSize)
 	thread->SavedRegisterState.eip = pEntryPoint;
 	thread->SavedRegisterState.cs = Register_GetCodeSegment();
 	thread->SavedRegisterState.ds = Register_GetDataSegment();
-	thread->SavedRegisterState.ss = (uint32_t)thread->Stack;
+	thread->SavedRegisterState.ss = 0x10;
 	ThreadScheduler_Add(thread);
 	return thread;
 }

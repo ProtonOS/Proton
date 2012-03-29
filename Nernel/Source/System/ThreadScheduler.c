@@ -2,6 +2,7 @@
 #include <System/Atomics.h>
 #include <Common.h>
 #include <System/Process.h>
+#include <System/x86/Registers.h>
 #include <System/SystemClock.h>
 #include <System/ThreadScheduler.h>
 
@@ -12,6 +13,7 @@ Process* gThreadScheduler_KernelProcess = NULL;
 void ThreadScheduler_Timer(InterruptRegisters pRegisters)
 {
 	APIC* apic = gAPIC_Array[(pRegisters.int_no - 128) >> 1];
+	//printf("I Found an APIC @ 0x%x\n", (unsigned int)apic);
 	if (gThreadScheduler_Window)
 	{
 		ThreadScheduler_Schedule(&pRegisters, apic);
@@ -130,14 +132,20 @@ Retry:
 		if (pAPIC->CurrentThread)
 		{
 			pAPIC->CurrentThread->SavedRegisterState = *pRegisters;
-			printf("ThreadScheduler: pAPIC, CurrentThread: 0x%x ESP: 0x%x SS: 0x%x\n", (unsigned int)pAPIC->CurrentThread, pAPIC->CurrentThread->SavedRegisterState.esp, pAPIC->CurrentThread->SavedRegisterState.ss);
+			//printf("ThreadScheduler: pAPIC, CurrentThread: 0x%x ESP: 0x%x EBP: 0x%x EAX: 0x%x EBX: 0x%x ECX: 0x%x EDX: 0x%x SS: 0x%x\n", (unsigned int)pAPIC->CurrentThread, (unsigned int)pAPIC->CurrentThread->SavedRegisterState.esp, (unsigned int)pAPIC->CurrentThread->SavedRegisterState.ebp, (unsigned int)pAPIC->CurrentThread->SavedRegisterState.eax, (unsigned int)pAPIC->CurrentThread->SavedRegisterState.ebx, (unsigned int)pAPIC->CurrentThread->SavedRegisterState.ecx, (unsigned int)pAPIC->CurrentThread->SavedRegisterState.edx, (unsigned int)pAPIC->CurrentThread->SavedRegisterState.ss);
 			Atomic_ReleaseLock(&pAPIC->CurrentThread->Busy);
 			//printf("Thread ReleaseLock: CurrentThread\n");
 		}
+		uint32_t esp = pRegisters->esp;
 		*(size_t*)(pRegisters->esp + 8) = found->SavedRegisterState.eip;
-		*pRegisters = found->SavedRegisterState;
+		//*(size_t*)(pRegisters->esp + 24) = 0x42;
+		//*pRegisters = found->SavedRegisterState;
+		pRegisters->useresp = pRegisters->esp;
+		pRegisters->esp = esp;
+
 		pAPIC->CurrentThread = found;
-		printf("ThreadScheduler: Found, found: 0x%x ESP: 0x%x SS: 0x%x\n", (unsigned int)found, found->SavedRegisterState.esp, found->SavedRegisterState.ss);
+		//printf("ThreadScheduler: Found, found: 0x%x ESP: 0x%x EBP: 0x%x EAX: 0x%x EBX: 0x%x ECX: 0x%x EDX: 0x%x SS: 0x%x\n", (unsigned int)found, (unsigned int)found->SavedRegisterState.esp, (unsigned int)found->SavedRegisterState.ebp, (unsigned int)found->SavedRegisterState.eax, (unsigned int)found->SavedRegisterState.ebx, (unsigned int)found->SavedRegisterState.ecx, (unsigned int)found->SavedRegisterState.edx, (unsigned int)found->SavedRegisterState.ss);
+		
 	}
 	else
 	{

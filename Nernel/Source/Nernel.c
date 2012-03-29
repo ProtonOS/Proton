@@ -12,6 +12,7 @@
 #include <System/SerialLogger.h>
 #include <System/SystemClock.h>
 #include <System/ThreadScheduler.h>
+#include <System/x86/Registers.h>
 
 void CPUInterruptHandler(InterruptRegisters pRegisters)
 {
@@ -28,6 +29,7 @@ void Startup5();
 #define LocalDef__TickCountMod 50000000
 void Startup()
 {
+	printf("Run, run as fast as you can, for it works!");
 	time_t startupTime = time(NULL);
 	Log_WriteLine(LOGLEVEL__Information, "Nernel Started @ %24.24s", ctime(&startupTime));
 	Process_Create((size_t)&Startup2, 0x100000);
@@ -35,6 +37,8 @@ void Startup()
 	uint32_t trueTickCount = 0;
 	while(TRUE)
 	{
+		//printf("ESP: 0x%x\n", (unsigned int)Register_GetESP());
+		//printf("SS: 0x%x\n", (unsigned int)Register_GetStackSegment());
 		++tickCount;
 		if ((tickCount % LocalDef__TickCountMod) == 0)
 		{
@@ -52,6 +56,8 @@ void Startup2()
 	uint32_t tickCount = 0;
 	while(TRUE)
 	{
+		//printf("ESP2: 0x%x\n", (unsigned int)Register_GetESP());
+		//printf("SS2: 0x%x\n", (unsigned int)Register_GetStackSegment());
 		++tickCount;
 		if ((tickCount % LocalDef__TickCountMod) == 0)
 		{
@@ -69,6 +75,8 @@ void Startup3()
 	uint32_t tickCount = 0;
 	while(TRUE)
 	{
+		//printf("ESP3: 0x%x\n", (unsigned int)Register_GetESP());
+		//printf("SS3: 0x%x\n", (unsigned int)Register_GetStackSegment());
 		++tickCount;
 		if ((tickCount % LocalDef__TickCountMod) == 0)
 		{
@@ -86,6 +94,8 @@ void Startup4()
 	uint32_t tickCount = 0;
 	while(TRUE)
 	{
+		//printf("ESP4: 0x%x\n", (unsigned int)Register_GetESP());
+		//printf("SS4: 0x%x\n", (unsigned int)Register_GetStackSegment());
 		++tickCount;
 		if ((tickCount % LocalDef__TickCountMod) == 0)
 		{
@@ -102,6 +112,8 @@ void Startup5()
 	uint32_t tickCount = 0;
 	while(TRUE)
 	{
+		//printf("ESP5: 0x%x\n", (unsigned int)Register_GetESP());
+		//printf("SS5: 0x%x\n", (unsigned int)Register_GetStackSegment());
 		++tickCount;
 		if ((tickCount % LocalDef__TickCountMod) == 0)
 		{
@@ -111,12 +123,17 @@ void Startup5()
 		}
 	}
 }
+extern uint32_t gStack;
 
 void Main(uint32_t pMultibootMagic, MultibootHeader* pMultibootHeader)
 {
 	Multiboot_Startup(pMultibootMagic, pMultibootHeader);
 	SerialLogger_Startup();
 	Console_Startup();
+	printf("ESP: 0x%x\n", (unsigned int)Register_GetESP());
+	printf("gStack: 0x%x\n", (unsigned int)&gStack);
+	printf("gStack: 0x%x\n", (unsigned int)gStack);
+	printf("SS: 0x%x\n", (unsigned int)Register_GetStackSegment());
 	GDT_Startup();
 	IDT_Startup();
 	for (uint8_t interrupt = 0; interrupt < IDT__IRQ__RemappedBase; ++interrupt) IDT_RegisterHandler(interrupt, &CPUInterruptHandler);
@@ -127,11 +144,12 @@ void Main(uint32_t pMultibootMagic, MultibootHeader* pMultibootHeader)
 	APIC_Create(APIC__LocalMSR);
 	SystemClock_Startup();
 	//CPUID_Startup();
+	printf("ESP: 0x%x\n", (unsigned int)Register_GetESP());
+	printf("gStack: 0x%x\n", (unsigned int)&gStack);
+	printf("gStack: 0x%x\n", (unsigned int)gStack);
+	printf("SS: 0x%x\n", (unsigned int)Register_GetStackSegment());
 	ThreadScheduler_Startup((size_t)&Startup, 0x100000);
-	//Process_Create((size_t)&Startup2, 0x100000);
-	//Process_Create((size_t)&Startup3, 0x100000);
-	//Process_Create((size_t)&Startup4, 0x100000);
-	//Process_Create((size_t)&Startup5, 0x100000);
+	printf("Run, run as fast as you can, for it works!");
 	while(TRUE);
 }
 

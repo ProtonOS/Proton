@@ -17,6 +17,21 @@ IDT_ISRDispatch:
     mov ax, ds
     push eax
  
+/	mov edx, 0x2f8
+/	mov eax, 13
+/	outb dx, al
+/	mov eax, 10
+/	outb dx, al
+/	mov eax, 37
+/	outb dx, al
+/	outb dx, al
+/	outb dx, al
+/	outb dx, al
+/	mov eax, 13
+/	outb dx, al
+/	mov eax, 10
+/	outb dx, al
+
     mov ax, 0x10
     mov ds, ax
     mov es, ax
@@ -30,6 +45,21 @@ IDT_ISRDispatch:
     mov es, ax
     mov fs, ax
     mov gs, ax
+
+/	mov edx, 0x2f8
+/	mov eax, 13
+/	outb dx, al
+/	mov eax, 10
+/	outb dx, al
+/	mov eax, 37
+/	outb dx, al
+/	outb dx, al
+/	outb dx, al
+/	outb dx, al
+/	mov eax, 13
+/	outb dx, al
+/	mov eax, 10
+/	outb dx, al
  
 	popa
     add esp, 8

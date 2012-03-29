@@ -1,0 +1,1 @@
+gdb --readnow --symbols="./build/boot/nernel.bin" --directory="./Nernel/" -eval-command="target remote :1234"
