@@ -41,8 +41,10 @@ APIC* APIC_Create(uint32_t pMSR)
 	*(size_t*)(apic->BaseAddress + APIC__Register__LVT__Timer) = 128 + (apic->Index * 2) + 0;
 	*(size_t*)(apic->BaseAddress + APIC__Register__Timer__Divisor) = 0x03;
 
+	PIC_StartInterrupts();
 	PIT_TestAPICFrequency(apic);
 	while (!apic->BusFrequency) ;
+	PIC_StopInterrupts();
 
 	printf("Logical Processor %u Bus Frequency = %u MHz\n", (unsigned int)apic->Index, (unsigned int)(apic->BusFrequency / 1000 / 1000));	
 
