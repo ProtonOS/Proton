@@ -29,7 +29,6 @@ void Startup5();
 #define LocalDef__TickCountMod 50000000
 void Startup()
 {
-	printf("Run, run as fast as you can, for it works!");
 	time_t startupTime = time(NULL);
 	Log_WriteLine(LOGLEVEL__Information, "Nernel Started @ %24.24s", ctime(&startupTime));
 	Process_Create((size_t)&Startup2, 0x100000);
@@ -125,31 +124,32 @@ void Startup5()
 }
 extern uint32_t gStack;
 
+void EnteredUserMode()
+{
+	printf("Entering User Mode: cs = 0x%x, esp = 0x%x, ss = 0x%x\n", (unsigned int)Register_GetCodeSegment(), (unsigned int)Register_GetESP(), (unsigned int)Register_GetStackSegment());
+	while(TRUE) ;
+}
+
+uint32_t gEnteredUserModeAddress = (uint32_t)&EnteredUserMode;
+
 void Main(uint32_t pMultibootMagic, MultibootHeader* pMultibootHeader)
 {
 	Multiboot_Startup(pMultibootMagic, pMultibootHeader);
 	SerialLogger_Startup();
 	Console_Startup();
-	printf("ESP: 0x%x\n", (unsigned int)Register_GetESP());
-	printf("gStack: 0x%x\n", (unsigned int)&gStack);
-	printf("gStack: 0x%x\n", (unsigned int)gStack);
-	printf("SS: 0x%x\n", (unsigned int)Register_GetStackSegment());
 	GDT_Startup();
 	IDT_Startup();
 	for (uint8_t interrupt = 0; interrupt < IDT__IRQ__RemappedBase; ++interrupt) IDT_RegisterHandler(interrupt, &CPUInterruptHandler);
 	PIC_Startup();
 	PIT_Startup();
-	PIC_StartInterrupts();
 	RTC_Startup();
-	APIC_Create(APIC__LocalMSR);
 	SystemClock_Startup();
 	//CPUID_Startup();
-	printf("ESP: 0x%x\n", (unsigned int)Register_GetESP());
-	printf("gStack: 0x%x\n", (unsigned int)&gStack);
-	printf("gStack: 0x%x\n", (unsigned int)gStack);
-	printf("SS: 0x%x\n", (unsigned int)Register_GetStackSegment());
+	APIC_Create(APIC__LocalMSR);
 	ThreadScheduler_Startup((size_t)&Startup, 0x100000);
-	printf("Run, run as fast as you can, for it works!");
+	//PIC_StartInterrupts();
+	printf("Entering User Mode: cs = 0x%x, esp = 0x%x, ss = 0x%x\n", (unsigned int)Register_GetCodeSegment(), (unsigned int)Register_GetESP(), (unsigned int)Register_GetStackSegment());
+	GDT_SwitchToUserMode();
 	while(TRUE);
 }
 

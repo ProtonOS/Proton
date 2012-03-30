@@ -3,6 +3,7 @@
 .global Register_GetDataSegment
 .global Register_GetStackSegment
 .global Register_GetESP
+.global Register_GetEBP
 
 Register_GetCodeSegment:
 	mov eax, cs
@@ -18,4 +19,8 @@ Register_GetStackSegment:
 
 Register_GetESP:
 	mov eax, esp
+	ret
+
+Register_GetEBP:
+	mov eax, ebp
 	ret

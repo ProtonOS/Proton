@@ -1,5 +1,6 @@
 #include <System/APIC.h>
 #include <Common.h>
+#include <System/GDT.h>
 #include <System/IDT.h>
 #include <System/IDT_ExternalStubs.h>
 #include <System/MSR.h>
@@ -32,6 +33,8 @@ APIC* APIC_Create(uint32_t pMSR)
 	gAPIC_Array[gAPIC_Count] = apic;
 	apic->Index = gAPIC_Count++;
 	apic->BaseAddress = MSR_Read(pMSR) & APIC__BaseAddress_Mask;
+	apic->CurrentThread = NULL;
+	apic->TickCount = 0;
 	MSR_Write(pMSR, apic->BaseAddress | APIC__MSR_Enable);
 
 	IDT_RegisterHandler(128 + (apic->Index * 2) + 0, &APIC_FrequencyTimer);
@@ -54,6 +57,9 @@ APIC* APIC_Create(uint32_t pMSR)
 	*(size_t*)(apic->BaseAddress + APIC__Register__Timer__InitialCount) = divisor < 16 ? 16 : divisor;
 	*(size_t*)(apic->BaseAddress + APIC__Register__LVT__Timer) = (128 + (apic->Index * 2) + 0) | APIC__Timer__Periodic;
 	*(size_t*)(apic->BaseAddress + APIC__Register__Timer__Divisor) = 0x03;
+
+	GDT_AssignTSS(apic->Index, (uint32_t)((&apic->Stack[0]) + APIC__StackSize));
+	TSS_Update(0x2B + (apic->Index * 0x08));
 }
 
 void APIC_Destroy(APIC* pAPIC)

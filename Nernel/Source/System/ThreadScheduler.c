@@ -13,7 +13,6 @@ Process* gThreadScheduler_KernelProcess = NULL;
 void ThreadScheduler_Timer(InterruptRegisters pRegisters)
 {
 	APIC* apic = gAPIC_Array[(pRegisters.int_no - 128) >> 1];
-	//printf("I Found an APIC @ 0x%x\n", (unsigned int)apic);
 	if (gThreadScheduler_Window)
 	{
 		ThreadScheduler_Schedule(&pRegisters, apic);
@@ -66,13 +65,11 @@ void ThreadScheduler_Remove(Thread* pThread)
 void ThreadScheduler_Schedule(InterruptRegisters* pRegisters, APIC* pAPIC)
 {
 	Atomic_AquireLock(&gThreadScheduler_Busy);
-	//printf("ThreadScheduler AquireLock\n");
 	if (pAPIC->CurrentThread)
 	{
 		pAPIC->CurrentThread->TimeConsumed += 10;
 		if (pAPIC->CurrentThread->TimeConsumed < pAPIC->CurrentThread->Priority * (1000 / APIC__Timer__CycleHertz))
 		{
-			//printf("ThreadScheduler ReleaseLock: Another Slice\n");
 			Atomic_ReleaseLock(&gThreadScheduler_Busy);
 			return;
 		}
@@ -90,14 +87,12 @@ Retry:
 			found = gThreadScheduler_Window;
 			break;
 		}
-		//printf("Window = 0x%x, Next = 0x%x\n", (unsigned int)gThreadScheduler_Window, (unsigned int)gThreadScheduler_Window->Next);
 		gThreadScheduler_Window = gThreadScheduler_Window->Next;
 		if (gThreadScheduler_Window == firstThread) break;
 	}
 	if (firstRetry && !found)
 	{
 		firstThread = gThreadScheduler_Window;
-		//printf("ThreadScheduler Resetting TimeConsumed\n");
 		while (firstThread != gThreadScheduler_Window || gThreadScheduler_Window->TimeConsumed)
 		{
 			gThreadScheduler_Window->TimeConsumed = 0;
@@ -108,7 +103,6 @@ Retry:
 	}
 	else if (!firstRetry && !found)
 	{
-		//printf("ThreadScheduler ReleaseLock: All Busy, Another Slice\n");
 		Atomic_ReleaseLock(&gThreadScheduler_Busy);
 
 		/*
@@ -126,23 +120,29 @@ Retry:
 	else if (found)
 	{
 		Atomic_AquireLock(&found->Busy);
-		//printf("Thread AquireLock: Found\n");
 		Atomic_ReleaseLock(&gThreadScheduler_Busy);
-		//printf("ThreadScheduler ReleaseLock: Found\n");
 		if (pAPIC->CurrentThread)
 		{
 			pAPIC->CurrentThread->SavedRegisterState = *pRegisters;
-			//printf("ThreadScheduler: pAPIC, CurrentThread: 0x%x ESP: 0x%x EBP: 0x%x EAX: 0x%x EBX: 0x%x ECX: 0x%x EDX: 0x%x SS: 0x%x\n", (unsigned int)pAPIC->CurrentThread, (unsigned int)pAPIC->CurrentThread->SavedRegisterState.esp, (unsigned int)pAPIC->CurrentThread->SavedRegisterState.ebp, (unsigned int)pAPIC->CurrentThread->SavedRegisterState.eax, (unsigned int)pAPIC->CurrentThread->SavedRegisterState.ebx, (unsigned int)pAPIC->CurrentThread->SavedRegisterState.ecx, (unsigned int)pAPIC->CurrentThread->SavedRegisterState.edx, (unsigned int)pAPIC->CurrentThread->SavedRegisterState.ss);
 			Atomic_ReleaseLock(&pAPIC->CurrentThread->Busy);
-			//printf("Thread ReleaseLock: CurrentThread\n");
 		}
-		uint32_t esp = pRegisters->esp;
+		//printf("ThreadScheduler: eip = 0x%x, useresp = 0x%x, ss = 0x%x\n", (unsigned int)*(size_t*)(esp + 8), (unsigned int)*(size_t*)(esp + 20), (unsigned int)*(size_t*)(esp + 24));
+		*(size_t*)(pRegisters->esp - 36) = found->SavedRegisterState.ds;
+		*(size_t*)(pRegisters->esp - 32) = found->SavedRegisterState.edi;
+		*(size_t*)(pRegisters->esp - 28) = found->SavedRegisterState.esi;
+		*(size_t*)(pRegisters->esp - 24) = found->SavedRegisterState.ebp;
+		//*(size_t*)(pRegisters->esp - 20) = found->SavedRegisterState.esp;
+		*(size_t*)(pRegisters->esp - 16) = found->SavedRegisterState.ebx;
+		*(size_t*)(pRegisters->esp - 12) = found->SavedRegisterState.edx;
+		*(size_t*)(pRegisters->esp - 8) = found->SavedRegisterState.ecx;
+		*(size_t*)(pRegisters->esp - 4) = found->SavedRegisterState.eax;
 		*(size_t*)(pRegisters->esp + 8) = found->SavedRegisterState.eip;
-		//*(size_t*)(pRegisters->esp + 24) = 0x42;
+		*(size_t*)(pRegisters->esp + 12) = found->SavedRegisterState.cs;
+		*(size_t*)(pRegisters->esp + 16) = found->SavedRegisterState.eflags;
+		*(size_t*)(pRegisters->esp + 20) = found->SavedRegisterState.useresp;
+		*(size_t*)(pRegisters->esp + 24) = found->SavedRegisterState.ss;
 		//*pRegisters = found->SavedRegisterState;
-		pRegisters->useresp = pRegisters->esp;
-		pRegisters->esp = esp;
-
+		//printf("ThreadScheduler: eip = 0x%x, useresp = 0x%x, ss = 0x%x\n", (unsigned int)*(size_t*)(esp + 8), (unsigned int)*(size_t*)(esp + 20), (unsigned int)*(size_t*)(esp + 24));
 		pAPIC->CurrentThread = found;
 		//printf("ThreadScheduler: Found, found: 0x%x ESP: 0x%x EBP: 0x%x EAX: 0x%x EBX: 0x%x ECX: 0x%x EDX: 0x%x SS: 0x%x\n", (unsigned int)found, (unsigned int)found->SavedRegisterState.esp, (unsigned int)found->SavedRegisterState.ebp, (unsigned int)found->SavedRegisterState.eax, (unsigned int)found->SavedRegisterState.ebx, (unsigned int)found->SavedRegisterState.ecx, (unsigned int)found->SavedRegisterState.edx, (unsigned int)found->SavedRegisterState.ss);
 		

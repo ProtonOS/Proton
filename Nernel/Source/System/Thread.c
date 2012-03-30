@@ -7,19 +7,18 @@
 Thread* Thread_Create(Process* pProcess, size_t pEntryPoint, size_t pStackSize)
 {
 	Thread* thread = (Thread*)calloc(1, sizeof(Thread));
-	Log_WriteLine(LOGLEVEL__Memory, "Memory: Thread_Create @ 0x%x", (unsigned int)thread);
 	thread->Process = pProcess;
 	thread->EntryPoint = pEntryPoint;
 	thread->Stack = (uint8_t*)calloc(1, pStackSize);
-	printf("Stack memory: 0x%x\n", (unsigned int)thread->Stack);
+	Log_WriteLine(LOGLEVEL__Memory, "Memory: Thread_Create @ 0x%x, Stack @ 0x%x", (unsigned int)thread, (unsigned int)thread->Stack);
 	thread->StackSize = pStackSize;
 	thread->Priority = 2;
-	thread->SavedRegisterState.esp = (uint32_t)(thread->Stack + thread->StackSize);
-	thread->SavedRegisterState.ebp = thread->SavedRegisterState.esp;
+	thread->SavedRegisterState.useresp = (uint32_t)(thread->Stack + thread->StackSize);
 	thread->SavedRegisterState.eip = pEntryPoint;
-	thread->SavedRegisterState.cs = Register_GetCodeSegment();
-	thread->SavedRegisterState.ds = Register_GetDataSegment();
-	thread->SavedRegisterState.ss = 0x10;
+	thread->SavedRegisterState.cs = 0x1B;
+	thread->SavedRegisterState.ds = 0x23;
+	thread->SavedRegisterState.ss = 0x23;
+	thread->SavedRegisterState.eflags = 0x200; // Interrupts enabled, maybe need 0x202
 	ThreadScheduler_Add(thread);
 	return thread;
 }

@@ -1,6 +1,5 @@
+#include <System/APIC.h>
 #include <System/GDT.h>
-
-#define GDT__Descriptors_Max					5
 
 #define GDT__Access__Accessed						0x01
 #define GDT__Access__ReadWrite						0x02
@@ -18,9 +17,11 @@
 #define GDT__Flags__Granularity4KB					0x80
 #define GDT__Flags__Selector32BitGranularity4KB		GDT__Flags__Selector32Bit | GDT__Flags__Granularity4KB
 
+#define GDT__Descriptors_Max						5 + APIC__Max
 
 GDTRegister gGDT_Register;
 GDTDescriptor gGDT_Descriptors[GDT__Descriptors_Max];
+TSSDescriptor gGDT_TSSDescriptors[APIC__Max];
 
 void GDT_SetSegment(uint8_t pIndex, uint32_t pAddress, uint32_t pLimit, uint8_t pAccess, uint8_t pFlags)
 {
@@ -42,10 +43,21 @@ void GDT_Startup()
     GDT_SetSegment(2, 0x00000000, 0xFFFFFFFF, GDT__Access__ReadWriteOnePresent, GDT__Flags__Selector32BitGranularity4KB);
     GDT_SetSegment(3, 0x00000000, 0xFFFFFFFF, GDT__Access__ReadWriteOnePresent | GDT__Access__Executable | GDT__Access__Ring_3, GDT__Flags__Selector32BitGranularity4KB);
     GDT_SetSegment(4, 0x00000000, 0xFFFFFFFF, GDT__Access__ReadWriteOnePresent | GDT__Access__Ring_3, GDT__Flags__Selector32BitGranularity4KB);
+	for (uint16_t index = GDT__Descriptors_Max - APIC__Max, tssIndex = 0; index < GDT__Descriptors_Max; ++index, ++tssIndex)
+	{
+		uint32_t baseAddress = (uint32_t)&gGDT_TSSDescriptors[tssIndex];
+	    GDT_SetSegment(index, baseAddress, baseAddress + sizeof(TSSDescriptor), 0xE9, 0x00);
+		gGDT_TSSDescriptors[tssIndex].ss0 = 0x10;
+	}
 
-    GDT_Update(&gGDT_Register);
+	GDT_Update(&gGDT_Register);
 }
 
 void GDT_Shutdown()
 {
+}
+
+void GDT_AssignTSS(uint8_t pIndex, uint32_t pStackAddress)
+{
+	gGDT_TSSDescriptors[pIndex].esp0 = pStackAddress;
 }

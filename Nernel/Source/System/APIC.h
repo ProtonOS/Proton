@@ -38,6 +38,8 @@
 #define APIC__Timer__CycleHertz						100
 #define APIC__Max									64
 
+#define APIC__StackSize								0x100000
+
 
 typedef struct _APIC APIC;
 
@@ -45,9 +47,10 @@ struct _APIC
 {
 	size_t BaseAddress;
 	uint64_t BusFrequency;
-	uint8_t Index;
+	uint32_t Index;
 	uint32_t TickCount;
 	Thread* CurrentThread;
+	uint8_t Stack[APIC__StackSize];
 };
 
 APIC* APIC_Create(uint32_t pMSR);

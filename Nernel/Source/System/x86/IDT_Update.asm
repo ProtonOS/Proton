@@ -17,7 +17,7 @@ IDT_ISRDispatch:
     mov ax, ds
     push eax
 
-    mov ax, 0x20
+    mov ax, 0x10
     mov ds, ax
     mov es, ax
     mov fs, ax
@@ -33,7 +33,7 @@ IDT_ISRDispatch:
  
 	popa
     add esp, 8
-    sti
+    or dword ptr [esp + 8], 0x200
     iret
  
 IDT_IRQDispatch:
@@ -41,7 +41,7 @@ IDT_IRQDispatch:
     mov ax, ds
     push eax
  
-    mov ax, 0x20
+    mov ax, 0x10
     mov ds, ax
     mov es, ax
     mov fs, ax
@@ -57,5 +57,5 @@ IDT_IRQDispatch:
  
     popa
     add esp, 8
-    sti
+    or dword ptr [esp + 8], 0x200
     iret
