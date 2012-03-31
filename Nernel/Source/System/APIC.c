@@ -32,16 +32,18 @@ APIC* APIC_Create(uint32_t pMSR)
 	Log_WriteLine(LOGLEVEL__Memory, "Memory: APIC_Create @ 0x%x", (unsigned int)apic);
 	gAPIC_Array[gAPIC_Count] = apic;
 	apic->Index = gAPIC_Count++;
+	apic->SchedulerInterrupt = 128 + (apic->Index * 2) + 0;
+	apic->CycleInterrupt = 128 + (apic->Index * 2) + 1;
 	apic->BaseAddress = MSR_Read(pMSR) & APIC__BaseAddress_Mask;
 	apic->CurrentThread = NULL;
 	apic->TickCount = 0;
 	MSR_Write(pMSR, apic->BaseAddress | APIC__MSR_Enable);
 
-	IDT_RegisterHandler(128 + (apic->Index * 2) + 0, &APIC_FrequencyTimer);
-	IDT_SetInterrupt(128 + (apic->Index * 2) + 1, (uint32_t)APIC_CycleTimer, IDT__Selector__DescriptorIndex, IDT__Type__Interrupt386_Gate32Bit | IDT__Type__Present);
+	IDT_RegisterHandler(apic->SchedulerInterrupt, &APIC_FrequencyTimer);
+	IDT_SetInterrupt(apic->CycleInterrupt, (uint32_t)APIC_CycleTimer, IDT__Selector__DescriptorIndex, IDT__Type__Interrupt386_Gate32Bit | IDT__Type__Present);
 
-	*(size_t*)(apic->BaseAddress + APIC__Register__SpuriousInterruptVector) = (128 + (apic->Index * 2) + 1) | APIC__Flags__SoftwareEnable;
-	*(size_t*)(apic->BaseAddress + APIC__Register__LVT__Timer) = 128 + (apic->Index * 2) + 0;
+	*(size_t*)(apic->BaseAddress + APIC__Register__SpuriousInterruptVector) = apic->CycleInterrupt | APIC__Flags__SoftwareEnable;
+	*(size_t*)(apic->BaseAddress + APIC__Register__LVT__Timer) = apic->SchedulerInterrupt;
 	*(size_t*)(apic->BaseAddress + APIC__Register__Timer__Divisor) = 0x03;
 
 	PIC_StartInterrupts();
@@ -52,10 +54,10 @@ APIC* APIC_Create(uint32_t pMSR)
 	printf("Logical Processor %u Bus Frequency = %u MHz\n", (unsigned int)apic->Index, (unsigned int)(apic->BusFrequency / 1000 / 1000));	
 
 	uint32_t divisor = apic->BusFrequency / 16 / APIC__Timer__CycleHertz;
-	IDT_RegisterHandler(128 + (apic->Index * 2) + 0, &ThreadScheduler_Timer);
+	IDT_RegisterHandler(apic->SchedulerInterrupt, &ThreadScheduler_Timer);
 
 	*(size_t*)(apic->BaseAddress + APIC__Register__Timer__InitialCount) = divisor < 16 ? 16 : divisor;
-	*(size_t*)(apic->BaseAddress + APIC__Register__LVT__Timer) = (128 + (apic->Index * 2) + 0) | APIC__Timer__Periodic;
+	*(size_t*)(apic->BaseAddress + APIC__Register__LVT__Timer) = apic->SchedulerInterrupt | APIC__Timer__Periodic;
 	*(size_t*)(apic->BaseAddress + APIC__Register__Timer__Divisor) = 0x03;
 
 	GDT_AssignTSS(apic->Index, (uint32_t)((&apic->Stack[0]) + APIC__StackSize));

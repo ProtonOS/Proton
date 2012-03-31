@@ -1,5 +1,7 @@
 #pragma once
 
+typedef struct _APIC APIC;
+
 #include "IDT.h"
 #include "Thread.h"
 
@@ -40,15 +42,16 @@
 
 #define APIC__StackSize								0x100000
 
-
-typedef struct _APIC APIC;
-
 struct _APIC
 {
 	size_t BaseAddress;
+	uint8_t SchedulerInterrupt;
+	uint8_t CycleInterrupt;
 	uint64_t BusFrequency;
 	uint32_t Index;
 	uint32_t TickCount;
+	uint32_t PreemptedTimerCount;
+	bool_t Sleeping;
 	Thread* CurrentThread;
 	uint8_t Stack[APIC__StackSize];
 };

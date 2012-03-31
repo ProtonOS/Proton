@@ -10,12 +10,13 @@ extern bool_t gMultitasking;
 
 uint8_t gThreadScheduler_Busy = 0;
 Thread* gThreadScheduler_Window = NULL;
+Thread* gThreadScheduler_SleepingWindow = NULL;
 Process* gThreadScheduler_KernelProcess = NULL;
 
 void ThreadScheduler_Timer(InterruptRegisters pRegisters)
 {
 	APIC* apic = gAPIC_Array[(pRegisters.int_no - 128) >> 1];
-	if (gThreadScheduler_Window)
+	if (gThreadScheduler_Window || gThreadScheduler_SleepingWindow)
 	{
 		ThreadScheduler_Schedule(&pRegisters, apic);
 		gMultitasking = TRUE;
@@ -68,25 +69,139 @@ void ThreadScheduler_Remove(Thread* pThread)
 void ThreadScheduler_Schedule(InterruptRegisters* pRegisters, APIC* pAPIC)
 {
 	Atomic_AquireLock(&gThreadScheduler_Busy);
-	if (pAPIC->CurrentThread)
+	uint32_t consumed = (*(size_t*)(pAPIC->BaseAddress + APIC__Register__Timer__InitialCount) - pAPIC->PreemptedTimerCount);
+	if (pAPIC->PreemptedTimerCount)
 	{
-		pAPIC->CurrentThread->TimeConsumed += 10;
-		if (pAPIC->CurrentThread->TimeConsumed < pAPIC->CurrentThread->Priority * (1000 / APIC__Timer__CycleHertz))
+		printf("Preempted Timer @ 0x%x of 0x%x, consumed %u\n", (unsigned int)pAPIC->PreemptedTimerCount, (unsigned int)*(size_t*)(pAPIC->BaseAddress + APIC__Register__Timer__InitialCount), (unsigned int)consumed);
+		pAPIC->PreemptedTimerCount = 0;
+	}
+	if (pAPIC->CurrentThread && !pAPIC->Sleeping)
+	{
+		//printf("GotHere3\n");
+		if (pAPIC->CurrentThread->SleepRemaining)
 		{
-			Atomic_ReleaseLock(&gThreadScheduler_Busy);
-			return;
+			pAPIC->CurrentThread->SliceRemaining = 0;
+
+			pAPIC->CurrentThread->Prev->Next = pAPIC->CurrentThread->Next;
+			pAPIC->CurrentThread->Next->Prev = pAPIC->CurrentThread->Prev;
+			if (pAPIC->CurrentThread == gThreadScheduler_Window)
+			{
+				gThreadScheduler_Window = gThreadScheduler_Window->Next;
+				if (gThreadScheduler_Window == pAPIC->CurrentThread) gThreadScheduler_Window = NULL;
+			}
+
+			if (!gThreadScheduler_SleepingWindow)
+			{
+				gThreadScheduler_SleepingWindow = pAPIC->CurrentThread;
+				pAPIC->CurrentThread->SleepingNext = pAPIC->CurrentThread;
+				pAPIC->CurrentThread->SleepingPrev = pAPIC->CurrentThread;
+			}
+			else
+			{
+				pAPIC->CurrentThread->SleepingPrev = gThreadScheduler_SleepingWindow;
+				pAPIC->CurrentThread->SleepingNext = gThreadScheduler_SleepingWindow->SleepingNext;
+				gThreadScheduler_Window->SleepingNext->SleepingPrev = pAPIC->CurrentThread;
+				gThreadScheduler_Window->SleepingNext = pAPIC->CurrentThread;
+			}
+		}
+		else
+		{
+			if (pAPIC->CurrentThread->SliceRemaining < consumed)
+			{
+				pAPIC->CurrentThread->SliceRemaining = 0;
+			}
+			else
+			{
+				pAPIC->CurrentThread->SliceRemaining -= consumed;
+			}
+			if (pAPIC->CurrentThread->SliceRemaining)
+			{
+				Atomic_ReleaseLock(&gThreadScheduler_Busy);
+				//printf("GotHere1\n");
+				return;
+			}
+			//printf("GotHere2\n");
+			pAPIC->CurrentThread->CurrentAPIC = NULL;
 		}
 	}
 	bool_t firstRetry = TRUE;
 	Thread* found = NULL;
-	Thread* firstThread = gThreadScheduler_Window;
+	Thread* firstThread = gThreadScheduler_SleepingWindow;
+
+	if (pAPIC->CurrentThread)
+	{
+		//printf("GotHere4\n");
+		if (gThreadScheduler_SleepingWindow)
+		{
+			while (TRUE)
+			{
+				if (gThreadScheduler_SleepingWindow->SleepRemaining && gThreadScheduler_SleepingWindow->CurrentAPIC == pAPIC)
+				{
+					if (gThreadScheduler_SleepingWindow->SleepRemaining < consumed)
+					{
+						gThreadScheduler_SleepingWindow->SleepRemaining = 0;
+					}
+					else
+					{
+						gThreadScheduler_SleepingWindow->SleepRemaining -= consumed;
+					}
+					if (!gThreadScheduler_SleepingWindow->SleepRemaining)
+					{
+						pAPIC->CurrentThread->SleepingPrev->SleepingNext = pAPIC->CurrentThread->SleepingNext;
+						pAPIC->CurrentThread->SleepingNext->SleepingPrev = pAPIC->CurrentThread->SleepingPrev;
+						if (pAPIC->CurrentThread == gThreadScheduler_SleepingWindow)
+						{
+							gThreadScheduler_SleepingWindow = gThreadScheduler_SleepingWindow->SleepingNext;
+							if (gThreadScheduler_SleepingWindow == pAPIC->CurrentThread) gThreadScheduler_SleepingWindow = NULL;
+						}
+
+						if (!gThreadScheduler_Window)
+						{
+							//printf("GotHere12\n");
+							gThreadScheduler_Window = pAPIC->CurrentThread;
+							gThreadScheduler_Window->Next = gThreadScheduler_Window;
+							gThreadScheduler_Window->Prev = gThreadScheduler_Window;
+						}
+						else
+						{
+							pAPIC->CurrentThread->Prev = gThreadScheduler_Window;
+							pAPIC->CurrentThread->Next = gThreadScheduler_Window->Next;
+							gThreadScheduler_Window->Next->Prev = pAPIC->CurrentThread;
+							gThreadScheduler_Window->Next = pAPIC->CurrentThread;
+							gThreadScheduler_Window = gThreadScheduler_Window->Next;
+						}
+
+						gThreadScheduler_Window->SliceRemaining = gThreadScheduler_Window->Priority * (*(size_t*)(pAPIC->BaseAddress + APIC__Register__Timer__InitialCount));
+						Atomic_ReleaseLock(&gThreadScheduler_Window->Busy);
+						//printf("gThreadScheduler_Window->SliceRemaining: %i\n", (int)gThreadScheduler_Window->SliceRemaining);
+					}
+				}
+				if (gThreadScheduler_SleepingWindow)
+				{
+					gThreadScheduler_SleepingWindow = gThreadScheduler_SleepingWindow->SleepingNext;
+				}
+				if (!gThreadScheduler_SleepingWindow || gThreadScheduler_SleepingWindow == firstThread) break;
+			}
+		}
+	}
+	if (!gThreadScheduler_Window)
+	{
+		//printf("GotHere5\n");
+		pAPIC->Sleeping = TRUE;
+		Atomic_ReleaseLock(&gThreadScheduler_Busy);
+		return;
+	}
+	pAPIC->Sleeping = FALSE;
+	
 Retry:
 	found = NULL;
 	firstThread = gThreadScheduler_Window;
 	while (!found)
 	{
-		if (!gThreadScheduler_Window->Busy && gThreadScheduler_Window->TimeConsumed < gThreadScheduler_Window->Priority * (1000 / APIC__Timer__CycleHertz))
+		//printf("GotHere6\n");
+		if (!gThreadScheduler_Window->Busy && gThreadScheduler_Window->SliceRemaining)
 		{
+			//printf("GotHere9\n");
 			found = gThreadScheduler_Window;
 			break;
 		}
@@ -96,18 +211,23 @@ Retry:
 	if (firstRetry && !found)
 	{
 		firstThread = gThreadScheduler_Window;
-		while (firstThread != gThreadScheduler_Window || gThreadScheduler_Window->TimeConsumed)
+		do
 		{
-			gThreadScheduler_Window->TimeConsumed = 0;
+			if (!gThreadScheduler_Window->Busy || !gThreadScheduler_Window->SliceRemaining)
+			{
+				//printf("GotHere7\n");
+				gThreadScheduler_Window->SliceRemaining = gThreadScheduler_Window->Priority * (*(size_t*)(pAPIC->BaseAddress + APIC__Register__Timer__InitialCount));
+			}
 			gThreadScheduler_Window = gThreadScheduler_Window->Next;
-		}
+		} while (firstThread != gThreadScheduler_Window);
 		firstRetry = FALSE;
 		goto Retry;
 	}
 	else if (!firstRetry && !found)
 	{
+		//printf("GotHere8\n");
 		Atomic_ReleaseLock(&gThreadScheduler_Busy);
-
+		Panic("Need to handle more cores available than threads to process");
 		/*
 		Atomic_ReleaseLock(&gThreadScheduler_Busy);
 		for (uint32_t count = 0; count < 100; ++count)
@@ -147,6 +267,8 @@ Retry:
 		//*pRegisters = found->SavedRegisterState;
 		//printf("ThreadScheduler: eip = 0x%x, useresp = 0x%x, ss = 0x%x\n", (unsigned int)*(size_t*)(esp + 8), (unsigned int)*(size_t*)(esp + 20), (unsigned int)*(size_t*)(esp + 24));
 		pAPIC->CurrentThread = found;
+		found->CurrentAPIC = pAPIC;
+		//printf("GotHere10\n");
 		//printf("ThreadScheduler: Found, found: 0x%x ESP: 0x%x EBP: 0x%x EAX: 0x%x EBX: 0x%x ECX: 0x%x EDX: 0x%x SS: 0x%x\n", (unsigned int)found, (unsigned int)found->SavedRegisterState.esp, (unsigned int)found->SavedRegisterState.ebp, (unsigned int)found->SavedRegisterState.eax, (unsigned int)found->SavedRegisterState.ebx, (unsigned int)found->SavedRegisterState.ecx, (unsigned int)found->SavedRegisterState.edx, (unsigned int)found->SavedRegisterState.ss);
 		
 	}

@@ -3,6 +3,8 @@
 .global IDT_ISRDispatch
 .global IDT_IRQDispatch
 
+.global IDT_ThrowInterrupt80
+
 .extern IDT_ISRHandler
 .extern IDT_IRQHandler
 
@@ -10,7 +12,7 @@ IDT_Update:
 	cli
     mov eax, [esp]+4 
     lidt [eax]      
-    ret 
+    ret
 
 IDT_ISRDispatch:
     pusha
@@ -59,3 +61,7 @@ IDT_IRQDispatch:
     add esp, 8
     or dword ptr [esp + 8], 0x200
     iret
+
+IDT_ThrowInterrupt80:
+	int 0x80
+	ret

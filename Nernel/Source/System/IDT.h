@@ -72,3 +72,5 @@ void IDT_RegisterHandler(uint8_t pInterrupt, IDTHandler pHandler);
 IDTHandler IDT_GetHandler(uint8_t pInterrupt);
 
 extern void IDT_Update(IDTRegister* pRegister);
+
+extern void IDT_ThrowInterrupt80();

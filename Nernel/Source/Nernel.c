@@ -31,6 +31,9 @@ void Startup()
 {
 	time_t startupTime = time(NULL);
 	Log_WriteLine(LOGLEVEL__Information, "Nernel Started @ %24.24s", ctime(&startupTime));
+	usleep(999999);
+	startupTime = time(NULL);
+	Log_WriteLine(LOGLEVEL__Information, "Nernel Started @ %24.24s", ctime(&startupTime));
 	Process_Create((size_t)&Startup2, 0x100000);
 	uint32_t tickCount = 0;
 	uint32_t trueTickCount = 0;
