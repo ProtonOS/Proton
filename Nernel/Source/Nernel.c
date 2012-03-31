@@ -31,7 +31,7 @@ void Startup()
 {
 	time_t startupTime = time(NULL);
 	Log_WriteLine(LOGLEVEL__Information, "Nernel Started @ %24.24s", ctime(&startupTime));
-	usleep(999999);
+	sleep(1);
 	startupTime = time(NULL);
 	Log_WriteLine(LOGLEVEL__Information, "Nernel Started @ %24.24s", ctime(&startupTime));
 	Process_Create((size_t)&Startup2, 0x100000);

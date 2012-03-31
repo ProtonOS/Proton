@@ -178,11 +178,25 @@ int usleep(useconds_t pMicroseconds)
 	uint32_t apicIndex = (taskRegister - 0x2B) >> 3;
 	APIC* apic = gAPIC_Array[apicIndex];
 	apic->CurrentThread->SleepRemaining = (*(size_t*)(apic->BaseAddress + APIC__Register__Timer__InitialCount) / (1000 / APIC__Timer__CycleHertz)) * (pMicroseconds / 1000);
-	printf("Preempting Timer @ 0x%x of 0x%x, sleep for 0x%x\n", (unsigned int)*(size_t*)(apic->BaseAddress + APIC__Register__Timer__CurrentCount), (unsigned int)*(size_t*)(apic->BaseAddress + APIC__Register__Timer__InitialCount), (unsigned int)apic->CurrentThread->SleepRemaining);
+	printf("Preempting Timer @ 0x%x of 0x%x, usleep for 0x%llx\n", (unsigned int)*(size_t*)(apic->BaseAddress + APIC__Register__Timer__CurrentCount), (unsigned int)*(size_t*)(apic->BaseAddress + APIC__Register__Timer__InitialCount), (unsigned long long)apic->CurrentThread->SleepRemaining);
 	apic->PreemptedTimerCount = (unsigned int)*(size_t*)(apic->BaseAddress + APIC__Register__Timer__CurrentCount);
 	*(size_t*)(apic->BaseAddress + APIC__Register__Timer__CurrentCount) = 0;
-	//(((0xFFFFFFFF - *(size_t*)(gPIT_FrequencyTesting->BaseAddress + APIC__Register__Timer__CurrentCount)) + 1) * 16) * (gPIT_CycleHertz / 10)
-	//IDT_ThrowInterrupt80();
+	while (apic->CurrentThread->SleepRemaining) IOWAIT();
+	printf("Done usleeping!\n");
+	return 0;
+}
+
+unsigned int sleep(unsigned int pSeconds)
+{
+	if (pSeconds == 0) return 0;
+
+	uint32_t taskRegister = TSS_GetTaskRegister();
+	uint32_t apicIndex = (taskRegister - 0x2B) >> 3;
+	APIC* apic = gAPIC_Array[apicIndex];
+	apic->CurrentThread->SleepRemaining = (*(size_t*)(apic->BaseAddress + APIC__Register__Timer__InitialCount) / (1000 / APIC__Timer__CycleHertz)) * (pSeconds * 1000);
+	printf("Preempting Timer @ 0x%x of 0x%x, sleep for 0x%llx\n", (unsigned int)*(size_t*)(apic->BaseAddress + APIC__Register__Timer__CurrentCount), (unsigned int)*(size_t*)(apic->BaseAddress + APIC__Register__Timer__InitialCount), (unsigned long long)apic->CurrentThread->SleepRemaining);
+	apic->PreemptedTimerCount = (unsigned int)*(size_t*)(apic->BaseAddress + APIC__Register__Timer__CurrentCount);
+	*(size_t*)(apic->BaseAddress + APIC__Register__Timer__CurrentCount) = 0;
 	while (apic->CurrentThread->SleepRemaining) IOWAIT();
 	printf("Done sleeping!\n");
 	return 0;
