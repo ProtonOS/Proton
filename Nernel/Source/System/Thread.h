@@ -19,6 +19,7 @@ struct _Thread
 	uint8_t TimeConsumed;
 	uint8_t Busy;
 	InterruptRegisters SavedRegisterState;
+	uint32_t MallocLockDepth;
 	struct _reent Reentrant;
 };
 

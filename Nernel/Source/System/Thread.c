@@ -15,6 +15,7 @@ Thread* Thread_Create(Process* pProcess, size_t pEntryPoint, size_t pStackSize)
 	thread->Reentrant._stdout = stdout;
 	thread->Reentrant._stderr = stderr;
 	thread->Reentrant.__sdidinit = TRUE;
+	thread->Reentrant._new._reent._unused_rand = (uint32_t)thread;
 	Log_WriteLine(LOGLEVEL__Memory, "Memory: Thread_Create @ 0x%x, Stack @ 0x%x", (unsigned int)thread, (unsigned int)thread->Stack);
 	thread->StackSize = pStackSize;
 	thread->Priority = 2;

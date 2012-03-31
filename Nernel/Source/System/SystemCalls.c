@@ -27,13 +27,15 @@ struct _reent* __getreent()
 void __malloc_lock(struct _reent* pReent)
 {
 	Atomic_CompareExchange(&gMallocBusy, 0, 1);
-	pReent->_new._reent._unused_rand++;
+	Thread* thread = (Thread*)pReent->_new._reent._unused_rand;
+	thread->MallocLockDepth++;
 }
 
 void __malloc_unlock(struct _reent* pReent)
 {
-	pReent->_new._reent._unused_rand--;
-	if (!pReent->_new._reent._unused_rand)
+	Thread* thread = (Thread*)pReent->_new._reent._unused_rand;
+	thread->MallocLockDepth--;
+	if (!thread->MallocLockDepth)
 	{
 		gMallocBusy = 0;
 	}
