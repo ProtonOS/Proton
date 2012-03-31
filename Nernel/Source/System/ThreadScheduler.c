@@ -6,6 +6,8 @@
 #include <System/SystemClock.h>
 #include <System/ThreadScheduler.h>
 
+extern bool_t gMultitasking;
+
 uint8_t gThreadScheduler_Busy = 0;
 Thread* gThreadScheduler_Window = NULL;
 Process* gThreadScheduler_KernelProcess = NULL;
@@ -16,6 +18,7 @@ void ThreadScheduler_Timer(InterruptRegisters pRegisters)
 	if (gThreadScheduler_Window)
 	{
 		ThreadScheduler_Schedule(&pRegisters, apic);
+		gMultitasking = TRUE;
 	}
 	if ((++apic->TickCount % APIC__Timer__CycleHertz) == 0) printf("Tick\n");
 	*(size_t*)(apic->BaseAddress + APIC__Register__EndOfInterrupt) = 0;

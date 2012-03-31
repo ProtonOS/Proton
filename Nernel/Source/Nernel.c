@@ -126,7 +126,7 @@ extern uint32_t gStack;
 
 void EnteredUserMode()
 {
-	printf("Entering User Mode: cs = 0x%x, esp = 0x%x, ss = 0x%x\n", (unsigned int)Register_GetCodeSegment(), (unsigned int)Register_GetESP(), (unsigned int)Register_GetStackSegment());
+	printf("Entered User Mode: cs = 0x%x, esp = 0x%x, ss = 0x%x\n", (unsigned int)Register_GetCodeSegment(), (unsigned int)Register_GetESP(), (unsigned int)Register_GetStackSegment());
 	while(TRUE) ;
 }
 

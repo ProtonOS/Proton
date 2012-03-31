@@ -1,6 +1,7 @@
 .intel_syntax noprefix
 .global GDT_Update
 .global TSS_Update
+.global TSS_GetTaskRegister
 .global GDT_SwitchToUserMode
 .extern gEnteredUserModeAddress
 
@@ -22,6 +23,10 @@ GDT_Flush:
 TSS_Update:
 	mov eax, [esp + 4]
 	ltr ax
+	ret
+
+TSS_GetTaskRegister:
+	str eax
 	ret
 
 GDT_SwitchToUserMode:

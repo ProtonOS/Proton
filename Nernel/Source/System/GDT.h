@@ -58,4 +58,5 @@ void GDT_AssignTSS(uint8_t pIndex, uint32_t pStackAddress);
 
 extern void GDT_Update(GDTRegister* pRegister);
 extern void TSS_Update(uint32_t pSegmentSelector);
+extern uint32_t TSS_GetTaskRegister();
 extern void GDT_SwitchToUserMode();

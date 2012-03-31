@@ -1,11 +1,50 @@
 #include <Common.h>
+#include <System/APIC.h>
+#include <System/Atomics.h>
 #include <System/Console.h>
+#include <System/GDT.h>
 #include <System/Multiboot.h>
 #include <System/SystemClock.h>
 
+#include <reent.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <unistd.h>
+
+struct _reent gDefaultReent;
+bool_t gMultitasking = FALSE;	
+uint8_t gMallocBusy = 0;
+
+struct _reent* __getreent()
+{
+	if (!gMultitasking) return &gDefaultReent;
+	uint32_t taskRegister = TSS_GetTaskRegister();
+	uint32_t apicIndex = (taskRegister - 0x2B) >> 3;
+	APIC* apic = gAPIC_Array[apicIndex];
+	return &apic->CurrentThread->Reentrant;
+}
+
+void __malloc_lock(struct _reent* pReent)
+{
+	Atomic_CompareExchange(&gMallocBusy, 0, 1);
+	pReent->_new._reent._unused_rand++;
+}
+
+void __malloc_unlock(struct _reent* pReent)
+{
+	pReent->_new._reent._unused_rand--;
+	if (!pReent->_new._reent._unused_rand)
+	{
+		gMallocBusy = 0;
+	}
+}
+
+long sysconf(int pSetting)
+{
+    if (pSetting == _SC_PAGE_SIZE) return 1;
+    errno = EINVAL;
+    return -1;
+}
 
 void* sbrk(ptrdiff_t pAdjustment)
 {
@@ -50,7 +89,9 @@ int close(int pDescriptorIndex)
 
 int fstat(int pDescriptorIndex, struct stat* pStats)
 {
-    Panic("FSTAT");
+	char buf[256];
+	snprintf(buf, 256, "FSTAT: %i\n", pDescriptorIndex);
+    Panic(buf);
     errno = EBADF;
     return -1;
 }
@@ -114,5 +155,10 @@ int gettimeofday(struct timeval* pTime, void* pTimeZone)
 		tz->tz_minuteswest = 0;
 		tz->tz_dsttime = 0;
 	}
+	return 0;
+}
+
+pid_t getpid()
+{
 	return 0;
 }

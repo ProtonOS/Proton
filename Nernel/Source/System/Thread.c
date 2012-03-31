@@ -10,6 +10,11 @@ Thread* Thread_Create(Process* pProcess, size_t pEntryPoint, size_t pStackSize)
 	thread->Process = pProcess;
 	thread->EntryPoint = pEntryPoint;
 	thread->Stack = (uint8_t*)calloc(1, pStackSize);
+	_REENT_INIT_PTR(&thread->Reentrant);
+	thread->Reentrant._stdin = stdin;
+	thread->Reentrant._stdout = stdout;
+	thread->Reentrant._stderr = stderr;
+	thread->Reentrant.__sdidinit = TRUE;
 	Log_WriteLine(LOGLEVEL__Memory, "Memory: Thread_Create @ 0x%x, Stack @ 0x%x", (unsigned int)thread, (unsigned int)thread->Stack);
 	thread->StackSize = pStackSize;
 	thread->Priority = 2;

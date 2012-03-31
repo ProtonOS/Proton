@@ -3,6 +3,8 @@
 .global gStackSize
 .global Boot
 .global Halt
+.global _exit
+.global kill
 
 .set ALIGN, 1<<0
 .set MMAPS, 1<<1
@@ -25,7 +27,8 @@ Boot:
 
     call Main
 	cli
-
+_exit:
+kill:
 Halt:
     hlt
     jmp Halt
