@@ -28,5 +28,5 @@ struct _Thread
 	struct _reent Reentrant;
 };
 
-Thread* Thread_Create(Process* pProcess, size_t pEntryPoint, size_t pStackSize);
+Thread* Thread_Create(Process* pProcess, size_t pEntryPoint, size_t pStackSize, uint8_t pPriority);
 void Thread_Destroy(Thread* pThread);

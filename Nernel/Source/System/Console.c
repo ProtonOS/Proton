@@ -1,7 +1,14 @@
+// This define causes the console to
+// startup in it's own thread and write
+// out entire messages rather than being
+// interrupted in the middle of doing so.
+//#define AsyncConsole
+
 #include <Common.h>
 #include <System/Console.h>
 #include <System/SerialLogger.h>
 #include <System/x86/PortIO.h>
+#include <System/Atomics.h>
 
 #define CONSOLE__BaseMemory          0x000B8000
 #define CONSOLE__DefaultColumns      80
@@ -88,6 +95,98 @@ void Console_WriteCharacter(char pCharacter)
     }
 }
 
+#ifdef AsyncConsole
+#include <System/ThreadScheduler.h>
+uint8_t gConsoleQueueTopLock = 0;
+uint8_t gConsoleQueueBottomLock = 0;
+uint8_t gConsole_Started = 0;
+void Console_AsyncEntryPoint();
+typedef struct _ConsoleWriteEntry ConsoleWriteEntry;
+struct _ConsoleWriteEntry
+{
+	char* strToWrite;
+	uint32_t strLength;
+	ConsoleWriteEntry* NextEntry;
+};
+ConsoleWriteEntry* TopEntry = NULL;
+ConsoleWriteEntry* BottomEntry = NULL;
+
+void Console_WriteString(const char* pString, uint32_t pLength)
+{
+	if (!Atomic_CompareExchange(&gConsole_Started, 0, 1))
+	{
+		Process_PriorityCreate((size_t)Console_AsyncEntryPoint, 0x100000, 4);
+	}
+	if (!pLength)
+		pLength = strlen(pString);
+	Atomic_AquireLock(&gConsoleQueueTopLock);
+	if (!TopEntry)
+	{
+		Atomic_AquireLock(&gConsoleQueueBottomLock)
+		TopEntry = (ConsoleWriteEntry*)calloc(1, sizeof(ConsoleWriteEntry));
+		TopEntry->strToWrite = calloc(1, pLength);
+		memcpy(TopEntry->strToWrite, pString, pLength);
+		TopEntry->strLength = pLength;
+		BottomEntry = TopEntry;
+		Atomic_ReleaseLock(&gConsoleQueueBottomLock);
+		Atomic_ReleaseLock(&gConsoleQueueTopLock);
+	}
+	else
+	{
+		Atomic_ReleaseLock(&gConsoleQueueTopLock);
+		Atomic_AquireLock(&gConsoleQueueBottomLock);
+		ConsoleWriteEntry* nEtry = (ConsoleWriteEntry*)calloc(1, sizeof(ConsoleWriteEntry));
+		nEtry->strToWrite = calloc(1, pLength);
+		memcpy(nEtry->strToWrite, pString, pLength);
+		nEtry->strLength = pLength;
+		BottomEntry->NextEntry = nEtry;
+		BottomEntry = nEtry;
+		Atomic_ReleaseLock(&gConsoleQueueBottomLock);
+	}
+}
+
+void Console_AsyncEntryPoint()
+{
+	while(TRUE)
+	{
+		Atomic_AquireLock(&gConsoleQueueTopLock);
+		if (TopEntry)
+		{
+			Atomic_ReleaseLock(&gConsoleQueueTopLock);
+
+			char* iterator = TopEntry->strToWrite;
+			bool_t useLength = TopEntry->strLength > 0;
+			while (*iterator)
+			{
+				Console_WriteCharacter(*iterator);
+				++iterator;
+				if (useLength)
+				{
+					--TopEntry->strLength;
+					if (TopEntry->strLength == 0) break;
+				}
+			}
+			Atomic_AquireLock(&gConsoleQueueTopLock);
+			ConsoleWriteEntry* nEtry = TopEntry;
+			TopEntry = TopEntry->NextEntry;
+			Atomic_ReleaseLock(&gConsoleQueueTopLock);
+			free(nEtry->strToWrite);
+			free(nEtry);
+		}
+		else
+		{
+			Atomic_ReleaseLock(&gConsoleQueueTopLock);
+			IOWAIT();
+			IOWAIT();
+			IOWAIT();
+			IOWAIT();
+			IOWAIT();
+			IOWAIT();
+			IOWAIT();
+		}
+	}
+}
+#else
 void Console_WriteString(const char* pString,
                                 uint32_t pLength)
 {
@@ -104,13 +203,12 @@ void Console_WriteString(const char* pString,
         }
     }
 }
+#endif
 
 void Console_WriteLine(const char* pString)
 {
 	Console_WriteString(pString, 0);
-	if (gConsole_CursorColumn > 0) Console_MoveToNextLine();
-    SerialLogger_WriteByte('\r');
-    SerialLogger_WriteByte('\n');
+	Console_WriteString("\n", 0);
 }
 
 uint8_t* Console_GetCursor() { return gConsole_BaseMemory + (((gConsole_CursorRow * gConsole_Columns) + gConsole_CursorColumn) * 2); }

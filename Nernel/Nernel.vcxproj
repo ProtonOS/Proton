@@ -113,10 +113,9 @@
     <NMakeOutput>Nernel.bin</NMakeOutput>
     <NMakeCleanCommandLine>..\SDK\bin\omake clean</NMakeCleanCommandLine>
     <NMakeReBuildCommandLine>..\SDK\bin\omake rebuild</NMakeReBuildCommandLine>
-    <NMakePreprocessorDefinitions>
-    </NMakePreprocessorDefinitions>
+    <NMakePreprocessorDefinitions>__extension__</NMakePreprocessorDefinitions>
     <NMakeIncludeSearchPath>..\SDK\include;.\Source</NMakeIncludeSearchPath>
-    <NMakeForcedIncludes>types.h</NMakeForcedIncludes>
+    <NMakeForcedIncludes>types.h;IntellisenseFixes.h</NMakeForcedIncludes>
     <ExecutablePath />
     <IncludePath>..\SDK\include;.\Source</IncludePath>
     <ReferencePath />

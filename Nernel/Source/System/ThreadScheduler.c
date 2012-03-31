@@ -21,7 +21,8 @@ void ThreadScheduler_Timer(InterruptRegisters pRegisters)
 		ThreadScheduler_Schedule(&pRegisters, apic);
 		gMultitasking = TRUE;
 	}
-	if ((++apic->TickCount % APIC__Timer__CycleHertz) == 0) printf("Tick\n");
+	apic->TickCount++;
+	//if ((apic->TickCount % APIC__Timer__CycleHertz) == 0) printf("Tick\n");
 	*(size_t*)(apic->BaseAddress + APIC__Register__EndOfInterrupt) = 0;
 }
 
@@ -72,7 +73,7 @@ void ThreadScheduler_Schedule(InterruptRegisters* pRegisters, APIC* pAPIC)
 	uint32_t consumed = (*(size_t*)(pAPIC->BaseAddress + APIC__Register__Timer__InitialCount) - pAPIC->PreemptedTimerCount);
 	if (pAPIC->PreemptedTimerCount)
 	{
-		printf("Preempted Timer @ 0x%x of 0x%x, consumed %u\n", (unsigned int)pAPIC->PreemptedTimerCount, (unsigned int)*(size_t*)(pAPIC->BaseAddress + APIC__Register__Timer__InitialCount), (unsigned int)consumed);
+		//printf("Preempted Timer @ 0x%x of 0x%x, consumed %u\n", (unsigned int)pAPIC->PreemptedTimerCount, (unsigned int)*(size_t*)(pAPIC->BaseAddress + APIC__Register__Timer__InitialCount), (unsigned int)consumed);
 		pAPIC->PreemptedTimerCount = 0;
 	}
 	if (pAPIC->CurrentThread && !pAPIC->Sleeping)

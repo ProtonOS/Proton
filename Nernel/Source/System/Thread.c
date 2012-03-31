@@ -3,8 +3,13 @@
 #include <System/ThreadScheduler.h>
 #include <System/x86/Registers.h>
 
+// Make intellisense not complain
+#ifdef _WIN32
+#undef _REENT_INIT_PTR
+#define _REENT_INIT_PTR(reentrancyStructurePtr)
+#endif
 
-Thread* Thread_Create(Process* pProcess, size_t pEntryPoint, size_t pStackSize)
+Thread* Thread_Create(Process* pProcess, size_t pEntryPoint, size_t pStackSize, uint8_t pPriority)
 {
 	Thread* thread = (Thread*)calloc(1, sizeof(Thread));
 	thread->Process = pProcess;
@@ -18,7 +23,7 @@ Thread* Thread_Create(Process* pProcess, size_t pEntryPoint, size_t pStackSize)
 	thread->Reentrant._new._reent._unused_rand = (uint32_t)thread;
 	Log_WriteLine(LOGLEVEL__Memory, "Memory: Thread_Create @ 0x%x, Stack @ 0x%x", (unsigned int)thread, (unsigned int)thread->Stack);
 	thread->StackSize = pStackSize;
-	thread->Priority = 2;
+	thread->Priority = pPriority;
 	thread->SavedRegisterState.useresp = (uint32_t)(thread->Stack + thread->StackSize);
 	thread->SavedRegisterState.eip = pEntryPoint;
 	thread->SavedRegisterState.cs = 0x1B;

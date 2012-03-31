@@ -12,4 +12,5 @@ struct _Process
 };
 
 Process* Process_Create(size_t pEntryPoint, size_t pThreadStackSize);
+Process* Process_PriorityCreate(size_t pEntryPoint, size_t pThreadStackSize, uint8_t pPriority);
 void Process_Destroy(Process* pProcess);

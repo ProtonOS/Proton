@@ -85,5 +85,9 @@ PORTIO(b, b, char)
 PORTIO(w, w, short)
 PORTIO(l, , int)
 
+#ifdef _WIN32
+#define IOWAIT()
+#else
 #define IOWAIT()		__asm volatile( "outb %%al, $0x80" : : "a"(0) )
+#endif
 

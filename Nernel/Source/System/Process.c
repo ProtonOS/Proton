@@ -24,7 +24,26 @@ Process* Process_Create(size_t pEntryPoint, size_t pThreadStackSize)
 	gProcess_Array[gProcess_NextIndex++] = process;
 	Log_WriteLine(LOGLEVEL__Memory, "Memory: Process_Create @ 0x%x", (unsigned int)process);
 	process->Threads = (Thread**)calloc(1, (sizeof(Thread*) * PROCESS__DefaultThreadPool_Max));
-	process->Threads[0] = Thread_Create(process, pEntryPoint, pThreadStackSize);
+	process->Threads[0] = Thread_Create(process, pEntryPoint, pThreadStackSize, 2);
+	process->ThreadCount = 1;
+	Atomic_ReleaseLock(&gProcess_Busy);
+	return process;
+}
+
+Process* Process_PriorityCreate(size_t pEntryPoint, size_t pThreadStackSize, uint8_t pPriority)
+{
+	Process* process = (Process*)calloc(1, sizeof(Process));
+	Atomic_AquireLock(&gProcess_Busy);
+	if (gProcess_NextIndex >= PROCESS__Max)
+	{
+		// Compact down unused process pointers
+		Panic("Reached maximum process count, need to compact");
+	}
+	process->Identifier = gProcess_NextIndex;
+	gProcess_Array[gProcess_NextIndex++] = process;
+	Log_WriteLine(LOGLEVEL__Memory, "Memory: Process_Create @ 0x%x", (unsigned int)process);
+	process->Threads = (Thread**)calloc(1, (sizeof(Thread*) * PROCESS__DefaultThreadPool_Max));
+	process->Threads[0] = Thread_Create(process, pEntryPoint, pThreadStackSize, pPriority);
 	process->ThreadCount = 1;
 	Atomic_ReleaseLock(&gProcess_Busy);
 	return process;

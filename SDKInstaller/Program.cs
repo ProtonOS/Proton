@@ -136,6 +136,8 @@ namespace SDKInstaller
             extract.StartInfo.UseShellExecute = true;
             extract.Start();
             extract.WaitForExit();
+
+            File.Delete(pFilename);
         }
     }
 }
