@@ -5,9 +5,6 @@ typedef struct _APIC APIC;
 #include "IDT.h"
 #include "Thread.h"
 
-#define APIC__LocalMSR								0x1B
-#define APIC__MSR_Enable							0x800
-
 #define APIC__Register__APIC_ID						0x020
 #define APIC__Register__APIC_Version				0x030
 #define APIC__Register__TaskPriority				0x080
@@ -56,7 +53,9 @@ struct _APIC
 	uint8_t Stack[APIC__StackSize];
 };
 
-APIC* APIC_Create(uint32_t pMSR);
+APIC* APIC_Create();
 void APIC_Destroy(APIC* pAPIC);
+void APIC_WaitForICRReady(APIC* pAPIC);
+
 
 extern APIC* gAPIC_Array[];

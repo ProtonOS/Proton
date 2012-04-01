@@ -10,6 +10,7 @@
 #include <System/PIT.h>
 #include <System/RTC.h>
 #include <System/SerialLogger.h>
+#include <System/SMP.h>
 #include <System/SystemClock.h>
 #include <System/ThreadScheduler.h>
 #include <System/x86/Registers.h>
@@ -148,9 +149,11 @@ void Main(uint32_t pMultibootMagic, MultibootHeader* pMultibootHeader)
 	RTC_Startup();
 	SystemClock_Startup();
 	//CPUID_Startup();
-	APIC_Create(APIC__LocalMSR);
+	APIC* bootstrapAPIC = APIC_Create();
 	ThreadScheduler_Startup((size_t)&Startup, 0x100000);
+	SMP_Startup(bootstrapAPIC);
 	//PIC_StartInterrupts();
+
 	printf("Entering User Mode: cs = 0x%x, esp = 0x%x, ss = 0x%x\n", (unsigned int)Register_GetCodeSegment(), (unsigned int)Register_GetESP(), (unsigned int)Register_GetStackSegment());
 	GDT_SwitchToUserMode();
 	while(TRUE);

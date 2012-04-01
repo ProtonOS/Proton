@@ -4,6 +4,8 @@ typedef struct _GDTRegister GDTRegister;
 typedef struct _GDTDescriptor GDTDescriptor;
 typedef struct _TSSDescriptor TSSDescriptor;
 
+#define GDT__Descriptors_Max						5 + APIC__Max
+
 struct _GDTRegister
 {
     uint16_t Limit;
@@ -60,3 +62,7 @@ extern void GDT_Update(GDTRegister* pRegister);
 extern void TSS_Update(uint32_t pSegmentSelector);
 extern uint32_t TSS_GetTaskRegister();
 extern void GDT_SwitchToUserMode();
+extern void GDT_LogicalProcessorInit();
+extern void GDT_LogicalProcessorInitEnd();
+extern GDTRegister gGDT_Register;
+extern GDTDescriptor gGDT_Descriptors[];

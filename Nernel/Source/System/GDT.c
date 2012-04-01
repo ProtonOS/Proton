@@ -17,9 +17,9 @@
 #define GDT__Flags__Granularity4KB					0x80
 #define GDT__Flags__Selector32BitGranularity4KB		GDT__Flags__Selector32Bit | GDT__Flags__Granularity4KB
 
-#define GDT__Descriptors_Max						5 + APIC__Max
 
 GDTRegister gGDT_Register;
+size_t gGDT_RegisterPointer;
 GDTDescriptor gGDT_Descriptors[GDT__Descriptors_Max];
 TSSDescriptor gGDT_TSSDescriptors[APIC__Max];
 

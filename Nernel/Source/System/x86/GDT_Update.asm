@@ -3,11 +3,18 @@
 .global TSS_Update
 .global TSS_GetTaskRegister
 .global GDT_SwitchToUserMode
+.global GDT_LogicalProcessorInit
+.global GDT_LogicalProcessorInitEnd
 .extern gEnteredUserModeAddress
+.extern SMP_LogicalProcessorStartup
+.extern gGDT_RegisterPointer
+
+.set gAPIC_TempStackBottom, 0xA000
 
 GDT_Update:
 	cli
     mov eax, [esp+4]
+	mov gGDT_RegisterPointer, eax
     lgdt [eax]
  
     mov ax, 0x10
@@ -44,3 +51,50 @@ GDT_SwitchToUserMode:
 	push 0x1B
 	push gEnteredUserModeAddress
 	iret
+
+.code16
+GDT_LogicalProcessorInit:
+	cli
+	mov eax, 0x41
+	outb 0x2F8, al
+	outb 0x2F8, al
+	outb 0x2F8, al
+	outb 0x2F8, al
+	outb 0x2F8, al
+	outb 0x2F8, al
+	outb 0x2F8, al
+	outb 0x2F8, al
+	mov eax, 0x9000
+	lgdt [eax]
+
+	mov eax, cr0
+	or eax, 0x01
+	mov cr0, eax
+
+	jmp 0x08:((GDT_LogicalProcessorEnterProtectedMode - GDT_LogicalProcessorInit) + 0x8000)
+
+.code32
+GDT_LogicalProcessorEnterProtectedMode:
+	lea ecx, [GDT_LogicalProcessorEnteredProtectedMode]
+	jmp ecx
+
+GDT_LogicalProcessorEnteredProtectedMode:
+	mov eax, gGDT_RegisterPointer
+	lgdt [eax]
+
+    mov ax, 0x10
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    mov ss, ax
+
+	jmp 0x08:GDT_LogicalProcessorSetStack
+
+GDT_LogicalProcessorSetStack:
+	mov esp, gAPIC_TempStackBottom
+	call SMP_LogicalProcessorStartup
+	jmp $
+
+GDT_LogicalProcessorInitEnd:
+	ret

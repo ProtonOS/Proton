@@ -23,6 +23,7 @@
     <ClCompile Include="Source\System\Process.c" />
     <ClCompile Include="Source\System\RTC.c" />
     <ClCompile Include="Source\System\SerialLogger.c" />
+    <ClCompile Include="Source\System\SMP.c" />
     <ClCompile Include="Source\System\SystemCalls.c" />
     <ClCompile Include="Source\System\SystemClock.c" />
     <ClCompile Include="Source\System\Thread.c" />
@@ -60,6 +61,7 @@
     <ClInclude Include="Source\System\Process.h" />
     <ClInclude Include="Source\System\RTC.h" />
     <ClInclude Include="Source\System\SerialLogger.h" />
+    <ClInclude Include="Source\System\SMP.h" />
     <ClInclude Include="Source\System\SystemClock.h" />
     <ClInclude Include="Source\System\Thread.h" />
     <ClInclude Include="Source\System\ThreadScheduler.h" />

@@ -74,6 +74,7 @@
 	Source/System/Process.c
 	Source/System/RTC.c
 	Source/System/SerialLogger.c
+	Source/System/SMP.c
 	Source/System/SystemCalls.c
 	Source/System/SystemClock.c
 	Source/System/Thread.c

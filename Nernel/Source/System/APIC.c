@@ -7,7 +7,10 @@
 #include <System/PIC.h>
 #include <System/PIT.h>
 #include <System/ThreadScheduler.h>
+#include <System/x86/PortIO.h>
 
+#define APIC__LocalMSR								0x1B
+#define APIC__MSR_Enable							0x800
 
 #define APIC__BaseAddress_Mask						0xFFFFF000
 #define APIC__IRQRedirect_Max						24
@@ -26,7 +29,7 @@ void APIC_FrequencyTimer(InterruptRegisters pRegisters)
 	*(size_t*)(gAPIC_Array[(pRegisters.int_no - 128) >> 1]->BaseAddress + APIC__Register__EndOfInterrupt) = 0;
 }
 
-APIC* APIC_Create(uint32_t pMSR)
+APIC* APIC_Create()
 {
 	APIC* apic = (APIC*)calloc(1, sizeof(APIC));
 	Log_WriteLine(LOGLEVEL__Memory, "Memory: APIC_Create @ 0x%x", (unsigned int)apic);
@@ -34,10 +37,10 @@ APIC* APIC_Create(uint32_t pMSR)
 	apic->Index = gAPIC_Count++;
 	apic->SchedulerInterrupt = 128 + (apic->Index * 2) + 0;
 	apic->CycleInterrupt = 128 + (apic->Index * 2) + 1;
-	apic->BaseAddress = MSR_Read(pMSR) & APIC__BaseAddress_Mask;
+	apic->BaseAddress = MSR_Read(APIC__LocalMSR) & APIC__BaseAddress_Mask;
 	apic->CurrentThread = NULL;
 	apic->TickCount = 0;
-	MSR_Write(pMSR, apic->BaseAddress | APIC__MSR_Enable);
+	MSR_Write(APIC__LocalMSR, apic->BaseAddress | APIC__MSR_Enable);
 
 	IDT_RegisterHandler(apic->SchedulerInterrupt, &APIC_FrequencyTimer);
 	IDT_SetInterrupt(apic->CycleInterrupt, (uint32_t)APIC_CycleTimer, IDT__Selector__DescriptorIndex, IDT__Type__Interrupt386_Gate32Bit | IDT__Type__Present);
@@ -70,28 +73,7 @@ void APIC_Destroy(APIC* pAPIC)
 	free(pAPIC);
 }
 
-void APIC_Startup()
+void APIC_WaitForICRReady(APIC* pAPIC)
 {
-	/*
-	*(size_t*)(gAPIC_IOBaseAddress + APIC__IOAPIC__Register_Select) = 0;
-	uint32_t ioAPICID = *(size_t*)(gAPIC_IOBaseAddress + APIC__IOAPIC__Register_Window);
-	*(size_t*)(gAPIC_IOBaseAddress + APIC__IOAPIC__Register_Select) = 1;
-	uint32_t ioAPICVersion = *(size_t*)(gAPIC_IOBaseAddress + APIC__IOAPIC__Register_Window);
-
-	printf("IOAPICID = 0x%x, IOAPICVersion = 0x%x\n", (unsigned int)ioAPICID, (unsigned int)ioAPICVersion);
-	for (uint8_t irq = 0; irq < APIC__IRQRedirect_Max; ++irq)
-	{
-		*(size_t*)(gAPIC_IOBaseAddress + APIC__IOAPIC__Register_Select) = 0x10 + (irq * 2);
-		uint32_t ioAPICLowerTableEntry = *(size_t*)(gAPIC_IOBaseAddress + APIC__IOAPIC__Register_Window);
-		if (irq < 0x10)
-		printf ("Rewriting IOApicEntry IRQ %u, 0x%x to 0x%x\n", (unsigned int)irq, (unsigned int)ioAPICLowerTableEntry, (unsigned int)(ioAPICLowerTableEntry & 0xFFFFFF00) | (IDT__IRQ__RemappedBase + irq));
-		ioAPICLowerTableEntry = (ioAPICLowerTableEntry & 0xFFFFFF00) | (IDT__IRQ__RemappedBase + irq);
-		*(size_t*)(gAPIC_IOBaseAddress + APIC__IOAPIC__Register_Select) = 0x10 + (irq * 2);
-		*(size_t*)(gAPIC_IOBaseAddress + APIC__IOAPIC__Register_Window) = ioAPICLowerTableEntry;
-	}
-	*/
-}
-
-void APIC_Shutdown()
-{
+	while ((*(size_t*)(pAPIC->BaseAddress + APIC__Register__InterruptCommandLow) & (1 << 12))) IOWAIT();
 }
