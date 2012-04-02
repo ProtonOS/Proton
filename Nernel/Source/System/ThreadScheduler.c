@@ -8,6 +8,7 @@
 
 extern bool_t gMultitasking;
 
+bool_t gThreadScheduler_Running = FALSE;
 uint8_t gThreadScheduler_Busy = 0;
 Thread* gThreadScheduler_Window = NULL;
 Thread* gThreadScheduler_SleepingWindow = NULL;
@@ -16,13 +17,16 @@ Process* gThreadScheduler_KernelProcess = NULL;
 void ThreadScheduler_Timer(InterruptRegisters pRegisters)
 {
 	APIC* apic = gAPIC_Array[(pRegisters.int_no - 128) >> 1];
-	if (gThreadScheduler_Window || gThreadScheduler_SleepingWindow)
+	if (gThreadScheduler_Running)
 	{
-		ThreadScheduler_Schedule(&pRegisters, apic);
-		gMultitasking = TRUE;
+		if (gThreadScheduler_Window || gThreadScheduler_SleepingWindow)
+		{
+			ThreadScheduler_Schedule(&pRegisters, apic);
+			gMultitasking = TRUE;
+		}
+		apic->TickCount++;
+		//if ((apic->TickCount % APIC__Timer__CycleHertz) == 0) printf("Tick\n");
 	}
-	apic->TickCount++;
-	//if ((apic->TickCount % APIC__Timer__CycleHertz) == 0) printf("Tick\n");
 	*(size_t*)(apic->BaseAddress + APIC__Register__EndOfInterrupt) = 0;
 }
 

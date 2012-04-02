@@ -43,6 +43,9 @@ void SMP_Startup(APIC* pBootstrapAPIC)
 		uint32_t previousWarmBootOffset = *((volatile unsigned int *)0x467);
 		*((volatile unsigned int *)0x467) = 0;
 		*((volatile unsigned int *)0x469) = realModeEntryPoint >> 4;//((realModeEntryPoint & 0xFF000) << 12);
+		*(size_t*)(pBootstrapAPIC->BaseAddress + APIC__Register__SpuriousInterruptVector) = *(size_t*)(pBootstrapAPIC->BaseAddress + APIC__Register__SpuriousInterruptVector) | 0x100;
+		*(uint8_t*)0x1000 = 0x01;
+		printf("LowerMem Test Value: %u\n", (unsigned int)*(uint8_t*)0x1000);
 		while (*configEntryIterator == SMP__ConfigEntry__EntryType_Processor)
 		{
 			SMP_Processor* processor = (SMP_Processor*)configEntryIterator;
@@ -54,26 +57,36 @@ void SMP_Startup(APIC* pBootstrapAPIC)
 				*(size_t*)(pBootstrapAPIC->BaseAddress + APIC__Register__ErrorStatus) = 0;
 
 				*(size_t*)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandHigh) = (uint32_t)processor->LocalAPICID << 24;
-				*(size_t*)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandLow) = 0xC500;
+				*(size_t*)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandLow) = 0x4500;
 				for (uint64_t delay = 0; delay < 10000000; ++delay);
 
-				*(size_t*)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandHigh) = (uint32_t)processor->LocalAPICID << 24;
-				*(size_t*)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandLow) = 0x8500;
-				for (uint64_t delay = 0; delay < 10000000; ++delay);
+				// Deassert required?
+				//*(size_t*)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandHigh) = (uint32_t)processor->LocalAPICID << 24;
+				//*(size_t*)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandLow) = 0x8500;
+				//for (uint64_t delay = 0; delay < 10000000; ++delay);
 
 				*(size_t*)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandHigh) = (uint32_t)processor->LocalAPICID << 24;
-				*(size_t*)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandLow) = 0x0600 | ((realModeEntryPoint >> 12) & 0xFF);
+				*(size_t*)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandLow) = 0x4600 | ((realModeEntryPoint >> 12) & 0xFF);
 				for (uint64_t delay = 0; delay < 10000000; ++delay);
 
 				if (!gSMP_StartedProcessors)
 				{
 					*(size_t*)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandHigh) = (uint32_t)processor->LocalAPICID << 24;
-					*(size_t*)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandLow) = 0x0600 | ((realModeEntryPoint >> 12) & 0xFF);
+					*(size_t*)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandLow) = 0x4600 | ((realModeEntryPoint >> 12) & 0xFF);
 					for (uint64_t delay = 0; delay < 10000000; ++delay);
 				}
 
 				printf("Waiting for processor to startup...\n");
-				while (!gSMP_StartedProcessors) IOWAIT();
+				uint32_t checkCount = 0;
+				while (!gSMP_StartedProcessors)
+				{
+					if (++checkCount >= 10000000)
+					{
+						checkCount = 0;
+						printf("LowerMem Test Value: %u, should be 2\n", (unsigned int)*(uint8_t*)0x1000);
+					}
+					IOWAIT();
+				}
 				*(size_t*)(pBootstrapAPIC->BaseAddress + APIC__Register__ErrorStatus) = 0;
 				printf("Should be booted!\n");
 			}

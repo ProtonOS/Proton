@@ -55,15 +55,14 @@ GDT_SwitchToUserMode:
 .code16
 GDT_LogicalProcessorInit:
 	cli
-	mov eax, 0x41
-	outb 0x2F8, al
-	outb 0x2F8, al
-	outb 0x2F8, al
-	outb 0x2F8, al
-	outb 0x2F8, al
-	outb 0x2F8, al
-	outb 0x2F8, al
-	outb 0x2F8, al
+	xor ax, ax
+	mov ds, ax
+	mov ss, ax
+	mov sp, 0x0100
+
+	mov al, 0x02
+	mov ds:[0x1000], al
+
 	mov eax, 0x9000
 	lgdt [eax]
 
