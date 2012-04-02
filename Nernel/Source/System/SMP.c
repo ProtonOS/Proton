@@ -54,10 +54,12 @@ void SMP_Startup(APIC* pBootstrapAPIC)
 				printf("MP Processor: LocalAPICID = %u, LocalAPICVersion = %u, Flags = 0x%x\n", (unsigned int)processor->LocalAPICID, (unsigned int)processor->LocalAPICVersion, (unsigned int)processor->Flags);
 				printf("Signature = 0x%x, FeatureFlags = 0x%x\n", (unsigned int)processor->Signature, (unsigned int)processor->FeatureFlags);
 
+				printf("APIC Base Address = 0x%x, AP APIC ID = 0x%x\n", (unsigned int)pBootstrapAPIC->BaseAddress, (unsigned int)processor->LocalAPICID);
 				*(size_t*)(pBootstrapAPIC->BaseAddress + APIC__Register__ErrorStatus) = 0;
 
 				*(size_t*)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandHigh) = (uint32_t)processor->LocalAPICID << 24;
 				*(size_t*)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandLow) = 0x4500;
+
 				for (uint64_t delay = 0; delay < 10000000; ++delay);
 
 				// Deassert required?

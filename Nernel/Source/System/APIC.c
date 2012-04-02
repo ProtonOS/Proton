@@ -65,6 +65,7 @@ APIC* APIC_Create()
 
 	GDT_AssignTSS(apic->Index, (uint32_t)((&apic->Stack[0]) + APIC__StackSize));
 	TSS_Update(0x2B + (apic->Index * 0x08));
+	return apic;
 }
 
 void APIC_Destroy(APIC* pAPIC)
