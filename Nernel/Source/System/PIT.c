@@ -8,7 +8,7 @@ uint16_t gPIT_CycleHertz = 100;
 uint16_t gPIT_MillisecondsPerCycle = 0;
 uint32_t gPIT_MillisecondsElapsed = 0;
 uint32_t gPIT_SecondsElapsed = 0;
-APIC* gPIT_FrequencyTesting = NULL;
+volatile APIC* gPIT_FrequencyTesting = NULL;
 uint32_t gPIT_FrequencyCount = 0;
 
 void PIT_Channel0(InterruptRegisters pRegisters)
@@ -16,14 +16,8 @@ void PIT_Channel0(InterruptRegisters pRegisters)
 	if (gPIT_FrequencyTesting)
 	{
 		++gPIT_FrequencyCount;
-		if (gPIT_FrequencyCount == 1)
+		if (gPIT_FrequencyCount == 20)//(unsigned int)(gPIT_CycleHertz + 1))
 		{
-			*(size_t*)(gPIT_FrequencyTesting->BaseAddress + APIC__Register__Timer__InitialCount) = 0xFFFFFFFF;
-		}
-		else if (gPIT_FrequencyCount == 11)//(unsigned int)(gPIT_CycleHertz + 1))
-		{
-			*(size_t*)(gPIT_FrequencyTesting->BaseAddress + APIC__Register__LVT__Timer) = APIC__Flags__Disable;
-			gPIT_FrequencyTesting->BusFrequency = (((0xFFFFFFFF - *(size_t*)(gPIT_FrequencyTesting->BaseAddress + APIC__Register__Timer__CurrentCount)) + 1) * 16) * (gPIT_CycleHertz / 10);
 			gPIT_FrequencyCount = 0;
 			gPIT_FrequencyTesting = NULL;
 		}
@@ -60,4 +54,9 @@ void PIT_Shutdown()
 void PIT_TestAPICFrequency(APIC* pAPIC)
 {
 	gPIT_FrequencyTesting = pAPIC;
+}
+
+bool_t PIT_TestingAPICFrequency()
+{
+	return gPIT_FrequencyTesting != NULL;
 }

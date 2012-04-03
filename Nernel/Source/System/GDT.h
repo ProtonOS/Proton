@@ -4,7 +4,7 @@ typedef struct _GDTRegister GDTRegister;
 typedef struct _GDTDescriptor GDTDescriptor;
 typedef struct _TSSDescriptor TSSDescriptor;
 
-#define GDT__Descriptors_Max						5 + APIC__Max
+#define GDT__Descriptors_Max						(5 + APIC__Max)
 
 struct _GDTRegister
 {

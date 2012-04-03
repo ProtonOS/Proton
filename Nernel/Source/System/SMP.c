@@ -1,15 +1,24 @@
 #include <System/GDT.h>
+#include <System/MSR.h>
 #include <System/PIC.h>
 #include <System/SMP.h>
+#include <System/SystemClock.h>
 #include <System/x86/PortIO.h>
 
 size_t gSMP_FPSAddress = 0;
+volatile bool_t gSMP_StartingBootstrapProcessor = FALSE;
 volatile uint8_t gSMP_StartedProcessors = 0;
+volatile uint8_t volatile * gSMP_TempStack = NULL;
+volatile uint8_t volatile * gSMP_TempStackBottom = NULL;
+volatile uint8_t volatile * gSMP_TempStackTop = NULL;
 
 void SMP_LogicalProcessorStartup()
 {
-	gSMP_StartedProcessors = 1;
-	//printf("WOOOOOOOOOOOOOOOOOOT\n");
+	IDT_Update(&gIDT_Register);
+	//PIC_StartInterrupts();
+	APIC_Create();
+	//printf("Switching AP to User Mode\n");
+	GDT_SwitchToUserMode();
 	while(TRUE) ;
 }
 
@@ -26,71 +35,56 @@ void SMP_Startup(APIC* pBootstrapAPIC)
 	}
 	if (gSMP_FPSAddress)
 	{
+		gSMP_TempStack = calloc(1, 0x400000);
+		gSMP_TempStackBottom = gSMP_TempStack + 0x400000;
+		gSMP_TempStackTop = gSMP_TempStackBottom;
 		SMP_FPS* fps = (SMP_FPS*)gSMP_FPSAddress;
-		SMP_ConfigHeader* configHeader = (SMP_ConfigHeader*)fps->ConfigurationBaseAddress;
-		printf("MP Table @ 0x%x, Size = %u, Revision = %u, Config @ 0x%x\n", (unsigned int)fps, (unsigned int)fps->Length, (unsigned int)fps->SpecificationRevision, (unsigned int)configHeader);
-		printf("MP Config Entry Count = %u\n", (unsigned int)configHeader->EntryCount);
+		//SMP_ConfigHeader* configHeader = (SMP_ConfigHeader*)fps->ConfigurationBaseAddress;
 		uint8_t* configEntries = (uint8_t*)(fps->ConfigurationBaseAddress + sizeof(SMP_ConfigHeader));
 		uint8_t* configEntryIterator = configEntries;
 
 		uint32_t realModeEntryPoint = 0x8000;
 		uint32_t realModeGDTBaseAddress = 0x9000;
-		memcpy((void*)realModeEntryPoint, &GDT_LogicalProcessorInit, (unsigned int)&GDT_LogicalProcessorInitEnd - (unsigned int)&GDT_LogicalProcessorInit);
-		memcpy((void*)realModeGDTBaseAddress, &gGDT_Descriptors[0], GDT__Descriptors_Max * sizeof(GDTDescriptor));
-		printf("GDT_LogicalProcessorInit @ 0x%x, copied to 0x%x, Size = 0x%x\n", (unsigned int)&GDT_LogicalProcessorInit, (unsigned int)realModeEntryPoint, (unsigned int)&GDT_LogicalProcessorInitEnd - (unsigned int)&GDT_LogicalProcessorInit);
+		uint32_t realModeGDTRegisterAddress = 0xA000;
+		memcpy((void*)realModeEntryPoint, (void*)&GDT_LogicalProcessorInit, (unsigned int)&GDT_LogicalProcessorInitEnd - (unsigned int)&GDT_LogicalProcessorInit);
+		memcpy((void*)realModeGDTBaseAddress, (void*)&gGDT_Descriptors[0], (unsigned int)(GDT__Descriptors_Max * sizeof(GDTDescriptor)));
+		memcpy((void*)realModeGDTRegisterAddress, (void*)&gGDT_Register, sizeof(GDTRegister));
+		((GDTRegister*)realModeGDTRegisterAddress)->Address = 0x9000;
 		outb(0x70, 0x0F);
 		outb(0x71, 0x0A);
-		uint32_t previousWarmBootOffset = *((volatile unsigned int *)0x467);
-		*((volatile unsigned int *)0x467) = 0;
-		*((volatile unsigned int *)0x469) = realModeEntryPoint >> 4;//((realModeEntryPoint & 0xFF000) << 12);
-		*(size_t*)(pBootstrapAPIC->BaseAddress + APIC__Register__SpuriousInterruptVector) = *(size_t*)(pBootstrapAPIC->BaseAddress + APIC__Register__SpuriousInterruptVector) | 0x100;
-		*(uint8_t*)0x1000 = 0x01;
-		printf("LowerMem Test Value: %u\n", (unsigned int)*(uint8_t*)0x1000);
+		uint32_t previousWarmBootOffset = *((volatile unsigned int volatile *)0x467);
+		*((volatile unsigned int volatile *)0x467) = realModeEntryPoint;
 		while (*configEntryIterator == SMP__ConfigEntry__EntryType_Processor)
 		{
 			SMP_Processor* processor = (SMP_Processor*)configEntryIterator;
 			if (!(processor->Flags & SMP__Processor__Flags_Bootstrap))
 			{
-				printf("MP Processor: LocalAPICID = %u, LocalAPICVersion = %u, Flags = 0x%x\n", (unsigned int)processor->LocalAPICID, (unsigned int)processor->LocalAPICVersion, (unsigned int)processor->Flags);
-				printf("Signature = 0x%x, FeatureFlags = 0x%x\n", (unsigned int)processor->Signature, (unsigned int)processor->FeatureFlags);
+				uint8_t startedProcessorCount = gSMP_StartedProcessors;
+				//*(volatile size_t volatile *)(pBootstrapAPIC->BaseAddress + APIC__Register__ErrorStatus) = 0;
 
-				printf("APIC Base Address = 0x%x, AP APIC ID = 0x%x\n", (unsigned int)pBootstrapAPIC->BaseAddress, (unsigned int)processor->LocalAPICID);
-				*(size_t*)(pBootstrapAPIC->BaseAddress + APIC__Register__ErrorStatus) = 0;
+				uint32_t icrHigh = (uint32_t)(processor->LocalAPICID << 24);
+				uint32_t icrLow = (1 << 8) | (1 << 10) | (1 << 14);
+				*(volatile size_t volatile *)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandHigh) = icrHigh;
+				*(volatile size_t volatile *)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandLow) = icrLow;
+				while ((*(volatile size_t volatile *)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandLow) & (1 << 12)) != 0) IOWAIT();
 
-				*(size_t*)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandHigh) = (uint32_t)processor->LocalAPICID << 24;
-				*(size_t*)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandLow) = 0x4500;
+				icrHigh = (uint32_t)(processor->LocalAPICID << 24);
+				icrLow = ((realModeEntryPoint >> 12) & 0xFF) | (1 << 9) | (1 << 10) | (1 << 14);
+				*(volatile size_t volatile *)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandHigh) = icrHigh;
+				*(volatile size_t volatile *)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandLow) = icrLow;
+				while ((*(volatile size_t volatile *)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandLow) & (1 << 12)) != 0) IOWAIT();
 
-				for (uint64_t delay = 0; delay < 10000000; ++delay);
-
-				// Deassert required?
-				//*(size_t*)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandHigh) = (uint32_t)processor->LocalAPICID << 24;
-				//*(size_t*)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandLow) = 0x8500;
-				//for (uint64_t delay = 0; delay < 10000000; ++delay);
-
-				*(size_t*)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandHigh) = (uint32_t)processor->LocalAPICID << 24;
-				*(size_t*)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandLow) = 0x4600 | ((realModeEntryPoint >> 12) & 0xFF);
-				for (uint64_t delay = 0; delay < 10000000; ++delay);
-
-				if (!gSMP_StartedProcessors)
+				if (gSMP_StartedProcessors == startedProcessorCount)
 				{
-					*(size_t*)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandHigh) = (uint32_t)processor->LocalAPICID << 24;
-					*(size_t*)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandLow) = 0x4600 | ((realModeEntryPoint >> 12) & 0xFF);
-					for (uint64_t delay = 0; delay < 10000000; ++delay);
+					icrHigh = (uint32_t)(processor->LocalAPICID << 24);
+					icrLow = ((realModeEntryPoint >> 12) & 0xFF) | (1 << 9) | (1 << 10) | (1 << 14);
+					*(volatile size_t volatile *)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandHigh) = icrHigh;
+					*(volatile size_t volatile *)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandLow) = icrLow;
+					while ((*(volatile size_t volatile *)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandLow) & (1 << 12)) != 0) IOWAIT();
 				}
 
-				printf("Waiting for processor to startup...\n");
-				uint32_t checkCount = 0;
-				while (!gSMP_StartedProcessors)
-				{
-					if (++checkCount >= 10000000)
-					{
-						checkCount = 0;
-						printf("LowerMem Test Value: %u, should be 2\n", (unsigned int)*(uint8_t*)0x1000);
-					}
-					IOWAIT();
-				}
-				*(size_t*)(pBootstrapAPIC->BaseAddress + APIC__Register__ErrorStatus) = 0;
-				printf("Should be booted!\n");
+				while (gSMP_StartedProcessors == startedProcessorCount) IOWAIT();
+				//*(volatile size_t volatile *)(pBootstrapAPIC->BaseAddress + APIC__Register__ErrorStatus) = 0;
 			}
 			configEntryIterator += sizeof(SMP_Processor);
 		}
@@ -98,6 +92,7 @@ void SMP_Startup(APIC* pBootstrapAPIC)
 		outb(0x71, 0x00);
 		*((volatile unsigned int *)0x467) = previousWarmBootOffset;
 	}
+	gSMP_StartingBootstrapProcessor = TRUE;
 }
 
 void SMP_Shutdown()

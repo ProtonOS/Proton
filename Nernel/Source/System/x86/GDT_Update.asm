@@ -8,8 +8,7 @@
 .extern gEnteredUserModeAddress
 .extern SMP_LogicalProcessorStartup
 .extern gGDT_RegisterPointer
-
-.set gAPIC_TempStackBottom, 0xA000
+.extern gSMP_TempStackTop
 
 GDT_Update:
 	cli
@@ -47,23 +46,15 @@ GDT_SwitchToUserMode:
 	push 0x23
 	push eax
 	pushf
-	or dword ptr [esp], 0x200
 	push 0x1B
 	push gEnteredUserModeAddress
 	iret
 
 .code16
 GDT_LogicalProcessorInit:
-	cli
-	xor ax, ax
-	mov ds, ax
-	mov ss, ax
-	mov sp, 0x0100
+	/cli
 
-	mov al, 0x02
-	mov ds:[0x1000], al
-
-	mov eax, 0x9000
+	mov eax, 0xA000
 	lgdt [eax]
 
 	mov eax, cr0
@@ -91,7 +82,9 @@ GDT_LogicalProcessorEnteredProtectedMode:
 	jmp 0x08:GDT_LogicalProcessorSetStack
 
 GDT_LogicalProcessorSetStack:
-	mov esp, gAPIC_TempStackBottom
+	mov esp, gSMP_TempStackTop
+	mov eax, 0x4000
+	sub gSMP_TempStackTop, eax
 	call SMP_LogicalProcessorStartup
 	jmp $
 

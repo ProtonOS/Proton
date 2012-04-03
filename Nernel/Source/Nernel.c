@@ -130,8 +130,13 @@ extern uint32_t gStack;
 
 void EnteredUserMode()
 {
-	gThreadScheduler_Running = TRUE;
-	printf("Entered User Mode: cs = 0x%x, esp = 0x%x, ss = 0x%x\n", (unsigned int)Register_GetCodeSegment(), (unsigned int)Register_GetESP(), (unsigned int)Register_GetStackSegment());
+	Log_WriteLine(LOGLEVEL__Processor, "Processor: Started");
+	++gSMP_StartedProcessors;
+	if (gSMP_StartingBootstrapProcessor)
+	{
+		Log_WriteLine(LOGLEVEL__Processor, "Processor: Bootstrap Started");
+		gThreadScheduler_Running = TRUE;
+	}
 	while(TRUE) ;
 }
 
@@ -150,13 +155,12 @@ void Main(uint32_t pMultibootMagic, MultibootHeader* pMultibootHeader)
 	RTC_Startup();
 	SystemClock_Startup();
 	//CPUID_Startup();
+	PIC_StartInterrupts();
 	APIC* bootstrapAPIC = APIC_Create();
 	ThreadScheduler_Startup((size_t)&Startup, 0x100000);
-	PIC_StartInterrupts();
 	SMP_Startup(bootstrapAPIC);
 	//PIC_StartInterrupts();
 
-	printf("Entering User Mode: cs = 0x%x, esp = 0x%x, ss = 0x%x\n", (unsigned int)Register_GetCodeSegment(), (unsigned int)Register_GetESP(), (unsigned int)Register_GetStackSegment());
 	GDT_SwitchToUserMode();
 	while(TRUE);
 }

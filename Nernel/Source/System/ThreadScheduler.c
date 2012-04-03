@@ -8,7 +8,7 @@
 
 extern bool_t gMultitasking;
 
-bool_t gThreadScheduler_Running = FALSE;
+volatile bool_t gThreadScheduler_Running = FALSE;
 uint8_t gThreadScheduler_Busy = 0;
 Thread* gThreadScheduler_Window = NULL;
 Thread* gThreadScheduler_SleepingWindow = NULL;
@@ -232,7 +232,7 @@ Retry:
 	{
 		//printf("GotHere8\n");
 		Atomic_ReleaseLock(&gThreadScheduler_Busy);
-		Panic("Need to handle more cores available than threads to process");
+		Panic("Need to handle more cores available than threads to process, processor halted");
 		/*
 		Atomic_ReleaseLock(&gThreadScheduler_Busy);
 		for (uint32_t count = 0; count < 100; ++count)

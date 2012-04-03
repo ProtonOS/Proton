@@ -13,4 +13,4 @@ void ThreadScheduler_Remove(Thread* pThread);
 void ThreadScheduler_Timer(InterruptRegisters pRegisters);
 void ThreadScheduler_Schedule(InterruptRegisters* pRegisters, APIC* pAPIC);
 
-extern bool_t gThreadScheduler_Running;
+extern volatile bool_t gThreadScheduler_Running;

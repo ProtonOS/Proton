@@ -103,3 +103,6 @@ struct _SMP_LocalInterruptAssignment
 
 void SMP_Startup(APIC* pBootstrapAPIC);
 void SMP_Shutdown();
+
+extern volatile bool_t gSMP_StartingBootstrapProcessor;
+extern volatile uint8_t gSMP_StartedProcessors;

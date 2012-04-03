@@ -11,7 +11,8 @@
 IDT_Update:
 	cli
     mov eax, [esp]+4 
-    lidt [eax]      
+    lidt [eax]
+	sti
     ret
 
 IDT_ISRDispatch:
