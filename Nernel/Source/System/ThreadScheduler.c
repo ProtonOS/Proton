@@ -230,20 +230,11 @@ Retry:
 	}
 	else if (!firstRetry && !found)
 	{
-		//printf("GotHere8\n");
 		Atomic_ReleaseLock(&gThreadScheduler_Busy);
-		Panic("Need to handle more cores available than threads to process, processor halted");
-		/*
-		Atomic_ReleaseLock(&gThreadScheduler_Busy);
-		for (uint32_t count = 0; count < 100; ++count)
-		{
-			IOWAIT();
-		}
-		Atomic_AquireLock(&gThreadScheduler_Busy);
-		//printf("ThreadScheduler AquireLock: Waking\n");
-		firstRetry = TRUE;
-		goto Retry;
-		*/
+		// Release lock and return, whether we had a thread or not
+		// We continue processing it if we had a thread when we return, as we had no other threads
+		// to process, otherwise if we had no thread then we end up waiting until the next tick to
+		// look for one again, which puts the processor back into the empty while loop it entered from
 	}
 	else if (found)
 	{
