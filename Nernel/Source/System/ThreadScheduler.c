@@ -24,8 +24,6 @@ void ThreadScheduler_Timer(InterruptRegisters pRegisters)
 			ThreadScheduler_Schedule(&pRegisters, apic);
 			gMultitasking = TRUE;
 		}
-		apic->TickCount++;
-		//if ((apic->TickCount % APIC__Timer__CycleHertz) == 0) printf("Tick\n");
 	}
 	*(size_t*)(apic->BaseAddress + APIC__Register__EndOfInterrupt) = 0;
 }
@@ -77,12 +75,10 @@ void ThreadScheduler_Schedule(InterruptRegisters* pRegisters, APIC* pAPIC)
 	uint32_t consumed = (*(size_t*)(pAPIC->BaseAddress + APIC__Register__Timer__InitialCount) - pAPIC->PreemptedTimerCount);
 	if (pAPIC->PreemptedTimerCount)
 	{
-		//printf("Preempted Timer @ 0x%x of 0x%x, consumed %u\n", (unsigned int)pAPIC->PreemptedTimerCount, (unsigned int)*(size_t*)(pAPIC->BaseAddress + APIC__Register__Timer__InitialCount), (unsigned int)consumed);
 		pAPIC->PreemptedTimerCount = 0;
 	}
 	if (pAPIC->CurrentThread && !pAPIC->Sleeping)
 	{
-		//printf("GotHere3\n");
 		if (pAPIC->CurrentThread->SleepRemaining)
 		{
 			pAPIC->CurrentThread->SliceRemaining = 0;
@@ -122,10 +118,8 @@ void ThreadScheduler_Schedule(InterruptRegisters* pRegisters, APIC* pAPIC)
 			if (pAPIC->CurrentThread->SliceRemaining)
 			{
 				Atomic_ReleaseLock(&gThreadScheduler_Busy);
-				//printf("GotHere1\n");
 				return;
 			}
-			//printf("GotHere2\n");
 			pAPIC->CurrentThread->CurrentAPIC = NULL;
 		}
 	}
@@ -135,7 +129,6 @@ void ThreadScheduler_Schedule(InterruptRegisters* pRegisters, APIC* pAPIC)
 
 	if (pAPIC->CurrentThread)
 	{
-		//printf("GotHere4\n");
 		if (gThreadScheduler_SleepingWindow)
 		{
 			while (TRUE)
@@ -162,7 +155,6 @@ void ThreadScheduler_Schedule(InterruptRegisters* pRegisters, APIC* pAPIC)
 
 						if (!gThreadScheduler_Window)
 						{
-							//printf("GotHere12\n");
 							gThreadScheduler_Window = pAPIC->CurrentThread;
 							gThreadScheduler_Window->Next = gThreadScheduler_Window;
 							gThreadScheduler_Window->Prev = gThreadScheduler_Window;
@@ -178,7 +170,6 @@ void ThreadScheduler_Schedule(InterruptRegisters* pRegisters, APIC* pAPIC)
 
 						gThreadScheduler_Window->SliceRemaining = gThreadScheduler_Window->Priority * (*(size_t*)(pAPIC->BaseAddress + APIC__Register__Timer__InitialCount));
 						Atomic_ReleaseLock(&gThreadScheduler_Window->Busy);
-						//printf("gThreadScheduler_Window->SliceRemaining: %i\n", (int)gThreadScheduler_Window->SliceRemaining);
 					}
 				}
 				if (gThreadScheduler_SleepingWindow)
@@ -191,7 +182,6 @@ void ThreadScheduler_Schedule(InterruptRegisters* pRegisters, APIC* pAPIC)
 	}
 	if (!gThreadScheduler_Window)
 	{
-		//printf("GotHere5\n");
 		pAPIC->Sleeping = TRUE;
 		Atomic_ReleaseLock(&gThreadScheduler_Busy);
 		return;
@@ -203,10 +193,8 @@ Retry:
 	firstThread = gThreadScheduler_Window;
 	while (!found)
 	{
-		//printf("GotHere6\n");
 		if (!gThreadScheduler_Window->Busy && gThreadScheduler_Window->SliceRemaining)
 		{
-			//printf("GotHere9\n");
 			found = gThreadScheduler_Window;
 			break;
 		}
@@ -220,7 +208,6 @@ Retry:
 		{
 			if (!gThreadScheduler_Window->Busy || !gThreadScheduler_Window->SliceRemaining)
 			{
-				//printf("GotHere7\n");
 				gThreadScheduler_Window->SliceRemaining = gThreadScheduler_Window->Priority * (*(size_t*)(pAPIC->BaseAddress + APIC__Register__Timer__InitialCount));
 			}
 			gThreadScheduler_Window = gThreadScheduler_Window->Next;
@@ -245,12 +232,10 @@ Retry:
 			pAPIC->CurrentThread->SavedRegisterState = *pRegisters;
 			Atomic_ReleaseLock(&pAPIC->CurrentThread->Busy);
 		}
-		//printf("ThreadScheduler: eip = 0x%x, useresp = 0x%x, ss = 0x%x\n", (unsigned int)*(size_t*)(esp + 8), (unsigned int)*(size_t*)(esp + 20), (unsigned int)*(size_t*)(esp + 24));
 		*(size_t*)(pRegisters->esp - 36) = found->SavedRegisterState.ds;
 		*(size_t*)(pRegisters->esp - 32) = found->SavedRegisterState.edi;
 		*(size_t*)(pRegisters->esp - 28) = found->SavedRegisterState.esi;
 		*(size_t*)(pRegisters->esp - 24) = found->SavedRegisterState.ebp;
-		//*(size_t*)(pRegisters->esp - 20) = found->SavedRegisterState.esp;
 		*(size_t*)(pRegisters->esp - 16) = found->SavedRegisterState.ebx;
 		*(size_t*)(pRegisters->esp - 12) = found->SavedRegisterState.edx;
 		*(size_t*)(pRegisters->esp - 8) = found->SavedRegisterState.ecx;
@@ -260,13 +245,9 @@ Retry:
 		*(size_t*)(pRegisters->esp + 16) = found->SavedRegisterState.eflags;
 		*(size_t*)(pRegisters->esp + 20) = found->SavedRegisterState.useresp;
 		*(size_t*)(pRegisters->esp + 24) = found->SavedRegisterState.ss;
-		//*pRegisters = found->SavedRegisterState;
-		//printf("ThreadScheduler: eip = 0x%x, useresp = 0x%x, ss = 0x%x\n", (unsigned int)*(size_t*)(esp + 8), (unsigned int)*(size_t*)(esp + 20), (unsigned int)*(size_t*)(esp + 24));
-		pAPIC->CurrentThread = found;
+
 		found->CurrentAPIC = pAPIC;
-		//printf("GotHere10\n");
-		//printf("ThreadScheduler: Found, found: 0x%x ESP: 0x%x EBP: 0x%x EAX: 0x%x EBX: 0x%x ECX: 0x%x EDX: 0x%x SS: 0x%x\n", (unsigned int)found, (unsigned int)found->SavedRegisterState.esp, (unsigned int)found->SavedRegisterState.ebp, (unsigned int)found->SavedRegisterState.eax, (unsigned int)found->SavedRegisterState.ebx, (unsigned int)found->SavedRegisterState.ecx, (unsigned int)found->SavedRegisterState.edx, (unsigned int)found->SavedRegisterState.ss);
-		
+		pAPIC->CurrentThread = found;
 	}
 	else
 	{

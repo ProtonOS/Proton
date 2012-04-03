@@ -46,7 +46,6 @@ struct _APIC
 	uint8_t CycleInterrupt;
 	uint64_t BusFrequency;
 	uint32_t Index;
-	uint32_t TickCount;
 	uint32_t PreemptedTimerCount;
 	bool_t Sleeping;
 	Thread* CurrentThread;

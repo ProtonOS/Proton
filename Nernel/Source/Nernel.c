@@ -24,18 +24,13 @@ void CPUInterruptHandler(InterruptRegisters pRegisters)
 
 void Startup();
 void Startup2();
-void Startup3();
-void Startup4();
-void Startup5();
 #define LocalDef__TickCountMod 50000000
 void Startup()
 {
 	time_t startupTime = time(NULL);
 	Log_WriteLine(LOGLEVEL__Information, "Nernel Started @ %24.24s", ctime(&startupTime));
-	sleep(1);
-	startupTime = time(NULL);
-	Log_WriteLine(LOGLEVEL__Information, "Nernel Started @ %24.24s", ctime(&startupTime));
 	Process_Create((size_t)&Startup2, 0x100000);
+	sleep(1);
 	uint32_t tickCount = 0;
 	uint32_t trueTickCount = 0;
 	while(TRUE)
@@ -54,7 +49,6 @@ void Startup()
 
 void Startup2()
 {
-	Process_Create((size_t)&Startup3, 0x100000);
 	uint32_t trueTickCount = 0;
 	uint32_t tickCount = 0;
 	while(TRUE)
@@ -71,61 +65,6 @@ void Startup2()
 	}
 }
 
-void Startup3()
-{
-	Process_Create((size_t)&Startup4, 0x100000);
-	uint32_t trueTickCount = 0;
-	uint32_t tickCount = 0;
-	while(TRUE)
-	{
-		//printf("ESP3: 0x%x\n", (unsigned int)Register_GetESP());
-		//printf("SS3: 0x%x\n", (unsigned int)Register_GetStackSegment());
-		++tickCount;
-		if ((tickCount % LocalDef__TickCountMod) == 0)
-		{
-			tickCount = 0;
-			trueTickCount++;
-			printf("Startup3 Tick %i!\n", (int)trueTickCount);
-		}
-	}
-}
-
-void Startup4()
-{
-	Process_Create((size_t)&Startup5, 0x100000);
-	uint32_t trueTickCount = 0;
-	uint32_t tickCount = 0;
-	while(TRUE)
-	{
-		//printf("ESP4: 0x%x\n", (unsigned int)Register_GetESP());
-		//printf("SS4: 0x%x\n", (unsigned int)Register_GetStackSegment());
-		++tickCount;
-		if ((tickCount % LocalDef__TickCountMod) == 0)
-		{
-			tickCount = 0;
-			trueTickCount++;
-			printf("Startup4 Tick %i!\n", (int)trueTickCount);
-		}
-	}
-}
-
-void Startup5()
-{
-	uint32_t trueTickCount = 0;
-	uint32_t tickCount = 0;
-	while(TRUE)
-	{
-		//printf("ESP5: 0x%x\n", (unsigned int)Register_GetESP());
-		//printf("SS5: 0x%x\n", (unsigned int)Register_GetStackSegment());
-		++tickCount;
-		if ((tickCount % LocalDef__TickCountMod) == 0)
-		{
-			tickCount = 0;
-			trueTickCount++;
-			printf("Startup5 Tick %i!\n", (int)trueTickCount);
-		}
-	}
-}
 extern uint32_t gStack;
 
 void EnteredUserMode()

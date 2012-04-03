@@ -39,7 +39,6 @@ APIC* APIC_Create()
 	apic->CycleInterrupt = 128 + (apic->Index * 2) + 1;
 	apic->BaseAddress = MSR_Read(APIC__LocalMSR) & APIC__BaseAddress_Mask;
 	apic->CurrentThread = NULL;
-	apic->TickCount = 0;
 	MSR_Write(APIC__LocalMSR, apic->BaseAddress | APIC__MSR_Enable);
 
 	IDT_RegisterHandler(apic->SchedulerInterrupt, &APIC_FrequencyTimer);
@@ -55,7 +54,6 @@ APIC* APIC_Create()
 
 	uint32_t busFrequency = (((0xFFFFFFFF - *(size_t*)(apic->BaseAddress + APIC__Register__Timer__CurrentCount)) + 1) * 16) * (gPIT_CycleHertz / 20);
 	apic->BusFrequency = busFrequency;
-
 
 	uint32_t divisor = apic->BusFrequency / 16 / APIC__Timer__CycleHertz;
 	printf("APIC Index %u, Bus Frequency = %u MHz, Interrupt = %u\n", (unsigned int)apic->Index, (unsigned int)(apic->BusFrequency / 1000 / 1000), (unsigned int)apic->SchedulerInterrupt);
@@ -78,5 +76,5 @@ void APIC_Destroy(APIC* pAPIC)
 
 void APIC_WaitForICRReady(APIC* pAPIC)
 {
-	while ((*(size_t*)(pAPIC->BaseAddress + APIC__Register__InterruptCommandLow) & (1 << 12))) IOWAIT();
+	while ((*(volatile size_t volatile *)(pAPIC->BaseAddress + APIC__Register__InterruptCommandLow) & (1 << 12))) IOWAIT();
 }

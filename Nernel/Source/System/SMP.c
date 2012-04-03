@@ -66,13 +66,13 @@ void SMP_Startup(APIC* pBootstrapAPIC)
 				uint32_t icrLow = (1 << 8) | (1 << 10) | (1 << 14);
 				*(volatile size_t volatile *)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandHigh) = icrHigh;
 				*(volatile size_t volatile *)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandLow) = icrLow;
-				while ((*(volatile size_t volatile *)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandLow) & (1 << 12)) != 0) IOWAIT();
+				APIC_WaitForICRReady(pBootstrapAPIC);
 
 				icrHigh = (uint32_t)(processor->LocalAPICID << 24);
 				icrLow = ((realModeEntryPoint >> 12) & 0xFF) | (1 << 9) | (1 << 10) | (1 << 14);
 				*(volatile size_t volatile *)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandHigh) = icrHigh;
 				*(volatile size_t volatile *)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandLow) = icrLow;
-				while ((*(volatile size_t volatile *)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandLow) & (1 << 12)) != 0) IOWAIT();
+				APIC_WaitForICRReady(pBootstrapAPIC);
 
 				if (gSMP_StartedProcessors == startedProcessorCount)
 				{
@@ -80,7 +80,7 @@ void SMP_Startup(APIC* pBootstrapAPIC)
 					icrLow = ((realModeEntryPoint >> 12) & 0xFF) | (1 << 9) | (1 << 10) | (1 << 14);
 					*(volatile size_t volatile *)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandHigh) = icrHigh;
 					*(volatile size_t volatile *)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandLow) = icrLow;
-					while ((*(volatile size_t volatile *)(pBootstrapAPIC->BaseAddress + APIC__Register__InterruptCommandLow) & (1 << 12)) != 0) IOWAIT();
+					APIC_WaitForICRReady(pBootstrapAPIC);
 				}
 
 				while (gSMP_StartedProcessors == startedProcessorCount) IOWAIT();
