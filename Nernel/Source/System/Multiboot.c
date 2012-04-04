@@ -70,7 +70,8 @@ void Multiboot_Startup(uint32_t pMultibootMagic, MultibootHeader* pMultibootHead
 		MemoryBlock* memoryBlock = gMemoryBlocks;
 		for (uint32_t memoryBlockIndex = 0; memoryBlockIndex < gMemoryBlockCount; ++memoryBlockIndex, ++memoryBlock)
 		{
-			if (reservedMemoryBlock->Address >= memoryBlock->Address && (reservedMemoryBlock->Address + reservedMemoryBlock->Size) <= (memoryBlock->Address + memoryBlock->Size))
+			if ((reservedMemoryBlock->Address >= memoryBlock->Address && reservedMemoryBlock->Address < (memoryBlock->Address + memoryBlock->Size)) ||
+				((reservedMemoryBlock->Address + reservedMemoryBlock->Size) > memoryBlock->Address && (reservedMemoryBlock->Address + reservedMemoryBlock->Size) < (memoryBlock->Address + memoryBlock->Size)))
 			{
 				if (reservedMemoryBlock->Address == memoryBlock->Address)
 				{
@@ -86,7 +87,7 @@ void Multiboot_Startup(uint32_t pMultibootMagic, MultibootHeader* pMultibootHead
 						break;
 					}
 				}
-				else if ((reservedMemoryBlock->Address + reservedMemoryBlock->Size) <= (memoryBlock->Address + memoryBlock->Size))
+				else if ((reservedMemoryBlock->Address + reservedMemoryBlock->Size) == (memoryBlock->Address + memoryBlock->Size))
 				{
 					memoryBlock->Size -= reservedMemoryBlock->Size;
 					break;
@@ -122,4 +123,13 @@ void Multiboot_Shutdown()
 	gMultiboot_CommandLine = NULL;
 	gLoadedModuleCount = 0;
 	gMemoryBlockCount = 0;
+}
+
+LoadedModule* Multiboot_GetLoadedModule(const char* pFilename)
+{
+    for (uint8_t index = 0; index < gLoadedModuleCount; ++index)
+    {
+        if (!strcasecmp(gLoadedModules[index].Identifier, pFilename)) return &gLoadedModules[index];
+    }
+	return NULL;
 }

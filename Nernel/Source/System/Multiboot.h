@@ -78,6 +78,8 @@ struct _MemoryBlock
 void Multiboot_Startup(uint32_t pMultibootMagic, MultibootHeader* pMultibootHeader);
 void Multiboot_Shutdown();
 
+LoadedModule* Multiboot_GetLoadedModule(const char* pFilename);
+
 extern const char* gMultiboot_CommandLine;
 extern LoadedModule gLoadedModules[];
 extern uint8_t gLoadedModuleCount;

@@ -11,6 +11,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\CLR\AppDomain.c" />
+    <ClCompile Include="Source\CLR\CLIFile.c" />
+    <ClCompile Include="Source\CLR\ILReader.c" />
+    <ClCompile Include="Source\CLR\IRStructures.c" />
+    <ClCompile Include="Source\CLR\MetadataStructures.c" />
     <ClCompile Include="Source\System\APIC.c" />
     <ClCompile Include="Source\System\Console.c" />
     <ClCompile Include="Source\System\CPUID.c" />
@@ -42,6 +47,11 @@
     <None Include="Source\System\x86\Registers.asm" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\CLR\AppDomain.h" />
+    <ClInclude Include="Source\CLR\CLIFile.h" />
+    <ClInclude Include="Source\CLR\ILReader.h" />
+    <ClInclude Include="Source\CLR\IRStructures.h" />
+    <ClInclude Include="Source\CLR\MetadataStructures.h" />
     <ClInclude Include="Source\Inline.h" />
     <ClInclude Include="Source\System\APIC.h" />
     <ClInclude Include="Source\System\Atomics.h" />
