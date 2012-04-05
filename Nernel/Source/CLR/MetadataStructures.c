@@ -2291,7 +2291,6 @@ uint8_t* ModuleDefinition_Initialize(CLIFile* pFile, uint8_t* pTableData)
     {
         pFile->ModuleDefinitionCount = *(uint32_t*)pTableData; pTableData += 4;
         pFile->ModuleDefinitions = (ModuleDefinition*)calloc(pFile->ModuleDefinitionCount + 1, sizeof(ModuleDefinition));
-		printf("Loading %u ModuleDefinitions\n", (unsigned int)pFile->ModuleDefinitionCount);
     }
     return pTableData;
 }
