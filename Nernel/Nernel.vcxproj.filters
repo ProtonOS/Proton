@@ -173,6 +173,9 @@
     <ClInclude Include="Source\CLR\MetadataStructures.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Source\CLR\ILOpcodes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Source\System\x86\Boot.asm">

@@ -8,6 +8,7 @@ typedef struct _PESectionHeader PESectionHeader;
 typedef struct _PECLIHeader PECLIHeader;
 typedef struct _PECLIMetadataTablesHeader PECLIMetadataTablesHeader;
 typedef struct _CLIFile CLIFile;
+typedef struct _MetadataToken MetadataToken;
 
 #include <CLR/IRStructures.h>
 #include <CLR/MetadataStructures.h>
@@ -262,8 +263,19 @@ struct _CLIFile
     MethodSpecification* MethodSpecifications;
 };
 
+struct _MetadataToken
+{
+    uint8_t Table;
+    bool_t IsUserString;
+    void* Data;
+};
+
+
 CLIFile* CLIFile_Create(uint8_t* pData, uint32_t pLength, const char* pFilename);
 void CLIFile_Destroy(CLIFile* pFile);
 PESectionHeader* CLIFile_GetSection(PESectionHeader* pSections, uint16_t pSectionCount, uint32_t pVirtualAddress);
 uint8_t* CLIFile_GetCompressedUnsigned(uint8_t* pData, uint32_t* pValue);
 uint8_t* CLIFile_GetCompressedSigned(uint8_t* pData, int32_t* pValue);
+MetadataToken* CLIFile_ExpandMetadataToken(CLIFile* pFile, uint32_t pToken);
+MetadataToken* CLIFile_ExpandTypeDefRefOrSpecToken(CLIFile* pFile, uint32_t pToken);
+

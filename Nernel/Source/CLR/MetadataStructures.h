@@ -259,8 +259,8 @@ typedef enum FieldAttributes
 
 typedef enum FileAttributes
 {
-	//FileAttributes_ContainsMetaData								= 0x0000
-	FileAttributes_ContainsNoMetaData								= 0x0001,
+	//FileAttributes_ContainsMetadata								= 0x0000
+	FileAttributes_ContainsNoMetadata								= 0x0001,
 } FileAttributes;
 
 typedef enum GenericParameterAttributes
@@ -544,46 +544,46 @@ union \
 
 typedef enum MetadataTable
 {
-	MetaDataTable_ModuleDefinition					= 0x00,
-	MetaDataTable_TypeReference						= 0x01,
-	MetaDataTable_TypeDefinition					= 0x02,
-	MetaDataTable_Field								= 0x04,
-	MetaDataTable_MethodDefinition					= 0x06,
-	MetaDataTable_Parameter							= 0x08,
-	MetaDataTable_InterfaceImplementation			= 0x09,
-	MetaDataTable_MemberReference					= 0x0A,
-	MetaDataTable_Constant							= 0x0B,
-	MetaDataTable_CustomAttribute					= 0x0C,
-	MetaDataTable_FieldMarshal						= 0x0D,
-	MetaDataTable_DeclSecurity						= 0x0E,
-	MetaDataTable_ClassLayout						= 0x0F,
-	MetaDataTable_FieldLayout						= 0x10,
-	MetaDataTable_StandAloneSignature				= 0x11,
-	MetaDataTable_EventMap							= 0x12,
-	MetaDataTable_Event								= 0x14,
-	MetaDataTable_PropertyMap						= 0x15,
-	MetaDataTable_Property							= 0x17,
-	MetaDataTable_MethodSemantics					= 0x18,
-	MetaDataTable_MethodImplementation				= 0x19,
-	MetaDataTable_ModuleReference					= 0x1A,
-	MetaDataTable_TypeSpecification					= 0x1B,
-	MetaDataTable_ImplementationMap					= 0x1C,
-	MetaDataTable_FieldRVA							= 0x1D,
-	MetaDataTable_AssemblyDefinition				= 0x20,
-	MetaDataTable_AssemblyProcessor					= 0x21,
-	MetaDataTable_AssemblyOperatingSystem			= 0x22,
-	MetaDataTable_AssemblyReference					= 0x23,
-	MetaDataTable_AssemblyReferenceProcessor		= 0x24,
-	MetaDataTable_AssemblyReferenceOperatingSystem	= 0x25,
-	MetaDataTable_File								= 0x26,
-	MetaDataTable_ExportedType						= 0x27,
-	MetaDataTable_ManifestResource					= 0x28,
-	MetaDataTable_NestedClass						= 0x29,
-	MetaDataTable_GenericParameter					= 0x2A,
-	MetaDataTable_MethodSpecification				= 0x2B,
-	MetaDataTable_GenericParameterConstraint		= 0x2C,
+	MetadataTable_ModuleDefinition					= 0x00,
+	MetadataTable_TypeReference						= 0x01,
+	MetadataTable_TypeDefinition					= 0x02,
+	MetadataTable_Field								= 0x04,
+	MetadataTable_MethodDefinition					= 0x06,
+	MetadataTable_Parameter							= 0x08,
+	MetadataTable_InterfaceImplementation			= 0x09,
+	MetadataTable_MemberReference					= 0x0A,
+	MetadataTable_Constant							= 0x0B,
+	MetadataTable_CustomAttribute					= 0x0C,
+	MetadataTable_FieldMarshal						= 0x0D,
+	MetadataTable_DeclSecurity						= 0x0E,
+	MetadataTable_ClassLayout						= 0x0F,
+	MetadataTable_FieldLayout						= 0x10,
+	MetadataTable_StandAloneSignature				= 0x11,
+	MetadataTable_EventMap							= 0x12,
+	MetadataTable_Event								= 0x14,
+	MetadataTable_PropertyMap						= 0x15,
+	MetadataTable_Property							= 0x17,
+	MetadataTable_MethodSemantics					= 0x18,
+	MetadataTable_MethodImplementation				= 0x19,
+	MetadataTable_ModuleReference					= 0x1A,
+	MetadataTable_TypeSpecification					= 0x1B,
+	MetadataTable_ImplementationMap					= 0x1C,
+	MetadataTable_FieldRVA							= 0x1D,
+	MetadataTable_AssemblyDefinition				= 0x20,
+	MetadataTable_AssemblyProcessor					= 0x21,
+	MetadataTable_AssemblyOperatingSystem			= 0x22,
+	MetadataTable_AssemblyReference					= 0x23,
+	MetadataTable_AssemblyReferenceProcessor		= 0x24,
+	MetadataTable_AssemblyReferenceOperatingSystem	= 0x25,
+	MetadataTable_File								= 0x26,
+	MetadataTable_ExportedType						= 0x27,
+	MetadataTable_ManifestResource					= 0x28,
+	MetadataTable_NestedClass						= 0x29,
+	MetadataTable_GenericParameter					= 0x2A,
+	MetadataTable_MethodSpecification				= 0x2B,
+	MetadataTable_GenericParameterConstraint		= 0x2C,
 
-	MetaDataTable_UserStrings						= 0x70,
+	MetadataTable_UserStrings						= 0x70,
 } MetadataTable;
 
 #define METADATAHEAP__OffsetSize_Strings32Bit		0x01
@@ -816,7 +816,7 @@ struct _Field
     uint16_t Flags;
     const char* Name;
     uint32_t SignatureLength;
-    const uint8_t* Signature;
+    uint8_t* Signature;
 
     Constant* Constant;
     uint32_t CustomAttributeCount;
@@ -981,7 +981,7 @@ struct _MemberReference
     MemberRefParentUnion(Parent)
     const char* Name;
     uint32_t SignatureLength;
-    const uint8_t* Signature;
+    uint8_t* Signature;
 
     uint32_t CustomAttributeCount;
     CustomAttribute** CustomAttributes;
@@ -1090,7 +1090,7 @@ struct _MethodDefinition
     uint16_t Flags;
     const char* Name;
     uint32_t SignatureLength;
-    const uint8_t* Signature;
+    uint8_t* Signature;
     Parameter* ParameterList;
     uint32_t ParameterListCount;
 
@@ -1232,7 +1232,7 @@ struct _Property
     uint16_t Flags;
     const char* Name;
     uint32_t SignatureLength;
-    const uint8_t* Signature;
+    uint8_t* Signature;
 
     Constant* Constant;
     uint32_t CustomAttributeCount;
@@ -1264,7 +1264,7 @@ struct _StandAloneSignature
 {
 	uint32_t TableIndex;
     uint32_t SignatureLength;
-    const uint8_t* Signature;
+    uint8_t* Signature;
 
     uint32_t CustomAttributeCount;
     CustomAttribute** CustomAttributes;
@@ -1339,7 +1339,7 @@ struct _TypeSpecification
 	CLIFile* File;
 	uint32_t TableIndex;
     uint32_t SignatureLength;
-    const uint8_t* Signature;
+    uint8_t* Signature;
 
     uint32_t CustomAttributeCount;
     CustomAttribute** CustomAttributes;
@@ -1351,3 +1351,244 @@ uint8_t* TypeSpecification_Initialize(CLIFile* pFile, uint8_t* pTableData);
 void TypeSpecification_Cleanup(CLIFile* pFile);
 uint8_t* TypeSpecification_Load(CLIFile* pFile, uint8_t* pTableData);
 void TypeSpecification_Link(CLIFile* pFile);
+
+
+// Signatures
+
+typedef enum SignatureElementType
+{
+	SignatureElementType_End							= 0x00,
+	SignatureElementType_Void							= 0x01,
+	SignatureElementType_Boolean						= 0x02,
+	SignatureElementType_Char							= 0x03,
+	SignatureElementType_I1								= 0x04,
+	SignatureElementType_U1								= 0x05,
+	SignatureElementType_I2								= 0x06,
+	SignatureElementType_U2								= 0x07,
+	SignatureElementType_I4								= 0x08,
+	SignatureElementType_U4								= 0x09,
+	SignatureElementType_I8								= 0x0A,
+	SignatureElementType_U8								= 0x0B,
+	SignatureElementType_R4								= 0x0C,
+	SignatureElementType_R8								= 0x0D,
+	SignatureElementType_String							= 0x0E,
+	SignatureElementType_Pointer						= 0x0F,
+	SignatureElementType_ByReference					= 0x10,
+	SignatureElementType_ValueType						= 0x11,
+	SignatureElementType_Class							= 0x12,
+	SignatureElementType_Var							= 0x13,
+	SignatureElementType_Array							= 0x14,
+	SignatureElementType_GenericInstantiation			= 0x15,
+	SignatureElementType_TypedByReference				= 0x16,
+	SignatureElementType_IPointer						= 0x18,
+	SignatureElementType_UPointer						= 0x19,
+	SignatureElementType_FunctionPointer				= 0x1B,
+	SignatureElementType_Object							= 0x1C,
+	SignatureElementType_SingleDimensionArray			= 0x1D,
+	SignatureElementType_MethodVar						= 0x1E,
+	SignatureElementType_CustomModifier_Required		= 0x1F,
+	SignatureElementType_CustomModifier_Optional		= 0x20,
+	SignatureElementType_Internal						= 0x21,
+	SignatureElementType_Modifier						= 0x40,
+	SignatureElementType_Sentinel						= 0x41,
+	SignatureElementType_Pinned							= 0x45,
+	SignatureElementType_Type							= 0x50,
+	SignatureElementType_CustomAttribute_Boxed			= 0x51,
+	SignatureElementType_CustomAttribute_Field			= 0x53,
+	SignatureElementType_CustomAttribute_Property		= 0x54,
+	SignatureElementType_CustomAttribute_Enum			= 0x55,
+} SignatureElementType;
+
+typedef enum SignatureCallConvention
+{
+	SignatureCallConvention_Default						= 0x00,
+	SignatureCallConvention_C							= 0x01,
+	SignatureCallConvention_STDCall						= 0x02,
+	SignatureCallConvention_ThisCall					= 0x03,
+	SignatureCallConvention_FastCall					= 0x04,
+	SignatureCallConvention_VarArgs						= 0x05,
+	SignatureCallConvention_Generic						= 0x10,
+	SignatureCallConvention_HasThis						= 0x20,
+	SignatureCallConvention_ExplicitThis				= 0x40,
+} SignatureCallConvention;
+
+typedef struct _MethodSignature MethodSignature;
+typedef struct _FieldSignature FieldSignature;
+typedef struct _PropertySignature PropertySignature;
+typedef struct _LocalsSignature LocalsSignature;
+
+typedef struct _SignatureReturnType SignatureReturnType;
+typedef struct _SignatureParameter SignatureParameter;
+typedef struct _SignatureCustomModifier SignatureCustomModifier;
+typedef struct _SignatureType SignatureType;
+typedef struct _SignatureMethodSpecification SignatureMethodSpecification;
+typedef struct _SignatureArrayShape SignatureArrayShape;
+typedef struct _SignatureLocalVariable SignatureLocalVariable;
+
+bool_t Signature_Equals(uint8_t* pSignature1, uint32_t pSignature1Length, uint8_t* pSignature2, uint32_t pSignature2Length);
+
+struct _MethodSignature
+{
+    bool_t HasThis;
+    bool_t ExplicitThis;
+    bool_t Default;
+    bool_t VarArgs;
+    bool_t Generic;
+    bool_t CCall;
+    bool_t STDCall;
+    bool_t ThisCall;
+    bool_t FastCall;
+    uint32_t GenericParameterCount;
+    SignatureReturnType* ReturnType;
+    uint32_t ParameterCount;
+    SignatureParameter** Parameters;
+    bool_t HasSentinel;
+    uint32_t SentinelIndex;
+};
+
+MethodSignature* MethodSignature_Create();
+void MethodSignature_Destroy(MethodSignature* pMethodSignature);
+uint8_t* MethodSignature_Parse(uint8_t* pCursor, MethodSignature** pMethodSignature, CLIFile* pCLIFile);
+MethodSignature* MethodSignature_Expand(uint8_t* pSignature, CLIFile* pCLIFile);
+
+struct _FieldSignature
+{
+    uint32_t CustomModifierCount;
+    SignatureCustomModifier** CustomModifiers;
+    SignatureType* Type;
+};
+
+FieldSignature* FieldSignature_Create();
+void FieldSignature_Destroy(FieldSignature* pFieldSignature);
+uint8_t* FieldSignature_Parse(uint8_t* pCursor, FieldSignature** pFieldSignature, CLIFile* pCLIFile);
+FieldSignature* FieldSignature_Expand(uint8_t* pSignature, CLIFile* pCLIFile);
+
+struct _PropertySignature
+{
+    bool_t HasThis;
+    uint32_t CustomModifierCount;
+    SignatureCustomModifier** CustomModifiers;
+    SignatureType* Type;
+    uint32_t ParameterCount;
+    SignatureParameter** Parameters;
+};
+
+PropertySignature* PropertySignature_Create();
+void PropertySignature_Destroy(PropertySignature* pPropertySignature);
+uint8_t* PropertySignature_Parse(uint8_t* pCursor, PropertySignature** pPropertySignature, CLIFile* pCLIFile);
+PropertySignature* PropertySignature_Expand(uint8_t* pSignature, CLIFile* pCLIFile);
+
+struct _LocalsSignature
+{
+    uint32_t LocalVariableCount;
+    SignatureLocalVariable** LocalVariables;
+};
+
+LocalsSignature* LocalsSignature_Create();
+void LocalsSignature_Destroy(LocalsSignature* pLocalsSignature);
+uint8_t* LocalsSignature_Parse(uint8_t* pCursor, LocalsSignature** pLocalsSignature, CLIFile* pCLIFile);
+LocalsSignature* LocalsSignature_Expand(uint8_t* pSignature, CLIFile* pCLIFile);
+
+struct _SignatureReturnType
+{
+    uint32_t CustomModifierCount;
+    SignatureCustomModifier** CustomModifiers;
+    bool_t ByReference;
+    SignatureType* Type;
+    bool_t TypedByReference;
+    bool_t Void;
+};
+
+SignatureReturnType* SignatureReturnType_Create();
+void SignatureReturnType_Destroy(SignatureReturnType* pReturnType);
+uint8_t* SignatureReturnType_Parse(uint8_t* pCursor, SignatureReturnType** pReturnType, CLIFile* pCLIFile);
+
+struct _SignatureParameter
+{
+    uint32_t CustomModifierCount;
+    SignatureCustomModifier** CustomModifiers;
+    bool_t ByReference;
+    SignatureType* Type;
+    bool_t TypedByReference;
+};
+
+SignatureParameter* SignatureParameter_Create();
+void SignatureParameter_Destroy(SignatureParameter* pParameter);
+uint8_t* SignatureParameter_Parse(uint8_t* pCursor, SignatureParameter** pParameter, CLIFile* pCLIFile);
+
+struct _SignatureCustomModifier
+{
+    bool_t Optional;
+    uint32_t TypeDefOrRefOrSpecToken;
+    bool_t Pinned;
+};
+
+SignatureCustomModifier* SignatureCustomModifier_Create();
+void SignatureCustomModifier_Destroy(SignatureCustomModifier* pCustomModifier);
+uint8_t* SignatureCustomModifier_Parse(uint8_t* pCursor, SignatureCustomModifier** pCustomModifier, CLIFile* pCLIFile);
+
+struct _SignatureType
+{
+    uint8_t ElementType;
+    SignatureType* ArrayType;
+    SignatureArrayShape* ArrayShape;
+    uint32_t ClassTypeDefOrRefOrSpecToken;
+    MethodSignature* FnPtrMethodSignature;
+    bool_t GenericInstClass;
+    bool_t GenericInstValue;
+    uint32_t GenericInstTypeDefOrRefOrSpecToken;
+    uint32_t GenericInstGenericArgumentCount;
+    SignatureType** GenericInstGenericArguments;
+    uint32_t MVarNumber;
+    uint32_t PtrCustomModifierCount;
+    SignatureCustomModifier** PtrCustomModifiers;
+    SignatureType* PtrType;
+    bool_t PtrVoid;
+    uint32_t SZArrayCustomModifierCount;
+    SignatureCustomModifier** SZArrayCustomModifiers;
+    SignatureType* SZArrayType;
+    uint32_t ValueTypeDefOrRefOrSpecToken;
+    uint32_t VarNumber;
+};
+
+SignatureType* SignatureType_Create();
+void SignatureType_Destroy(SignatureType* pType);
+uint8_t* SignatureType_Parse(uint8_t* pCursor, SignatureType** pType, CLIFile* pCLIFile);
+SignatureType* SignatureType_Expand(uint8_t* pSignature, CLIFile* pCLIFile);
+
+struct _SignatureMethodSpecification
+{
+    uint32_t GenericInstGenericArgumentCount;
+    SignatureType** GenericInstGenericArguments;
+};
+
+SignatureMethodSpecification* SignatureMethodSpecification_Create();
+void SignatureMethodSpecification_Destroy(SignatureMethodSpecification* pMethodSpecification);
+uint8_t* SignatureMethodSpecification_Parse(uint8_t* pCursor, SignatureMethodSpecification** pMethodSpecification, CLIFile* pCLIFile);
+SignatureMethodSpecification* SignatureMethodSpecification_Expand(uint8_t* pSignature, CLIFile* pCLIFile);
+
+struct _SignatureArrayShape
+{
+    uint32_t Rank;
+    uint32_t SizeCount;
+    uint32_t* Sizes;
+    uint32_t LowerBoundCount;
+    int32_t* LowerBounds;
+};
+
+SignatureArrayShape* SignatureArrayShape_Create();
+void SignatureArrayShape_Destroy(SignatureArrayShape* pArrayShape);
+uint8_t* SignatureArrayShape_Parse(uint8_t* pCursor, SignatureArrayShape** pArrayShape, CLIFile* pCLIFile);
+
+struct _SignatureLocalVariable
+{
+    uint32_t CustomModifierCount;
+    SignatureCustomModifier** CustomModifiers;
+    bool_t ByReference;
+    SignatureType* Type;
+    bool_t TypedByReference;
+};
+
+SignatureLocalVariable* SignatureLocalVariable_Create();
+void SignatureLocalVariable_Destroy(SignatureLocalVariable* pLocalVariable);
+uint8_t* SignatureLocalVariable_Parse(uint8_t* pCursor, SignatureLocalVariable** pLocalVariable, CLIFile* pCLIFile);

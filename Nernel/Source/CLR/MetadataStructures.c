@@ -4,7 +4,7 @@
 
 uint8_t* AssemblyDefinition_Initialize(CLIFile* pFile, uint8_t* pTableData)
 {
-    if ((pFile->TablesHeader->PresentTables & (1ull << MetaDataTable_AssemblyDefinition)) != 0)
+    if ((pFile->TablesHeader->PresentTables & (1ull << MetadataTable_AssemblyDefinition)) != 0)
     {
         pFile->AssemblyDefinitionCount = *(uint32_t*)pTableData; pTableData += 4;
         pFile->AssemblyDefinitions = (AssemblyDefinition*)calloc(1, (pFile->AssemblyDefinitionCount + 1) * sizeof(AssemblyDefinition));
@@ -82,7 +82,7 @@ void AssemblyDefinition_Link(CLIFile* pFile)
 
 uint8_t* AssemblyOperatingSystem_Initialize(CLIFile* pFile, uint8_t* pTableData)
 {
-    if ((pFile->TablesHeader->PresentTables & (1ull << MetaDataTable_AssemblyOperatingSystem)) != 0)
+    if ((pFile->TablesHeader->PresentTables & (1ull << MetadataTable_AssemblyOperatingSystem)) != 0)
     {
         pFile->AssemblyOperatingSystemCount = *(uint32_t*)pTableData; pTableData += 4;
         pFile->AssemblyOperatingSystems = (AssemblyOperatingSystem*)calloc(pFile->AssemblyOperatingSystemCount + 1, sizeof(AssemblyOperatingSystem));
@@ -123,7 +123,7 @@ void AssemblyOperatingSystem_Link(CLIFile* pFile)
 
 uint8_t* AssemblyProcessor_Initialize(CLIFile* pFile, uint8_t* pTableData)
 {
-    if ((pFile->TablesHeader->PresentTables & (1ull << MetaDataTable_AssemblyProcessor)) != 0)
+    if ((pFile->TablesHeader->PresentTables & (1ull << MetadataTable_AssemblyProcessor)) != 0)
     {
         pFile->AssemblyProcessorCount = *(uint32_t*)pTableData; pTableData += 4;
         pFile->AssemblyProcessors = (AssemblyProcessor*)calloc(pFile->AssemblyProcessorCount + 1, sizeof(AssemblyProcessor));
@@ -162,7 +162,7 @@ void AssemblyProcessor_Link(CLIFile* pFile)
 
 uint8_t* AssemblyReference_Initialize(CLIFile* pFile, uint8_t* pTableData)
 {
-    if (((unsigned long long)pFile->TablesHeader->PresentTables & (1ull << MetaDataTable_AssemblyReference)) != 0)
+    if (((unsigned long long)pFile->TablesHeader->PresentTables & (1ull << MetadataTable_AssemblyReference)) != 0)
     {
         pFile->AssemblyReferenceCount = *(uint32_t*)pTableData; pTableData += 4;
         pFile->AssemblyReferences = (AssemblyReference*)calloc(pFile->AssemblyReferenceCount + 1, sizeof(AssemblyReference));
@@ -238,7 +238,7 @@ void AssemblyReference_Link(CLIFile* pFile)
 
 uint8_t* AssemblyReferenceOperatingSystem_Initialize(CLIFile* pFile, uint8_t* pTableData)
 {
-    if ((pFile->TablesHeader->PresentTables & (1ull << MetaDataTable_AssemblyReferenceOperatingSystem)) != 0)
+    if ((pFile->TablesHeader->PresentTables & (1ull << MetadataTable_AssemblyReferenceOperatingSystem)) != 0)
     {
         pFile->AssemblyReferenceOperatingSystemCount = *(uint32_t*)pTableData; pTableData += 4;
         pFile->AssemblyReferenceOperatingSystems = (AssemblyReferenceOperatingSystem*)calloc(pFile->AssemblyReferenceOperatingSystemCount + 1, sizeof(AssemblyReferenceOperatingSystem));
@@ -284,7 +284,7 @@ void AssemblyReferenceOperatingSystem_Link(CLIFile* pFile)
 
 uint8_t* AssemblyReferenceProcessor_Initialize(CLIFile* pFile, uint8_t* pTableData)
 {
-    if ((pFile->TablesHeader->PresentTables & (1ull << MetaDataTable_AssemblyReferenceProcessor)) != 0)
+    if ((pFile->TablesHeader->PresentTables & (1ull << MetadataTable_AssemblyReferenceProcessor)) != 0)
     {
         pFile->AssemblyReferenceProcessorCount = *(uint32_t*)pTableData; pTableData += 4;
         pFile->AssemblyReferenceProcessors = (AssemblyReferenceProcessor*)calloc(pFile->AssemblyReferenceProcessorCount + 1, sizeof(AssemblyReferenceProcessor));
@@ -328,7 +328,7 @@ void AssemblyReferenceProcessor_Link(CLIFile* pFile)
 
 uint8_t* ClassLayout_Initialize(CLIFile* pFile, uint8_t* pTableData)
 {
-    if ((pFile->TablesHeader->PresentTables & (1ull << MetaDataTable_ClassLayout)) != 0)
+    if ((pFile->TablesHeader->PresentTables & (1ull << MetadataTable_ClassLayout)) != 0)
     {
         pFile->ClassLayoutCount = *(uint32_t*)pTableData; pTableData += 4;
         pFile->ClassLayouts = (ClassLayout*)calloc(pFile->ClassLayoutCount + 1, sizeof(ClassLayout));
@@ -373,7 +373,7 @@ void ClassLayout_Link(CLIFile* pFile)
 
 uint8_t* Constant_Initialize(CLIFile* pFile, uint8_t* pTableData)
 {
-    if ((pFile->TablesHeader->PresentTables & (1ull << MetaDataTable_Constant)) != 0)
+    if ((pFile->TablesHeader->PresentTables & (1ull << MetadataTable_Constant)) != 0)
     {
         pFile->ConstantCount = *(uint32_t*)pTableData; pTableData += 4;
         pFile->Constants = (Constant*)calloc(pFile->ConstantCount + 1, sizeof(Constant));
@@ -439,7 +439,7 @@ void Constant_Link(CLIFile* pFile)
 
 uint8_t* CustomAttribute_Initialize(CLIFile* pFile, uint8_t* pTableData)
 {
-    if ((pFile->TablesHeader->PresentTables & (1ull << MetaDataTable_CustomAttribute)) != 0)
+    if ((pFile->TablesHeader->PresentTables & (1ull << MetadataTable_CustomAttribute)) != 0)
     {
         pFile->CustomAttributeCount = *(uint32_t*)pTableData; pTableData += 4;
         pFile->CustomAttributes = (CustomAttribute*)calloc(pFile->CustomAttributeCount + 1, sizeof(CustomAttribute));
@@ -618,7 +618,7 @@ void CustomAttribute_Link(CLIFile* pFile)
 
 uint8_t* DeclSecurity_Initialize(CLIFile* pFile, uint8_t* pTableData)
 {
-    if ((pFile->TablesHeader->PresentTables & (1ull << MetaDataTable_DeclSecurity)) != 0)
+    if ((pFile->TablesHeader->PresentTables & (1ull << MetadataTable_DeclSecurity)) != 0)
     {
         pFile->DeclSecurityCount = *(uint32_t*)pTableData; pTableData += 4;
         pFile->DeclSecurities = (DeclSecurity*)calloc(pFile->DeclSecurityCount + 1, sizeof(DeclSecurity));
@@ -706,7 +706,7 @@ void DeclSecurity_Link(CLIFile* pFile)
 
 uint8_t* Event_Initialize(CLIFile* pFile, uint8_t* pTableData)
 {
-    if ((pFile->TablesHeader->PresentTables & (1ull << MetaDataTable_Event)) != 0)
+    if ((pFile->TablesHeader->PresentTables & (1ull << MetadataTable_Event)) != 0)
     {
         pFile->EventCount = *(uint32_t*)pTableData; pTableData += 4;
         pFile->Events = (Event*)calloc(pFile->EventCount + 1, sizeof(Event));
@@ -797,7 +797,7 @@ void Event_Link(CLIFile* pFile)
 
 uint8_t* EventMap_Initialize(CLIFile* pFile, uint8_t* pTableData)
 {
-    if ((pFile->TablesHeader->PresentTables & (1ull << MetaDataTable_EventMap)) != 0)
+    if ((pFile->TablesHeader->PresentTables & (1ull << MetadataTable_EventMap)) != 0)
     {
         pFile->EventMapCount = *(uint32_t*)pTableData; pTableData += 4;
         pFile->EventMaps = (EventMap*)calloc(pFile->EventMapCount + 1, sizeof(EventMap));
@@ -858,7 +858,7 @@ void EventMap_Link(CLIFile* pFile)
 
 uint8_t* ExportedType_Initialize(CLIFile* pFile, uint8_t* pTableData)
 {
-    if ((pFile->TablesHeader->PresentTables & (1ull << MetaDataTable_ExportedType)) != 0)
+    if ((pFile->TablesHeader->PresentTables & (1ull << MetadataTable_ExportedType)) != 0)
     {
         pFile->ExportedTypeCount = *(uint32_t*)pTableData; pTableData += 4;
         pFile->ExportedTypes = (ExportedType*)calloc(pFile->ExportedTypeCount + 1, sizeof(ExportedType));
@@ -954,7 +954,7 @@ void ExportedType_Link(CLIFile* pFile)
 
 uint8_t* Field_Initialize(CLIFile* pFile, uint8_t* pTableData)
 {
-    if ((pFile->TablesHeader->PresentTables & (1ull << MetaDataTable_Field)) != 0)
+    if ((pFile->TablesHeader->PresentTables & (1ull << MetadataTable_Field)) != 0)
     {
         pFile->FieldCount = *(uint32_t*)pTableData; pTableData += 4;
         pFile->Fields = (Field*)calloc(pFile->FieldCount + 1, sizeof(Field));
@@ -1046,7 +1046,7 @@ void Field_Link(CLIFile* pFile)
 
 uint8_t* FieldLayout_Initialize(CLIFile* pFile, uint8_t* pTableData)
 {
-    if ((pFile->TablesHeader->PresentTables & (1ull << MetaDataTable_FieldLayout)) != 0)
+    if ((pFile->TablesHeader->PresentTables & (1ull << MetadataTable_FieldLayout)) != 0)
     {
         pFile->FieldLayoutCount = *(uint32_t*)pTableData; pTableData += 4;
         pFile->FieldLayouts = (FieldLayout*)calloc(pFile->FieldLayoutCount + 1, sizeof(FieldLayout));
@@ -1091,7 +1091,7 @@ void FieldLayout_Link(CLIFile* pFile)
 
 uint8_t* FieldMarshal_Initialize(CLIFile* pFile, uint8_t* pTableData)
 {
-    if ((pFile->TablesHeader->PresentTables & (1ull << MetaDataTable_FieldMarshal)) != 0)
+    if ((pFile->TablesHeader->PresentTables & (1ull << MetadataTable_FieldMarshal)) != 0)
     {
         pFile->FieldMarshalCount = *(uint32_t*)pTableData; pTableData += 4;
         pFile->FieldMarshals = (FieldMarshal*)calloc(pFile->FieldMarshalCount + 1, sizeof(FieldMarshal));
@@ -1151,7 +1151,7 @@ void FieldMarshal_Link(CLIFile* pFile)
 
 uint8_t* FieldRVA_Initialize(CLIFile* pFile, uint8_t* pTableData)
 {
-    if ((pFile->TablesHeader->PresentTables & (1ull << MetaDataTable_FieldRVA)) != 0)
+    if ((pFile->TablesHeader->PresentTables & (1ull << MetadataTable_FieldRVA)) != 0)
     {
         pFile->FieldRVACount = *(uint32_t*)pTableData; pTableData += 4;
         pFile->FieldRVAs = (FieldRVA*)calloc(pFile->FieldRVACount + 1, sizeof(FieldRVA));
@@ -1202,7 +1202,7 @@ void FieldRVA_Link(CLIFile* pFile)
 
 uint8_t* File_Initialize(CLIFile* pFile, uint8_t* pTableData)
 {
-    if ((pFile->TablesHeader->PresentTables & (1ull << MetaDataTable_File)) != 0)
+    if ((pFile->TablesHeader->PresentTables & (1ull << MetadataTable_File)) != 0)
     {
         pFile->FileCount = *(uint32_t*)pTableData; pTableData += 4;
         pFile->Files = (File*)calloc(pFile->FileCount + 1, sizeof(File));
@@ -1268,7 +1268,7 @@ void File_Link(CLIFile* pFile)
 
 uint8_t* GenericParameter_Initialize(CLIFile* pFile, uint8_t* pTableData)
 {
-    if ((pFile->TablesHeader->PresentTables & (1ull << MetaDataTable_GenericParameter)) != 0)
+    if ((pFile->TablesHeader->PresentTables & (1ull << MetadataTable_GenericParameter)) != 0)
     {
         pFile->GenericParameterCount = *(uint32_t*)pTableData; pTableData += 4;
         pFile->GenericParameters = (GenericParameter*)calloc(pFile->GenericParameterCount + 1, sizeof(GenericParameter));
@@ -1368,7 +1368,7 @@ void GenericParameter_Link(CLIFile* pFile)
 
 uint8_t* GenericParameterConstraint_Initialize(CLIFile* pFile, uint8_t* pTableData)
 {
-    if ((pFile->TablesHeader->PresentTables & (1ull << MetaDataTable_GenericParameterConstraint)) != 0)
+    if ((pFile->TablesHeader->PresentTables & (1ull << MetadataTable_GenericParameterConstraint)) != 0)
     {
         pFile->GenericParameterConstraintCount = *(uint32_t*)pTableData; pTableData += 4;
         pFile->GenericParameterConstraints = (GenericParameterConstraint*)calloc(pFile->GenericParameterConstraintCount + 1, sizeof(GenericParameterConstraint));
@@ -1456,7 +1456,7 @@ void GenericParameterConstraint_Link(CLIFile* pFile)
 
 uint8_t* ImplementationMap_Initialize(CLIFile* pFile, uint8_t* pTableData)
 {
-    if ((pFile->TablesHeader->PresentTables & (1ull << MetaDataTable_ImplementationMap)) != 0)
+    if ((pFile->TablesHeader->PresentTables & (1ull << MetadataTable_ImplementationMap)) != 0)
     {
         pFile->ImplementationMapCount = *(uint32_t*)pTableData; pTableData += 4;
         pFile->ImplementationMaps = (ImplementationMap*)calloc(pFile->ImplementationMapCount + 1, sizeof(ImplementationMap));
@@ -1525,7 +1525,7 @@ void ImplementationMap_Link(CLIFile* pFile)
 
 uint8_t* InterfaceImplementation_Initialize(CLIFile* pFile, uint8_t* pTableData)
 {
-    if ((pFile->TablesHeader->PresentTables & (1ull << MetaDataTable_InterfaceImplementation)) != 0)
+    if ((pFile->TablesHeader->PresentTables & (1ull << MetadataTable_InterfaceImplementation)) != 0)
     {
         pFile->InterfaceImplementationCount = *(uint32_t*)pTableData; pTableData += 4;
         pFile->InterfaceImplementations = (InterfaceImplementation*)calloc(pFile->InterfaceImplementationCount + 1, sizeof(InterfaceImplementation));
@@ -1614,7 +1614,7 @@ void InterfaceImplementation_Link(CLIFile* pFile)
 
 uint8_t* ManifestResource_Initialize(CLIFile* pFile, uint8_t* pTableData)
 {
-    if ((pFile->TablesHeader->PresentTables & (1ull << MetaDataTable_ManifestResource)) != 0)
+    if ((pFile->TablesHeader->PresentTables & (1ull << MetadataTable_ManifestResource)) != 0)
     {
         pFile->ManifestResourceCount = *(uint32_t*)pTableData; pTableData += 4;
         pFile->ManifestResources = (ManifestResource*)calloc(pFile->ManifestResourceCount + 1, sizeof(ManifestResource));
@@ -1703,7 +1703,7 @@ void ManifestResource_Link(CLIFile* pFile)
 
 uint8_t* MemberReference_Initialize(CLIFile* pFile, uint8_t* pTableData)
 {
-    if ((pFile->TablesHeader->PresentTables & (1ull << MetaDataTable_MemberReference)) != 0)
+    if ((pFile->TablesHeader->PresentTables & (1ull << MetadataTable_MemberReference)) != 0)
     {
         pFile->MemberReferenceCount = *(uint32_t*)pTableData; pTableData += 4;
         pFile->MemberReferences = (MemberReference*)calloc(pFile->MemberReferenceCount + 1, sizeof(MemberReference));
@@ -1803,7 +1803,7 @@ void MemberReference_Link(CLIFile* pFile)
 
 uint8_t* MethodDefinition_Initialize(CLIFile* pFile, uint8_t* pTableData)
 {
-    if ((pFile->TablesHeader->PresentTables & (1ull << MetaDataTable_MethodDefinition)) != 0)
+    if ((pFile->TablesHeader->PresentTables & (1ull << MetadataTable_MethodDefinition)) != 0)
     {
         pFile->MethodDefinitionCount = *(uint32_t*)pTableData; pTableData += 4;
         pFile->MethodDefinitions = (MethodDefinition*)calloc(pFile->MethodDefinitionCount + 1, sizeof(MethodDefinition));
@@ -2061,7 +2061,7 @@ void MethodDefinition_Link(CLIFile* pFile)
 
 uint8_t* MethodImplementation_Initialize(CLIFile* pFile, uint8_t* pTableData)
 {
-    if ((pFile->TablesHeader->PresentTables & (1ull << MetaDataTable_MethodImplementation)) != 0)
+    if ((pFile->TablesHeader->PresentTables & (1ull << MetadataTable_MethodImplementation)) != 0)
     {
         pFile->MethodImplementationCount = *(uint32_t*)pTableData; pTableData += 4;
         pFile->MethodImplementations = (MethodImplementation*)calloc(pFile->MethodImplementationCount + 1, sizeof(MethodImplementation));
@@ -2142,7 +2142,7 @@ void MethodImplementation_Link(CLIFile* pFile)
 
 uint8_t* MethodSemantics_Initialize(CLIFile* pFile, uint8_t* pTableData)
 {
-    if ((pFile->TablesHeader->PresentTables & (1ull << MetaDataTable_MethodSemantics)) != 0)
+    if ((pFile->TablesHeader->PresentTables & (1ull << MetadataTable_MethodSemantics)) != 0)
     {
         pFile->MethodSemanticsCount = *(uint32_t*)pTableData; pTableData += 4;
         pFile->MethodSemantics = (MethodSemantics*)calloc(pFile->MethodSemanticsCount + 1, sizeof(MethodSemantics));
@@ -2206,7 +2206,7 @@ void MethodSemantics_Link(CLIFile* pFile)
 
 uint8_t* MethodSpecification_Initialize(CLIFile* pFile, uint8_t* pTableData)
 {
-    if ((pFile->TablesHeader->PresentTables & (1ull << MetaDataTable_MethodSpecification)) != 0)
+    if ((pFile->TablesHeader->PresentTables & (1ull << MetadataTable_MethodSpecification)) != 0)
     {
         pFile->MethodSpecificationCount = *(uint32_t*)pTableData; pTableData += 4;
         pFile->MethodSpecifications = (MethodSpecification*)calloc(pFile->MethodSpecificationCount + 1, sizeof(MethodSpecification));
@@ -2287,7 +2287,7 @@ void MethodSpecification_Link(CLIFile* pFile)
 
 uint8_t* ModuleDefinition_Initialize(CLIFile* pFile, uint8_t* pTableData)
 {
-    if ((pFile->TablesHeader->PresentTables & (1ull << MetaDataTable_ModuleDefinition)) != 0)
+    if ((pFile->TablesHeader->PresentTables & (1ull << MetadataTable_ModuleDefinition)) != 0)
     {
         pFile->ModuleDefinitionCount = *(uint32_t*)pTableData; pTableData += 4;
         pFile->ModuleDefinitions = (ModuleDefinition*)calloc(pFile->ModuleDefinitionCount + 1, sizeof(ModuleDefinition));
@@ -2361,7 +2361,7 @@ void ModuleDefinition_Link(CLIFile* pFile)
 
 uint8_t* ModuleReference_Initialize(CLIFile* pFile, uint8_t* pTableData)
 {
-    if ((pFile->TablesHeader->PresentTables & (1ull << MetaDataTable_ModuleReference)) != 0)
+    if ((pFile->TablesHeader->PresentTables & (1ull << MetadataTable_ModuleReference)) != 0)
     {
         pFile->ModuleReferenceCount = *(uint32_t*)pTableData; pTableData += 4;
         pFile->ModuleReferences = (ModuleReference*)calloc(pFile->ModuleReferenceCount + 1, sizeof(ModuleReference));
@@ -2444,7 +2444,7 @@ void ModuleReference_Link(CLIFile* pFile)
 
 uint8_t* NestedClass_Initialize(CLIFile* pFile, uint8_t* pTableData)
 {
-    if ((pFile->TablesHeader->PresentTables & (1ull << MetaDataTable_NestedClass)) != 0)
+    if ((pFile->TablesHeader->PresentTables & (1ull << MetadataTable_NestedClass)) != 0)
     {
         pFile->NestedClassCount = *(uint32_t*)pTableData; pTableData += 4;
         pFile->NestedClasses = (NestedClass*)calloc(pFile->NestedClassCount + 1, sizeof(NestedClass));
@@ -2492,7 +2492,7 @@ void NestedClass_Link(CLIFile* pFile)
 
 uint8_t* Parameter_Initialize(CLIFile* pFile, uint8_t* pTableData)
 {
-    if ((pFile->TablesHeader->PresentTables & (1ull << MetaDataTable_Parameter)) != 0)
+    if ((pFile->TablesHeader->PresentTables & (1ull << MetadataTable_Parameter)) != 0)
     {
         pFile->ParameterCount = *(uint32_t*)pTableData; pTableData += 4;
         pFile->Parameters = (Parameter*)calloc(pFile->ParameterCount + 1, sizeof(Parameter));
@@ -2564,7 +2564,7 @@ void Parameter_Link(CLIFile* pFile)
 
 uint8_t* Property_Initialize(CLIFile* pFile, uint8_t* pTableData)
 {
-    if ((pFile->TablesHeader->PresentTables & (1ull << MetaDataTable_Property)) != 0)
+    if ((pFile->TablesHeader->PresentTables & (1ull << MetadataTable_Property)) != 0)
     {
         pFile->PropertyCount = *(uint32_t*)pTableData; pTableData += 4;
         pFile->Properties = (Property*)calloc(pFile->PropertyCount + 1, sizeof(Property));
@@ -2638,7 +2638,7 @@ void Property_Link(CLIFile* pFile)
 
 uint8_t* PropertyMap_Initialize(CLIFile* pFile, uint8_t* pTableData)
 {
-    if ((pFile->TablesHeader->PresentTables & (1ull << MetaDataTable_PropertyMap)) != 0)
+    if ((pFile->TablesHeader->PresentTables & (1ull << MetadataTable_PropertyMap)) != 0)
     {
         pFile->PropertyMapCount = *(uint32_t*)pTableData; pTableData += 4;
         pFile->PropertyMaps = (PropertyMap*)calloc(pFile->PropertyMapCount + 1, sizeof(PropertyMap));
@@ -2699,7 +2699,7 @@ void PropertyMap_Link(CLIFile* pFile)
 
 uint8_t* StandAloneSignature_Initialize(CLIFile* pFile, uint8_t* pTableData)
 {
-    if ((pFile->TablesHeader->PresentTables & (1ull << MetaDataTable_StandAloneSignature)) != 0)
+    if ((pFile->TablesHeader->PresentTables & (1ull << MetadataTable_StandAloneSignature)) != 0)
     {
         pFile->StandAloneSignatureCount = *(uint32_t*)pTableData; pTableData += 4;
         pFile->StandAloneSignatures = (StandAloneSignature*)calloc(pFile->StandAloneSignatureCount + 1, sizeof(StandAloneSignature));
@@ -2761,7 +2761,7 @@ void StandAloneSignature_Link(CLIFile* pFile)
 
 uint8_t* TypeDefinition_Initialize(CLIFile* pFile, uint8_t* pTableData)
 {
-    if ((pFile->TablesHeader->PresentTables & (1ull << MetaDataTable_TypeDefinition)) != 0)
+    if ((pFile->TablesHeader->PresentTables & (1ull << MetadataTable_TypeDefinition)) != 0)
     {
         pFile->TypeDefinitionCount = *(uint32_t*)pTableData; pTableData += 4;
         pFile->TypeDefinitions = (TypeDefinition*)calloc(pFile->TypeDefinitionCount + 1, sizeof(TypeDefinition));
@@ -3027,7 +3027,7 @@ void TypeDefinition_Link(CLIFile* pFile)
 
 uint8_t* TypeReference_Initialize(CLIFile* pFile, uint8_t* pTableData)
 {
-    if ((pFile->TablesHeader->PresentTables & (1ull << MetaDataTable_TypeReference)) != 0)
+    if ((pFile->TablesHeader->PresentTables & (1ull << MetadataTable_TypeReference)) != 0)
     {
         pFile->TypeReferenceCount = *(uint32_t*)pTableData; pTableData += 4;
         pFile->TypeReferences = (TypeReference*)calloc(pFile->TypeReferenceCount + 1, sizeof(TypeReference));
@@ -3156,7 +3156,7 @@ void TypeReference_Link(CLIFile* pFile)
 
 uint8_t* TypeSpecification_Initialize(CLIFile* pFile, uint8_t* pTableData)
 {
-    if ((pFile->TablesHeader->PresentTables & (1ull << MetaDataTable_TypeSpecification)) != 0)
+    if ((pFile->TablesHeader->PresentTables & (1ull << MetadataTable_TypeSpecification)) != 0)
     {
         pFile->TypeSpecificationCount = *(uint32_t*)pTableData; pTableData += 4;
         pFile->TypeSpecifications = (TypeSpecification*)calloc(pFile->TypeSpecificationCount + 1, sizeof(TypeSpecification));
@@ -3233,4 +3233,550 @@ void TypeSpecification_Link(CLIFile* pFile)
             }
         }
     }
+}
+
+
+// Signatures
+
+bool_t Signature_Equals(uint8_t* pSignature1, uint32_t pSignature1Length, uint8_t* pSignature2, uint32_t pSignature2Length)
+{
+	if (pSignature1Length != pSignature2Length) return FALSE;
+	return memcmp(pSignature1, pSignature2, pSignature1Length) == 0;
+}
+
+// MethodSignature
+
+MethodSignature* MethodSignature_Create()
+{
+    return (MethodSignature*)calloc(1, sizeof(MethodSignature));
+}
+
+void MethodSignature_Destroy(MethodSignature* pMethodSignature)
+{
+    if (pMethodSignature->Parameters)
+    {
+        for (uint32_t index = 0; index < pMethodSignature->ParameterCount; ++index) SignatureParameter_Destroy(pMethodSignature->Parameters[index]);
+        free(pMethodSignature->Parameters);
+    }
+    if (pMethodSignature->ReturnType) SignatureReturnType_Destroy(pMethodSignature->ReturnType);
+    free(pMethodSignature);
+}
+
+MethodSignature* MethodSignature_Expand(uint8_t* pSignature, CLIFile* pCLIFile)
+{
+    MethodSignature* methodSignature = NULL;
+	MethodSignature_Parse(pSignature, &methodSignature, pCLIFile);
+    return methodSignature;
+}
+
+uint8_t* MethodSignature_Parse(uint8_t* pCursor, MethodSignature** pMethodSignature, CLIFile* pCLIFile)
+{
+    *pMethodSignature = MethodSignature_Create();
+    MethodSignature* methodSignature = *pMethodSignature;
+    uint8_t callingConvention = *pCursor; ++pCursor;
+    methodSignature->HasThis = (callingConvention & SignatureCallConvention_HasThis) != 0;
+    methodSignature->ExplicitThis = (callingConvention & SignatureCallConvention_ExplicitThis) != 0;
+    callingConvention &= ~(SignatureCallConvention_HasThis | SignatureCallConvention_ExplicitThis);
+    methodSignature->Default = callingConvention == SignatureCallConvention_Default;
+    methodSignature->CCall = callingConvention == SignatureCallConvention_C;
+    methodSignature->STDCall = callingConvention == SignatureCallConvention_STDCall;
+    methodSignature->ThisCall = callingConvention == SignatureCallConvention_ThisCall;
+    methodSignature->FastCall = callingConvention == SignatureCallConvention_FastCall;
+    methodSignature->VarArgs = callingConvention == SignatureCallConvention_VarArgs;
+    methodSignature->Generic = callingConvention == SignatureCallConvention_Generic;
+    if (methodSignature->Generic) pCursor = CLIFile_GetCompressedUnsigned(pCursor, &methodSignature->GenericParameterCount);
+    pCursor = CLIFile_GetCompressedUnsigned(pCursor, &methodSignature->ParameterCount);
+    pCursor = SignatureReturnType_Parse(pCursor, &methodSignature->ReturnType, pCLIFile);
+    if (methodSignature->ParameterCount > 0)
+    {
+        methodSignature->Parameters = (SignatureParameter**)calloc(methodSignature->ParameterCount, sizeof(SignatureParameter*));
+        for (uint32_t index = 0; index < methodSignature->ParameterCount; ++index)
+        {
+            if (*pCursor == SignatureElementType_Sentinel)
+            {
+                methodSignature->HasSentinel = TRUE;
+                methodSignature->SentinelIndex = index;
+                ++pCursor;
+            }
+            pCursor = SignatureParameter_Parse(pCursor, &methodSignature->Parameters[index], pCLIFile);
+        }
+    }
+    return pCursor;
+}
+
+// FieldSignature
+
+FieldSignature* FieldSignature_Create()
+{
+    return (FieldSignature*)calloc(1, sizeof(FieldSignature));
+}
+
+void FieldSignature_Destroy(FieldSignature* pFieldSignature)
+{
+    if (pFieldSignature->CustomModifiers)
+    {
+        for (uint32_t index = 0; index < pFieldSignature->CustomModifierCount; ++index) SignatureCustomModifier_Destroy(pFieldSignature->CustomModifiers[index]);
+        free(pFieldSignature->CustomModifiers);
+    }
+    if (pFieldSignature->Type) SignatureType_Destroy(pFieldSignature->Type);
+    free(pFieldSignature);
+}
+
+FieldSignature* FieldSignature_Expand(uint8_t* pSignature, CLIFile* pCLIFile)
+{
+    FieldSignature* fieldSignature = NULL;
+	FieldSignature_Parse(pSignature, &fieldSignature, pCLIFile);
+    return fieldSignature;
+}
+
+uint8_t* FieldSignature_Parse(uint8_t* pCursor, FieldSignature** pFieldSignature, CLIFile* pCLIFile)
+{
+    *pFieldSignature = FieldSignature_Create();
+    FieldSignature* fieldSignature = *pFieldSignature;
+    ++pCursor; // 0x06
+    while (*pCursor == SignatureElementType_CustomModifier_Required ||
+           *pCursor == SignatureElementType_CustomModifier_Optional)
+    {
+        ++fieldSignature->CustomModifierCount;
+        fieldSignature->CustomModifiers = (SignatureCustomModifier**)realloc(fieldSignature->CustomModifiers, sizeof(SignatureCustomModifier*) * fieldSignature->CustomModifierCount);
+        pCursor = SignatureCustomModifier_Parse(pCursor, &fieldSignature->CustomModifiers[fieldSignature->CustomModifierCount - 1], pCLIFile);
+    }
+    pCursor = SignatureType_Parse(pCursor, &fieldSignature->Type, pCLIFile);
+    return pCursor;
+}
+
+// PropertySignature
+
+PropertySignature* PropertySignature_Create()
+{
+    return (PropertySignature*)calloc(1, sizeof(PropertySignature));
+}
+
+void PropertySignature_Destroy(PropertySignature* pPropertySignature)
+{
+    if (pPropertySignature->CustomModifiers)
+    {
+        for (uint32_t index = 0; index < pPropertySignature->CustomModifierCount; ++index) SignatureCustomModifier_Destroy(pPropertySignature->CustomModifiers[index]);
+        free(pPropertySignature->CustomModifiers);
+    }
+    if (pPropertySignature->Parameters)
+    {
+        for (uint32_t index = 0; index < pPropertySignature->ParameterCount; ++index) SignatureParameter_Destroy(pPropertySignature->Parameters[index]);
+        free(pPropertySignature->Parameters);
+    }
+    if (pPropertySignature->Type) SignatureType_Destroy(pPropertySignature->Type);
+    free(pPropertySignature);
+}
+
+PropertySignature* PropertySignature_Expand(uint8_t* pSignature, CLIFile* pCLIFile)
+{
+    PropertySignature* propertySignature = NULL;
+	PropertySignature_Parse(pSignature, &propertySignature, pCLIFile);
+    return propertySignature;
+}
+
+uint8_t* PropertySignature_Parse(uint8_t* pCursor, PropertySignature** pPropertySignature, CLIFile* pCLIFile)
+{
+    *pPropertySignature = PropertySignature_Create();
+    PropertySignature* propertySignature = *pPropertySignature;
+    propertySignature->HasThis = (*pCursor & SignatureCallConvention_HasThis) != 0;
+    ++pCursor;
+
+    pCursor = CLIFile_GetCompressedUnsigned(pCursor, &propertySignature->ParameterCount);
+    while (*pCursor == SignatureElementType_CustomModifier_Required ||
+           *pCursor == SignatureElementType_CustomModifier_Optional)
+    {
+        ++propertySignature->CustomModifierCount;
+        propertySignature->CustomModifiers = (SignatureCustomModifier**)realloc(propertySignature->CustomModifiers, sizeof(SignatureCustomModifier*) * propertySignature->CustomModifierCount);
+        pCursor = SignatureCustomModifier_Parse(pCursor, &propertySignature->CustomModifiers[propertySignature->CustomModifierCount - 1], pCLIFile);
+    }
+    pCursor = SignatureType_Parse(pCursor, &propertySignature->Type, pCLIFile);
+    if (propertySignature->ParameterCount > 0)
+    {
+        propertySignature->Parameters = (SignatureParameter**)calloc(propertySignature->ParameterCount, sizeof(SignatureParameter*));
+        for (uint32_t index = 0; index < propertySignature->ParameterCount; ++index) pCursor = SignatureParameter_Parse(pCursor, &propertySignature->Parameters[index], pCLIFile);
+    }
+    return pCursor;
+}
+
+// LocalsSignature
+
+LocalsSignature* LocalsSignature_Create()
+{
+    return (LocalsSignature*)calloc(1, sizeof(LocalsSignature));
+}
+
+void LocalsSignature_Destroy(LocalsSignature* pLocalsSignature)
+{
+    if (pLocalsSignature->LocalVariables)
+    {
+        for (uint32_t index = 0; index < pLocalsSignature->LocalVariableCount; ++index) SignatureLocalVariable_Destroy(pLocalsSignature->LocalVariables[index]);
+        free(pLocalsSignature->LocalVariables);
+    }
+    free(pLocalsSignature);
+}
+
+LocalsSignature* LocalsSignature_Expand(uint8_t* pSignature, CLIFile* pCLIFile)
+{
+    LocalsSignature* localsSignature = NULL;
+	LocalsSignature_Parse(pSignature, &localsSignature, pCLIFile);
+    return localsSignature;
+}
+
+uint8_t* LocalsSignature_Parse(uint8_t* pCursor, LocalsSignature** pLocalsSignature, CLIFile* pCLIFile)
+{
+    *pLocalsSignature = LocalsSignature_Create();
+    LocalsSignature* localsSignature = *pLocalsSignature;
+    ++pCursor;
+
+    pCursor = CLIFile_GetCompressedUnsigned(pCursor, &localsSignature->LocalVariableCount);
+    if (localsSignature->LocalVariableCount > 0)
+    {
+        localsSignature->LocalVariables = (SignatureLocalVariable**)calloc(localsSignature->LocalVariableCount, sizeof(SignatureLocalVariable*));
+        for (uint32_t index = 0; index < localsSignature->LocalVariableCount; ++index) pCursor = SignatureLocalVariable_Parse(pCursor, &localsSignature->LocalVariables[index], pCLIFile);
+    }
+    return pCursor;
+}
+
+// SignatureReturnType
+
+SignatureReturnType* SignatureReturnType_Create()
+{
+    return (SignatureReturnType*)calloc(1, sizeof(SignatureReturnType));
+}
+
+void SignatureReturnType_Destroy(SignatureReturnType* pReturnType)
+{
+    if (pReturnType->CustomModifiers)
+    {
+        for (uint32_t index = 0; index < pReturnType->CustomModifierCount; ++index) SignatureCustomModifier_Destroy(pReturnType->CustomModifiers[index]);
+        free(pReturnType->CustomModifiers);
+    }
+    if (pReturnType->Type) SignatureType_Destroy(pReturnType->Type);
+    free(pReturnType);
+}
+
+uint8_t* SignatureReturnType_Parse(uint8_t* pCursor, SignatureReturnType** pReturnType, CLIFile* pCLIFile)
+{
+    *pReturnType = SignatureReturnType_Create();
+    SignatureReturnType* returnType = *pReturnType;
+    while (*pCursor == SignatureElementType_CustomModifier_Required ||
+           *pCursor == SignatureElementType_CustomModifier_Optional)
+    {
+        ++returnType->CustomModifierCount;
+        returnType->CustomModifiers = (SignatureCustomModifier**)realloc(returnType->CustomModifiers, sizeof(SignatureCustomModifier*) * returnType->CustomModifierCount);
+        pCursor = SignatureCustomModifier_Parse(pCursor, &returnType->CustomModifiers[returnType->CustomModifierCount - 1], pCLIFile);
+    }
+    if (*pCursor == SignatureElementType_TypedByReference)
+    {
+        returnType->TypedByReference = TRUE;
+        return pCursor + 1;
+    }
+    if (*pCursor == SignatureElementType_Void)
+    {
+        returnType->Void = TRUE;
+        return pCursor + 1;
+    }
+    if (*pCursor == SignatureElementType_ByReference)
+    {
+        returnType->ByReference = TRUE;
+        ++pCursor;
+    }
+    pCursor = SignatureType_Parse(pCursor, &returnType->Type, pCLIFile);
+    return pCursor;
+}
+
+// SignatureParameter
+
+SignatureParameter* SignatureParameter_Create()
+{
+    return (SignatureParameter*)calloc(1, sizeof(SignatureParameter));
+}
+
+void SignatureParameter_Destroy(SignatureParameter* pParameter)
+{
+    if (pParameter->CustomModifiers)
+    {
+        for (uint32_t index = 0; index < pParameter->CustomModifierCount; ++index) SignatureCustomModifier_Destroy(pParameter->CustomModifiers[index]);
+        free(pParameter->CustomModifiers);
+    }
+    if (pParameter->Type) SignatureType_Destroy(pParameter->Type);
+    free(pParameter);
+}
+
+uint8_t* SignatureParameter_Parse(uint8_t* pCursor, SignatureParameter** pParameter, CLIFile* pCLIFile)
+{
+    *pParameter = SignatureParameter_Create();
+    SignatureParameter* parameter = *pParameter;
+    while (*pCursor == SignatureElementType_CustomModifier_Required ||
+           *pCursor == SignatureElementType_CustomModifier_Optional)
+    {
+        ++parameter->CustomModifierCount;
+        parameter->CustomModifiers = (SignatureCustomModifier**)realloc(parameter->CustomModifiers, sizeof(SignatureCustomModifier*) * parameter->CustomModifierCount);
+        pCursor = SignatureCustomModifier_Parse(pCursor, &parameter->CustomModifiers[parameter->CustomModifierCount - 1], pCLIFile);
+    }
+    if (*pCursor == SignatureElementType_TypedByReference) // Managed pointer
+    {
+        parameter->TypedByReference = TRUE;
+        return pCursor + 1;
+    }
+    if (*pCursor == SignatureElementType_ByReference)
+    {
+        parameter->ByReference = TRUE;
+        ++pCursor;
+    }
+    pCursor = SignatureType_Parse(pCursor, &parameter->Type, pCLIFile);
+    return pCursor;
+}
+
+// SignatureCustomModifier
+
+SignatureCustomModifier* SignatureCustomModifier_Create()
+{
+    return (SignatureCustomModifier*)calloc(1, sizeof(SignatureCustomModifier));
+}
+
+void SignatureCustomModifier_Destroy(SignatureCustomModifier* pCustomModifier)
+{
+    free(pCustomModifier);
+}
+
+uint8_t* SignatureCustomModifier_Parse(uint8_t* pCursor, SignatureCustomModifier** pCustomModifier, CLIFile* pCLIFile)
+{
+    *pCustomModifier = SignatureCustomModifier_Create();
+    SignatureCustomModifier* customModifier = *pCustomModifier;
+    
+    customModifier->Optional = *pCursor == SignatureElementType_CustomModifier_Optional; ++pCursor;
+    pCursor = CLIFile_GetCompressedUnsigned(pCursor, &customModifier->TypeDefOrRefOrSpecToken);
+    return pCursor;
+}
+
+// SignatureType
+
+SignatureType* SignatureType_Create()
+{
+    return (SignatureType*)calloc(1, sizeof(SignatureType));
+}
+
+void SignatureType_Destroy(SignatureType* pType)
+{
+    if (pType->ArrayType) SignatureType_Destroy(pType->ArrayType);
+    if (pType->ArrayShape) SignatureArrayShape_Destroy(pType->ArrayShape);
+    if (pType->FnPtrMethodSignature) MethodSignature_Destroy(pType->FnPtrMethodSignature);
+    if (pType->GenericInstGenericArguments)
+    {
+        for (uint32_t index = 0; index < pType->GenericInstGenericArgumentCount; ++index) SignatureType_Destroy(pType->GenericInstGenericArguments[index]);
+        free(pType->GenericInstGenericArguments);
+    }
+    if (pType->PtrCustomModifiers)
+    {
+        for (uint32_t index = 0; index < pType->PtrCustomModifierCount; ++index) SignatureCustomModifier_Destroy(pType->PtrCustomModifiers[index]);
+        free(pType->PtrCustomModifiers);
+    }
+    if (pType->PtrType) SignatureType_Destroy(pType->PtrType);
+    if (pType->SZArrayCustomModifiers)
+    {
+        for (uint32_t index = 0; index < pType->SZArrayCustomModifierCount; ++index) SignatureCustomModifier_Destroy(pType->SZArrayCustomModifiers[index]);
+        free(pType->SZArrayCustomModifiers);
+    }
+    if (pType->SZArrayType) SignatureType_Destroy(pType->SZArrayType);
+    free(pType);
+}
+
+uint8_t* SignatureType_Parse(uint8_t* pCursor, SignatureType** pType, CLIFile* pCLIFile)
+{
+    *pType = SignatureType_Create();
+    SignatureType* type = *pType;
+    type->ElementType = *pCursor; ++pCursor;
+    switch (type->ElementType)
+    {
+    case SignatureElementType_Array:
+        pCursor = SignatureType_Parse(pCursor, &type->ArrayType, pCLIFile);
+        pCursor = SignatureArrayShape_Parse(pCursor, &type->ArrayShape, pCLIFile);
+        break;
+    case SignatureElementType_Class:
+        pCursor = CLIFile_GetCompressedUnsigned(pCursor, &type->ClassTypeDefOrRefOrSpecToken);
+        break;
+    case SignatureElementType_FunctionPointer:
+        pCursor = MethodSignature_Parse(pCursor, &type->FnPtrMethodSignature, pCLIFile);
+        break;
+    case SignatureElementType_GenericInstantiation:
+        type->GenericInstClass = *pCursor == SignatureElementType_Class;
+        type->GenericInstValue = *pCursor == SignatureElementType_ValueType;
+        ++pCursor;
+        pCursor = CLIFile_GetCompressedUnsigned(pCursor, &type->GenericInstTypeDefOrRefOrSpecToken);
+        pCursor = CLIFile_GetCompressedUnsigned(pCursor, &type->GenericInstGenericArgumentCount);
+        if (type->GenericInstGenericArgumentCount > 0)
+        {
+            type->GenericInstGenericArguments = (SignatureType**)calloc(type->GenericInstGenericArgumentCount, sizeof(SignatureType*) * type->GenericInstGenericArgumentCount);
+            for (uint32_t index = 0; index < type->GenericInstGenericArgumentCount; ++index) pCursor = SignatureType_Parse(pCursor, &type->GenericInstGenericArguments[index], pCLIFile);
+        }
+        break;
+    case SignatureElementType_MethodVar:
+        pCursor = CLIFile_GetCompressedUnsigned(pCursor, &type->MVarNumber);
+        break;
+    case SignatureElementType_Pointer:
+        while (*pCursor == SignatureElementType_CustomModifier_Required ||
+               *pCursor == SignatureElementType_CustomModifier_Optional)
+        {
+            ++type->PtrCustomModifierCount;
+            type->PtrCustomModifiers = (SignatureCustomModifier**)realloc(type->PtrCustomModifiers, sizeof(SignatureCustomModifier*) * type->PtrCustomModifierCount);
+            pCursor = SignatureCustomModifier_Parse(pCursor, &type->PtrCustomModifiers[type->PtrCustomModifierCount - 1], pCLIFile);
+        }
+        if (*pCursor == SignatureElementType_Void)
+        {
+            type->PtrVoid = TRUE;
+            ++pCursor;
+        }
+        else pCursor = SignatureType_Parse(pCursor, &type->PtrType, pCLIFile);
+        break;
+    case SignatureElementType_SingleDimensionArray:
+        while (*pCursor == SignatureElementType_CustomModifier_Required ||
+               *pCursor == SignatureElementType_CustomModifier_Optional)
+        {
+            ++type->SZArrayCustomModifierCount;
+            type->SZArrayCustomModifiers = (SignatureCustomModifier**)realloc(type->SZArrayCustomModifiers, sizeof(SignatureCustomModifier*) * type->SZArrayCustomModifierCount);
+            pCursor = SignatureCustomModifier_Parse(pCursor, &type->SZArrayCustomModifiers[type->SZArrayCustomModifierCount - 1], pCLIFile);
+        }
+        pCursor = SignatureType_Parse(pCursor, &type->SZArrayType, pCLIFile);
+        break;
+    case SignatureElementType_ValueType:
+        pCursor = CLIFile_GetCompressedUnsigned(pCursor, &type->ValueTypeDefOrRefOrSpecToken);
+        break;
+    case SignatureElementType_Var:
+        pCursor = CLIFile_GetCompressedUnsigned(pCursor, &type->VarNumber);
+        break;
+    default: break;
+    }
+    return pCursor;
+}
+
+SignatureType* SignatureType_Expand(uint8_t* pSignature, CLIFile* pCLIFile)
+{
+    SignatureType* signatureType = NULL;
+	SignatureType_Parse(pSignature, &signatureType, pCLIFile);
+    return signatureType;
+}
+
+// SignatureMethodSpecification
+
+SignatureMethodSpecification* SignatureMethodSpecification_Create()
+{
+    return (SignatureMethodSpecification*)calloc(1, sizeof(SignatureMethodSpecification));
+}
+
+void SignatureMethodSpecification_Destroy(SignatureMethodSpecification* pMethodSpecification)
+{
+    if (pMethodSpecification->GenericInstGenericArguments)
+    {
+        for (uint32_t index = 0; index < pMethodSpecification->GenericInstGenericArgumentCount; ++index) SignatureType_Destroy(pMethodSpecification->GenericInstGenericArguments[index]);
+        free(pMethodSpecification->GenericInstGenericArguments);
+    }
+    free(pMethodSpecification);
+}
+
+uint8_t* SignatureMethodSpecification_Parse(uint8_t* pCursor, SignatureMethodSpecification** pMethodSpecification, CLIFile* pCLIFile)
+{
+    *pMethodSpecification = SignatureMethodSpecification_Create();
+    SignatureMethodSpecification* methodSpecification = *pMethodSpecification;
+    ++pCursor; // 0x0A
+    pCursor = CLIFile_GetCompressedUnsigned(pCursor, &methodSpecification->GenericInstGenericArgumentCount);
+    if (methodSpecification->GenericInstGenericArgumentCount > 0)
+    {
+        methodSpecification->GenericInstGenericArguments = (SignatureType**)calloc(methodSpecification->GenericInstGenericArgumentCount, sizeof(SignatureType*) * methodSpecification->GenericInstGenericArgumentCount);
+        for (uint32_t index = 0; index < methodSpecification->GenericInstGenericArgumentCount; ++index) pCursor = SignatureType_Parse(pCursor, &methodSpecification->GenericInstGenericArguments[index], pCLIFile);
+    }
+    return pCursor;
+}
+
+SignatureMethodSpecification* SignatureMethodSpecification_Expand(uint8_t* pSignature, CLIFile* pCLIFile)
+{
+    SignatureMethodSpecification* signatureMethodSpecification = NULL;
+	SignatureMethodSpecification_Parse(pSignature, &signatureMethodSpecification, pCLIFile);
+    return signatureMethodSpecification;
+}
+
+// SignatureArrayShape
+
+SignatureArrayShape* SignatureArrayShape_Create()
+{
+    return (SignatureArrayShape*)calloc(1, sizeof(SignatureArrayShape));
+}
+
+void SignatureArrayShape_Destroy(SignatureArrayShape* pArrayShape)
+{
+    if (pArrayShape->Sizes) free(pArrayShape->Sizes);
+    if (pArrayShape->LowerBounds) free(pArrayShape->LowerBounds);
+    free(pArrayShape);
+}
+
+uint8_t* SignatureArrayShape_Parse(uint8_t* pCursor, SignatureArrayShape** pArrayShape, CLIFile* pCLIFile)
+{
+    *pArrayShape = SignatureArrayShape_Create();
+    SignatureArrayShape* arrayShape = *pArrayShape;
+    pCursor = CLIFile_GetCompressedUnsigned(pCursor, &arrayShape->Rank);
+    pCursor = CLIFile_GetCompressedUnsigned(pCursor, &arrayShape->SizeCount);
+    if (arrayShape->SizeCount > 0)
+    {
+        arrayShape->Sizes = (uint32_t*)calloc(arrayShape->SizeCount, sizeof(uint32_t));
+        for (uint32_t index = 0; index < arrayShape->SizeCount; ++index) pCursor = CLIFile_GetCompressedUnsigned(pCursor, &arrayShape->Sizes[index]);
+    }
+    pCursor = CLIFile_GetCompressedUnsigned(pCursor, &arrayShape->LowerBoundCount);
+    if (arrayShape->LowerBoundCount > 0)
+    {
+        arrayShape->LowerBounds = (int32_t*)calloc(arrayShape->LowerBoundCount, sizeof(int32_t));
+        for (uint32_t index = 0; index < arrayShape->LowerBoundCount; ++index) pCursor = CLIFile_GetCompressedSigned(pCursor, &arrayShape->LowerBounds[index]);
+    }
+    return pCursor;
+}
+
+// SignatureLocalVariable
+
+SignatureLocalVariable* SignatureLocalVariable_Create()
+{
+    return (SignatureLocalVariable*)calloc(1, sizeof(SignatureLocalVariable));
+}
+
+void SignatureLocalVariable_Destroy(SignatureLocalVariable* pLocalVariable)
+{
+    if (pLocalVariable->CustomModifiers)
+    {
+        for (uint32_t index = 0; index < pLocalVariable->CustomModifierCount; ++index) SignatureCustomModifier_Destroy(pLocalVariable->CustomModifiers[index]);
+        free(pLocalVariable->CustomModifiers);
+    }
+    if (pLocalVariable->Type) SignatureType_Destroy(pLocalVariable->Type);
+    free(pLocalVariable);
+}
+
+uint8_t* SignatureLocalVariable_Parse(uint8_t* pCursor, SignatureLocalVariable** pLocalVariable, CLIFile* pCLIFile)
+{
+    *pLocalVariable = SignatureLocalVariable_Create();
+    SignatureLocalVariable* localVariable = *pLocalVariable;
+    if (*pCursor == SignatureElementType_TypedByReference)
+    {
+        localVariable->TypedByReference = TRUE;
+        ++pCursor;
+    }
+    else
+    {
+        while (*pCursor == SignatureElementType_CustomModifier_Required ||
+               *pCursor == SignatureElementType_CustomModifier_Optional)
+        {
+            ++localVariable->CustomModifierCount;
+            localVariable->CustomModifiers = (SignatureCustomModifier**)realloc(localVariable->CustomModifiers, sizeof(SignatureCustomModifier*) * localVariable->CustomModifierCount);
+            pCursor = SignatureCustomModifier_Parse(pCursor, &localVariable->CustomModifiers[localVariable->CustomModifierCount - 1], pCLIFile);
+            if (*pCursor == SignatureElementType_Pinned)
+            {
+                localVariable->CustomModifiers[localVariable->CustomModifierCount - 1]->Pinned = TRUE;
+                ++pCursor;
+            }
+        }
+        if (*pCursor == SignatureElementType_ByReference)
+        {
+            localVariable->ByReference = TRUE;
+            ++pCursor;
+        }
+        pCursor = SignatureType_Parse(pCursor, &localVariable->Type, pCLIFile);
+    }
+    return pCursor;
 }

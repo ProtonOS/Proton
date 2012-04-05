@@ -49,6 +49,7 @@
   <ItemGroup>
     <ClInclude Include="Source\CLR\AppDomain.h" />
     <ClInclude Include="Source\CLR\CLIFile.h" />
+    <ClInclude Include="Source\CLR\ILOpcodes.h" />
     <ClInclude Include="Source\CLR\ILReader.h" />
     <ClInclude Include="Source\CLR\IRStructures.h" />
     <ClInclude Include="Source\CLR\MetadataStructures.h" />
