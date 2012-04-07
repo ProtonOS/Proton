@@ -30,10 +30,13 @@ void Startup();
 void Startup()
 {
 	time_t startupTime = time(NULL);
-	Log_WriteLine(LOGLEVEL__Information, "Nernel Started @ %24.24s", ctime(&startupTime));
+	printf("Nernel Started @ %24.24s\n", ctime(&startupTime));
 	uint32_t tickCount = 0;
 	uint32_t trueTickCount = 0;
+	uint64_t startedTicks = SystemClock_GetTicks();
     gMernelDomain = AppDomain_Create();
+	uint64_t stoppedTicks = SystemClock_GetTicks();
+	printf("AppDomain_Create took %uMS\n", (unsigned int)(stoppedTicks - startedTicks));
 
 	while(TRUE)
 	{

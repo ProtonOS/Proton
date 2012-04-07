@@ -1,6 +1,8 @@
 #pragma once
 #include <stdio.h>
 
+#define LOG__DISABLE
+
 typedef enum LogLevel
 {
     LOGLEVEL__None =							0x00,
