@@ -413,3 +413,8 @@ MetadataToken* CLIFile_ExpandTypeDefRefOrSpecToken(CLIFile* pFile, uint32_t pTok
     }
     return token;
 }
+
+void CLIFile_DestroyMetadataToken(MetadataToken* pToken)
+{
+	free(pToken);
+}

@@ -63,8 +63,8 @@ IRType* IRType_Create(IRAssembly* pAssembly, TypeDefinition* pTypeDefinition)
 		type->IsInterface = TRUE;
 	}
 
-	type->Methods = ILDecomposition_GetMethodLayout(type, pTypeDefinition, &type->MethodCount);
-	type->Fields = ILDecomposition_GetFieldLayout(type, pTypeDefinition, &type->FieldCount);
+	ILDecomposition_GetMethodLayout(type, pTypeDefinition);
+	ILDecomposition_GetFieldLayout(type, pTypeDefinition);
 
 	type->IsGeneric = pTypeDefinition->GenericParameterCount > 0;
 
@@ -171,6 +171,8 @@ IRMethod* IRMethod_Create(IRAssembly* pAssembly, MethodDefinition* pMethodDefini
 		localVariable->LocalVariableIndex = localVariableIndex++;
 		method->LocalVariables[localVariable->LocalVariableIndex] = localVariable;
 	}
+	LocalsSignature_Destroy(localsSignature);
+	CLIFile_DestroyMetadataToken(localsSignatureToken);
 	return method;
 }
 

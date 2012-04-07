@@ -278,4 +278,4 @@ uint8_t* CLIFile_GetCompressedUnsigned(uint8_t* pData, uint32_t* pValue);
 uint8_t* CLIFile_GetCompressedSigned(uint8_t* pData, int32_t* pValue);
 MetadataToken* CLIFile_ExpandMetadataToken(CLIFile* pFile, uint32_t pToken);
 MetadataToken* CLIFile_ExpandTypeDefRefOrSpecToken(CLIFile* pFile, uint32_t pToken);
-
+void CLIFile_DestroyMetadataToken(MetadataToken* pToken);

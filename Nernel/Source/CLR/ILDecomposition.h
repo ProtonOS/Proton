@@ -3,5 +3,5 @@
 #include <CLR/IRStructures.h>
 
 IRAssembly* ILDecomposition_CreateAssembly(AppDomain* pDomain, CLIFile* pFile);
-IRMethod** ILDecomposition_GetMethodLayout(IRType* pType, TypeDefinition* pTypeDefinition, uint32_t* pTotalMethodCount);
-IRField** ILDecomposition_GetFieldLayout(IRType* pType, TypeDefinition* pTypeDefinition, uint32_t* pTotalFieldCount);
+IRMethod** ILDecomposition_GetMethodLayout(IRType* pType, TypeDefinition* pTypeDefinition);
+IRField** ILDecomposition_GetFieldLayout(IRType* pType, TypeDefinition* pTypeDefinition);

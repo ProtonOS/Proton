@@ -159,7 +159,6 @@ void AppDomain_LinkCorlib(AppDomain* pDomain, CLIFile* pCorlibFile)
 
 IRType* AppDomain_GetIRTypeFromSignatureType(AppDomain* pDomain, IRAssembly* pAssembly, SignatureType* pType)
 {
-	// TODO: create IR type if it doesn't exist
 	IRType* type = NULL;
 	switch(pType->ElementType)
 	{
@@ -296,7 +295,7 @@ IRType* AppDomain_GetIRTypeFromSignatureType(AppDomain* pDomain, IRAssembly* pAs
 					Panic("AppDomain_GetIRTypeFromSignatureType Invalid Class Table");
 					break;
 			}
-			free(token);
+			CLIFile_DestroyMetadataToken(token);
 			break;
 		}
 		case SignatureElementType_SingleDimensionArray:

@@ -49,37 +49,54 @@ IRAssembly* ILDecomposition_CreateAssembly(AppDomain* pDomain, CLIFile* pFile)
 		if (token->Table != MetadataTable_MethodDefinition)
 			Panic("Unknown entry point table!");
 		assembly->EntryPoint = IRMethod_Create(assembly, (MethodDefinition*)token->Data);
-		free(token);
+		CLIFile_DestroyMetadataToken(token);
 	}
 
 	return assembly;
 }
 
 
-IRMethod** ILDecomposition_GetMethodLayout(IRType* pType, TypeDefinition* pTypeDefinition, uint32_t* pTotalMethodCount)
+IRMethod** ILDecomposition_GetMethodLayout(IRType* pType, TypeDefinition* pTypeDefinition)
 {
-	Log_WriteLine(LOGLEVEL__ILDecompositionLayouts, "Laying out the methods of %s.%s, TypeOfExtends = %u", pTypeDefinition->Namespace, pTypeDefinition->Name, (unsigned int)pTypeDefinition->TypeOfExtends);
+	if (pType->Methods)
+	{
+		Log_WriteLine(LOGLEVEL__ILDecomposition_MethodLayout, "Returning cached layout of the methods of %s.%s, TypeOfExtends = %u", pTypeDefinition->Namespace, pTypeDefinition->Name, (unsigned int)pTypeDefinition->TypeOfExtends);
+		return pType->Methods;
+	}
+	Log_WriteLine(LOGLEVEL__ILDecomposition_MethodLayout, "Laying out the methods of %s.%s, TypeOfExtends = %u", pTypeDefinition->Namespace, pTypeDefinition->Name, (unsigned int)pTypeDefinition->TypeOfExtends);
 	IRMethod** methods = NULL;
 	uint32_t methodCount = 0;
 	if (pTypeDefinition->TypeOfExtends == TypeDefRefOrSpecType_TypeDefinition)
 	{
 		if (pTypeDefinition->Extends.TypeDefinition != NULL)
 		{
-			methods = ILDecomposition_GetMethodLayout(pType, pTypeDefinition->Extends.TypeDefinition, &methodCount);
+			IRType* type = pType->ParentAssembly->Types[pTypeDefinition->Extends.TypeDefinition->TableIndex - 1];
+			if (!type)
+			{
+				type = IRType_Create(pType->ParentAssembly, pTypeDefinition->Extends.TypeDefinition);
+			}
+			methods = ILDecomposition_GetMethodLayout(type, pTypeDefinition->Extends.TypeDefinition);
+			methodCount = type->MethodCount;
 		}	
 	}
 	else if (pTypeDefinition->TypeOfExtends == TypeDefRefOrSpecType_TypeReference)
 	{
 		if (pTypeDefinition->Extends.TypeReference != NULL)
 		{
-			methods = ILDecomposition_GetMethodLayout(pType, pTypeDefinition->Extends.TypeReference->ResolvedType, &methodCount);
+			IRType* type = pTypeDefinition->Extends.TypeReference->ResolvedType->File->Assembly->Types[pTypeDefinition->Extends.TypeReference->ResolvedType->TableIndex - 1];
+			if (!type)
+			{
+				type = IRType_Create(pTypeDefinition->Extends.TypeReference->ResolvedType->File->Assembly, pTypeDefinition->Extends.TypeReference->ResolvedType);
+			}
+			methods = ILDecomposition_GetMethodLayout(type, pTypeDefinition->Extends.TypeReference->ResolvedType);
+			methodCount = type->MethodCount;
 		}
 		else
 			Panic("TypeRef Extends NULL!");
 	}
 	else if (pTypeDefinition->TypeOfExtends == TypeDefRefOrSpecType_TypeSpecification)
 	{
-		*pTotalMethodCount = 0;
+		//*pTotalMethodCount = 0;
 		return NULL;
 		//Panic("Type Spec!");
 	}
@@ -104,7 +121,7 @@ IRMethod** ILDecomposition_GetMethodLayout(IRType* pType, TypeDefinition* pTypeD
 			}
 		}
 	}
-	Log_WriteLine(LOGLEVEL__ILDecompositionLayouts, "MethodCount: %i NewMethodCount: %i", (int)methodCount, (int)newMethodsCount);
+	Log_WriteLine(LOGLEVEL__ILDecomposition_MethodLayout, "MethodCount: %i NewMethodCount: %i", (int)methodCount, (int)newMethodsCount);
 
 	IRMethod** finalMethods = (IRMethod**)calloc(methodCount + newMethodsCount, sizeof(IRMethod*));
 	memcpy(finalMethods, methods, methodCount * sizeof(IRMethod*));
@@ -122,38 +139,38 @@ IRMethod** ILDecomposition_GetMethodLayout(IRType* pType, TypeDefinition* pTypeD
 					method = IRMethod_Create(pTypeDefinition->File->Assembly, &pTypeDefinition->MethodDefinitionList[index]);
 				}
 				finalMethods[methodCount + methodIndex] = method;
-				Log_WriteLine(LOGLEVEL__ILDecompositionLayouts, "Adding method %s.%s.%s from table index %i at %i", pTypeDefinition->Namespace, pTypeDefinition->Name, pTypeDefinition->MethodDefinitionList[index].Name, (int)pTypeDefinition->MethodDefinitionList[index].TableIndex, (int)(methodCount + methodIndex));
+				Log_WriteLine(LOGLEVEL__ILDecomposition_MethodLayout, "Adding method %s.%s.%s from table index %i at %i", pTypeDefinition->Namespace, pTypeDefinition->Name, pTypeDefinition->MethodDefinitionList[index].Name, (int)pTypeDefinition->MethodDefinitionList[index].TableIndex, (int)(methodCount + methodIndex));
 				methodIndex++;
 			}
 			else
 			{
 				bool_t found = FALSE;
-				Log_WriteLine(LOGLEVEL__ILDecompositionLayouts, "Looking for base method of %s.%s.%s (Table Index %i)", pTypeDefinition->Namespace, pTypeDefinition->Name, pTypeDefinition->MethodDefinitionList[index].Name, (int)pTypeDefinition->MethodDefinitionList[index].TableIndex);
+				Log_WriteLine(LOGLEVEL__ILDecomposition_MethodLayout, "Looking for base method of %s.%s.%s (Table Index %i)", pTypeDefinition->Namespace, pTypeDefinition->Name, pTypeDefinition->MethodDefinitionList[index].Name, (int)pTypeDefinition->MethodDefinitionList[index].TableIndex);
 				for (uint32_t index2 = 0; index2 < methodCount; index2++)
 				{
 					MethodDefinition* methodDefinition = methods[index2]->MethodDefinition;
 					if (methodDefinition->TableIndex)
 					{
-						Log_WriteLine(LOGLEVEL__ILDecompositionLayouts, "Checking Method %s.%s.%s from table index %i", methodDefinition->TypeDefinition->Namespace, methodDefinition->TypeDefinition->Name, methodDefinition->Name, (int)methodDefinition->TableIndex);
+						Log_WriteLine(LOGLEVEL__ILDecomposition_MethodLayout, "Checking Method %s.%s.%s from table index %i", methodDefinition->TypeDefinition->Namespace, methodDefinition->TypeDefinition->Name, methodDefinition->Name, (int)methodDefinition->TableIndex);
 					}
 					else
 					{
-						Log_WriteLine(LOGLEVEL__ILDecompositionLayouts, "Method Table Index 0! This shouldn't happen!");
+						Log_WriteLine(LOGLEVEL__ILDecomposition_MethodLayout, "Method Table Index 0! This shouldn't happen!");
 					}
 
 					if (!strcmp(pTypeDefinition->MethodDefinitionList[index].Name, methodDefinition->Name))
 					{
-						Log_WriteLine(LOGLEVEL__ILDecompositionLayouts, "Name is the same");
+						Log_WriteLine(LOGLEVEL__ILDecomposition_MethodLayout, "Name is the same");
 						if (Signature_Equals(pTypeDefinition->MethodDefinitionList[index].Signature, pTypeDefinition->MethodDefinitionList[index].SignatureLength, methodDefinition->Signature, methodDefinition->SignatureLength))
 						{
-							Log_WriteLine(LOGLEVEL__ILDecompositionLayouts, "Found Match!");
+							Log_WriteLine(LOGLEVEL__ILDecomposition_MethodLayout, "Found Match!");
 							IRMethod* method = pTypeDefinition->File->Assembly->Methods[pTypeDefinition->MethodDefinitionList[index].TableIndex - 1];
 							if (!method)
 							{
 								method = IRMethod_Create(pTypeDefinition->File->Assembly, &pTypeDefinition->MethodDefinitionList[index]);
 							}
 							finalMethods[index2] = method; 
-							Log_WriteLine(LOGLEVEL__ILDecompositionLayouts, "Overloading method %s.%s.%s from table index %i at %i", pTypeDefinition->Namespace, pTypeDefinition->Name, pTypeDefinition->MethodDefinitionList[index].Name, (int)pTypeDefinition->MethodDefinitionList[index].TableIndex, (int)index2);
+							Log_WriteLine(LOGLEVEL__ILDecomposition_MethodLayout, "Overloading method %s.%s.%s from table index %i at %i", pTypeDefinition->Namespace, pTypeDefinition->Name, pTypeDefinition->MethodDefinitionList[index].Name, (int)pTypeDefinition->MethodDefinitionList[index].TableIndex, (int)index2);
 							found = TRUE;
 							break;
 						}
@@ -177,49 +194,63 @@ IRMethod** ILDecomposition_GetMethodLayout(IRType* pType, TypeDefinition* pTypeD
 					method = IRMethod_Create(pTypeDefinition->File->Assembly, &pTypeDefinition->MethodDefinitionList[index]);
 				}
 				finalMethods[methodCount + methodIndex] = method;
-				Log_WriteLine(LOGLEVEL__ILDecompositionLayouts, "Adding method %s.%s.%s from table index %i at %i", pTypeDefinition->Namespace, pTypeDefinition->Name, pTypeDefinition->MethodDefinitionList[index].Name, (int)pTypeDefinition->MethodDefinitionList[index].TableIndex, (int)(methodCount + methodIndex));
+				Log_WriteLine(LOGLEVEL__ILDecomposition_MethodLayout, "Adding method %s.%s.%s from table index %i at %i", pTypeDefinition->Namespace, pTypeDefinition->Name, pTypeDefinition->MethodDefinitionList[index].Name, (int)pTypeDefinition->MethodDefinitionList[index].TableIndex, (int)(methodCount + methodIndex));
 				methodIndex++;
 			}
 			else
 			{
-				Log_WriteLine(LOGLEVEL__ILDecompositionLayouts, "Ignoring method %s.%s.%s at table index %i", pTypeDefinition->Namespace, pTypeDefinition->Name, pTypeDefinition->MethodDefinitionList[index].Name, (int)pTypeDefinition->MethodDefinitionList[index].TableIndex);
+				Log_WriteLine(LOGLEVEL__ILDecomposition_MethodLayout, "Ignoring method %s.%s.%s at table index %i", pTypeDefinition->Namespace, pTypeDefinition->Name, pTypeDefinition->MethodDefinitionList[index].Name, (int)pTypeDefinition->MethodDefinitionList[index].TableIndex);
 			}
 		}
 	}
 
-	if (methods != NULL)
-	{
-		free(methods);
-	}
-
-	*pTotalMethodCount = methodCount + newMethodsCount;
-	return finalMethods;
+	//*pTotalMethodCount = methodCount + newMethodsCount;
+	pType->Methods = finalMethods;
+	pType->MethodCount = methodCount + newMethodsCount;
+	return pType->Methods;
 }
 
-IRField** ILDecomposition_GetFieldLayout(IRType* pType, TypeDefinition* pTypeDefinition, uint32_t* pTotalFieldCount)
+IRField** ILDecomposition_GetFieldLayout(IRType* pType, TypeDefinition* pTypeDefinition)
 {
-	Log_WriteLine(LOGLEVEL__ILDecompositionLayouts, "Laying out the fields of %s.%s, TypeOfExtends = %u", pTypeDefinition->Namespace, pTypeDefinition->Name, (unsigned int)pTypeDefinition->TypeOfExtends);
+	if (pType->Fields)
+	{
+		Log_WriteLine(LOGLEVEL__ILDecomposition_FieldLayout, "Returning cached layout of the fields of %s.%s, TypeOfExtends = %u", pTypeDefinition->Namespace, pTypeDefinition->Name, (unsigned int)pTypeDefinition->TypeOfExtends);
+		return pType->Fields;
+	}
+	Log_WriteLine(LOGLEVEL__ILDecomposition_FieldLayout, "Laying out the fields of %s.%s, TypeOfExtends = %u", pTypeDefinition->Namespace, pTypeDefinition->Name, (unsigned int)pTypeDefinition->TypeOfExtends);
 	IRField** fields = NULL;
 	uint32_t fieldCount = 0;
 	if (pTypeDefinition->TypeOfExtends == TypeDefRefOrSpecType_TypeDefinition)
 	{
 		if (pTypeDefinition->Extends.TypeDefinition != NULL)
 		{
-			fields = ILDecomposition_GetFieldLayout(pType, pTypeDefinition->Extends.TypeDefinition, &fieldCount);
+			IRType* type = pType->ParentAssembly->Types[pTypeDefinition->Extends.TypeDefinition->TableIndex - 1];
+			if (!type)
+			{
+				type = IRType_Create(pType->ParentAssembly, pTypeDefinition->Extends.TypeDefinition);
+			}
+			fields = ILDecomposition_GetFieldLayout(type, pTypeDefinition->Extends.TypeDefinition);
+			fieldCount = type->FieldCount;
 		}
 	}
 	else if (pTypeDefinition->TypeOfExtends == TypeDefRefOrSpecType_TypeReference)
 	{
 		if (pTypeDefinition->Extends.TypeReference != NULL)
 		{
-			fields = ILDecomposition_GetFieldLayout(pType, pTypeDefinition->Extends.TypeReference->ResolvedType, &fieldCount);
+			IRType* type = pTypeDefinition->Extends.TypeReference->ResolvedType->File->Assembly->Types[pTypeDefinition->Extends.TypeReference->ResolvedType->TableIndex - 1];
+			if (!type)
+			{
+				type = IRType_Create(pTypeDefinition->Extends.TypeReference->ResolvedType->File->Assembly, pTypeDefinition->Extends.TypeReference->ResolvedType);
+			}
+			fields = ILDecomposition_GetFieldLayout(type, pTypeDefinition->Extends.TypeReference->ResolvedType);
+			fieldCount = type->FieldCount;
 		}
 		else 
 			Panic("TypeRef Extends NULL!");
 	}
 	else if (pTypeDefinition->TypeOfExtends == TypeDefRefOrSpecType_TypeSpecification)
 	{
-		*pTotalFieldCount = 0;
+		//*pTotalFieldCount = 0;
 		return NULL;
 	}
 
@@ -231,7 +262,7 @@ IRField** ILDecomposition_GetFieldLayout(IRType* pType, TypeDefinition* pTypeDef
 			newFieldsCount++;
 		}
 	}
-	Log_WriteLine(LOGLEVEL__ILDecompositionLayouts, "Field count: %i NewFieldCount: %i", (int)fieldCount, (int)newFieldsCount);
+	Log_WriteLine(LOGLEVEL__ILDecomposition_FieldLayout, "Field count: %i NewFieldCount: %i", (int)fieldCount, (int)newFieldsCount);
 
 	IRField** finalFields = (IRField**)calloc(fieldCount + newFieldsCount, sizeof(IRField*));
 	memcpy(finalFields, fields, fieldCount * sizeof(IRField*));
@@ -247,17 +278,14 @@ IRField** ILDecomposition_GetFieldLayout(IRType* pType, TypeDefinition* pTypeDef
 				field = IRField_Create(pType, &pTypeDefinition->FieldList[index]);
 			}
 			finalFields[fieldCount + fieldIndex] = field;
-			Log_WriteLine(LOGLEVEL__ILDecompositionLayouts, "Adding Field %s.%s.%s from table index %i at %i", pTypeDefinition->Namespace, pTypeDefinition->Name, pTypeDefinition->FieldList[index].Name, (int)pTypeDefinition->FieldList[index].TableIndex, (int)(fieldCount + fieldIndex));
+			Log_WriteLine(LOGLEVEL__ILDecomposition_FieldLayout, "Adding Field %s.%s.%s from table index %i at %i", pTypeDefinition->Namespace, pTypeDefinition->Name, pTypeDefinition->FieldList[index].Name, (int)pTypeDefinition->FieldList[index].TableIndex, (int)(fieldCount + fieldIndex));
 			fieldIndex++;
 		}
 	}
 
-	if (fields != NULL)
-	{
-		free(fields);
-	}
-
-	*pTotalFieldCount = fieldCount + newFieldsCount;
-	return finalFields;
+	//*pTotalFieldCount = fieldCount + newFieldsCount;
+	pType->Fields = finalFields;
+	pType->FieldCount = fieldCount + newFieldsCount;
+	return pType->Fields;
 }
 
