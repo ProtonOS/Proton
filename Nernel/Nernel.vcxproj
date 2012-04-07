@@ -13,7 +13,7 @@
   <ItemGroup>
     <ClCompile Include="Source\CLR\AppDomain.c" />
     <ClCompile Include="Source\CLR\CLIFile.c" />
-    <ClCompile Include="Source\CLR\ILReader.c" />
+    <ClCompile Include="Source\CLR\ILDecomposition.c" />
     <ClCompile Include="Source\CLR\IRStructures.c" />
     <ClCompile Include="Source\CLR\MetadataStructures.c" />
     <ClCompile Include="Source\System\APIC.c" />
@@ -49,8 +49,9 @@
   <ItemGroup>
     <ClInclude Include="Source\CLR\AppDomain.h" />
     <ClInclude Include="Source\CLR\CLIFile.h" />
-    <ClInclude Include="Source\CLR\ILOpcodes.h" />
-    <ClInclude Include="Source\CLR\ILReader.h" />
+    <ClInclude Include="Source\CLR\ILOpcode.h" />
+    <ClInclude Include="Source\CLR\ILDecomposition.h" />
+    <ClInclude Include="Source\CLR\IROpcode.h" />
     <ClInclude Include="Source\CLR\IRStructures.h" />
     <ClInclude Include="Source\CLR\MetadataStructures.h" />
     <ClInclude Include="Source\Inline.h" />
@@ -78,6 +79,7 @@
     <ClInclude Include="Source\System\ThreadScheduler.h" />
     <ClInclude Include="Source\System\x86\PortIO.h" />
     <ClInclude Include="Source\System\x86\Registers.h" />
+    <ClInclude Include="Source\uthash.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E5D2B815-40D4-4B6F-A622-0F402DADAD28}</ProjectGuid>

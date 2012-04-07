@@ -7,6 +7,8 @@ typedef enum LogLevel
     LOGLEVEL__Information =					1 << 0,
     LOGLEVEL__Memory =						1 << 1,
 	LOGLEVEL__Processor =					1 << 2,
+	LOGLEVEL__ILDecomposition =				1 << 3,
+	LOGLEVEL__ILDecompositionLayouts =		1 << 4,
 } LogLevel;
 
 #ifdef LOG__DISABLE
@@ -17,6 +19,8 @@ typedef enum LogLevel
 		LOGLEVEL__Information \
 		| LOGLEVEL__Memory \
 		| LOGLEVEL__Processor \
+		| LOGLEVEL__ILDecomposition \
+		| LOGLEVEL__ILDecompositionLayouts \
         ))
 
 #define Log_WriteLine(ll, ...) \

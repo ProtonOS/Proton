@@ -65,7 +65,7 @@
 	Source/Nernel.c
 	Source/CLR/AppDomain.c
 	Source/CLR/CLIFile.c
-	Source/CLR/ILReader.c
+	Source/CLR/ILDecomposition.c
 	Source/CLR/IRStructures.c
 	Source/CLR/MetadataStructures.c
 	Source/System/APIC.c

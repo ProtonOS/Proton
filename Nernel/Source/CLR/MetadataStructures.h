@@ -42,6 +42,19 @@ typedef struct _TypeDefinition TypeDefinition;
 typedef struct _TypeReference TypeReference;
 typedef struct _TypeSpecification TypeSpecification;
 
+typedef struct _MethodSignature MethodSignature;
+typedef struct _FieldSignature FieldSignature;
+typedef struct _PropertySignature PropertySignature;
+typedef struct _LocalsSignature LocalsSignature;
+
+typedef struct _SignatureReturnType SignatureReturnType;
+typedef struct _SignatureParameter SignatureParameter;
+typedef struct _SignatureCustomModifier SignatureCustomModifier;
+typedef struct _SignatureType SignatureType;
+typedef struct _SignatureMethodSpecification SignatureMethodSpecification;
+typedef struct _SignatureArrayShape SignatureArrayShape;
+typedef struct _SignatureLocalVariable SignatureLocalVariable;
+
 #include <CLR/CLIFile.h>
 
 typedef enum TypeDefRefOrSpecType
@@ -817,6 +830,7 @@ struct _Field
     const char* Name;
     uint32_t SignatureLength;
     uint8_t* Signature;
+	FieldSignature* SignatureCache;
 
     Constant* Constant;
     uint32_t CustomAttributeCount;
@@ -1091,6 +1105,7 @@ struct _MethodDefinition
     const char* Name;
     uint32_t SignatureLength;
     uint8_t* Signature;
+	MethodSignature* SignatureCache;
     Parameter* ParameterList;
     uint32_t ParameterListCount;
 
@@ -1412,18 +1427,6 @@ typedef enum SignatureCallConvention
 	SignatureCallConvention_ExplicitThis				= 0x40,
 } SignatureCallConvention;
 
-typedef struct _MethodSignature MethodSignature;
-typedef struct _FieldSignature FieldSignature;
-typedef struct _PropertySignature PropertySignature;
-typedef struct _LocalsSignature LocalsSignature;
-
-typedef struct _SignatureReturnType SignatureReturnType;
-typedef struct _SignatureParameter SignatureParameter;
-typedef struct _SignatureCustomModifier SignatureCustomModifier;
-typedef struct _SignatureType SignatureType;
-typedef struct _SignatureMethodSpecification SignatureMethodSpecification;
-typedef struct _SignatureArrayShape SignatureArrayShape;
-typedef struct _SignatureLocalVariable SignatureLocalVariable;
 
 bool_t Signature_Equals(uint8_t* pSignature1, uint32_t pSignature1Length, uint8_t* pSignature2, uint32_t pSignature2Length);
 

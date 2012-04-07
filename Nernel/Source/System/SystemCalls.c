@@ -75,6 +75,8 @@ void* sbrk(ptrdiff_t pAdjustment)
     return NULL;
 }
 
+void _fini() { }
+
 int open(const char* pPath, int pFlags, mode_t pMode)
 {
     Panic("OPEN");

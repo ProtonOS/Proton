@@ -40,4 +40,7 @@ struct _AppDomain
 AppDomain* AppDomain_Create();
 void AppDomain_Destroy(AppDomain* pDomain);
 void AppDomain_AddAssembly(AppDomain* pDomain, IRAssembly* pAssembly);
-void AppDomain_LinkCorlib(CLIFile* pCorlibFile, AppDomain* pDomain);
+void AppDomain_LinkCorlib(AppDomain* pDomain, CLIFile* pCorlibFile);
+IRType* AppDomain_GetIRTypeFromSignatureType(AppDomain* pDomain, IRAssembly* pAssembly, SignatureType* pType);
+bool_t AppDomain_IsStructure(AppDomain* pDomain, TypeDefinition* pTypeDefinition);
+void AppDomain_ResolveReferences(AppDomain* pDomain, CLIFile* pFile);
