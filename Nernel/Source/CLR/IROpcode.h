@@ -696,6 +696,90 @@ typedef enum IROpcode
 
 	 */
 	IROpcode_IsInst,
+	/*
+		Description:
+			Unboxes an object, producing the address.
+		
+		Stack:
+			..., object -> ..., address
+
+		Arg1: IRType*
+			A pointer to the IRType of the object being unboxed.
+
+		Arg2:
+			N/A
+
+		Arg3:
+			N/A
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_Unbox,
+	/*
+		Description:
+			Unboxes an object, producing the value.
+		
+		Stack:
+			..., object -> ..., value
+
+		Arg1: IRType*
+			A pointer to the IRType of the object being unboxed.
+
+		Arg2:
+			N/A
+
+		Arg3:
+			N/A
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_Unbox_Any,
+	/*
+		Description:
+			Boxes a value into an object.
+		
+		Stack:
+			..., value -> ..., object
+
+		Arg1: IRType*
+			A pointer to the IRType of the value being boxed.
+
+		Arg2:
+			N/A
+
+		Arg3:
+			N/A
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_Box,
+	/*
+		Description:
+			Throws an exception.
+		
+		Stack:
+			..., exception -> ...
+
+		Arg1:
+			N/A
+
+		Arg2:
+			N/A
+
+		Arg3:
+			N/A
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_Throw,
 } IROpcode;
 
 typedef enum OverflowType
