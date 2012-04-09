@@ -37,6 +37,7 @@ void Startup()
     gMernelDomain = AppDomain_Create();
 	uint64_t stoppedTicks = SystemClock_GetTicks();
 	printf("AppDomain_Create took %uMS\n", (unsigned int)(stoppedTicks - startedTicks));
+	AppDomain_ExecuteMethod(gMernelDomain, gMernelDomain->IRAssemblies[0]->EntryPoint);
 
 	while(TRUE)
 	{

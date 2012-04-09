@@ -1831,7 +1831,7 @@ uint8_t* MethodDefinition_Load(CLIFile* pFile, uint8_t* pTableData)
 {
     uint32_t methodBodyVirtualAddress = 0;
     PESectionHeader* methodBodySectionHeader = NULL;
-    const uint8_t* methodBody = NULL;
+    uint8_t* methodBody = NULL;
     uint8_t methodBodySize = 0;
     uint32_t parameterListIndex = 0;
     uint32_t* parameterListIndexes = (uint32_t*)calloc(pFile->MethodDefinitionCount + 1, sizeof(uint32_t));

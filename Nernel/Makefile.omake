@@ -68,6 +68,7 @@
 	Source/CLR/ILDecomposition.c
 	Source/CLR/IRStructures.c
 	Source/CLR/MetadataStructures.c
+	Source/CLR/SyntheticStack.c
 	Source/System/APIC.c
 	Source/System/Console.c
 	Source/System/CPUID.c

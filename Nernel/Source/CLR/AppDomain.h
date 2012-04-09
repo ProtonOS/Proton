@@ -18,6 +18,7 @@ struct _AppDomain
 	TypeDefinition* CachedType___System_Char;
 	TypeDefinition* CachedType___System_Double;
 	TypeDefinition* CachedType___System_Enum;
+	TypeDefinition* CachedType___System_Exception;
 	TypeDefinition* CachedType___System_Int16;
 	TypeDefinition* CachedType___System_Int32;
 	TypeDefinition* CachedType___System_Int64;
@@ -44,3 +45,4 @@ void AppDomain_LinkCorlib(AppDomain* pDomain, CLIFile* pCorlibFile);
 IRType* AppDomain_GetIRTypeFromSignatureType(AppDomain* pDomain, IRAssembly* pAssembly, SignatureType* pType);
 bool_t AppDomain_IsStructure(AppDomain* pDomain, TypeDefinition* pTypeDefinition);
 void AppDomain_ResolveReferences(AppDomain* pDomain, CLIFile* pFile);
+void AppDomain_ExecuteMethod(AppDomain* pDomain, IRMethod* pMethod);

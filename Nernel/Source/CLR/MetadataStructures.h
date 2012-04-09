@@ -1048,7 +1048,7 @@ struct _MethodDefinitionBody
     uint16_t MaxStack;
     uint32_t CodeSize;
     uint32_t LocalVariableSignatureToken;
-    const uint8_t* Code;
+    uint8_t* Code;
 };
 
 #define MethodDefinitionException__Offset_Flags							0x00

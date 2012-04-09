@@ -85,6 +85,10 @@ void AppDomain_LinkCorlib(AppDomain* pDomain, CLIFile* pCorlibFile)
 			{
 				pDomain->CachedType___System_Enum = type;
 			}
+			else if (!strcmp(type->Name, "Exception"))
+			{
+				pDomain->CachedType___System_Exception = type;
+			}
 			else if (!strcmp(type->Name, "Int16"))
 			{
 				pDomain->CachedType___System_Int16 = type;
@@ -234,7 +238,6 @@ IRType* AppDomain_GetIRTypeFromSignatureType(AppDomain* pDomain, IRAssembly* pAs
 				type = IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_Char);
 			}
 			break;
-		case SignatureElementType_Pointer:
 		case SignatureElementType_IPointer:
 			if (!(type = pDomain->IRAssemblies[0]->Types[pDomain->CachedType___System_IntPtr->TableIndex - 1]))
 			{
@@ -307,10 +310,41 @@ IRType* AppDomain_GetIRTypeFromSignatureType(AppDomain* pDomain, IRAssembly* pAs
 			if (!lookupType)
 			{
 				type = IRType_Copy(sysArrayType);
+				type->IsArrayType = TRUE;
 				type->ArrayType = IRArrayType_Create(type, elementType);
 				HASH_ADD(HashHandle, pAssembly->ArrayTypesHashTable, ElementType, sizeof(void*), type->ArrayType);
 			}
 			else type = lookupType->ArrayType;
+			break;
+		}
+		case SignatureElementType_Pointer:
+		{
+			IRType* typePointedTo = NULL;
+			if (pType->PtrVoid)
+			{
+				if (!(typePointedTo = pDomain->IRAssemblies[0]->Types[pDomain->CachedType___System_Void->TableIndex - 1]))
+				{
+					typePointedTo = IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_Void);
+				}
+			}
+			else
+			{		
+				typePointedTo = AppDomain_GetIRTypeFromSignatureType(pDomain, pAssembly, pType->PtrType);
+			}
+			IRPointerType* lookupType = NULL;
+			HASH_FIND(HashHandle, pAssembly->PointerTypesHashTable, (void*)&typePointedTo, sizeof(void*), lookupType);
+			if (!lookupType)
+			{
+				IRType* sysPointerType = pDomain->IRAssemblies[0]->Types[pDomain->CachedType___System_IntPtr->TableIndex - 1];
+				type = IRType_Copy(sysPointerType);
+				type->IsPointerType = TRUE;
+				type->PointerType = IRPointerType_Create(type, typePointedTo);
+				HASH_ADD(HashHandle, pAssembly->PointerTypesHashTable, TypePointedTo, sizeof(void*), type->PointerType);
+			}
+			else
+			{
+				type = lookupType->PointerType;
+			}
 			break;
 		}
 		case SignatureElementType_MethodVar:
@@ -535,4 +569,10 @@ void AppDomain_ResolveReferences(AppDomain* pDomain, CLIFile* pFile)
 			default: Panic("Unhandled member reference resolution"); break;
 		}
 	}
+}
+
+void AppDomain_ExecuteMethod(AppDomain* pDomain, IRMethod* pMethod)
+{
+	ILDecomposition_ConvertInstructions(pMethod);
+	// TODO: Emit & Execute pMethod->AssembledMethod
 }

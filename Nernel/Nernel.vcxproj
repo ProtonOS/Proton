@@ -16,6 +16,7 @@
     <ClCompile Include="Source\CLR\ILDecomposition.c" />
     <ClCompile Include="Source\CLR\IRStructures.c" />
     <ClCompile Include="Source\CLR\MetadataStructures.c" />
+    <ClCompile Include="Source\CLR\SyntheticStack.c" />
     <ClCompile Include="Source\System\APIC.c" />
     <ClCompile Include="Source\System\Console.c" />
     <ClCompile Include="Source\System\CPUID.c" />
@@ -49,11 +50,13 @@
   <ItemGroup>
     <ClInclude Include="Source\CLR\AppDomain.h" />
     <ClInclude Include="Source\CLR\CLIFile.h" />
+    <ClInclude Include="Source\CLR\ILDecompositionMacros.h" />
     <ClInclude Include="Source\CLR\ILOpcode.h" />
     <ClInclude Include="Source\CLR\ILDecomposition.h" />
     <ClInclude Include="Source\CLR\IROpcode.h" />
     <ClInclude Include="Source\CLR\IRStructures.h" />
     <ClInclude Include="Source\CLR\MetadataStructures.h" />
+    <ClInclude Include="Source\CLR\SyntheticStack.h" />
     <ClInclude Include="Source\Inline.h" />
     <ClInclude Include="Source\System\APIC.h" />
     <ClInclude Include="Source\System\Atomics.h" />

@@ -9,6 +9,7 @@ typedef struct _IRField IRField;
 typedef struct _IRArrayType IRArrayType;
 typedef struct _IRInterfaceImpl IRInterfaceImpl;
 typedef struct _IRInstruction IRInstruction;
+typedef struct _IRPointerType IRPointerType;
 
 #include <uthash.h>
 #include <CLR/AppDomain.h>
@@ -29,14 +30,16 @@ struct _IRAssembly
     IRField** Fields;
     uint32_t TypeCount;
     IRType** Types;
-
+	
 	IRArrayType* ArrayTypesHashTable;
+	IRPointerType* PointerTypesHashTable;
 };
 
 IRAssembly* IRAssembly_Create(AppDomain* pDomain, CLIFile* pFile);
 void IRAssembly_Destroy(IRAssembly* pAssembly);
 void IRAssembly_AddField(IRAssembly* pAssembly, IRField* pField);
 void IRAssembly_AddType(IRAssembly* pAssembly, IRType* pType);
+IRType* IRAssembly_MakePointerType(IRAssembly* pAssembly, IRType* pType);
 
 struct _IRType
 {
@@ -46,6 +49,8 @@ struct _IRType
 
     bool_t IsValueType;
     bool_t IsReferenceType;
+	bool_t IsArrayType;
+	bool_t IsPointerType;
 	bool_t IsGeneric;
 	bool_t IsGenericInstantiation;
 	bool_t IsInterface;
@@ -66,8 +71,9 @@ struct _IRType
 
 	bool_t HasFinalizer;
 	IRMethod* Finalizer;
-
+	
 	IRArrayType* ArrayType;
+	IRPointerType* PointerType;
 
 	IRInterfaceImpl* InterfaceTable;
 };
@@ -101,7 +107,7 @@ struct _IRMethod
 
 IRMethod* IRMethod_Create(IRAssembly* pAssembly, MethodDefinition* pMethodDefinition);
 void IRMethod_Destroy(IRMethod* pMethod);
-void IRMethod_AddParameter(IRMethod* pMethod, IRParameter* pParameter);
+void IRMethod_AddInstruction(IRMethod* pMethod, IRInstruction* pInstruction);
 
 struct _IRParameter
 {
@@ -155,6 +161,16 @@ struct _IRArrayType
 IRArrayType* IRArrayType_Create(IRType* pArrayType, IRType* pElementType);
 void IRArrayType_Destroy(IRArrayType* pArrayType);
 
+struct _IRPointerType
+{
+	IRType* PointerType;
+	IRType* TypePointedTo;
+	UT_hash_handle HashHandle;
+};
+
+IRPointerType* IRPointerType_Create(IRType* pPointerType, IRType* pTypePointedTo);
+void IRPointerType_Destroy(IRPointerType* pPointerType);
+
 struct _IRInterfaceImpl
 {
 	IRType* InterfaceType;
@@ -183,5 +199,5 @@ struct _IRInstruction
     void* Arg4;
 };
 
-IRInstruction* IRInstruction_Create(IRMethod* pMethod);
+IRInstruction* IRInstruction_Create(uint32_t pILLocation, IROpcode pOpcode);
 void IRInstruction_Destroy(IRInstruction* pInstruction);

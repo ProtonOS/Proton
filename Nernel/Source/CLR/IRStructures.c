@@ -48,6 +48,25 @@ void IRAssembly_Destroy(IRAssembly* pAssembly)
     free(pAssembly);
 }
 
+IRType* IRAssembly_MakePointerType(IRAssembly* pAssembly, IRType* pType)
+{
+	IRType* type = NULL;
+	IRPointerType* lookupType = NULL;
+	HASH_FIND(HashHandle, pAssembly->PointerTypesHashTable, (void*)&pType, sizeof(void*), lookupType);
+	if (!lookupType)
+	{
+		IRType* sysPointerType = pAssembly->ParentDomain->IRAssemblies[0]->Types[pAssembly->ParentDomain->CachedType___System_IntPtr->TableIndex - 1];
+		type = IRType_Copy(sysPointerType);
+		type->IsPointerType = TRUE;
+		type->PointerType = IRPointerType_Create(type, pType);
+		HASH_ADD(HashHandle, pAssembly->PointerTypesHashTable, TypePointedTo, sizeof(void*), type->PointerType);
+	}
+	else
+	{
+		type = lookupType->PointerType;
+	}
+	return type;
+}
 
 
 IRType* IRType_Create(IRAssembly* pAssembly, TypeDefinition* pTypeDefinition)
@@ -158,21 +177,6 @@ IRMethod* IRMethod_Create(IRAssembly* pAssembly, MethodDefinition* pMethodDefini
 		parameter->ParameterIndex = parameterIndex++;
 		method->Parameters[parameter->ParameterIndex] = parameter;
 	}
-
-	MetadataToken* localsSignatureToken = CLIFile_ExpandMetadataToken(pMethodDefinition->File, pMethodDefinition->Body.LocalVariableSignatureToken);
-	LocalsSignature* localsSignature = LocalsSignature_Expand(((StandAloneSignature*)localsSignatureToken->Data)->Signature, pMethodDefinition->File);
-	method->LocalVariableCount = localsSignature->LocalVariableCount;
-	method->LocalVariables = (IRLocalVariable**)calloc(1, method->LocalVariableCount * sizeof(IRLocalVariable*));
-	uint32_t localVariableIndex = 0;
-	for (uint32_t index = 0; index < localsSignature->LocalVariableCount; index++)
-	{
-		type = AppDomain_GetIRTypeFromSignatureType(pAssembly->ParentDomain, pAssembly, localsSignature->LocalVariables[index]->Type);
-		IRLocalVariable* localVariable = IRLocalVariable_Create(method, type);
-		localVariable->LocalVariableIndex = localVariableIndex++;
-		method->LocalVariables[localVariable->LocalVariableIndex] = localVariable;
-	}
-	LocalsSignature_Destroy(localsSignature);
-	CLIFile_DestroyMetadataToken(localsSignatureToken);
 	return method;
 }
 
@@ -196,6 +200,14 @@ void IRMethod_Destroy(IRMethod* pMethod)
 	free(pMethod->LocalVariables);
 	free(pMethod->Parameters);
     free(pMethod);
+}
+
+void IRMethod_AddInstruction(IRMethod* pMethod, IRInstruction* pInstruction)
+{
+	pInstruction->IRLocation = pMethod->IRCodesCount;
+	pMethod->IRCodes = (IRInstruction**)realloc(pMethod->IRCodes, sizeof(IRInstruction*) * (pMethod->IRCodesCount + 1));
+	pMethod->IRCodes[pMethod->IRCodesCount] = pInstruction;
+	pMethod->IRCodesCount++;
 }
 
 
@@ -274,4 +286,35 @@ void IRArrayType_Destroy(IRArrayType* pArrayType)
 {
 	Log_WriteLine(LOGLEVEL__Memory, "Memory: IRArrayType_Destroy @ 0x%x", (unsigned int)pArrayType);
 	free(pArrayType);
+}
+
+IRPointerType* IRPointerType_Create(IRType* pPointerType, IRType* pTypePointedTo)
+{
+	IRPointerType* type = (IRPointerType*)calloc(1, sizeof(IRPointerType));
+	Log_WriteLine(LOGLEVEL__Memory, "Memory: IRPointerType_Create @ 0x%x", (unsigned int)type);
+	type->PointerType = pPointerType;
+	type->TypePointedTo = pTypePointedTo;
+	return type;
+}
+
+void IRPointerType_Destroy(IRPointerType* pPointerType)
+{
+	Log_WriteLine(LOGLEVEL__Memory, "Memory: IRPointerType_Destroy @ 0x%x", (unsigned int)pPointerType);
+	free(pPointerType);
+}
+
+
+IRInstruction* IRInstruction_Create(uint32_t pILLocation, IROpcode pOpcode)
+{
+	IRInstruction* instruction = (IRInstruction*)calloc(1, sizeof(IRInstruction));
+	Log_WriteLine(LOGLEVEL__Memory, "Memory: IRInstruction_Create @ 0x%x", (unsigned int)instruction);
+	instruction->ILLocation = pILLocation;
+	instruction->Opcode = pOpcode;
+	return instruction;
+}
+
+void IRInstruction_Destroy(IRInstruction* pInstruction)
+{
+	Log_WriteLine(LOGLEVEL__Memory, "Memory: IRInstruction_Destroy @ 0x%x", (unsigned int)pInstruction);
+	free(pInstruction);
 }

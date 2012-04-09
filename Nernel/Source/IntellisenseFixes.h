@@ -14,6 +14,9 @@
 #undef malloc
 #define malloc(size) 0
 
+#undef realloc
+#define realloc(oldPointer, newSize) 0
+
 #undef printf
 #define printf(formatString, ...) 
 
