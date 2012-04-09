@@ -451,6 +451,260 @@ ALWAYS_INLINE void ILDecomposition_CheckBinaryNumericOperandTypesAndSetResult(IR
 }
 
 
+void ILDecomposition_CheckBitwiseNumericOperandTypesAndSetResult(IRType* pOperandA, IRType* pOperandB, BitwiseNumericOperation pBitwiseNumericOperation, StackObject* pResultObject)
+{
+	AppDomain* domain = pOperandA->ParentAssembly->ParentDomain;
+	TypeDefinition* operandAType = pOperandA->TypeDefinition;
+	TypeDefinition* operandBType = pOperandB->TypeDefinition;
+
+	if (operandAType == domain->CachedType___System_Byte ||
+		operandAType == domain->CachedType___System_UInt16 ||
+		operandAType == domain->CachedType___System_UInt32 ||
+		operandAType == domain->CachedType___System_SByte ||
+		operandAType == domain->CachedType___System_Int16 ||
+		operandAType == domain->CachedType___System_Int32
+		)
+	{
+		if (operandBType == domain->CachedType___System_Byte ||
+			operandBType == domain->CachedType___System_UInt16 ||
+			operandBType == domain->CachedType___System_UInt32 ||
+			operandBType == domain->CachedType___System_SByte ||
+			operandBType == domain->CachedType___System_Int16 ||
+			operandBType == domain->CachedType___System_Int32
+			)
+		{
+			pResultObject->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_Int32->TableIndex - 1];
+		}
+		else if(operandBType == domain->CachedType___System_IntPtr ||
+				operandBType == domain->CachedType___System_UIntPtr)
+		{
+			pResultObject->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_IntPtr->TableIndex - 1];
+		}
+		else
+		{
+			Panic("Invalid operands for bitwise numeric operation");
+		}
+	}
+	else if (operandAType == domain->CachedType___System_Int64 ||
+			 operandAType == domain->CachedType___System_UInt64)
+	{
+		if (operandBType == domain->CachedType___System_Int64 ||
+			operandBType == domain->CachedType___System_UInt64)
+		{
+			pResultObject->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_Int64->TableIndex - 1];
+		}
+		else
+		{
+			Panic("Invalid operands for bitwise numeric operation");
+		}
+	}
+	else if (operandAType == domain->CachedType___System_Single ||
+			 operandAType == domain->CachedType___System_Double)
+	{
+		if (operandBType == domain->CachedType___System_Single ||
+			operandBType == domain->CachedType___System_Double)
+		{
+			pResultObject->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_Double->TableIndex - 1];
+		}
+		else
+		{
+			Panic("Invalid operands for bitwise numeric operation");
+		}
+	}
+	else if (operandAType == domain->CachedType___System_IntPtr ||
+			 operandAType == domain->CachedType___System_UIntPtr)
+	{
+		if (operandBType == domain->CachedType___System_Byte ||
+			operandBType == domain->CachedType___System_UInt16 ||
+			operandBType == domain->CachedType___System_UInt32 ||
+			operandBType == domain->CachedType___System_SByte ||
+			operandBType == domain->CachedType___System_Int16 ||
+			operandBType == domain->CachedType___System_Int32 ||
+			operandBType == domain->CachedType___System_IntPtr ||
+			operandBType == domain->CachedType___System_UIntPtr
+			)
+		{
+			pResultObject->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_IntPtr->TableIndex - 1];
+		}
+		else
+		{
+			Panic("Invalid operands for bitwise numeric operation");
+		}
+	}
+	else if (pOperandA->IsPointerType)
+	{
+		if (operandBType == domain->CachedType___System_Byte ||
+			operandBType == domain->CachedType___System_UInt16 ||
+			operandBType == domain->CachedType___System_UInt32 ||
+			operandBType == domain->CachedType___System_SByte ||
+			operandBType == domain->CachedType___System_Int16 ||
+			operandBType == domain->CachedType___System_Int32 ||
+			operandBType == domain->CachedType___System_IntPtr ||
+			operandBType == domain->CachedType___System_UIntPtr
+			)
+		{
+			pResultObject->Type = pOperandA;
+		}
+		else
+		{
+			Panic("Invalid operands for bitwise numeric operation");
+		}
+	}
+	else
+	{
+		Panic("Invalid operands for bitwise numeric operation");
+	}
+}
+
+void ILDecomposition_CheckUnaryNumericOperandTypesAndSetResult(IRType* pOperand, UnaryNumericOperation pUnaryNumericOperation, StackObject* pResultObject)
+{
+	AppDomain* domain = pOperand->ParentAssembly->ParentDomain;
+	TypeDefinition* operandType = pOperand->TypeDefinition;
+
+	if (operandType == domain->CachedType___System_Byte ||
+		operandType == domain->CachedType___System_UInt16 ||
+		operandType == domain->CachedType___System_UInt32 ||
+		operandType == domain->CachedType___System_SByte ||
+		operandType == domain->CachedType___System_Int16 ||
+		operandType == domain->CachedType___System_Int32
+		)
+	{
+		pResultObject->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_Int32->TableIndex - 1];
+	}
+	else if (operandType == domain->CachedType___System_Int64 ||
+			 operandType == domain->CachedType___System_UInt64)
+	{
+		pResultObject->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_Int64->TableIndex - 1];
+	}
+	else if (operandType == domain->CachedType___System_IntPtr)
+	{
+		pResultObject->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_IntPtr->TableIndex - 1];
+	}
+	else if (operandType == domain->CachedType___System_UIntPtr)
+	{
+		pResultObject->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_UIntPtr->TableIndex - 1];
+	}
+	else if (operandType == domain->CachedType___System_Single)
+	{
+		pResultObject->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_Single->TableIndex - 1];
+	}
+	else if (operandType == domain->CachedType___System_Double)
+	{
+		pResultObject->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_Double->TableIndex - 1];
+	}
+	else
+	{
+		Panic("Invalid operands for unary numeric operation");
+	}
+}
+
+void ILDecomposition_CheckShiftNumericOperandTypesAndSetResult(IRType* pOperandA, IRType* pOperandB, ShiftNumericOperation pShiftNumericOperation, StackObject* pResultObject, IRType** pOperandAGeneralType, IRType** pOperandBGeneralType)
+{
+	AppDomain* domain = pOperandA->ParentAssembly->ParentDomain;
+	TypeDefinition* operandAType = pOperandA->TypeDefinition;
+	TypeDefinition* operandBType = pOperandB->TypeDefinition;
+	if (operandAType == domain->CachedType___System_Byte ||
+		operandAType == domain->CachedType___System_UInt16 ||
+		operandAType == domain->CachedType___System_UInt32 ||
+		operandAType == domain->CachedType___System_SByte ||
+		operandAType == domain->CachedType___System_Int16 ||
+		operandAType == domain->CachedType___System_Int32
+		)
+	{
+		*pOperandAGeneralType = domain->IRAssemblies[0]->Types[domain->CachedType___System_Int32->TableIndex - 1];
+	}
+	else if (operandAType == domain->CachedType___System_IntPtr ||
+			 operandAType == domain->CachedType___System_UIntPtr)
+	{
+		*pOperandAGeneralType = domain->IRAssemblies[0]->Types[domain->CachedType___System_IntPtr->TableIndex - 1];
+	}
+	else
+	{
+		Panic("Invalid operands for shift numeric operation");
+	}
+
+	if (operandBType == domain->CachedType___System_Byte ||
+		operandBType == domain->CachedType___System_UInt16 ||
+		operandBType == domain->CachedType___System_UInt32 ||
+		operandBType == domain->CachedType___System_SByte ||
+		operandBType == domain->CachedType___System_Int16 ||
+		operandBType == domain->CachedType___System_Int32
+		)
+	{
+		*pOperandBGeneralType = domain->IRAssemblies[0]->Types[domain->CachedType___System_Int32->TableIndex - 1];
+	}
+	else if (operandBType == domain->CachedType___System_Int64 ||
+			 operandBType == domain->CachedType___System_UInt64)
+	{
+		*pOperandBGeneralType = domain->IRAssemblies[0]->Types[domain->CachedType___System_Int64->TableIndex - 1];
+	}
+	else if (operandAType == domain->CachedType___System_IntPtr ||
+			 operandAType == domain->CachedType___System_UIntPtr)
+	{
+		*pOperandBGeneralType = domain->IRAssemblies[0]->Types[domain->CachedType___System_IntPtr->TableIndex - 1];
+	}
+	else
+	{
+		Panic("Invalid operands for shift numeric operation");
+	}
+
+	pResultObject->Type = *pOperandBGeneralType;
+}
+
+void ILDecomposition_CheckUncheckedConversionNumericOperandType(IRType* pOperand, ElementType* pSourceType)
+{
+	AppDomain* domain = pOperand->ParentAssembly->ParentDomain;
+	TypeDefinition* operandType = pOperand->TypeDefinition;
+
+	if (operandType == domain->CachedType___System_Byte)
+	{
+		*pSourceType = ElementType_U1;
+	}
+	else if (operandType == domain->CachedType___System_UInt16)
+	{
+		*pSourceType = ElementType_U2;
+	}
+	else if (operandType == domain->CachedType___System_UInt32)
+	{
+		*pSourceType = ElementType_U4;
+	}
+	else if (operandType == domain->CachedType___System_SByte)
+	{
+		*pSourceType = ElementType_I1;
+	}
+	else if (operandType == domain->CachedType___System_Int16)
+	{
+		*pSourceType = ElementType_I2;
+	}
+	else if (operandType == domain->CachedType___System_Int32)
+	{
+		*pSourceType = ElementType_I4;
+	}
+	else if (operandType == domain->CachedType___System_Int64)
+	{
+		*pSourceType = ElementType_I8;
+	}
+	else if (operandType == domain->CachedType___System_UInt64)
+	{
+		*pSourceType = ElementType_U8;
+	}
+	else if (operandType == domain->CachedType___System_Single)
+	{
+		*pSourceType = ElementType_R4;
+	}
+	else if (operandType == domain->CachedType___System_Double)
+	{
+		*pSourceType = ElementType_R8;
+	}
+	else if (pOperand->IsPointerType)
+	{
+		*pSourceType = ElementType_I;
+	}
+	else
+	{
+		Panic("Invalid operands for conversion numeric operation");
+	}
+}
 
 #define PA()		StackObjectPool_Allocate(stack)
 #define SR(obj)		StackObjectPool_Release(stack, obj)
@@ -466,6 +720,59 @@ ALWAYS_INLINE void ILDecomposition_CheckBinaryNumericOperandTypesAndSetResult(IR
         ClearFlags(); \
         break; \
 	} 
+#define BITWISE_NUMERIC_OPERATION(pIROpcode) \
+	{ Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read " #pIROpcode); \
+		StackObject* value1 = SyntheticStack_Pop(stack); \
+		StackObject* value2 = SyntheticStack_Pop(stack); \
+		StackObject* obj = PA(); \
+		ILDecomposition_CheckBitwiseNumericOperandTypesAndSetResult(value1->Type, value2->Type, BitwiseNumericOperation_##pIROpcode, obj); \
+		EMIT_IR_2ARG_NO_DISPOSE(IROpcode_##pIROpcode, value1->Type, value2->Type); \
+		obj->SourceType = StackObjectSourceType_Stack; \
+		SyntheticStack_Push(stack, obj); \
+		ClearFlags(); \
+		break; \
+	} 
+#define UNARY_NUMERIC_OPERATION(pIROpcode) \
+	{ Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read " #pIROpcode); \
+		StackObject* value = SyntheticStack_Pop(stack); \
+		StackObject* obj = PA(); \
+		ILDecomposition_CheckUnaryNumericOperandTypesAndSetResult(value->Type, UnaryNumericOperation_##pIROpcode, obj); \
+		EMIT_IR_1ARG_NO_DISPOSE(IROpcode_##pIROpcode, value->Type); \
+		obj->SourceType = StackObjectSourceType_Stack; \
+		SyntheticStack_Push(stack, obj); \
+		ClearFlags(); \
+		break; \
+	} 
+#define SHIFT_NUMERIC_OPERATION(pIROpcode, pShiftNumericOperation) \
+	{ Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read " #pIROpcode); \
+		StackObject* value1 = SyntheticStack_Pop(stack); \
+		StackObject* value2 = SyntheticStack_Pop(stack); \
+		IRType* value1GeneralType = NULL; \
+		IRType* value2GeneralType = NULL; \
+		StackObject* obj = PA(); \
+		ILDecomposition_CheckShiftNumericOperandTypesAndSetResult(value1->Type, value2->Type, ShiftNumericOperation_##pShiftNumericOperation, obj, &value1GeneralType, &value2GeneralType); \
+		EMIT_IR_3ARG_NO_DISPOSE(IROpcode_Shift, (uint32_t*)ShiftNumericOperation_##pShiftNumericOperation, value1GeneralType, value2GeneralType); \
+		obj->SourceType = StackObjectSourceType_Stack; \
+		SyntheticStack_Push(stack, obj); \
+		ClearFlags(); \
+		break; \
+	} 
+#define UNCHECKED_CONVERSION_NUMERIC_OPERATION(pElementType, pDestinationType) \
+	{ Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Conv." #pElementType); \
+		StackObject* value = SyntheticStack_Pop(stack); \
+		ElementType sourceType = (ElementType)0; \
+		ElementType destinationType = ElementType_##pElementType; \
+		StackObject* obj = PA(); \
+		ILDecomposition_CheckUncheckedConversionNumericOperandType(value->Type, &sourceType); \
+		EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Convert_Unchecked, (uint32_t*)sourceType, (uint32_t*)destinationType); \
+		obj->Type = pDestinationType; \
+		obj->SourceType = StackObjectSourceType_Stack; \
+		SyntheticStack_Push(stack, obj); \
+		ClearFlags(); \
+		break; \
+	} 
+
+
 
 
 ALWAYS_INLINE uint8_t ReadUInt8(uint8_t** pData)
@@ -1513,71 +1820,51 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
 
             case ILOpcode_And:				// 0x5F
-                ClearFlags();
-                break;
+				BITWISE_NUMERIC_OPERATION(And);
             case ILOpcode_Or:				// 0x60
-                ClearFlags();
-                break;
+				BITWISE_NUMERIC_OPERATION(Or);
             case ILOpcode_Xor:				// 0x61
-                ClearFlags();
-                break;
+				BITWISE_NUMERIC_OPERATION(Xor);
 
 
             case ILOpcode_Neg:				// 0x65
-                ClearFlags();
-                break;
-            case ILOpcode_Not:				// 0x66
-                ClearFlags();
-                break;
+				UNARY_NUMERIC_OPERATION(Neg);
+			case ILOpcode_Not:				// 0x66
+				UNARY_NUMERIC_OPERATION(Not);
 
 
             case ILOpcode_Shl:				// 0x62
-                ClearFlags();
-                break;
+				SHIFT_NUMERIC_OPERATION(Shl, Left);
             case ILOpcode_Shr:				// 0x63
-                ClearFlags();
-                break;
+				SHIFT_NUMERIC_OPERATION(Shr, Right_Sign_Extended);
             case ILOpcode_Shr_Un:			// 0x64
-                ClearFlags();
-                break;
+				SHIFT_NUMERIC_OPERATION(Shr.Un, Right);
 
 
             case ILOpcode_Conv_I1:			// 0x67
-                ClearFlags();
-                break;
+				UNCHECKED_CONVERSION_NUMERIC_OPERATION(I1, domain->IRAssemblies[0]->Types[domain->CachedType___System_SByte->TableIndex - 1]);
             case ILOpcode_Conv_U1:			// 0xD2
-                ClearFlags();
-                break;
+				UNCHECKED_CONVERSION_NUMERIC_OPERATION(U1, domain->IRAssemblies[0]->Types[domain->CachedType___System_Byte->TableIndex - 1]);
             case ILOpcode_Conv_I2:			// 0x68
-                ClearFlags();
-                break;
+				UNCHECKED_CONVERSION_NUMERIC_OPERATION(I2, domain->IRAssemblies[0]->Types[domain->CachedType___System_Int16->TableIndex - 1]);
             case ILOpcode_Conv_U2:			// 0xD1
-                ClearFlags();
-                break;
+				UNCHECKED_CONVERSION_NUMERIC_OPERATION(U2, domain->IRAssemblies[0]->Types[domain->CachedType___System_UInt16->TableIndex - 1]);
             case ILOpcode_Conv_I4:			// 0x69
-                ClearFlags();
-                break;
+				UNCHECKED_CONVERSION_NUMERIC_OPERATION(I4, domain->IRAssemblies[0]->Types[domain->CachedType___System_Int32->TableIndex - 1]);
             case ILOpcode_Conv_U4:			// 0x6D
-                ClearFlags();
-                break;
+				UNCHECKED_CONVERSION_NUMERIC_OPERATION(U4, domain->IRAssemblies[0]->Types[domain->CachedType___System_UInt32->TableIndex - 1]);
             case ILOpcode_Conv_I8:			// 0x6A
-                ClearFlags();
-                break;
+				UNCHECKED_CONVERSION_NUMERIC_OPERATION(I8, domain->IRAssemblies[0]->Types[domain->CachedType___System_Int64->TableIndex - 1]);
             case ILOpcode_Conv_U8:			// 0x6E
-                ClearFlags();
-                break;
+				UNCHECKED_CONVERSION_NUMERIC_OPERATION(U8, domain->IRAssemblies[0]->Types[domain->CachedType___System_UInt64->TableIndex - 1]);
             case ILOpcode_Conv_R4:			// 0x6B
-                ClearFlags();
-                break;
+				UNCHECKED_CONVERSION_NUMERIC_OPERATION(R4, domain->IRAssemblies[0]->Types[domain->CachedType___System_Single->TableIndex - 1]);
             case ILOpcode_Conv_R8:			// 0x6C
-                ClearFlags();
-                break;
+				UNCHECKED_CONVERSION_NUMERIC_OPERATION(R8, domain->IRAssemblies[0]->Types[domain->CachedType___System_Double->TableIndex - 1]);
             case ILOpcode_Conv_I:			// 0xD3
-                ClearFlags();
-                break;
+				UNCHECKED_CONVERSION_NUMERIC_OPERATION(I, domain->IRAssemblies[0]->Types[domain->CachedType___System_IntPtr->TableIndex - 1]);
             case ILOpcode_Conv_U:			// 0xE0
-                ClearFlags();
-                break;
+				UNCHECKED_CONVERSION_NUMERIC_OPERATION(U, domain->IRAssemblies[0]->Types[domain->CachedType___System_UIntPtr->TableIndex - 1]);
 
             case ILOpcode_Conv_R_Un:		// 0x76
                 ClearFlags();
@@ -1592,11 +1879,77 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 break;
 
             case ILOpcode_CastClass:		// 0x74
-				ClearFlags();
-				break;
+			{
+				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read CastClass");
+				MetadataToken* token = CLIFile_ExpandMetadataToken(file, ReadUInt32(currentDataPointer));
+				IRType* castedType = NULL;
+
+				switch(token->Table)
+				{
+					case MetadataTable_TypeDefinition:
+						castedType = assembly->Types[((TypeDefinition*)token->Data)->TableIndex - 1];
+						break;
+					case MetadataTable_TypeReference:
+						{
+							TypeDefinition* typeDef = ((TypeReference*)token->Data)->ResolvedType;
+							castedType = typeDef->File->Assembly->Types[typeDef->TableIndex - 1];
+							break;
+						}
+					case MetadataTable_TypeSpecification:
+						printf("Don't know what to do here!\n");
+						break;
+					default:
+						Panic("Unknown table for CastClass!");
+						break;
+				}
+				CLIFile_DestroyMetadataToken(token);
+
+				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_CastClass, castedType);
+
+				StackObject* obj = PA();
+				obj->Type = castedType;
+				obj->SourceType = StackObjectSourceType_Stack;
+				SyntheticStack_Push(stack, obj);
+
+                ClearFlags();
+                break;
+			}
             case ILOpcode_IsInst:			// 0x75
-				ClearFlags();
-				break;
+			{
+				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read IsInst");
+				MetadataToken* token = CLIFile_ExpandMetadataToken(file, ReadUInt32(currentDataPointer));
+				IRType* castedType = NULL;
+
+				switch(token->Table)
+				{
+					case MetadataTable_TypeDefinition:
+						castedType = assembly->Types[((TypeDefinition*)token->Data)->TableIndex - 1];
+						break;
+					case MetadataTable_TypeReference:
+						{
+							TypeDefinition* typeDef = ((TypeReference*)token->Data)->ResolvedType;
+							castedType = typeDef->File->Assembly->Types[typeDef->TableIndex - 1];
+							break;
+						}
+					case MetadataTable_TypeSpecification:
+						printf("Don't know what to do here!\n");
+						break;
+					default:
+						Panic("Unknown table for IsInst!");
+						break;
+				}
+				CLIFile_DestroyMetadataToken(token);
+
+				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_IsInst, castedType);
+
+				StackObject* obj = PA();
+				obj->Type = castedType;
+				obj->SourceType = StackObjectSourceType_Stack;
+				SyntheticStack_Push(stack, obj);
+
+                ClearFlags();
+                break;
+			}
 
             // 0x77 Doesn't exist
             // 0x78 Doesn't exist

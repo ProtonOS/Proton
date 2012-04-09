@@ -506,6 +506,196 @@ typedef enum IROpcode
 
 	 */
 	IROpcode_Rem,
+	/*
+		Description:
+			Bitwise ANDs two values.
+		
+		Stack:
+			..., value1, value2 -> ..., result
+
+		Arg1: IRType*
+			A pointer to the IRType of the first value.
+
+		Arg2: IRType*
+			A pointer to the IRType of the second value.
+
+		Arg3:
+			N/A
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_And,
+	/*
+		Description:
+			Bitwise ORs two values.
+		
+		Stack:
+			..., value1, value2 -> ..., result
+
+		Arg1: IRType*
+			A pointer to the IRType of the first value.
+
+		Arg2: IRType*
+			A pointer to the IRType of the second value.
+
+		Arg3:
+			N/A
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_Or,
+	/*
+		Description:
+			Bitwise XORs two values.
+		
+		Stack:
+			..., value1, value2 -> ..., result
+
+		Arg1: IRType*
+			A pointer to the IRType of the first value.
+
+		Arg2: IRType*
+			A pointer to the IRType of the second value.
+
+		Arg3:
+			N/A
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_Xor,
+	/*
+		Description:
+			Negate value, producing twos-compliment result.
+		
+		Stack:
+			..., value -> ..., result
+
+		Arg1: IRType*
+			A pointer to the IRType of the value.
+
+		Arg2:
+			N/A
+
+		Arg3:
+			N/A
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_Neg,
+	/*
+		Description:
+			Not value, producing ones-compliment result.
+		
+		Stack:
+			..., value -> ..., result
+
+		Arg1: IRType*
+			A pointer to the IRType of the value.
+
+		Arg2:
+			N/A
+
+		Arg3:
+			N/A
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_Not,
+	/*
+		Description:
+			Shift a value the specified direction by the specified amount.
+		
+		Stack:
+			..., value, amount -> ..., result
+
+		Arg1: ShiftNumericOperation
+			The type of the shift to handle.
+
+		Arg2: IRType*
+			A pointer to the general IRType of the amount.
+
+		Arg3: IRType*
+			A pointer to the general IRType of the value.
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_Shift,
+	/*
+		Description:
+			Convert a value the specified type.
+		
+		Stack:
+			..., value -> ..., result
+
+		Arg1: IRType*
+			A pointer to the IRType of the value.
+
+		Arg2: IRType*
+			A pointer to the IRType of the result.
+
+		Arg3:
+			N/A
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_Convert_Unchecked,
+
+	/*
+		Description:
+			Casts an object to the specified type, failure results in exception.
+		
+		Stack:
+			..., object -> ..., object
+
+		Arg1: IRType*
+			A pointer to the IRType of the type being casted to.
+
+		Arg2:
+			N/A
+
+		Arg3:
+			N/A
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_CastClass,
+	/*
+		Description:
+			Casts an object to the specified type, failure results in null.
+		
+		Stack:
+			..., object -> ..., object
+
+		Arg1: IRType*
+			A pointer to the IRType of the type being casted to.
+
+		Arg2:
+			N/A
+
+		Arg3:
+			N/A
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_IsInst,
 } IROpcode;
 
 typedef enum OverflowType
@@ -523,3 +713,39 @@ typedef enum BinaryNumericOperation
 	BinaryNumericOperation_Mul,
 	BinaryNumericOperation_Rem,
 } BinaryNumericOperation;
+
+typedef enum BitwiseNumericOperation
+{
+	BitwiseNumericOperation_And,
+	BitwiseNumericOperation_Or,
+	BitwiseNumericOperation_Xor,
+} BitwiseNumericOperation;
+
+typedef enum UnaryNumericOperation
+{
+	UnaryNumericOperation_Neg,
+	UnaryNumericOperation_Not,
+} UnaryNumericOperation;
+
+typedef enum ShiftNumericOperation
+{
+    ShiftNumericOperation_Right,
+    ShiftNumericOperation_Right_Sign_Extended,
+    ShiftNumericOperation_Left,
+} ShiftNumericOperation;
+
+typedef enum ElementType
+{
+	ElementType_I1,
+	ElementType_U1,
+	ElementType_I2,
+	ElementType_U2,
+	ElementType_I4,
+	ElementType_U4,
+	ElementType_I8,
+	ElementType_U8,
+	ElementType_I,
+	ElementType_U,
+	ElementType_R4,
+	ElementType_R8,
+} ElementType;
