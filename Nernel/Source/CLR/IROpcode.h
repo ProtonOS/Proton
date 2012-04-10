@@ -780,6 +780,69 @@ typedef enum IROpcode
 
 	 */
 	IROpcode_Throw,
+	/*
+		Description:
+			Loads an object from an address.
+		
+		Stack:
+			..., address -> ..., object
+
+		Arg1: IRType*
+			A pointer to the IRType of the address.
+
+		Arg2: IRType*
+			A pointer to the IRType of the object.
+
+		Arg3:
+			N/A
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_Load_Object,
+	/*
+		Description:
+			Stores an object to an address.
+		
+		Stack:
+			..., address, object -> ...
+
+		Arg1: IRType*
+			A pointer to the IRType of the address.
+
+		Arg2: IRType*
+			A pointer to the IRType of the object.
+
+		Arg3:
+			N/A
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_Store_Object,
+	/*
+		Description:
+			Copies an object from one address to another.
+		
+		Stack:
+			..., dest, src -> ...
+
+		Arg1: IRType*
+			A pointer to the IRType of the addresses.
+
+		Arg2: IRType*
+			A pointer to the IRType of the object.
+
+		Arg3:
+			N/A
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_Copy_Object,
 } IROpcode;
 
 typedef enum OverflowType
