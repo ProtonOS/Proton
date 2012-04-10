@@ -68,6 +68,26 @@ IRType* IRAssembly_MakePointerType(IRAssembly* pAssembly, IRType* pType)
 	return type;
 }
 
+IRType* IRAssembly_MakeArrayType(IRAssembly* pAssembly, IRType* pType)
+{
+	IRType* type = NULL;
+	IRArrayType* lookupType = NULL;
+	HASH_FIND(HashHandle, pAssembly->ArrayTypesHashTable, (void*)&pType, sizeof(void*), lookupType);
+	if (!lookupType)
+	{
+		IRType* sysArrayType = pAssembly->ParentDomain->IRAssemblies[0]->Types[pAssembly->ParentDomain->CachedType___System_Array->TableIndex - 1];
+		type = IRType_Copy(sysArrayType);
+		type->IsArrayType = TRUE;
+		type->ArrayType = IRArrayType_Create(type, pType);
+		HASH_ADD(HashHandle, pAssembly->ArrayTypesHashTable, ElementType, sizeof(void*), type->ArrayType);
+	}
+	else
+	{
+		type = lookupType->ArrayType;
+	}
+	return type;
+}
+
 
 IRType* IRType_Create(IRAssembly* pAssembly, TypeDefinition* pTypeDefinition)
 {

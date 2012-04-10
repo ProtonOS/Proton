@@ -908,14 +908,21 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
         {
             case ILOpcode_Nop:				// 0x00
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Nop");
+
                 EMIT_IR(IROpcode_Nop);
+
                 ClearFlags();
                 break;
+
             case ILOpcode_Break:			// 0x01
+			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Break");
+
                 EMIT_IR(IROpcode_Break);
+
                 ClearFlags();
                 break;
+			}
 
 
 			case ILOpcode_LdArg_0:			// 0x02
@@ -945,6 +952,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_LdArg_1:			// 0x03
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdArg.1");
@@ -958,6 +966,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_LdArg_2:			// 0x04
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdArg.2");
@@ -971,6 +980,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_LdArg_3:			// 0x05
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdArg.3");
@@ -984,6 +994,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_LdArg_S:			// 0x0E
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdArg.S");
@@ -1012,6 +1023,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_LdArgA_S:			// 0x0F
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdArgA.S");
@@ -1039,6 +1051,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 break;
 			}
 
+
             case ILOpcode_LdLoc_0:			// 0x06
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdLoc.0");
@@ -1052,6 +1065,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_LdLoc_1:			// 0x07
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdLoc.1");
@@ -1065,6 +1079,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_LdLoc_2:			// 0x08
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdLoc.2");
@@ -1078,6 +1093,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_LdLoc_3:			// 0x09
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdLoc.3");
@@ -1091,6 +1107,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_LdLoc_S:			// 0x11
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdLoc.S");
@@ -1131,6 +1148,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_StLoc_1:			// 0x0B
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StLoc.1");
@@ -1141,6 +1159,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_StLoc_2:			// 0x0C
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StLoc.2");
@@ -1151,6 +1170,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_StLoc_3:			// 0x0D
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StLoc.3");
@@ -1161,6 +1181,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_StLoc_S:			// 0x13
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StLoc.S");
@@ -1172,6 +1193,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
 
             case ILOpcode_LdNull:			// 0x14
 			{
@@ -1186,6 +1208,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_LdStr:			// 0x72
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdStr");
@@ -1208,6 +1231,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_Ldc_I4_M1:		// 0x15
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ldc.I4.M1");
@@ -1221,6 +1245,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_Ldc_I4_0:			// 0x16
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ldc.I4.0");
@@ -1234,6 +1259,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_Ldc_I4_1:			// 0x17
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ldc.I4.1");
@@ -1247,6 +1273,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_Ldc_I4_2:			// 0x18
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ldc.I4.2");
@@ -1260,6 +1287,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_Ldc_I4_3:			// 0x19
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ldc.I4.3");
@@ -1273,6 +1301,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_Ldc_I4_4:			// 0x1A
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ldc.I4.4");
@@ -1286,6 +1315,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_Ldc_I4_5:			// 0x1B
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ldc.I4.5");
@@ -1299,6 +1329,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_Ldc_I4_6:			// 0x1C
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ldc.I4.6");
@@ -1312,6 +1343,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_Ldc_I4_7:			// 0x1D
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ldc.I4.7");
@@ -1325,6 +1357,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_Ldc_I4_8:			// 0x1E
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ldc.I4.8");
@@ -1338,6 +1371,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_Ldc_I4_S:			// 0x1F
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ldc.I4.S");
@@ -1352,6 +1386,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_Ldc_I4:			// 0x20
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ldc.I4");
@@ -1366,6 +1401,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_Ldc_I8:			// 0x21
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ldc.I8");
@@ -1381,6 +1417,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_Ldc_R4:			// 0x22
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ldc.R4");
@@ -1395,6 +1432,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_Ldc_R8:			// 0x23
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ldc.R8");
@@ -1411,8 +1449,8 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 break;
 			}
 
-            // 0x24 Doesn't exist
-            case ILOpcode_Dup:				// 0x25
+
+			case ILOpcode_Dup:				// 0x25
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Dup");
 				StackObject* object = SyntheticStack_Peek(stack);
@@ -1429,6 +1467,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_Pop:				// 0x26
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Pop");
@@ -1440,6 +1479,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 break;
 			}
 
+
             case ILOpcode_Call:				// 0x28
                 ClearFlags();
                 break;
@@ -1447,9 +1487,11 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
             case ILOpcode_CallI:			// 0x29
                 ClearFlags();
                 break;
+
             case ILOpcode_CallVirt:			// 0x6F
                 ClearFlags();
                 break;
+
             case ILOpcode_Jmp:				// 0x27
 				ClearFlags();
                 break;
@@ -1462,6 +1504,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
             case ILOpcode_Br:				// 0x38
                 ClearFlags();
                 break;
+
             case ILOpcode_Br_S:				// 0x2B
                 ClearFlags();
                 break;
@@ -1469,6 +1512,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
             case ILOpcode_BrFalse:			// 0x39
                 ClearFlags();
                 break;
+
             case ILOpcode_BrFalse_S:		// 0x2C
                 ClearFlags();
                 break;
@@ -1476,6 +1520,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
             case ILOpcode_BrTrue:			// 0x3A
                 ClearFlags();
                 break;
+
             case ILOpcode_BrTrue_S:			// 0x2D
                 ClearFlags();
                 break;
@@ -1483,6 +1528,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
             case ILOpcode_Beq:				// 0x3B
                 ClearFlags();
                 break;
+
             case ILOpcode_Beq_S:			// 0x2E
                 ClearFlags();
                 break;
@@ -1490,6 +1536,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
             case ILOpcode_Bne_Un:			// 0x40
                 ClearFlags();
                 break;
+
             case ILOpcode_Bne_Un_S:			// 0x33
                 ClearFlags();
                 break;
@@ -1497,12 +1544,15 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
             case ILOpcode_Bge:				// 0x3C
                 ClearFlags();
                 break;
+
             case ILOpcode_Bge_S:			// 0x2F
                 ClearFlags();
                 break;
+
             case ILOpcode_Bge_Un:			// 0x41
                 ClearFlags();
                 break;
+
             case ILOpcode_Bge_Un_S:			// 0x34
                 ClearFlags();
                 break;
@@ -1510,12 +1560,15 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
             case ILOpcode_Bgt:				// 0x3D
                 ClearFlags();
                 break;
+
             case ILOpcode_Bgt_S:			// 0x30
                 ClearFlags();
                 break;
+
             case ILOpcode_Bgt_Un:			// 0x42
                 ClearFlags();
                 break;
+
             case ILOpcode_Bgt_Un_S:			// 0x35
                 ClearFlags();
                 break;
@@ -1523,12 +1576,15 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
             case ILOpcode_Ble:				// 0x3E
                 ClearFlags();
                 break;
+
             case ILOpcode_Ble_S:			// 0x31
                 ClearFlags();
                 break;
+
             case ILOpcode_Ble_Un:			// 0x43
                 ClearFlags();
                 break;
+
             case ILOpcode_Ble_Un_S:			// 0x36
                 ClearFlags();
                 break;
@@ -1536,12 +1592,15 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
             case ILOpcode_Blt:				// 0x3F
                 ClearFlags();
                 break;
+
             case ILOpcode_Blt_S:			// 0x32
                 ClearFlags();
                 break;
+
             case ILOpcode_Blt_Un:			// 0x44
                 ClearFlags();
                 break;
+
             case ILOpcode_Blt_Un_S:			// 0x37
                 ClearFlags();
                 break;
@@ -1549,6 +1608,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
             case ILOpcode_Switch:			// 0x45
 				ClearFlags();
 				break;
+
 
             case ILOpcode_LdInd_I:			// 0x4D
 			{
@@ -1564,6 +1624,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_LdInd_I1:			// 0x46
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdInd.I1");
@@ -1578,6 +1639,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_LdInd_U1:			// 0x47
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdInd.U1");
@@ -1592,6 +1654,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_LdInd_I2:			// 0x48
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdInd.I2");
@@ -1606,6 +1669,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_LdInd_U2:			// 0x49
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdInd.U2");
@@ -1620,6 +1684,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_LdInd_I4:			// 0x4A
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdInd.I4");
@@ -1634,6 +1699,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_LdInd_U4:			// 0x4B
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdInd.U4");
@@ -1648,6 +1714,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_LdInd_I8:			// 0x4C
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdInd.I8");
@@ -1662,6 +1729,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_LdInd_R4:			// 0x4D
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdInd.R4");
@@ -1676,6 +1744,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_LdInd_R8:			// 0x4F
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdInd.R8");
@@ -1690,6 +1759,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_LdInd_Ref:		// 0x50
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdInd.Ref");
@@ -1715,6 +1785,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_StInd_I1:			// 0x52
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StInd.I1");
@@ -1725,6 +1796,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_StInd_I2:			// 0x53
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StInd.I2");
@@ -1735,6 +1807,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_StInd_I4:			// 0x54
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StInd.I4");
@@ -1745,6 +1818,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_StInd_I8:			// 0x55
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StInd.I8");
@@ -1755,6 +1829,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_StInd_R4:			// 0x56
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StInd.R4");
@@ -1765,6 +1840,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_StInd_R8:			// 0x57
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StInd.R8");
@@ -1775,6 +1851,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_StInd_Ref:		// 0x51
 			{
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StInd.Ref");
@@ -1789,94 +1866,193 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_Add:				// 0x58
 				BINARY_NUMERIC_OPERATION(Add, Add, None);
+
             case ILOpcode_Add_Ovf:			// 0xD6
 				BINARY_NUMERIC_OPERATION(Add.Ovf, Add, Signed);
+
             case ILOpcode_Add_Ovf_Un:		// 0xD7
 				BINARY_NUMERIC_OPERATION(Add.Ovf.Un, Add, Unsigned);
 
             case ILOpcode_Sub:				// 0x59
 				BINARY_NUMERIC_OPERATION(Sub, Sub, None);
+
             case ILOpcode_Sub_Ovf:			// 0xDA
 				BINARY_NUMERIC_OPERATION(Sub.Ovf, Sub, Signed);
+
             case ILOpcode_Sub_Ovf_Un:		// 0xDB
 				BINARY_NUMERIC_OPERATION(Sub.Ovf.Un, Sub, Unsigned);
 				
             case ILOpcode_Mul:				// 0x5A
 				BINARY_NUMERIC_OPERATION(Mul, Mul, None);
+
             case ILOpcode_Mul_Ovf:			// 0xD8
 				BINARY_NUMERIC_OPERATION(Mul.Ovf, Mul, Signed);
+
             case ILOpcode_Mul_Ovf_Un:		// 0xD9
 				BINARY_NUMERIC_OPERATION(Mul.Ovf.Un, Mul, Unsigned);
 
             case ILOpcode_Div:				// 0x5B
 				BINARY_NUMERIC_OPERATION(Div, Div, Signed);
+
             case ILOpcode_Div_Un:			// 0x5C
 				BINARY_NUMERIC_OPERATION(Div.Un, Div, Unsigned);
 
             case ILOpcode_Rem:				// 0x5D
 				BINARY_NUMERIC_OPERATION(Rem, Rem, Signed);
+
             case ILOpcode_Rem_Un:			// 0x5E
 				BINARY_NUMERIC_OPERATION(Rem.Un, Rem, Unsigned);
 
-
             case ILOpcode_And:				// 0x5F
 				BITWISE_NUMERIC_OPERATION(And);
+
             case ILOpcode_Or:				// 0x60
 				BITWISE_NUMERIC_OPERATION(Or);
+
             case ILOpcode_Xor:				// 0x61
 				BITWISE_NUMERIC_OPERATION(Xor);
 
-
             case ILOpcode_Neg:				// 0x65
 				UNARY_NUMERIC_OPERATION(Neg);
+
 			case ILOpcode_Not:				// 0x66
 				UNARY_NUMERIC_OPERATION(Not);
 
-
-            case ILOpcode_Shl:				// 0x62
+			case ILOpcode_Shl:				// 0x62
 				SHIFT_NUMERIC_OPERATION(Shl, Left);
+
             case ILOpcode_Shr:				// 0x63
 				SHIFT_NUMERIC_OPERATION(Shr, Right_Sign_Extended);
+
             case ILOpcode_Shr_Un:			// 0x64
 				SHIFT_NUMERIC_OPERATION(Shr.Un, Right);
 
 
             case ILOpcode_Conv_I1:			// 0x67
 				UNCHECKED_CONVERSION_NUMERIC_OPERATION(I1, domain->IRAssemblies[0]->Types[domain->CachedType___System_SByte->TableIndex - 1]);
+
             case ILOpcode_Conv_U1:			// 0xD2
 				UNCHECKED_CONVERSION_NUMERIC_OPERATION(U1, domain->IRAssemblies[0]->Types[domain->CachedType___System_Byte->TableIndex - 1]);
+
             case ILOpcode_Conv_I2:			// 0x68
 				UNCHECKED_CONVERSION_NUMERIC_OPERATION(I2, domain->IRAssemblies[0]->Types[domain->CachedType___System_Int16->TableIndex - 1]);
+
             case ILOpcode_Conv_U2:			// 0xD1
 				UNCHECKED_CONVERSION_NUMERIC_OPERATION(U2, domain->IRAssemblies[0]->Types[domain->CachedType___System_UInt16->TableIndex - 1]);
+
             case ILOpcode_Conv_I4:			// 0x69
 				UNCHECKED_CONVERSION_NUMERIC_OPERATION(I4, domain->IRAssemblies[0]->Types[domain->CachedType___System_Int32->TableIndex - 1]);
+
             case ILOpcode_Conv_U4:			// 0x6D
 				UNCHECKED_CONVERSION_NUMERIC_OPERATION(U4, domain->IRAssemblies[0]->Types[domain->CachedType___System_UInt32->TableIndex - 1]);
+
             case ILOpcode_Conv_I8:			// 0x6A
 				UNCHECKED_CONVERSION_NUMERIC_OPERATION(I8, domain->IRAssemblies[0]->Types[domain->CachedType___System_Int64->TableIndex - 1]);
+
             case ILOpcode_Conv_U8:			// 0x6E
 				UNCHECKED_CONVERSION_NUMERIC_OPERATION(U8, domain->IRAssemblies[0]->Types[domain->CachedType___System_UInt64->TableIndex - 1]);
+
             case ILOpcode_Conv_R4:			// 0x6B
 				UNCHECKED_CONVERSION_NUMERIC_OPERATION(R4, domain->IRAssemblies[0]->Types[domain->CachedType___System_Single->TableIndex - 1]);
+
             case ILOpcode_Conv_R8:			// 0x6C
 				UNCHECKED_CONVERSION_NUMERIC_OPERATION(R8, domain->IRAssemblies[0]->Types[domain->CachedType___System_Double->TableIndex - 1]);
+
             case ILOpcode_Conv_I:			// 0xD3
 				UNCHECKED_CONVERSION_NUMERIC_OPERATION(I, domain->IRAssemblies[0]->Types[domain->CachedType___System_IntPtr->TableIndex - 1]);
+
             case ILOpcode_Conv_U:			// 0xE0
 				UNCHECKED_CONVERSION_NUMERIC_OPERATION(U, domain->IRAssemblies[0]->Types[domain->CachedType___System_UIntPtr->TableIndex - 1]);
 
             case ILOpcode_Conv_R_Un:		// 0x76
+                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Conv.R.Un (Unsupported)");
+
+				Panic("Conv.R.Un (Unsupported)");
+
                 ClearFlags();
                 break;
 
 
             case ILOpcode_NewObj:			// 0x73
+			{
+				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read NewObj");
+				MetadataToken* token = CLIFile_ExpandMetadataToken(file, ReadUInt32(currentDataPointer));
+				MethodSignature* constructorSignature = NULL;
+				IRMethod* constructorMethod = NULL;
+				switch(token->Table)
+				{
+					case MetadataTable_MethodDefinition:
+						{
+							constructorSignature = MethodSignature_Expand(((MethodDefinition*)token->Data)->Signature, file);
+							constructorMethod = assembly->Methods[((MethodDefinition*)token->Data)->TableIndex - 1];
+							break;
+						}
+					case MetadataTable_MemberReference:
+						{
+							MemberReference* memberRef = (MemberReference*)token->Data;
+							constructorSignature = MethodSignature_Expand(memberRef->Signature, file);
+							MethodDefinition* methodDef = memberRef->Resolved.MethodDefinition;
+							constructorMethod = methodDef->File->Assembly->Methods[methodDef->TableIndex - 1];
+							break;
+						}
+
+					default:
+						Panic("Unknown table for NewObj");
+						break;
+				}
+				for (uint32_t index = 0; index < constructorSignature->ParameterCount; index++)
+				{
+					SR(SyntheticStack_Pop(stack));
+				}
+				MethodSignature_Destroy(constructorSignature);
+				CLIFile_DestroyMetadataToken(token);
+
+				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_New_Object, constructorMethod);
+
+				StackObject* obj = StackObjectPool_Allocate(stack);
+				obj->Type = constructorMethod->ParentAssembly->Types[constructorMethod->MethodDefinition->TypeDefinition->TableIndex - 1];
+				obj->SourceType = StackObjectSourceType_Stack;
+				SyntheticStack_Push(stack, obj);
+
                 ClearFlags();
                 break;
+			}
+
             case ILOpcode_NewArr:			// 0x8D
+			{
+				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read NewArr");
+				MetadataToken* token = CLIFile_ExpandMetadataToken(file, ReadUInt32(currentDataPointer));
+				IRType* elementType = NULL;
+				switch (token->Table)
+				{
+					case MetadataTable_TypeDefinition:
+						elementType = assembly->Types[((TypeDefinition*)token->Data)->TableIndex - 1];
+						break;
+					case MetadataTable_TypeReference:
+						{
+							TypeDefinition* typeDef = ((TypeReference*)token->Data)->ResolvedType;
+							elementType = typeDef->File->Assembly->Types[typeDef->TableIndex - 1];
+							break;
+						}
+					case MetadataTable_TypeSpecification:
+						printf("Generics not yet supported\n");
+						break;
+					default:
+						Panic("Unknown table for NewArr");
+						break;
+				}
+				CLIFile_DestroyMetadataToken(token);
+
+				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_New_Array, elementType);
+
+				StackObject* obj = SyntheticStack_Pop(stack);
+				obj->Type = IRAssembly_MakeArrayType(assembly, elementType);
+				obj->SourceType = StackObjectSourceType_Stack;
+				SyntheticStack_Push(stack, obj);
+
                 ClearFlags();
                 break;
+			}
 
             case ILOpcode_CastClass:		// 0x74
 			{
@@ -1914,6 +2090,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_IsInst:			// 0x75
 			{
 				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read IsInst");
@@ -1951,8 +2128,6 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 break;
 			}
 
-            // 0x77 Doesn't exist
-            // 0x78 Doesn't exist
             case ILOpcode_UnBox:			// 0x79
 			{
 				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Unbox");
@@ -2007,6 +2182,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 ClearFlags();
                 break;
 			}
+
             case ILOpcode_Unbox_Any:		// 0xA5
 			{
 				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Unbox.Any");
@@ -2140,6 +2316,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				ClearFlags();
 				break;
 
+
             case ILOpcode_LdObj:			// 0x71
             {
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdObj");
@@ -2263,68 +2440,99 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
             case ILOpcode_Conv_Ovf_I1:		// 0xB3
                 ClearFlags();
                 break;
+
             case ILOpcode_Conv_Ovf_I1_Un:	// 0x82
                 ClearFlags();
                 break;
+
             case ILOpcode_Conv_Ovf_U1:		// 0xB4
                 ClearFlags();
                 break;
+
             case ILOpcode_Conv_Ovf_U1_Un:	// 0x86
                 ClearFlags();
                 break;
+
             case ILOpcode_Conv_Ovf_I2:		// 0xB5
                 ClearFlags();
                 break;
+
             case ILOpcode_Conv_Ovf_I2_Un:	// 0x83
                 ClearFlags();
                 break;
+
             case ILOpcode_Conv_Ovf_U2:		// 0xB6
                 ClearFlags();
                 break;
+
             case ILOpcode_Conv_Ovf_U2_Un:	// 0x87
                 ClearFlags();
                 break;
+
             case ILOpcode_Conv_Ovf_I4:		// 0xB7
                 ClearFlags();
                 break;
+
             case ILOpcode_Conv_Ovf_I4_Un:	// 0x84
                 ClearFlags();
                 break;
+
             case ILOpcode_Conv_Ovf_U4:		// 0xB8
                 ClearFlags();
                 break;
+
             case ILOpcode_Conv_Ovf_U4_Un:	// 0x88
                 ClearFlags();
                 break;
+
             case ILOpcode_Conv_Ovf_I8:		// 0xB9
                 ClearFlags();
                 break;
+
             case ILOpcode_Conv_Ovf_I8_Un:	// 0x85
                 ClearFlags();
                 break;
+
             case ILOpcode_Conv_Ovf_U8:		// 0xBA
                 ClearFlags();
                 break;
+
             case ILOpcode_Conv_Ovf_U8_Un:	// 0x89
                 ClearFlags();
                 break;
+
             case ILOpcode_Conv_Ovf_I:		// 0xD4
                 ClearFlags();
                 break;
+
             case ILOpcode_Conv_Ovf_I_Un:	// 0x8A
                 ClearFlags();
                 break;
+
             case ILOpcode_Conv_Ovf_U:		// 0xD5
                 ClearFlags();
                 break;
+
             case ILOpcode_Conv_Ovf_U_Un:	// 0x8B
                 ClearFlags();
                 break;
 
 
             case ILOpcode_LdLen:			// 0x8E
+			{
+				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdLen");
+
+				EMIT_IR(IROpcode_Load_ArrayLength);
+
+				StackObject* obj = SyntheticStack_Pop(stack);
+				obj->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_UInt32->TableIndex - 1];
+				obj->SourceType = StackObjectSourceType_Stack;
+				SyntheticStack_Push(stack, obj);
+
                 ClearFlags();
                 break;
+			} 
+
             case ILOpcode_LdElemA:			// 0x8F
 	            ClearFlags();
 				break;
@@ -2332,33 +2540,43 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
             case ILOpcode_LdElem_I1:		// 0x90
 	            ClearFlags();
 				break;
+
             case ILOpcode_LdElem_U1:		// 0x91
 	            ClearFlags();
 				break;
+
             case ILOpcode_LdElem_I2:		// 0x92
 	            ClearFlags();
 				break;
+
             case ILOpcode_LdElem_U2:		// 0x93
 	            ClearFlags();
 				break;
+
             case ILOpcode_LdElem_I4:		// 0x94
 	            ClearFlags();
 				break;
+
             case ILOpcode_LdElem_U4:		// 0x95
 	            ClearFlags();
 				break;
+
             case ILOpcode_LdElem_I8:		// 0x96
 	            ClearFlags();
 				break;
+
             case ILOpcode_LdElem_I:			// 0x97
 	            ClearFlags();
 				break;
+
             case ILOpcode_LdElem_R4:		// 0x98
 	            ClearFlags();
 				break;
+
             case ILOpcode_LdElem_R8:		// 0x99
 	            ClearFlags();
 				break;
+
             case ILOpcode_LdElem_Ref:		// 0x9A
 	            ClearFlags();
 				break;
@@ -2370,24 +2588,31 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
             case ILOpcode_StElem_I:			// 0x9B
 	            ClearFlags();
 				break;
+
             case ILOpcode_StElem_I1:		// 0x9C
 	            ClearFlags();
 				break;
+
             case ILOpcode_StElem_I2:		// 0x9D
 	            ClearFlags();
 				break;
+
             case ILOpcode_StElem_I4:		// 0x9E
 	            ClearFlags();
 				break;
+
             case ILOpcode_StElem_I8:		// 0x9F
 	            ClearFlags();
 				break;
+
             case ILOpcode_StElem_R4:		// 0xA0
 	            ClearFlags();
 				break;
+
             case ILOpcode_StElem_R8:		// 0xA1
 	            ClearFlags();
 				break;
+
             case ILOpcode_StElem_Ref:		// 0xA2
 	            ClearFlags();
 				break;
@@ -2396,87 +2621,43 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				ClearFlags();
 				break;
 
-            // 0xA6 Doesn't exist
-            // 0xA7 Doesn't exist
-            // 0xA8 Doesn't exist
-            // 0xA9 Doesn't exist
-            // 0xAA Doesn't exist
-            // 0xAB Doesn't exist
-            // 0xAC Doesn't exist
-            // 0xAD Doesn't exist
-            // 0xAE Doesn't exist
-            // 0xAF Doesn't exist
-            // 0xB0 Doesn't exist
-            // 0xB1 Doesn't exist
-            // 0xB2 Doesn't exist
-            // 0xBB Doesn't exist
-            // 0xBC Doesn't exist
-            // 0xBD Doesn't exist
-            // 0xBE Doesn't exist
-            // 0xBF Doesn't exist
-            // 0xC0 Doesn't exist
-            // 0xC1 Doesn't exist
-            case ILOpcode_RefAnyVal:		// 0xC2
+
+			case ILOpcode_RefAnyVal:		// 0xC2
                 ClearFlags();
                 break;
+
             case ILOpcode_CkFinite:			// 0xC3
-                ClearFlags();
-				break;
-            // 0xC4 Doesn't exist
-            // 0xC5 Doesn't exist
-            case ILOpcode_MkRefAny:			// 0xC6
+			{
+				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read CkFinite");
+
+				EMIT_IR(IROpcode_CheckFinite);
+
                 ClearFlags();
                 break;
-            // 0xC7 Doesn't exist
-            // 0xC8 Doesn't exist
-            // 0xC9 Doesn't exist
-            // 0xCA Doesn't exist
-            // 0xCB Doesn't exist
-            // 0xCC Doesn't exist
-            // 0xCD Doesn't exist
-            // 0xCE Doesn't exist
-            // 0xCF Doesn't exist
-            case ILOpcode_LdToken:			// 0xD0
+			} 
+
+			case ILOpcode_MkRefAny:			// 0xC6
+                ClearFlags();
+                break;
+
+			case ILOpcode_LdToken:			// 0xD0
 				ClearFlags();
 				break;
+
+
             case ILOpcode_EndFinally:		// 0xDC
                 ClearFlags();
                 break;
+
             case ILOpcode_Leave:			// 0xDD
                 ClearFlags();
                 break;
+
             case ILOpcode_Leave_S:			// 0xDE
                 ClearFlags();
                 break;
-            // 0xE1 Doesn't Exist
-            // 0xE2 Doesn't Exist
-            // 0xE3 Doesn't Exist
-            // 0xE4 Doesn't Exist
-            // 0xE5 Doesn't Exist
-            // 0xE6 Doesn't Exist
-            // 0xE7 Doesn't Exist
-            // 0xE8 Doesn't Exist
-            // 0xE9 Doesn't Exist
-            // 0xEA Doesn't Exist
-            // 0xEB Doesn't Exist
-            // 0xEC Doesn't Exist
-            // 0xED Doesn't Exist
-            // 0xEE Doesn't Exist
-            // 0xEF Doesn't Exist
-            // 0xF0 Doesn't Exist
-            // 0xF1 Doesn't Exist
-            // 0xF2 Doesn't Exist
-            // 0xF3 Doesn't Exist
-            // 0xF4 Doesn't Exist
-            // 0xF5 Doesn't Exist
-            // 0xF6 Doesn't Exist
-            // 0xF7 Doesn't Exist
-            // 0xF8 Doesn't Exist
-            // 0xF9 Doesn't Exist
-            // 0xFA Doesn't Exist
-            // 0xFB Doesn't Exist
-            // 0xFC Doesn't Exist
-            // 0xFD Doesn't Exist
+
+
             case ILOpcode_Extended:         // 0xFE
 		        currentILOpcode = ReadUInt8(currentDataPointer);
 
@@ -2485,27 +2666,36 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                     case ILOpcode_Extended_ArgList:		// 0x00
                         ClearFlags();
                         break;
+
+
                     case ILOpcode_Extended_Ceq:			// 0x01
                         ClearFlags();
                         break;
+
                     case ILOpcode_Extended_Cgt:			// 0x02
                         ClearFlags();
                         break;
+
                     case ILOpcode_Extended_Cgt_Un:			// 0x03
                         ClearFlags();
                         break;
+
                     case ILOpcode_Extended_Clt:			// 0x04
                         ClearFlags();
                         break;
+
                     case ILOpcode_Extended_Clt_Un:			// 0x05
                         ClearFlags();
                         break;
+
                     case ILOpcode_Extended_LdFtn:			// 0x06
 						ClearFlags();
 						break;
+
                     case ILOpcode_Extended_LdVirtFtn:		// 0x07
 						ClearFlags();
 						break;
+
                     case ILOpcode_Extended_LdArg:			// 0x09
 					{
 						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdArg");
@@ -2534,6 +2724,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 						ClearFlags();
 						break;
 					}
+
 					case ILOpcode_Extended_LdArgA:			// 0x0A
 					{
 						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdArgA");
@@ -2560,6 +2751,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 						ClearFlags();
 						break;
 					}
+
                     case ILOpcode_Extended_LdLoc:			// 0x0C
 					{
 						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdLoc");
@@ -2574,6 +2766,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 						ClearFlags();
 						break;
 					}
+
                     case ILOpcode_Extended_LdLocA:			// 0x0D
 					{
 						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdLocA");
@@ -2588,6 +2781,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 						ClearFlags();
 						break;
 					}
+
                     case ILOpcode_Extended_StLoc:			// 0x0E
 					{
 						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StLoc");
@@ -2599,27 +2793,35 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 						ClearFlags();
 						break;
 					}
+
                     case ILOpcode_Extended_LocAlloc:		// 0x0F
                         ClearFlags();
                         break;
+
                     case ILOpcode_Extended_EndFilter:		// 0x11
                         ClearFlags();
                         break;
+
                     case ILOpcode_Extended_InitObj:		// 0x15
 						ClearFlags();
 						break;
+
                     case ILOpcode_Extended_CpBlk:			// 0x17
 						ClearFlags();
 						break;
+
                     case ILOpcode_Extended_InitBlk:		// 0x18
 						ClearFlags();
 						break;
+
                     case ILOpcode_Extended_ReThrow:		// 0x1A
 						ClearFlags();
                         break;
+
                     case ILOpcode_Extended_SizeOf:			// 0x1C
 						ClearFlags();
 						break;
+
                     case ILOpcode_Extended_RefAnyType:		// 0x1D
                         ClearFlags();
                         break;

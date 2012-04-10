@@ -843,6 +843,90 @@ typedef enum IROpcode
 
 	 */
 	IROpcode_Copy_Object,
+	/*
+		Description:
+			Creates a new object and calls the specified constructor.
+		
+		Stack:
+			..., arg1, ..., argN -> ..., object
+
+		Arg1: IRMethod*
+			A pointer to the IRMethod of the constructor.
+
+		Arg2:
+			N/A
+
+		Arg3:
+			N/A
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_New_Object,
+	/*
+		Description:
+			Loads the length of an array.
+		
+		Stack:
+			..., array -> ..., length
+
+		Arg1:
+			N/A
+
+		Arg2:
+			N/A
+
+		Arg3:
+			N/A
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_Load_ArrayLength,
+	/*
+		Description:
+			Creates a new array with elements of the specified type.
+		
+		Stack:
+			..., size -> ..., array
+
+		Arg1: IRType*
+			A pointer to the IRType of the elements.
+
+		Arg2:
+			N/A
+
+		Arg3:
+			N/A
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_New_Array,
+	/*
+		Description:
+			Checks if value is NaN or +/- infinite.
+		
+		Stack:
+			..., value -> ..., value
+
+		Arg1:
+			N/A
+
+		Arg2:
+			N/A
+
+		Arg3:
+			N/A
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_CheckFinite,
 } IROpcode;
 
 typedef enum OverflowType

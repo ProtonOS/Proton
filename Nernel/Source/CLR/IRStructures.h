@@ -40,6 +40,7 @@ void IRAssembly_Destroy(IRAssembly* pAssembly);
 void IRAssembly_AddField(IRAssembly* pAssembly, IRField* pField);
 void IRAssembly_AddType(IRAssembly* pAssembly, IRType* pType);
 IRType* IRAssembly_MakePointerType(IRAssembly* pAssembly, IRType* pType);
+IRType* IRAssembly_MakeArrayType(IRAssembly* pAssembly, IRType* pType);
 
 struct _IRType
 {
