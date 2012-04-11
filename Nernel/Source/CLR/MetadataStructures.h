@@ -996,6 +996,8 @@ struct _MemberReference
     const char* Name;
     uint32_t SignatureLength;
     uint8_t* Signature;
+	MethodSignature* MethodSignatureCache;
+	FieldSignature* FieldSignatureCache;
 
     uint32_t CustomAttributeCount;
     CustomAttribute** CustomAttributes;

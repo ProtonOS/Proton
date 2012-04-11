@@ -927,6 +927,90 @@ typedef enum IROpcode
 
 	 */
 	IROpcode_CheckFinite,
+	/*
+		Description:
+			Loads the specified field from the object.
+		
+		Stack:
+			..., object -> ..., value
+
+		Arg1: IRType*
+			A pointer to the IRType of the object.
+
+		Arg2: IRType*
+			A pointer to the IRType of the field.
+
+		Arg3: uint32_t
+			The index to the field of the object.
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_Load_Field,
+	/*
+		Description:
+			Loads the specified field address from the object.
+		
+		Stack:
+			..., object -> ..., address
+
+		Arg1: IRType*
+			A pointer to the IRType of the object.
+
+		Arg2: IRType*
+			A pointer to the IRType of the field.
+
+		Arg3: uint32_t
+			The index to the field of the object.
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_Load_FieldAddress,
+	/*
+		Description:
+			Stores a value to the specified field in the object.
+		
+		Stack:
+			..., object, value -> ...
+
+		Arg1: IRType*
+			A pointer to the IRType of the object.
+
+		Arg2: IRType*
+			A pointer to the IRType of the field.
+
+		Arg3: uint32_t
+			The index to the field of the object.
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_Store_Field,
+	/*
+		Description:
+			Loads the specified static field.
+		
+		Stack:
+			... -> ..., value
+
+		Arg1: IRType*
+			A pointer to the IRType containing the static field.
+
+		Arg2: uint32_t
+			The index to the static field.
+
+		Arg3:
+			N/A
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_Load_StaticField,
 } IROpcode;
 
 typedef enum OverflowType

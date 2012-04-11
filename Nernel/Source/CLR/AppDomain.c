@@ -363,6 +363,101 @@ IRType* AppDomain_GetIRTypeFromSignatureType(AppDomain* pDomain, IRAssembly* pAs
 	return type;
 }
 
+IRType* AppDomain_GetIRTypeFromMetadataToken(AppDomain* pDomain, IRAssembly* pAssembly, uint32_t pToken, uint32_t* pFieldIndex)
+{
+	MetadataToken* token = CLIFile_ExpandMetadataToken(pAssembly->ParentFile, pToken);
+	IRType* type = NULL;
+	switch(token->Table)
+	{
+		case MetadataTable_TypeDefinition:
+		{
+			TypeDefinition* typeDef = (TypeDefinition*)token->Data;
+			if (AppDomain_IsStructure(pDomain, typeDef))
+			{
+				type = IRAssembly_MakePointerType(pAssembly, pAssembly->Types[typeDef->TableIndex - 1]);
+			}
+			else
+			{
+				type = pAssembly->Types[typeDef->TableIndex - 1];
+			}
+			break;
+		}
+		case MetadataTable_TypeReference:
+		{
+			TypeDefinition* typeDef = ((TypeReference*)token->Data)->ResolvedType;
+			if (AppDomain_IsStructure(pDomain, typeDef))
+			{
+				type = IRAssembly_MakePointerType(pAssembly, typeDef->File->Assembly->Types[typeDef->TableIndex - 1]);
+			}
+			else
+			{
+				type = typeDef->File->Assembly->Types[typeDef->TableIndex - 1];
+			}
+			break;
+		}
+		case MetadataTable_TypeSpecification:
+			Panic("AppDomain_GetIRTypeFromMetadataToken: TypeSpecifications not yet supported\n");
+			break;
+		case MetadataTable_StandAloneSignature:
+		{
+			Panic("AppDomain_GetIRTypeFromMetadataToken: StandAloneSignatures not yet supported\n");
+			break;
+		}
+		case MetadataTable_Field:
+		{
+			Field* fieldDef = (Field*)token->Data;
+			TypeDefinition* typeDef = fieldDef->TypeDefinition;
+			for (uint32_t index = 0; index < typeDef->FieldListCount; index++)
+			{
+				if (!strcmp(fieldDef->Name, typeDef->FieldList[index].Name))
+				{
+					if (Signature_Equals(fieldDef->Signature, fieldDef->SignatureLength, typeDef->FieldList[index].Signature, typeDef->FieldList[index].SignatureLength))
+					{
+						*pFieldIndex = index;
+						type = pAssembly->Types[typeDef->TableIndex - 1];
+						type = type->Fields[index]->FieldType;
+						break;
+					}
+				}
+			}
+			if (!type)
+			{
+				Panic("AppDomain_GetIRTypeFromMetadataToken: Unable to resolve Field");
+			}
+			break;
+		}
+		case MetadataTable_MemberReference:
+		{
+			Field* fieldDef = ((MemberReference*)token->Data)->Resolved.Field;
+			TypeDefinition* typeDef = fieldDef->TypeDefinition;
+			for (uint32_t index = 0; index < typeDef->FieldListCount; index++)
+			{
+				if (!strcmp(fieldDef->Name, typeDef->FieldList[index].Name))
+				{
+					if (Signature_Equals(fieldDef->Signature, fieldDef->SignatureLength, typeDef->FieldList[index].Signature, typeDef->FieldList[index].SignatureLength))
+					{
+						*pFieldIndex = index;
+						type = typeDef->File->Assembly->Types[typeDef->TableIndex - 1];
+						type = type->Fields[index]->FieldType;
+						break;
+					}
+				}
+			}
+			if (!type)
+			{
+				Panic("AppDomain_GetIRTypeFromMetadataToken: Unable to resolve MemberReference");
+			}
+			break;
+		}
+		default:
+			Panic("AppDomain_GetIRTypeFromMetadataToken: Unknown Table");
+			break;
+	}
+	CLIFile_DestroyMetadataToken(token);
+	return type;
+}
+
+
 bool_t AppDomain_IsStructure(AppDomain* pDomain, TypeDefinition* pTypeDefinition)
 {
 	if (pTypeDefinition->TypeOfExtends == TypeDefRefOrSpecType_TypeDefinition)

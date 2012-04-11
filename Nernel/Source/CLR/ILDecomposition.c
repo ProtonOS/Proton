@@ -1976,25 +1976,30 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
             case ILOpcode_NewObj:			// 0x73
 			{
 				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read NewObj");
+
 				MetadataToken* token = CLIFile_ExpandMetadataToken(file, ReadUInt32(currentDataPointer));
 				MethodSignature* constructorSignature = NULL;
 				IRMethod* constructorMethod = NULL;
 				switch(token->Table)
 				{
 					case MetadataTable_MethodDefinition:
-						{
-							constructorSignature = MethodSignature_Expand(((MethodDefinition*)token->Data)->Signature, file);
-							constructorMethod = assembly->Methods[((MethodDefinition*)token->Data)->TableIndex - 1];
-							break;
-						}
+					{
+						constructorSignature = ((MethodDefinition*)token->Data)->SignatureCache;
+						constructorMethod = assembly->Methods[((MethodDefinition*)token->Data)->TableIndex - 1];
+						break;
+					}
 					case MetadataTable_MemberReference:
+					{
+						MemberReference* memberRef = (MemberReference*)token->Data;
+						if (!(constructorSignature = memberRef->MethodSignatureCache))
 						{
-							MemberReference* memberRef = (MemberReference*)token->Data;
-							constructorSignature = MethodSignature_Expand(memberRef->Signature, file);
-							MethodDefinition* methodDef = memberRef->Resolved.MethodDefinition;
-							constructorMethod = methodDef->File->Assembly->Methods[methodDef->TableIndex - 1];
-							break;
+							memberRef->MethodSignatureCache = MethodSignature_Expand(memberRef->Signature, file);
+							constructorSignature = memberRef->MethodSignatureCache;
 						}
+						MethodDefinition* methodDef = memberRef->Resolved.MethodDefinition;
+						constructorMethod = methodDef->File->Assembly->Methods[methodDef->TableIndex - 1];
+						break;
+					}
 
 					default:
 						Panic("Unknown table for NewObj");
@@ -2004,7 +2009,6 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				{
 					SR(SyntheticStack_Pop(stack));
 				}
-				MethodSignature_Destroy(constructorSignature);
 				CLIFile_DestroyMetadataToken(token);
 
 				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_New_Object, constructorMethod);
@@ -2021,34 +2025,14 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
             case ILOpcode_NewArr:			// 0x8D
 			{
 				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read NewArr");
-				MetadataToken* token = CLIFile_ExpandMetadataToken(file, ReadUInt32(currentDataPointer));
-				IRType* elementType = NULL;
-				switch (token->Table)
-				{
-					case MetadataTable_TypeDefinition:
-						elementType = assembly->Types[((TypeDefinition*)token->Data)->TableIndex - 1];
-						break;
-					case MetadataTable_TypeReference:
-						{
-							TypeDefinition* typeDef = ((TypeReference*)token->Data)->ResolvedType;
-							elementType = typeDef->File->Assembly->Types[typeDef->TableIndex - 1];
-							break;
-						}
-					case MetadataTable_TypeSpecification:
-						printf("Generics not yet supported\n");
-						break;
-					default:
-						Panic("Unknown table for NewArr");
-						break;
-				}
-				CLIFile_DestroyMetadataToken(token);
 
-				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_New_Array, elementType);
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
 
-				StackObject* obj = SyntheticStack_Pop(stack);
-				obj->Type = IRAssembly_MakeArrayType(assembly, elementType);
+				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_New_Array, type);
+
+				StackObject* obj = SyntheticStack_Peek(stack);
+				obj->Type = IRAssembly_MakeArrayType(assembly, type);
 				obj->SourceType = StackObjectSourceType_Stack;
-				SyntheticStack_Push(stack, obj);
 
                 ClearFlags();
                 break;
@@ -2057,35 +2041,14 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
             case ILOpcode_CastClass:		// 0x74
 			{
 				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read CastClass");
-				MetadataToken* token = CLIFile_ExpandMetadataToken(file, ReadUInt32(currentDataPointer));
-				IRType* castedType = NULL;
 
-				switch(token->Table)
-				{
-					case MetadataTable_TypeDefinition:
-						castedType = assembly->Types[((TypeDefinition*)token->Data)->TableIndex - 1];
-						break;
-					case MetadataTable_TypeReference:
-						{
-							TypeDefinition* typeDef = ((TypeReference*)token->Data)->ResolvedType;
-							castedType = typeDef->File->Assembly->Types[typeDef->TableIndex - 1];
-							break;
-						}
-					case MetadataTable_TypeSpecification:
-						printf("Don't know what to do here!\n");
-						break;
-					default:
-						Panic("Unknown table for CastClass!");
-						break;
-				}
-				CLIFile_DestroyMetadataToken(token);
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
 
-				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_CastClass, castedType);
+				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_CastClass, type);
 
-				StackObject* obj = PA();
-				obj->Type = castedType;
+				StackObject* obj = SyntheticStack_Peek(stack);
+				obj->Type = type;
 				obj->SourceType = StackObjectSourceType_Stack;
-				SyntheticStack_Push(stack, obj);
 
                 ClearFlags();
                 break;
@@ -2094,90 +2057,30 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
             case ILOpcode_IsInst:			// 0x75
 			{
 				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read IsInst");
-				MetadataToken* token = CLIFile_ExpandMetadataToken(file, ReadUInt32(currentDataPointer));
-				IRType* castedType = NULL;
 
-				switch(token->Table)
-				{
-					case MetadataTable_TypeDefinition:
-						castedType = assembly->Types[((TypeDefinition*)token->Data)->TableIndex - 1];
-						break;
-					case MetadataTable_TypeReference:
-						{
-							TypeDefinition* typeDef = ((TypeReference*)token->Data)->ResolvedType;
-							castedType = typeDef->File->Assembly->Types[typeDef->TableIndex - 1];
-							break;
-						}
-					case MetadataTable_TypeSpecification:
-						printf("Don't know what to do here!\n");
-						break;
-					default:
-						Panic("Unknown table for IsInst!");
-						break;
-				}
-				CLIFile_DestroyMetadataToken(token);
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
 
-				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_IsInst, castedType);
+				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_IsInst, type);
 
-				StackObject* obj = PA();
-				obj->Type = castedType;
+				StackObject* obj = SyntheticStack_Peek(stack);
+				obj->Type = type;
 				obj->SourceType = StackObjectSourceType_Stack;
-				SyntheticStack_Push(stack, obj);
 
                 ClearFlags();
                 break;
 			}
 
-            case ILOpcode_UnBox:			// 0x79
+            case ILOpcode_Unbox:			// 0x79
 			{
 				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Unbox");
-				MetadataToken* token = CLIFile_ExpandMetadataToken(file, ReadUInt32(currentDataPointer));
-				IRType* castedType = NULL;
 
-				switch(token->Table)
-				{
-					case MetadataTable_TypeDefinition:
-					{
-						TypeDefinition* typeDef = (TypeDefinition*)token->Data;
-						if (AppDomain_IsStructure(domain, typeDef))
-						{
-							castedType = IRAssembly_MakePointerType(assembly, assembly->Types[typeDef->TableIndex - 1]);
-						}
-						else
-						{
-							castedType = assembly->Types[typeDef->TableIndex - 1];
-						}
-						break;
-					}
-					case MetadataTable_TypeReference:
-					{
-						TypeDefinition* typeDef = ((TypeReference*)token->Data)->ResolvedType;
-						if (AppDomain_IsStructure(domain, typeDef))
-						{
-							castedType = IRAssembly_MakePointerType(assembly, typeDef->File->Assembly->Types[typeDef->TableIndex - 1]);
-						}
-						else
-						{
-							castedType = typeDef->File->Assembly->Types[typeDef->TableIndex - 1];
-						}
-						break;
-					}
-					case MetadataTable_TypeSpecification:
-						Panic("Generics not yet supported.\n");
-						break;
-					default:
-						Panic("Unknown table for Unbox");
-						break;
-				}
-				CLIFile_DestroyMetadataToken(token);
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
 
-				StackObject* obj = SyntheticStack_Pop(stack);
+				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Unbox, type);
 
-				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Unbox, castedType);
-
-				obj->Type = castedType;
+				StackObject* obj = SyntheticStack_Peek(stack);
+				obj->Type = IRAssembly_MakePointerType(assembly, type);
 				obj->SourceType = StackObjectSourceType_Stack;
-				SyntheticStack_Push(stack, obj);
 
                 ClearFlags();
                 break;
@@ -2186,54 +2089,14 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
             case ILOpcode_Unbox_Any:		// 0xA5
 			{
 				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Unbox.Any");
-				MetadataToken* token = CLIFile_ExpandMetadataToken(file, ReadUInt32(currentDataPointer));
-				TypeDefinition* typeDef = NULL;
-				IRType* castedType = NULL;
 
-				switch(token->Table)
-				{
-					case MetadataTable_TypeDefinition:
-					{
-						typeDef = (TypeDefinition*)token->Data;
-						if (AppDomain_IsStructure(domain, typeDef))
-						{
-							castedType = IRAssembly_MakePointerType(assembly, assembly->Types[typeDef->TableIndex - 1]);
-						}
-						else
-						{
-							castedType = assembly->Types[typeDef->TableIndex - 1];
-						}
-						break;
-					}
-					case MetadataTable_TypeReference:
-					{
-						typeDef = ((TypeReference*)token->Data)->ResolvedType;
-						if (AppDomain_IsStructure(domain, typeDef))
-						{
-							castedType = IRAssembly_MakePointerType(assembly, typeDef->File->Assembly->Types[typeDef->TableIndex - 1]);
-						}
-						else
-						{
-							castedType = typeDef->File->Assembly->Types[typeDef->TableIndex - 1];
-						}
-						break;
-					}
-					case MetadataTable_TypeSpecification:
-						Panic("Generics not yet supported\n");
-						break;
-					default:
-						Panic("Unknown table for Unbox.Any");
-						break;
-				}
-				CLIFile_DestroyMetadataToken(token);
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
 
-				StackObject* obj = SyntheticStack_Pop(stack);
+				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Unbox_Any, type);
 
-				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Unbox_Any, castedType);
-
-				obj->Type = castedType;
+				StackObject* obj = SyntheticStack_Peek(stack);
+				obj->Type = type;
 				obj->SourceType = StackObjectSourceType_Stack;
-				SyntheticStack_Push(stack, obj);
 
                 ClearFlags();
                 break;
@@ -2243,36 +2106,13 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 			{
 				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Box");
 
-				MetadataToken* token = CLIFile_ExpandMetadataToken(file, ReadUInt32(currentDataPointer));
-				TypeDefinition* typeDef = NULL;
-				IRType* castedType = NULL;
-				switch (token->Table)
-				{
-					case MetadataTable_TypeDefinition:
-						typeDef = (TypeDefinition*)token->Data;
-						castedType = assembly->Types[typeDef->TableIndex - 1];
-						break;
-					case MetadataTable_TypeReference:
-						typeDef = ((TypeReference*)token->Data)->ResolvedType;
-						castedType = typeDef->File->Assembly->Types[typeDef->TableIndex - 1];
-						break;
-					case MetadataTable_TypeSpecification:
-						Panic("Generics not yet supported");
-						break;
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
 
-					default:
-						Panic("Unknown table for Box");
-						break;
-				}
-				CLIFile_DestroyMetadataToken(token);
+				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Box, type);
 
-				StackObject* obj = SyntheticStack_Pop(stack);
-
-				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Box, castedType);
-
-				obj->Type = castedType;
+				StackObject* obj = SyntheticStack_Peek(stack);
+				obj->Type = type;
 				obj->SourceType = StackObjectSourceType_Stack;
-				SyntheticStack_Push(stack, obj);
 
                 ClearFlags();
                 break;
@@ -2293,20 +2133,75 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
 
             case ILOpcode_LdFld:			// 0x7B
+			{
+				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdFld");
+
+				uint32_t fieldIndex = 0;
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), &fieldIndex);
+
+				StackObject* obj = SyntheticStack_Peek(stack);
+
+				EMIT_IR_3ARG(IROpcode_Load_Field, obj->Type, type, (uint32_t*)fieldIndex);
+
+				obj->Type = type;
+				obj->SourceType = StackObjectSourceType_Stack;
+
 				ClearFlags();
 				break;
+			}
 
             case ILOpcode_LdFldA:			// 0x7C
+			{
+				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdFldA");
+
+				uint32_t fieldIndex = 0;
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), &fieldIndex);
+
+				StackObject* obj = SyntheticStack_Peek(stack);
+
+				EMIT_IR_3ARG(IROpcode_Load_FieldAddress, obj->Type, type, (uint32_t*)fieldIndex);
+
+				obj->Type = IRAssembly_MakePointerType(assembly, type);
+				obj->SourceType = StackObjectSourceType_Stack;
+
 				ClearFlags();
 				break;
+			}
+
 
             case ILOpcode_StFld:			// 0x7D
+			{
+				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StFld");
+
+				uint32_t fieldIndex = 0;
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), &fieldIndex);
+
+				SR(SyntheticStack_Pop(stack));
+				StackObject* obj = SyntheticStack_Pop(stack);
+
+				EMIT_IR_3ARG(IROpcode_Store_Field, obj->Type, type, (uint32_t*)fieldIndex);
+
 				ClearFlags();
 				break;
+			}
 
             case ILOpcode_LdSFld:			// 0x7E
+			{
+				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdSFld");
+
+				uint32_t fieldIndex = 0;
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), &fieldIndex);
+
+				EMIT_IR_2ARG(IROpcode_Store_Field, type, (uint32_t*)fieldIndex);
+
+				StackObject* obj = StackObjectPool_Allocate(stack);
+				obj->Type = type;
+				obj->SourceType = StackObjectSourceType_StaticField;
+				SyntheticStack_Push(stack, obj);
+
 				ClearFlags();
 				break;
+			}
 
             case ILOpcode_LdSFldA:			// 0x7F
 				ClearFlags();
@@ -2320,38 +2215,15 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
             case ILOpcode_LdObj:			// 0x71
             {
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdObj");
-				MetadataToken* token = CLIFile_ExpandMetadataToken(file, ReadUInt32(currentDataPointer));
-				IRType* objectType = NULL;
-				switch(token->Table)
-				{
-					case MetadataTable_TypeDefinition:
-					{
-						TypeDefinition* typeDef = (TypeDefinition*)token->Data;
-						objectType = assembly->Types[typeDef->TableIndex - 1];
-						break;
-					}
-					case MetadataTable_TypeReference:
-					{
-						TypeDefinition* typeDef = ((TypeReference*)token->Data)->ResolvedType;
-						objectType = typeDef->File->Assembly->Types[typeDef->TableIndex - 1];
-						break;
-					}
-					case MetadataTable_TypeSpecification:
-						Panic("Generics not yet supported\n");
-						break;
-					default:
-						Panic("Unknown table for LdObj");
-						break;
-				}
-				CLIFile_DestroyMetadataToken(token);
 
-				StackObject* obj = SyntheticStack_Pop(stack);
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
 
-				EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Load_Object, obj->Type, objectType);
+				StackObject* obj = SyntheticStack_Peek(stack);
 
-				obj->Type = objectType;
+				EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Load_Object, obj->Type, type);
+
+				obj->Type = type;
 				obj->SourceType = StackObjectSourceType_Stack;
-				SyntheticStack_Push(stack, obj);
 
 				ClearFlags();
 	            break;			
@@ -2360,39 +2232,16 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 			case ILOpcode_StObj:			// 0x81
 			{
 				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StObj");
-				MetadataToken* token = CLIFile_ExpandMetadataToken(file, ReadUInt32(currentDataPointer));
-				IRType* objectType = NULL;
-				switch (token->Table)
-				{
-					case MetadataTable_TypeDefinition:
-					{
-						TypeDefinition* typeDef = (TypeDefinition*)token->Data;
-						objectType = assembly->Types[typeDef->TableIndex - 1];
-						break;
-					}
-					case MetadataTable_TypeReference:
-					{
-						TypeDefinition* typeDef = ((TypeReference*)token->Data)->ResolvedType;
-						objectType = typeDef->File->Assembly->Types[typeDef->TableIndex - 1];
-						break;
-					}
-					case MetadataTable_TypeSpecification:
-						printf("Generics not yet supported\n");
-						break;
-					default:
-						Panic("Unknown table for StObj");
-						break;
-				}
-				CLIFile_DestroyMetadataToken(token);
+
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
 
 				SR(SyntheticStack_Pop(stack));
-				StackObject* obj = SyntheticStack_Pop(stack);
+				StackObject* obj = SyntheticStack_Peek(stack);
 
-				EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Load_Object, obj->Type, objectType);
+				EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Load_Object, obj->Type, type);
 
-				obj->Type = objectType;
+				obj->Type = type;
 				obj->SourceType = StackObjectSourceType_Stack;
-				SyntheticStack_Push(stack, obj);
 
 				ClearFlags();
 				break;
@@ -2401,35 +2250,14 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
             case ILOpcode_CpObj:			// 0x70
 			{
 				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read CpObj");
-				MetadataToken* token = CLIFile_ExpandMetadataToken(file, ReadUInt32(currentDataPointer));
-				IRType* objectType = NULL;
-				switch (token->Table)
-				{
-					case MetadataTable_TypeDefinition:
-					{
-						TypeDefinition* typeDef = (TypeDefinition*)token->Data;
-						objectType = assembly->Types[typeDef->TableIndex - 1];
-						break;
-					}
-					case MetadataTable_TypeReference:
-					{
-						TypeDefinition* typeDef = ((TypeReference*)token->Data)->ResolvedType;
-						objectType = typeDef->File->Assembly->Types[typeDef->TableIndex - 1];
-						break;
-					}
-					case MetadataTable_TypeSpecification:
-						printf("Generics not yet supported\n");
-						break;
-					default:
-						Panic("Unknown table for CpObj");
-						break;
-				}
-				CLIFile_DestroyMetadataToken(token);
+
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
 
 				SR(SyntheticStack_Pop(stack));
 				StackObject* obj = SyntheticStack_Pop(stack);
 
-				EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Copy_Object, obj->Type, objectType);
+				EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Copy_Object, obj->Type, type);
+
 				SR(obj);
 
 				ClearFlags();
@@ -2524,10 +2352,9 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
 				EMIT_IR(IROpcode_Load_ArrayLength);
 
-				StackObject* obj = SyntheticStack_Pop(stack);
+				StackObject* obj = SyntheticStack_Peek(stack);
 				obj->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_UInt32->TableIndex - 1];
 				obj->SourceType = StackObjectSourceType_Stack;
-				SyntheticStack_Push(stack, obj);
 
                 ClearFlags();
                 break;

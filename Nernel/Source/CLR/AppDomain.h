@@ -43,6 +43,7 @@ void AppDomain_Destroy(AppDomain* pDomain);
 void AppDomain_AddAssembly(AppDomain* pDomain, IRAssembly* pAssembly);
 void AppDomain_LinkCorlib(AppDomain* pDomain, CLIFile* pCorlibFile);
 IRType* AppDomain_GetIRTypeFromSignatureType(AppDomain* pDomain, IRAssembly* pAssembly, SignatureType* pType);
+IRType* AppDomain_GetIRTypeFromMetadataToken(AppDomain* pDomain, IRAssembly* pAssembly, uint32_t pToken, uint32_t* pFieldIndex);
 bool_t AppDomain_IsStructure(AppDomain* pDomain, TypeDefinition* pTypeDefinition);
 void AppDomain_ResolveReferences(AppDomain* pDomain, CLIFile* pFile);
 void AppDomain_ExecuteMethod(AppDomain* pDomain, IRMethod* pMethod);

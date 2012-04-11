@@ -124,7 +124,7 @@ typedef enum ILOpcode
 	ILOpcode_Conv_R_Un			= 0x76,
 	// N/A						= 0x77,
 	// N/A						= 0x78,
-	ILOpcode_UnBox				= 0x79,
+	ILOpcode_Unbox				= 0x79,
 	ILOpcode_Throw				= 0x7A,
 	ILOpcode_LdFld				= 0x7B,
 	ILOpcode_LdFldA				= 0x7C,
