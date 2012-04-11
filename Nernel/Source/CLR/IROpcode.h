@@ -992,7 +992,7 @@ typedef enum IROpcode
 	IROpcode_Store_Field,
 	/*
 		Description:
-			Loads the specified static field.
+			Loads the specified static field value.
 		
 		Stack:
 			... -> ..., value
@@ -1011,6 +1011,48 @@ typedef enum IROpcode
 
 	 */
 	IROpcode_Load_StaticField,
+	/*
+		Description:
+			Loads the specified static field address.
+		
+		Stack:
+			... -> ..., address
+
+		Arg1: IRType*
+			A pointer to the IRType containing the static field.
+
+		Arg2: uint32_t
+			The index to the static field.
+
+		Arg3:
+			N/A
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_Load_StaticFieldAddress,
+	/*
+		Description:
+			Stores a value to the specified static field.
+		
+		Stack:
+			..., value -> ...
+
+		Arg1: IRType*
+			A pointer to the IRType containing the static field.
+
+		Arg2: uint32_t
+			The index to the static field.
+
+		Arg3:
+			N/A
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_Store_StaticField,
 } IROpcode;
 
 typedef enum OverflowType

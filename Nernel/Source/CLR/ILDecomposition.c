@@ -2141,7 +2141,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
 				StackObject* obj = SyntheticStack_Peek(stack);
 
-				EMIT_IR_3ARG(IROpcode_Load_Field, obj->Type, type, (uint32_t*)fieldIndex);
+				EMIT_IR_3ARG_NO_DISPOSE(IROpcode_Load_Field, obj->Type, type, (uint32_t*)fieldIndex);
 
 				obj->Type = type;
 				obj->SourceType = StackObjectSourceType_Stack;
@@ -2159,7 +2159,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
 				StackObject* obj = SyntheticStack_Peek(stack);
 
-				EMIT_IR_3ARG(IROpcode_Load_FieldAddress, obj->Type, type, (uint32_t*)fieldIndex);
+				EMIT_IR_3ARG_NO_DISPOSE(IROpcode_Load_FieldAddress, obj->Type, type, (uint32_t*)fieldIndex);
 
 				obj->Type = IRAssembly_MakePointerType(assembly, type);
 				obj->SourceType = StackObjectSourceType_Stack;
@@ -2179,7 +2179,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				SR(SyntheticStack_Pop(stack));
 				StackObject* obj = SyntheticStack_Pop(stack);
 
-				EMIT_IR_3ARG(IROpcode_Store_Field, obj->Type, type, (uint32_t*)fieldIndex);
+				EMIT_IR_3ARG_NO_DISPOSE(IROpcode_Store_Field, obj->Type, type, (uint32_t*)fieldIndex);
 
 				ClearFlags();
 				break;
@@ -2192,7 +2192,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				uint32_t fieldIndex = 0;
 				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), &fieldIndex);
 
-				EMIT_IR_2ARG(IROpcode_Store_Field, type, (uint32_t*)fieldIndex);
+				EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Load_StaticField, type, (uint32_t*)fieldIndex);
 
 				StackObject* obj = StackObjectPool_Allocate(stack);
 				obj->Type = type;
@@ -2204,12 +2204,37 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 			}
 
             case ILOpcode_LdSFldA:			// 0x7F
+			{
+				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdSFldA");
+
+				uint32_t fieldIndex = 0;
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), &fieldIndex);
+
+				EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Load_StaticFieldAddress, type, (uint32_t*)fieldIndex);
+
+				StackObject* obj = StackObjectPool_Allocate(stack);
+				obj->Type = IRAssembly_MakePointerType(assembly, type);
+				obj->SourceType = StackObjectSourceType_StaticField;
+				SyntheticStack_Push(stack, obj);
+
 				ClearFlags();
 				break;
+			}
 
             case ILOpcode_StSFld:			// 0x80
+			{
+				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StSFld");
+
+				uint32_t fieldIndex = 0;
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), &fieldIndex);
+
+				SR(SyntheticStack_Pop(stack));
+
+				EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Store_StaticField, type, (uint32_t*)fieldIndex);
+
 				ClearFlags();
 				break;
+			}
 
 
             case ILOpcode_LdObj:			// 0x71
@@ -2238,7 +2263,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				SR(SyntheticStack_Pop(stack));
 				StackObject* obj = SyntheticStack_Peek(stack);
 
-				EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Load_Object, obj->Type, type);
+				EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Store_Object, obj->Type, type);
 
 				obj->Type = type;
 				obj->SourceType = StackObjectSourceType_Stack;
