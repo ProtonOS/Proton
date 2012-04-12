@@ -722,13 +722,13 @@ void ILDecomposition_CheckUncheckedConversionNumericOperandType(IRType* pOperand
         ClearFlags(); \
         break; \
 	} 
-#define BITWISE_NUMERIC_OPERATION(pIROpcode) \
-	{ Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read " #pIROpcode); \
+#define BITWISE_NUMERIC_OPERATION(pILOpcode) \
+	{ Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read " #pILOpcode); \
 		StackObject* value1 = SyntheticStack_Pop(stack); \
 		StackObject* value2 = SyntheticStack_Pop(stack); \
 		StackObject* obj = PA(); \
-		ILDecomposition_CheckBitwiseNumericOperandTypesAndSetResult(value1->Type, value2->Type, BitwiseNumericOperation_##pIROpcode, obj); \
-		EMIT_IR_2ARG_NO_DISPOSE(IROpcode_##pIROpcode, value1->Type, value2->Type); \
+		ILDecomposition_CheckBitwiseNumericOperandTypesAndSetResult(value1->Type, value2->Type, BitwiseNumericOperation_##pILOpcode, obj); \
+		EMIT_IR_2ARG_NO_DISPOSE(IROpcode_##pILOpcode, value1->Type, value2->Type); \
 		SR(value1); \
 		SR(value2); \
 		obj->SourceType = StackObjectSourceType_Stack; \
@@ -736,20 +736,20 @@ void ILDecomposition_CheckUncheckedConversionNumericOperandType(IRType* pOperand
 		ClearFlags(); \
 		break; \
 	} 
-#define UNARY_NUMERIC_OPERATION(pIROpcode) \
-	{ Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read " #pIROpcode); \
+#define UNARY_NUMERIC_OPERATION(pILOpcode) \
+	{ Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read " #pILOpcode); \
 		StackObject* value = SyntheticStack_Pop(stack); \
 		StackObject* obj = PA(); \
-		ILDecomposition_CheckUnaryNumericOperandTypesAndSetResult(value->Type, UnaryNumericOperation_##pIROpcode, obj); \
-		EMIT_IR_1ARG_NO_DISPOSE(IROpcode_##pIROpcode, value->Type); \
+		ILDecomposition_CheckUnaryNumericOperandTypesAndSetResult(value->Type, UnaryNumericOperation_##pILOpcode, obj); \
+		EMIT_IR_1ARG_NO_DISPOSE(IROpcode_##pILOpcode, value->Type); \
 		SR(value); \
 		obj->SourceType = StackObjectSourceType_Stack; \
 		SyntheticStack_Push(stack, obj); \
 		ClearFlags(); \
 		break; \
 	} 
-#define SHIFT_NUMERIC_OPERATION(pIROpcode, pShiftNumericOperation) \
-	{ Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read " #pIROpcode); \
+#define SHIFT_NUMERIC_OPERATION(pILOpcode, pShiftNumericOperation) \
+	{ Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read " #pILOpcode); \
 		StackObject* value1 = SyntheticStack_Pop(stack); \
 		StackObject* value2 = SyntheticStack_Pop(stack); \
 		IRType* value1GeneralType = NULL; \
@@ -779,8 +779,8 @@ void ILDecomposition_CheckUncheckedConversionNumericOperandType(IRType* pOperand
 		ClearFlags(); \
 		break; \
 	}
-#define LOAD_ELEMENT_OPERATION(pIROpcode, pType) \
-	{ Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdElem." #pIROpcode); \
+#define LOAD_ELEMENT_OPERATION(pILOpcode, pType) \
+	{ Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdElem." #pILOpcode); \
 		SR(SyntheticStack_Pop(stack)); \
 		StackObject* obj = SyntheticStack_Peek(stack); \
 		EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Load_Element, obj->Type, pType); \
@@ -789,8 +789,8 @@ void ILDecomposition_CheckUncheckedConversionNumericOperandType(IRType* pOperand
 		ClearFlags(); \
 	    break; \
     }
-#define STORE_ELEMENT_OPERATION(pIROpcode, pType) \
-	{ Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StElem." #pIROpcode); \
+#define STORE_ELEMENT_OPERATION(pILOpcode, pType) \
+	{ Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StElem." #pILOpcode); \
 		SR(SyntheticStack_Pop(stack)); \
 		SR(SyntheticStack_Pop(stack)); \
 		StackObject* obj = SyntheticStack_Pop(stack); \
@@ -2723,32 +2723,87 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 					}
 
                     case ILOpcode_Extended_LocAlloc:		// 0x0F
-                        ClearFlags();
-                        break;
+					{
+						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LocAlloc");
+
+						StackObject* obj = SyntheticStack_Peek(stack);
+
+						EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Allocate_Local, obj->Type);
+						
+						obj->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_IntPtr->TableIndex - 1];
+						obj->SourceType = StackObjectSourceType_Local;
+				
+						ClearFlags();
+						break;
+					}
 
                     case ILOpcode_Extended_EndFilter:		// 0x11
                         ClearFlags();
                         break;
 
                     case ILOpcode_Extended_InitObj:		// 0x15
+					{
+						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read InitObj");
+
+						type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
+
+						StackObject* obj = SyntheticStack_Pop(stack);
+
+						EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Initialize_Object, obj->Type, type);
+						SR(obj);
+						
 						ClearFlags();
 						break;
+					}
 
                     case ILOpcode_Extended_CpBlk:			// 0x17
+					{
+						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read CpBlk");
+
+						SR(SyntheticStack_Pop(stack));
+						SR(SyntheticStack_Pop(stack));
+						SR(SyntheticStack_Pop(stack));
+
+						EMIT_IR(IROpcode_Copy_Block);
+						
 						ClearFlags();
 						break;
+					}
 
                     case ILOpcode_Extended_InitBlk:		// 0x18
+					{
+						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read InitBlk");
+
+						SR(SyntheticStack_Pop(stack));
+						SR(SyntheticStack_Pop(stack));
+						SR(SyntheticStack_Pop(stack));
+
+						EMIT_IR(IROpcode_Initialize_Block);
+						
 						ClearFlags();
 						break;
+					}
 
                     case ILOpcode_Extended_ReThrow:		// 0x1A
 						ClearFlags();
                         break;
 
                     case ILOpcode_Extended_SizeOf:			// 0x1C
+					{
+						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read SizeOf");
+
+						type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
+
+						EMIT_IR_1ARG_NO_DISPOSE(IROpcode_SizeOf, type);
+						
+						StackObject* obj = PA();
+						obj->Type = type;
+						obj->SourceType = StackObjectSourceType_Stack;
+						SyntheticStack_Push(stack, obj);
+
 						ClearFlags();
 						break;
+					}
 
                     case ILOpcode_Extended_RefAnyType:		// 0x1D
                         ClearFlags();

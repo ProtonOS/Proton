@@ -1116,6 +1116,112 @@ typedef enum IROpcode
 
 	 */
 	IROpcode_Store_Element,
+	/*
+		Description:
+			Allocates an aligned chunk of memory within local space,
+			of the specified size and produces an address.
+		
+		Stack:
+			..., size -> ..., address
+
+		Arg1: IRType*
+			A pointer to the IRType of the size.
+
+		Arg2:
+			N/A
+
+		Arg3:
+			N/A
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_Allocate_Local,
+	/*
+		Description:
+			Initializes a value at an address.
+		
+		Stack:
+			..., address -> ...
+
+		Arg1: IRType*
+			A pointer to the IRType of the address.
+
+		Arg2: IRType*
+			A pointer to the IRType of the value being initialized.
+
+		Arg3:
+			N/A
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_Initialize_Object,
+	/*
+		Description:
+			Copies the specified size number of bytes from source to dest.
+		
+		Stack:
+			..., dest, source, size -> ...
+
+		Arg1:
+			N/A
+
+		Arg2:
+			N/A
+
+		Arg3:
+			N/A
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_Copy_Block,
+	/*
+		Description:
+			Sets the specified size number of bytes at address to value.
+		
+		Stack:
+			..., address, value, size -> ...
+
+		Arg1:
+			N/A
+
+		Arg2:
+			N/A
+
+		Arg3:
+			N/A
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_Initialize_Block,
+	/*
+		Description:
+			Sets the specified size number of bytes at address to value.
+		
+		Stack:
+			... -> ..., size
+
+		Arg1: IRType*
+			A pointer to the IRType to get the size of.
+
+		Arg2:
+			N/A
+
+		Arg3:
+			N/A
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_SizeOf,
 } IROpcode;
 
 typedef enum OverflowType
