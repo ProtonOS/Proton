@@ -715,6 +715,8 @@ void ILDecomposition_CheckUncheckedConversionNumericOperandType(IRType* pOperand
 		StackObject* obj = PA(); \
 		ILDecomposition_CheckBinaryNumericOperandTypesAndSetResult(value1->Type, value2->Type, BinaryNumericOperation_##pIROpcode, obj); \
 		EMIT_IR_3ARG_NO_DISPOSE(IROpcode_##pIROpcode, (uint32_t*)OverflowType_##pOverflowType, value1->Type, value2->Type); \
+		SR(value1); \
+		SR(value2); \
 		obj->SourceType = StackObjectSourceType_Stack; \
 		SyntheticStack_Push(stack, obj); \
         ClearFlags(); \
@@ -727,6 +729,8 @@ void ILDecomposition_CheckUncheckedConversionNumericOperandType(IRType* pOperand
 		StackObject* obj = PA(); \
 		ILDecomposition_CheckBitwiseNumericOperandTypesAndSetResult(value1->Type, value2->Type, BitwiseNumericOperation_##pIROpcode, obj); \
 		EMIT_IR_2ARG_NO_DISPOSE(IROpcode_##pIROpcode, value1->Type, value2->Type); \
+		SR(value1); \
+		SR(value2); \
 		obj->SourceType = StackObjectSourceType_Stack; \
 		SyntheticStack_Push(stack, obj); \
 		ClearFlags(); \
@@ -738,6 +742,7 @@ void ILDecomposition_CheckUncheckedConversionNumericOperandType(IRType* pOperand
 		StackObject* obj = PA(); \
 		ILDecomposition_CheckUnaryNumericOperandTypesAndSetResult(value->Type, UnaryNumericOperation_##pIROpcode, obj); \
 		EMIT_IR_1ARG_NO_DISPOSE(IROpcode_##pIROpcode, value->Type); \
+		SR(value); \
 		obj->SourceType = StackObjectSourceType_Stack; \
 		SyntheticStack_Push(stack, obj); \
 		ClearFlags(); \
@@ -752,6 +757,8 @@ void ILDecomposition_CheckUncheckedConversionNumericOperandType(IRType* pOperand
 		StackObject* obj = PA(); \
 		ILDecomposition_CheckShiftNumericOperandTypesAndSetResult(value1->Type, value2->Type, ShiftNumericOperation_##pShiftNumericOperation, obj, &value1GeneralType, &value2GeneralType); \
 		EMIT_IR_3ARG_NO_DISPOSE(IROpcode_Shift, (uint32_t*)ShiftNumericOperation_##pShiftNumericOperation, value1GeneralType, value2GeneralType); \
+		SR(value1); \
+		SR(value2); \
 		obj->SourceType = StackObjectSourceType_Stack; \
 		SyntheticStack_Push(stack, obj); \
 		ClearFlags(); \
@@ -765,12 +772,34 @@ void ILDecomposition_CheckUncheckedConversionNumericOperandType(IRType* pOperand
 		StackObject* obj = PA(); \
 		ILDecomposition_CheckUncheckedConversionNumericOperandType(value->Type, &sourceType); \
 		EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Convert_Unchecked, (uint32_t*)sourceType, (uint32_t*)destinationType); \
+		SR(value); \
 		obj->Type = pDestinationType; \
 		obj->SourceType = StackObjectSourceType_Stack; \
 		SyntheticStack_Push(stack, obj); \
 		ClearFlags(); \
 		break; \
-	} 
+	}
+#define LOAD_ELEMENT_OPERATION(pIROpcode, pType) \
+	{ Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdElem." #pIROpcode); \
+		SR(SyntheticStack_Pop(stack)); \
+		StackObject* obj = SyntheticStack_Peek(stack); \
+		EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Load_Element, obj->Type, pType); \
+		obj->Type =  pType; \
+		obj->SourceType = StackObjectSourceType_Stack; \
+		ClearFlags(); \
+	    break; \
+    }
+#define STORE_ELEMENT_OPERATION(pIROpcode, pType) \
+	{ Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StElem." #pIROpcode); \
+		SR(SyntheticStack_Pop(stack)); \
+		SR(SyntheticStack_Pop(stack)); \
+		StackObject* obj = SyntheticStack_Pop(stack); \
+		EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Store_Element, obj->Type, pType); \
+		SR(obj); \
+		ClearFlags(); \
+	    break; \
+    }
+
 
 
 
@@ -2013,7 +2042,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
 				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_New_Object, constructorMethod);
 
-				StackObject* obj = StackObjectPool_Allocate(stack);
+				StackObject* obj = PA();
 				obj->Type = constructorMethod->ParentAssembly->Types[constructorMethod->MethodDefinition->TypeDefinition->TableIndex - 1];
 				obj->SourceType = StackObjectSourceType_Stack;
 				SyntheticStack_Push(stack, obj);
@@ -2180,6 +2209,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				StackObject* obj = SyntheticStack_Pop(stack);
 
 				EMIT_IR_3ARG_NO_DISPOSE(IROpcode_Store_Field, obj->Type, type, (uint32_t*)fieldIndex);
+				SR(obj);
 
 				ClearFlags();
 				break;
@@ -2194,7 +2224,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
 				EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Load_StaticField, type, (uint32_t*)fieldIndex);
 
-				StackObject* obj = StackObjectPool_Allocate(stack);
+				StackObject* obj = PA();
 				obj->Type = type;
 				obj->SourceType = StackObjectSourceType_StaticField;
 				SyntheticStack_Push(stack, obj);
@@ -2212,7 +2242,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
 				EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Load_StaticFieldAddress, type, (uint32_t*)fieldIndex);
 
-				StackObject* obj = StackObjectPool_Allocate(stack);
+				StackObject* obj = PA();
 				obj->Type = IRAssembly_MakePointerType(assembly, type);
 				obj->SourceType = StackObjectSourceType_StaticField;
 				SyntheticStack_Push(stack, obj);
@@ -2282,7 +2312,6 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				StackObject* obj = SyntheticStack_Pop(stack);
 
 				EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Copy_Object, obj->Type, type);
-
 				SR(obj);
 
 				ClearFlags();
@@ -2386,92 +2415,139 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 			} 
 
             case ILOpcode_LdElemA:			// 0x8F
-	            ClearFlags();
-				break;
+            {
+                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdElemA");
+
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
+
+				SR(SyntheticStack_Pop(stack));
+				StackObject* obj = SyntheticStack_Peek(stack);
+
+				EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Load_ElementAddress, obj->Type, type);
+
+				obj->Type = IRAssembly_MakePointerType(assembly, type);
+				obj->SourceType = StackObjectSourceType_Stack;
+
+				ClearFlags();
+	            break;
+            }
 
             case ILOpcode_LdElem_I1:		// 0x90
-	            ClearFlags();
-				break;
+				LOAD_ELEMENT_OPERATION(I1, domain->IRAssemblies[0]->Types[domain->CachedType___System_SByte->TableIndex - 1]);
 
             case ILOpcode_LdElem_U1:		// 0x91
-	            ClearFlags();
-				break;
+				LOAD_ELEMENT_OPERATION(U1, domain->IRAssemblies[0]->Types[domain->CachedType___System_Byte->TableIndex - 1]);
 
             case ILOpcode_LdElem_I2:		// 0x92
-	            ClearFlags();
-				break;
+				LOAD_ELEMENT_OPERATION(I2, domain->IRAssemblies[0]->Types[domain->CachedType___System_Int16->TableIndex - 1]);
 
             case ILOpcode_LdElem_U2:		// 0x93
-	            ClearFlags();
-				break;
+				LOAD_ELEMENT_OPERATION(U2, domain->IRAssemblies[0]->Types[domain->CachedType___System_UInt16->TableIndex - 1]);
 
             case ILOpcode_LdElem_I4:		// 0x94
-	            ClearFlags();
-				break;
+				LOAD_ELEMENT_OPERATION(I4, domain->IRAssemblies[0]->Types[domain->CachedType___System_Int32->TableIndex - 1]);
 
             case ILOpcode_LdElem_U4:		// 0x95
-	            ClearFlags();
-				break;
+				LOAD_ELEMENT_OPERATION(U4, domain->IRAssemblies[0]->Types[domain->CachedType___System_UInt32->TableIndex - 1]);
 
             case ILOpcode_LdElem_I8:		// 0x96
-	            ClearFlags();
-				break;
+				LOAD_ELEMENT_OPERATION(I8, domain->IRAssemblies[0]->Types[domain->CachedType___System_Int64->TableIndex - 1]);
 
             case ILOpcode_LdElem_I:			// 0x97
-	            ClearFlags();
-				break;
+				LOAD_ELEMENT_OPERATION(I, domain->IRAssemblies[0]->Types[domain->CachedType___System_IntPtr->TableIndex - 1]);
 
             case ILOpcode_LdElem_R4:		// 0x98
-	            ClearFlags();
-				break;
+				LOAD_ELEMENT_OPERATION(R4, domain->IRAssemblies[0]->Types[domain->CachedType___System_Single->TableIndex - 1]);
 
             case ILOpcode_LdElem_R8:		// 0x99
-	            ClearFlags();
-				break;
+				LOAD_ELEMENT_OPERATION(R8, domain->IRAssemblies[0]->Types[domain->CachedType___System_Double->TableIndex - 1]);
 
             case ILOpcode_LdElem_Ref:		// 0x9A
-	            ClearFlags();
-				break;
+            {
+                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdElem.Ref");
+
+				SR(SyntheticStack_Pop(stack));
+				StackObject* obj = SyntheticStack_Peek(stack);
+
+				EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Load_Element, obj->Type, obj->Type->ArrayType->ElementType);
+
+				obj->Type = obj->Type->ArrayType->ElementType;
+				obj->SourceType = StackObjectSourceType_Stack;
+
+				ClearFlags();
+	            break;
+            }
 
             case ILOpcode_LdElem:			// 0xA3
+            {
+                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdElem");
+
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
+
+				SR(SyntheticStack_Pop(stack));
+				StackObject* obj = SyntheticStack_Peek(stack);
+
+				EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Load_Element, obj->Type, type);
+
+				obj->Type = type;
+				obj->SourceType = StackObjectSourceType_Stack;
+
 				ClearFlags();
-				break;
+	            break;
+            }
 
             case ILOpcode_StElem_I:			// 0x9B
-	            ClearFlags();
-				break;
+				STORE_ELEMENT_OPERATION(I, domain->IRAssemblies[0]->Types[domain->CachedType___System_IntPtr->TableIndex - 1]);
 
             case ILOpcode_StElem_I1:		// 0x9C
-	            ClearFlags();
-				break;
+				STORE_ELEMENT_OPERATION(I, domain->IRAssemblies[0]->Types[domain->CachedType___System_SByte->TableIndex - 1]);
 
             case ILOpcode_StElem_I2:		// 0x9D
-	            ClearFlags();
-				break;
+				STORE_ELEMENT_OPERATION(I, domain->IRAssemblies[0]->Types[domain->CachedType___System_Int16->TableIndex - 1]);
 
             case ILOpcode_StElem_I4:		// 0x9E
-	            ClearFlags();
-				break;
+				STORE_ELEMENT_OPERATION(I, domain->IRAssemblies[0]->Types[domain->CachedType___System_Int32->TableIndex - 1]);
 
             case ILOpcode_StElem_I8:		// 0x9F
-	            ClearFlags();
-				break;
+				STORE_ELEMENT_OPERATION(I, domain->IRAssemblies[0]->Types[domain->CachedType___System_Int64->TableIndex - 1]);
 
             case ILOpcode_StElem_R4:		// 0xA0
-	            ClearFlags();
-				break;
+				STORE_ELEMENT_OPERATION(I, domain->IRAssemblies[0]->Types[domain->CachedType___System_Single->TableIndex - 1]);
 
             case ILOpcode_StElem_R8:		// 0xA1
-	            ClearFlags();
-				break;
+				STORE_ELEMENT_OPERATION(I, domain->IRAssemblies[0]->Types[domain->CachedType___System_Double->TableIndex - 1]);
 
             case ILOpcode_StElem_Ref:		// 0xA2
-	            ClearFlags();
-				break;
+            {
+                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StElem.Ref");
+
+				SR(SyntheticStack_Pop(stack));
+				SR(SyntheticStack_Pop(stack));
+				StackObject* obj = SyntheticStack_Pop(stack);
+
+				EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Store_Element, obj->Type, obj->Type->ArrayType->ElementType);
+				SR(obj);
+
+				ClearFlags();
+	            break;
+            }
 
             case ILOpcode_StElem:			// 0xA4
+            {
+                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StElem");
+
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
+
+				SR(SyntheticStack_Pop(stack));
+				SR(SyntheticStack_Pop(stack));
+				StackObject* obj = SyntheticStack_Pop(stack);
+
+				EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Store_Element, obj->Type, type);
+				SR(obj);
+
 				ClearFlags();
-				break;
+	            break;
+            }
 
 
 			case ILOpcode_RefAnyVal:		// 0xC2

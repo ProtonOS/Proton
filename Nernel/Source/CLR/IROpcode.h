@@ -1053,6 +1053,69 @@ typedef enum IROpcode
 
 	 */
 	IROpcode_Store_StaticField,
+	/*
+		Description:
+			Loads the value of the element at the index within the array.
+		
+		Stack:
+			..., array, index -> ..., value
+
+		Arg1: IRType*
+			A pointer to the IRType of the array.
+
+		Arg2: IRType*
+			A pointer to the IRType of the element.
+
+		Arg3:
+			N/A
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_Load_Element,
+	/*
+		Description:
+			Loads the address of the element at the index within the array.
+		
+		Stack:
+			..., array, index -> ..., address
+
+		Arg1: IRType*
+			A pointer to the IRType of the array.
+
+		Arg2: IRType*
+			A pointer to the IRType of the element.
+
+		Arg3:
+			N/A
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_Load_ElementAddress,
+	/*
+		Description:
+			Stores the value into the element at the index within the array.
+		
+		Stack:
+			..., array, index, value -> ...
+
+		Arg1: IRType*
+			A pointer to the IRType of the array.
+
+		Arg2: IRType*
+			A pointer to the IRType of the element.
+
+		Arg3:
+			N/A
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_Store_Element,
 } IROpcode;
 
 typedef enum OverflowType
