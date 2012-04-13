@@ -88,9 +88,9 @@ IRType* IRAssembly_MakeArrayType(IRAssembly* pAssembly, IRType* pType)
 	return type;
 }
 
-
 IRType* IRType_Create(IRAssembly* pAssembly, TypeDefinition* pTypeDefinition)
 {
+	if (!pAssembly || !pTypeDefinition) Panic("Ruhroh!");
 	IRType* type = (IRType*)calloc(1, sizeof(IRType));
 	Log_WriteLine(LOGLEVEL__Memory, "Memory: IRType_Create @ 0x%x", (unsigned int)type);
 	type->ParentAssembly = pAssembly;

@@ -46,13 +46,14 @@ typedef enum IROpcode
 	IROpcode_Break,
 	/*
 		Description:
-			Returns from the current method.
+			Returns from the current method, with an optional return value.
 		
 		Stack:
-			returnValue -> ..., returnValue
+			value (present for return values, callee stack) -> ..., value (present for return values, caller stack)
 
-		Arg1:
-			N/A
+		Arg1: IRType*
+			A pointer to the IRType of the return type.
+			Should be NULL if there is no return type.
 
 		Arg2:
 			N/A
@@ -1222,6 +1223,27 @@ typedef enum IROpcode
 
 	 */
 	IROpcode_SizeOf,
+	/*
+		Description:
+			Transfers immediate control to the specified method.
+		
+		Stack:
+			... -> ...
+
+		Arg1: IRMethod*
+			A pointer to the IRMethod to jump to.
+
+		Arg2:
+			N/A
+
+		Arg3:
+			N/A
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_Jump,
 } IROpcode;
 
 typedef enum OverflowType

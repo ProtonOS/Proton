@@ -68,7 +68,7 @@ IRAssembly* ILDecomposition_CreateAssembly(AppDomain* pDomain, CLIFile* pFile)
 		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_Single);
 		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_String);
 		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_Type);
-		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_TypedReference);
+		//IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_TypedReference);
 		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_UInt16);
 		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_UInt32);
 		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_UInt64);
@@ -97,7 +97,7 @@ IRMethod** ILDecomposition_GetMethodLayout(IRType* pType, TypeDefinition* pTypeD
 		Log_WriteLine(LOGLEVEL__ILDecomposition_MethodLayout, "Returning cached layout of the methods of %s.%s, TypeOfExtends = %u", pTypeDefinition->Namespace, pTypeDefinition->Name, (unsigned int)pTypeDefinition->TypeOfExtends);
 		return pType->Methods;
 	}
-	Log_WriteLine(LOGLEVEL__ILDecomposition_MethodLayout, "Laying out the methods of %s.%s, TypeOfExtends = %u", pTypeDefinition->Namespace, pTypeDefinition->Name, (unsigned int)pTypeDefinition->TypeOfExtends);
+	Log_WriteLine(LOGLEVEL__ILDecomposition_MethodLayout, "Laying out the methods of %s.%s @ 0x%x, TypeOfExtends = %u", pTypeDefinition->Namespace, pTypeDefinition->Name, (unsigned int)pTypeDefinition, (unsigned int)pTypeDefinition->TypeOfExtends);
 	IRMethod** methods = NULL;
 	uint32_t methodCount = 0;
 	if (pTypeDefinition->TypeOfExtends == TypeDefRefOrSpecType_TypeDefinition)
@@ -251,7 +251,7 @@ IRField** ILDecomposition_GetFieldLayout(IRType* pType, TypeDefinition* pTypeDef
 		Log_WriteLine(LOGLEVEL__ILDecomposition_FieldLayout, "Returning cached layout of the fields of %s.%s, TypeOfExtends = %u", pTypeDefinition->Namespace, pTypeDefinition->Name, (unsigned int)pTypeDefinition->TypeOfExtends);
 		return pType->Fields;
 	}
-	Log_WriteLine(LOGLEVEL__ILDecomposition_FieldLayout, "Laying out the fields of %s.%s, TypeOfExtends = %u", pTypeDefinition->Namespace, pTypeDefinition->Name, (unsigned int)pTypeDefinition->TypeOfExtends);
+	Log_WriteLine(LOGLEVEL__ILDecomposition_FieldLayout, "Laying out the fields of %s.%s @ 0x%x, TypeOfExtends = %u", pTypeDefinition->Namespace, pTypeDefinition->Name, (unsigned int)pTypeDefinition, (unsigned int)pTypeDefinition->TypeOfExtends);
 	IRField** fields = NULL;
 	uint32_t fieldCount = 0;
 	if (pTypeDefinition->TypeOfExtends == TypeDefRefOrSpecType_TypeDefinition)
@@ -1523,12 +1523,58 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 break;
 
             case ILOpcode_Jmp:				// 0x27
-				ClearFlags();
-                break;
+			{
+                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Jmp");
 
-            case ILOpcode_Ret:				// 0x2A
+				if (stack->StackDepth) Panic("Attempted to Jmp with evaluation StackDepth > 0");
+
+				MetadataToken* token = CLIFile_ExpandMetadataToken(file, ReadUInt32(currentDataPointer));
+				IRMethod* method = NULL;
+				switch(token->Table)
+				{
+					case MetadataTable_MethodDefinition:
+					{
+						method = assembly->Methods[((MethodDefinition*)token->Data)->TableIndex - 1];
+						break;
+					}
+					case MetadataTable_MemberReference:
+					{
+						MemberReference* memberRef = (MemberReference*)token->Data;
+						MethodDefinition* methodDef = memberRef->Resolved.MethodDefinition;
+						method = methodDef->File->Assembly->Methods[methodDef->TableIndex - 1];
+						break;
+					}
+
+					default:
+						Panic("Unknown table for Jmp");
+						break;
+				}
+				CLIFile_DestroyMetadataToken(token);
+
+				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Jump, method);
+
                 ClearFlags();
                 break;
+			}
+
+            case ILOpcode_Ret:				// 0x2A
+			{
+                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ret");
+
+				type = NULL;
+				if (!methodDefinition->SignatureCache->ReturnType->Void)
+				{
+					StackObject* obj = SyntheticStack_Pop(stack);
+					type = obj->Type;
+					SR(obj);
+					//type = AppDomain_GetIRTypeFromSignatureType(domain, assembly, methodDefinition->SignatureCache->ReturnType->Type);
+				}
+
+                EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Return, type);
+				
+                ClearFlags();
+                break;
+			}
 
 
             case ILOpcode_Br:				// 0x38
