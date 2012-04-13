@@ -827,7 +827,7 @@ typedef enum IROpcode
 			Copies an object from one address to another.
 		
 		Stack:
-			..., dest, src -> ...
+			..., destination, source -> ...
 
 		Arg1: IRType*
 			A pointer to the IRType of the addresses.
@@ -929,7 +929,7 @@ typedef enum IROpcode
 	IROpcode_CheckFinite,
 	/*
 		Description:
-			Loads the specified field from the object.
+			Loads the specified field from an object.
 		
 		Stack:
 			..., object -> ..., value
@@ -950,7 +950,7 @@ typedef enum IROpcode
 	IROpcode_Load_Field,
 	/*
 		Description:
-			Loads the specified field address from the object.
+			Loads the specified field address from an object.
 		
 		Stack:
 			..., object -> ..., address
@@ -971,7 +971,7 @@ typedef enum IROpcode
 	IROpcode_Load_FieldAddress,
 	/*
 		Description:
-			Stores a value to the specified field in the object.
+			Stores a value to the specified field in an object.
 		
 		Stack:
 			..., object, value -> ...
@@ -1055,7 +1055,7 @@ typedef enum IROpcode
 	IROpcode_Store_StaticField,
 	/*
 		Description:
-			Loads the value of the element at the index within the array.
+			Loads the value of an element at an index within an array.
 		
 		Stack:
 			..., array, index -> ..., value
@@ -1076,7 +1076,7 @@ typedef enum IROpcode
 	IROpcode_Load_Element,
 	/*
 		Description:
-			Loads the address of the element at the index within the array.
+			Loads the address of an element at an index within an array.
 		
 		Stack:
 			..., array, index -> ..., address
@@ -1097,7 +1097,7 @@ typedef enum IROpcode
 	IROpcode_Load_ElementAddress,
 	/*
 		Description:
-			Stores the value into the element at the index within the array.
+			Stores a value into an element at an index within an array.
 		
 		Stack:
 			..., array, index, value -> ...
@@ -1119,7 +1119,7 @@ typedef enum IROpcode
 	/*
 		Description:
 			Allocates an aligned chunk of memory within local space,
-			of the specified size and produces an address.
+			of a specified size and loads the address.
 		
 		Stack:
 			..., size -> ..., address
@@ -1161,10 +1161,10 @@ typedef enum IROpcode
 	IROpcode_Initialize_Object,
 	/*
 		Description:
-			Copies the specified size number of bytes from source to dest.
+			Copies a specified number of bytes from source to destination.
 		
 		Stack:
-			..., dest, source, size -> ...
+			..., destination, source, size -> ...
 
 		Arg1:
 			N/A
@@ -1182,7 +1182,7 @@ typedef enum IROpcode
 	IROpcode_Copy_Block,
 	/*
 		Description:
-			Sets the specified size number of bytes at address to value.
+			Sets a specified number of bytes at an address to a value.
 		
 		Stack:
 			..., address, value, size -> ...
@@ -1203,7 +1203,7 @@ typedef enum IROpcode
 	IROpcode_Initialize_Block,
 	/*
 		Description:
-			Sets the specified size number of bytes at address to value.
+			Loads the size of the specified type.
 		
 		Stack:
 			... -> ..., size

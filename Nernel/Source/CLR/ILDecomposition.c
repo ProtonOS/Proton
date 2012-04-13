@@ -706,13 +706,14 @@ void ILDecomposition_CheckUncheckedConversionNumericOperandType(IRType* pOperand
 	}
 }
 
-#define PA()		StackObjectPool_Allocate(stack)
+#define SA()		StackObjectPool_Allocate(stack)
 #define SR(obj)		StackObjectPool_Release(stack, obj)
+
 #define BINARY_NUMERIC_OPERATION(pILOpcode, pIROpcode, pOverflowType) \
 	{ Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read " #pILOpcode); \
 		StackObject* value1 = SyntheticStack_Pop(stack); \
 		StackObject* value2 = SyntheticStack_Pop(stack); \
-		StackObject* obj = PA(); \
+		StackObject* obj = SA(); \
 		ILDecomposition_CheckBinaryNumericOperandTypesAndSetResult(value1->Type, value2->Type, BinaryNumericOperation_##pIROpcode, obj); \
 		EMIT_IR_3ARG_NO_DISPOSE(IROpcode_##pIROpcode, (uint32_t*)OverflowType_##pOverflowType, value1->Type, value2->Type); \
 		SR(value1); \
@@ -726,7 +727,7 @@ void ILDecomposition_CheckUncheckedConversionNumericOperandType(IRType* pOperand
 	{ Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read " #pILOpcode); \
 		StackObject* value1 = SyntheticStack_Pop(stack); \
 		StackObject* value2 = SyntheticStack_Pop(stack); \
-		StackObject* obj = PA(); \
+		StackObject* obj = SA(); \
 		ILDecomposition_CheckBitwiseNumericOperandTypesAndSetResult(value1->Type, value2->Type, BitwiseNumericOperation_##pILOpcode, obj); \
 		EMIT_IR_2ARG_NO_DISPOSE(IROpcode_##pILOpcode, value1->Type, value2->Type); \
 		SR(value1); \
@@ -739,7 +740,7 @@ void ILDecomposition_CheckUncheckedConversionNumericOperandType(IRType* pOperand
 #define UNARY_NUMERIC_OPERATION(pILOpcode) \
 	{ Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read " #pILOpcode); \
 		StackObject* value = SyntheticStack_Pop(stack); \
-		StackObject* obj = PA(); \
+		StackObject* obj = SA(); \
 		ILDecomposition_CheckUnaryNumericOperandTypesAndSetResult(value->Type, UnaryNumericOperation_##pILOpcode, obj); \
 		EMIT_IR_1ARG_NO_DISPOSE(IROpcode_##pILOpcode, value->Type); \
 		SR(value); \
@@ -754,7 +755,7 @@ void ILDecomposition_CheckUncheckedConversionNumericOperandType(IRType* pOperand
 		StackObject* value2 = SyntheticStack_Pop(stack); \
 		IRType* value1GeneralType = NULL; \
 		IRType* value2GeneralType = NULL; \
-		StackObject* obj = PA(); \
+		StackObject* obj = SA(); \
 		ILDecomposition_CheckShiftNumericOperandTypesAndSetResult(value1->Type, value2->Type, ShiftNumericOperation_##pShiftNumericOperation, obj, &value1GeneralType, &value2GeneralType); \
 		EMIT_IR_3ARG_NO_DISPOSE(IROpcode_Shift, (uint32_t*)ShiftNumericOperation_##pShiftNumericOperation, value1GeneralType, value2GeneralType); \
 		SR(value1); \
@@ -769,7 +770,7 @@ void ILDecomposition_CheckUncheckedConversionNumericOperandType(IRType* pOperand
 		StackObject* value = SyntheticStack_Pop(stack); \
 		ElementType sourceType = (ElementType)0; \
 		ElementType destinationType = ElementType_##pElementType; \
-		StackObject* obj = PA(); \
+		StackObject* obj = SA(); \
 		ILDecomposition_CheckUncheckedConversionNumericOperandType(value->Type, &sourceType); \
 		EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Convert_Unchecked, (uint32_t*)sourceType, (uint32_t*)destinationType); \
 		SR(value); \
@@ -913,7 +914,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				// We're at the start of a catch handler,
 				// so we need to push an exception object
 				// to the top of the stack.
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->SourceType = StackObjectSourceType_Stack;
 				obj->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_Exception->TableIndex - 1];
 				SyntheticStack_Push(stack, obj);
@@ -959,7 +960,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdArg.0");
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Parameter, (uint32_t*)0);
 					
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				if (methodSignature->HasThis && !(methodSignature->ExplicitThis))
 				{
 					if (AppDomain_IsStructure(domain, methodDefinition->TypeDefinition))
@@ -987,7 +988,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdArg.1");
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Parameter, (uint32_t*)1);
 					
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = pMethod->Parameters[1]->Type;
 				obj->SourceType = StackObjectSourceType_Parameter;
 				SyntheticStack_Push(stack, obj);
@@ -1001,7 +1002,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdArg.2");
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Parameter, (uint32_t*)2);
 					
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = pMethod->Parameters[2]->Type;
 				obj->SourceType = StackObjectSourceType_Parameter;
 				SyntheticStack_Push(stack, obj);
@@ -1015,7 +1016,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdArg.3");
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Parameter, (uint32_t*)3);
 					
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = pMethod->Parameters[3]->Type;
 				obj->SourceType = StackObjectSourceType_Parameter;
 				SyntheticStack_Push(stack, obj);
@@ -1030,7 +1031,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				uint32_t paramIndex = ReadUInt8(currentDataPointer);
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Parameter, (uint32_t*)paramIndex);
 					
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				if (methodSignature->HasThis && !(methodSignature->ExplicitThis) && !paramIndex)
 				{
 					if (AppDomain_IsStructure(domain, methodDefinition->TypeDefinition))
@@ -1059,7 +1060,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				uint32_t paramIndex = ReadUInt8(currentDataPointer);
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Parameter_Address, (uint32_t*)paramIndex);
 					
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = IRAssembly_MakePointerType(assembly, pMethod->Parameters[paramIndex]->Type);
 				obj->SourceType = StackObjectSourceType_Stack;
 				SyntheticStack_Push(stack, obj);
@@ -1086,7 +1087,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdLoc.0");
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Local, (uint32_t*)0);
 					
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = pMethod->LocalVariables[0]->VariableType;
 				obj->SourceType = StackObjectSourceType_Local;
 				SyntheticStack_Push(stack, obj);
@@ -1100,7 +1101,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdLoc.1");
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Local, (uint32_t*)1);
 					
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = pMethod->LocalVariables[1]->VariableType;
 				obj->SourceType = StackObjectSourceType_Local;
 				SyntheticStack_Push(stack, obj);
@@ -1114,7 +1115,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdLoc.2");
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Local, (uint32_t*)2);
 					
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = pMethod->LocalVariables[2]->VariableType;
 				obj->SourceType = StackObjectSourceType_Local;
 				SyntheticStack_Push(stack, obj);
@@ -1128,7 +1129,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdLoc.3");
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Local, (uint32_t*)3);
 					
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = pMethod->LocalVariables[3]->VariableType;
 				obj->SourceType = StackObjectSourceType_Local;
 				SyntheticStack_Push(stack, obj);
@@ -1143,7 +1144,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				uint32_t localIndex = ReadUInt8(currentDataPointer);
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Local, (uint32_t*)localIndex);
 					
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = pMethod->LocalVariables[localIndex]->VariableType;
 				obj->SourceType = StackObjectSourceType_Local;
 				SyntheticStack_Push(stack, obj);
@@ -1158,7 +1159,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				uint32_t localIndex = ReadUInt8(currentDataPointer);
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Local_Address, (uint32_t*)localIndex);
 					
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = IRAssembly_MakePointerType(assembly, pMethod->LocalVariables[localIndex]->VariableType);
 				obj->SourceType = StackObjectSourceType_Stack;
 				SyntheticStack_Push(stack, obj);
@@ -1229,7 +1230,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdNull");
                 EMIT_IR(IROpcode_Load_Null);
 				
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_Object->TableIndex - 1];
 				obj->SourceType = StackObjectSourceType_Stack;
 				SyntheticStack_Push(stack, obj);
@@ -1252,7 +1253,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
 				EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Load_String, (uint32_t*)strLength, str);
 
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_String->TableIndex - 1];
 				obj->SourceType = StackObjectSourceType_Stack;
 				SyntheticStack_Push(stack, obj);
@@ -1266,7 +1267,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ldc.I4.M1");
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Int32, (uint32_t*)-1);
 				
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_Int32->TableIndex - 1];
 				obj->SourceType = StackObjectSourceType_Constant;
 				SyntheticStack_Push(stack, obj);
@@ -1280,7 +1281,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ldc.I4.0");
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Int32, (uint32_t*)0);
 				
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_Int32->TableIndex - 1];
 				obj->SourceType = StackObjectSourceType_Constant;
 				SyntheticStack_Push(stack, obj);
@@ -1294,7 +1295,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ldc.I4.1");
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Int32, (uint32_t*)1);
 				
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_Int32->TableIndex - 1];
 				obj->SourceType = StackObjectSourceType_Constant;
 				SyntheticStack_Push(stack, obj);
@@ -1308,7 +1309,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ldc.I4.2");
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Int32, (uint32_t*)2);
 				
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_Int32->TableIndex - 1];
 				obj->SourceType = StackObjectSourceType_Constant;
 				SyntheticStack_Push(stack, obj);
@@ -1322,7 +1323,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ldc.I4.3");
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Int32, (uint32_t*)3);
 				
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_Int32->TableIndex - 1];
 				obj->SourceType = StackObjectSourceType_Constant;
 				SyntheticStack_Push(stack, obj);
@@ -1336,7 +1337,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ldc.I4.4");
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Int32, (uint32_t*)4);
 				
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_Int32->TableIndex - 1];
 				obj->SourceType = StackObjectSourceType_Constant;
 				SyntheticStack_Push(stack, obj);
@@ -1350,7 +1351,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ldc.I4.5");
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Int32, (uint32_t*)5);
 				
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_Int32->TableIndex - 1];
 				obj->SourceType = StackObjectSourceType_Constant;
 				SyntheticStack_Push(stack, obj);
@@ -1364,7 +1365,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ldc.I4.6");
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Int32, (uint32_t*)6);
 				
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_Int32->TableIndex - 1];
 				obj->SourceType = StackObjectSourceType_Constant;
 				SyntheticStack_Push(stack, obj);
@@ -1378,7 +1379,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ldc.I4.7");
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Int32, (uint32_t*)7);
 				
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_Int32->TableIndex - 1];
 				obj->SourceType = StackObjectSourceType_Constant;
 				SyntheticStack_Push(stack, obj);
@@ -1392,7 +1393,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                 Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ldc.I4.8");
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Int32, (uint32_t*)8);
 				
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_Int32->TableIndex - 1];
 				obj->SourceType = StackObjectSourceType_Constant;
 				SyntheticStack_Push(stack, obj);
@@ -1407,7 +1408,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				uint32_t value = (uint32_t)(int32_t)(int8_t)ReadUInt8(currentDataPointer);
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Int32, (uint32_t*)value);
 				
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_Int32->TableIndex - 1];
 				obj->SourceType = StackObjectSourceType_Constant;
 				SyntheticStack_Push(stack, obj);
@@ -1422,7 +1423,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				uint32_t value = ReadUInt32(currentDataPointer);
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Int32, (uint32_t*)value);
 				
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_Int32->TableIndex - 1];
 				obj->SourceType = StackObjectSourceType_Constant;
 				SyntheticStack_Push(stack, obj);
@@ -1438,7 +1439,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				*value = ReadUInt64(currentDataPointer);
                 EMIT_IR_1ARG(IROpcode_Load_Int32, value);
 				
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_Int64->TableIndex - 1];
 				obj->SourceType = StackObjectSourceType_Constant;
 				SyntheticStack_Push(stack, obj);
@@ -1453,7 +1454,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				uint32_t value = ReadUInt32(currentDataPointer);
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Int32, (uint32_t*)value);
 				
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_Single->TableIndex - 1];
 				obj->SourceType = StackObjectSourceType_Constant;
 				SyntheticStack_Push(stack, obj);
@@ -1469,7 +1470,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				*value = ReadUInt64(currentDataPointer);
                 EMIT_IR_1ARG(IROpcode_Load_Int32, value);
 				
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_Double->TableIndex - 1];
 				obj->SourceType = StackObjectSourceType_Constant;
 				SyntheticStack_Push(stack, obj);
@@ -1488,7 +1489,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				object->Source = NULL;
 				object->SourceType = StackObjectSourceType_Stack;
 
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = object->Type;
 				obj->SourceType = StackObjectSourceType_Stack;
 				SyntheticStack_Push(stack, obj);
@@ -1645,7 +1646,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				SR(SyntheticStack_Pop(stack));
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Indirect, domain->IRAssemblies[0]->Types[domain->CachedType___System_IntPtr->TableIndex - 1]);
 				
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_IntPtr->TableIndex - 1];
 				obj->SourceType = StackObjectSourceType_Stack;
 				SyntheticStack_Push(stack, obj);
@@ -1660,7 +1661,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				SR(SyntheticStack_Pop(stack));
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Indirect, domain->IRAssemblies[0]->Types[domain->CachedType___System_SByte->TableIndex - 1]);
 				
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_SByte->TableIndex - 1];
 				obj->SourceType = StackObjectSourceType_Stack;
 				SyntheticStack_Push(stack, obj);
@@ -1675,7 +1676,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				SR(SyntheticStack_Pop(stack));
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Indirect, domain->IRAssemblies[0]->Types[domain->CachedType___System_Byte->TableIndex - 1]);
 				
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_Byte->TableIndex - 1];
 				obj->SourceType = StackObjectSourceType_Stack;
 				SyntheticStack_Push(stack, obj);
@@ -1690,7 +1691,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				SR(SyntheticStack_Pop(stack));
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Indirect, domain->IRAssemblies[0]->Types[domain->CachedType___System_Int16->TableIndex - 1]);
 				
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_Int16->TableIndex - 1];
 				obj->SourceType = StackObjectSourceType_Stack;
 				SyntheticStack_Push(stack, obj);
@@ -1705,7 +1706,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				SR(SyntheticStack_Pop(stack));
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Indirect, domain->IRAssemblies[0]->Types[domain->CachedType___System_UInt16->TableIndex - 1]);
 				
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_UInt16->TableIndex - 1];
 				obj->SourceType = StackObjectSourceType_Stack;
 				SyntheticStack_Push(stack, obj);
@@ -1720,7 +1721,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				SR(SyntheticStack_Pop(stack));
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Indirect, domain->IRAssemblies[0]->Types[domain->CachedType___System_Int32->TableIndex - 1]);
 				
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_Int32->TableIndex - 1];
 				obj->SourceType = StackObjectSourceType_Stack;
 				SyntheticStack_Push(stack, obj);
@@ -1735,7 +1736,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				SR(SyntheticStack_Pop(stack));
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Indirect, domain->IRAssemblies[0]->Types[domain->CachedType___System_UInt32->TableIndex - 1]);
 				
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_UInt32->TableIndex - 1];
 				obj->SourceType = StackObjectSourceType_Stack;
 				SyntheticStack_Push(stack, obj);
@@ -1750,7 +1751,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				SR(SyntheticStack_Pop(stack));
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Indirect, domain->IRAssemblies[0]->Types[domain->CachedType___System_Int64->TableIndex - 1]);
 				
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_Int64->TableIndex - 1];
 				obj->SourceType = StackObjectSourceType_Stack;
 				SyntheticStack_Push(stack, obj);
@@ -1765,7 +1766,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				SR(SyntheticStack_Pop(stack));
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Indirect, domain->IRAssemblies[0]->Types[domain->CachedType___System_Single->TableIndex - 1]);
 				
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_Single->TableIndex - 1];
 				obj->SourceType = StackObjectSourceType_Stack;
 				SyntheticStack_Push(stack, obj);
@@ -1780,7 +1781,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				SR(SyntheticStack_Pop(stack));
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Indirect, domain->IRAssemblies[0]->Types[domain->CachedType___System_Double->TableIndex - 1]);
 				
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_Double->TableIndex - 1];
 				obj->SourceType = StackObjectSourceType_Stack;
 				SyntheticStack_Push(stack, obj);
@@ -1795,7 +1796,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				SR(SyntheticStack_Pop(stack));
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Indirect, domain->IRAssemblies[0]->Types[domain->CachedType___System_Object->TableIndex - 1]);
 				
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_Object->TableIndex - 1];
 				obj->SourceType = StackObjectSourceType_Stack;
 				SyntheticStack_Push(stack, obj);
@@ -2042,7 +2043,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
 				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_New_Object, constructorMethod);
 
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = constructorMethod->ParentAssembly->Types[constructorMethod->MethodDefinition->TypeDefinition->TableIndex - 1];
 				obj->SourceType = StackObjectSourceType_Stack;
 				SyntheticStack_Push(stack, obj);
@@ -2224,7 +2225,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
 				EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Load_StaticField, type, (uint32_t*)fieldIndex);
 
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = type;
 				obj->SourceType = StackObjectSourceType_StaticField;
 				SyntheticStack_Push(stack, obj);
@@ -2242,7 +2243,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
 				EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Load_StaticFieldAddress, type, (uint32_t*)fieldIndex);
 
-				StackObject* obj = PA();
+				StackObject* obj = SA();
 				obj->Type = IRAssembly_MakePointerType(assembly, type);
 				obj->SourceType = StackObjectSourceType_StaticField;
 				SyntheticStack_Push(stack, obj);
@@ -2630,7 +2631,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 						uint32_t paramIndex = ReadUInt16(currentDataPointer);
 						EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Parameter, (uint32_t*)paramIndex);
 					
-						StackObject* obj = PA();
+						StackObject* obj = SA();
 						if (methodSignature->HasThis && !(methodSignature->ExplicitThis) && !paramIndex)
 						{
 							if (AppDomain_IsStructure(domain, methodDefinition->TypeDefinition))
@@ -2659,7 +2660,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 						uint32_t paramIndex = ReadUInt16(currentDataPointer);
 						EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Parameter_Address, (uint32_t*)paramIndex);
 					
-						StackObject* obj = PA();
+						StackObject* obj = SA();
 						obj->Type = IRAssembly_MakePointerType(assembly, pMethod->Parameters[paramIndex]->Type);
 						obj->SourceType = StackObjectSourceType_Stack;
 						SyntheticStack_Push(stack, obj);
@@ -2686,7 +2687,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 						uint32_t localIndex = ReadUInt16(currentDataPointer);
 						EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Local, (uint32_t*)localIndex);
 					
-						StackObject* obj = PA();
+						StackObject* obj = SA();
 						obj->Type = pMethod->LocalVariables[localIndex]->VariableType;
 						obj->SourceType = StackObjectSourceType_Local;
 						SyntheticStack_Push(stack, obj);
@@ -2701,7 +2702,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 						uint32_t localIndex = ReadUInt16(currentDataPointer);
 						EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Local_Address, (uint32_t*)localIndex);
 					
-						StackObject* obj = PA();
+						StackObject* obj = SA();
 						obj->Type = IRAssembly_MakePointerType(assembly, pMethod->LocalVariables[localIndex]->VariableType);
 						obj->SourceType = StackObjectSourceType_Stack;
 						SyntheticStack_Push(stack, obj);
@@ -2796,8 +2797,8 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
 						EMIT_IR_1ARG_NO_DISPOSE(IROpcode_SizeOf, type);
 						
-						StackObject* obj = PA();
-						obj->Type = type;
+						StackObject* obj = SA();
+						obj->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_Int32->TableIndex - 1];
 						obj->SourceType = StackObjectSourceType_Stack;
 						SyntheticStack_Push(stack, obj);
 
