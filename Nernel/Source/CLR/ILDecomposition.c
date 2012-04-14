@@ -1511,16 +1511,167 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
 
             case ILOpcode_Call:				// 0x28
+			{
+				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Call");
+
+				MetadataToken* token = CLIFile_ExpandMetadataToken(file, ReadUInt32(currentDataPointer));
+				IRMethod* method = NULL;
+				switch(token->Table)
+				{
+					case MetadataTable_MethodDefinition:
+					{
+						method = assembly->Methods[((MethodDefinition*)token->Data)->TableIndex - 1];
+						break;
+					}
+					case MetadataTable_MemberReference:
+					{
+						MemberReference* memberRef = (MemberReference*)token->Data;
+						MethodDefinition* methodDef = memberRef->Resolved.MethodDefinition;
+						method = methodDef->File->Assembly->Methods[methodDef->TableIndex - 1];
+						break;
+					}
+
+					default:
+						Panic("Unknown table for Call");
+						break;
+				}
+				CLIFile_DestroyMetadataToken(token);
+				
+				for (uint32_t index = 0; index < method->ParameterCount; index++)
+				{
+					SR(SyntheticStack_Pop(stack));
+				}
+
+				if (method->MethodDefinition->InternalCall)
+				{
+					EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Call_Internal, method);
+				}
+				else
+				{
+					EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Call_Absolute, method);
+				}
+
+				if (method->Returns)
+				{
+					StackObject* obj = SA();
+					obj->Type = method->ReturnType;
+					obj->SourceType = StackObjectSourceType_Stack;
+					SyntheticStack_Push(stack, obj);
+				}
+
                 ClearFlags();
                 break;
+			}
 
             case ILOpcode_CallI:			// 0x29
                 ClearFlags();
                 break;
 
             case ILOpcode_CallVirt:			// 0x6F
+			{
+				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read CallVirt");
+
+				MetadataToken* token = CLIFile_ExpandMetadataToken(file, ReadUInt32(currentDataPointer));
+				MethodDefinition* methodDef = NULL;
+				MethodSignature* methodSig = NULL;
+				IRAssembly* methodAssembly = NULL;
+				switch(token->Table)
+				{
+					case MetadataTable_MethodDefinition:
+					{
+						methodDef = (MethodDefinition*)token->Data;
+						if (!(methodSig = methodDef->SignatureCache))
+						{
+							methodDef->SignatureCache = MethodSignature_Expand(methodDef->Signature, file);
+							methodSig = methodDef->SignatureCache;
+						}
+						methodAssembly = assembly;
+						break;
+					}
+					case MetadataTable_MemberReference:
+					{
+						methodDef = ((MemberReference*)token->Data)->Resolved.MethodDefinition;
+						if (!(methodSig = methodDef->SignatureCache))
+						{
+							methodDef->SignatureCache = MethodSignature_Expand(((MemberReference*)token->Data)->Signature, file);
+							methodSig = methodDef->SignatureCache;
+						}
+						methodAssembly = methodDef->File->Assembly;
+						break;
+					}
+
+					default:
+						Panic("Unknown table for CallVirt");
+						break;
+				}
+				CLIFile_DestroyMetadataToken(token);
+
+				IRMethod* method = methodAssembly->Methods[methodDef->TableIndex - 1];
+				for (uint32_t index = 0; index < method->ParameterCount; index++)
+				{
+					SR(SyntheticStack_Pop(stack));
+				}
+
+				if (method->MethodDefinition->InternalCall)
+				{
+					EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Call_Internal, method);
+				}
+				else if(((methodDef->Flags & MethodAttributes_Virtual) == 0) || (methodDef->Flags & MethodAttributes_RTSpecialName) || (methodDef->TypeDefinition->Flags & TypeAttributes_Sealed) || AppDomain_IsStructure(domain, methodDef->TypeDefinition))
+				{
+					EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Call_Absolute, method);
+				}
+				else if(prefixConstrained)
+				{
+					Panic("Constrained not yet supported");
+				}
+				else
+				{
+					IRType* methodParentType = methodAssembly->Types[methodDef->TypeDefinition->TableIndex - 1];
+					uint32_t methodIndex = 0;
+					bool_t found = FALSE;
+
+					for (uint32_t index = 0; index < methodParentType->MethodCount; ++index)
+					{
+						MethodDefinition* methodDefChecking = methodParentType->Methods[index]->MethodDefinition;
+						if (!strcmp(methodDef->Name, methodDefChecking->Name))
+						{
+							if (methodDef->Flags & MethodAttributes_HideBySignature)
+							{
+								if (Signature_Equals(methodDef->Signature, methodDef->SignatureLength, methodDefChecking->Signature, methodDefChecking->SignatureLength))
+								{
+									methodIndex = index;
+									found = TRUE;
+									break;
+								}
+							}
+							else
+							{
+								methodIndex = index;
+								found = TRUE;
+								break;
+							}
+						}
+					}
+
+					if (!found)
+					{
+						Panic("Unable to resolve virtual call");
+					}
+
+					EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Call_Virtual, methodParentType, (uint32_t*)methodIndex);
+				}
+
+				if (method->Returns)
+				{
+					StackObject* obj = SA();
+					obj->Type = method->ReturnType;
+					obj->SourceType = StackObjectSourceType_Stack;
+					SyntheticStack_Push(stack, obj);
+				}
+
                 ClearFlags();
                 break;
+			}
 
             case ILOpcode_Jmp:				// 0x27
 			{
@@ -2054,26 +2205,19 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read NewObj");
 
 				MetadataToken* token = CLIFile_ExpandMetadataToken(file, ReadUInt32(currentDataPointer));
-				MethodSignature* constructorSignature = NULL;
-				IRMethod* constructorMethod = NULL;
+				IRMethod* method = NULL;
 				switch(token->Table)
 				{
 					case MetadataTable_MethodDefinition:
 					{
-						constructorSignature = ((MethodDefinition*)token->Data)->SignatureCache;
-						constructorMethod = assembly->Methods[((MethodDefinition*)token->Data)->TableIndex - 1];
+						method = assembly->Methods[((MethodDefinition*)token->Data)->TableIndex - 1];
 						break;
 					}
 					case MetadataTable_MemberReference:
 					{
 						MemberReference* memberRef = (MemberReference*)token->Data;
-						if (!(constructorSignature = memberRef->MethodSignatureCache))
-						{
-							memberRef->MethodSignatureCache = MethodSignature_Expand(memberRef->Signature, file);
-							constructorSignature = memberRef->MethodSignatureCache;
-						}
 						MethodDefinition* methodDef = memberRef->Resolved.MethodDefinition;
-						constructorMethod = methodDef->File->Assembly->Methods[methodDef->TableIndex - 1];
+						method = methodDef->File->Assembly->Methods[methodDef->TableIndex - 1];
 						break;
 					}
 
@@ -2081,16 +2225,17 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 						Panic("Unknown table for NewObj");
 						break;
 				}
-				for (uint32_t index = 0; index < constructorSignature->ParameterCount; index++)
+				CLIFile_DestroyMetadataToken(token);
+
+				for (uint32_t index = 0; index < method->ParameterCount; index++)
 				{
 					SR(SyntheticStack_Pop(stack));
 				}
-				CLIFile_DestroyMetadataToken(token);
 
-				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_New_Object, constructorMethod);
+				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_New_Object, method);
 
 				StackObject* obj = SA();
-				obj->Type = constructorMethod->ParentAssembly->Types[constructorMethod->MethodDefinition->TypeDefinition->TableIndex - 1];
+				obj->Type = method->ParentAssembly->Types[method->MethodDefinition->TypeDefinition->TableIndex - 1];
 				obj->SourceType = StackObjectSourceType_Stack;
 				SyntheticStack_Push(stack, obj);
 

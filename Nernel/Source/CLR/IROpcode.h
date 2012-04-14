@@ -47,6 +47,9 @@ typedef enum IROpcode
 	/*
 		Description:
 			Returns from the current method, with an optional return value.
+			Due to implementation details, the callee and caller do not share
+			evaluation stacks, and as a result this stack analysis is not
+			entirely concise.
 		
 		Stack:
 			value (present for return values, callee stack) -> ..., value (present for return values, caller stack)
@@ -1244,6 +1247,69 @@ typedef enum IROpcode
 
 	 */
 	IROpcode_Jump,
+	/*
+		Description:
+			Call a method, with overload checking.
+		
+		Stack:
+			..., arg0, arg1, ..., argN -> ..., value (present for return values)
+
+		Arg1: IRType*
+			A pointer to the IRType that contains the method.
+
+		Arg2: uint32_t
+			The index to the IRMethod to be called.
+
+		Arg3:
+			N/A
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_Call_Virtual,
+	/*
+		Description:
+			Call a method, without overload checking.
+		
+		Stack:
+			..., arg0, arg1, ..., argN -> ..., value (present for return values)
+
+		Arg1: IRMethod*
+			A pointer to the IRMethod to be called.
+
+		Arg2:
+			N/A
+
+		Arg3:
+			N/A
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_Call_Absolute,
+	/*
+		Description:
+			Call an internal native method, without overload checking.
+		
+		Stack:
+			..., arg0, arg1, ..., argN -> ..., value (present for return values)
+
+		Arg1: IRMethod*
+			A pointer to the IRMethod to be called.
+
+		Arg2:
+			N/A
+
+		Arg3:
+			N/A
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_Call_Internal,
 } IROpcode;
 
 typedef enum OverflowType

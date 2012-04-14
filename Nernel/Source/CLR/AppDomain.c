@@ -131,7 +131,7 @@ void AppDomain_LinkCorlib(AppDomain* pDomain, CLIFile* pCorlibFile)
 			}
 			else if (!strcmp(type->Name, "TypedReference"))
 			{
-				pDomain->CachedType___System_TypedReference = type;
+				//pDomain->CachedType___System_TypedReference = type;
 			}
 			else if (!strcmp(type->Name, "UInt16"))
 			{
