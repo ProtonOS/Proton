@@ -651,7 +651,7 @@ void ILDecomposition_CheckShiftNumericOperandTypesAndSetResult(IRType* pOperandA
 	pResultObject->Type = *pOperandBGeneralType;
 }
 
-void ILDecomposition_CheckUncheckedConversionNumericOperandType(IRType* pOperand, ElementType* pSourceType)
+void ILDecomposition_CheckConversionNumericOperandType(IRType* pOperand, ElementType* pSourceType)
 {
 	AppDomain* domain = pOperand->ParentAssembly->ParentDomain;
 	TypeDefinition* operandType = pOperand->TypeDefinition;
@@ -771,8 +771,23 @@ void ILDecomposition_CheckUncheckedConversionNumericOperandType(IRType* pOperand
 		ElementType sourceType = (ElementType)0; \
 		ElementType destinationType = ElementType_##pElementType; \
 		StackObject* obj = SA(); \
-		ILDecomposition_CheckUncheckedConversionNumericOperandType(value->Type, &sourceType); \
+		ILDecomposition_CheckConversionNumericOperandType(value->Type, &sourceType); \
 		EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Convert_Unchecked, (uint32_t*)sourceType, (uint32_t*)destinationType); \
+		SR(value); \
+		obj->Type = pDestinationType; \
+		obj->SourceType = StackObjectSourceType_Stack; \
+		SyntheticStack_Push(stack, obj); \
+		ClearFlags(); \
+		break; \
+	}
+#define CHECKED_CONVERSION_NUMERIC_OPERATION(pElementType, pDestinationType, pOverflowType, pUnsigned) \
+	{ Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Conv.Ovf." #pElementType #pUnsigned); \
+		StackObject* value = SyntheticStack_Pop(stack); \
+		ElementType sourceType = (ElementType)0; \
+		ElementType destinationType = ElementType_##pElementType; \
+		StackObject* obj = SA(); \
+		ILDecomposition_CheckConversionNumericOperandType(value->Type, &sourceType); \
+		EMIT_IR_3ARG_NO_DISPOSE(IROpcode_Convert_Checked, (uint32_t*)sourceType, (uint32_t*)destinationType, (uint32_t*)OverflowType_##pOverflowType); \
 		SR(value); \
 		obj->Type = pDestinationType; \
 		obj->SourceType = StackObjectSourceType_Stack; \
@@ -2584,84 +2599,54 @@ BranchCommon:
 
 
             case ILOpcode_Conv_Ovf_I1:		// 0xB3
-                ClearFlags();
-                break;
-
+				CHECKED_CONVERSION_NUMERIC_OPERATION(I1, domain->IRAssemblies[0]->Types[domain->CachedType___System_SByte->TableIndex - 1], Signed, );
             case ILOpcode_Conv_Ovf_I1_Un:	// 0x82
-                ClearFlags();
-                break;
+				CHECKED_CONVERSION_NUMERIC_OPERATION(I1, domain->IRAssemblies[0]->Types[domain->CachedType___System_SByte->TableIndex - 1], Signed, .Un);
 
             case ILOpcode_Conv_Ovf_U1:		// 0xB4
-                ClearFlags();
-                break;
-
+				CHECKED_CONVERSION_NUMERIC_OPERATION(U1, domain->IRAssemblies[0]->Types[domain->CachedType___System_Byte->TableIndex - 1], Unsigned, );
             case ILOpcode_Conv_Ovf_U1_Un:	// 0x86
-                ClearFlags();
-                break;
+				CHECKED_CONVERSION_NUMERIC_OPERATION(U1, domain->IRAssemblies[0]->Types[domain->CachedType___System_Byte->TableIndex - 1], Unsigned, .Un);
 
             case ILOpcode_Conv_Ovf_I2:		// 0xB5
-                ClearFlags();
-                break;
-
+				CHECKED_CONVERSION_NUMERIC_OPERATION(I2, domain->IRAssemblies[0]->Types[domain->CachedType___System_Int16->TableIndex - 1], Signed, );
             case ILOpcode_Conv_Ovf_I2_Un:	// 0x83
-                ClearFlags();
-                break;
+				CHECKED_CONVERSION_NUMERIC_OPERATION(I2, domain->IRAssemblies[0]->Types[domain->CachedType___System_Int16->TableIndex - 1], Signed, .Un);
 
             case ILOpcode_Conv_Ovf_U2:		// 0xB6
-                ClearFlags();
-                break;
-
+				CHECKED_CONVERSION_NUMERIC_OPERATION(U2, domain->IRAssemblies[0]->Types[domain->CachedType___System_UInt16->TableIndex - 1], Unsigned, );
             case ILOpcode_Conv_Ovf_U2_Un:	// 0x87
-                ClearFlags();
-                break;
+				CHECKED_CONVERSION_NUMERIC_OPERATION(U2, domain->IRAssemblies[0]->Types[domain->CachedType___System_UInt16->TableIndex - 1], Unsigned, .Un);
 
             case ILOpcode_Conv_Ovf_I4:		// 0xB7
-                ClearFlags();
-                break;
-
+				CHECKED_CONVERSION_NUMERIC_OPERATION(I4, domain->IRAssemblies[0]->Types[domain->CachedType___System_Int32->TableIndex - 1], Signed, );
             case ILOpcode_Conv_Ovf_I4_Un:	// 0x84
-                ClearFlags();
-                break;
+				CHECKED_CONVERSION_NUMERIC_OPERATION(I4, domain->IRAssemblies[0]->Types[domain->CachedType___System_Int32->TableIndex - 1], Signed, .Un);
 
             case ILOpcode_Conv_Ovf_U4:		// 0xB8
-                ClearFlags();
-                break;
-
+				CHECKED_CONVERSION_NUMERIC_OPERATION(U4, domain->IRAssemblies[0]->Types[domain->CachedType___System_UInt32->TableIndex - 1], Unsigned, );
             case ILOpcode_Conv_Ovf_U4_Un:	// 0x88
-                ClearFlags();
-                break;
+				CHECKED_CONVERSION_NUMERIC_OPERATION(U4, domain->IRAssemblies[0]->Types[domain->CachedType___System_UInt32->TableIndex - 1], Unsigned, .Un);
 
             case ILOpcode_Conv_Ovf_I8:		// 0xB9
-                ClearFlags();
-                break;
-
+				CHECKED_CONVERSION_NUMERIC_OPERATION(I8, domain->IRAssemblies[0]->Types[domain->CachedType___System_Int64->TableIndex - 1], Signed, );
             case ILOpcode_Conv_Ovf_I8_Un:	// 0x85
-                ClearFlags();
-                break;
+				CHECKED_CONVERSION_NUMERIC_OPERATION(I8, domain->IRAssemblies[0]->Types[domain->CachedType___System_Int64->TableIndex - 1], Signed, .Un);
 
             case ILOpcode_Conv_Ovf_U8:		// 0xBA
-                ClearFlags();
-                break;
-
+				CHECKED_CONVERSION_NUMERIC_OPERATION(U8, domain->IRAssemblies[0]->Types[domain->CachedType___System_UInt64->TableIndex - 1], Unsigned, );
             case ILOpcode_Conv_Ovf_U8_Un:	// 0x89
-                ClearFlags();
-                break;
+				CHECKED_CONVERSION_NUMERIC_OPERATION(U8, domain->IRAssemblies[0]->Types[domain->CachedType___System_UInt64->TableIndex - 1], Unsigned, .Un);
 
             case ILOpcode_Conv_Ovf_I:		// 0xD4
-                ClearFlags();
-                break;
-
+				CHECKED_CONVERSION_NUMERIC_OPERATION(I, domain->IRAssemblies[0]->Types[domain->CachedType___System_IntPtr->TableIndex - 1], Signed, );
             case ILOpcode_Conv_Ovf_I_Un:	// 0x8A
-                ClearFlags();
-                break;
+				CHECKED_CONVERSION_NUMERIC_OPERATION(I, domain->IRAssemblies[0]->Types[domain->CachedType___System_IntPtr->TableIndex - 1], Signed, .Un);
 
             case ILOpcode_Conv_Ovf_U:		// 0xD5
-                ClearFlags();
-                break;
-
+				CHECKED_CONVERSION_NUMERIC_OPERATION(U, domain->IRAssemblies[0]->Types[domain->CachedType___System_UIntPtr->TableIndex - 1], Unsigned, );
             case ILOpcode_Conv_Ovf_U_Un:	// 0x8B
-                ClearFlags();
-                break;
+				CHECKED_CONVERSION_NUMERIC_OPERATION(U, domain->IRAssemblies[0]->Types[domain->CachedType___System_UIntPtr->TableIndex - 1], Unsigned, .Un);
 
 
             case ILOpcode_LdLen:			// 0x8E

@@ -657,7 +657,27 @@ typedef enum IROpcode
 
 	 */
 	IROpcode_Convert_Unchecked,
+	/*
+		Description:
+			Convert a value the specified type, with overflow checking.
+		
+		Stack:
+			..., value -> ..., result
 
+		Arg1: IRType*
+			A pointer to the IRType of the value.
+
+		Arg2: IRType*
+			A pointer to the IRType of the result.
+
+		Arg3: OverflowType
+			The type over overflow checks to handle.
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_Convert_Checked,
 	/*
 		Description:
 			Casts an object to the specified type, failure results in exception.
