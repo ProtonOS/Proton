@@ -800,9 +800,50 @@ void ILDecomposition_CheckUncheckedConversionNumericOperandType(IRType* pOperand
 		ClearFlags(); \
 	    break; \
     }
-
-
-
+#define BRANCH_OPERATION(pILOpcode, pCondition) \
+	{ Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read " #pILOpcode); \
+		if (pCondition == BranchCondition_False || pCondition == BranchCondition_True) \
+		{ \
+			branchArg1 = SyntheticStack_Pop(stack); \
+		} \
+		else if (pCondition == BranchCondition_Always) \
+		{ \
+			if (stack->StackDepth > 0) \
+			{ \
+				SR(SyntheticStack_Pop(stack)); \
+			} \
+		} \
+		else if (pCondition != BranchCondition_Always) \
+		{ \
+			branchArg1 = SyntheticStack_Pop(stack); \
+			branchArg2 = SyntheticStack_Pop(stack); \
+		} \
+		branchCondition = pCondition;\
+		branchTarget = ReadUInt32(currentDataPointer); \
+		goto BranchCommon; \
+	}
+#define SHORT_BRANCH_OPERATION(pILOpcode, pCondition) \
+	{ Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read " #pILOpcode ".S"); \
+		if (pCondition == BranchCondition_False || pCondition == BranchCondition_True) \
+		{ \
+			branchArg1 = SyntheticStack_Pop(stack); \
+		} \
+		else if (pCondition == BranchCondition_Always) \
+		{ \
+			if (stack->StackDepth > 0) \
+			{ \
+				SR(SyntheticStack_Pop(stack)); \
+			} \
+		} \
+		else if (pCondition != BranchCondition_Always) \
+		{ \
+			branchArg1 = SyntheticStack_Pop(stack); \
+			branchArg2 = SyntheticStack_Pop(stack); \
+		} \
+		branchCondition = pCondition;\
+		branchTarget = (uint32_t)((int32_t)((int8_t)ReadUInt8(currentDataPointer))); \
+		goto BranchCommon; \
+	}
 
 
 ALWAYS_INLINE uint8_t ReadUInt8(uint8_t** pData)
@@ -835,6 +876,8 @@ ALWAYS_INLINE uint64_t ReadUInt64(uint8_t** pData)
 
 void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 {
+	if (pMethod->IRCodes) return;
+
 	MethodDefinition* methodDefinition = pMethod->MethodDefinition;
 	MethodSignature* methodSignature = methodDefinition->SignatureCache;
 	CLIFile* file = methodDefinition->File;
@@ -889,10 +932,10 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
     bool_t prefixTail = FALSE;
     bool_t prefixUnaligned = FALSE;
     bool_t prefixVolatile = FALSE;
-    //BranchCondition branchCondition = (BranchCondition)0;
-    //uint32_t branchTarget;
-	//StackObject* branchArg1 = NULL;
-	//StackObject* branchArg2 = NULL;
+    BranchCondition branchCondition = (BranchCondition)0;
+    uint32_t branchTarget;
+	StackObject* branchArg1 = NULL;
+	StackObject* branchArg2 = NULL;
 	uint8_t* localizedDataPointer = methodDefinition->Body.Code;
 	uint32_t localizedDataLength = methodDefinition->Body.CodeSize;
 	uint8_t** currentDataPointer = &localizedDataPointer;
@@ -1520,14 +1563,20 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				{
 					case MetadataTable_MethodDefinition:
 					{
-						method = assembly->Methods[((MethodDefinition*)token->Data)->TableIndex - 1];
+						if (!(method = assembly->Methods[((MethodDefinition*)token->Data)->TableIndex - 1]))
+						{
+							method = IRMethod_Create(assembly, (MethodDefinition*)token->Data);
+						}
 						break;
 					}
 					case MetadataTable_MemberReference:
 					{
 						MemberReference* memberRef = (MemberReference*)token->Data;
 						MethodDefinition* methodDef = memberRef->Resolved.MethodDefinition;
-						method = methodDef->File->Assembly->Methods[methodDef->TableIndex - 1];
+						if (!(method = methodDef->File->Assembly->Methods[methodDef->TableIndex - 1]))
+						{
+							method = IRMethod_Create(methodDef->File->Assembly, methodDef);
+						}
 						break;
 					}
 
@@ -1541,6 +1590,8 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				{
 					SR(SyntheticStack_Pop(stack));
 				}
+
+				ILDecomposition_ConvertInstructions(method);
 
 				if (method->MethodDefinition->InternalCall)
 				{
@@ -1564,6 +1615,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 			}
 
             case ILOpcode_CallI:			// 0x29
+				Panic("CallI not yet supported, if ever");
                 ClearFlags();
                 break;
 
@@ -1606,11 +1658,17 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				}
 				CLIFile_DestroyMetadataToken(token);
 
-				IRMethod* method = methodAssembly->Methods[methodDef->TableIndex - 1];
+				IRMethod* method = NULL;;
+				if (!(method = methodAssembly->Methods[methodDef->TableIndex - 1]))
+				{
+					method = IRMethod_Create(methodAssembly, methodDef);
+				}
 				for (uint32_t index = 0; index < method->ParameterCount; index++)
 				{
 					SR(SyntheticStack_Pop(stack));
 				}
+
+				ILDecomposition_ConvertInstructions(method);
 
 				if (method->MethodDefinition->InternalCall)
 				{
@@ -1685,14 +1743,20 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				{
 					case MetadataTable_MethodDefinition:
 					{
-						method = assembly->Methods[((MethodDefinition*)token->Data)->TableIndex - 1];
+						if (!(method = assembly->Methods[((MethodDefinition*)token->Data)->TableIndex - 1]))
+						{
+							method = IRMethod_Create(assembly, (MethodDefinition*)token->Data);
+						}
 						break;
 					}
 					case MetadataTable_MemberReference:
 					{
 						MemberReference* memberRef = (MemberReference*)token->Data;
 						MethodDefinition* methodDef = memberRef->Resolved.MethodDefinition;
-						method = methodDef->File->Assembly->Methods[methodDef->TableIndex - 1];
+						if (!(method = methodDef->File->Assembly->Methods[methodDef->TableIndex - 1]))
+						{
+							method = IRMethod_Create(methodDef->File->Assembly, methodDef);
+						}
 						break;
 					}
 
@@ -1701,6 +1765,8 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 						break;
 				}
 				CLIFile_DestroyMetadataToken(token);
+
+				ILDecomposition_ConvertInstructions(method);
 
 				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Jump, method);
 
@@ -1729,112 +1795,110 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
 
             case ILOpcode_Br:				// 0x38
-                ClearFlags();
-                break;
-
+                BRANCH_OPERATION(Br, BranchCondition_Always);
             case ILOpcode_Br_S:				// 0x2B
-                ClearFlags();
-                break;
+                SHORT_BRANCH_OPERATION(Br, BranchCondition_Always);
 
             case ILOpcode_BrFalse:			// 0x39
-                ClearFlags();
-                break;
-
+                BRANCH_OPERATION(BrFalse, BranchCondition_False);
             case ILOpcode_BrFalse_S:		// 0x2C
-                ClearFlags();
-                break;
+                SHORT_BRANCH_OPERATION(BrFalse, BranchCondition_False);
 
             case ILOpcode_BrTrue:			// 0x3A
-                ClearFlags();
-                break;
-
+                BRANCH_OPERATION(BrTrue, BranchCondition_True);
             case ILOpcode_BrTrue_S:			// 0x2D
-                ClearFlags();
-                break;
+                SHORT_BRANCH_OPERATION(BrTrue, BranchCondition_True);
 
             case ILOpcode_Beq:				// 0x3B
-                ClearFlags();
-                break;
-
+                BRANCH_OPERATION(Beq, BranchCondition_Equal);
             case ILOpcode_Beq_S:			// 0x2E
-                ClearFlags();
-                break;
+                SHORT_BRANCH_OPERATION(Beq, BranchCondition_Equal);
 
             case ILOpcode_Bne_Un:			// 0x40
-                ClearFlags();
-                break;
-
+                BRANCH_OPERATION(Bne.Un, BranchCondition_NotEqual_Unsigned);
             case ILOpcode_Bne_Un_S:			// 0x33
-                ClearFlags();
-                break;
+                SHORT_BRANCH_OPERATION(Bne.Un, BranchCondition_NotEqual_Unsigned);
 
             case ILOpcode_Bge:				// 0x3C
-                ClearFlags();
-                break;
-
+                BRANCH_OPERATION(Bge, BranchCondition_Greater_Or_Equal);
             case ILOpcode_Bge_S:			// 0x2F
-                ClearFlags();
-                break;
+                SHORT_BRANCH_OPERATION(Bge, BranchCondition_Greater_Or_Equal);
 
             case ILOpcode_Bge_Un:			// 0x41
-                ClearFlags();
-                break;
-
+                BRANCH_OPERATION(Bge.Un, BranchCondition_Greater_Or_Equal_Unsigned);
             case ILOpcode_Bge_Un_S:			// 0x34
-                ClearFlags();
-                break;
+                SHORT_BRANCH_OPERATION(Bge.Un, BranchCondition_Greater_Or_Equal_Unsigned);
 
             case ILOpcode_Bgt:				// 0x3D
-                ClearFlags();
-                break;
-
+                BRANCH_OPERATION(Bgt, BranchCondition_Greater);
             case ILOpcode_Bgt_S:			// 0x30
-                ClearFlags();
-                break;
+                SHORT_BRANCH_OPERATION(Bgt, BranchCondition_Greater);
 
             case ILOpcode_Bgt_Un:			// 0x42
-                ClearFlags();
-                break;
-
+                BRANCH_OPERATION(Bgt.Un, BranchCondition_Greater_Unsigned);
             case ILOpcode_Bgt_Un_S:			// 0x35
-                ClearFlags();
-                break;
+                SHORT_BRANCH_OPERATION(Bgt.Un, BranchCondition_Greater_Unsigned);
 
             case ILOpcode_Ble:				// 0x3E
-                ClearFlags();
-                break;
-
+                BRANCH_OPERATION(Ble, BranchCondition_Less_Or_Equal);
             case ILOpcode_Ble_S:			// 0x31
-                ClearFlags();
-                break;
+                SHORT_BRANCH_OPERATION(Ble, BranchCondition_Less_Or_Equal);
 
             case ILOpcode_Ble_Un:			// 0x43
-                ClearFlags();
-                break;
-
+                BRANCH_OPERATION(Ble.Un, BranchCondition_Less_Or_Equal_Unsigned);
             case ILOpcode_Ble_Un_S:			// 0x36
-                ClearFlags();
-                break;
+                SHORT_BRANCH_OPERATION(Ble.Un, BranchCondition_Less_Or_Equal_Unsigned);
 
             case ILOpcode_Blt:				// 0x3F
-                ClearFlags();
-                break;
-
+                BRANCH_OPERATION(Blt, BranchCondition_Less);
             case ILOpcode_Blt_S:			// 0x32
-                ClearFlags();
-                break;
+                SHORT_BRANCH_OPERATION(Blt, BranchCondition_Less);
 
             case ILOpcode_Blt_Un:			// 0x44
-                ClearFlags();
-                break;
-
+                BRANCH_OPERATION(Blt.Un, BranchCondition_Less_Unsigned);
             case ILOpcode_Blt_Un_S:			// 0x37
-                ClearFlags();
-                break;
+                SHORT_BRANCH_OPERATION(Blt.Un, BranchCondition_Less_Unsigned);
 
-            case ILOpcode_Switch:			// 0x45
+BranchCommon:
+            {
+                branchTarget = ((((size_t)(*currentDataPointer)) - originalDataPointer) + ((int32_t)branchTarget));
+				IRType* arg1Type = NULL;
+				IRType* arg2Type = NULL;
+				if (branchArg1)
+				{
+					arg1Type = branchArg1->Type;
+					branchArg1 = NULL;
+				}
+				if (branchArg2)
+				{
+					arg2Type = branchArg2->Type;
+					branchArg2 = NULL;
+				}
+                EMIT_IR_4ARG_NO_DISPOSE(IROpcode_Branch, (uint32_t*)branchCondition, (uint32_t*)branchTarget, arg1Type, arg2Type);
+
 				ClearFlags();
 				break;
+			}
+
+            case ILOpcode_Switch:			// 0x45
+			{
+                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Switch");
+
+				uint32_t targetCount = ReadUInt32(currentDataPointer);
+				IRInstruction** targets = (IRInstruction**)calloc(1, targetCount * sizeof(IRInstruction*));
+				uint32_t base = (((size_t)(*currentDataPointer)) - originalDataPointer) + (targetCount << 2);
+				for (uint32_t index = 0; index < targetCount; index++)
+				{
+					targets[index] = (IRInstruction*)(base + ((int32_t)ReadUInt32(currentDataPointer)));
+				}
+
+				SR(SyntheticStack_Pop(stack));
+
+				EMIT_IR_2ARG(IROpcode_Switch, (uint32_t*)targetCount, targets);
+
+				ClearFlags();
+				break;
+			}
 
 
             case ILOpcode_LdInd_I:			// 0x4D
@@ -2210,14 +2274,20 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				{
 					case MetadataTable_MethodDefinition:
 					{
-						method = assembly->Methods[((MethodDefinition*)token->Data)->TableIndex - 1];
+						if (!(method = assembly->Methods[((MethodDefinition*)token->Data)->TableIndex - 1]))
+						{
+							method = IRMethod_Create(assembly, (MethodDefinition*)token->Data);
+						}
 						break;
 					}
 					case MetadataTable_MemberReference:
 					{
 						MemberReference* memberRef = (MemberReference*)token->Data;
 						MethodDefinition* methodDef = memberRef->Resolved.MethodDefinition;
-						method = methodDef->File->Assembly->Methods[methodDef->TableIndex - 1];
+						if (!(method = methodDef->File->Assembly->Methods[methodDef->TableIndex - 1]))
+						{
+							method = IRMethod_Create(methodDef->File->Assembly, methodDef);
+						}
 						break;
 					}
 
@@ -2231,6 +2301,8 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				{
 					SR(SyntheticStack_Pop(stack));
 				}
+
+				ILDecomposition_ConvertInstructions(method);
 
 				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_New_Object, method);
 

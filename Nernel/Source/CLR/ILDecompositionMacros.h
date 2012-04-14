@@ -88,6 +88,20 @@
 	instr->Arg3NeedsDisposing = FALSE; \
 	Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_IREmitter, "Emitting " #instrType " With 3 arguments ('" #arg1 "', '" #arg2"', '" #arg3 "') and not disposing of any of them."); \
     IRMethod_AddInstruction(pMethod, instr); }
+#define EMIT_IR_4ARG_NO_DISPOSE(instrType, arg1, arg2, arg3, arg4) \
+    { IRInstruction* instr = IRInstruction_Create((currentILInstructionBase - originalDataPointer), instrType); \
+    Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_IREmitter, "instr->ILLocation = 0x%x", (unsigned int)instr->ILLocation); \
+    GetILInstructionOffset(); \
+    instr->Arg1 = arg1; \
+	instr->Arg1NeedsDisposing = FALSE; \
+    instr->Arg2 = arg2; \
+	instr->Arg2NeedsDisposing = FALSE; \
+    instr->Arg3 = arg3; \
+	instr->Arg3NeedsDisposing = FALSE; \
+    instr->Arg4 = arg4; \
+	instr->Arg4NeedsDisposing = FALSE; \
+	Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_IREmitter, "Emitting " #instrType " With 4 arguments ('" #arg1 "', '" #arg2"', '" #arg3 "', '" #arg4 "') and not disposing of any of them."); \
+    IRMethod_AddInstruction(pMethod, instr); }
 
 #define EMIT_IR_2ARG_DISPOSE__NO_DISPOSE(instrType, arg1, arg2) \
     { IRInstruction* instr = IRInstruction_Create((currentILInstructionBase - originalDataPointer), instrType); \

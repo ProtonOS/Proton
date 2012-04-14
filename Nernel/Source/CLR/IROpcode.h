@@ -1310,6 +1310,49 @@ typedef enum IROpcode
 
 	 */
 	IROpcode_Call_Internal,
+	/*
+		Description:
+			Call an internal native method, without overload checking.
+		
+		Stack:
+			..., arg0 (may be present), arg1 (may be present) -> ...
+
+		Arg1: BranchCondition
+			A pointer to the IRMethod to be called.
+
+		Arg2: uint32_t/IRInstruction*
+			The absolute location in memory to target of branch.
+			Resolves to IRInstruction* directly.
+
+		Arg3: IRType*
+			A pointer to the IRType of arg0 if present.
+
+		Arg4: IRType*
+			A pointer to the IRType of arg1 if present.
+
+	 */
+	IROpcode_Branch,
+	/*
+		Description:
+			Performs a table switch based on a value.
+		
+		Stack:
+			..., value -> ...
+
+		Arg1: uint32_t
+			The number of jump targets.
+
+		Arg2: IRInstruction*[]
+			The array of jump target instructions.
+
+		Arg3:
+			N/A
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_Switch,
 } IROpcode;
 
 typedef enum OverflowType
@@ -1363,3 +1406,20 @@ typedef enum ElementType
 	ElementType_R4,
 	ElementType_R8,
 } ElementType;
+
+typedef enum BranchCondition
+{
+    BranchCondition_Always,
+    BranchCondition_Equal,
+    BranchCondition_False,
+    BranchCondition_Greater_Or_Equal,
+    BranchCondition_Greater_Or_Equal_Unsigned,
+    BranchCondition_Greater,
+    BranchCondition_Greater_Unsigned,
+    BranchCondition_Less_Or_Equal,
+    BranchCondition_Less_Or_Equal_Unsigned,
+    BranchCondition_Less,
+    BranchCondition_Less_Unsigned,
+    BranchCondition_NotEqual_Unsigned,
+    BranchCondition_True,
+} BranchCondition;
