@@ -1373,6 +1373,48 @@ typedef enum IROpcode
 
 	 */
 	IROpcode_Switch,
+	/*
+		Description:
+			Loads a native method pointer from the specified method.
+		
+		Stack:
+			... -> ..., pointer
+
+		Arg1: IRMethod*
+			A pointer to the IRMethod to load pointer from.
+
+		Arg2:
+			N/A
+
+		Arg3:
+			N/A
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_Load_Function,
+	/*
+		Description:
+			Loads a native method pointer from the specified method.
+		
+		Stack:
+			... -> ..., pointer
+
+		Arg1: IRType*
+			A pointer to the IRType containing the method.
+
+		Arg2: uint32_t
+			The index to the IRMethod to be loaded.
+
+		Arg3:
+			N/A
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_Load_VirtualFunction,
 } IROpcode;
 
 typedef enum OverflowType

@@ -2841,6 +2841,7 @@ BranchCommon:
                 switch (currentILOpcode)
                 {
                     case ILOpcode_Extended_ArgList:		// 0x00
+						Panic("ArgList not yet supported, if ever");
                         ClearFlags();
                         break;
 
@@ -2866,12 +2867,139 @@ BranchCommon:
                         break;
 
                     case ILOpcode_Extended_LdFtn:			// 0x06
-						ClearFlags();
-						break;
+					{
+						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdFtn");
 
-                    case ILOpcode_Extended_LdVirtFtn:		// 0x07
+						MetadataToken* token = CLIFile_ExpandMetadataToken(file, ReadUInt32(currentDataPointer));
+						IRMethod* method = NULL;
+						switch(token->Table)
+						{
+							case MetadataTable_MethodDefinition:
+							{
+								if (!(method = assembly->Methods[((MethodDefinition*)token->Data)->TableIndex - 1]))
+								{
+									method = IRMethod_Create(assembly, (MethodDefinition*)token->Data);
+								}
+								break;
+							}
+							case MetadataTable_MemberReference:
+							{
+								MemberReference* memberRef = (MemberReference*)token->Data;
+								MethodDefinition* methodDef = memberRef->Resolved.MethodDefinition;
+								if (!(method = methodDef->File->Assembly->Methods[methodDef->TableIndex - 1]))
+								{
+									method = IRMethod_Create(methodDef->File->Assembly, methodDef);
+								}
+								break;
+							}
+
+							default:
+								Panic("Unknown table for LdFtn");
+								break;
+						}
+						CLIFile_DestroyMetadataToken(token);
+
+						ILDecomposition_ConvertInstructions(method);
+
+						EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Function, method);
+
+						StackObject* obj = SA();
+						obj->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_IntPtr->TableIndex - 1];
+						obj->SourceType = StackObjectSourceType_Stack;
+						SyntheticStack_Push(stack, obj);
+
 						ClearFlags();
 						break;
+					}
+                    case ILOpcode_Extended_LdVirtFtn:		// 0x07
+					{
+						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdVirtFtn");
+
+						MetadataToken* token = CLIFile_ExpandMetadataToken(file, ReadUInt32(currentDataPointer));
+						MethodDefinition* methodDef = NULL;
+						MethodSignature* methodSig = NULL;
+						IRAssembly* methodAssembly = NULL;
+						switch(token->Table)
+						{
+							case MetadataTable_MethodDefinition:
+							{
+								methodDef = (MethodDefinition*)token->Data;
+								if (!(methodSig = methodDef->SignatureCache))
+								{
+									methodDef->SignatureCache = MethodSignature_Expand(methodDef->Signature, file);
+									methodSig = methodDef->SignatureCache;
+								}
+								methodAssembly = assembly;
+								break;
+							}
+							case MetadataTable_MemberReference:
+							{
+								methodDef = ((MemberReference*)token->Data)->Resolved.MethodDefinition;
+								if (!(methodSig = methodDef->SignatureCache))
+								{
+									methodDef->SignatureCache = MethodSignature_Expand(((MemberReference*)token->Data)->Signature, file);
+									methodSig = methodDef->SignatureCache;
+								}
+								methodAssembly = methodDef->File->Assembly;
+								break;
+							}
+
+							default:
+								Panic("Unknown table for LdVirtFtn");
+								break;
+						}
+						CLIFile_DestroyMetadataToken(token);
+
+						IRMethod* method = NULL;
+						if (!(method = methodAssembly->Methods[methodDef->TableIndex - 1]))
+						{
+							method = IRMethod_Create(methodAssembly, methodDef);
+						}
+
+						ILDecomposition_ConvertInstructions(method);
+
+						IRType* methodParentType = methodAssembly->Types[methodDef->TypeDefinition->TableIndex - 1];
+						uint32_t methodIndex = 0;
+						bool_t found = FALSE;
+
+						for (uint32_t index = 0; index < methodParentType->MethodCount; ++index)
+						{
+							MethodDefinition* methodDefChecking = methodParentType->Methods[index]->MethodDefinition;
+							if (!strcmp(methodDef->Name, methodDefChecking->Name))
+							{
+								if (methodDef->Flags & MethodAttributes_HideBySignature)
+								{
+									if (Signature_Equals(methodDef->Signature, methodDef->SignatureLength, methodDefChecking->Signature, methodDefChecking->SignatureLength))
+									{
+										methodIndex = index;
+										found = TRUE;
+										break;
+									}
+								}
+								else
+								{
+									methodIndex = index;
+									found = TRUE;
+									break;
+								}
+							}
+						}
+
+						if (!found)
+						{
+							Panic("Unable to resolve load virtual function");
+						}
+
+						EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Load_VirtualFunction, methodParentType, (uint32_t*)methodIndex);
+
+						StackObject* obj = SA();
+						obj->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_IntPtr->TableIndex - 1];
+						obj->SourceType = StackObjectSourceType_Stack;
+						SyntheticStack_Push(stack, obj);
+
+						ClearFlags();
+						break;
+					}
 
                     case ILOpcode_Extended_LdArg:			// 0x09
 					{
@@ -2980,7 +3108,7 @@ BranchCommon:
 						EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Allocate_Local, obj->Type);
 						
 						obj->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_IntPtr->TableIndex - 1];
-						obj->SourceType = StackObjectSourceType_Local;
+						obj->SourceType = StackObjectSourceType_Stack;
 				
 						ClearFlags();
 						break;
