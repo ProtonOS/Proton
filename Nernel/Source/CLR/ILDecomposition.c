@@ -718,6 +718,8 @@ void ILDecomposition_CheckConversionNumericOperandType(StackObject* pOperand, El
 #define SA()		StackObjectPool_Allocate(stack)
 #define SR(obj)		StackObjectPool_Release(stack, obj)
 
+#define UNSUPPORTED_OPERATION(pILOpcode)	{ Panic("Read Unsupported " #pILOpcode); break; }
+
 #define BINARY_NUMERIC_OPERATION(pILOpcode, pIROpcode, pOverflowType) \
 	{ Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read " #pILOpcode); \
 		StackObject* value1 = SyntheticStack_Pop(stack); \
@@ -2320,13 +2322,7 @@ BranchCommon:
 				UNCHECKED_CONVERSION_NUMERIC_OPERATION(U, domain->IRAssemblies[0]->Types[domain->CachedType___System_UIntPtr->TableIndex - 1]);
 
             case ILOpcode_Conv_R_Un:		// 0x76
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Conv.R.Un (Unsupported)");
-
-				Panic("Conv.R.Un (Unsupported)");
-
-                ClearFlags();
-                break;
-
+				UNSUPPORTED_OPERATION(Conv.R.Un);
 
             case ILOpcode_NewObj:			// 0x73
 			{
@@ -2848,10 +2844,8 @@ BranchCommon:
 	            break;
             }
 
-
 			case ILOpcode_RefAnyVal:		// 0xC2
-                ClearFlags();
-                break;
+				UNSUPPORTED_OPERATION(RefAnyVal);
 
             case ILOpcode_CkFinite:			// 0xC3
 			{
@@ -2864,26 +2858,19 @@ BranchCommon:
 			} 
 
 			case ILOpcode_MkRefAny:			// 0xC6
-                ClearFlags();
-                break;
+				UNSUPPORTED_OPERATION(MkRefAny);
 
 			case ILOpcode_LdToken:			// 0xD0
-				ClearFlags();
-				break;
-
+				UNSUPPORTED_OPERATION(LdToken);
 
             case ILOpcode_EndFinally:		// 0xDC
-                ClearFlags();
-                break;
+				UNSUPPORTED_OPERATION(EndFinally);
 
             case ILOpcode_Leave:			// 0xDD
-                ClearFlags();
-                break;
+				UNSUPPORTED_OPERATION(Leave);
 
             case ILOpcode_Leave_S:			// 0xDE
-                ClearFlags();
-                break;
-
+				UNSUPPORTED_OPERATION(Leave.S);
 
             case ILOpcode_Extended:         // 0xFE
 		        currentILOpcode = ReadUInt8(currentDataPointer);
@@ -2891,10 +2878,7 @@ BranchCommon:
                 switch (currentILOpcode)
                 {
                     case ILOpcode_Extended_ArgList:		// 0x00
-						Panic("ArgList not yet supported, if ever");
-                        ClearFlags();
-                        break;
-
+						UNSUPPORTED_OPERATION(ArgList);
 
                     case ILOpcode_Extended_Ceq:			// 0x01
                         ClearFlags();
@@ -3174,8 +3158,7 @@ BranchCommon:
 					}
 
                     case ILOpcode_Extended_EndFilter:		// 0x11
-                        ClearFlags();
-                        break;
+						UNSUPPORTED_OPERATION(EndFilter);
 
                     case ILOpcode_Extended_InitObj:		// 0x15
 					{
@@ -3221,8 +3204,7 @@ BranchCommon:
 					}
 
                     case ILOpcode_Extended_ReThrow:		// 0x1A
-						ClearFlags();
-                        break;
+						UNSUPPORTED_OPERATION(ReThrow);
 
                     case ILOpcode_Extended_SizeOf:			// 0x1C
 					{
@@ -3242,9 +3224,7 @@ BranchCommon:
 					}
 
                     case ILOpcode_Extended_RefAnyType:		// 0x1D
-                        ClearFlags();
-                        break;
-
+						UNSUPPORTED_OPERATION(RefAnyType);
 
                     case ILOpcode_Extended_Constrained__:	// 0x16
 						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Prefix: Constrained");
