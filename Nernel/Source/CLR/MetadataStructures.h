@@ -627,7 +627,6 @@ struct _AssemblyDefinition
 uint8_t* AssemblyDefinition_Initialize(CLIFile* pFile, uint8_t* pTableData);
 void AssemblyDefinition_Cleanup(CLIFile* pFile);
 uint8_t* AssemblyDefinition_Load(CLIFile* pFile, uint8_t* pTableData);
-void AssemblyDefinition_Link(CLIFile* pFile);
 
 
 struct _AssemblyOperatingSystem
@@ -641,7 +640,6 @@ struct _AssemblyOperatingSystem
 uint8_t* AssemblyOperatingSystem_Initialize(CLIFile* pFile, uint8_t* pTableData);
 void AssemblyOperatingSystem_Cleanup(CLIFile* pFile);
 uint8_t* AssemblyOperatingSystem_Load(CLIFile* pFile, uint8_t* pTableData);
-void AssemblyOperatingSystem_Link(CLIFile* pFile);
 
 
 struct _AssemblyProcessor
@@ -653,7 +651,6 @@ struct _AssemblyProcessor
 uint8_t* AssemblyProcessor_Initialize(CLIFile* pFile, uint8_t* pTableData);
 void AssemblyProcessor_Cleanup(CLIFile* pFile);
 uint8_t* AssemblyProcessor_Load(CLIFile* pFile, uint8_t* pTableData);
-void AssemblyProcessor_Link(CLIFile* pFile);
 
 
 struct _AssemblyReference
@@ -678,7 +675,6 @@ struct _AssemblyReference
 uint8_t* AssemblyReference_Initialize(CLIFile* pFile, uint8_t* pTableData);
 void AssemblyReference_Cleanup(CLIFile* pFile);
 uint8_t* AssemblyReference_Load(CLIFile* pFile, uint8_t* pTableData);
-void AssemblyReference_Link(CLIFile* pFile);
 
 
 struct _AssemblyReferenceOperatingSystem
@@ -693,7 +689,6 @@ struct _AssemblyReferenceOperatingSystem
 uint8_t* AssemblyReferenceOperatingSystem_Initialize(CLIFile* pFile, uint8_t* pTableData);
 void AssemblyReferenceOperatingSystem_Cleanup(CLIFile* pFile);
 uint8_t* AssemblyReferenceOperatingSystem_Load(CLIFile* pFile, uint8_t* pTableData);
-void AssemblyReferenceOperatingSystem_Link(CLIFile* pFile);
 
 
 struct _AssemblyReferenceProcessor
@@ -706,7 +701,6 @@ struct _AssemblyReferenceProcessor
 uint8_t* AssemblyReferenceProcessor_Initialize(CLIFile* pFile, uint8_t* pTableData);
 void AssemblyReferenceProcessor_Cleanup(CLIFile* pFile);
 uint8_t* AssemblyReferenceProcessor_Load(CLIFile* pFile, uint8_t* pTableData);
-void AssemblyReferenceProcessor_Link(CLIFile* pFile);
 
 
 struct _ClassLayout
@@ -720,7 +714,6 @@ struct _ClassLayout
 uint8_t* ClassLayout_Initialize(CLIFile* pFile, uint8_t* pTableData);
 void ClassLayout_Cleanup(CLIFile* pFile);
 uint8_t* ClassLayout_Load(CLIFile* pFile, uint8_t* pTableData);
-void ClassLayout_Link(CLIFile* pFile);
 
 
 struct _Constant
@@ -735,7 +728,6 @@ struct _Constant
 uint8_t* Constant_Initialize(CLIFile* pFile, uint8_t* pTableData);
 void Constant_Cleanup(CLIFile* pFile);
 uint8_t* Constant_Load(CLIFile* pFile, uint8_t* pTableData);
-void Constant_Link(CLIFile* pFile);
 
 
 struct _CustomAttribute
@@ -750,7 +742,6 @@ struct _CustomAttribute
 uint8_t* CustomAttribute_Initialize(CLIFile* pFile, uint8_t* pTableData);
 void CustomAttribute_Cleanup(CLIFile* pFile);
 uint8_t* CustomAttribute_Load(CLIFile* pFile, uint8_t* pTableData);
-void CustomAttribute_Link(CLIFile* pFile);
 
 
 struct _DeclSecurity
@@ -768,7 +759,6 @@ struct _DeclSecurity
 uint8_t* DeclSecurity_Initialize(CLIFile* pFile, uint8_t* pTableData);
 void DeclSecurity_Cleanup(CLIFile* pFile);
 uint8_t* DeclSecurity_Load(CLIFile* pFile, uint8_t* pTableData);
-void DeclSecurity_Link(CLIFile* pFile);
 
 
 struct _Event
@@ -786,7 +776,6 @@ struct _Event
 uint8_t* Event_Initialize(CLIFile* pFile, uint8_t* pTableData);
 void Event_Cleanup(CLIFile* pFile);
 uint8_t* Event_Load(CLIFile* pFile, uint8_t* pTableData);
-void Event_Link(CLIFile* pFile);
 
 
 struct _EventMap
@@ -800,7 +789,6 @@ struct _EventMap
 uint8_t* EventMap_Initialize(CLIFile* pFile, uint8_t* pTableData);
 void EventMap_Cleanup(CLIFile* pFile);
 uint8_t* EventMap_Load(CLIFile* pFile, uint8_t* pTableData);
-void EventMap_Link(CLIFile* pFile);
 
 
 struct _ExportedType
@@ -819,7 +807,6 @@ struct _ExportedType
 uint8_t* ExportedType_Initialize(CLIFile* pFile, uint8_t* pTableData);
 void ExportedType_Cleanup(CLIFile* pFile);
 uint8_t* ExportedType_Load(CLIFile* pFile, uint8_t* pTableData);
-void ExportedType_Link(CLIFile* pFile);
 
 
 struct _Field
@@ -843,7 +830,6 @@ struct _Field
 uint8_t* Field_Initialize(CLIFile* pFile, uint8_t* pTableData);
 void Field_Cleanup(CLIFile* pFile);
 uint8_t* Field_Load(CLIFile* pFile, uint8_t* pTableData);
-void Field_Link(CLIFile* pFile);
 
 
 struct _FieldLayout
@@ -856,7 +842,6 @@ struct _FieldLayout
 uint8_t* FieldLayout_Initialize(CLIFile* pFile, uint8_t* pTableData);
 void FieldLayout_Cleanup(CLIFile* pFile);
 uint8_t* FieldLayout_Load(CLIFile* pFile, uint8_t* pTableData);
-void FieldLayout_Link(CLIFile* pFile);
 
 
 struct _FieldMarshal
@@ -870,7 +855,6 @@ struct _FieldMarshal
 uint8_t* FieldMarshal_Initialize(CLIFile* pFile, uint8_t* pTableData);
 void FieldMarshal_Cleanup(CLIFile* pFile);
 uint8_t* FieldMarshal_Load(CLIFile* pFile, uint8_t* pTableData);
-void FieldMarshal_Link(CLIFile* pFile);
 
 
 struct _FieldRVA
@@ -883,7 +867,6 @@ struct _FieldRVA
 uint8_t* FieldRVA_Initialize(CLIFile* pFile, uint8_t* pTableData);
 void FieldRVA_Cleanup(CLIFile* pFile);
 uint8_t* FieldRVA_Load(CLIFile* pFile, uint8_t* pTableData);
-void FieldRVA_Link(CLIFile* pFile);
 
 
 struct _File
@@ -901,7 +884,6 @@ struct _File
 uint8_t* File_Initialize(CLIFile* pFile, uint8_t* pTableData);
 void File_Cleanup(CLIFile* pFile);
 uint8_t* File_Load(CLIFile* pFile, uint8_t* pTableData);
-void File_Link(CLIFile* pFile);
 
 
 struct _GenericParameter
@@ -921,7 +903,6 @@ struct _GenericParameter
 uint8_t* GenericParameter_Initialize(CLIFile* pFile, uint8_t* pTableData);
 void GenericParameter_Cleanup(CLIFile* pFile);
 uint8_t* GenericParameter_Load(CLIFile* pFile, uint8_t* pTableData);
-void GenericParameter_Link(CLIFile* pFile);
 
 
 struct _GenericParameterConstraint
@@ -937,7 +918,6 @@ struct _GenericParameterConstraint
 uint8_t* GenericParameterConstraint_Initialize(CLIFile* pFile, uint8_t* pTableData);
 void GenericParameterConstraint_Cleanup(CLIFile* pFile);
 uint8_t* GenericParameterConstraint_Load(CLIFile* pFile, uint8_t* pTableData);
-void GenericParameterConstraint_Link(CLIFile* pFile);
 
 
 struct _ImplementationMap
@@ -952,7 +932,6 @@ struct _ImplementationMap
 uint8_t* ImplementationMap_Initialize(CLIFile* pFile, uint8_t* pTableData);
 void ImplementationMap_Cleanup(CLIFile* pFile);
 uint8_t* ImplementationMap_Load(CLIFile* pFile, uint8_t* pTableData);
-void ImplementationMap_Link(CLIFile* pFile);
 
 
 struct _InterfaceImplementation
@@ -968,7 +947,6 @@ struct _InterfaceImplementation
 uint8_t* InterfaceImplementation_Initialize(CLIFile* pFile, uint8_t* pTableData);
 void InterfaceImplementation_Cleanup(CLIFile* pFile);
 uint8_t* InterfaceImplementation_Load(CLIFile* pFile, uint8_t* pTableData);
-void InterfaceImplementation_Link(CLIFile* pFile);
 
 // Note: If TypeOfImplementation is File, and rowIndex is 0, we allow assignment
 // to the invalid, null, zero'd File entry at index 0, further testing is required
@@ -988,7 +966,6 @@ struct _ManifestResource
 uint8_t* ManifestResource_Initialize(CLIFile* pFile, uint8_t* pTableData);
 void ManifestResource_Cleanup(CLIFile* pFile);
 uint8_t* ManifestResource_Load(CLIFile* pFile, uint8_t* pTableData);
-void ManifestResource_Link(CLIFile* pFile);
 
 
 struct _MemberReference
@@ -1015,7 +992,6 @@ struct _MemberReference
 uint8_t* MemberReference_Initialize(CLIFile* pFile, uint8_t* pTableData);
 void MemberReference_Cleanup(CLIFile* pFile);
 uint8_t* MemberReference_Load(CLIFile* pFile, uint8_t* pTableData);
-void MemberReference_Link(CLIFile* pFile);
 
 
 #define MethodDefinitionBody__Offset_Flags								0x00
@@ -1129,7 +1105,6 @@ struct _MethodDefinition
 uint8_t* MethodDefinition_Initialize(CLIFile* pFile, uint8_t* pTableData);
 void MethodDefinition_Cleanup(CLIFile* pFile);
 uint8_t* MethodDefinition_Load(CLIFile* pFile, uint8_t* pTableData);
-void MethodDefinition_Link(CLIFile* pFile);
 
 
 struct _MethodImplementation
@@ -1143,7 +1118,6 @@ struct _MethodImplementation
 uint8_t* MethodImplementation_Initialize(CLIFile* pFile, uint8_t* pTableData);
 void MethodImplementation_Cleanup(CLIFile* pFile);
 uint8_t* MethodImplementation_Load(CLIFile* pFile, uint8_t* pTableData);
-void MethodImplementation_Link(CLIFile* pFile);
 
 
 struct _MethodSemantics
@@ -1157,7 +1131,6 @@ struct _MethodSemantics
 uint8_t* MethodSemantics_Initialize(CLIFile* pFile, uint8_t* pTableData);
 void MethodSemantics_Cleanup(CLIFile* pFile);
 uint8_t* MethodSemantics_Load(CLIFile* pFile, uint8_t* pTableData);
-void MethodSemantics_Link(CLIFile* pFile);
 
 
 struct _MethodSpecification
@@ -1174,7 +1147,6 @@ struct _MethodSpecification
 uint8_t* MethodSpecification_Initialize(CLIFile* pFile, uint8_t* pTableData);
 void MethodSpecification_Cleanup(CLIFile* pFile);
 uint8_t* MethodSpecification_Load(CLIFile* pFile, uint8_t* pTableData);
-void MethodSpecification_Link(CLIFile* pFile);
 
 
 struct _ModuleDefinition
@@ -1193,7 +1165,6 @@ struct _ModuleDefinition
 uint8_t* ModuleDefinition_Initialize(CLIFile* pFile, uint8_t* pTableData);
 void ModuleDefinition_Cleanup(CLIFile* pFile);
 uint8_t* ModuleDefinition_Load(CLIFile* pFile, uint8_t* pTableData);
-void ModuleDefinition_Link(CLIFile* pFile);
 
 
 struct _ModuleReference
@@ -1210,7 +1181,6 @@ struct _ModuleReference
 uint8_t* ModuleReference_Initialize(CLIFile* pFile, uint8_t* pTableData);
 void ModuleReference_Cleanup(CLIFile* pFile);
 uint8_t* ModuleReference_Load(CLIFile* pFile, uint8_t* pTableData);
-void ModuleReference_Link(CLIFile* pFile);
 
 
 struct _NestedClass
@@ -1223,7 +1193,6 @@ struct _NestedClass
 uint8_t* NestedClass_Initialize(CLIFile* pFile, uint8_t* pTableData);
 void NestedClass_Cleanup(CLIFile* pFile);
 uint8_t* NestedClass_Load(CLIFile* pFile, uint8_t* pTableData);
-void NestedClass_Link(CLIFile* pFile);
 
 
 struct _Parameter
@@ -1242,7 +1211,6 @@ struct _Parameter
 uint8_t* Parameter_Initialize(CLIFile* pFile, uint8_t* pTableData);
 void Parameter_Cleanup(CLIFile* pFile);
 uint8_t* Parameter_Load(CLIFile* pFile, uint8_t* pTableData);
-void Parameter_Link(CLIFile* pFile);
 
 
 struct _Property
@@ -1262,7 +1230,6 @@ struct _Property
 uint8_t* Property_Initialize(CLIFile* pFile, uint8_t* pTableData);
 void Property_Cleanup(CLIFile* pFile);
 uint8_t* Property_Load(CLIFile* pFile, uint8_t* pTableData);
-void Property_Link(CLIFile* pFile);
 
 
 struct _PropertyMap
@@ -1276,7 +1243,6 @@ struct _PropertyMap
 uint8_t* PropertyMap_Initialize(CLIFile* pFile, uint8_t* pTableData);
 void PropertyMap_Cleanup(CLIFile* pFile);
 uint8_t* PropertyMap_Load(CLIFile* pFile, uint8_t* pTableData);
-void PropertyMap_Link(CLIFile* pFile);
 
 
 struct _StandAloneSignature
@@ -1292,7 +1258,6 @@ struct _StandAloneSignature
 uint8_t* StandAloneSignature_Initialize(CLIFile* pFile, uint8_t* pTableData);
 void StandAloneSignature_Cleanup(CLIFile* pFile);
 uint8_t* StandAloneSignature_Load(CLIFile* pFile, uint8_t* pTableData);
-void StandAloneSignature_Link(CLIFile* pFile);
 
 
 struct _TypeDefinition
@@ -1329,7 +1294,6 @@ struct _TypeDefinition
 uint8_t* TypeDefinition_Initialize(CLIFile* pFile, uint8_t* pTableData);
 void TypeDefinition_Cleanup(CLIFile* pFile);
 uint8_t* TypeDefinition_Load(CLIFile* pFile, uint8_t* pTableData);
-void TypeDefinition_Link(CLIFile* pFile);
 
 
 struct _TypeReference
@@ -1350,7 +1314,6 @@ struct _TypeReference
 uint8_t* TypeReference_Initialize(CLIFile* pFile, uint8_t* pTableData);
 void TypeReference_Cleanup(CLIFile* pFile);
 uint8_t* TypeReference_Load(CLIFile* pFile, uint8_t* pTableData);
-void TypeReference_Link(CLIFile* pFile);
 
 
 struct _TypeSpecification
@@ -1369,7 +1332,6 @@ struct _TypeSpecification
 uint8_t* TypeSpecification_Initialize(CLIFile* pFile, uint8_t* pTableData);
 void TypeSpecification_Cleanup(CLIFile* pFile);
 uint8_t* TypeSpecification_Load(CLIFile* pFile, uint8_t* pTableData);
-void TypeSpecification_Link(CLIFile* pFile);
 
 
 // Signatures

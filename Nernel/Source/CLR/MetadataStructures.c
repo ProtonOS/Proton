@@ -49,34 +49,6 @@ uint8_t* AssemblyDefinition_Load(CLIFile* pFile, uint8_t* pTableData)
     return pTableData;
 }
 
-void AssemblyDefinition_Link(CLIFile* pFile)
-{
-    for (uint32_t index = 1; index <= pFile->CustomAttributeCount; ++index)
-    {
-        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttributeType_AssemblyDefinition) ++pFile->CustomAttributes[index].Parent.AssemblyDefinition->CustomAttributeCount;
-    }
-    for (uint32_t index = 1; index <= pFile->AssemblyDefinitionCount; ++index)
-    {
-        if (pFile->AssemblyDefinitions[index].CustomAttributeCount > 0)
-        {
-            pFile->AssemblyDefinitions[index].CustomAttributes = (CustomAttribute**)calloc(pFile->AssemblyDefinitions[index].CustomAttributeCount, sizeof(CustomAttribute*));
-            for (uint32_t searchIndex = 1, customAttributeIndex = 0; searchIndex <= pFile->CustomAttributeCount; ++searchIndex)
-            {
-                if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttributeType_AssemblyDefinition &&
-                    pFile->CustomAttributes[searchIndex].Parent.AssemblyDefinition == &pFile->AssemblyDefinitions[index])
-                {
-                    pFile->AssemblyDefinitions[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
-                    ++customAttributeIndex;
-                }
-            }
-        }
-    }
-    for (uint32_t index = 1; index <= pFile->DeclSecurityCount; ++index)
-    {
-        if (pFile->DeclSecurities[index].TypeOfParent == HasDeclSecurityType_AssemblyDefinition) pFile->DeclSecurities[index].Parent.AssemblyDefinition->DeclSecurity = &pFile->DeclSecurities[index];
-    }
-}
-
 
 // AssemblyOperatingSystem
 
@@ -114,10 +86,6 @@ uint8_t* AssemblyOperatingSystem_Load(CLIFile* pFile, uint8_t* pTableData)
     return pTableData;
 }
 
-void AssemblyOperatingSystem_Link(CLIFile* pFile)
-{
-}
-
 
 // AssemblyProcessor
 
@@ -151,10 +119,6 @@ uint8_t* AssemblyProcessor_Load(CLIFile* pFile, uint8_t* pTableData)
         pFile->AssemblyProcessors[index].Processor = *(uint32_t* )pTableData; pTableData += 4;
     }
     return pTableData;
-}
-
-void AssemblyProcessor_Link(CLIFile* pFile)
-{
 }
 
 
@@ -209,30 +173,6 @@ uint8_t* AssemblyReference_Load(CLIFile* pFile, uint8_t* pTableData)
     return pTableData;
 }
 
-void AssemblyReference_Link(CLIFile* pFile)
-{
-    for (uint32_t index = 1; index <= pFile->CustomAttributeCount; ++index)
-    {
-        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttributeType_AssemblyReference) ++pFile->CustomAttributes[index].Parent.AssemblyReference->CustomAttributeCount;
-    }
-    for (uint32_t index = 1; index <= pFile->AssemblyReferenceCount; ++index)
-    {
-        if (pFile->AssemblyReferences[index].CustomAttributeCount > 0)
-        {
-            pFile->AssemblyReferences[index].CustomAttributes = (CustomAttribute**)calloc(pFile->AssemblyReferences[index].CustomAttributeCount, sizeof(CustomAttribute*));
-            for (uint32_t searchIndex = 1, customAttributeIndex = 0; searchIndex <= pFile->CustomAttributeCount; ++searchIndex)
-            {
-                if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttributeType_AssemblyReference &&
-                    pFile->CustomAttributes[searchIndex].Parent.AssemblyReference == &pFile->AssemblyReferences[index])
-                {
-                    pFile->AssemblyReferences[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
-                    ++customAttributeIndex;
-                }
-            }
-        }
-    }
-}
-
 
 // AssemblyReferenceOperatingSystem
 
@@ -275,10 +215,6 @@ uint8_t* AssemblyReferenceOperatingSystem_Load(CLIFile* pFile, uint8_t* pTableDa
     return pTableData;
 }
 
-void AssemblyReferenceOperatingSystem_Link(CLIFile* pFile)
-{
-}
-
 
 // AssemblyReferenceProcessor
 
@@ -317,10 +253,6 @@ uint8_t* AssemblyReferenceProcessor_Load(CLIFile* pFile, uint8_t* pTableData)
         pFile->AssemblyReferenceProcessors[index].AssemblyReference = &pFile->AssemblyReferences[assemblyReferenceIndex];
     }
     return pTableData;
-}
-
-void AssemblyReferenceProcessor_Link(CLIFile* pFile)
-{
 }
 
 
@@ -362,10 +294,6 @@ uint8_t* ClassLayout_Load(CLIFile* pFile, uint8_t* pTableData)
         pFile->ClassLayouts[index].Parent = &pFile->TypeDefinitions[parentIndex];
     }
     return pTableData;
-}
-
-void ClassLayout_Link(CLIFile* pFile)
-{
 }
 
 
@@ -428,10 +356,6 @@ uint8_t* Constant_Load(CLIFile* pFile, uint8_t* pTableData)
         pFile->Constants[index].Value = CLIFile_GetCompressedUnsigned(pFile->BlobsHeap + heapIndex, &pFile->Constants[index].ValueLength);
     }
     return pTableData;
-}
-
-void Constant_Link(CLIFile* pFile)
-{
 }
 
 
@@ -609,10 +533,6 @@ uint8_t* CustomAttribute_Load(CLIFile* pFile, uint8_t* pTableData)
     return pTableData;
 }
 
-void CustomAttribute_Link(CLIFile* pFile)
-{
-}
-
 
 // DeclSecurity
 
@@ -675,30 +595,6 @@ uint8_t* DeclSecurity_Load(CLIFile* pFile, uint8_t* pTableData)
         pFile->DeclSecurities[index].PermissionSet = CLIFile_GetCompressedUnsigned(pFile->BlobsHeap + heapIndex, &pFile->DeclSecurities[index].PermissionSetLength);
     }
     return pTableData;
-}
-
-void DeclSecurity_Link(CLIFile* pFile)
-{
-    for (uint32_t index = 1; index <= pFile->CustomAttributeCount; ++index)
-    {
-        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttributeType_DeclSecurity) ++pFile->CustomAttributes[index].Parent.DeclSecurity->CustomAttributeCount;
-    }
-    for (uint32_t index = 1; index <= pFile->DeclSecurityCount; ++index)
-    {
-        if (pFile->DeclSecurities[index].CustomAttributeCount > 0)
-        {
-            pFile->DeclSecurities[index].CustomAttributes = (CustomAttribute**)calloc(pFile->DeclSecurities[index].CustomAttributeCount, sizeof(CustomAttribute*));
-            for (uint32_t searchIndex = 1, customAttributeIndex = 0; searchIndex <= pFile->CustomAttributeCount; ++searchIndex)
-            {
-                if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttributeType_DeclSecurity &&
-                    pFile->CustomAttributes[searchIndex].Parent.DeclSecurity == &pFile->DeclSecurities[index])
-                {
-                    pFile->DeclSecurities[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
-                    ++customAttributeIndex;
-                }
-            }
-        }
-    }
 }
 
 
@@ -764,34 +660,6 @@ uint8_t* Event_Load(CLIFile* pFile, uint8_t* pTableData)
     return pTableData;
 }
 
-void Event_Link(CLIFile* pFile)
-{
-    for (uint32_t index = 1; index <= pFile->CustomAttributeCount; ++index)
-    {
-        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttributeType_Event) ++pFile->CustomAttributes[index].Parent.Event->CustomAttributeCount;
-    }
-    for (uint32_t index = 1; index <= pFile->EventCount; ++index)
-    {
-        if (pFile->Events[index].CustomAttributeCount > 0)
-        {
-            pFile->Events[index].CustomAttributes = (CustomAttribute**)calloc(pFile->Events[index].CustomAttributeCount, sizeof(CustomAttribute*));
-            for (uint32_t searchIndex = 1, customAttributeIndex = 0; searchIndex <= pFile->CustomAttributeCount; ++searchIndex)
-            {
-                if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttributeType_Event &&
-                    pFile->CustomAttributes[searchIndex].Parent.Event == &pFile->Events[index])
-                {
-                    pFile->Events[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
-                    ++customAttributeIndex;
-                }
-            }
-        }
-    }
-    for (uint32_t index = 1; index <= pFile->MethodSemanticsCount; ++index)
-    {
-        if (pFile->MethodSemantics[index].TypeOfAssociation == HasSemanticsType_Event) pFile->MethodSemantics[index].Association.Event->MethodSemantics = &pFile->MethodSemantics[index];
-    }
-}
-
 
 // EventMap
 
@@ -847,10 +715,6 @@ uint8_t* EventMap_Load(CLIFile* pFile, uint8_t* pTableData)
     }
     free(eventListIndexes);
     return pTableData;
-}
-
-void EventMap_Link(CLIFile* pFile)
-{
 }
 
 
@@ -925,30 +789,6 @@ uint8_t* ExportedType_Load(CLIFile* pFile, uint8_t* pTableData)
     return pTableData;
 }
 
-void ExportedType_Link(CLIFile* pFile)
-{
-    for (uint32_t index = 1; index <= pFile->CustomAttributeCount; ++index)
-    {
-        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttributeType_ExportedType) ++pFile->CustomAttributes[index].Parent.ExportedType->CustomAttributeCount;
-    }
-    for (uint32_t index = 1; index <= pFile->ExportedTypeCount; ++index)
-    {
-        if (pFile->ExportedTypes[index].CustomAttributeCount > 0)
-        {
-            pFile->ExportedTypes[index].CustomAttributes = (CustomAttribute**)calloc(pFile->ExportedTypes[index].CustomAttributeCount, sizeof(CustomAttribute*));
-            for (uint32_t searchIndex = 1, customAttributeIndex = 0; searchIndex <= pFile->CustomAttributeCount; ++searchIndex)
-            {
-                if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttributeType_ExportedType &&
-                    pFile->CustomAttributes[searchIndex].Parent.ExportedType == &pFile->ExportedTypes[index])
-                {
-                    pFile->ExportedTypes[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
-                    ++customAttributeIndex;
-                }
-            }
-        }
-    }
-}
-
 
 // Field
 
@@ -1005,42 +845,6 @@ uint8_t* Field_Load(CLIFile* pFile, uint8_t* pTableData)
     return pTableData;
 }
 
-void Field_Link(CLIFile* pFile)
-{
-    for (uint32_t index = 1; index <= pFile->ConstantCount; ++index)
-    {
-        if (pFile->Constants[index].TypeOfParent == HasConstantType_Field) pFile->Constants[index].Parent.Field->Constant = &pFile->Constants[index];
-    }
-    for (uint32_t index = 1; index <= pFile->CustomAttributeCount; ++index)
-    {
-        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttributeType_Field) ++pFile->CustomAttributes[index].Parent.Field->CustomAttributeCount;
-    }
-    for (uint32_t index = 1; index <= pFile->FieldCount; ++index)
-    {
-        if (pFile->Fields[index].CustomAttributeCount > 0)
-        {
-            pFile->Fields[index].CustomAttributes = (CustomAttribute**)calloc(pFile->Fields[index].CustomAttributeCount, sizeof(CustomAttribute*));
-            for (uint32_t searchIndex = 1, customAttributeIndex = 0; searchIndex <= pFile->CustomAttributeCount; ++searchIndex)
-            {
-                if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttributeType_Field &&
-                    pFile->CustomAttributes[searchIndex].Parent.Field == &pFile->Fields[index])
-                {
-                    pFile->Fields[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
-                    ++customAttributeIndex;
-                }
-            }
-        }
-    }
-    for (uint32_t index = 1; index <= pFile->FieldMarshalCount; ++index)
-    {
-        if (pFile->FieldMarshals[index].TypeOfParent == HasConstantType_Field) pFile->FieldMarshals[index].Parent.Field->FieldMarshal = &pFile->FieldMarshals[index];
-    }
-    for (uint32_t index = 1; index <= pFile->ImplementationMapCount; ++index)
-    {
-        if (pFile->ImplementationMaps[index].TypeOfMemberForwarded == MemberForwardedType_Field) pFile->ImplementationMaps[index].MemberForwarded.Field->ImplementationMap = &pFile->ImplementationMaps[index];
-    }
-}
-
 
 // FieldLayout
 
@@ -1080,10 +884,6 @@ uint8_t* FieldLayout_Load(CLIFile* pFile, uint8_t* pTableData)
     }
     return pTableData;
 
-}
-
-void FieldLayout_Link(CLIFile* pFile)
-{
 }
 
 
@@ -1142,10 +942,6 @@ uint8_t* FieldMarshal_Load(CLIFile* pFile, uint8_t* pTableData)
     return pTableData;
 }
 
-void FieldMarshal_Link(CLIFile* pFile)
-{
-}
-
 
 // FieldRVA
 
@@ -1193,10 +989,6 @@ uint8_t* FieldRVA_Load(CLIFile* pFile, uint8_t* pTableData)
     return pTableData;
 }
 
-void FieldRVA_Link(CLIFile* pFile)
-{
-}
-
 
 // File
 
@@ -1237,30 +1029,6 @@ uint8_t* File_Load(CLIFile* pFile, uint8_t* pTableData)
         pFile->Files[index].HashValue = CLIFile_GetCompressedUnsigned(pFile->BlobsHeap + heapIndex, &pFile->Files[index].HashValueLength);
     }
     return pTableData;
-}
-
-void File_Link(CLIFile* pFile)
-{
-    for (uint32_t index = 1; index <= pFile->CustomAttributeCount; ++index)
-    {
-        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttributeType_File) ++pFile->CustomAttributes[index].Parent.File->CustomAttributeCount;
-    }
-    for (uint32_t index = 1; index <= pFile->FileCount; ++index)
-    {
-        if (pFile->Files[index].CustomAttributeCount > 0)
-        {
-            pFile->Files[index].CustomAttributes = (CustomAttribute**)calloc(pFile->Files[index].CustomAttributeCount, sizeof(CustomAttribute*));
-            for (uint32_t searchIndex = 1, customAttributeIndex = 0; searchIndex <= pFile->CustomAttributeCount; ++searchIndex)
-            {
-                if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttributeType_File &&
-                    pFile->CustomAttributes[searchIndex].Parent.File == &pFile->Files[index])
-                {
-                    pFile->Files[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
-                    ++customAttributeIndex;
-                }
-            }
-        }
-    }
 }
 
 
@@ -1321,46 +1089,6 @@ uint8_t* GenericParameter_Load(CLIFile* pFile, uint8_t* pTableData)
         pFile->GenericParameters[index].Name = (const char*)(pFile->StringsHeap + heapIndex);
     }
     return pTableData;
-}
-
-void GenericParameter_Link(CLIFile* pFile)
-{
-    for (uint32_t index = 1; index <= pFile->CustomAttributeCount; ++index)
-    {
-        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttributeType_GenericParameter) ++pFile->CustomAttributes[index].Parent.GenericParameter->CustomAttributeCount;
-    }
-    for (uint32_t index = 1; index <= pFile->GenericParameterCount; ++index)
-    {
-        if (pFile->GenericParameters[index].CustomAttributeCount > 0)
-        {
-            pFile->GenericParameters[index].CustomAttributes = (CustomAttribute**)calloc(pFile->GenericParameters[index].CustomAttributeCount, sizeof(CustomAttribute*));
-            for (uint32_t searchIndex = 1, customAttributeIndex = 0; searchIndex <= pFile->CustomAttributeCount; ++searchIndex)
-            {
-                if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttributeType_GenericParameter &&
-                    pFile->CustomAttributes[searchIndex].Parent.GenericParameter == &pFile->GenericParameters[index])
-                {
-                    pFile->GenericParameters[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
-                    ++customAttributeIndex;
-                }
-            }
-        }
-    }
-    for (uint32_t index = 1; index <= pFile->GenericParameterConstraintCount; ++index) ++pFile->GenericParameterConstraints[index].Owner->GenericParameterConstraintCount;
-    for (uint32_t index = 1; index <= pFile->GenericParameterCount; ++index)
-    {
-        if (pFile->GenericParameters[index].GenericParameterConstraintCount > 0)
-        {
-            pFile->GenericParameters[index].GenericParameterConstraints = (GenericParameterConstraint**)calloc(pFile->GenericParameters[index].GenericParameterConstraintCount, sizeof(GenericParameterConstraint*));
-            for (uint32_t searchIndex = 1, genericParameterConstraintIndex = 0; searchIndex <= pFile->GenericParameterConstraintCount; ++searchIndex)
-            {
-                if (pFile->GenericParameterConstraints[searchIndex].Owner == &pFile->GenericParameters[index])
-                {
-                    pFile->GenericParameters[index].GenericParameterConstraints[genericParameterConstraintIndex] = &pFile->GenericParameterConstraints[searchIndex];
-                    ++genericParameterConstraintIndex;
-                }
-            }
-        }
-    }
 }
 
 
@@ -1425,30 +1153,6 @@ uint8_t* GenericParameterConstraint_Load(CLIFile* pFile, uint8_t* pTableData)
         }
     }
     return pTableData;
-}
-
-void GenericParameterConstraint_Link(CLIFile* pFile)
-{
-    for (uint32_t index = 1; index <= pFile->CustomAttributeCount; ++index)
-    {
-        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttributeType_GenericParameterConstraint) ++pFile->CustomAttributes[index].Parent.GenericParameterConstraint->CustomAttributeCount;
-    }
-    for (uint32_t index = 1; index <= pFile->GenericParameterConstraintCount; ++index)
-    {
-        if (pFile->GenericParameterConstraints[index].CustomAttributeCount > 0)
-        {
-            pFile->GenericParameterConstraints[index].CustomAttributes = (CustomAttribute**)calloc(pFile->GenericParameterConstraints[index].CustomAttributeCount, sizeof(CustomAttribute*));
-            for (uint32_t searchIndex = 1, customAttributeIndex = 0; searchIndex <= pFile->CustomAttributeCount; ++searchIndex)
-            {
-                if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttributeType_GenericParameterConstraint &&
-                    pFile->CustomAttributes[searchIndex].Parent.GenericParameterConstraint == &pFile->GenericParameterConstraints[index])
-                {
-                    pFile->GenericParameterConstraints[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
-                    ++customAttributeIndex;
-                }
-            }
-        }
-    }
 }
 
 
@@ -1516,10 +1220,6 @@ uint8_t* ImplementationMap_Load(CLIFile* pFile, uint8_t* pTableData)
     return pTableData;
 }
 
-void ImplementationMap_Link(CLIFile* pFile)
-{
-}
-
 
 // InterfaceImplementation
 
@@ -1585,30 +1285,6 @@ uint8_t* InterfaceImplementation_Load(CLIFile* pFile, uint8_t* pTableData)
     return pTableData;
 }
 
-void InterfaceImplementation_Link(CLIFile* pFile)
-{
-    for (uint32_t index = 1; index <= pFile->CustomAttributeCount; ++index)
-    {
-        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttributeType_InterfaceImplementation) ++pFile->CustomAttributes[index].Parent.InterfaceImplementation->CustomAttributeCount;
-    }
-    for (uint32_t index = 1; index <= pFile->InterfaceImplementationCount; ++index)
-    {
-        if (pFile->InterfaceImplementations[index].CustomAttributeCount > 0)
-        {
-            pFile->InterfaceImplementations[index].CustomAttributes = (CustomAttribute**)calloc(pFile->InterfaceImplementations[index].CustomAttributeCount, sizeof(CustomAttribute*));
-            for (uint32_t searchIndex = 1, customAttributeIndex = 0; searchIndex <= pFile->CustomAttributeCount; ++searchIndex)
-            {
-                if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttributeType_InterfaceImplementation &&
-                    pFile->CustomAttributes[searchIndex].Parent.InterfaceImplementation == &pFile->InterfaceImplementations[index])
-                {
-                    pFile->InterfaceImplementations[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
-                    ++customAttributeIndex;
-                }
-            }
-        }
-    }
-}
-
 
 // ManifestResource
 
@@ -1672,30 +1348,6 @@ uint8_t* ManifestResource_Load(CLIFile* pFile, uint8_t* pTableData)
         }
     }
     return pTableData;
-}
-
-void ManifestResource_Link(CLIFile* pFile)
-{
-    for (uint32_t index = 1; index <= pFile->CustomAttributeCount; ++index)
-    {
-        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttributeType_ManifestResource) ++pFile->CustomAttributes[index].Parent.ManifestResource->CustomAttributeCount;
-    }
-    for (uint32_t index = 1; index <= pFile->ManifestResourceCount; ++index)
-    {
-        if (pFile->ManifestResources[index].CustomAttributeCount > 0)
-        {
-            pFile->ManifestResources[index].CustomAttributes = (CustomAttribute**)calloc(pFile->ManifestResources[index].CustomAttributeCount, sizeof(CustomAttribute*));
-            for (uint32_t searchIndex = 1, customAttributeIndex = 0; searchIndex <= pFile->CustomAttributeCount; ++searchIndex)
-            {
-                if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttributeType_ManifestResource &&
-                    pFile->CustomAttributes[searchIndex].Parent.ManifestResource == &pFile->ManifestResources[index])
-                {
-                    pFile->ManifestResources[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
-                    ++customAttributeIndex;
-                }
-            }
-        }
-    }
 }
 
 
@@ -1772,30 +1424,6 @@ uint8_t* MemberReference_Load(CLIFile* pFile, uint8_t* pTableData)
         pFile->MemberReferences[index].Signature = CLIFile_GetCompressedUnsigned(pFile->BlobsHeap + heapIndex, &pFile->MemberReferences[index].SignatureLength);
     }
     return pTableData;
-}
-
-void MemberReference_Link(CLIFile* pFile)
-{
-    for (uint32_t index = 1; index <= pFile->CustomAttributeCount; ++index)
-    {
-        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttributeType_MemberReference) ++pFile->CustomAttributes[index].Parent.MemberReference->CustomAttributeCount;
-    }
-    for (uint32_t index = 1; index <= pFile->MemberReferenceCount; ++index)
-    {
-        if (pFile->MemberReferences[index].CustomAttributeCount > 0)
-        {
-            pFile->MemberReferences[index].CustomAttributes = (CustomAttribute**)calloc(pFile->MemberReferences[index].CustomAttributeCount, sizeof(CustomAttribute*));
-            for (uint32_t searchIndex = 1, customAttributeIndex = 0; searchIndex <= pFile->CustomAttributeCount; ++searchIndex)
-            {
-                if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttributeType_MemberReference &&
-                    pFile->CustomAttributes[searchIndex].Parent.MemberReference == &pFile->MemberReferences[index])
-                {
-                    pFile->MemberReferences[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
-                    ++customAttributeIndex;
-                }
-            }
-        }
-    }
 }
 
 
@@ -1980,82 +1608,6 @@ uint8_t* MethodDefinition_Load(CLIFile* pFile, uint8_t* pTableData)
     return pTableData;
 }
 
-void MethodDefinition_Link(CLIFile* pFile)
-{
-    for (uint32_t index = 1; index <= pFile->CustomAttributeCount; ++index)
-    {
-        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttributeType_MethodDefinition) ++pFile->CustomAttributes[index].Parent.MethodDefinition->CustomAttributeCount;
-    }
-    for (uint32_t index = 1; index <= pFile->MethodDefinitionCount; ++index)
-    {
-        if (pFile->MethodDefinitions[index].CustomAttributeCount > 0)
-        {
-            pFile->MethodDefinitions[index].CustomAttributes = (CustomAttribute**)calloc(pFile->MethodDefinitions[index].CustomAttributeCount, sizeof(CustomAttribute*));
-            for (uint32_t searchIndex = 1, customAttributeIndex = 0; searchIndex <= pFile->CustomAttributeCount; ++searchIndex)
-            {
-                if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttributeType_MethodDefinition &&
-                    pFile->CustomAttributes[searchIndex].Parent.MethodDefinition == &pFile->MethodDefinitions[index])
-                {
-                    pFile->MethodDefinitions[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
-                    ++customAttributeIndex;
-                }
-            }
-        }
-    }
-    for (uint32_t index = 1; index <= pFile->DeclSecurityCount; ++index)
-    {
-        if (pFile->DeclSecurities[index].TypeOfParent == HasDeclSecurityType_MethodDefinition) pFile->DeclSecurities[index].Parent.MethodDefinition->DeclSecurity = &pFile->DeclSecurities[index];
-    }
-    for (uint32_t index = 1; index <= pFile->GenericParameterCount; ++index)
-    {
-        if (pFile->GenericParameters[index].TypeOfOwner == TypeOrMethodDefType_MethodDefinition) ++pFile->GenericParameters[index].Owner.MethodDefinition->GenericParameterCount;
-    }
-    for (uint32_t index = 1; index <= pFile->MethodDefinitionCount; ++index)
-    {
-        if (pFile->MethodDefinitions[index].GenericParameterCount > 0)
-        {
-            pFile->MethodDefinitions[index].GenericParameters = (GenericParameter**)calloc(pFile->MethodDefinitions[index].GenericParameterCount, sizeof(GenericParameter*));
-            for (uint32_t searchIndex = 1, genericParameterIndex = 0; searchIndex <= pFile->GenericParameterCount; ++searchIndex)
-            {
-                if (pFile->GenericParameters[searchIndex].TypeOfOwner == TypeOrMethodDefType_MethodDefinition &&
-                    pFile->GenericParameters[searchIndex].Owner.MethodDefinition == &pFile->MethodDefinitions[index])
-                {
-                    pFile->MethodDefinitions[index].GenericParameters[genericParameterIndex] = &pFile->GenericParameters[searchIndex];
-                    ++genericParameterIndex;
-                }
-            }
-        }
-    }
-    for (uint32_t index = 1; index <= pFile->ImplementationMapCount; ++index)
-    {
-        if (pFile->ImplementationMaps[index].TypeOfMemberForwarded == MemberForwardedType_MethodDefinition) pFile->ImplementationMaps[index].MemberForwarded.MethodDefinition->ImplementationMap = &pFile->ImplementationMaps[index];
-    }
-    for (uint32_t index = 1; index <= pFile->MemberReferenceCount; ++index)
-    {
-        if (pFile->MemberReferences[index].TypeOfParent == MemberRefParentType_MethodDefinition) ++pFile->MemberReferences[index].Parent.MethodDefinition->MemberReferenceCount;
-    }
-    for (uint32_t index = 1; index <= pFile->MethodDefinitionCount; ++index)
-    {
-        if (pFile->MethodDefinitions[index].MemberReferenceCount > 0)
-        {
-            pFile->MethodDefinitions[index].MemberReferences = (MemberReference**)calloc(pFile->MethodDefinitions[index].MemberReferenceCount, sizeof(MemberReference*));
-            for (uint32_t searchIndex = 1, memberReferenceIndex = 0; searchIndex <= pFile->MemberReferenceCount; ++searchIndex)
-            {
-                if (pFile->MemberReferences[searchIndex].TypeOfParent == MemberRefParentType_MethodDefinition &&
-                    pFile->MemberReferences[searchIndex].Parent.MethodDefinition == &pFile->MethodDefinitions[index])
-                {
-                    pFile->MethodDefinitions[index].MemberReferences[memberReferenceIndex] = &pFile->MemberReferences[searchIndex];
-                    ++memberReferenceIndex;
-                }
-            }
-        }
-    }
-    for (uint32_t index = 1; index <= pFile->MethodDefinitionCount; ++index)
-    {
-		//if ((pFile->MethodDefinitions[index].ImplFlags & MethodImplAttributes_InternalCall) != 0) pFile->MethodDefinitions[index].InternalCall = ResolveInternalCall(&pFile->MethodDefinitions[index], pFile);
-	}
-}
-
 
 // MethodImplementation
 
@@ -2133,10 +1685,6 @@ uint8_t* MethodImplementation_Load(CLIFile* pFile, uint8_t* pTableData)
     return pTableData;
 }
 
-void MethodImplementation_Link(CLIFile* pFile)
-{
-}
-
 
 // MethodSemantics
 
@@ -2197,10 +1745,6 @@ uint8_t* MethodSemantics_Load(CLIFile* pFile, uint8_t* pTableData)
     return pTableData;
 }
 
-void MethodSemantics_Link(CLIFile* pFile)
-{
-}
-
 
 // MethodSpecification
 
@@ -2258,30 +1802,6 @@ uint8_t* MethodSpecification_Load(CLIFile* pFile, uint8_t* pTableData)
     return pTableData;
 }
 
-void MethodSpecification_Link(CLIFile* pFile)
-{
-    for (uint32_t index = 1; index <= pFile->CustomAttributeCount; ++index)
-    {
-        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttributeType_MethodSpecification) ++pFile->CustomAttributes[index].Parent.MethodSpecification->CustomAttributeCount;
-    }
-    for (uint32_t index = 1; index <= pFile->MethodSpecificationCount; ++index)
-    {
-        if (pFile->MethodSpecifications[index].CustomAttributeCount > 0)
-        {
-            pFile->MethodSpecifications[index].CustomAttributes = (CustomAttribute**)calloc(pFile->MethodSpecifications[index].CustomAttributeCount, sizeof(CustomAttribute*));
-            for (uint32_t searchIndex = 1, customAttributeIndex = 0; searchIndex <= pFile->CustomAttributeCount; ++searchIndex)
-            {
-                if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttributeType_MethodSpecification &&
-                    pFile->CustomAttributes[searchIndex].Parent.MethodSpecification == &pFile->MethodSpecifications[index])
-                {
-                    pFile->MethodSpecifications[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
-                    ++customAttributeIndex;
-                }
-            }
-        }
-    }
-}
-
 
 // ModuleDefinition
 
@@ -2331,30 +1851,6 @@ uint8_t* ModuleDefinition_Load(CLIFile* pFile, uint8_t* pTableData)
     return pTableData;
 }
 
-void ModuleDefinition_Link(CLIFile* pFile)
-{
-    for (uint32_t index = 1; index <= pFile->CustomAttributeCount; ++index)
-    {
-        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttributeType_ModuleDefinition) ++pFile->CustomAttributes[index].Parent.ModuleDefinition->CustomAttributeCount;
-    }
-    for (uint32_t index = 1; index <= pFile->ModuleDefinitionCount; ++index)
-    {
-        if (pFile->ModuleDefinitions[index].CustomAttributeCount > 0)
-        {
-            pFile->ModuleDefinitions[index].CustomAttributes = (CustomAttribute**)calloc(pFile->ModuleDefinitions[index].CustomAttributeCount, sizeof(CustomAttribute*));
-            for (uint32_t searchIndex = 1, customAttributeIndex = 0; searchIndex <= pFile->CustomAttributeCount; ++searchIndex)
-            {
-                if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttributeType_ModuleDefinition &&
-                    pFile->CustomAttributes[searchIndex].Parent.ModuleDefinition == &pFile->ModuleDefinitions[index])
-                {
-                    pFile->ModuleDefinitions[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
-                    ++customAttributeIndex;
-                }
-            }
-        }
-    }
-}
-
 
 // ModuleReference
 
@@ -2392,50 +1888,6 @@ uint8_t* ModuleReference_Load(CLIFile* pFile, uint8_t* pTableData)
         pFile->ModuleReferences[index].Name = (const char*)(pFile->StringsHeap + heapIndex);
     }
     return pTableData;
-}
-
-void ModuleReference_Link(CLIFile* pFile)
-{
-    for (uint32_t index = 1; index <= pFile->CustomAttributeCount; ++index)
-    {
-        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttributeType_ModuleReference) ++pFile->CustomAttributes[index].Parent.ModuleReference->CustomAttributeCount;
-    }
-    for (uint32_t index = 1; index <= pFile->ModuleReferenceCount; ++index)
-    {
-        if (pFile->ModuleReferences[index].CustomAttributeCount > 0)
-        {
-            pFile->ModuleReferences[index].CustomAttributes = (CustomAttribute**)calloc(pFile->ModuleReferences[index].CustomAttributeCount, sizeof(CustomAttribute*));
-            for (uint32_t searchIndex = 1, customAttributeIndex = 0; searchIndex <= pFile->CustomAttributeCount; ++searchIndex)
-            {
-                if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttributeType_ModuleReference &&
-                    pFile->CustomAttributes[searchIndex].Parent.ModuleReference == &pFile->ModuleReferences[index])
-                {
-                    pFile->ModuleReferences[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
-                    ++customAttributeIndex;
-                }
-            }
-        }
-    }
-    for (uint32_t index = 1; index <= pFile->MemberReferenceCount; ++index)
-    {
-        if (pFile->MemberReferences[index].TypeOfParent == MemberRefParentType_ModuleReference) ++pFile->MemberReferences[index].Parent.ModuleReference->MemberReferenceCount;
-    }
-    for (uint32_t index = 1; index <= pFile->ModuleReferenceCount; ++index)
-    {
-        if (pFile->ModuleReferences[index].MemberReferenceCount > 0)
-        {
-            pFile->ModuleReferences[index].MemberReferences = (MemberReference**)calloc(pFile->ModuleReferences[index].MemberReferenceCount, sizeof(MemberReference*));
-            for (uint32_t searchIndex = 1, memberReferenceIndex = 0; searchIndex <= pFile->MemberReferenceCount; ++searchIndex)
-            {
-                if (pFile->MemberReferences[searchIndex].TypeOfParent == MemberRefParentType_ModuleReference &&
-                    pFile->MemberReferences[searchIndex].Parent.ModuleReference == &pFile->ModuleReferences[index])
-                {
-                    pFile->ModuleReferences[index].MemberReferences[memberReferenceIndex] = &pFile->MemberReferences[searchIndex];
-                    ++memberReferenceIndex;
-                }
-            }
-        }
-    }
 }
 
 
@@ -2482,10 +1934,6 @@ uint8_t* NestedClass_Load(CLIFile* pFile, uint8_t* pTableData)
     return pTableData;
 }
 
-void NestedClass_Link(CLIFile* pFile)
-{
-}
-
 
 // Parameter
 
@@ -2524,38 +1972,6 @@ uint8_t* Parameter_Load(CLIFile* pFile, uint8_t* pTableData)
         pFile->Parameters[index].Name = (const char*)(pFile->StringsHeap + heapIndex);
     }
     return pTableData;
-}
-
-void Parameter_Link(CLIFile* pFile)
-{
-    for (uint32_t index = 1; index <= pFile->ConstantCount; ++index)
-    {
-        if (pFile->Constants[index].TypeOfParent == HasConstantType_Parameter) pFile->Constants[index].Parent.Parameter->Constant = &pFile->Constants[index];
-    }
-    for (uint32_t index = 1; index <= pFile->CustomAttributeCount; ++index)
-    {
-        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttributeType_Parameter) ++pFile->CustomAttributes[index].Parent.Parameter->CustomAttributeCount;
-    }
-    for (uint32_t index = 1; index <= pFile->ParameterCount; ++index)
-    {
-        if (pFile->Parameters[index].CustomAttributeCount > 0)
-        {
-            pFile->Parameters[index].CustomAttributes = (CustomAttribute**)calloc(pFile->Parameters[index].CustomAttributeCount, sizeof(CustomAttribute*));
-            for (uint32_t searchIndex = 1, customAttributeIndex = 0; searchIndex <= pFile->CustomAttributeCount; ++searchIndex)
-            {
-                if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttributeType_Parameter &&
-                    pFile->CustomAttributes[searchIndex].Parent.Parameter == &pFile->Parameters[index])
-                {
-                    pFile->Parameters[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
-                    ++customAttributeIndex;
-                }
-            }
-        }
-    }
-    for (uint32_t index = 1; index <= pFile->FieldMarshalCount; ++index)
-    {
-        if (pFile->FieldMarshals[index].TypeOfParent == HasConstantType_Parameter) pFile->FieldMarshals[index].Parent.Parameter->FieldMarshal = &pFile->FieldMarshals[index];
-    }
 }
 
 
@@ -2598,38 +2014,6 @@ uint8_t* Property_Load(CLIFile* pFile, uint8_t* pTableData)
         pFile->Properties[index].Signature = CLIFile_GetCompressedUnsigned(pFile->BlobsHeap + heapIndex, &pFile->Properties[index].SignatureLength);
     }
     return pTableData;
-}
-
-void Property_Link(CLIFile* pFile)
-{
-    for (uint32_t index = 1; index <= pFile->ConstantCount; ++index)
-    {
-        if (pFile->Constants[index].TypeOfParent == HasConstantType_Property) pFile->Constants[index].Parent.Property->Constant = &pFile->Constants[index];
-    }
-    for (uint32_t index = 1; index <= pFile->CustomAttributeCount; ++index)
-    {
-        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttributeType_Property) ++pFile->CustomAttributes[index].Parent.Property->CustomAttributeCount;
-    }
-    for (uint32_t index = 1; index <= pFile->PropertyCount; ++index)
-    {
-        if (pFile->Properties[index].CustomAttributeCount > 0)
-        {
-            pFile->Properties[index].CustomAttributes = (CustomAttribute**)calloc(pFile->Properties[index].CustomAttributeCount, sizeof(CustomAttribute*));
-            for (uint32_t searchIndex = 1, customAttributeIndex = 0; searchIndex <= pFile->CustomAttributeCount; ++searchIndex)
-            {
-                if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttributeType_Property &&
-                    pFile->CustomAttributes[searchIndex].Parent.Property == &pFile->Properties[index])
-                {
-                    pFile->Properties[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
-                    ++customAttributeIndex;
-                }
-            }
-        }
-    }
-    for (uint32_t index = 1; index <= pFile->MethodSemanticsCount; ++index)
-    {
-        if (pFile->MethodSemantics[index].TypeOfAssociation == HasSemanticsType_Property) pFile->MethodSemantics[index].Association.Property->MethodSemantics = &pFile->MethodSemantics[index];
-    }
 }
 
 
@@ -2689,10 +2073,6 @@ uint8_t* PropertyMap_Load(CLIFile* pFile, uint8_t* pTableData)
     return pTableData;
 }
 
-void PropertyMap_Link(CLIFile* pFile)
-{
-}
-
 
 // StandAloneSignature
 
@@ -2729,30 +2109,6 @@ uint8_t* StandAloneSignature_Load(CLIFile* pFile, uint8_t* pTableData)
         pFile->StandAloneSignatures[index].Signature = CLIFile_GetCompressedUnsigned(pFile->BlobsHeap + heapIndex, &pFile->StandAloneSignatures[index].SignatureLength);
     }
     return pTableData;
-}
-
-void StandAloneSignature_Link(CLIFile* pFile)
-{
-    for (uint32_t index = 1; index <= pFile->CustomAttributeCount; ++index)
-    {
-        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttributeType_StandAloneSignature) ++pFile->CustomAttributes[index].Parent.StandAloneSignature->CustomAttributeCount;
-    }
-    for (uint32_t index = 1; index <= pFile->StandAloneSignatureCount; ++index)
-    {
-        if (pFile->StandAloneSignatures[index].CustomAttributeCount > 0)
-        {
-            pFile->StandAloneSignatures[index].CustomAttributes = (CustomAttribute**)calloc(pFile->StandAloneSignatures[index].CustomAttributeCount, sizeof(CustomAttribute*));
-            for (uint32_t searchIndex = 1, customAttributeIndex = 0; searchIndex <= pFile->CustomAttributeCount; ++searchIndex)
-            {
-                if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttributeType_StandAloneSignature &&
-                    pFile->CustomAttributes[searchIndex].Parent.StandAloneSignature == &pFile->StandAloneSignatures[index])
-                {
-                    pFile->StandAloneSignatures[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
-                    ++customAttributeIndex;
-                }
-            }
-        }
-    }
 }
 
 
@@ -2866,161 +2222,6 @@ uint8_t* TypeDefinition_Load(CLIFile* pFile, uint8_t* pTableData)
     return pTableData;
 }
 
-void TypeDefinition_Link(CLIFile* pFile)
-{
-    for (uint32_t index = 1; index <= pFile->ClassLayoutCount; ++index) pFile->ClassLayouts[index].Parent->ClassLayout = &pFile->ClassLayouts[index];
-        
-    for (uint32_t index = 1; index <= pFile->CustomAttributeCount; ++index)
-    {
-        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttributeType_TypeDefinition)
-        {
-            ++pFile->CustomAttributes[index].Parent.TypeDefinition->CustomAttributeCount;
-        }
-    }
-    for (uint32_t index = 1; index <= pFile->TypeDefinitionCount; ++index)
-    {
-        if (pFile->TypeDefinitions[index].CustomAttributeCount > 0)
-        {
-            pFile->TypeDefinitions[index].CustomAttributes = (CustomAttribute**)calloc(pFile->TypeDefinitions[index].CustomAttributeCount, sizeof(CustomAttribute*));
-            for (uint32_t searchIndex = 1, customAttributeIndex = 0; searchIndex <= pFile->CustomAttributeCount; ++searchIndex)
-            {
-                if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttributeType_TypeDefinition &&
-                    pFile->CustomAttributes[searchIndex].Parent.TypeDefinition == &pFile->TypeDefinitions[index])
-                {
-                    pFile->TypeDefinitions[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
-                    ++customAttributeIndex;
-                }
-            }
-        }
-    }
-    for (uint32_t index = 1; index <= pFile->DeclSecurityCount; ++index)
-    {
-        if (pFile->DeclSecurities[index].TypeOfParent == HasDeclSecurityType_TypeDefinition) pFile->DeclSecurities[index].Parent.TypeDefinition->DeclSecurity = &pFile->DeclSecurities[index];
-    }
-    for (uint32_t index = 1; index <= pFile->EventMapCount; ++index) pFile->EventMaps[index].Parent->EventMap = &pFile->EventMaps[index];
-    for (uint32_t index = 1; index <= pFile->GenericParameterCount; ++index)
-    {
-        if (pFile->GenericParameters[index].TypeOfOwner == TypeOrMethodDefType_TypeDefinition)
-        {
-            ++pFile->GenericParameters[index].Owner.TypeDefinition->GenericParameterCount;
-        }
-    }
-    for (uint32_t index = 1; index <= pFile->TypeDefinitionCount; ++index)
-    {
-        if (pFile->TypeDefinitions[index].GenericParameterCount > 0)
-        {
-            pFile->TypeDefinitions[index].GenericParameters = (GenericParameter**)calloc(pFile->TypeDefinitions[index].GenericParameterCount, sizeof(GenericParameter*));
-            for (uint32_t searchIndex = 1, genericParameterIndex = 0; searchIndex <= pFile->GenericParameterCount; ++searchIndex)
-            {
-                if (pFile->GenericParameters[searchIndex].TypeOfOwner == TypeOrMethodDefType_TypeDefinition &&
-                    pFile->GenericParameters[searchIndex].Owner.TypeDefinition == &pFile->TypeDefinitions[index])
-                {
-                    pFile->TypeDefinitions[index].GenericParameters[genericParameterIndex] = &pFile->GenericParameters[searchIndex];
-                    ++genericParameterIndex;
-                }
-            }
-        }
-    }
-    for (uint32_t index = 1; index <= pFile->InterfaceImplementationCount; ++index) ++pFile->InterfaceImplementations[index].Implementor->InterfaceImplementationCount;
-    for (uint32_t index = 1; index <= pFile->TypeDefinitionCount; ++index)
-    {
-        if (pFile->TypeDefinitions[index].InterfaceImplementationCount > 0)
-        {
-            pFile->TypeDefinitions[index].InterfaceImplementations = (InterfaceImplementation**)calloc(pFile->TypeDefinitions[index].InterfaceImplementationCount, sizeof(InterfaceImplementation*));
-            for (uint32_t searchIndex = 1, interfaceImplementationIndex = 0; searchIndex <= pFile->InterfaceImplementationCount; ++searchIndex)
-            {
-                if (pFile->InterfaceImplementations[searchIndex].Implementor == &pFile->TypeDefinitions[index])
-                {
-                    pFile->TypeDefinitions[index].InterfaceImplementations[interfaceImplementationIndex] = &pFile->InterfaceImplementations[searchIndex];
-                    ++interfaceImplementationIndex;
-                }
-            }
-        }
-    }
-    for (uint32_t index = 1; index <= pFile->MemberReferenceCount; ++index)
-    {
-        if (pFile->MemberReferences[index].TypeOfParent == MemberRefParentType_TypeDefinition) ++pFile->MemberReferences[index].Parent.TypeDefinition->MemberReferenceCount;
-    }
-    for (uint32_t index = 1; index <= pFile->TypeDefinitionCount; ++index)
-    {
-        if (pFile->TypeDefinitions[index].MemberReferenceCount > 0)
-        {
-            pFile->TypeDefinitions[index].MemberReferences = (MemberReference**)calloc(pFile->TypeDefinitions[index].MemberReferenceCount, sizeof(MemberReference*));
-            for (uint32_t searchIndex = 1, memberReferenceIndex = 0; searchIndex <= pFile->MemberReferenceCount; ++searchIndex)
-            {
-                if (pFile->MemberReferences[searchIndex].TypeOfParent == MemberRefParentType_TypeDefinition &&
-                    pFile->MemberReferences[searchIndex].Parent.TypeDefinition == &pFile->TypeDefinitions[index])
-                {
-                    pFile->TypeDefinitions[index].MemberReferences[memberReferenceIndex] = &pFile->MemberReferences[searchIndex];
-                    ++memberReferenceIndex;
-                }
-            }
-        }
-    }
-    for (uint32_t index = 1; index <= pFile->MethodImplementationCount; ++index)
-    {
-        ++pFile->MethodImplementations[index].Parent->MethodImplementationCount;
-    }
-    for (uint32_t index = 1; index <= pFile->TypeDefinitionCount; ++index)
-    {
-        if (pFile->TypeDefinitions[index].MethodImplementationCount > 0)
-        {
-            //printf("MethodImplementations: %u %s.%s %u\n", (unsigned int)index, pFile->TypeDefinitions[index].Namespace, pFile->TypeDefinitions[index].Name, (unsigned int)pFile->TypeDefinitions[index].MethodImplementationCount);
-            pFile->TypeDefinitions[index].MethodImplementations = (MethodImplementation**)calloc(pFile->TypeDefinitions[index].MethodImplementationCount, sizeof(MethodImplementation*));
-            for (uint32_t searchIndex = 1, methodImplementationIndex = 0; searchIndex <= pFile->MethodImplementationCount; ++searchIndex)
-            {
-                if (pFile->MethodImplementations[searchIndex].Parent == &pFile->TypeDefinitions[index])
-                {
-                    pFile->TypeDefinitions[index].MethodImplementations[methodImplementationIndex] = &pFile->MethodImplementations[searchIndex];
-                    ++methodImplementationIndex;
-                }
-            }
-        }
-    }
-    for (uint32_t index = 1; index <= pFile->NestedClassCount; ++index)
-    {
-        ++pFile->NestedClasses[index].Enclosing->NestedClassCount;
-    }
-    for (uint32_t index = 1; index <= pFile->TypeDefinitionCount; ++index)
-    {
-        if (pFile->TypeDefinitions[index].NestedClassCount > 0)
-        {
-            pFile->TypeDefinitions[index].NestedClasses = (NestedClass**)calloc(pFile->TypeDefinitions[index].NestedClassCount, sizeof(NestedClass*));
-            for (uint32_t searchIndex = 1, nestedClassIndex = 0; searchIndex <= pFile->NestedClassCount; ++searchIndex)
-            {
-                if (pFile->NestedClasses[searchIndex].Enclosing == &pFile->TypeDefinitions[index])
-                {
-                    pFile->TypeDefinitions[index].NestedClasses[nestedClassIndex] = &pFile->NestedClasses[searchIndex];
-                    ++nestedClassIndex;
-                }
-            }
-        }
-    }
-    for (uint32_t index = 1; index <= pFile->PropertyMapCount; ++index) pFile->PropertyMaps[index].Parent->PropertyMap = &pFile->PropertyMaps[index];
-    for (uint32_t index = 1; index <= pFile->TypeDefinitionCount; ++index)
-    {
-        if (pFile->TypeDefinitions[index].MethodDefinitionListCount > 0)
-        {
-            //printf("TypeDefinition[%u]: %s.%s, %u methods\n", (unsigned int)index, pFile->TypeDefinitions[index].Namespace, pFile->TypeDefinitions[index].Name, (unsigned int)pFile->TypeDefinitions[index].MethodDefinitionListCount);
-            for (uint32_t searchIndex = 0; searchIndex < pFile->TypeDefinitions[index].MethodDefinitionListCount; ++searchIndex)
-            {
-                //printf("    %s\n", pFile->TypeDefinitions[index].MethodDefinitionList[searchIndex].Name);
-                pFile->TypeDefinitions[index].MethodDefinitionList[searchIndex].TypeDefinition = &pFile->TypeDefinitions[index];
-            }
-        }
-    }
-
-	for (uint32_t index = 1; index <= pFile->TypeDefinitionCount; ++index)
-    {
-		//printf("Linking Fields for %s.%s, %u\n", pFile->TypeDefinitions[index].Namespace, pFile->TypeDefinitions[index].Name, pFile->TypeDefinitions[index].FieldListCount);
-		for (uint32_t index2 = 0; index2 < pFile->TypeDefinitions[index].FieldListCount; ++index2)
-		{
-			pFile->TypeDefinitions[index].FieldList[index2].TypeDefinition = &pFile->TypeDefinitions[index];
-			//printf("Linking Field %s to TypeDef %s.%s @ 0x%x\n", pFile->TypeDefinitions[index].FieldList[index2].Name, pFile->TypeDefinitions[index].Namespace, pFile->TypeDefinitions[index].Name, (unsigned int)pFile->TypeDefinitions[index].FieldList[index2].TypeDefinition);
-		}
-    }
-}
-
 
 // TypeReference
 
@@ -3092,64 +2293,6 @@ uint8_t* TypeReference_Load(CLIFile* pFile, uint8_t* pTableData)
     return pTableData;
 }
 
-void TypeReference_Link(CLIFile* pFile)
-{
-    for (uint32_t index = 1; index <= pFile->CustomAttributeCount; ++index)
-    {
-        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttributeType_TypeReference) ++pFile->CustomAttributes[index].Parent.TypeReference->CustomAttributeCount;
-    }
-    for (uint32_t index = 1; index <= pFile->TypeReferenceCount; ++index)
-    {
-        if (pFile->TypeReferences[index].CustomAttributeCount > 0)
-        {
-            pFile->TypeReferences[index].CustomAttributes = (CustomAttribute**)calloc(pFile->TypeReferences[index].CustomAttributeCount, sizeof(CustomAttribute*));
-            for (uint32_t searchIndex = 1, customAttributeIndex = 0; searchIndex <= pFile->CustomAttributeCount; ++searchIndex)
-            {
-                if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttributeType_TypeReference &&
-                    pFile->CustomAttributes[searchIndex].Parent.TypeReference == &pFile->TypeReferences[index])
-                {
-                    pFile->TypeReferences[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
-                    ++customAttributeIndex;
-                }
-            }
-        }
-    }
-    for (uint32_t index = 1; index <= pFile->MemberReferenceCount; ++index)
-    {
-        if (pFile->MemberReferences[index].TypeOfParent == MemberRefParentType_TypeReference) ++pFile->MemberReferences[index].Parent.TypeReference->MemberReferenceCount;
-    }
-    for (uint32_t index = 1; index <= pFile->TypeReferenceCount; ++index)
-    {
-        if (pFile->TypeReferences[index].MemberReferenceCount > 0)
-        {
-            pFile->TypeReferences[index].MemberReferences = (MemberReference**)calloc(pFile->TypeReferences[index].MemberReferenceCount, sizeof(MemberReference*));
-            for (uint32_t searchIndex = 1, memberReferenceIndex = 0; searchIndex <= pFile->MemberReferenceCount; ++searchIndex)
-            {
-                if (pFile->MemberReferences[searchIndex].TypeOfParent == MemberRefParentType_TypeReference &&
-                    pFile->MemberReferences[searchIndex].Parent.TypeReference == &pFile->TypeReferences[index])
-                {
-                    pFile->TypeReferences[index].MemberReferences[memberReferenceIndex] = &pFile->MemberReferences[searchIndex];
-                    ++memberReferenceIndex;
-                }
-            }
-        }
-    }
-    for (uint32_t index = 1; index <= pFile->TypeReferenceCount; ++index)
-    {
-		if (!pFile->TypeReferences[index].ResolutionScope.AssemblyReference)
-		{
-			for (uint32_t searchIndex = 1; searchIndex <= pFile->ExportedTypeCount; ++searchIndex)
-			{
-				if (!strcmp(pFile->ExportedTypes[searchIndex].Name, pFile->TypeReferences[index].Name) &&
-					!strcmp(pFile->ExportedTypes[searchIndex].Namespace, pFile->TypeReferences[index].Namespace))
-				{
-					pFile->TypeReferences[index].ExportedType = &pFile->ExportedTypes[searchIndex];
-				}
-			}
-		}
-	}
-}
-
 
 // TypeSpecification
 
@@ -3188,50 +2331,6 @@ uint8_t* TypeSpecification_Load(CLIFile* pFile, uint8_t* pTableData)
         pFile->TypeSpecifications[index].Signature = CLIFile_GetCompressedUnsigned(pFile->BlobsHeap + heapIndex, &pFile->TypeSpecifications[index].SignatureLength);
     }
     return pTableData;
-}
-
-void TypeSpecification_Link(CLIFile* pFile)
-{
-    for (uint32_t index = 1; index <= pFile->CustomAttributeCount; ++index)
-    {
-        if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttributeType_TypeSpecification) ++pFile->CustomAttributes[index].Parent.TypeSpecification->CustomAttributeCount;
-    }
-    for (uint32_t index = 1; index <= pFile->TypeSpecificationCount; ++index)
-    {
-        if (pFile->TypeSpecifications[index].CustomAttributeCount > 0)
-        {
-            pFile->TypeSpecifications[index].CustomAttributes = (CustomAttribute**)calloc(pFile->TypeSpecifications[index].CustomAttributeCount, sizeof(CustomAttribute*));
-            for (uint32_t searchIndex = 1, customAttributeIndex = 0; searchIndex <= pFile->CustomAttributeCount; ++searchIndex)
-            {
-                if (pFile->CustomAttributes[searchIndex].TypeOfParent == HasCustomAttributeType_TypeSpecification &&
-                    pFile->CustomAttributes[searchIndex].Parent.TypeSpecification == &pFile->TypeSpecifications[index])
-                {
-                    pFile->TypeSpecifications[index].CustomAttributes[customAttributeIndex] = &pFile->CustomAttributes[searchIndex];
-                    ++customAttributeIndex;
-                }
-            }
-        }
-    }
-    for (uint32_t index = 1; index <= pFile->MemberReferenceCount; ++index)
-    {
-        if (pFile->MemberReferences[index].TypeOfParent == MemberRefParentType_TypeSpecification) ++pFile->MemberReferences[index].Parent.TypeSpecification->MemberReferenceCount;
-    }
-    for (uint32_t index = 1; index <= pFile->TypeSpecificationCount; ++index)
-    {
-        if (pFile->TypeSpecifications[index].MemberReferenceCount > 0)
-        {
-            pFile->TypeSpecifications[index].MemberReferences = (MemberReference**)calloc(pFile->TypeSpecifications[index].MemberReferenceCount, sizeof(MemberReference*));
-            for (uint32_t searchIndex = 1, memberReferenceIndex = 0; searchIndex <= pFile->MemberReferenceCount; ++searchIndex)
-            {
-                if (pFile->MemberReferences[searchIndex].TypeOfParent == MemberRefParentType_TypeSpecification &&
-                    pFile->MemberReferences[searchIndex].Parent.TypeSpecification == &pFile->TypeSpecifications[index])
-                {
-                    pFile->TypeSpecifications[index].MemberReferences[memberReferenceIndex] = &pFile->MemberReferences[searchIndex];
-                    ++memberReferenceIndex;
-                }
-            }
-        }
-    }
 }
 
 

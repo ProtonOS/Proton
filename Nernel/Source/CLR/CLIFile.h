@@ -274,6 +274,7 @@ struct _MetadataToken
 CLIFile* CLIFile_Create(uint8_t* pData, uint32_t pLength, const char* pFilename);
 void CLIFile_Destroy(CLIFile* pFile);
 PESectionHeader* CLIFile_GetSection(PESectionHeader* pSections, uint16_t pSectionCount, uint32_t pVirtualAddress);
+void CLIFile_Link(CLIFile* pFile);
 uint8_t* CLIFile_GetCompressedUnsigned(uint8_t* pData, uint32_t* pValue);
 uint8_t* CLIFile_GetCompressedSigned(uint8_t* pData, int32_t* pValue);
 MetadataToken* CLIFile_ExpandMetadataToken(CLIFile* pFile, uint32_t pToken);
