@@ -90,7 +90,11 @@ IRType* IRAssembly_MakeArrayType(IRAssembly* pAssembly, IRType* pType)
 
 IRType* IRType_Create(IRAssembly* pAssembly, TypeDefinition* pTypeDefinition)
 {
-	if (!pAssembly || !pTypeDefinition) Panic("Ruhroh!");
+	if (!pAssembly || !pTypeDefinition)
+	{
+		printf("Invalid Assembly @ 0x%x, or TypeDefinition @ 0x%x\n", (unsigned int)pAssembly, (unsigned int)pTypeDefinition);
+		Panic("Ruhroh!");
+	}
 	IRType* type = (IRType*)calloc(1, sizeof(IRType));
 	Log_WriteLine(LOGLEVEL__Memory, "Memory: IRType_Create @ 0x%x", (unsigned int)type);
 	type->ParentAssembly = pAssembly;
@@ -184,7 +188,10 @@ IRMethod* IRMethod_Create(IRAssembly* pAssembly, MethodDefinition* pMethodDefini
 		}
 		else
 		{
-			type = pAssembly->Types[pMethodDefinition->TypeDefinition->TableIndex - 1];
+			if (!(type = pAssembly->Types[pMethodDefinition->TypeDefinition->TableIndex - 1]))
+			{
+				type = IRType_Create(pAssembly, pMethodDefinition->TypeDefinition);
+			}
 		}
 		IRParameter* parameter = IRParameter_Create(method, type);
 		parameter->ParameterIndex = parameterIndex++;
@@ -192,7 +199,14 @@ IRMethod* IRMethod_Create(IRAssembly* pAssembly, MethodDefinition* pMethodDefini
 	}
 	for (uint32_t index = 0; index < pMethodDefinition->SignatureCache->ParameterCount; index++)
 	{
-		type = AppDomain_GetIRTypeFromSignatureType(pAssembly->ParentDomain, pAssembly, pMethodDefinition->SignatureCache->Parameters[index]->Type);
+		if (pMethodDefinition->SignatureCache->Parameters[index]->TypedByReference)
+		{
+			type = pAssembly->ParentDomain->IRAssemblies[0]->Types[pAssembly->ParentDomain->CachedType___System_TypedReference->TableIndex - 1];
+		}
+		else
+		{
+			type = AppDomain_GetIRTypeFromSignatureType(pAssembly->ParentDomain, pAssembly, pMethodDefinition->SignatureCache->Parameters[index]->Type);
+		}
 		IRParameter* parameter = IRParameter_Create(method, type);
 		parameter->ParameterIndex = parameterIndex++;
 		method->Parameters[parameter->ParameterIndex] = parameter;

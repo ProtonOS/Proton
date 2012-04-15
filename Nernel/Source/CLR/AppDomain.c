@@ -21,10 +21,10 @@ void AppDomainRegistry_AddDomain(AppDomain* pDomain)
 
 AppDomain* AppDomain_Create()
 {
-	LoadedModule* loadedModule = Multiboot_GetLoadedModule("/gac/corlib.dll");
+	LoadedModule* loadedModule = Multiboot_GetLoadedModule("/gac/mscorlib.dll");
 	if (loadedModule)
 	{
-		CLIFile* cliFile = CLIFile_Create((uint8_t*)loadedModule->Address, loadedModule->Size, "corlib.dll");
+		CLIFile* cliFile = CLIFile_Create((uint8_t*)loadedModule->Address, loadedModule->Size, "mscorlib.dll");
 		if (cliFile)
 		{
 			AppDomain* domain = (AppDomain*)calloc(1, sizeof(AppDomain));
@@ -109,10 +109,6 @@ void AppDomain_LinkCorlib(AppDomain* pDomain, CLIFile* pCorlibFile)
 			{
 				pDomain->CachedType___System_Object = type;
 			}
-			else if (!strcmp(type->Name, "RuntimeType"))
-			{
-				pDomain->CachedType___System_RuntimeType = type;
-			}
 			else if (!strcmp(type->Name, "SByte"))
 			{
 				pDomain->CachedType___System_SByte = type;
@@ -131,7 +127,7 @@ void AppDomain_LinkCorlib(AppDomain* pDomain, CLIFile* pCorlibFile)
 			}
 			else if (!strcmp(type->Name, "TypedReference"))
 			{
-				//pDomain->CachedType___System_TypedReference = type;
+				pDomain->CachedType___System_TypedReference = type;
 			}
 			else if (!strcmp(type->Name, "UInt16"))
 			{
@@ -277,7 +273,9 @@ IRType* AppDomain_GetIRTypeFromSignatureType(AppDomain* pDomain, IRAssembly* pAs
 		case SignatureElementType_ValueType:
 		case SignatureElementType_Class:
 		{
-			MetadataToken* token = CLIFile_ExpandTypeDefRefOrSpecToken(pAssembly->ParentFile, pType->ClassTypeDefOrRefOrSpecToken);
+			MetadataToken* token = NULL;
+			if (pType->ElementType == SignatureElementType_ValueType) token = CLIFile_ExpandTypeDefRefOrSpecToken(pAssembly->ParentFile, pType->ValueTypeDefOrRefOrSpecToken);
+			else token = CLIFile_ExpandTypeDefRefOrSpecToken(pAssembly->ParentFile, pType->ClassTypeDefOrRefOrSpecToken);
 			switch(token->Table)
 			{
 				case MetadataTable_TypeDefinition:
@@ -357,6 +355,7 @@ IRType* AppDomain_GetIRTypeFromSignatureType(AppDomain* pDomain, IRAssembly* pAs
 			printf("WARNING: Generics aren't supported yet!\n");
 			break;
 		default:
+			printf("Unknown Signature Element Type = 0x%x\n", (unsigned int)pType->ElementType);
 			Panic("AppDomain_GetIRTypeFromSignatureType Unknown Signature Element Type");
 			break;
 	}
@@ -488,100 +487,121 @@ bool_t AppDomain_IsStructure(AppDomain* pDomain, TypeDefinition* pTypeDefinition
 	return FALSE;
 }
 
+TypeDefinition* AppDomain_ResolveTypeReference(AppDomain* pDomain, CLIFile* pFile, TypeReference* pTypeReference)
+{
+	if (pTypeReference->ExportedType)
+	{
+		switch(pTypeReference->ExportedType->TypeOfImplementation)
+		{
+			case ImplementationType_File:
+			{
+				CLIFile* file = NULL;
+				for (uint32_t index = 0; index < pDomain->IRAssemblyCount; index++)
+				{
+					if (!strcmp(pDomain->IRAssemblies[index]->ParentFile->Filename, pTypeReference->ExportedType->Implementation.File->Name))
+					{
+						file = pDomain->IRAssemblies[index]->ParentFile;
+						break;
+					}
+				}
+				if (!file) Panic("Failed to resolve assembly reference for exported type file resolution.");
+				for (uint32_t index = 1; index <= file->TypeDefinitionCount; ++index)
+				{
+					if (!strcmp(file->TypeDefinitions[index].Name , pTypeReference->Name) &&
+						!strcmp(file->TypeDefinitions[index].Namespace, pTypeReference->Namespace))
+					{
+						return &file->TypeDefinitions[index];
+					}
+				}
+				if (!pTypeReference->ResolvedType) Panic("Failed to resolve type reference through assembly reference.");
+				break;
+			}
+			case ImplementationType_AssemblyReference:
+			{
+				AssemblyReference* asmRef = pTypeReference->ExportedType->Implementation.AssemblyReference;
+				CLIFile* file = NULL;
+				for (uint32_t index = 0; index < pDomain->IRAssemblyCount; index++)
+				{
+					if (!strcmp(pDomain->IRAssemblies[index]->ParentFile->AssemblyDefinitions[1].Name, asmRef->Name))
+					{
+						file = pDomain->IRAssemblies[index]->ParentFile;
+						break;
+					}
+				}
+				if (!file) Panic("Failed to resolve assembly reference for exported type assembly reference resolution.");
+				for (uint32_t index = 1; index <= file->TypeDefinitionCount; ++index)
+				{
+					if (!strcmp(file->TypeDefinitions[index].Name , pTypeReference->Name) &&
+						!strcmp(file->TypeDefinitions[index].Namespace, pTypeReference->Namespace))
+					{
+						return &file->TypeDefinitions[index];
+					}
+				}
+				if (!pTypeReference->ResolvedType) Panic("Failed to resolve type reference through assembly reference.");
+				break;
+			}
+			default: Panic("Unhandled type reference resolution through exported type"); break;
+		}
+	}
+	else
+	{
+		switch (pTypeReference->TypeOfResolutionScope)
+		{
+			case ResolutionScopeType_AssemblyReference:
+			{
+				AssemblyReference* asmRef = pTypeReference->ResolutionScope.AssemblyReference;
+				CLIFile* file = NULL;
+				for (uint32_t index = 0; index < pDomain->IRAssemblyCount; index++)
+				{
+					if (!strcmp(pDomain->IRAssemblies[index]->ParentFile->AssemblyDefinitions[1].Name, asmRef->Name))
+					{
+						file = pDomain->IRAssemblies[index]->ParentFile;
+						break;
+					}
+				}
+				if (!file) Panic("Failed to resolve assembly reference for type reference resolution.");
+				for (uint32_t index = 1; index <= file->TypeDefinitionCount; ++index)
+				{
+					if (!strcmp(file->TypeDefinitions[index].Name , pTypeReference->Name) &&
+						!strcmp(file->TypeDefinitions[index].Namespace, pTypeReference->Namespace))
+					{
+						return &file->TypeDefinitions[index];
+					}
+				}
+				Panic("Failed to resolve type reference through assembly reference.");
+				break;
+			}
+			case ResolutionScopeType_TypeReference:
+			{
+				TypeDefinition* resolvedTypeDef = AppDomain_ResolveTypeReference(pDomain, pFile, pTypeReference->ResolutionScope.TypeReference);
+				for (uint32_t index = 0; index < resolvedTypeDef->NestedClassCount; index++)
+				{
+					if (!strcmp(resolvedTypeDef->NestedClasses[index]->Nested->Name, pTypeReference->Name) &&
+						!strcmp(resolvedTypeDef->NestedClasses[index]->Nested->Namespace, pTypeReference->Namespace))
+					{
+						return resolvedTypeDef->NestedClasses[index]->Nested;
+					}
+				}
+				Panic("Failed to resolve type reference through type reference.");
+				break;
+			}
+			default:
+				Panic("Unhandled type reference resolution");
+				break;
+		}
+	}
+
+	Panic("Unhandled type reference resolution");
+	return NULL;
+}
+
 void AppDomain_ResolveReferences(AppDomain* pDomain, CLIFile* pFile)
 {
 	for (uint32_t index = 1; index <= pFile->TypeReferenceCount; ++index)
 	{
 		TypeReference* typeRef = &pFile->TypeReferences[index];
-
-		if (typeRef->ExportedType)
-		{
-			switch(typeRef->ExportedType->TypeOfImplementation)
-			{
-				case ImplementationType_File:
-				{
-					CLIFile* file = NULL;
-					for (uint32_t i2 = 0; i2 < pDomain->IRAssemblyCount; i2++)
-					{
-						if (!strcmp(pDomain->IRAssemblies[i2]->ParentFile->Filename, typeRef->ExportedType->Implementation.File->Name))
-						{
-							file = pDomain->IRAssemblies[i2]->ParentFile;
-							break;
-						}
-					}
-					if (!file) Panic("Failed to resolve assembly reference for exported type file resolution.");
-					for (uint32_t i2 = 1; i2 <= file->TypeDefinitionCount; ++i2)
-					{
-						if (!strcmp(file->TypeDefinitions[i2].Name , typeRef->Name) &&
-							!strcmp(file->TypeDefinitions[i2].Namespace, typeRef->Namespace))
-						{
-							typeRef->ResolvedType = &file->TypeDefinitions[i2];
-							break;
-						}
-					}
-					if (!typeRef->ResolvedType) Panic("Failed to resolve type reference through assembly reference.");
-					break;
-				}
-				case ImplementationType_AssemblyReference:
-				{
-					AssemblyReference* asmRef = typeRef->ExportedType->Implementation.AssemblyReference;
-					CLIFile* file = NULL;
-					for (uint32_t i2 = 0; i2 < pDomain->IRAssemblyCount; i2++)
-					{
-						if (!strcmp(pDomain->IRAssemblies[i2]->ParentFile->AssemblyDefinitions[1].Name, asmRef->Name))
-						{
-							file = pDomain->IRAssemblies[i2]->ParentFile;
-							break;
-						}
-					}
-					if (!file) Panic("Failed to resolve assembly reference for exported type assembly reference resolution.");
-					for (uint32_t i2 = 1; i2 <= file->TypeDefinitionCount; ++i2)
-					{
-						if (!strcmp(file->TypeDefinitions[i2].Name , typeRef->Name) &&
-							!strcmp(file->TypeDefinitions[i2].Namespace, typeRef->Namespace))
-						{
-							typeRef->ResolvedType = &file->TypeDefinitions[i2];
-							break;
-						}
-					}
-					if (!typeRef->ResolvedType) Panic("Failed to resolve type reference through assembly reference.");
-					break;
-				}
-				default: Panic("Unhandled type reference resolution through exported type"); break;
-			}
-		}
-		else
-		{
-			switch (typeRef->TypeOfResolutionScope)
-			{
-				case ResolutionScopeType_AssemblyReference:
-				{
-					AssemblyReference* asmRef = typeRef->ResolutionScope.AssemblyReference;
-					CLIFile* file = NULL;
-					for (uint32_t i2 = 0; i2 < pDomain->IRAssemblyCount; i2++)
-					{
-						if (!strcmp(pDomain->IRAssemblies[i2]->ParentFile->AssemblyDefinitions[1].Name, asmRef->Name))
-						{
-							file = pDomain->IRAssemblies[i2]->ParentFile;
-							break;
-						}
-					}
-					if (!file) Panic("Failed to resolve assembly reference for type reference resolution.");
-					for (uint32_t i2 = 1; i2 <= file->TypeDefinitionCount; ++i2)
-					{
-						if (!strcmp(file->TypeDefinitions[i2].Name , typeRef->Name) &&
-							!strcmp(file->TypeDefinitions[i2].Namespace, typeRef->Namespace))
-						{
-							typeRef->ResolvedType = &file->TypeDefinitions[i2];
-							break;
-						}
-					}
-					if (!typeRef->ResolvedType) Panic("Failed to resolve type reference through assembly reference.");
-					break;
-				}
-				default: Panic("Unhandled type reference resolution"); break;
-			}
-		}
+		//printf("Trying to resolve %s.%s\n", typeRef->Namespace, typeRef->Name);
+		typeRef->ResolvedType = AppDomain_ResolveTypeReference(pDomain, pFile, typeRef);
 	}
 
 	for (uint32_t index = 1; index <= pFile->MemberReferenceCount; ++index)
@@ -596,7 +616,7 @@ void AppDomain_ResolveReferences(AppDomain* pDomain, CLIFile* pFile)
 				bool_t isField = membRef->Signature[0] == 0x06;
 				if (isField)
 				{
-					for (uint32_t i2 = 0; i2 <= typeDef->FieldListCount; ++i2)
+					for (uint32_t i2 = 0; i2 < typeDef->FieldListCount; ++i2)
 					{
 						if (!strcmp(typeDef->FieldList[i2].Name, membRef->Name))
 						{
@@ -609,7 +629,7 @@ void AppDomain_ResolveReferences(AppDomain* pDomain, CLIFile* pFile)
 				}
 				else
 				{
-					for (uint32_t i2 = 0; i2 <= typeDef->MethodDefinitionListCount; ++i2)
+					for (uint32_t i2 = 0; i2 < typeDef->MethodDefinitionListCount; ++i2)
 					{
 						if (!strcmp(typeDef->MethodDefinitionList[i2].Name, membRef->Name) &&
 							!memcmp(typeDef->MethodDefinitionList[i2].Signature, membRef->Signature, membRef->SignatureLength))
@@ -629,7 +649,7 @@ void AppDomain_ResolveReferences(AppDomain* pDomain, CLIFile* pFile)
 				bool_t isField = membRef->Signature[0] == 0x06;
 				if (isField)
 				{
-					for (uint32_t i2 = 0; i2 <= typeDef->FieldListCount; ++i2)
+					for (uint32_t i2 = 0; i2 < typeDef->FieldListCount; ++i2)
 					{
 						if (!strcmp(typeDef->FieldList[i2].Name, membRef->Name))
 						{
@@ -642,10 +662,21 @@ void AppDomain_ResolveReferences(AppDomain* pDomain, CLIFile* pFile)
 				}
 				else
 				{
-					for (uint32_t i2 = 0; i2 <= typeDef->MethodDefinitionListCount; ++i2)
+					//printf("Searching for %s\n", membRef->Name);
+					for (uint32_t i2 = 0; i2 < typeDef->MethodDefinitionListCount; ++i2)
 					{
+						//printf("Checking %s.%s.%s\n", typeDef->Namespace, typeDef->Name, typeDef->MethodDefinitionList[i2].Name);
+						if (!typeDef->MethodDefinitionList[i2].SignatureCache)
+						{
+							typeDef->MethodDefinitionList[i2].SignatureCache = MethodSignature_Expand(typeDef->MethodDefinitionList[i2].Signature, typeDef->File);
+						}
+						if (!membRef->MethodSignatureCache)
+						{
+							membRef->MethodSignatureCache = MethodSignature_Expand(membRef->Signature, pFile);
+						}
+
 						if (!strcmp(typeDef->MethodDefinitionList[i2].Name, membRef->Name) &&
-							!memcmp(typeDef->MethodDefinitionList[i2].Signature, membRef->Signature, membRef->SignatureLength))
+							MethodSignature_Compare(pDomain, typeDef->File->Assembly, typeDef->MethodDefinitionList[i2].SignatureCache, pFile->Assembly, membRef->MethodSignatureCache))
 						{
 							membRef->TypeOfResolved = FieldOrMethodDefType_MethodDefinition;
 							membRef->Resolved.MethodDefinition = &typeDef->MethodDefinitionList[i2];

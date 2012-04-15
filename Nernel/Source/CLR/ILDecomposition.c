@@ -63,12 +63,11 @@ IRAssembly* ILDecomposition_CreateAssembly(AppDomain* pDomain, CLIFile* pFile)
 		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_Int64);
 		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_IntPtr);
 		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_Object);
-		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_RuntimeType);
 		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_SByte);
 		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_Single);
 		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_String);
 		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_Type);
-		//IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_TypedReference);
+		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_TypedReference);
 		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_UInt16);
 		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_UInt32);
 		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_UInt64);
@@ -167,14 +166,17 @@ IRMethod** ILDecomposition_GetMethodLayout(IRType* pType, TypeDefinition* pTypeD
 		{
 			if (pTypeDefinition->MethodDefinitionList[index].Flags & MethodAttributes_NewSlot)
 			{
-				IRMethod* method = pTypeDefinition->File->Assembly->Methods[pTypeDefinition->MethodDefinitionList[index].TableIndex - 1];
-				if (!method)
+MonoHack1:
 				{
-					method = IRMethod_Create(pTypeDefinition->File->Assembly, &pTypeDefinition->MethodDefinitionList[index]);
+					IRMethod* method = pTypeDefinition->File->Assembly->Methods[pTypeDefinition->MethodDefinitionList[index].TableIndex - 1];
+					if (!method)
+					{
+						method = IRMethod_Create(pTypeDefinition->File->Assembly, &pTypeDefinition->MethodDefinitionList[index]);
+					}
+					finalMethods[methodCount + methodIndex] = method;
+					Log_WriteLine(LOGLEVEL__ILDecomposition_MethodLayout, "Adding method %s.%s.%s from table index %i at %i", pTypeDefinition->Namespace, pTypeDefinition->Name, pTypeDefinition->MethodDefinitionList[index].Name, (int)pTypeDefinition->MethodDefinitionList[index].TableIndex, (int)(methodCount + methodIndex));
+					methodIndex++;
 				}
-				finalMethods[methodCount + methodIndex] = method;
-				Log_WriteLine(LOGLEVEL__ILDecomposition_MethodLayout, "Adding method %s.%s.%s from table index %i at %i", pTypeDefinition->Namespace, pTypeDefinition->Name, pTypeDefinition->MethodDefinitionList[index].Name, (int)pTypeDefinition->MethodDefinitionList[index].TableIndex, (int)(methodCount + methodIndex));
-				methodIndex++;
 			}
 			else
 			{
@@ -212,7 +214,8 @@ IRMethod** ILDecomposition_GetMethodLayout(IRType* pType, TypeDefinition* pTypeD
 				}
 				if (!found)
 				{
-					Panic("Unable to resolve base method of override!");
+					Log_WriteLine(LOGLEVEL__ILDecomposition_MethodLayout, "Warning: Method %s.%s.%s from table index %i, missing newslot for virtual (monohack)", pTypeDefinition->Namespace, pTypeDefinition->Name, pTypeDefinition->MethodDefinitionList[index].Name, (int)pTypeDefinition->MethodDefinitionList[index].TableIndex);
+					goto MonoHack1;
 				}
 			}
 		}

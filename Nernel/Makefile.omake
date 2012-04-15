@@ -104,7 +104,9 @@
 		default 0
 		title Proton
 		kernel /boot/nernel.bin
+		module /boot/mernel.exe
 		module /gac/corlib.dll
+		module /gac/mscorlib.dll
 	}
 
 	common TOOL(AS -o ) : ASM_FILES

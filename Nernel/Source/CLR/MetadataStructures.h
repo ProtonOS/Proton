@@ -970,7 +970,9 @@ void InterfaceImplementation_Cleanup(CLIFile* pFile);
 uint8_t* InterfaceImplementation_Load(CLIFile* pFile, uint8_t* pTableData);
 void InterfaceImplementation_Link(CLIFile* pFile);
 
-
+// Note: If TypeOfImplementation is File, and rowIndex is 0, we allow assignment
+// to the invalid, null, zero'd File entry at index 0, further testing is required
+// when dealing with these entries.
 struct _ManifestResource
 {
 	uint32_t TableIndex;
@@ -1455,6 +1457,7 @@ MethodSignature* MethodSignature_Create();
 void MethodSignature_Destroy(MethodSignature* pMethodSignature);
 uint8_t* MethodSignature_Parse(uint8_t* pCursor, MethodSignature** pMethodSignature, CLIFile* pCLIFile);
 MethodSignature* MethodSignature_Expand(uint8_t* pSignature, CLIFile* pCLIFile);
+bool_t MethodSignature_Compare(AppDomain* pDomain, IRAssembly* pAssemblyA, MethodSignature* pMethodSignatureA, IRAssembly* pAssemblyB, MethodSignature* pMethodSignatureB);
 
 struct _FieldSignature
 {

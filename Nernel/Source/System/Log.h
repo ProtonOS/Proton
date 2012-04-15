@@ -27,6 +27,7 @@ void Log_WriteLine(LogLevel pLevel, const char* pFormatString, ...);
 #else
 #define LOGLEVEL__Current ((LogLevel)( \
 		LOGLEVEL__Information \
+		/* \
 		| LOGLEVEL__Memory \
 		| LOGLEVEL__Processor \
 		| LOGLEVEL__SyntheticStack \
@@ -34,6 +35,7 @@ void Log_WriteLine(LogLevel pLevel, const char* pFormatString, ...);
 		| LOGLEVEL__ILDecomposition_MethodLayout \
 		| LOGLEVEL__ILDecomposition_FieldLayout \
 		| LOGLEVEL__ILDecomposition_Convert_Exceptions \
+		*/ \
 		| LOGLEVEL__ILDecomposition_Convert_ILReader \
 		| LOGLEVEL__ILDecomposition_Convert_IREmitter \
         ))

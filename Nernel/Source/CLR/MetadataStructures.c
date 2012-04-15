@@ -1657,7 +1657,7 @@ uint8_t* ManifestResource_Load(CLIFile* pFile, uint8_t* pTableData)
         switch (pFile->ManifestResources[index].TypeOfImplementation)
         {
         case ImplementationType_File:
-            if (implementationRow == 0 || implementationRow > pFile->FileCount) Panic("ManifestResource_Load File");
+            if (implementationRow > pFile->FileCount) Panic("ManifestResource_Load File");
             pFile->ManifestResources[index].Implementation.File = &pFile->Files[implementationRow];
             break;
         case ImplementationType_AssemblyReference:
@@ -2532,7 +2532,7 @@ void Parameter_Link(CLIFile* pFile)
     {
         if (pFile->Constants[index].TypeOfParent == HasConstantType_Parameter) pFile->Constants[index].Parent.Parameter->Constant = &pFile->Constants[index];
     }
-    for (uint32_t index = 1; index <= pFile->ParameterCount; ++index)
+    for (uint32_t index = 1; index <= pFile->CustomAttributeCount; ++index)
     {
         if (pFile->CustomAttributes[index].TypeOfParent == HasCustomAttributeType_Parameter) ++pFile->CustomAttributes[index].Parent.Parameter->CustomAttributeCount;
     }
@@ -3301,6 +3301,45 @@ uint8_t* MethodSignature_Parse(uint8_t* pCursor, MethodSignature** pMethodSignat
         }
     }
     return pCursor;
+}
+
+bool_t MethodSignature_Compare(AppDomain* pDomain, IRAssembly* pAssemblyA, MethodSignature* pMethodSignatureA, IRAssembly* pAssemblyB, MethodSignature* pMethodSignatureB)
+{
+	if (pMethodSignatureA->HasThis != pMethodSignatureB->HasThis) return FALSE;
+	if (pMethodSignatureA->ExplicitThis != pMethodSignatureB->ExplicitThis) return FALSE;
+	if (pMethodSignatureA->Default != pMethodSignatureB->Default) return FALSE;
+	if (pMethodSignatureA->VarArgs != pMethodSignatureB->VarArgs) return FALSE;
+	if (pMethodSignatureA->CCall != pMethodSignatureB->CCall) return FALSE;
+	if (pMethodSignatureA->STDCall != pMethodSignatureB->STDCall) return FALSE;
+	if (pMethodSignatureA->ThisCall != pMethodSignatureB->ThisCall) return FALSE;
+	if (pMethodSignatureA->FastCall != pMethodSignatureB->FastCall) return FALSE;
+	if (pMethodSignatureA->GenericParameterCount != pMethodSignatureB->GenericParameterCount) return FALSE;
+	if (pMethodSignatureA->ParameterCount != pMethodSignatureB->ParameterCount) return FALSE;
+	if (pMethodSignatureA->HasSentinel != pMethodSignatureB->HasSentinel) return FALSE;
+	if (pMethodSignatureA->SentinelIndex != pMethodSignatureB->SentinelIndex) return FALSE;
+	if (pMethodSignatureA->ReturnType->Void != pMethodSignatureB->ReturnType->Void) return FALSE;
+	if (!pMethodSignatureA->ReturnType->Void)
+	{
+		if (pMethodSignatureA->ReturnType->ByReference != pMethodSignatureB->ReturnType->ByReference) return FALSE;
+		if (pMethodSignatureA->ReturnType->TypedByReference != pMethodSignatureB->ReturnType->TypedByReference) return FALSE;
+		if (!pMethodSignatureA->ReturnType->TypedByReference)
+		{
+			if (AppDomain_GetIRTypeFromSignatureType(pDomain, pAssemblyA, pMethodSignatureA->ReturnType->Type) !=  AppDomain_GetIRTypeFromSignatureType(pDomain, pAssemblyB, pMethodSignatureB->ReturnType->Type)) return FALSE;
+		}
+	}
+	for (uint32_t index = 0; index < pMethodSignatureA->ParameterCount; ++index)
+	{
+		if (pMethodSignatureA->Parameters[index]->ByReference != pMethodSignatureB->Parameters[index]->ByReference) return FALSE;
+		if (pMethodSignatureA->Parameters[index]->TypedByReference != pMethodSignatureB->Parameters[index]->TypedByReference) return FALSE;
+		if (!pMethodSignatureA->Parameters[index]->TypedByReference)
+		{
+			IRType* paramAType = AppDomain_GetIRTypeFromSignatureType(pDomain, pAssemblyA, pMethodSignatureA->Parameters[index]->Type);
+			IRType* paramBType = AppDomain_GetIRTypeFromSignatureType(pDomain, pAssemblyB, pMethodSignatureB->Parameters[index]->Type);
+			if (paramAType != paramBType) return FALSE;
+		}
+	}
+
+	return TRUE;
 }
 
 // FieldSignature

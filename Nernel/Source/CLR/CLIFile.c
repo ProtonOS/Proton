@@ -1,5 +1,6 @@
 #include <Common.h>
 #include <CLR/CLIFile.h>
+#include <System/SystemClock.h>
 
 
 typedef uint8_t* (*CLIFile_MetadataInitialize_Handler)(CLIFile* pFile, uint8_t* pTableData);
@@ -60,6 +61,8 @@ struct
 
 CLIFile* CLIFile_Create(uint8_t* pData, uint32_t pLength, const char* pFilename)
 {
+	uint64_t startedTicks = SystemClock_GetTicks();
+
     PEDOSHeader* dosHeader = (PEDOSHeader*)pData;
     if (dosHeader->Signature != CLIFILE__PE__DOS_Signature) return NULL;
     PENTHeader* ntHeader = (PENTHeader*)(pData + dosHeader->NextHeaderOffset);
@@ -118,6 +121,8 @@ CLIFile* CLIFile_Create(uint8_t* pData, uint32_t pLength, const char* pFilename)
     for (uint32_t tableIndex = 0; tableIndex < tableCount; ++tableIndex) tableData = gCLIFile_MetadataHandler_Table[tableIndex].Load(file, tableData);
     for (uint32_t tableIndex = 0; tableIndex < tableCount; ++tableIndex) gCLIFile_MetadataHandler_Table[tableIndex].Link(file);
 
+	uint64_t stoppedTicks = SystemClock_GetTicks();
+	printf("CLIFile_Create took %uMS\n", (unsigned int)(stoppedTicks - startedTicks));
 	return file;
 }
 
