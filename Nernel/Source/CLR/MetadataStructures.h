@@ -1528,7 +1528,6 @@ struct _SignatureCustomModifier
 {
     bool_t Optional;
     uint32_t TypeDefOrRefOrSpecToken;
-    bool_t Pinned;
 };
 
 SignatureCustomModifier* SignatureCustomModifier_Create();
@@ -1595,6 +1594,7 @@ struct _SignatureLocalVariable
     bool_t ByReference;
     SignatureType* Type;
     bool_t TypedByReference;
+    bool_t IsPinned;
 };
 
 SignatureLocalVariable* SignatureLocalVariable_Create();

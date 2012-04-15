@@ -654,52 +654,58 @@ void ILDecomposition_CheckShiftNumericOperandTypesAndSetResult(IRType* pOperandA
 	pResultObject->Type = *pOperandBGeneralType;
 }
 
-void ILDecomposition_CheckConversionNumericOperandType(IRType* pOperand, ElementType* pSourceType)
+void ILDecomposition_CheckConversionNumericOperandType(StackObject* pOperand, ElementType* pSourceType, ElementType pDestinationType)
 {
-	AppDomain* domain = pOperand->ParentAssembly->ParentDomain;
-	TypeDefinition* operandType = pOperand->TypeDefinition;
+	IRType* operandType = pOperand->Type;
+	AppDomain* domain = operandType->ParentAssembly->ParentDomain;
+	TypeDefinition* operandTypeDef = operandType->TypeDefinition;
 
-	if (operandType == domain->CachedType___System_Byte)
+	if (operandTypeDef == domain->CachedType___System_Byte)
 	{
 		*pSourceType = ElementType_U1;
 	}
-	else if (operandType == domain->CachedType___System_UInt16)
+	else if (operandTypeDef == domain->CachedType___System_UInt16)
 	{
 		*pSourceType = ElementType_U2;
 	}
-	else if (operandType == domain->CachedType___System_UInt32)
+	else if (operandTypeDef == domain->CachedType___System_UInt32)
 	{
 		*pSourceType = ElementType_U4;
 	}
-	else if (operandType == domain->CachedType___System_SByte)
+	else if (operandTypeDef == domain->CachedType___System_SByte)
 	{
 		*pSourceType = ElementType_I1;
 	}
-	else if (operandType == domain->CachedType___System_Int16)
+	else if (operandTypeDef == domain->CachedType___System_Int16)
 	{
 		*pSourceType = ElementType_I2;
 	}
-	else if (operandType == domain->CachedType___System_Int32)
+	else if (operandTypeDef == domain->CachedType___System_Int32)
 	{
 		*pSourceType = ElementType_I4;
 	}
-	else if (operandType == domain->CachedType___System_Int64)
+	else if (operandTypeDef == domain->CachedType___System_Int64)
 	{
 		*pSourceType = ElementType_I8;
 	}
-	else if (operandType == domain->CachedType___System_UInt64)
+	else if (operandTypeDef == domain->CachedType___System_UInt64)
 	{
 		*pSourceType = ElementType_U8;
 	}
-	else if (operandType == domain->CachedType___System_Single)
+	else if (operandTypeDef == domain->CachedType___System_Single)
 	{
 		*pSourceType = ElementType_R4;
 	}
-	else if (operandType == domain->CachedType___System_Double)
+	else if (operandTypeDef == domain->CachedType___System_Double)
 	{
 		*pSourceType = ElementType_R8;
 	}
-	else if (pOperand->IsPointerType)
+	else if (operandType->IsPointerType)
+	{
+		*pSourceType = ElementType_I;
+	}
+	else if ((pDestinationType == ElementType_I || pDestinationType == ElementType_U) &&
+			 pOperand->SourceType == StackObjectSourceType_PinnedLocal)
 	{
 		*pSourceType = ElementType_I;
 	}
@@ -774,7 +780,7 @@ void ILDecomposition_CheckConversionNumericOperandType(IRType* pOperand, Element
 		ElementType sourceType = (ElementType)0; \
 		ElementType destinationType = ElementType_##pElementType; \
 		StackObject* obj = SA(); \
-		ILDecomposition_CheckConversionNumericOperandType(value->Type, &sourceType); \
+		ILDecomposition_CheckConversionNumericOperandType(value, &sourceType, destinationType); \
 		EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Convert_Unchecked, (uint32_t*)sourceType, (uint32_t*)destinationType); \
 		SR(value); \
 		obj->Type = pDestinationType; \
@@ -789,7 +795,7 @@ void ILDecomposition_CheckConversionNumericOperandType(IRType* pOperand, Element
 		ElementType sourceType = (ElementType)0; \
 		ElementType destinationType = ElementType_##pElementType; \
 		StackObject* obj = SA(); \
-		ILDecomposition_CheckConversionNumericOperandType(value->Type, &sourceType); \
+		ILDecomposition_CheckConversionNumericOperandType(value, &sourceType, destinationType); \
 		EMIT_IR_3ARG_NO_DISPOSE(IROpcode_Convert_Checked, (uint32_t*)sourceType, (uint32_t*)destinationType, (uint32_t*)OverflowType_##pOverflowType); \
 		SR(value); \
 		obj->Type = pDestinationType; \
@@ -895,6 +901,7 @@ ALWAYS_INLINE uint64_t ReadUInt64(uint8_t** pData)
 void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 {
 	if (pMethod->IRCodes) return;
+	Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Converting Method: %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
 
 	MethodDefinition* methodDefinition = pMethod->MethodDefinition;
 	MethodSignature* methodSignature = methodDefinition->SignatureCache;
@@ -936,6 +943,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 		type = AppDomain_GetIRTypeFromSignatureType(domain, assembly, localsSignature->LocalVariables[index]->Type);
 		IRLocalVariable* localVariable = IRLocalVariable_Create(pMethod, type);
 		localVariable->LocalVariableIndex = localVariableIndex++;
+		localVariable->Pinned = localsSignature->LocalVariables[index]->IsPinned;
 		pMethod->LocalVariables[localVariable->LocalVariableIndex] = localVariable;
 	}
 	LocalsSignature_Destroy(localsSignature);
@@ -1150,7 +1158,14 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 					
 				StackObject* obj = SA();
 				obj->Type = pMethod->LocalVariables[0]->VariableType;
-				obj->SourceType = StackObjectSourceType_Local;
+				if (pMethod->LocalVariables[0]->Pinned)
+				{
+					obj->SourceType = StackObjectSourceType_PinnedLocal;
+				}
+				else
+				{
+					obj->SourceType = StackObjectSourceType_Local;
+				}
 				SyntheticStack_Push(stack, obj);
 
                 ClearFlags();
@@ -1164,7 +1179,14 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 					
 				StackObject* obj = SA();
 				obj->Type = pMethod->LocalVariables[1]->VariableType;
-				obj->SourceType = StackObjectSourceType_Local;
+				if (pMethod->LocalVariables[1]->Pinned)
+				{
+					obj->SourceType = StackObjectSourceType_PinnedLocal;
+				}
+				else
+				{
+					obj->SourceType = StackObjectSourceType_Local;
+				}
 				SyntheticStack_Push(stack, obj);
 
                 ClearFlags();
@@ -1178,7 +1200,14 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 					
 				StackObject* obj = SA();
 				obj->Type = pMethod->LocalVariables[2]->VariableType;
-				obj->SourceType = StackObjectSourceType_Local;
+				if (pMethod->LocalVariables[2]->Pinned)
+				{
+					obj->SourceType = StackObjectSourceType_PinnedLocal;
+				}
+				else
+				{
+					obj->SourceType = StackObjectSourceType_Local;
+				}
 				SyntheticStack_Push(stack, obj);
 
                 ClearFlags();
@@ -1192,7 +1221,14 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 					
 				StackObject* obj = SA();
 				obj->Type = pMethod->LocalVariables[3]->VariableType;
-				obj->SourceType = StackObjectSourceType_Local;
+				if (pMethod->LocalVariables[3]->Pinned)
+				{
+					obj->SourceType = StackObjectSourceType_PinnedLocal;
+				}
+				else
+				{
+					obj->SourceType = StackObjectSourceType_Local;
+				}
 				SyntheticStack_Push(stack, obj);
 
                 ClearFlags();
@@ -1207,7 +1243,14 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 					
 				StackObject* obj = SA();
 				obj->Type = pMethod->LocalVariables[localIndex]->VariableType;
-				obj->SourceType = StackObjectSourceType_Local;
+				if (pMethod->LocalVariables[localIndex]->Pinned)
+				{
+					obj->SourceType = StackObjectSourceType_PinnedLocal;
+				}
+				else
+				{
+					obj->SourceType = StackObjectSourceType_Local;
+				}
 				SyntheticStack_Push(stack, obj);
 
                 ClearFlags();
@@ -1610,6 +1653,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				}
 
 				ILDecomposition_ConvertInstructions(method);
+				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Returning to Converting Method: %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
 
 				if (method->MethodDefinition->InternalCall)
 				{
@@ -1687,6 +1731,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				}
 
 				ILDecomposition_ConvertInstructions(method);
+				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Returning to Converting Method: %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
 
 				if (method->MethodDefinition->InternalCall)
 				{
@@ -1785,6 +1830,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				CLIFile_DestroyMetadataToken(token);
 
 				ILDecomposition_ConvertInstructions(method);
+				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Returning to Converting Method: %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
 
 				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Jump, method);
 
@@ -2315,12 +2361,13 @@ BranchCommon:
 				}
 				CLIFile_DestroyMetadataToken(token);
 
-				for (uint32_t index = 0; index < method->ParameterCount; index++)
+				for (uint32_t index = 0; index < method->ParameterCount - 1; index++)
 				{
 					SR(SyntheticStack_Pop(stack));
 				}
 
 				ILDecomposition_ConvertInstructions(method);
+				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Returning to Converting Method: %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
 
 				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_New_Object, method);
 
@@ -2903,6 +2950,7 @@ BranchCommon:
 						CLIFile_DestroyMetadataToken(token);
 
 						ILDecomposition_ConvertInstructions(method);
+						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Returning to Converting Method: %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
 
 						EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Function, method);
 
@@ -2960,6 +3008,7 @@ BranchCommon:
 						}
 
 						ILDecomposition_ConvertInstructions(method);
+						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Returning to Converting Method: %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
 
 						IRType* methodParentType = methodAssembly->Types[methodDef->TypeDefinition->TableIndex - 1];
 						uint32_t methodIndex = 0;
@@ -3068,7 +3117,14 @@ BranchCommon:
 					
 						StackObject* obj = SA();
 						obj->Type = pMethod->LocalVariables[localIndex]->VariableType;
-						obj->SourceType = StackObjectSourceType_Local;
+						if (pMethod->LocalVariables[localIndex]->Pinned)
+						{
+							obj->SourceType = StackObjectSourceType_PinnedLocal;
+						}
+						else
+						{
+							obj->SourceType = StackObjectSourceType_Local;
+						}
 						SyntheticStack_Push(stack, obj);
 
 						ClearFlags();
@@ -3221,4 +3277,5 @@ BranchCommon:
         }
 	}
 	SyntheticStack_Destroy(stack);
+	Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Finished Converting Method: %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
 }

@@ -3803,11 +3803,11 @@ uint8_t* SignatureLocalVariable_Parse(uint8_t* pCursor, SignatureLocalVariable**
             ++localVariable->CustomModifierCount;
             localVariable->CustomModifiers = (SignatureCustomModifier**)realloc(localVariable->CustomModifiers, sizeof(SignatureCustomModifier*) * localVariable->CustomModifierCount);
             pCursor = SignatureCustomModifier_Parse(pCursor, &localVariable->CustomModifiers[localVariable->CustomModifierCount - 1], pCLIFile);
-            if (*pCursor == SignatureElementType_Pinned)
-            {
-                localVariable->CustomModifiers[localVariable->CustomModifierCount - 1]->Pinned = TRUE;
-                ++pCursor;
-            }
+        }
+        if (*pCursor == SignatureElementType_Pinned)
+        {
+            localVariable->IsPinned = TRUE;
+            ++pCursor;
         }
         if (*pCursor == SignatureElementType_ByReference)
         {

@@ -127,6 +127,7 @@ struct _IRLocalVariable
     IRType* VariableType;
 	uint32_t Offset;
 	uint32_t Size;
+	bool_t Pinned;
 };
 
 IRLocalVariable* IRLocalVariable_Create(IRMethod* pMethod, IRType* pType);

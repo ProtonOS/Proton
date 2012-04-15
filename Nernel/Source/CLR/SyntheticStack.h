@@ -10,6 +10,7 @@ typedef enum StackObjectSourceType
 	StackObjectSourceType_Constant,
 	StackObjectSourceType_Parameter,
 	StackObjectSourceType_Local,
+	StackObjectSourceType_PinnedLocal,
 	StackObjectSourceType_StaticField,
 	StackObjectSourceType_Stack,
 } StackObjectSourceType;
