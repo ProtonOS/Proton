@@ -31,7 +31,6 @@ AppDomain* AppDomain_Create()
 			Log_WriteLine(LOGLEVEL__Memory, "Memory: AppDomain_Create @ 0x%x", (unsigned int)domain);
 			AppDomainRegistry_AddDomain(domain);
 			AppDomain_LinkCorlib(domain, cliFile);
-			//IRAssembly* assembly = ILDecomposition_CreateAssembly(cliFile, domain);
 			ILDecomposition_CreateAssembly(domain, cliFile);
 			return domain;
 		}
@@ -286,6 +285,10 @@ IRType* AppDomain_GetIRTypeFromSignatureType(AppDomain* pDomain, IRAssembly* pAs
 					break;
 
 				case MetadataTable_TypeReference:
+					if (!((TypeReference*)token->Data)->ResolvedType)
+					{
+						((TypeReference*)token->Data)->ResolvedType = AppDomain_ResolveTypeReference(pDomain, pAssembly->ParentFile, (TypeReference*)token->Data);
+					}
 					if (!(type = ((TypeReference*)token->Data)->ResolvedType->File->Assembly->Types[((TypeReference*)token->Data)->ResolvedType->TableIndex - 1]))
 					{
 						type = IRType_Create(((TypeReference*)token->Data)->ResolvedType->File->Assembly, ((TypeReference*)token->Data)->ResolvedType);
@@ -385,6 +388,10 @@ IRType* AppDomain_GetIRTypeFromMetadataToken(AppDomain* pDomain, IRAssembly* pAs
 		}
 		case MetadataTable_TypeReference:
 		{
+			if (!((TypeReference*)token->Data)->ResolvedType)
+			{
+				((TypeReference*)token->Data)->ResolvedType = AppDomain_ResolveTypeReference(pDomain, pAssembly->ParentFile, (TypeReference*)token->Data);
+			}
 			TypeDefinition* typeDef = ((TypeReference*)token->Data)->ResolvedType;
 			if (AppDomain_IsStructure(pDomain, typeDef))
 			{
@@ -429,6 +436,7 @@ IRType* AppDomain_GetIRTypeFromMetadataToken(AppDomain* pDomain, IRAssembly* pAs
 		}
 		case MetadataTable_MemberReference:
 		{
+			AppDomain_ResolveMemberReference(pDomain, pAssembly->ParentFile, ((MemberReference*)token->Data));
 			Field* fieldDef = ((MemberReference*)token->Data)->Resolved.Field;
 			TypeDefinition* typeDef = fieldDef->TypeDefinition;
 			for (uint32_t index = 0; index < typeDef->FieldListCount; index++)
@@ -475,6 +483,10 @@ bool_t AppDomain_IsStructure(AppDomain* pDomain, TypeDefinition* pTypeDefinition
 	}
 	if (pTypeDefinition->TypeOfExtends == TypeDefRefOrSpecType_TypeReference)
 	{ 
+		if (!pTypeDefinition->Extends.TypeReference->ResolvedType)
+		{
+			pTypeDefinition->Extends.TypeReference->ResolvedType = AppDomain_ResolveTypeReference(pDomain, pDomain->IRAssemblies[0]->ParentFile, pTypeDefinition->Extends.TypeReference);
+		}
 		if (pTypeDefinition->Extends.TypeReference->ResolvedType == pDomain->CachedType___System_Enum) 
 		{ 
 			return TRUE;
@@ -597,105 +609,99 @@ TypeDefinition* AppDomain_ResolveTypeReference(AppDomain* pDomain, CLIFile* pFil
 	return NULL;
 }
 
-void AppDomain_ResolveReferences(AppDomain* pDomain, CLIFile* pFile)
+void AppDomain_ResolveMemberReference(AppDomain* pDomain, CLIFile* pFile, MemberReference* pMemberReference)
 {
-	for (uint32_t index = 1; index <= pFile->TypeReferenceCount; ++index)
-	{
-		TypeReference* typeRef = &pFile->TypeReferences[index];
-		//printf("Trying to resolve %s.%s\n", typeRef->Namespace, typeRef->Name);
-		typeRef->ResolvedType = AppDomain_ResolveTypeReference(pDomain, pFile, typeRef);
-	}
+	if (pMemberReference->Resolved.Field || pMemberReference->Resolved.MethodDefinition) return;
 
-	for (uint32_t index = 1; index <= pFile->MemberReferenceCount; ++index)
+	switch (pMemberReference->TypeOfParent)
 	{
-		MemberReference* membRef = &pFile->MemberReferences[index];
-
-		switch (membRef->TypeOfParent)
+		case MemberRefParentType_TypeDefinition:
 		{
-			case MemberRefParentType_TypeDefinition:
+			TypeDefinition* typeDef = pMemberReference->Parent.TypeDefinition;
+			bool_t isField = pMemberReference->Signature[0] == 0x06;
+			if (isField)
 			{
-				TypeDefinition* typeDef = membRef->Parent.TypeDefinition;
-				bool_t isField = membRef->Signature[0] == 0x06;
-				if (isField)
+				for (uint32_t i2 = 0; i2 < typeDef->FieldListCount; ++i2)
 				{
-					for (uint32_t i2 = 0; i2 < typeDef->FieldListCount; ++i2)
+					if (!strcmp(typeDef->FieldList[i2].Name, pMemberReference->Name))
 					{
-						if (!strcmp(typeDef->FieldList[i2].Name, membRef->Name))
-						{
-							membRef->TypeOfResolved = FieldOrMethodDefType_Field;
-							membRef->Resolved.Field = &typeDef->FieldList[i2];
-							break;
-						}
+						pMemberReference->TypeOfResolved = FieldOrMethodDefType_Field;
+						pMemberReference->Resolved.Field = &typeDef->FieldList[i2];
+						break;
 					}
-					if (!membRef->Resolved.Field) Panic("Failed to resolve member reference through type definition for field.");
 				}
-				else
-				{
-					for (uint32_t i2 = 0; i2 < typeDef->MethodDefinitionListCount; ++i2)
-					{
-						if (!strcmp(typeDef->MethodDefinitionList[i2].Name, membRef->Name) &&
-							!memcmp(typeDef->MethodDefinitionList[i2].Signature, membRef->Signature, membRef->SignatureLength))
-						{
-							membRef->TypeOfResolved = FieldOrMethodDefType_MethodDefinition;
-							membRef->Resolved.MethodDefinition = &typeDef->MethodDefinitionList[i2];
-							break;
-						}
-					}
-					if (!membRef->Resolved.MethodDefinition) Panic("Failed to resolve member reference through type reference for method definition.");
-				}
-				break;
+				if (!pMemberReference->Resolved.Field) Panic("Failed to resolve member reference through type definition for field.");
 			}
-			case MemberRefParentType_TypeReference:
+			else
 			{
-				TypeDefinition* typeDef = membRef->Parent.TypeReference->ResolvedType;
-				bool_t isField = membRef->Signature[0] == 0x06;
-				if (isField)
+				for (uint32_t i2 = 0; i2 < typeDef->MethodDefinitionListCount; ++i2)
 				{
-					for (uint32_t i2 = 0; i2 < typeDef->FieldListCount; ++i2)
+					if (!strcmp(typeDef->MethodDefinitionList[i2].Name, pMemberReference->Name) &&
+						!memcmp(typeDef->MethodDefinitionList[i2].Signature, pMemberReference->Signature, pMemberReference->SignatureLength))
 					{
-						if (!strcmp(typeDef->FieldList[i2].Name, membRef->Name))
-						{
-							membRef->TypeOfResolved = FieldOrMethodDefType_Field;
-							membRef->Resolved.Field = &typeDef->FieldList[i2];
-							break;
-						}
+						pMemberReference->TypeOfResolved = FieldOrMethodDefType_MethodDefinition;
+						pMemberReference->Resolved.MethodDefinition = &typeDef->MethodDefinitionList[i2];
+						break;
 					}
-					if (!membRef->Resolved.Field) Panic("Failed to resolve member reference through type reference for field.");
 				}
-				else
-				{
-					//printf("Searching for %s\n", membRef->Name);
-					for (uint32_t i2 = 0; i2 < typeDef->MethodDefinitionListCount; ++i2)
-					{
-						//printf("Checking %s.%s.%s\n", typeDef->Namespace, typeDef->Name, typeDef->MethodDefinitionList[i2].Name);
-						if (!typeDef->MethodDefinitionList[i2].SignatureCache)
-						{
-							typeDef->MethodDefinitionList[i2].SignatureCache = MethodSignature_Expand(typeDef->MethodDefinitionList[i2].Signature, typeDef->File);
-						}
-						if (!membRef->MethodSignatureCache)
-						{
-							membRef->MethodSignatureCache = MethodSignature_Expand(membRef->Signature, pFile);
-						}
-
-						if (!strcmp(typeDef->MethodDefinitionList[i2].Name, membRef->Name) &&
-							MethodSignature_Compare(pDomain, typeDef->File->Assembly, typeDef->MethodDefinitionList[i2].SignatureCache, pFile->Assembly, membRef->MethodSignatureCache))
-						{
-							membRef->TypeOfResolved = FieldOrMethodDefType_MethodDefinition;
-							membRef->Resolved.MethodDefinition = &typeDef->MethodDefinitionList[i2];
-							break;
-						}
-					}
-					if (!membRef->Resolved.MethodDefinition) Panic("Failed to resolve member reference through type reference for method definition.");
-				}
-				break;
+				if (!pMemberReference->Resolved.MethodDefinition) Panic("Failed to resolve member reference through type reference for method definition.");
 			}
-			case MemberRefParentType_TypeSpecification:
-			{
-				printf("Member reference resolution through TypeSpec not yet supported!");
-				break;
-			}
-			default: Panic("Unhandled member reference resolution"); break;
+			break;
 		}
+		case MemberRefParentType_TypeReference:
+		{
+			if (!pMemberReference->Parent.TypeReference->ResolvedType)
+			{
+				pMemberReference->Parent.TypeReference->ResolvedType = AppDomain_ResolveTypeReference(pDomain, pFile, pMemberReference->Parent.TypeReference);
+			}
+			TypeDefinition* typeDef = pMemberReference->Parent.TypeReference->ResolvedType;
+			bool_t isField = pMemberReference->Signature[0] == 0x06;
+			if (isField)
+			{
+				for (uint32_t i2 = 0; i2 < typeDef->FieldListCount; ++i2)
+				{
+					if (!strcmp(typeDef->FieldList[i2].Name, pMemberReference->Name))
+					{
+						pMemberReference->TypeOfResolved = FieldOrMethodDefType_Field;
+						pMemberReference->Resolved.Field = &typeDef->FieldList[i2];
+						break;
+					}
+				}
+				if (!pMemberReference->Resolved.Field) Panic("Failed to resolve member reference through type reference for field.");
+			}
+			else
+			{
+				//printf("Searching for %s, from 0x%x\n", pMemberReference->Name, (unsigned int)typeDef);
+				for (uint32_t i2 = 0; i2 < typeDef->MethodDefinitionListCount; ++i2)
+				{
+					//printf("Checking %s.%s.%s\n", typeDef->Namespace, typeDef->Name, typeDef->MethodDefinitionList[i2].Name);
+					if (!typeDef->MethodDefinitionList[i2].SignatureCache)
+					{
+						typeDef->MethodDefinitionList[i2].SignatureCache = MethodSignature_Expand(typeDef->MethodDefinitionList[i2].Signature, typeDef->File);
+					}
+					if (!pMemberReference->MethodSignatureCache)
+					{
+						pMemberReference->MethodSignatureCache = MethodSignature_Expand(pMemberReference->Signature, pFile);
+					}
+
+					if (!strcmp(typeDef->MethodDefinitionList[i2].Name, pMemberReference->Name) &&
+						MethodSignature_Compare(pDomain, typeDef->File->Assembly, typeDef->MethodDefinitionList[i2].SignatureCache, pFile->Assembly, pMemberReference->MethodSignatureCache))
+					{
+						pMemberReference->TypeOfResolved = FieldOrMethodDefType_MethodDefinition;
+						pMemberReference->Resolved.MethodDefinition = &typeDef->MethodDefinitionList[i2];
+						break;
+					}
+				}
+				if (!pMemberReference->Resolved.MethodDefinition) Panic("Failed to resolve member reference through type reference for method definition.");
+			}
+			break;
+		}
+		case MemberRefParentType_TypeSpecification:
+		{
+			printf("Member reference resolution through TypeSpec not yet supported!");
+			break;
+		}
+		default: Panic("Unhandled member reference resolution"); break;
 	}
 }
 

@@ -44,5 +44,6 @@ void AppDomain_LinkCorlib(AppDomain* pDomain, CLIFile* pCorlibFile);
 IRType* AppDomain_GetIRTypeFromSignatureType(AppDomain* pDomain, IRAssembly* pAssembly, SignatureType* pType);
 IRType* AppDomain_GetIRTypeFromMetadataToken(AppDomain* pDomain, IRAssembly* pAssembly, uint32_t pToken, uint32_t* pFieldIndex);
 bool_t AppDomain_IsStructure(AppDomain* pDomain, TypeDefinition* pTypeDefinition);
-void AppDomain_ResolveReferences(AppDomain* pDomain, CLIFile* pFile);
+TypeDefinition* AppDomain_ResolveTypeReference(AppDomain* pDomain, CLIFile* pFile, TypeReference* pTypeReference);
+void AppDomain_ResolveMemberReference(AppDomain* pDomain, CLIFile* pFile, MemberReference* pMemberReference);
 void AppDomain_ExecuteMethod(AppDomain* pDomain, IRMethod* pMethod);

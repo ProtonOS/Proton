@@ -48,13 +48,15 @@ struct _IRType
 	IRAssembly* ParentAssembly;
 	TypeDefinition* TypeDefinition;
 
-    bool_t IsValueType;
-    bool_t IsReferenceType;
-	bool_t IsArrayType;
-	bool_t IsPointerType;
-	bool_t IsGeneric;
-	bool_t IsGenericInstantiation;
-	bool_t IsInterface;
+    bool_t IsValueType :1;
+    bool_t IsReferenceType :1;
+	bool_t IsArrayType :1;
+	bool_t IsPointerType :1;
+	bool_t IsGeneric :1;
+	bool_t IsGenericInstantiation :1;
+	bool_t IsInterface :1;
+	bool_t IsAbstract :1;
+	// Above is 1 byte.
     
 	bool_t HasStaticConstructor;
 	bool_t StaticConstructorCalled;

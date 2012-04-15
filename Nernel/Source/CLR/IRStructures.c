@@ -105,6 +105,10 @@ IRType* IRType_Create(IRAssembly* pAssembly, TypeDefinition* pTypeDefinition)
 	{
 		type->IsInterface = TRUE;
 	}
+	if (pTypeDefinition->Flags & TypeAttributes_Abstract)
+	{
+		type->IsAbstract = TRUE;
+	}
 
 	ILDecomposition_GetMethodLayout(type, pTypeDefinition);
 	ILDecomposition_GetFieldLayout(type, pTypeDefinition);
@@ -130,6 +134,8 @@ IRType* IRType_Create(IRAssembly* pAssembly, TypeDefinition* pTypeDefinition)
 			}
 		}
 	}
+
+	ILDecomposition_LinkType(pTypeDefinition->File->Assembly->ParentDomain, pTypeDefinition->File->Assembly, type);
 	return type;
 }
 
@@ -335,6 +341,21 @@ void IRPointerType_Destroy(IRPointerType* pPointerType)
 {
 	Log_WriteLine(LOGLEVEL__Memory, "Memory: IRPointerType_Destroy @ 0x%x", (unsigned int)pPointerType);
 	free(pPointerType);
+}
+
+IRInterfaceImpl* IRInterfaceImpl_Create(IRType* pInterfaceType)
+{
+	IRInterfaceImpl* interfaceImplementation = (IRInterfaceImpl*)calloc(1, sizeof(IRInterfaceImpl));
+	interfaceImplementation->InterfaceType = pInterfaceType;
+	interfaceImplementation->MethodCount = pInterfaceType->MethodCount;
+	interfaceImplementation->MethodIndexes = (uint32_t*)calloc(1, sizeof(uint32_t) * pInterfaceType->MethodCount);
+	return interfaceImplementation;
+}
+
+void IRInterfaceImpl_Destroy(IRInterfaceImpl* pInterfaceImpl)
+{
+	free(pInterfaceImpl->MethodIndexes);
+	free(pInterfaceImpl);
 }
 
 

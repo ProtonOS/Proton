@@ -3324,7 +3324,10 @@ bool_t MethodSignature_Compare(AppDomain* pDomain, IRAssembly* pAssemblyA, Metho
 		if (pMethodSignatureA->ReturnType->TypedByReference != pMethodSignatureB->ReturnType->TypedByReference) return FALSE;
 		if (!pMethodSignatureA->ReturnType->TypedByReference)
 		{
-			if (AppDomain_GetIRTypeFromSignatureType(pDomain, pAssemblyA, pMethodSignatureA->ReturnType->Type) !=  AppDomain_GetIRTypeFromSignatureType(pDomain, pAssemblyB, pMethodSignatureB->ReturnType->Type)) return FALSE;
+			IRType* typeA = AppDomain_GetIRTypeFromSignatureType(pDomain, pAssemblyA, pMethodSignatureA->ReturnType->Type);
+			IRType* typeB = AppDomain_GetIRTypeFromSignatureType(pDomain, pAssemblyB, pMethodSignatureB->ReturnType->Type);
+			//printf("A @ 0x%x %s, B @ 0x%x %s\n", (unsigned int)typeA, typeA->TypeDefinition->Name, (unsigned int)typeB, typeB->TypeDefinition->Name);
+			if (typeA != typeB) return FALSE;
 		}
 	}
 	for (uint32_t index = 0; index < pMethodSignatureA->ParameterCount; ++index)

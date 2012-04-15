@@ -11,6 +11,32 @@ IRAssembly* ILDecomposition_CreateAssembly(AppDomain* pDomain, CLIFile* pFile)
 {
 	IRAssembly* assembly = IRAssembly_Create(pDomain, pFile);
 	pFile->Assembly = assembly;
+	if (!pDomain->IRAssemblies[0]->Types[pDomain->CachedType___System_Object->TableIndex - 1])
+	{
+		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_Array);
+		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_Boolean);
+		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_Byte);
+		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_Char);
+		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_Double);
+		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_Enum);
+		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_Exception);
+		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_Int16);
+		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_Int32);
+		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_Int64);
+		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_IntPtr);
+		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_Object);
+		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_SByte);
+		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_Single);
+		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_String);
+		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_Type);
+		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_TypedReference);
+		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_UInt16);
+		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_UInt32);
+		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_UInt64);
+		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_UIntPtr);
+		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_ValueType);
+		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_Void);
+	}
 
 	if (pFile->AssemblyReferenceCount > 0)
 	{
@@ -46,34 +72,6 @@ IRAssembly* ILDecomposition_CreateAssembly(AppDomain* pDomain, CLIFile* pFile)
 				ILDecomposition_CreateAssembly(pDomain, file);
 			}
 		}
-		AppDomain_ResolveReferences(pDomain, pFile);
-	}
-
-	if (!pDomain->IRAssemblies[0]->Types[pDomain->CachedType___System_Object->TableIndex - 1])
-	{
-		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_Array);
-		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_Boolean);
-		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_Byte);
-		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_Char);
-		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_Double);
-		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_Enum);
-		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_Exception);
-		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_Int16);
-		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_Int32);
-		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_Int64);
-		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_IntPtr);
-		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_Object);
-		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_SByte);
-		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_Single);
-		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_String);
-		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_Type);
-		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_TypedReference);
-		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_UInt16);
-		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_UInt32);
-		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_UInt64);
-		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_UIntPtr);
-		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_ValueType);
-		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_Void);
 	}
 
 	if (pFile->CLIHeader->EntryPointToken)
@@ -88,6 +86,169 @@ IRAssembly* ILDecomposition_CreateAssembly(AppDomain* pDomain, CLIFile* pFile)
 	return assembly;
 }
 
+void ILDecomposition_LinkType(AppDomain* pDomain, IRAssembly* pAssembly, IRType* pType)
+{
+	TypeDefinition* typeDefinition = pType->TypeDefinition;
+	for (uint32_t index2 = 0; index2 < typeDefinition->InterfaceImplementationCount; ++index2)
+	{
+		InterfaceImplementation* interfaceImplementation = typeDefinition->InterfaceImplementations[index2];
+		IRType* interfaceType = NULL;
+		switch (interfaceImplementation->TypeOfInterface)
+		{
+			case TypeDefRefOrSpecType_TypeDefinition:
+			{
+				if (!(interfaceType = pAssembly->Types[interfaceImplementation->Interface.TypeDefinition->TableIndex - 1]))
+				{
+					interfaceType = IRType_Create(pAssembly, interfaceImplementation->Interface.TypeDefinition);
+				}
+				break;
+			}
+			case TypeDefRefOrSpecType_TypeReference:
+			{
+				if (!interfaceImplementation->Interface.TypeReference->ResolvedType)
+				{
+					interfaceImplementation->Interface.TypeReference->ResolvedType = AppDomain_ResolveTypeReference(pDomain, pAssembly->ParentFile, interfaceImplementation->Interface.TypeReference);
+				}
+				if (!(interfaceType = interfaceImplementation->Interface.TypeReference->ResolvedType->File->Assembly->Types[interfaceImplementation->Interface.TypeReference->ResolvedType->TableIndex - 1]))
+				{
+					interfaceType = IRType_Create(interfaceImplementation->Interface.TypeReference->ResolvedType->File->Assembly, interfaceImplementation->Interface.TypeReference->ResolvedType);
+				}
+				break;
+			}
+			case TypeDefRefOrSpecType_TypeSpecification:
+			{
+				printf("WARNING: Generics not yet supported\n");
+				continue;
+			}
+			default:
+				Panic("Unknown table for type of interface");
+				break;
+		}
+		if (interfaceType->IsInterface || interfaceType->IsAbstract)
+			continue;
+		IRInterfaceImpl* interfaceImpl = IRInterfaceImpl_Create(interfaceType);
+		for (uint32_t index3 = 0; index3 < typeDefinition->MethodImplementationCount; ++index3)
+		{
+			MethodImplementation* methodImplementation = typeDefinition->MethodImplementations[index3];
+			IRMethod* interfaceMethod = NULL;
+			switch (methodImplementation->TypeOfMethodDeclaration)
+			{
+				case MethodDefOrRefType_MethodDefinition:
+				{
+					if (!(interfaceMethod = pAssembly->Methods[methodImplementation->MethodDeclaration.MethodDefinition->TableIndex - 1]))
+					{
+						interfaceMethod = IRMethod_Create(pAssembly, methodImplementation->MethodDeclaration.MethodDefinition);
+					}
+					break;
+				}
+				case MethodDefOrRefType_MemberReference:
+				{
+					AppDomain_ResolveMemberReference(pDomain, pAssembly->ParentFile, methodImplementation->MethodDeclaration.MemberReference);
+					if (!(interfaceMethod = methodImplementation->MethodDeclaration.MemberReference->Resolved.MethodDefinition->File->Assembly->Methods[methodImplementation->MethodDeclaration.MemberReference->Resolved.MethodDefinition->TableIndex - 1]))
+					{
+						interfaceMethod = IRMethod_Create(methodImplementation->MethodDeclaration.MemberReference->Resolved.MethodDefinition->File->Assembly, methodImplementation->MethodDeclaration.MemberReference->Resolved.MethodDefinition);
+					}
+					break;
+				}
+				default:
+					Panic("Unknown table for type of method declaration 1");
+					break;
+			}
+
+			if (interfaceMethod->MethodDefinition->TypeDefinition == interfaceType->TypeDefinition)
+			{
+				for (uint32_t index4 = 0; index4 < interfaceType->MethodCount; ++index4)
+				{
+					if (interfaceMethod == interfaceType->Methods[index4])
+					{
+						IRMethod* checkingMethod = NULL;
+						switch (methodImplementation->TypeOfMethodBody)
+						{
+							case MethodDefOrRefType_MethodDefinition:
+							{
+								if (!(checkingMethod = pAssembly->Methods[methodImplementation->MethodBody.MethodDefinition->TableIndex - 1]))
+								{
+									checkingMethod = IRMethod_Create(pAssembly, methodImplementation->MethodBody.MethodDefinition);
+								}
+								break;
+							}
+							case MethodDefOrRefType_MemberReference:
+							{
+								AppDomain_ResolveMemberReference(pDomain, pAssembly->ParentFile, methodImplementation->MethodBody.MemberReference);
+								if (!(checkingMethod = methodImplementation->MethodBody.MemberReference->Resolved.MethodDefinition->File->Assembly->Methods[methodImplementation->MethodBody.MemberReference->Resolved.MethodDefinition->TableIndex - 1]))
+								{
+									checkingMethod = IRMethod_Create(methodImplementation->MethodBody.MemberReference->Resolved.MethodDefinition->File->Assembly, methodImplementation->MethodBody.MemberReference->Resolved.MethodDefinition);
+								}
+								break;
+							}
+							default:
+								Panic("Unknown table for type of method declaration 2");
+								break;
+						}
+
+						for (uint32_t index5 = 0; index5 < pType->MethodCount; ++index5)
+						{
+							if (pType->Methods[index5] == checkingMethod)
+							{
+								interfaceImpl->MethodIndexes[index4] = index5;
+								break;
+							}
+						}
+
+						break;
+					}
+				}
+			}
+		}
+
+		for (uint32_t index3 = 0; index3 < interfaceImpl->MethodCount; ++index3)
+		{
+			if (!interfaceImpl->MethodIndexes[index3])
+			{
+				MethodDefinition* methodDef1 = interfaceType->Methods[index3]->MethodDefinition;
+				bool_t found = FALSE;
+				for (uint32_t index4 = 0; index4 < pType->MethodCount; ++index4)
+				{
+					MethodDefinition* methodDef2 = pType->Methods[index4]->MethodDefinition;
+					if (!strcmp(methodDef1->Name, methodDef2->Name))
+					{
+						if (methodDef1->Flags & MethodAttributes_HideBySignature)
+						{
+							if (!methodDef1->SignatureCache)
+							{
+								methodDef1->SignatureCache = MethodSignature_Expand(methodDef1->Signature, methodDef1->File);
+							}
+							if (!methodDef2->SignatureCache)
+							{
+								methodDef2->SignatureCache = MethodSignature_Expand(methodDef2->Signature, methodDef2->File);
+							}
+							if (MethodSignature_Compare(pDomain, methodDef1->File->Assembly, methodDef1->SignatureCache, methodDef2->File->Assembly, methodDef2->SignatureCache))
+							{
+								interfaceImpl->MethodIndexes[index3] = index4;
+								found = TRUE;
+								break;
+							}
+						}
+						else
+						{
+							interfaceImpl->MethodIndexes[index3] = index4;
+							found = TRUE;
+							break;
+						}
+					}
+				}
+
+				if (!found)
+				{
+					printf("Unable to resolve method for interface %s @ 0x%x implemented on %s\n", interfaceType->TypeDefinition->Name, (unsigned int)interfaceType->TypeDefinition, pType->TypeDefinition->Name);
+					Panic("Unable to resolve interface method");
+				}
+			}
+		}
+
+		HASH_ADD(HashHandle, pType->InterfaceTable, InterfaceType, sizeof(void*), interfaceImpl);
+	}
+}
 
 IRMethod** ILDecomposition_GetMethodLayout(IRType* pType, TypeDefinition* pTypeDefinition)
 {
@@ -116,6 +277,10 @@ IRMethod** ILDecomposition_GetMethodLayout(IRType* pType, TypeDefinition* pTypeD
 	{
 		if (pTypeDefinition->Extends.TypeReference != NULL)
 		{
+			if (!pTypeDefinition->Extends.TypeReference->ResolvedType)
+			{
+				pTypeDefinition->Extends.TypeReference->ResolvedType = AppDomain_ResolveTypeReference(pType->ParentAssembly->ParentDomain, pType->ParentAssembly->ParentFile, pTypeDefinition->Extends.TypeReference);
+			}
 			IRType* type = pTypeDefinition->Extends.TypeReference->ResolvedType->File->Assembly->Types[pTypeDefinition->Extends.TypeReference->ResolvedType->TableIndex - 1];
 			if (!type)
 			{
@@ -274,6 +439,10 @@ IRField** ILDecomposition_GetFieldLayout(IRType* pType, TypeDefinition* pTypeDef
 	{
 		if (pTypeDefinition->Extends.TypeReference != NULL)
 		{
+			if (!pTypeDefinition->Extends.TypeReference->ResolvedType)
+			{
+				pTypeDefinition->Extends.TypeReference->ResolvedType = AppDomain_ResolveTypeReference(pType->ParentAssembly->ParentDomain, pType->ParentAssembly->ParentFile, pTypeDefinition->Extends.TypeReference);
+			}
 			IRType* type = pTypeDefinition->Extends.TypeReference->ResolvedType->File->Assembly->Types[pTypeDefinition->Extends.TypeReference->ResolvedType->TableIndex - 1];
 			if (!type)
 			{
@@ -1635,6 +1804,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 					case MetadataTable_MemberReference:
 					{
 						MemberReference* memberRef = (MemberReference*)token->Data;
+						AppDomain_ResolveMemberReference(domain, assembly->ParentFile, memberRef);
 						MethodDefinition* methodDef = memberRef->Resolved.MethodDefinition;
 						if (!(method = methodDef->File->Assembly->Methods[methodDef->TableIndex - 1]))
 						{
@@ -1706,6 +1876,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 					}
 					case MetadataTable_MemberReference:
 					{
+						AppDomain_ResolveMemberReference(domain, assembly->ParentFile, ((MemberReference*)token->Data));
 						methodDef = ((MemberReference*)token->Data)->Resolved.MethodDefinition;
 						if (!(methodSig = methodDef->SignatureCache))
 						{
@@ -1817,6 +1988,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 					case MetadataTable_MemberReference:
 					{
 						MemberReference* memberRef = (MemberReference*)token->Data;
+						AppDomain_ResolveMemberReference(domain, assembly->ParentFile, memberRef);
 						MethodDefinition* methodDef = memberRef->Resolved.MethodDefinition;
 						if (!(method = methodDef->File->Assembly->Methods[methodDef->TableIndex - 1]))
 						{
@@ -2343,6 +2515,7 @@ BranchCommon:
 					case MetadataTable_MemberReference:
 					{
 						MemberReference* memberRef = (MemberReference*)token->Data;
+						AppDomain_ResolveMemberReference(domain, assembly->ParentFile, memberRef);
 						MethodDefinition* methodDef = memberRef->Resolved.MethodDefinition;
 						if (!(method = methodDef->File->Assembly->Methods[methodDef->TableIndex - 1]))
 						{
@@ -2919,6 +3092,7 @@ BranchCommon:
 							case MetadataTable_MemberReference:
 							{
 								MemberReference* memberRef = (MemberReference*)token->Data;
+								AppDomain_ResolveMemberReference(domain, assembly->ParentFile, memberRef);
 								MethodDefinition* methodDef = memberRef->Resolved.MethodDefinition;
 								if (!(method = methodDef->File->Assembly->Methods[methodDef->TableIndex - 1]))
 								{
@@ -2969,6 +3143,7 @@ BranchCommon:
 							}
 							case MetadataTable_MemberReference:
 							{
+								AppDomain_ResolveMemberReference(domain, assembly->ParentFile, ((MemberReference*)token->Data));
 								methodDef = ((MemberReference*)token->Data)->Resolved.MethodDefinition;
 								if (!(methodSig = methodDef->SignatureCache))
 								{
