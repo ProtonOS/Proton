@@ -1,5 +1,6 @@
 #include <Common.h>
 #include <CLR/CLIFile.h>
+#include <CLR/ILDecomposition.h>
 #include <System/SystemClock.h>
 
 
@@ -870,7 +871,7 @@ void CLIFile_Link(CLIFile* pFile)
                 }
             }
         }
-		//if ((pFile->MethodDefinitions[index].ImplFlags & MethodImplAttributes_InternalCall) != 0) pFile->MethodDefinitions[index].InternalCall = ResolveInternalCall(&pFile->MethodDefinitions[index], pFile);
+		if ((pFile->MethodDefinitions[index].ImplFlags & MethodImplAttributes_InternalCall) != 0) pFile->MethodDefinitions[index].InternalCall = ILDecomposition_ResolveInternalCall(&pFile->MethodDefinitions[index], pFile);
     }
 
     for (uint32_t index = 1; index <= pFile->ParameterCount; ++index)

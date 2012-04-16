@@ -69,6 +69,7 @@
 	Source/CLR/IRStructures.c
 	Source/CLR/MetadataStructures.c
 	Source/CLR/SyntheticStack.c
+	Source/CLR/Internal/Proton.IO.PortIO.c
 	Source/System/APIC.c
 	Source/System/Console.c
 	Source/System/CPUID.c
