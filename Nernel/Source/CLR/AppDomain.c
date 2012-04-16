@@ -357,8 +357,6 @@ IRType* AppDomain_GetIRTypeFromSignatureType(AppDomain* pDomain, IRAssembly* pAs
 		case SignatureElementType_GenericInstantiation:
 			printf("WARNING: Generics aren't supported yet!\n");
 			break;
-		//case SignatureElementType_Pinned:
-			//break;
 		default:
 			printf("Unknown Signature Element Type = 0x%x\n", (unsigned int)pType->ElementType);
 			Panic("AppDomain_GetIRTypeFromSignatureType Unknown Signature Element Type");

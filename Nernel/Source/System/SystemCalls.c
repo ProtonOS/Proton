@@ -131,7 +131,7 @@ off_t lseek(int pDescriptorIndex, off_t pOffset, int pWhence)
 {
     Panic("LSEEK");
     errno = EBADF;
-    return 0;
+    return -1;
 }
 
 int read(int pDescriptorIndex, void* pData, size_t pLength)

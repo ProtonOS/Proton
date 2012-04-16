@@ -1849,9 +1849,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 			}
 
             case ILOpcode_CallI:			// 0x29
-				Panic("CallI not yet supported, if ever");
-                ClearFlags();
-                break;
+				UNSUPPORTED_OPERATION(CallI);
 
             case ILOpcode_CallVirt:			// 0x6F
 			{
