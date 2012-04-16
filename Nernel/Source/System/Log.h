@@ -14,8 +14,9 @@ typedef enum LogLevel
 	LOGLEVEL__ILDecomposition_MethodLayout =		1 << 5,
 	LOGLEVEL__ILDecomposition_FieldLayout =			1 << 6,
 	LOGLEVEL__ILDecomposition_Convert_Exceptions =	1 << 7,
-	LOGLEVEL__ILDecomposition_Convert_ILReader =	1 << 8,
-	LOGLEVEL__ILDecomposition_Convert_IREmitter =	1 << 9,
+	LOGLEVEL__ILDecomposition_Convert_Internal =	1 << 8,
+	LOGLEVEL__ILDecomposition_Convert_ILReader =	1 << 9,
+	LOGLEVEL__ILDecomposition_Convert_IREmitter =	1 << 10,
 } LogLevel;
 
 #ifdef LOG__DISABLE
@@ -36,6 +37,7 @@ void Log_WriteLine(LogLevel pLevel, const char* pFormatString, ...);
 		| LOGLEVEL__ILDecomposition_FieldLayout \
 		| LOGLEVEL__ILDecomposition_Convert_Exceptions \
 		*/ \
+		| LOGLEVEL__ILDecomposition_Convert_Internal \
 		| LOGLEVEL__ILDecomposition_Convert_ILReader \
 		| LOGLEVEL__ILDecomposition_Convert_IREmitter \
         ))

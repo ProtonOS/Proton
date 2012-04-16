@@ -114,17 +114,19 @@ void* ILDecomposition_ResolveInternalCall(MethodDefinition* pMethodDefinition, C
 
 	if (result) return result->TargetMethod;
 
-	printf("ResolveInternalCall Missing: %s.%s.%s\n", pMethodDefinition->TypeDefinition->Namespace, pMethodDefinition->TypeDefinition->Name, pMethodDefinition->Name);
 	MethodSignature* sig = NULL;
 	if (!(sig = pMethodDefinition->SignatureCache))
 	{
 		pMethodDefinition->SignatureCache = MethodSignature_Expand(pMethodDefinition->Signature, pFile);
 		sig = pMethodDefinition->SignatureCache;
 	}
-	for (uint32_t index = 0; index < pMethodDefinition->ParameterListCount; ++index)
-	{
-		printf("  Param[%u] is %s, sig type 0x%x\n", (unsigned int)index, pMethodDefinition->ParameterList[index].Name, sig->Parameters[index]->Type->ElementType);
-	}
+
+	Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_Internal, "InternalCall Missing: %s.%s.%s", pMethodDefinition->TypeDefinition->Namespace, pMethodDefinition->TypeDefinition->Name, pMethodDefinition->Name);
+	if (sig->ReturnType->Void) { Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_Internal, "                      Returns  = Void"); }
+	else if (sig->ReturnType->TypedByReference) { Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_Internal, "                      Returns  = TypedByReference"); }
+	else { Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_Internal, "                      Returns  = type 0x%x", sig->ReturnType->Type->ElementType); }
+	for (uint32_t index = 0; index < pMethodDefinition->ParameterListCount; ++index) { Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_Internal, "                      Param[%u] = %s, type 0x%x", (unsigned int)index, pMethodDefinition->ParameterList[index].Name, sig->Parameters[index]->Type->ElementType); }
+
     return NULL;
 }
 
