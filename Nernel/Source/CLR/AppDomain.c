@@ -464,6 +464,37 @@ IRType* AppDomain_GetIRTypeFromMetadataToken(AppDomain* pDomain, IRAssembly* pAs
 	return type;
 }
 
+ElementType AppDomain_GetElementTypeFromIRType(AppDomain* pDomain, IRType* pType)
+{
+	/*
+	ElementType_I1,
+	ElementType_U1,
+	ElementType_I2,
+	ElementType_U2,
+	ElementType_I4,
+	ElementType_U4,
+	ElementType_I8,
+	ElementType_U8,
+	ElementType_I,
+	ElementType_U,
+	ElementType_R4,
+	ElementType_R8,
+	*/
+	if (pType->TypeDefinition == pDomain->CachedType___System_SByte) return ElementType_I1;
+	if (pType->TypeDefinition == pDomain->CachedType___System_Byte) return ElementType_I1;
+	if (pType->TypeDefinition == pDomain->CachedType___System_Int16) return ElementType_I2;
+	if (pType->TypeDefinition == pDomain->CachedType___System_UInt16) return ElementType_U2;
+	if (pType->TypeDefinition == pDomain->CachedType___System_Int32) return ElementType_I4;
+	if (pType->TypeDefinition == pDomain->CachedType___System_UInt32) return ElementType_U4;
+	if (pType->TypeDefinition == pDomain->CachedType___System_Int64) return ElementType_I8;
+	if (pType->TypeDefinition == pDomain->CachedType___System_UInt64) return ElementType_U8;
+	if (pType->TypeDefinition == pDomain->CachedType___System_IntPtr) return ElementType_I;
+	if (pType->TypeDefinition == pDomain->CachedType___System_UIntPtr) return ElementType_U;
+	if (pType->TypeDefinition == pDomain->CachedType___System_Single) return ElementType_R4;
+	if (pType->TypeDefinition == pDomain->CachedType___System_Double) return ElementType_R8;
+	Panic("Cannot convert IRType to ElementType");
+}
+
 
 bool_t AppDomain_IsStructure(AppDomain* pDomain, TypeDefinition* pTypeDefinition)
 {

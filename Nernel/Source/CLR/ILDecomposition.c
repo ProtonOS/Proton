@@ -1166,12 +1166,12 @@ void ILDecomposition_CheckConversionNumericOperandType(StackObject* pOperand, El
 	{ Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read " #pILOpcode); \
 		CompareCondition condition = CompareCondition_##pCondition; \
 		StackObject* obj = SyntheticStack_Pop(stack); \
-		IRType* type1 = obj->Type; \
+		ElementType type1 = AppDomain_GetElementTypeFromIRType(domain, obj->Type); \
 		SR(obj); \
 		obj = SyntheticStack_Pop(stack); \
-		IRType* type2 = obj->Type; \
+		ElementType type2 = AppDomain_GetElementTypeFromIRType(domain, obj->Type); \
 		SR(obj); \
-		EMIT_IR_3ARG_NO_DISPOSE(IROpcode_Compare, (uint32_t*)condition, type1, type2); \
+		EMIT_IR_3ARG_NO_DISPOSE(IROpcode_Compare, (uint32_t*)condition, (uint32_t*)type1, (uint32_t*)type2); \
 		obj = StackObjectPool_Allocate(stack); \
 		obj->Type =  domain->IRAssemblies[0]->Types[domain->CachedType___System_Int32->TableIndex - 1]; \
 		obj->SourceType = StackObjectSourceType_Stack; \

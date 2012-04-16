@@ -1332,7 +1332,8 @@ typedef enum IROpcode
 	IROpcode_Call_Internal,
 	/*
 		Description:
-			Call an internal native method, without overload checking.
+			Performs a conditional branch to the specified target based on
+			the specified condition.
 		
 		Stack:
 			..., arg0 (may be present), arg1 (may be present) -> ...
@@ -1424,11 +1425,11 @@ typedef enum IROpcode
         Arg1: CompareCondition
             The condition of the comparison.
 
-        Arg2: IRType*
-			A pointer to the IRType of value1.
+        Arg2: ElementType
+			The type of value1.
 
         Arg3: ElementType
-			A pointer to the IRType of value2.
+			The type of value2.
 
         Arg4:
             N/A

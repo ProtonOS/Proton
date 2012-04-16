@@ -2,6 +2,7 @@
 
 typedef struct _AppDomain AppDomain;
 
+#include <CLR/IROpcode.h>
 #include <CLR/IRStructures.h>
 #include <CLR/MetadataStructures.h>
 
@@ -43,6 +44,7 @@ void AppDomain_AddAssembly(AppDomain* pDomain, IRAssembly* pAssembly);
 void AppDomain_LinkCorlib(AppDomain* pDomain, CLIFile* pCorlibFile);
 IRType* AppDomain_GetIRTypeFromSignatureType(AppDomain* pDomain, IRAssembly* pAssembly, SignatureType* pType);
 IRType* AppDomain_GetIRTypeFromMetadataToken(AppDomain* pDomain, IRAssembly* pAssembly, uint32_t pToken, uint32_t* pFieldIndex);
+ElementType AppDomain_GetElementTypeFromIRType(AppDomain* pDomain, IRType* pType);
 bool_t AppDomain_IsStructure(AppDomain* pDomain, TypeDefinition* pTypeDefinition);
 TypeDefinition* AppDomain_ResolveTypeReference(AppDomain* pDomain, CLIFile* pFile, TypeReference* pTypeReference);
 void AppDomain_ResolveMemberReference(AppDomain* pDomain, CLIFile* pFile, MemberReference* pMemberReference);
