@@ -121,11 +121,11 @@ void* ILDecomposition_ResolveInternalCall(MethodDefinition* pMethodDefinition, C
 		sig = pMethodDefinition->SignatureCache;
 	}
 
-	Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_Internal, "InternalCall Missing: %s.%s.%s", pMethodDefinition->TypeDefinition->Namespace, pMethodDefinition->TypeDefinition->Name, pMethodDefinition->Name);
-	if (sig->ReturnType->Void) { Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_Internal, "                      Returns  = Void"); }
-	else if (sig->ReturnType->TypedByReference) { Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_Internal, "                      Returns  = TypedByReference"); }
-	else { Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_Internal, "                      Returns  = type 0x%x", sig->ReturnType->Type->ElementType); }
-	for (uint32_t index = 0; index < pMethodDefinition->ParameterListCount; ++index) { Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_Internal, "                      Param[%u] = %s, type 0x%x", (unsigned int)index, pMethodDefinition->ParameterList[index].Name, sig->Parameters[index]->Type->ElementType); }
+	Log_WriteLine(LOGLEVEL__Link_Internals, "InternalCall Missing: %s.%s.%s", pMethodDefinition->TypeDefinition->Namespace, pMethodDefinition->TypeDefinition->Name, pMethodDefinition->Name);
+	if (sig->ReturnType->Void) { Log_WriteLine(LOGLEVEL__Link_Internals, "                      Returns  = Void"); }
+	else if (sig->ReturnType->TypedByReference) { Log_WriteLine(LOGLEVEL__Link_Internals, "                      Returns  = TypedByReference"); }
+	else { Log_WriteLine(LOGLEVEL__Link_Internals, "                      Returns  = type 0x%x", sig->ReturnType->Type->ElementType); }
+	for (uint32_t index = 0; index < pMethodDefinition->ParameterListCount; ++index) { Log_WriteLine(LOGLEVEL__Link_Internals, "                      Param[%u] = %s, type 0x%x", (unsigned int)index, pMethodDefinition->ParameterList[index].Name, sig->Parameters[index]->Type->ElementType); }
 
     return NULL;
 }
@@ -377,10 +377,10 @@ IRMethod** ILDecomposition_GetMethodLayout(IRType* pType, TypeDefinition* pTypeD
 {
 	if (pType->Methods)
 	{
-		Log_WriteLine(LOGLEVEL__ILDecomposition_MethodLayout, "Returning cached layout of the methods of %s.%s, TypeOfExtends = %u", pTypeDefinition->Namespace, pTypeDefinition->Name, (unsigned int)pTypeDefinition->TypeOfExtends);
+		Log_WriteLine(LOGLEVEL__MethodLayout, "Returning cached layout of the methods of %s.%s, TypeOfExtends = %u", pTypeDefinition->Namespace, pTypeDefinition->Name, (unsigned int)pTypeDefinition->TypeOfExtends);
 		return pType->Methods;
 	}
-	Log_WriteLine(LOGLEVEL__ILDecomposition_MethodLayout, "Laying out the methods of %s.%s @ 0x%x, TypeOfExtends = %u", pTypeDefinition->Namespace, pTypeDefinition->Name, (unsigned int)pTypeDefinition, (unsigned int)pTypeDefinition->TypeOfExtends);
+	Log_WriteLine(LOGLEVEL__MethodLayout, "Laying out the methods of %s.%s @ 0x%x, TypeOfExtends = %u", pTypeDefinition->Namespace, pTypeDefinition->Name, (unsigned int)pTypeDefinition, (unsigned int)pTypeDefinition->TypeOfExtends);
 	IRMethod** methods = NULL;
 	uint32_t methodCount = 0;
 	if (pTypeDefinition->TypeOfExtends == TypeDefRefOrSpecType_TypeDefinition)
@@ -442,7 +442,7 @@ IRMethod** ILDecomposition_GetMethodLayout(IRType* pType, TypeDefinition* pTypeD
 			}
 		}
 	}
-	Log_WriteLine(LOGLEVEL__ILDecomposition_MethodLayout, "MethodCount: %i NewMethodCount: %i", (int)methodCount, (int)newMethodsCount);
+	Log_WriteLine(LOGLEVEL__MethodLayout, "MethodCount: %i NewMethodCount: %i", (int)methodCount, (int)newMethodsCount);
 
 	IRMethod** finalMethods = (IRMethod**)calloc(methodCount + newMethodsCount, sizeof(IRMethod*));
 	memcpy(finalMethods, methods, methodCount * sizeof(IRMethod*));
@@ -462,39 +462,39 @@ MonoHack1:
 						method = IRMethod_Create(pTypeDefinition->File->Assembly, &pTypeDefinition->MethodDefinitionList[index]);
 					}
 					finalMethods[methodCount + methodIndex] = method;
-					Log_WriteLine(LOGLEVEL__ILDecomposition_MethodLayout, "Adding method %s.%s.%s from table index %i at %i", pTypeDefinition->Namespace, pTypeDefinition->Name, pTypeDefinition->MethodDefinitionList[index].Name, (int)pTypeDefinition->MethodDefinitionList[index].TableIndex, (int)(methodCount + methodIndex));
+					Log_WriteLine(LOGLEVEL__MethodLayout, "Adding method %s.%s.%s from table index %i at %i", pTypeDefinition->Namespace, pTypeDefinition->Name, pTypeDefinition->MethodDefinitionList[index].Name, (int)pTypeDefinition->MethodDefinitionList[index].TableIndex, (int)(methodCount + methodIndex));
 					methodIndex++;
 				}
 			}
 			else
 			{
 				bool_t found = FALSE;
-				Log_WriteLine(LOGLEVEL__ILDecomposition_MethodLayout, "Looking for base method of %s.%s.%s (Table Index %i)", pTypeDefinition->Namespace, pTypeDefinition->Name, pTypeDefinition->MethodDefinitionList[index].Name, (int)pTypeDefinition->MethodDefinitionList[index].TableIndex);
+				Log_WriteLine(LOGLEVEL__MethodLayout, "Looking for base method of %s.%s.%s (Table Index %i)", pTypeDefinition->Namespace, pTypeDefinition->Name, pTypeDefinition->MethodDefinitionList[index].Name, (int)pTypeDefinition->MethodDefinitionList[index].TableIndex);
 				for (uint32_t index2 = 0; index2 < methodCount; index2++)
 				{
 					MethodDefinition* methodDefinition = methods[index2]->MethodDefinition;
 					if (methodDefinition->TableIndex)
 					{
-						Log_WriteLine(LOGLEVEL__ILDecomposition_MethodLayout, "Checking Method %s.%s.%s from table index %i", methodDefinition->TypeDefinition->Namespace, methodDefinition->TypeDefinition->Name, methodDefinition->Name, (int)methodDefinition->TableIndex);
+						Log_WriteLine(LOGLEVEL__MethodLayout, "Checking Method %s.%s.%s from table index %i", methodDefinition->TypeDefinition->Namespace, methodDefinition->TypeDefinition->Name, methodDefinition->Name, (int)methodDefinition->TableIndex);
 					}
 					else
 					{
-						Log_WriteLine(LOGLEVEL__ILDecomposition_MethodLayout, "Method Table Index 0! This shouldn't happen!");
+						Log_WriteLine(LOGLEVEL__MethodLayout, "Method Table Index 0! This shouldn't happen!");
 					}
 
 					if (!strcmp(pTypeDefinition->MethodDefinitionList[index].Name, methodDefinition->Name))
 					{
-						Log_WriteLine(LOGLEVEL__ILDecomposition_MethodLayout, "Name is the same");
+						Log_WriteLine(LOGLEVEL__MethodLayout, "Name is the same");
 						if (Signature_Equals(pTypeDefinition->MethodDefinitionList[index].Signature, pTypeDefinition->MethodDefinitionList[index].SignatureLength, methodDefinition->Signature, methodDefinition->SignatureLength))
 						{
-							Log_WriteLine(LOGLEVEL__ILDecomposition_MethodLayout, "Found Match!");
+							Log_WriteLine(LOGLEVEL__MethodLayout, "Found Match!");
 							IRMethod* method = pTypeDefinition->File->Assembly->Methods[pTypeDefinition->MethodDefinitionList[index].TableIndex - 1];
 							if (!method)
 							{
 								method = IRMethod_Create(pTypeDefinition->File->Assembly, &pTypeDefinition->MethodDefinitionList[index]);
 							}
 							finalMethods[index2] = method; 
-							Log_WriteLine(LOGLEVEL__ILDecomposition_MethodLayout, "Overloading method %s.%s.%s from table index %i at %i", pTypeDefinition->Namespace, pTypeDefinition->Name, pTypeDefinition->MethodDefinitionList[index].Name, (int)pTypeDefinition->MethodDefinitionList[index].TableIndex, (int)index2);
+							Log_WriteLine(LOGLEVEL__MethodLayout, "Overloading method %s.%s.%s from table index %i at %i", pTypeDefinition->Namespace, pTypeDefinition->Name, pTypeDefinition->MethodDefinitionList[index].Name, (int)pTypeDefinition->MethodDefinitionList[index].TableIndex, (int)index2);
 							found = TRUE;
 							break;
 						}
@@ -502,7 +502,7 @@ MonoHack1:
 				}
 				if (!found)
 				{
-					Log_WriteLine(LOGLEVEL__ILDecomposition_MethodLayout, "Warning: Method %s.%s.%s from table index %i, missing newslot for virtual (monohack)", pTypeDefinition->Namespace, pTypeDefinition->Name, pTypeDefinition->MethodDefinitionList[index].Name, (int)pTypeDefinition->MethodDefinitionList[index].TableIndex);
+					Log_WriteLine(LOGLEVEL__MethodLayout, "Warning: Method %s.%s.%s from table index %i, missing newslot for virtual (monohack)", pTypeDefinition->Namespace, pTypeDefinition->Name, pTypeDefinition->MethodDefinitionList[index].Name, (int)pTypeDefinition->MethodDefinitionList[index].TableIndex);
 					goto MonoHack1;
 				}
 			}
@@ -519,12 +519,12 @@ MonoHack1:
 					method = IRMethod_Create(pTypeDefinition->File->Assembly, &pTypeDefinition->MethodDefinitionList[index]);
 				}
 				finalMethods[methodCount + methodIndex] = method;
-				Log_WriteLine(LOGLEVEL__ILDecomposition_MethodLayout, "Adding method %s.%s.%s from table index %i at %i", pTypeDefinition->Namespace, pTypeDefinition->Name, pTypeDefinition->MethodDefinitionList[index].Name, (int)pTypeDefinition->MethodDefinitionList[index].TableIndex, (int)(methodCount + methodIndex));
+				Log_WriteLine(LOGLEVEL__MethodLayout, "Adding method %s.%s.%s from table index %i at %i", pTypeDefinition->Namespace, pTypeDefinition->Name, pTypeDefinition->MethodDefinitionList[index].Name, (int)pTypeDefinition->MethodDefinitionList[index].TableIndex, (int)(methodCount + methodIndex));
 				methodIndex++;
 			}
 			else
 			{
-				Log_WriteLine(LOGLEVEL__ILDecomposition_MethodLayout, "Ignoring method %s.%s.%s at table index %i", pTypeDefinition->Namespace, pTypeDefinition->Name, pTypeDefinition->MethodDefinitionList[index].Name, (int)pTypeDefinition->MethodDefinitionList[index].TableIndex);
+				Log_WriteLine(LOGLEVEL__MethodLayout, "Ignoring method %s.%s.%s at table index %i", pTypeDefinition->Namespace, pTypeDefinition->Name, pTypeDefinition->MethodDefinitionList[index].Name, (int)pTypeDefinition->MethodDefinitionList[index].TableIndex);
 			}
 		}
 	}
@@ -539,10 +539,10 @@ IRField** ILDecomposition_GetFieldLayout(IRType* pType, TypeDefinition* pTypeDef
 {
 	if (pType->Fields)
 	{
-		Log_WriteLine(LOGLEVEL__ILDecomposition_FieldLayout, "Returning cached layout of the fields of %s.%s, TypeOfExtends = %u", pTypeDefinition->Namespace, pTypeDefinition->Name, (unsigned int)pTypeDefinition->TypeOfExtends);
+		Log_WriteLine(LOGLEVEL__FieldLayout, "Returning cached layout of the fields of %s.%s, TypeOfExtends = %u", pTypeDefinition->Namespace, pTypeDefinition->Name, (unsigned int)pTypeDefinition->TypeOfExtends);
 		return pType->Fields;
 	}
-	Log_WriteLine(LOGLEVEL__ILDecomposition_FieldLayout, "Laying out the fields of %s.%s @ 0x%x, TypeOfExtends = %u", pTypeDefinition->Namespace, pTypeDefinition->Name, (unsigned int)pTypeDefinition, (unsigned int)pTypeDefinition->TypeOfExtends);
+	Log_WriteLine(LOGLEVEL__FieldLayout, "Laying out the fields of %s.%s @ 0x%x, TypeOfExtends = %u", pTypeDefinition->Namespace, pTypeDefinition->Name, (unsigned int)pTypeDefinition, (unsigned int)pTypeDefinition->TypeOfExtends);
 	IRField** fields = NULL;
 	uint32_t fieldCount = 0;
 	if (pTypeDefinition->TypeOfExtends == TypeDefRefOrSpecType_TypeDefinition)
@@ -591,7 +591,7 @@ IRField** ILDecomposition_GetFieldLayout(IRType* pType, TypeDefinition* pTypeDef
 			newFieldsCount++;
 		}
 	}
-	Log_WriteLine(LOGLEVEL__ILDecomposition_FieldLayout, "Field count: %i NewFieldCount: %i", (int)fieldCount, (int)newFieldsCount);
+	Log_WriteLine(LOGLEVEL__FieldLayout, "Field count: %i NewFieldCount: %i", (int)fieldCount, (int)newFieldsCount);
 
 	IRField** finalFields = (IRField**)calloc(fieldCount + newFieldsCount, sizeof(IRField*));
 	memcpy(finalFields, fields, fieldCount * sizeof(IRField*));
@@ -607,7 +607,7 @@ IRField** ILDecomposition_GetFieldLayout(IRType* pType, TypeDefinition* pTypeDef
 				field = IRField_Create(pType, &pTypeDefinition->FieldList[index]);
 			}
 			finalFields[fieldCount + fieldIndex] = field;
-			Log_WriteLine(LOGLEVEL__ILDecomposition_FieldLayout, "Adding Field %s.%s.%s from table index %i at %i", pTypeDefinition->Namespace, pTypeDefinition->Name, pTypeDefinition->FieldList[index].Name, (int)pTypeDefinition->FieldList[index].TableIndex, (int)(fieldCount + fieldIndex));
+			Log_WriteLine(LOGLEVEL__FieldLayout, "Adding Field %s.%s.%s from table index %i at %i", pTypeDefinition->Namespace, pTypeDefinition->Name, pTypeDefinition->FieldList[index].Name, (int)pTypeDefinition->FieldList[index].TableIndex, (int)(fieldCount + fieldIndex));
 			fieldIndex++;
 		}
 	}
@@ -1013,7 +1013,7 @@ void ILDecomposition_CheckConversionNumericOperandType(StackObject* pOperand, El
 #define UNSUPPORTED_OPERATION(pILOpcode)	{ Panic("Read Unsupported " #pILOpcode); break; }
 
 #define BINARY_NUMERIC_OPERATION(pILOpcode, pIROpcode, pOverflowType) \
-	{ Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read " #pILOpcode); \
+	{ Log_WriteLine(LOGLEVEL__ILReader, "Read " #pILOpcode); \
 		StackObject* value1 = SyntheticStack_Pop(stack); \
 		StackObject* value2 = SyntheticStack_Pop(stack); \
 		StackObject* obj = SA(); \
@@ -1027,7 +1027,7 @@ void ILDecomposition_CheckConversionNumericOperandType(StackObject* pOperand, El
         break; \
 	} 
 #define BITWISE_NUMERIC_OPERATION(pILOpcode) \
-	{ Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read " #pILOpcode); \
+	{ Log_WriteLine(LOGLEVEL__ILReader, "Read " #pILOpcode); \
 		StackObject* value1 = SyntheticStack_Pop(stack); \
 		StackObject* value2 = SyntheticStack_Pop(stack); \
 		StackObject* obj = SA(); \
@@ -1041,7 +1041,7 @@ void ILDecomposition_CheckConversionNumericOperandType(StackObject* pOperand, El
 		break; \
 	} 
 #define UNARY_NUMERIC_OPERATION(pILOpcode) \
-	{ Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read " #pILOpcode); \
+	{ Log_WriteLine(LOGLEVEL__ILReader, "Read " #pILOpcode); \
 		StackObject* value = SyntheticStack_Pop(stack); \
 		StackObject* obj = SA(); \
 		ILDecomposition_CheckUnaryNumericOperandTypesAndSetResult(value->Type, UnaryNumericOperation_##pILOpcode, obj); \
@@ -1053,7 +1053,7 @@ void ILDecomposition_CheckConversionNumericOperandType(StackObject* pOperand, El
 		break; \
 	} 
 #define SHIFT_NUMERIC_OPERATION(pILOpcode, pShiftNumericOperation) \
-	{ Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read " #pILOpcode); \
+	{ Log_WriteLine(LOGLEVEL__ILReader, "Read " #pILOpcode); \
 		StackObject* value1 = SyntheticStack_Pop(stack); \
 		StackObject* value2 = SyntheticStack_Pop(stack); \
 		IRType* value1GeneralType = NULL; \
@@ -1069,7 +1069,7 @@ void ILDecomposition_CheckConversionNumericOperandType(StackObject* pOperand, El
 		break; \
 	} 
 #define UNCHECKED_CONVERSION_NUMERIC_OPERATION(pElementType, pDestinationType) \
-	{ Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Conv." #pElementType); \
+	{ Log_WriteLine(LOGLEVEL__ILReader, "Read Conv." #pElementType); \
 		StackObject* value = SyntheticStack_Pop(stack); \
 		ElementType sourceType = (ElementType)0; \
 		ElementType destinationType = ElementType_##pElementType; \
@@ -1084,7 +1084,7 @@ void ILDecomposition_CheckConversionNumericOperandType(StackObject* pOperand, El
 		break; \
 	}
 #define CHECKED_CONVERSION_NUMERIC_OPERATION(pElementType, pDestinationType, pOverflowType, pUnsigned) \
-	{ Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Conv.Ovf." #pElementType #pUnsigned); \
+	{ Log_WriteLine(LOGLEVEL__ILReader, "Read Conv.Ovf." #pElementType #pUnsigned); \
 		StackObject* value = SyntheticStack_Pop(stack); \
 		ElementType sourceType = (ElementType)0; \
 		ElementType destinationType = ElementType_##pElementType; \
@@ -1099,7 +1099,7 @@ void ILDecomposition_CheckConversionNumericOperandType(StackObject* pOperand, El
 		break; \
 	}
 #define LOAD_ELEMENT_OPERATION(pILOpcode, pType) \
-	{ Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdElem." #pILOpcode); \
+	{ Log_WriteLine(LOGLEVEL__ILReader, "Read LdElem." #pILOpcode); \
 		SR(SyntheticStack_Pop(stack)); \
 		StackObject* obj = SyntheticStack_Peek(stack); \
 		EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Load_Element, obj->Type, pType); \
@@ -1109,7 +1109,7 @@ void ILDecomposition_CheckConversionNumericOperandType(StackObject* pOperand, El
 	    break; \
     }
 #define STORE_ELEMENT_OPERATION(pILOpcode, pType) \
-	{ Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StElem." #pILOpcode); \
+	{ Log_WriteLine(LOGLEVEL__ILReader, "Read StElem." #pILOpcode); \
 		SR(SyntheticStack_Pop(stack)); \
 		SR(SyntheticStack_Pop(stack)); \
 		StackObject* obj = SyntheticStack_Pop(stack); \
@@ -1119,7 +1119,7 @@ void ILDecomposition_CheckConversionNumericOperandType(StackObject* pOperand, El
 	    break; \
     }
 #define BRANCH_OPERATION(pILOpcode, pCondition) \
-	{ Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read " #pILOpcode); \
+	{ Log_WriteLine(LOGLEVEL__ILReader, "Read " #pILOpcode); \
 		if (pCondition == BranchCondition_False || pCondition == BranchCondition_True) \
 		{ \
 			branchArg1 = SyntheticStack_Pop(stack); \
@@ -1141,7 +1141,7 @@ void ILDecomposition_CheckConversionNumericOperandType(StackObject* pOperand, El
 		goto BranchCommon; \
 	}
 #define SHORT_BRANCH_OPERATION(pILOpcode, pCondition) \
-	{ Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read " #pILOpcode ".S"); \
+	{ Log_WriteLine(LOGLEVEL__ILReader, "Read " #pILOpcode ".S"); \
 		if (pCondition == BranchCondition_False || pCondition == BranchCondition_True) \
 		{ \
 			branchArg1 = SyntheticStack_Pop(stack); \
@@ -1163,7 +1163,7 @@ void ILDecomposition_CheckConversionNumericOperandType(StackObject* pOperand, El
 		goto BranchCommon; \
 	}
 #define COMPARE_OPERATION(pILOpcode, pCondition) \
-	{ Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read " #pILOpcode); \
+	{ Log_WriteLine(LOGLEVEL__ILReader, "Read " #pILOpcode); \
 		CompareCondition condition = CompareCondition_##pCondition; \
 		StackObject* obj = SyntheticStack_Pop(stack); \
 		ElementType type1 = AppDomain_GetElementTypeFromIRType(domain, obj->Type); \
@@ -1211,7 +1211,7 @@ ALWAYS_INLINE uint64_t ReadUInt64(uint8_t** pData)
 void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 {
 	if (pMethod->IRCodes) return;
-	Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Converting Method: %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
+	Log_WriteLine(LOGLEVEL__ILReader, "Converting Method: %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
 
 	MethodDefinition* methodDefinition = pMethod->MethodDefinition;
 	MethodSignature* methodSignature = methodDefinition->SignatureCache;
@@ -1234,10 +1234,10 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 	uint32_t* exceptionTryStatementLengths = (uint32_t*)calloc(1, exceptionHandlerCount * sizeof(uint32_t));
 	for (uint32_t index = 0; index < exceptionHandlerCount; index++)
 	{
-		Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_Exceptions, "Catch Handler %i (Length: 0x%x) at offset 0x%x", (int)index, (unsigned int)methodDefinition->Exceptions[index].HandlerLength, (unsigned int)methodDefinition->Exceptions[index].HandlerOffset);
+		Log_WriteLine(LOGLEVEL__Exceptions, "Catch Handler %i (Length: 0x%x) at offset 0x%x", (int)index, (unsigned int)methodDefinition->Exceptions[index].HandlerLength, (unsigned int)methodDefinition->Exceptions[index].HandlerOffset);
 		exceptionCatchStatementOffsets[index] = methodDefinition->Exceptions[index].HandlerOffset;
 		exceptionCatchStatementLengths[index] = methodDefinition->Exceptions[index].HandlerLength;
-		Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_Exceptions, "Try Statement %i (Length: 0x%x) at offset 0x%x", (int)index, (unsigned int)methodDefinition->Exceptions[index].TryLength, (unsigned int)methodDefinition->Exceptions[index].TryOffset);
+		Log_WriteLine(LOGLEVEL__Exceptions, "Try Statement %i (Length: 0x%x) at offset 0x%x", (int)index, (unsigned int)methodDefinition->Exceptions[index].TryLength, (unsigned int)methodDefinition->Exceptions[index].TryOffset);
 		exceptionTryStatementOffsets[index] = methodDefinition->Exceptions[index].TryOffset;
 		exceptionTryStatementOffsets[index] = methodDefinition->Exceptions[index].TryLength;
 	}
@@ -1282,14 +1282,14 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 	while ((size_t)(*currentDataPointer) - originalDataPointer < localizedDataLength)
 	{
         currentILInstructionBase = (size_t)*currentDataPointer;
-        Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "currentILInstructionBase: 0x%x", (int)currentILInstructionBase);
+        Log_WriteLine(LOGLEVEL__ILReader, "currentILInstructionBase: 0x%x", (int)currentILInstructionBase);
 
 		if (catchHandlerIndex < exceptionHandlerCount)
 		{
 			uint32_t currentILOffset = currentILInstructionBase - originalDataPointer;
 			if (exceptionCatchStatementOffsets[catchHandlerIndex] == currentILOffset)
 			{
-				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_Exceptions, "Entered Catch Block %u (Length: 0x%x) at offset 0x%x", (unsigned int)catchHandlerIndex, (unsigned int)exceptionCatchStatementLengths[catchHandlerIndex], (unsigned int)exceptionCatchStatementOffsets[catchHandlerIndex]);
+				Log_WriteLine(LOGLEVEL__Exceptions, "Entered Catch Block %u (Length: 0x%x) at offset 0x%x", (unsigned int)catchHandlerIndex, (unsigned int)exceptionCatchStatementLengths[catchHandlerIndex], (unsigned int)exceptionCatchStatementOffsets[catchHandlerIndex]);
 				// We're at the start of a catch handler,
 				// so we need to push an exception object
 				// to the top of the stack.
@@ -1306,7 +1306,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 			uint32_t currentILOffset = currentILInstructionBase - originalDataPointer;
 			if (exceptionTryStatementOffsets[tryHandlerIndex] == currentILOffset)
 			{
-				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_Exceptions, "Entered Try Block %u (Length: 0x%x) at offset 0x%x", (unsigned int)(tryHandlerIndex), (unsigned int)exceptionTryStatementLengths[tryHandlerIndex], (unsigned int)exceptionTryStatementOffsets[tryHandlerIndex]);
+				Log_WriteLine(LOGLEVEL__Exceptions, "Entered Try Block %u (Length: 0x%x) at offset 0x%x", (unsigned int)(tryHandlerIndex), (unsigned int)exceptionTryStatementLengths[tryHandlerIndex], (unsigned int)exceptionTryStatementOffsets[tryHandlerIndex]);
 				tryHandlerIndex++;
 			}
 		}
@@ -1316,7 +1316,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
         switch (currentILOpcode)
         {
             case ILOpcode_Nop:				// 0x00
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Nop");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read Nop");
 
                 EMIT_IR(IROpcode_Nop);
 
@@ -1325,7 +1325,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_Break:			// 0x01
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Break");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read Break");
 
                 EMIT_IR(IROpcode_Break);
 
@@ -1336,7 +1336,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
 			case ILOpcode_LdArg_0:			// 0x02
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdArg.0");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read LdArg.0");
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Parameter, (uint32_t*)0);
 					
 				StackObject* obj = SA();
@@ -1364,7 +1364,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_LdArg_1:			// 0x03
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdArg.1");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read LdArg.1");
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Parameter, (uint32_t*)1);
 					
 				StackObject* obj = SA();
@@ -1378,7 +1378,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_LdArg_2:			// 0x04
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdArg.2");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read LdArg.2");
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Parameter, (uint32_t*)2);
 					
 				StackObject* obj = SA();
@@ -1392,7 +1392,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_LdArg_3:			// 0x05
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdArg.3");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read LdArg.3");
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Parameter, (uint32_t*)3);
 					
 				StackObject* obj = SA();
@@ -1406,7 +1406,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_LdArg_S:			// 0x0E
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdArg.S");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read LdArg.S");
 				uint32_t paramIndex = ReadUInt8(currentDataPointer);
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Parameter, (uint32_t*)paramIndex);
 					
@@ -1435,7 +1435,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_LdArgA_S:			// 0x0F
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdArgA.S");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read LdArgA.S");
 				uint32_t paramIndex = ReadUInt8(currentDataPointer);
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Parameter_Address, (uint32_t*)paramIndex);
 					
@@ -1450,7 +1450,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_StArg_S:			// 0x10
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StArg.S");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read StArg.S");
 				uint32_t paramIndex = ReadUInt8(currentDataPointer);
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Store_Parameter, (uint32_t*)paramIndex);
 				
@@ -1463,7 +1463,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_LdLoc_0:			// 0x06
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdLoc.0");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read LdLoc.0");
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Local, (uint32_t*)0);
 					
 				StackObject* obj = SA();
@@ -1484,7 +1484,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_LdLoc_1:			// 0x07
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdLoc.1");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read LdLoc.1");
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Local, (uint32_t*)1);
 					
 				StackObject* obj = SA();
@@ -1505,7 +1505,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_LdLoc_2:			// 0x08
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdLoc.2");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read LdLoc.2");
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Local, (uint32_t*)2);
 					
 				StackObject* obj = SA();
@@ -1526,7 +1526,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_LdLoc_3:			// 0x09
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdLoc.3");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read LdLoc.3");
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Local, (uint32_t*)3);
 					
 				StackObject* obj = SA();
@@ -1547,7 +1547,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_LdLoc_S:			// 0x11
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdLoc.S");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read LdLoc.S");
 				uint32_t localIndex = ReadUInt8(currentDataPointer);
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Local, (uint32_t*)localIndex);
 					
@@ -1569,7 +1569,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_LdLocA_S:			// 0x12
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdLocA.S");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read LdLocA.S");
 				uint32_t localIndex = ReadUInt8(currentDataPointer);
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Local_Address, (uint32_t*)localIndex);
 					
@@ -1584,7 +1584,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_StLoc_0:			// 0x0A
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StLoc.0");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read StLoc.0");
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Store_Local, (uint32_t*)0);
 				
 				SR(SyntheticStack_Pop(stack));
@@ -1595,7 +1595,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_StLoc_1:			// 0x0B
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StLoc.1");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read StLoc.1");
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Store_Local, (uint32_t*)1);
 				
 				SR(SyntheticStack_Pop(stack));
@@ -1606,7 +1606,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_StLoc_2:			// 0x0C
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StLoc.2");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read StLoc.2");
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Store_Local, (uint32_t*)2);
 				
 				SR(SyntheticStack_Pop(stack));
@@ -1617,7 +1617,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_StLoc_3:			// 0x0D
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StLoc.3");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read StLoc.3");
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Store_Local, (uint32_t*)3);
 				
 				SR(SyntheticStack_Pop(stack));
@@ -1628,7 +1628,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_StLoc_S:			// 0x13
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StLoc.S");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read StLoc.S");
 				uint32_t localIndex = ReadUInt8(currentDataPointer);
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Store_Local, (uint32_t*)localIndex);
 				
@@ -1641,7 +1641,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_LdNull:			// 0x14
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdNull");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read LdNull");
                 EMIT_IR(IROpcode_Load_Null);
 				
 				StackObject* obj = SA();
@@ -1655,7 +1655,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_LdStr:			// 0x72
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdStr");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read LdStr");
                 MetadataToken* token = CLIFile_ExpandMetadataToken(file, ReadUInt32(currentDataPointer));
                 if (!token->IsUserString)
                     Panic("Invalid token after LdStr!");
@@ -1678,7 +1678,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_Ldc_I4_M1:		// 0x15
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ldc.I4.M1");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read Ldc.I4.M1");
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Int32, (uint32_t*)-1);
 				
 				StackObject* obj = SA();
@@ -1692,7 +1692,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_Ldc_I4_0:			// 0x16
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ldc.I4.0");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read Ldc.I4.0");
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Int32, (uint32_t*)0);
 				
 				StackObject* obj = SA();
@@ -1706,7 +1706,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_Ldc_I4_1:			// 0x17
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ldc.I4.1");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read Ldc.I4.1");
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Int32, (uint32_t*)1);
 				
 				StackObject* obj = SA();
@@ -1720,7 +1720,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_Ldc_I4_2:			// 0x18
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ldc.I4.2");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read Ldc.I4.2");
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Int32, (uint32_t*)2);
 				
 				StackObject* obj = SA();
@@ -1734,7 +1734,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_Ldc_I4_3:			// 0x19
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ldc.I4.3");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read Ldc.I4.3");
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Int32, (uint32_t*)3);
 				
 				StackObject* obj = SA();
@@ -1748,7 +1748,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_Ldc_I4_4:			// 0x1A
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ldc.I4.4");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read Ldc.I4.4");
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Int32, (uint32_t*)4);
 				
 				StackObject* obj = SA();
@@ -1762,7 +1762,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_Ldc_I4_5:			// 0x1B
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ldc.I4.5");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read Ldc.I4.5");
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Int32, (uint32_t*)5);
 				
 				StackObject* obj = SA();
@@ -1776,7 +1776,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_Ldc_I4_6:			// 0x1C
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ldc.I4.6");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read Ldc.I4.6");
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Int32, (uint32_t*)6);
 				
 				StackObject* obj = SA();
@@ -1790,7 +1790,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_Ldc_I4_7:			// 0x1D
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ldc.I4.7");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read Ldc.I4.7");
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Int32, (uint32_t*)7);
 				
 				StackObject* obj = SA();
@@ -1804,7 +1804,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_Ldc_I4_8:			// 0x1E
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ldc.I4.8");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read Ldc.I4.8");
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Int32, (uint32_t*)8);
 				
 				StackObject* obj = SA();
@@ -1818,7 +1818,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_Ldc_I4_S:			// 0x1F
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ldc.I4.S");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read Ldc.I4.S");
 				uint32_t value = (uint32_t)(int32_t)(int8_t)ReadUInt8(currentDataPointer);
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Int32, (uint32_t*)value);
 				
@@ -1833,7 +1833,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_Ldc_I4:			// 0x20
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ldc.I4");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read Ldc.I4");
 				uint32_t value = ReadUInt32(currentDataPointer);
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Int32, (uint32_t*)value);
 				
@@ -1848,7 +1848,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_Ldc_I8:			// 0x21
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ldc.I8");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read Ldc.I8");
 				uint64_t* value = (uint64_t*)malloc(sizeof(uint64_t));
 				*value = ReadUInt64(currentDataPointer);
                 EMIT_IR_1ARG(IROpcode_Load_Int32, value);
@@ -1864,7 +1864,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_Ldc_R4:			// 0x22
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ldc.R4");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read Ldc.R4");
 				uint32_t value = ReadUInt32(currentDataPointer);
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Int32, (uint32_t*)value);
 				
@@ -1879,7 +1879,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_Ldc_R8:			// 0x23
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ldc.R8");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read Ldc.R8");
 				uint64_t* value = (uint64_t*)malloc(sizeof(uint64_t));
 				*value = ReadUInt64(currentDataPointer);
                 EMIT_IR_1ARG(IROpcode_Load_Int32, value);
@@ -1896,7 +1896,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
 			case ILOpcode_Dup:				// 0x25
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Dup");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read Dup");
 				StackObject* object = SyntheticStack_Peek(stack);
 				EMIT_IR_1ARG(IROpcode_Dup, object->Type);
 				
@@ -1914,7 +1914,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_Pop:				// 0x26
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Pop");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read Pop");
 				StackObject* object = SyntheticStack_Pop(stack);
 				EMIT_IR_1ARG(IROpcode_Pop, object->Type);
 				SR(object);
@@ -1926,7 +1926,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_Call:				// 0x28
 			{
-				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Call");
+				Log_WriteLine(LOGLEVEL__ILReader, "Read Call");
 
 				MetadataToken* token = CLIFile_ExpandMetadataToken(file, ReadUInt32(currentDataPointer));
 				IRMethod* method = NULL;
@@ -1964,7 +1964,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				}
 
 				ILDecomposition_ConvertInstructions(method);
-				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Returning to Converting Method: %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
+				Log_WriteLine(LOGLEVEL__ILReader, "Returning to Converting Method: %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
 
 				if (method->MethodDefinition->InternalCall)
 				{
@@ -1992,7 +1992,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_CallVirt:			// 0x6F
 			{
-				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read CallVirt");
+				Log_WriteLine(LOGLEVEL__ILReader, "Read CallVirt");
 
 				MetadataToken* token = CLIFile_ExpandMetadataToken(file, ReadUInt32(currentDataPointer));
 				MethodDefinition* methodDef = NULL;
@@ -2041,7 +2041,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				}
 
 				ILDecomposition_ConvertInstructions(method);
-				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Returning to Converting Method: %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
+				Log_WriteLine(LOGLEVEL__ILReader, "Returning to Converting Method: %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
 
 				if (method->MethodDefinition->InternalCall)
 				{
@@ -2106,7 +2106,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_Jmp:				// 0x27
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Jmp");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read Jmp");
 
 				if (stack->StackDepth) Panic("Attempted to Jmp with evaluation StackDepth > 0");
 
@@ -2141,7 +2141,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				CLIFile_DestroyMetadataToken(token);
 
 				ILDecomposition_ConvertInstructions(method);
-				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Returning to Converting Method: %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
+				Log_WriteLine(LOGLEVEL__ILReader, "Returning to Converting Method: %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
 
 				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Jump, method);
 
@@ -2151,7 +2151,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
             case ILOpcode_Ret:				// 0x2A
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Ret");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read Ret");
 
 				type = NULL;
 				if (!methodDefinition->SignatureCache->ReturnType->Void)
@@ -2257,7 +2257,7 @@ BranchCommon:
 
             case ILOpcode_Switch:			// 0x45
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Switch");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read Switch");
 
 				uint32_t targetCount = ReadUInt32(currentDataPointer);
 				IRInstruction** targets = (IRInstruction**)calloc(1, targetCount * sizeof(IRInstruction*));
@@ -2278,7 +2278,7 @@ BranchCommon:
 
             case ILOpcode_LdInd_I:			// 0x4D
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdInd.I");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read LdInd.I");
 				SR(SyntheticStack_Pop(stack));
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Indirect, domain->IRAssemblies[0]->Types[domain->CachedType___System_IntPtr->TableIndex - 1]);
 				
@@ -2293,7 +2293,7 @@ BranchCommon:
 
             case ILOpcode_LdInd_I1:			// 0x46
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdInd.I1");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read LdInd.I1");
 				SR(SyntheticStack_Pop(stack));
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Indirect, domain->IRAssemblies[0]->Types[domain->CachedType___System_SByte->TableIndex - 1]);
 				
@@ -2308,7 +2308,7 @@ BranchCommon:
 
             case ILOpcode_LdInd_U1:			// 0x47
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdInd.U1");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read LdInd.U1");
 				SR(SyntheticStack_Pop(stack));
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Indirect, domain->IRAssemblies[0]->Types[domain->CachedType___System_Byte->TableIndex - 1]);
 				
@@ -2323,7 +2323,7 @@ BranchCommon:
 
             case ILOpcode_LdInd_I2:			// 0x48
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdInd.I2");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read LdInd.I2");
 				SR(SyntheticStack_Pop(stack));
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Indirect, domain->IRAssemblies[0]->Types[domain->CachedType___System_Int16->TableIndex - 1]);
 				
@@ -2338,7 +2338,7 @@ BranchCommon:
 
             case ILOpcode_LdInd_U2:			// 0x49
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdInd.U2");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read LdInd.U2");
 				SR(SyntheticStack_Pop(stack));
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Indirect, domain->IRAssemblies[0]->Types[domain->CachedType___System_UInt16->TableIndex - 1]);
 				
@@ -2353,7 +2353,7 @@ BranchCommon:
 
             case ILOpcode_LdInd_I4:			// 0x4A
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdInd.I4");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read LdInd.I4");
 				SR(SyntheticStack_Pop(stack));
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Indirect, domain->IRAssemblies[0]->Types[domain->CachedType___System_Int32->TableIndex - 1]);
 				
@@ -2368,7 +2368,7 @@ BranchCommon:
 
             case ILOpcode_LdInd_U4:			// 0x4B
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdInd.U4");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read LdInd.U4");
 				SR(SyntheticStack_Pop(stack));
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Indirect, domain->IRAssemblies[0]->Types[domain->CachedType___System_UInt32->TableIndex - 1]);
 				
@@ -2383,7 +2383,7 @@ BranchCommon:
 
             case ILOpcode_LdInd_I8:			// 0x4C
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdInd.I8");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read LdInd.I8");
 				SR(SyntheticStack_Pop(stack));
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Indirect, domain->IRAssemblies[0]->Types[domain->CachedType___System_Int64->TableIndex - 1]);
 				
@@ -2398,7 +2398,7 @@ BranchCommon:
 
             case ILOpcode_LdInd_R4:			// 0x4D
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdInd.R4");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read LdInd.R4");
 				SR(SyntheticStack_Pop(stack));
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Indirect, domain->IRAssemblies[0]->Types[domain->CachedType___System_Single->TableIndex - 1]);
 				
@@ -2413,7 +2413,7 @@ BranchCommon:
 
             case ILOpcode_LdInd_R8:			// 0x4F
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdInd.R8");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read LdInd.R8");
 				SR(SyntheticStack_Pop(stack));
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Indirect, domain->IRAssemblies[0]->Types[domain->CachedType___System_Double->TableIndex - 1]);
 				
@@ -2428,7 +2428,7 @@ BranchCommon:
 
             case ILOpcode_LdInd_Ref:		// 0x50
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdInd.Ref");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read LdInd.Ref");
 				SR(SyntheticStack_Pop(stack));
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Indirect, domain->IRAssemblies[0]->Types[domain->CachedType___System_Object->TableIndex - 1]);
 				
@@ -2443,7 +2443,7 @@ BranchCommon:
 
             case ILOpcode_StInd_I:			// 0xDF
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StInd.I");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read StInd.I");
 				SR(SyntheticStack_Pop(stack));
 				SR(SyntheticStack_Pop(stack));
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Store_Indirect, domain->IRAssemblies[0]->Types[domain->CachedType___System_IntPtr->TableIndex - 1]);
@@ -2454,7 +2454,7 @@ BranchCommon:
 
             case ILOpcode_StInd_I1:			// 0x52
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StInd.I1");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read StInd.I1");
 				SR(SyntheticStack_Pop(stack));
 				SR(SyntheticStack_Pop(stack));
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Store_Indirect, domain->IRAssemblies[0]->Types[domain->CachedType___System_SByte->TableIndex - 1]);
@@ -2465,7 +2465,7 @@ BranchCommon:
 
             case ILOpcode_StInd_I2:			// 0x53
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StInd.I2");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read StInd.I2");
 				SR(SyntheticStack_Pop(stack));
 				SR(SyntheticStack_Pop(stack));
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Store_Indirect, domain->IRAssemblies[0]->Types[domain->CachedType___System_Int16->TableIndex - 1]);
@@ -2476,7 +2476,7 @@ BranchCommon:
 
             case ILOpcode_StInd_I4:			// 0x54
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StInd.I4");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read StInd.I4");
 				SR(SyntheticStack_Pop(stack));
 				SR(SyntheticStack_Pop(stack));
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Store_Indirect, domain->IRAssemblies[0]->Types[domain->CachedType___System_Int32->TableIndex - 1]);
@@ -2487,7 +2487,7 @@ BranchCommon:
 
             case ILOpcode_StInd_I8:			// 0x55
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StInd.I8");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read StInd.I8");
 				SR(SyntheticStack_Pop(stack));
 				SR(SyntheticStack_Pop(stack));
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Store_Indirect, domain->IRAssemblies[0]->Types[domain->CachedType___System_Int64->TableIndex - 1]);
@@ -2498,7 +2498,7 @@ BranchCommon:
 
             case ILOpcode_StInd_R4:			// 0x56
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StInd.R4");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read StInd.R4");
 				SR(SyntheticStack_Pop(stack));
 				SR(SyntheticStack_Pop(stack));
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Store_Indirect, domain->IRAssemblies[0]->Types[domain->CachedType___System_Single->TableIndex - 1]);
@@ -2509,7 +2509,7 @@ BranchCommon:
 
             case ILOpcode_StInd_R8:			// 0x57
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StInd.R8");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read StInd.R8");
 				SR(SyntheticStack_Pop(stack));
 				SR(SyntheticStack_Pop(stack));
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Store_Indirect, domain->IRAssemblies[0]->Types[domain->CachedType___System_Double->TableIndex - 1]);
@@ -2520,7 +2520,7 @@ BranchCommon:
 
             case ILOpcode_StInd_Ref:		// 0x51
 			{
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StInd.Ref");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read StInd.Ref");
 				SR(SyntheticStack_Pop(stack));
 				SR(SyntheticStack_Pop(stack));
                 EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Store_Indirect, domain->IRAssemblies[0]->Types[domain->CachedType___System_Object->TableIndex - 1]);
@@ -2635,7 +2635,7 @@ BranchCommon:
 
             case ILOpcode_NewObj:			// 0x73
 			{
-				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read NewObj");
+				Log_WriteLine(LOGLEVEL__ILReader, "Read NewObj");
 
 				MetadataToken* token = CLIFile_ExpandMetadataToken(file, ReadUInt32(currentDataPointer));
 				IRMethod* method = NULL;
@@ -2673,7 +2673,7 @@ BranchCommon:
 				}
 
 				ILDecomposition_ConvertInstructions(method);
-				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Returning to Converting Method: %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
+				Log_WriteLine(LOGLEVEL__ILReader, "Returning to Converting Method: %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
 
 				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_New_Object, method);
 
@@ -2688,7 +2688,7 @@ BranchCommon:
 
             case ILOpcode_NewArr:			// 0x8D
 			{
-				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read NewArr");
+				Log_WriteLine(LOGLEVEL__ILReader, "Read NewArr");
 
 				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
 
@@ -2704,7 +2704,7 @@ BranchCommon:
 
             case ILOpcode_CastClass:		// 0x74
 			{
-				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read CastClass");
+				Log_WriteLine(LOGLEVEL__ILReader, "Read CastClass");
 
 				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
 
@@ -2720,7 +2720,7 @@ BranchCommon:
 
             case ILOpcode_IsInst:			// 0x75
 			{
-				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read IsInst");
+				Log_WriteLine(LOGLEVEL__ILReader, "Read IsInst");
 
 				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
 
@@ -2736,7 +2736,7 @@ BranchCommon:
 
             case ILOpcode_Unbox:			// 0x79
 			{
-				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Unbox");
+				Log_WriteLine(LOGLEVEL__ILReader, "Read Unbox");
 
 				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
 
@@ -2752,7 +2752,7 @@ BranchCommon:
 
             case ILOpcode_Unbox_Any:		// 0xA5
 			{
-				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Unbox.Any");
+				Log_WriteLine(LOGLEVEL__ILReader, "Read Unbox.Any");
 
 				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
 
@@ -2768,7 +2768,7 @@ BranchCommon:
 				
             case ILOpcode_Box:				// 0x8C
 			{
-				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Box");
+				Log_WriteLine(LOGLEVEL__ILReader, "Read Box");
 
 				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
 
@@ -2785,7 +2785,7 @@ BranchCommon:
 
 			case ILOpcode_Throw:			// 0x7A
 			{
-				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Throw");
+				Log_WriteLine(LOGLEVEL__ILReader, "Read Throw");
 
 				SR(SyntheticStack_Pop(stack));
 
@@ -2798,7 +2798,7 @@ BranchCommon:
 
             case ILOpcode_LdFld:			// 0x7B
 			{
-				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdFld");
+				Log_WriteLine(LOGLEVEL__ILReader, "Read LdFld");
 
 				uint32_t fieldIndex = 0;
 				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), &fieldIndex);
@@ -2816,7 +2816,7 @@ BranchCommon:
 
             case ILOpcode_LdFldA:			// 0x7C
 			{
-				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdFldA");
+				Log_WriteLine(LOGLEVEL__ILReader, "Read LdFldA");
 
 				uint32_t fieldIndex = 0;
 				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), &fieldIndex);
@@ -2835,7 +2835,7 @@ BranchCommon:
 
             case ILOpcode_StFld:			// 0x7D
 			{
-				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StFld");
+				Log_WriteLine(LOGLEVEL__ILReader, "Read StFld");
 
 				uint32_t fieldIndex = 0;
 				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), &fieldIndex);
@@ -2852,7 +2852,7 @@ BranchCommon:
 
             case ILOpcode_LdSFld:			// 0x7E
 			{
-				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdSFld");
+				Log_WriteLine(LOGLEVEL__ILReader, "Read LdSFld");
 
 				uint32_t fieldIndex = 0;
 				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), &fieldIndex);
@@ -2870,7 +2870,7 @@ BranchCommon:
 
             case ILOpcode_LdSFldA:			// 0x7F
 			{
-				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdSFldA");
+				Log_WriteLine(LOGLEVEL__ILReader, "Read LdSFldA");
 
 				uint32_t fieldIndex = 0;
 				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), &fieldIndex);
@@ -2888,7 +2888,7 @@ BranchCommon:
 
             case ILOpcode_StSFld:			// 0x80
 			{
-				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StSFld");
+				Log_WriteLine(LOGLEVEL__ILReader, "Read StSFld");
 
 				uint32_t fieldIndex = 0;
 				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), &fieldIndex);
@@ -2904,7 +2904,7 @@ BranchCommon:
 
             case ILOpcode_LdObj:			// 0x71
             {
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdObj");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read LdObj");
 
 				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
 
@@ -2921,7 +2921,7 @@ BranchCommon:
 
 			case ILOpcode_StObj:			// 0x81
 			{
-				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StObj");
+				Log_WriteLine(LOGLEVEL__ILReader, "Read StObj");
 
 				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
 
@@ -2939,7 +2939,7 @@ BranchCommon:
 
             case ILOpcode_CpObj:			// 0x70
 			{
-				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read CpObj");
+				Log_WriteLine(LOGLEVEL__ILReader, "Read CpObj");
 
 				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
 
@@ -3007,7 +3007,7 @@ BranchCommon:
 
             case ILOpcode_LdLen:			// 0x8E
 			{
-				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdLen");
+				Log_WriteLine(LOGLEVEL__ILReader, "Read LdLen");
 
 				EMIT_IR(IROpcode_Load_ArrayLength);
 
@@ -3021,7 +3021,7 @@ BranchCommon:
 
             case ILOpcode_LdElemA:			// 0x8F
             {
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdElemA");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read LdElemA");
 
 				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
 
@@ -3069,7 +3069,7 @@ BranchCommon:
 
             case ILOpcode_LdElem_Ref:		// 0x9A
             {
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdElem.Ref");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read LdElem.Ref");
 
 				SR(SyntheticStack_Pop(stack));
 				StackObject* obj = SyntheticStack_Peek(stack);
@@ -3085,7 +3085,7 @@ BranchCommon:
 
             case ILOpcode_LdElem:			// 0xA3
             {
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdElem");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read LdElem");
 
 				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
 
@@ -3124,7 +3124,7 @@ BranchCommon:
 
             case ILOpcode_StElem_Ref:		// 0xA2
             {
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StElem.Ref");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read StElem.Ref");
 
 				SR(SyntheticStack_Pop(stack));
 				SR(SyntheticStack_Pop(stack));
@@ -3139,7 +3139,7 @@ BranchCommon:
 
             case ILOpcode_StElem:			// 0xA4
             {
-                Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StElem");
+                Log_WriteLine(LOGLEVEL__ILReader, "Read StElem");
 
 				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
 
@@ -3159,7 +3159,7 @@ BranchCommon:
 
             case ILOpcode_CkFinite:			// 0xC3
 			{
-				Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read CkFinite");
+				Log_WriteLine(LOGLEVEL__ILReader, "Read CkFinite");
 
 				EMIT_IR(IROpcode_CheckFinite);
 
@@ -3209,7 +3209,7 @@ BranchCommon:
 
                     case ILOpcode_Extended_LdFtn:			// 0x06
 					{
-						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdFtn");
+						Log_WriteLine(LOGLEVEL__ILReader, "Read LdFtn");
 
 						MetadataToken* token = CLIFile_ExpandMetadataToken(file, ReadUInt32(currentDataPointer));
 						IRMethod* method = NULL;
@@ -3242,7 +3242,7 @@ BranchCommon:
 						CLIFile_DestroyMetadataToken(token);
 
 						ILDecomposition_ConvertInstructions(method);
-						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Returning to Converting Method: %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
+						Log_WriteLine(LOGLEVEL__ILReader, "Returning to Converting Method: %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
 
 						EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Function, method);
 
@@ -3257,7 +3257,7 @@ BranchCommon:
 
                     case ILOpcode_Extended_LdVirtFtn:		// 0x07
 					{
-						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdVirtFtn");
+						Log_WriteLine(LOGLEVEL__ILReader, "Read LdVirtFtn");
 
 						MetadataToken* token = CLIFile_ExpandMetadataToken(file, ReadUInt32(currentDataPointer));
 						MethodDefinition* methodDef = NULL;
@@ -3302,7 +3302,7 @@ BranchCommon:
 						}
 
 						ILDecomposition_ConvertInstructions(method);
-						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Returning to Converting Method: %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
+						Log_WriteLine(LOGLEVEL__ILReader, "Returning to Converting Method: %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
 
 						IRType* methodParentType = methodAssembly->Types[methodDef->TypeDefinition->TableIndex - 1];
 						uint32_t methodIndex = 0;
@@ -3349,7 +3349,7 @@ BranchCommon:
 
                     case ILOpcode_Extended_LdArg:			// 0x09
 					{
-						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdArg");
+						Log_WriteLine(LOGLEVEL__ILReader, "Read LdArg");
 						uint32_t paramIndex = ReadUInt16(currentDataPointer);
 						EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Parameter, (uint32_t*)paramIndex);
 					
@@ -3378,7 +3378,7 @@ BranchCommon:
 
 					case ILOpcode_Extended_LdArgA:			// 0x0A
 					{
-						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdArgA");
+						Log_WriteLine(LOGLEVEL__ILReader, "Read LdArgA");
 						uint32_t paramIndex = ReadUInt16(currentDataPointer);
 						EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Parameter_Address, (uint32_t*)paramIndex);
 					
@@ -3393,7 +3393,7 @@ BranchCommon:
 
                     case ILOpcode_Extended_StArg:			// 0x0B
 					{
-						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StArg");
+						Log_WriteLine(LOGLEVEL__ILReader, "Read StArg");
 						uint32_t paramIndex = ReadUInt16(currentDataPointer);
 						EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Store_Parameter, (uint32_t*)paramIndex);
 				
@@ -3405,7 +3405,7 @@ BranchCommon:
 
                     case ILOpcode_Extended_LdLoc:			// 0x0C
 					{
-						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdLoc");
+						Log_WriteLine(LOGLEVEL__ILReader, "Read LdLoc");
 						uint32_t localIndex = ReadUInt16(currentDataPointer);
 						EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Local, (uint32_t*)localIndex);
 					
@@ -3427,7 +3427,7 @@ BranchCommon:
 
                     case ILOpcode_Extended_LdLocA:			// 0x0D
 					{
-						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdLocA");
+						Log_WriteLine(LOGLEVEL__ILReader, "Read LdLocA");
 						uint32_t localIndex = ReadUInt16(currentDataPointer);
 						EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Local_Address, (uint32_t*)localIndex);
 					
@@ -3442,7 +3442,7 @@ BranchCommon:
 
                     case ILOpcode_Extended_StLoc:			// 0x0E
 					{
-						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read StLoc");
+						Log_WriteLine(LOGLEVEL__ILReader, "Read StLoc");
 						uint32_t localIndex = ReadUInt16(currentDataPointer);
 						EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Store_Local, (uint32_t*)localIndex);
 				
@@ -3454,7 +3454,7 @@ BranchCommon:
 
                     case ILOpcode_Extended_LocAlloc:		// 0x0F
 					{
-						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LocAlloc");
+						Log_WriteLine(LOGLEVEL__ILReader, "Read LocAlloc");
 
 						StackObject* obj = SyntheticStack_Peek(stack);
 
@@ -3472,7 +3472,7 @@ BranchCommon:
 
                     case ILOpcode_Extended_InitObj:		// 0x15
 					{
-						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read InitObj");
+						Log_WriteLine(LOGLEVEL__ILReader, "Read InitObj");
 
 						type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
 
@@ -3487,7 +3487,7 @@ BranchCommon:
 
                     case ILOpcode_Extended_CpBlk:			// 0x17
 					{
-						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read CpBlk");
+						Log_WriteLine(LOGLEVEL__ILReader, "Read CpBlk");
 
 						SR(SyntheticStack_Pop(stack));
 						SR(SyntheticStack_Pop(stack));
@@ -3501,7 +3501,7 @@ BranchCommon:
 
                     case ILOpcode_Extended_InitBlk:		// 0x18
 					{
-						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read InitBlk");
+						Log_WriteLine(LOGLEVEL__ILReader, "Read InitBlk");
 
 						SR(SyntheticStack_Pop(stack));
 						SR(SyntheticStack_Pop(stack));
@@ -3518,7 +3518,7 @@ BranchCommon:
 
                     case ILOpcode_Extended_SizeOf:			// 0x1C
 					{
-						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read SizeOf");
+						Log_WriteLine(LOGLEVEL__ILReader, "Read SizeOf");
 
 						type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
 
@@ -3538,33 +3538,33 @@ BranchCommon:
 
 
                     case ILOpcode_Extended_Constrained__:	// 0x16
-						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Prefix: Constrained");
+						Log_WriteLine(LOGLEVEL__ILReader, "Read Prefix: Constrained");
 						prefixConstrainedToken = ReadUInt32(currentDataPointer);
 						prefixConstrained = TRUE;
                         break;
 
                     case ILOpcode_Extended_No__:			// 0x19
-						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Prefix: No");
+						Log_WriteLine(LOGLEVEL__ILReader, "Read Prefix: No");
                         prefixNo = TRUE;
                         break;
 
                     case ILOpcode_Extended_ReadOnly__:		// 0x1E
-						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Prefix: ReadOnly");
+						Log_WriteLine(LOGLEVEL__ILReader, "Read Prefix: ReadOnly");
                         prefixReadOnly = TRUE;
                         break;
 
                     case ILOpcode_Extended_Tail__:			// 0x14
-						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Prefix: Tail");
+						Log_WriteLine(LOGLEVEL__ILReader, "Read Prefix: Tail");
                         prefixTail = TRUE;
                         break;
 
                     case ILOpcode_Extended_Unaligned__:	// 0x12
-						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Prefix: Unaligned");
+						Log_WriteLine(LOGLEVEL__ILReader, "Read Prefix: Unaligned");
                         prefixUnaligned = TRUE;
                         break;
 
                     case ILOpcode_Extended_Volatile__:		// 0x13
-						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Prefix: Volatile");
+						Log_WriteLine(LOGLEVEL__ILReader, "Read Prefix: Volatile");
                         prefixVolatile = TRUE;
                         break;
                 }
@@ -3573,5 +3573,5 @@ BranchCommon:
         }
 	}
 	SyntheticStack_Destroy(stack);
-	Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Finished Converting Method: %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
+	Log_WriteLine(LOGLEVEL__ILReader, "Finished Converting Method: %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
 }

@@ -526,7 +526,6 @@ bool_t AppDomain_IsStructure(AppDomain* pDomain, TypeDefinition* pTypeDefinition
 		}
 		return FALSE;
 	}
-	Log_WriteLine(LOGLEVEL__ILDecomposition, "ILDecomposition: Unknown type of extends while checking if a type is a struct");
 	return FALSE;
 }
 

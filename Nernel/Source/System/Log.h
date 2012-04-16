@@ -5,18 +5,18 @@
 
 typedef enum LogLevel
 {
-    LOGLEVEL__None =								0x00,
+    LOGLEVEL__None =								0 << 0,
     LOGLEVEL__Information =							1 << 0,
     LOGLEVEL__Memory =								1 << 1,
 	LOGLEVEL__Processor =							1 << 2,
 	LOGLEVEL__SyntheticStack =						1 << 3,
-	LOGLEVEL__ILDecomposition =						1 << 4,
-	LOGLEVEL__ILDecomposition_MethodLayout =		1 << 5,
-	LOGLEVEL__ILDecomposition_FieldLayout =			1 << 6,
-	LOGLEVEL__ILDecomposition_Convert_Exceptions =	1 << 7,
-	LOGLEVEL__ILDecomposition_Convert_Internal =	1 << 8,
-	LOGLEVEL__ILDecomposition_Convert_ILReader =	1 << 9,
-	LOGLEVEL__ILDecomposition_Convert_IREmitter =	1 << 10,
+	LOGLEVEL__MethodLayout =						1 << 4,
+	LOGLEVEL__FieldLayout =							1 << 5,
+	LOGLEVEL__Exceptions =							1 << 6,
+	LOGLEVEL__ILReader =							1 << 7,
+	LOGLEVEL__IREmitter =							1 << 8,
+	LOGLEVEL__Link_Internals =						1 << 9,
+	LOGLEVEL__Link_Branches =						1 << 10,
 } LogLevel;
 
 #ifdef LOG__DISABLE
@@ -32,14 +32,15 @@ void Log_WriteLine(LogLevel pLevel, const char* pFormatString, ...);
 		| LOGLEVEL__Memory \
 		| LOGLEVEL__Processor \
 		| LOGLEVEL__SyntheticStack \
-		| LOGLEVEL__ILDecomposition \
-		| LOGLEVEL__ILDecomposition_MethodLayout \
-		| LOGLEVEL__ILDecomposition_FieldLayout \
-		| LOGLEVEL__ILDecomposition_Convert_Exceptions \
+		| LOGLEVEL__Decomposition \
+		| LOGLEVEL__MethodLayout \
+		| LOGLEVEL__FieldLayout \
+		| LOGLEVEL__Exceptions \
 		*/ \
-		| LOGLEVEL__ILDecomposition_Convert_Internal \
-		| LOGLEVEL__ILDecomposition_Convert_ILReader \
-		| LOGLEVEL__ILDecomposition_Convert_IREmitter \
+		| LOGLEVEL__ILReader \
+		| LOGLEVEL__IREmitter \
+		| LOGLEVEL__Link_Internals \
+		| LOGLEVEL__Link_Branches \
         ))
 
 #define Log_WriteLine(ll, ...) \
