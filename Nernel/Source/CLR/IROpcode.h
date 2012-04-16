@@ -1338,7 +1338,7 @@ typedef enum IROpcode
 			..., arg0 (may be present), arg1 (may be present) -> ...
 
 		Arg1: BranchCondition
-			A pointer to the IRMethod to be called.
+			The condition of the branch.
 
 		Arg2: uint32_t/IRInstruction*
 			The absolute location in memory to target of branch.
@@ -1415,6 +1415,26 @@ typedef enum IROpcode
 
 	 */
 	IROpcode_Load_VirtualFunction,
+    /*
+        Compares two values based on the specified condition.
+
+		Stack:
+			..., value1, value2 -> ..., result
+
+        Arg1: CompareCondition
+            The condition of the comparison.
+
+        Arg2: IRType*
+			A pointer to the IRType of value1.
+
+        Arg3: ElementType
+			A pointer to the IRType of value2.
+
+        Arg4:
+            N/A
+
+     */
+    IROpcode_Compare,
 } IROpcode;
 
 typedef enum OverflowType
@@ -1485,3 +1505,12 @@ typedef enum BranchCondition
     BranchCondition_NotEqual_Unsigned,
     BranchCondition_True,
 } BranchCondition;
+
+typedef enum CompareCondition
+{
+	CompareCondition_Equal,
+	CompareCondition_Greater_Than,
+	CompareCondition_Greater_Than_Unsigned,
+	CompareCondition_Less_Than,
+	CompareCondition_Less_Than_Unsigned,
+} CompareCondition;

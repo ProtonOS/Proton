@@ -1162,6 +1162,22 @@ void ILDecomposition_CheckConversionNumericOperandType(StackObject* pOperand, El
 		branchTarget = (uint32_t)((int32_t)((int8_t)ReadUInt8(currentDataPointer))); \
 		goto BranchCommon; \
 	}
+#define COMPARE_OPERATION(pILOpcode, pCondition) \
+	{ Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read " #pILOpcode); \
+		CompareCondition condition = CompareCondition_##pCondition; \
+		StackObject* obj = SyntheticStack_Pop(stack); \
+		IRType* type1 = obj->Type; \
+		SR(obj); \
+		obj = SyntheticStack_Pop(stack); \
+		IRType* type2 = obj->Type; \
+		SR(obj); \
+		EMIT_IR_3ARG_NO_DISPOSE(IROpcode_Compare, (uint32_t*)condition, type1, type2); \
+		obj = StackObjectPool_Allocate(stack); \
+		obj->Type =  domain->IRAssemblies[0]->Types[domain->CachedType___System_Int32->TableIndex - 1]; \
+		obj->SourceType = StackObjectSourceType_Stack; \
+		SyntheticStack_Push(stack, obj); \
+		ClearFlags(); \
+		break; } 
 
 
 ALWAYS_INLINE uint8_t ReadUInt8(uint8_t** pData)
@@ -3174,25 +3190,22 @@ BranchCommon:
                     case ILOpcode_Extended_ArgList:		// 0x00
 						UNSUPPORTED_OPERATION(ArgList);
 
+
                     case ILOpcode_Extended_Ceq:			// 0x01
-                        ClearFlags();
-                        break;
+						COMPARE_OPERATION(Ceq, Equal);
 
                     case ILOpcode_Extended_Cgt:			// 0x02
-                        ClearFlags();
-                        break;
+						COMPARE_OPERATION(Cgt, Greater_Than);
 
                     case ILOpcode_Extended_Cgt_Un:			// 0x03
-                        ClearFlags();
-                        break;
+						COMPARE_OPERATION(Cgt.Un, Greater_Than_Unsigned);
 
                     case ILOpcode_Extended_Clt:			// 0x04
-                        ClearFlags();
-                        break;
+						COMPARE_OPERATION(Clt, Less_Than);
 
                     case ILOpcode_Extended_Clt_Un:			// 0x05
-                        ClearFlags();
-                        break;
+						COMPARE_OPERATION(Clt.Un, Less_Than_Unsigned);
+
 
                     case ILOpcode_Extended_LdFtn:			// 0x06
 					{
@@ -3241,6 +3254,7 @@ BranchCommon:
 						ClearFlags();
 						break;
 					}
+
                     case ILOpcode_Extended_LdVirtFtn:		// 0x07
 					{
 						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read LdVirtFtn");
@@ -3522,27 +3536,33 @@ BranchCommon:
                     case ILOpcode_Extended_RefAnyType:		// 0x1D
 						UNSUPPORTED_OPERATION(RefAnyType);
 
+
                     case ILOpcode_Extended_Constrained__:	// 0x16
 						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Prefix: Constrained");
 						prefixConstrainedToken = ReadUInt32(currentDataPointer);
 						prefixConstrained = TRUE;
                         break;
+
                     case ILOpcode_Extended_No__:			// 0x19
 						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Prefix: No");
                         prefixNo = TRUE;
                         break;
+
                     case ILOpcode_Extended_ReadOnly__:		// 0x1E
 						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Prefix: ReadOnly");
                         prefixReadOnly = TRUE;
                         break;
+
                     case ILOpcode_Extended_Tail__:			// 0x14
 						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Prefix: Tail");
                         prefixTail = TRUE;
                         break;
+
                     case ILOpcode_Extended_Unaligned__:	// 0x12
 						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Prefix: Unaligned");
                         prefixUnaligned = TRUE;
                         break;
+
                     case ILOpcode_Extended_Volatile__:		// 0x13
 						Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_ILReader, "Read Prefix: Volatile");
                         prefixVolatile = TRUE;
