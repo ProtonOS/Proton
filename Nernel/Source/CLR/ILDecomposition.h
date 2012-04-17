@@ -24,4 +24,5 @@ void ILDecomposition_LinkType(AppDomain* pDomain, IRAssembly* pAssembly, IRType*
 IRMethod** ILDecomposition_GetMethodLayout(IRType* pType, TypeDefinition* pTypeDefinition);
 IRField** ILDecomposition_GetFieldLayout(IRType* pType, TypeDefinition* pTypeDefinition);
 void ILDecomposition_ConvertInstructions(IRMethod* pMethod);
+void ILDecomposition_BranchLinker(IRMethod* pMethod);
 void* ILDecomposition_ResolveInternalCall(MethodDefinition* methodDef, CLIFile* fil);

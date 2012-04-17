@@ -736,5 +736,6 @@ void AppDomain_ResolveMemberReference(AppDomain* pDomain, CLIFile* pFile, Member
 void AppDomain_ExecuteMethod(AppDomain* pDomain, IRMethod* pMethod)
 {
 	ILDecomposition_ConvertInstructions(pMethod);
+	ILDecomposition_BranchLinker(pMethod);
 	// TODO: Emit & Execute pMethod->AssembledMethod
 }

@@ -1208,6 +1208,64 @@ ALWAYS_INLINE uint64_t ReadUInt64(uint8_t** pData)
     return value;
 }
 
+void ILDecomposition_BranchLinker(IRMethod* pMethod)
+{
+	Log_WriteLine(LOGLEVEL__Link_Branches, "Linking Branches: %s.%s.%s, 0x%x IRInstructions", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name, (unsigned int)pMethod->IRCodesCount);
+	for (uint32_t index = 0; index < pMethod->IRCodesCount; ++index)
+	{
+		if (pMethod->IRCodes[index]->Opcode == IROpcode_Branch)
+		{
+            uint32_t targetILLocation = (uint32_t)pMethod->IRCodes[index]->Arg2;
+            Log_WriteLine(LOGLEVEL__Link_Branches, "    ILLocation 0x%x to 0x%x", (unsigned int)pMethod->IRCodes[index]->ILLocation, (unsigned int)targetILLocation);
+
+            IRInstruction* targetInstruction = NULL;
+            uint32_t checkingIRIndex = pMethod->IRCodesCount >> 1;
+			uint32_t lastAdjustment = pMethod->IRCodesCount >> 1;
+
+			while (TRUE)
+			{
+	            Log_WriteLine(LOGLEVEL__Link_Branches, "        IRInstruction 0x%x has ILLocation 0x%x", (unsigned int)checkingIRIndex, (unsigned int)pMethod->IRCodes[checkingIRIndex]->ILLocation);
+				if (pMethod->IRCodes[checkingIRIndex]->ILLocation == targetILLocation)
+				{
+					targetInstruction = pMethod->IRCodes[checkingIRIndex];
+					break;
+				}
+				if (!(lastAdjustment >>= 1)) lastAdjustment = 1;
+				checkingIRIndex += pMethod->IRCodes[checkingIRIndex]->ILLocation > targetILLocation ? -lastAdjustment : lastAdjustment;
+			}
+			pMethod->IRCodes[index]->Arg2 = targetInstruction;
+		}
+		else if (pMethod->IRCodes[index]->Opcode == IROpcode_Switch)
+		{
+			uint32_t targetCount = (uint32_t)pMethod->IRCodes[index]->Arg1;
+            Log_WriteLine(LOGLEVEL__Link_Branches, "    ILLocation 0x%x has %u Targets", (unsigned int)pMethod->IRCodes[index]->ILLocation, (unsigned int)targetCount);
+
+			for (uint32_t targetIndex = 0; targetIndex < targetCount; ++targetIndex)
+			{
+				uint32_t targetILLocation = (uint32_t)((IRInstruction**)(pMethod->IRCodes[index]->Arg2))[targetIndex];
+	            Log_WriteLine(LOGLEVEL__Link_Branches, "        ILLocation 0x%x to 0x%x", (unsigned int)pMethod->IRCodes[index]->ILLocation, (unsigned int)targetILLocation);
+
+				IRInstruction* targetInstruction = NULL;
+				uint32_t checkingIRIndex = pMethod->IRCodesCount >> 1;
+				uint32_t lastAdjustment = pMethod->IRCodesCount >> 1;
+
+				while (TRUE)
+				{
+					Log_WriteLine(LOGLEVEL__Link_Branches, "            IRInstruction 0x%x has ILLocation 0x%x", (unsigned int)checkingIRIndex, (unsigned int)pMethod->IRCodes[checkingIRIndex]->ILLocation);
+					if (pMethod->IRCodes[checkingIRIndex]->ILLocation == targetILLocation)
+					{
+						targetInstruction = pMethod->IRCodes[checkingIRIndex];
+						break;
+					}
+					if (!(lastAdjustment >>= 1)) lastAdjustment = 1;
+					checkingIRIndex += pMethod->IRCodes[checkingIRIndex]->ILLocation > targetILLocation ? -lastAdjustment : lastAdjustment;
+				}
+				((void**)pMethod->IRCodes[index]->Arg2)[targetIndex] = targetInstruction;
+			}
+		}
+	}
+}
+
 void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 {
 	if (pMethod->IRCodes) return;
