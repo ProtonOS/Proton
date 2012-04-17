@@ -1260,7 +1260,7 @@ void ILDecomposition_BranchLinker(IRMethod* pMethod)
 					if (!(lastAdjustment >>= 1)) lastAdjustment = 1;
 					checkingIRIndex += pMethod->IRCodes[checkingIRIndex]->ILLocation > targetILLocation ? -lastAdjustment : lastAdjustment;
 				}
-				((void**)pMethod->IRCodes[index]->Arg2)[targetIndex] = targetInstruction;
+				((IRInstruction**)pMethod->IRCodes[index]->Arg2)[targetIndex] = targetInstruction;
 			}
 		}
 	}
@@ -3632,4 +3632,5 @@ BranchCommon:
 	}
 	SyntheticStack_Destroy(stack);
 	Log_WriteLine(LOGLEVEL__ILReader, "Finished Converting Method: %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
+	ILDecomposition_BranchLinker(pMethod);
 }
