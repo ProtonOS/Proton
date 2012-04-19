@@ -1021,11 +1021,11 @@ typedef enum IROpcode
 		Stack:
 			... -> ..., value
 
-		Arg1: IRType*
-			A pointer to the IRType containing the static field.
+		Arg1: IRField*
+			A pointer to the IRField of the static field.
 
-		Arg2: uint32_t
-			The index to the static field.
+		Arg2:
+			N/A
 
 		Arg3:
 			N/A
@@ -1042,11 +1042,11 @@ typedef enum IROpcode
 		Stack:
 			... -> ..., address
 
-		Arg1: IRType*
-			A pointer to the IRType containing the static field.
+		Arg1: IRField*
+			A pointer to the IRField of the static field.
 
-		Arg2: uint32_t
-			The index to the static field.
+		Arg2:
+			N/A
 
 		Arg3:
 			N/A
@@ -1063,11 +1063,11 @@ typedef enum IROpcode
 		Stack:
 			..., value -> ...
 
-		Arg1: IRType*
-			A pointer to the IRType containing the static field.
+		Arg1: IRField*
+			A pointer to the IRField of the static field.
 
-		Arg2: uint32_t
-			The index to the static field.
+		Arg2:
+			N/A
 
 		Arg3:
 			N/A

@@ -13,6 +13,8 @@ IRAssembly* IRAssembly_Create(AppDomain* pDomain, CLIFile *pFile)
 	assembly->Fields = (IRField**)calloc(1, pFile->FieldCount * sizeof(IRField*));
 	assembly->TypeCount = pFile->TypeDefinitionCount;
 	assembly->Types = (IRType**)calloc(1, pFile->TypeDefinitionCount * sizeof(IRType*));
+	for (uint32_t index = 1; index <= pFile->FieldCount; ++index) if (pFile->Fields[index].Flags & FieldAttributes_Static) ++assembly->StaticFieldCount;
+	assembly->StaticFields = (IRField**)calloc(1, assembly->StaticFieldCount * sizeof(IRField*));
 	AppDomain_AddAssembly(pDomain, assembly);
     return assembly;
 }
@@ -42,6 +44,7 @@ void IRAssembly_Destroy(IRAssembly* pAssembly)
 			IRMethod_Destroy(pAssembly->Methods[index]);
 		}
 	}
+	free(pAssembly->StaticFields);
 	free(pAssembly->Types);
 	free(pAssembly->Fields);
 	free(pAssembly->Methods);
@@ -293,9 +296,12 @@ IRField* IRField_Create(IRType* pType, Field* pField)
 		pField->SignatureCache = FieldSignature_Expand(pField->Signature, pField->File);
 	}
 	field->FieldType = AppDomain_GetIRTypeFromSignatureType(field->ParentAssembly->ParentDomain, pField->File->Assembly, pField->SignatureCache->Type);
-	if (pField->Flags & FieldAttributes_Static)
+	if ((pField->Flags & (FieldAttributes_Static | FieldAttributes_Literal)) == FieldAttributes_Static)
 	{
 		field->IsStatic = TRUE;
+		field->StaticFieldIndex = pType->ParentAssembly->StaticFieldIndex;
+		pType->ParentAssembly->StaticFields[field->StaticFieldIndex] = field;
+		++pType->ParentAssembly->StaticFieldIndex;
 	}
 	return field;
 }

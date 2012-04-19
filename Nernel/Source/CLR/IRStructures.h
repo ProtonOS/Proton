@@ -31,6 +31,10 @@ struct _IRAssembly
     uint32_t TypeCount;
     IRType** Types;
 	
+	uint32_t StaticFieldIndex;
+	uint32_t StaticFieldCount;
+	IRField** StaticFields;
+
 	IRArrayType* ArrayTypesHashTable;
 	IRPointerType* PointerTypesHashTable;
 };
@@ -148,6 +152,7 @@ struct _IRField
 	uint32_t Size;
 
 	bool_t IsStatic;
+	uint32_t StaticFieldIndex;
 	void* StaticValue;
 };
 

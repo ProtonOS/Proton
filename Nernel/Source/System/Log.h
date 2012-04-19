@@ -34,9 +34,9 @@ void Log_WriteLine(LogLevel pLevel, const char* pFormatString, ...);
 		| LOGLEVEL__SyntheticStack \
 		| LOGLEVEL__Decomposition \
 		| LOGLEVEL__MethodLayout \
+		*/ \
 		| LOGLEVEL__FieldLayout \
 		| LOGLEVEL__Exceptions \
-		*/ \
 		| LOGLEVEL__ILReader \
 		| LOGLEVEL__IREmitter \
 		/* \

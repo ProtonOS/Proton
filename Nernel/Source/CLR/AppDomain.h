@@ -36,6 +36,8 @@ struct _AppDomain
 	TypeDefinition* CachedType___System_UIntPtr;
 	TypeDefinition* CachedType___System_ValueType;
 	TypeDefinition* CachedType___System_Void;
+
+	void** StaticValues;
 };
 
 AppDomain* AppDomain_Create();

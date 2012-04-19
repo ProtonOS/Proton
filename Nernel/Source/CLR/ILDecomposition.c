@@ -206,6 +206,20 @@ IRAssembly* ILDecomposition_CreateAssembly(AppDomain* pDomain, CLIFile* pFile)
 		CLIFile_DestroyMetadataToken(token);
 	}
 
+	IRType* type = NULL;
+	for (uint32_t index = 1; index <= assembly->FieldCount; ++index)
+	{
+		if ((assembly->ParentFile->Fields[index].Flags & (FieldAttributes_Static | FieldAttributes_Literal)) == FieldAttributes_Static)
+		{
+			if (!(type = assembly->Types[assembly->ParentFile->Fields[index].TypeDefinition->TableIndex - 1]))
+			{
+				type = IRType_Create(assembly, assembly->ParentFile->Fields[index].TypeDefinition);
+			}
+
+			IRField* field = IRField_Create(type, &assembly->ParentFile->Fields[index]);
+			Log_WriteLine(LOGLEVEL__FieldLayout, "Adding Static Field %s.%s.%s from table index %i at %i", type->TypeDefinition->Namespace, type->TypeDefinition->Name, assembly->ParentFile->Fields[index].Name, (int)assembly->ParentFile->Fields[index].TableIndex, (int)field->StaticFieldIndex);
+		}
+	}
 	return assembly;
 }
 
@@ -2914,8 +2928,8 @@ BranchCommon:
 
 				uint32_t fieldIndex = 0;
 				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), &fieldIndex);
-
-				EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Load_StaticField, type, (uint32_t*)fieldIndex);
+				
+				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_StaticField, type->Fields[fieldIndex]);
 
 				StackObject* obj = SA();
 				obj->Type = type;
@@ -2933,7 +2947,7 @@ BranchCommon:
 				uint32_t fieldIndex = 0;
 				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), &fieldIndex);
 
-				EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Load_StaticFieldAddress, type, (uint32_t*)fieldIndex);
+				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_StaticFieldAddress, type->Fields[fieldIndex]);
 
 				StackObject* obj = SA();
 				obj->Type = IRAssembly_MakePointerType(assembly, type);
@@ -2953,7 +2967,7 @@ BranchCommon:
 
 				SR(SyntheticStack_Pop(stack));
 
-				EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Store_StaticField, type, (uint32_t*)fieldIndex);
+				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Store_StaticField, type->Fields[fieldIndex]);
 
 				ClearFlags();
 				break;
