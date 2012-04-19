@@ -211,6 +211,7 @@ IRAssembly* ILDecomposition_CreateAssembly(AppDomain* pDomain, CLIFile* pFile)
 	{
 		if ((assembly->ParentFile->Fields[index].Flags & (FieldAttributes_Static | FieldAttributes_Literal)) == FieldAttributes_Static)
 		{
+			if (assembly->StaticFieldIndex == assembly->StaticFieldCount) Panic("Somehow we found more statics than we previously allocated space for!");
 			if (!(type = assembly->Types[assembly->ParentFile->Fields[index].TypeDefinition->TableIndex - 1]))
 			{
 				type = IRType_Create(assembly, assembly->ParentFile->Fields[index].TypeDefinition);

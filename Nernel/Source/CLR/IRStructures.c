@@ -13,7 +13,7 @@ IRAssembly* IRAssembly_Create(AppDomain* pDomain, CLIFile *pFile)
 	assembly->Fields = (IRField**)calloc(1, pFile->FieldCount * sizeof(IRField*));
 	assembly->TypeCount = pFile->TypeDefinitionCount;
 	assembly->Types = (IRType**)calloc(1, pFile->TypeDefinitionCount * sizeof(IRType*));
-	for (uint32_t index = 1; index <= pFile->FieldCount; ++index) if (pFile->Fields[index].Flags & FieldAttributes_Static) ++assembly->StaticFieldCount;
+	for (uint32_t index = 1; index <= pFile->FieldCount; ++index) if ((pFile->Fields[index].Flags & (FieldAttributes_Static | FieldAttributes_Literal)) == FieldAttributes_Static) ++assembly->StaticFieldCount;
 	assembly->StaticFields = (IRField**)calloc(1, assembly->StaticFieldCount * sizeof(IRField*));
 	AppDomain_AddAssembly(pDomain, assembly);
     return assembly;
