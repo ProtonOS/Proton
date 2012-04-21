@@ -1,6 +1,7 @@
 #pragma once
 
 typedef struct _IRAssembly IRAssembly;
+typedef struct _IRGenericParameter IRGenericParameter;
 typedef struct _IRType IRType;
 typedef struct _IRMethod IRMethod;
 typedef struct _IRParameter IRParameter;
@@ -10,6 +11,8 @@ typedef struct _IRArrayType IRArrayType;
 typedef struct _IRInterfaceImpl IRInterfaceImpl;
 typedef struct _IRInstruction IRInstruction;
 typedef struct _IRPointerType IRPointerType;
+typedef struct _IRGenericType IRGenericType;
+typedef struct _IRGenericMethod IRGenericMethod;
 
 #include <uthash.h>
 #include <CLR/AppDomain.h>
@@ -37,6 +40,8 @@ struct _IRAssembly
 
 	IRArrayType* ArrayTypesHashTable;
 	IRPointerType* PointerTypesHashTable;
+	IRGenericType* GenericTypesHashTable;
+	IRGenericMethod* GenericMethodsHashTable;
 };
 
 IRAssembly* IRAssembly_Create(AppDomain* pDomain, CLIFile* pFile);
@@ -45,6 +50,12 @@ void IRAssembly_AddField(IRAssembly* pAssembly, IRField* pField);
 void IRAssembly_AddType(IRAssembly* pAssembly, IRType* pType);
 IRType* IRAssembly_MakePointerType(IRAssembly* pAssembly, IRType* pType);
 IRType* IRAssembly_MakeArrayType(IRAssembly* pAssembly, IRType* pType);
+
+struct _IRGenericParameter
+{
+	bool_t FromParentType;
+	uint32_t Index;
+};
 
 struct _IRType
 {
@@ -83,10 +94,16 @@ struct _IRType
 	IRPointerType* PointerType;
 
 	IRInterfaceImpl* InterfaceTable;
+
+	IRGenericType* GenericType;
+
+	uint32_t GenericParameterCount;
+	IRGenericParameter* GenericParameters;
 };
 
 IRType* IRType_Create(IRAssembly* pAssembly, TypeDefinition* pTypeDefinition);
 IRType* IRType_Copy(IRType* pType);
+IRType* IRType_GenericDeepCopy(IRType* pType, IRAssembly* pAssembly);
 void IRType_Destroy(IRType* pType);
 
 struct _IRMethod
@@ -109,10 +126,17 @@ struct _IRMethod
 	uint32_t IRCodesCount;
 	IRInstruction** IRCodes;
 
+	bool_t IsGeneric;
+	bool_t IsGenericImplementation;
+	uint32_t GenericParameterCount;
+	IRGenericParameter* GenericParameters;
+	IRGenericMethod* GenericMethod;
+
     void(*AssembledMethod)();
 };
 
 IRMethod* IRMethod_Create(IRAssembly* pAssembly, MethodDefinition* pMethodDefinition);
+IRMethod* IRMethod_GenericDeepCopy(IRMethod* pMethod, IRAssembly* pAssembly);
 void IRMethod_Destroy(IRMethod* pMethod);
 void IRMethod_AddInstruction(IRMethod* pMethod, IRInstruction* pInstruction);
 
@@ -125,6 +149,7 @@ struct _IRParameter
 };
 
 IRParameter* IRParameter_Create(IRMethod* pMethod, IRType* pType);
+IRParameter* IRParameter_Copy(IRParameter* pParameter);
 void IRParameter_Destroy(IRParameter* pParameter);
 
 struct _IRLocalVariable
@@ -137,6 +162,7 @@ struct _IRLocalVariable
 };
 
 IRLocalVariable* IRLocalVariable_Create(IRMethod* pMethod, IRType* pType);
+IRLocalVariable* IRLocalVariable_Copy(IRLocalVariable* pLocalVariable);
 void IRLocalVariable_Destroy(IRLocalVariable* pLocalVariable);
 
 struct _IRField
@@ -193,6 +219,43 @@ struct _IRInterfaceImpl
 IRInterfaceImpl* IRInterfaceImpl_Create(IRType* pInterfaceType);
 void IRInterfaceImpl_Destroy(IRInterfaceImpl* pInterfaceImpl);
 
+#define IRGENERICTYPE__Max_Parameters			32
+
+struct _IRGenericType
+{
+	IRType* GenericType;
+
+	uint32_t ParameterCount;
+	IRType* Parameters[IRGENERICTYPE__Max_Parameters];
+
+	// This must come after the other parts, for keying reasons
+	IRType* ImplementationType;
+
+	UT_hash_handle HashHandle;
+};
+
+IRGenericType* IRGenericType_Create(IRType* pGenericType, IRType* pImplementationType);
+void IRGenericType_Destroy(IRGenericType* pGenericType);
+
+#define IRGENERICMETHOD__Max_Parameters			32
+
+struct _IRGenericMethod
+{
+	IRType* ParentType;
+	IRMethod* GenericMethod;
+
+	uint32_t ParameterCount;
+	IRType* Parameters[IRGENERICMETHOD__Max_Parameters];
+
+	// This must come after the other parts, for keying reasons
+	IRMethod* ImplementationMethod;
+
+	UT_hash_handle HashHandle;
+};
+
+IRGenericMethod* IRGenericMethod_Create(IRType* pParentType, IRMethod* pGenericMethod, IRMethod* pImplementationMethod);
+void IRGenericMethod_Destroy(IRGenericMethod* pGenericType);
+
 struct _IRInstruction
 {
     uint32_t ILLocation;
@@ -209,4 +272,5 @@ struct _IRInstruction
 };
 
 IRInstruction* IRInstruction_Create(uint32_t pILLocation, IROpcode pOpcode);
+IRInstruction* IRInstruction_Copy(IRInstruction* pInstruction);
 void IRInstruction_Destroy(IRInstruction* pInstruction);

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Mernel
 {
@@ -21,6 +22,14 @@ namespace Mernel
                     Console.WriteLine("Case Default");
                     break;
             }
+            List<int> test = new List<int>();
+            test.Add(x);
         }
+    }
+
+    public class SomeType<T>
+    {
+        public static T SomeField;
+
     }
 }

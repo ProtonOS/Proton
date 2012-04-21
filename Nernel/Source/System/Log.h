@@ -41,8 +41,8 @@ void Log_WriteLine(LogLevel pLevel, const char* pFormatString, ...);
 		| LOGLEVEL__IREmitter \
 		/* \
 		| LOGLEVEL__Link_Internals \
-		*/ \
 		| LOGLEVEL__Link_Branches \
+		*/ \
         ))
 
 #define Log_WriteLine(ll, ...) \

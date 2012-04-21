@@ -2226,16 +2226,12 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 			{
                 Log_WriteLine(LOGLEVEL__ILReader, "Read Ret");
 
-				type = NULL;
-				if (!methodDefinition->SignatureCache->ReturnType->Void)
+				if (pMethod->Returns)
 				{
-					StackObject* obj = SyntheticStack_Pop(stack);
-					type = obj->Type;
-					SR(obj);
-					//type = AppDomain_GetIRTypeFromSignatureType(domain, assembly, methodDefinition->SignatureCache->ReturnType->Type);
+					SR(SyntheticStack_Pop(stack));
 				}
 
-                EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Return, type);
+                EMIT_IR(IROpcode_Return);
 				
                 ClearFlags();
                 break;
@@ -3648,4 +3644,87 @@ BranchCommon:
 	SyntheticStack_Destroy(stack);
 	Log_WriteLine(LOGLEVEL__ILReader, "Finished Converting Method: %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
 	ILDecomposition_BranchLinker(pMethod);
+}
+
+bool_t ILDecomposition_MethodUsesGenerics(IRMethod* pMethod)
+{
+	if (pMethod->Returns && pMethod->ReturnType->IsGeneric && !pMethod->ReturnType->IsGenericInstantiation) return TRUE;
+	for (uint32_t index = 0; index < pMethod->ParameterCount; ++index)
+	{
+		if (pMethod->Parameters[index]->Type->IsGeneric && !pMethod->Parameters[index]->Type->IsGenericInstantiation) return TRUE;
+	}
+	for (uint32_t index = 0; index < pMethod->LocalVariableCount; ++index)
+	{
+		if (pMethod->LocalVariables[index]->VariableType->IsGeneric && !pMethod->LocalVariables[index]->VariableType->IsGenericInstantiation) return TRUE;
+	}
+	for (uint32_t index = 0; index < pMethod->IRCodesCount; ++index)
+	{
+		IRInstruction* instruction = pMethod->IRCodes[index];
+		switch (instruction->Opcode)
+		{
+			case IROpcode_Dup:
+			case IROpcode_Pop:
+			case IROpcode_Load_Indirect:
+			case IROpcode_Store_Indirect:
+			case IROpcode_Neg:
+			case IROpcode_Not:
+			case IROpcode_CastClass:
+			case IROpcode_IsInst:
+			case IROpcode_Unbox:
+			case IROpcode_Unbox_Any:
+			case IROpcode_Box:
+			case IROpcode_New_Array:
+			case IROpcode_Allocate_Local:
+			case IROpcode_SizeOf:
+			case IROpcode_Call_Virtual:
+			case IROpcode_Load_VirtualFunction:
+				if (((IRType*)instruction->Arg1)->IsGeneric && ((IRType*)instruction->Arg1)->IsGenericInstantiation) return TRUE;
+				break;
+			case IROpcode_New_Object:
+			case IROpcode_Jump:
+			case IROpcode_Call_Absolute:
+			case IROpcode_Call_Internal:
+			case IROpcode_Load_Function:
+				if (ILDecomposition_MethodUsesGenerics((IRMethod*)instruction->Arg1)) return TRUE;
+				break;
+			case IROpcode_Load_StaticField:
+			case IROpcode_Load_StaticFieldAddress:
+			case IROpcode_Store_StaticField:
+				if (((IRField*)instruction->Arg1)->FieldType->IsGeneric && !((IRField*)instruction->Arg1)->FieldType->IsGenericInstantiation) return TRUE;
+				break;
+			case IROpcode_And:
+			case IROpcode_Or:
+			case IROpcode_Xor:
+			case IROpcode_Convert_Unchecked:
+			case IROpcode_Convert_Checked:
+			case IROpcode_Load_Object:
+			case IROpcode_Store_Object:
+			case IROpcode_Copy_Object:
+			case IROpcode_Load_Field:
+			case IROpcode_Load_FieldAddress:
+			case IROpcode_Store_Field:
+			case IROpcode_Load_Element:
+			case IROpcode_Load_ElementAddress:
+			case IROpcode_Store_Element:
+			case IROpcode_Initialize_Object:
+				if (((IRType*)instruction->Arg1)->IsGeneric && ((IRType*)instruction->Arg1)->IsGenericInstantiation) return TRUE;
+				if (((IRType*)instruction->Arg2)->IsGeneric && ((IRType*)instruction->Arg2)->IsGenericInstantiation) return TRUE;
+				break;
+			case IROpcode_Add:
+			case IROpcode_Sub:
+			case IROpcode_Mul:
+			case IROpcode_Div:
+			case IROpcode_Rem:
+			case IROpcode_Shift:
+				if (((IRType*)instruction->Arg2)->IsGeneric && ((IRType*)instruction->Arg2)->IsGenericInstantiation) return TRUE;
+				if (((IRType*)instruction->Arg3)->IsGeneric && ((IRType*)instruction->Arg3)->IsGenericInstantiation) return TRUE;
+				break;
+			case IROpcode_Branch:
+				if (((IRType*)instruction->Arg3)->IsGeneric && ((IRType*)instruction->Arg3)->IsGenericInstantiation) return TRUE;
+				if (((IRType*)instruction->Arg4)->IsGeneric && ((IRType*)instruction->Arg4)->IsGenericInstantiation) return TRUE;
+				break;
+			default: break;
+		}
+	}
+	return FALSE;
 }

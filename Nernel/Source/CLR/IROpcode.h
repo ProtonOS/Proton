@@ -54,9 +54,8 @@ typedef enum IROpcode
 		Stack:
 			value (present for return values, callee stack) -> ..., value (present for return values, caller stack)
 
-		Arg1: IRType*
-			A pointer to the IRType of the return type.
-			Should be NULL if there is no return type.
+		Arg1:
+			N/A
 
 		Arg2:
 			N/A

@@ -117,6 +117,16 @@ IRType* IRType_Create(IRAssembly* pAssembly, TypeDefinition* pTypeDefinition)
 	ILDecomposition_GetFieldLayout(type, pTypeDefinition);
 
 	type->IsGeneric = pTypeDefinition->GenericParameterCount > 0;
+	if (type->IsGeneric)
+	{
+		type->GenericParameterCount = pTypeDefinition->GenericParameterCount;
+		type->GenericParameters = (IRGenericParameter*)calloc(1, sizeof(IRGenericParameter) * type->GenericParameterCount);
+		for (uint32_t index = 0; index < type->GenericParameterCount; index++)
+		{
+			type->GenericParameters[index].FromParentType = TRUE;
+			type->GenericParameters[index].Index = pTypeDefinition->GenericParameters[index]->Index;
+		}
+	}
 
 	if (AppDomain_IsStructure(pTypeDefinition->File->Assembly->ParentDomain, pTypeDefinition))
 	{
@@ -150,10 +160,49 @@ IRType* IRType_Copy(IRType* pType)
 	return type;
 }
 
+IRType* IRType_GenericDeepCopy(IRType* pType, IRAssembly* pAssembly)
+{
+	IRType* type = (IRType*)calloc(1, sizeof(IRType));
+	Log_WriteLine(LOGLEVEL__Memory, "Memory: IRType_GenericDeepCopy @ 0x%x, of 0x%x", (unsigned int)type, (unsigned int)pType);
+	*type = *pType;
+	type->Fields = (IRField**)calloc(1, pType->FieldCount * sizeof(IRField*));
+	for (uint32_t index = 0; index < pType->FieldCount; ++index)
+	{
+		type->Fields[index] = IRField_Copy(pType->Fields[index]);
+	}
+	type->Methods = (IRMethod**)calloc(1, pType->MethodCount * sizeof(IRMethod*));
+	for (uint32_t index = 0; index < pType->MethodCount; ++index)
+	{
+		if (ILDecomposition_MethodUsesGenerics(pType->Methods[index]))
+		{
+			type->Methods[index] = IRMethod_GenericDeepCopy(pType->Methods[index], pAssembly);
+		}
+		else
+		{
+			type->Methods[index] = pType->Methods[index];
+		}
+	}
+	type->InterfaceTable = NULL;
+	for (IRInterfaceImpl* iterator = pType->InterfaceTable; iterator; iterator = (IRInterfaceImpl*)iterator->HashHandle.next)
+	{
+		IRInterfaceImpl* newInterface = IRInterfaceImpl_Create(iterator->InterfaceType);
+		HASH_ADD(HashHandle, type->InterfaceTable, InterfaceType, sizeof(void*), newInterface);
+	}
+	type->ParentAssembly = pAssembly;
+	type->FieldsLayedOut = FALSE;
+	type->IsGenericInstantiation = TRUE;
+	if (pType->SizeCalculated || pType->Size) Panic("This should not be happening");
+	type->StaticConstructorCalled = FALSE;
+	type->GenericParameterCount = 0;
+	type->GenericParameters = NULL;
+	return type;
+}
+
 void IRType_Destroy(IRType* pType)
 {
 	Log_WriteLine(LOGLEVEL__Memory, "Memory: IRType_Destroy @ 0x%x", (unsigned int)pType);
 	// TODO: Deal with copies not freeing their fields/methods, or having their own deep copies
+	if (pType->GenericParameters) free(pType->GenericParameters);
 	free(pType->Fields);
 	free(pType->Methods);
 	free(pType);
@@ -177,6 +226,15 @@ IRMethod* IRMethod_Create(IRAssembly* pAssembly, MethodDefinition* pMethodDefini
 	{
 		method->Returns = TRUE;
 		method->ReturnType = AppDomain_GetIRTypeFromSignatureType(pAssembly->ParentDomain, pAssembly, pMethodDefinition->SignatureCache->ReturnType->Type);
+	}
+
+	method->IsGeneric = pMethodDefinition->GenericParameterCount > 0;
+	method->GenericParameterCount = pMethodDefinition->GenericParameterCount;
+	method->GenericParameters = (IRGenericParameter*)calloc(1, method->GenericParameterCount * sizeof(IRGenericParameter));
+	for (uint32_t index = 0; index < pMethodDefinition->GenericParameterCount; index++)
+	{
+		method->GenericParameters[index].FromParentType = FALSE;
+		method->GenericParameters[index].Index = pMethodDefinition->GenericParameters[index]->Index;
 	}
 
 	method->ParameterCount = pMethodDefinition->SignatureCache->ParameterCount;
@@ -223,6 +281,35 @@ IRMethod* IRMethod_Create(IRAssembly* pAssembly, MethodDefinition* pMethodDefini
 	return method;
 }
 
+IRMethod* IRMethod_GenericDeepCopy(IRMethod* pMethod, IRAssembly* pAssembly)
+{
+    IRMethod* method = (IRMethod*)calloc(1, sizeof(IRMethod));
+	Log_WriteLine(LOGLEVEL__Memory, "Memory: IRMethod_GenericDeepCopy @ 0x%x, of 0x%x", (unsigned int)method, (unsigned int)pMethod);
+	*method = *pMethod;
+	method->ParentAssembly = pAssembly;
+	method->IRCodes = (IRInstruction**)calloc(1, method->IRCodesCount * sizeof(IRInstruction*));
+	for (uint32_t index = 0; index < pMethod->IRCodesCount; ++index)
+	{
+		method->IRCodes[index] = IRInstruction_Copy(pMethod->IRCodes[index]);
+	}
+	method->LocalVariables = (IRLocalVariable**)calloc(1, method->LocalVariableCount * sizeof(IRLocalVariable*));
+	for (uint32_t index = 0; index < pMethod->LocalVariableCount; ++index)
+	{
+		method->LocalVariables[index] = IRLocalVariable_Copy(pMethod->LocalVariables[index]);
+	}
+	method->Parameters = (IRParameter**)calloc(1, method->ParameterCount * sizeof(IRParameter*));
+	for (uint32_t index = 0; index < pMethod->ParameterCount; ++index)
+	{
+		method->Parameters[index] = IRParameter_Copy(pMethod->Parameters[index]);
+	}
+	if (method->IsGeneric)
+	{
+		method->GenericParameterCount = 0;
+		method->GenericParameters = NULL;
+	}
+	return method;
+}
+
 void IRMethod_Destroy(IRMethod* pMethod)
 {
 	Log_WriteLine(LOGLEVEL__Memory, "Memory: IRMethod_Destroy @ 0x%x", (unsigned int)pMethod);
@@ -240,6 +327,7 @@ void IRMethod_Destroy(IRMethod* pMethod)
 			IRParameter_Destroy(pMethod->Parameters[index]);
 		}
 	}
+	if (pMethod->GenericParameters) free(pMethod->GenericParameters);
 	free(pMethod->LocalVariables);
 	free(pMethod->Parameters);
     free(pMethod);
@@ -262,6 +350,14 @@ IRParameter* IRParameter_Create(IRMethod* pMethod, IRType* pType)
 	return parameter;
 }
 
+IRParameter* IRParameter_Copy(IRParameter* pParameter)
+{
+	IRParameter* parameter = (IRParameter*)calloc(1, sizeof(IRParameter));
+	Log_WriteLine(LOGLEVEL__Memory, "Memory: IRParameter_Copy @ 0x%x", (unsigned int)parameter);
+	*parameter = *pParameter;
+	return parameter;
+}
+
 void IRParameter_Destroy(IRParameter* pParameter)
 {
 	Log_WriteLine(LOGLEVEL__Memory, "Memory: IRParameter_Destroy @ 0x%x", (unsigned int)pParameter);
@@ -273,6 +369,14 @@ IRLocalVariable* IRLocalVariable_Create(IRMethod* pMethod, IRType* pType)
 	IRLocalVariable* localVariable = (IRLocalVariable*)calloc(1, sizeof(IRLocalVariable));
 	Log_WriteLine(LOGLEVEL__Memory, "Memory: IRLocalVariable_Create @ 0x%x", (unsigned int)localVariable);
 	localVariable->VariableType = pType;
+	return localVariable;
+}
+
+IRLocalVariable* IRLocalVariable_Copy(IRLocalVariable* pLocalVariable)
+{
+	IRLocalVariable* localVariable = (IRLocalVariable*)calloc(1, sizeof(IRLocalVariable));
+	Log_WriteLine(LOGLEVEL__Memory, "Memory: IRLocalVariable_Copy @ 0x%x", (unsigned int)localVariable);
+	*localVariable = *pLocalVariable;
 	return localVariable;
 }
 
@@ -364,6 +468,21 @@ void IRInterfaceImpl_Destroy(IRInterfaceImpl* pInterfaceImpl)
 	free(pInterfaceImpl);
 }
 
+IRGenericType* IRGenericType_Create(IRType* pGenericType, IRType* pImplementationType)
+{
+	IRGenericType* type = (IRGenericType*)calloc(1, sizeof(IRGenericType));
+	Log_WriteLine(LOGLEVEL__Memory, "Memory: IRGenericType_Create @ 0x%x", (unsigned int)type);
+	type->GenericType = pGenericType;
+	type->ImplementationType = pImplementationType;
+	return type;
+}
+
+void IRGenericType_Destroy(IRGenericType* pGenericType)
+{
+	Log_WriteLine(LOGLEVEL__Memory, "Memory: IRGenericType_Destroy @ 0x%x", (unsigned int)pGenericType);
+	free(pGenericType);
+}
+
 
 IRInstruction* IRInstruction_Create(uint32_t pILLocation, IROpcode pOpcode)
 {
@@ -371,6 +490,14 @@ IRInstruction* IRInstruction_Create(uint32_t pILLocation, IROpcode pOpcode)
 	Log_WriteLine(LOGLEVEL__Memory, "Memory: IRInstruction_Create @ 0x%x", (unsigned int)instruction);
 	instruction->ILLocation = pILLocation;
 	instruction->Opcode = pOpcode;
+	return instruction;
+}
+
+IRInstruction* IRInstruction_Copy(IRInstruction* pInstruction)
+{
+	IRInstruction* instruction = (IRInstruction*)calloc(1, sizeof(IRInstruction));
+	Log_WriteLine(LOGLEVEL__Memory, "Memory: IRInstruction_Copy @ 0x%x", (unsigned int)instruction);
+	*instruction = *pInstruction;
 	return instruction;
 }
 
