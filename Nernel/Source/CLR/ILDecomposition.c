@@ -3648,14 +3648,17 @@ BranchCommon:
 
 bool_t ILDecomposition_MethodUsesGenerics(IRMethod* pMethod)
 {
-	if (pMethod->Returns && pMethod->ReturnType->IsGeneric && !pMethod->ReturnType->IsGenericInstantiation) return TRUE;
+	if (pMethod->Returns &&
+		((pMethod->ReturnType->IsGeneric && !pMethod->ReturnType->IsGenericInstantiation) || pMethod->ReturnType->IsGenericParameter)) return TRUE;
 	for (uint32_t index = 0; index < pMethod->ParameterCount; ++index)
 	{
-		if (pMethod->Parameters[index]->Type->IsGeneric && !pMethod->Parameters[index]->Type->IsGenericInstantiation) return TRUE;
+		if ((pMethod->Parameters[index]->Type->IsGeneric && !pMethod->Parameters[index]->Type->IsGenericInstantiation) ||
+			pMethod->Parameters[index]->Type->IsGenericParameter) return TRUE;
 	}
 	for (uint32_t index = 0; index < pMethod->LocalVariableCount; ++index)
 	{
-		if (pMethod->LocalVariables[index]->VariableType->IsGeneric && !pMethod->LocalVariables[index]->VariableType->IsGenericInstantiation) return TRUE;
+		if ((pMethod->LocalVariables[index]->VariableType->IsGeneric && !pMethod->LocalVariables[index]->VariableType->IsGenericInstantiation) ||
+			pMethod->LocalVariables[index]->VariableType->IsGenericParameter) return TRUE;
 	}
 	for (uint32_t index = 0; index < pMethod->IRCodesCount; ++index)
 	{
@@ -3678,7 +3681,8 @@ bool_t ILDecomposition_MethodUsesGenerics(IRMethod* pMethod)
 			case IROpcode_SizeOf:
 			case IROpcode_Call_Virtual:
 			case IROpcode_Load_VirtualFunction:
-				if (((IRType*)instruction->Arg1)->IsGeneric && ((IRType*)instruction->Arg1)->IsGenericInstantiation) return TRUE;
+				if ((((IRType*)instruction->Arg1)->IsGeneric && !((IRType*)instruction->Arg1)->IsGenericInstantiation) ||
+					((IRType*)instruction->Arg1)->IsGenericParameter) return TRUE;
 				break;
 			case IROpcode_New_Object:
 			case IROpcode_Jump:
@@ -3690,7 +3694,8 @@ bool_t ILDecomposition_MethodUsesGenerics(IRMethod* pMethod)
 			case IROpcode_Load_StaticField:
 			case IROpcode_Load_StaticFieldAddress:
 			case IROpcode_Store_StaticField:
-				if (((IRField*)instruction->Arg1)->FieldType->IsGeneric && !((IRField*)instruction->Arg1)->FieldType->IsGenericInstantiation) return TRUE;
+				if ((((IRField*)instruction->Arg1)->FieldType->IsGeneric && !((IRField*)instruction->Arg1)->FieldType->IsGenericInstantiation) ||
+					((IRField*)instruction->Arg1)->FieldType->IsGenericParameter) return TRUE;
 				break;
 			case IROpcode_And:
 			case IROpcode_Or:
@@ -3707,8 +3712,10 @@ bool_t ILDecomposition_MethodUsesGenerics(IRMethod* pMethod)
 			case IROpcode_Load_ElementAddress:
 			case IROpcode_Store_Element:
 			case IROpcode_Initialize_Object:
-				if (((IRType*)instruction->Arg1)->IsGeneric && ((IRType*)instruction->Arg1)->IsGenericInstantiation) return TRUE;
-				if (((IRType*)instruction->Arg2)->IsGeneric && ((IRType*)instruction->Arg2)->IsGenericInstantiation) return TRUE;
+				if ((((IRType*)instruction->Arg1)->IsGeneric && ((IRType*)instruction->Arg1)->IsGenericInstantiation) ||
+					((IRType*)instruction->Arg1)->IsGenericParameter) return TRUE;
+				if ((((IRType*)instruction->Arg2)->IsGeneric && ((IRType*)instruction->Arg2)->IsGenericInstantiation) ||
+					((IRType*)instruction->Arg2)->IsGenericParameter) return TRUE;
 				break;
 			case IROpcode_Add:
 			case IROpcode_Sub:
@@ -3716,12 +3723,16 @@ bool_t ILDecomposition_MethodUsesGenerics(IRMethod* pMethod)
 			case IROpcode_Div:
 			case IROpcode_Rem:
 			case IROpcode_Shift:
-				if (((IRType*)instruction->Arg2)->IsGeneric && ((IRType*)instruction->Arg2)->IsGenericInstantiation) return TRUE;
-				if (((IRType*)instruction->Arg3)->IsGeneric && ((IRType*)instruction->Arg3)->IsGenericInstantiation) return TRUE;
+				if ((((IRType*)instruction->Arg2)->IsGeneric && ((IRType*)instruction->Arg2)->IsGenericInstantiation) ||
+					((IRType*)instruction->Arg2)->IsGenericParameter) return TRUE;
+				if ((((IRType*)instruction->Arg3)->IsGeneric && ((IRType*)instruction->Arg3)->IsGenericInstantiation) ||
+					((IRType*)instruction->Arg3)->IsGenericParameter) return TRUE;
 				break;
 			case IROpcode_Branch:
-				if (((IRType*)instruction->Arg3)->IsGeneric && ((IRType*)instruction->Arg3)->IsGenericInstantiation) return TRUE;
-				if (((IRType*)instruction->Arg4)->IsGeneric && ((IRType*)instruction->Arg4)->IsGenericInstantiation) return TRUE;
+				if ((((IRType*)instruction->Arg3)->IsGeneric && ((IRType*)instruction->Arg3)->IsGenericInstantiation) ||
+					((IRType*)instruction->Arg3)->IsGenericParameter) return TRUE;
+				if ((((IRType*)instruction->Arg4)->IsGeneric && ((IRType*)instruction->Arg4)->IsGenericInstantiation) ||
+					((IRType*)instruction->Arg4)->IsGenericParameter) return TRUE;
 				break;
 			default: break;
 		}

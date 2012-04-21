@@ -404,6 +404,11 @@ IRType* AppDomain_GetIRTypeFromSignatureType(AppDomain* pDomain, IRAssembly* pAs
 			IRGenericType key;
 			IRGenericType* keyPtr = &key;
 			key.GenericType = type;
+			if (type->GenericParameterCount != pType->GenericInstGenericArgumentCount)
+			{
+				printf("type->TypeDef->GenericParameterCount (%u), type->GenericParameterCount (%u) != pType->GenericInstGenericArgumentCount (%u)\n", (unsigned int)type->TypeDefinition->GenericParameterCount, (unsigned int)type->GenericParameterCount, (unsigned int)pType->GenericInstGenericArgumentCount);
+				Panic("AppDomain_GetIRTypeFromSignatureType GenericInstantiation Parameter Count Mismatch");
+			}
 			key.ParameterCount = pType->GenericInstGenericArgumentCount;
 			for (uint32_t index = 0; index < pType->GenericInstGenericArgumentCount; ++index)
 			{
@@ -419,7 +424,9 @@ IRType* AppDomain_GetIRTypeFromSignatureType(AppDomain* pDomain, IRAssembly* pAs
 				implementationType->GenericType->ParameterCount = pType->GenericInstGenericArgumentCount;
 				for (uint32_t index = 0; index < pType->GenericInstGenericArgumentCount; ++index)
 				{
+
 					implementationType->GenericType->Parameters[index] = AppDomain_GetIRTypeFromSignatureType(pDomain, pAssembly, pType->GenericInstGenericArguments[index]);
+					printf("Tests: 0x%x\n", (unsigned int)implementationType->GenericType->Parameters[index]->IsGenericParameter);
 					printf("GenericInstantiation Type %s.%s, Param %u Type %s.%s\n", implementationType->TypeDefinition->Namespace, implementationType->TypeDefinition->Name, (unsigned int)index, implementationType->GenericType->Parameters[index]->TypeDefinition->Namespace, implementationType->GenericType->Parameters[index]->TypeDefinition->Name);
 				}
 				HASH_ADD(HashHandle, pAssembly->GenericTypesHashTable, GenericType, sizeof(IRGenericType) - sizeof(IRType*) - sizeof(UT_hash_handle), implementationType->GenericType);
@@ -812,6 +819,9 @@ void AppDomain_ResolveMemberReference(AppDomain* pDomain, CLIFile* pFile, Member
 
 void AppDomain_ResolveGenericTypeParameters(AppDomain* pDomain, CLIFile* pFile, IRType* pType)
 {
+	if (!pType->IsGeneric || pType->IsGenericInstantiation)
+		return;
+
 	for(uint32_t index = 0; index < pType->FieldCount; index++)
 	{
 		IRField* field = pType->Fields[index];
@@ -824,13 +834,13 @@ void AppDomain_ResolveGenericTypeParameters(AppDomain* pDomain, CLIFile* pFile, 
 			key.ParameterCount = pType->GenericType->ParameterCount;
 			for (uint32_t index = 0; index < pType->GenericType->ParameterCount; ++index)
 			{
-				if(pType->GenericType->Parameters[fieldType->GenericParameters[index].Index]->IsGenericParameter)
+				if (fieldType->GenericType->Parameters[index]->IsGenericParameter)
 				{
-
+					key.Parameters[index] = pType->GenericType->Parameters[fieldType->GenericType->Parameters[index]->GenericParameterIndex];
 				}
 				else
 				{
-					key.Parameters[index] = pType->GenericType->Parameters[fieldType->GenericParameters[index].Index];
+					key.Parameters[index] = fieldType->GenericType->Parameters[index];
 				}
 			}
 			IRGenericType* lookupType = NULL;
@@ -842,9 +852,17 @@ void AppDomain_ResolveGenericTypeParameters(AppDomain* pDomain, CLIFile* pFile, 
 				implementationType->GenericType->ParameterCount = pType->GenericType->ParameterCount;
 				for (uint32_t index = 0; index < pType->GenericType->ParameterCount; ++index)
 				{
-					implementationType->GenericType->Parameters[index] = pType->GenericType->Parameters[fieldType->GenericParameters[index].Index];
+					if (fieldType->GenericType->Parameters[index]->IsGenericParameter)
+					{
+						implementationType->GenericType->Parameters[index] = pType->GenericType->Parameters[fieldType->GenericType->Parameters[index]->GenericParameterIndex];
+					}
+					else
+					{
+						implementationType->GenericType->Parameters[index] = fieldType->GenericType->Parameters[index];
+					}
 					printf("ResolveGenericTypeParameters, GenericInstantiation Type %s.%s, Param %u Type %s.%s\n", implementationType->TypeDefinition->Namespace, implementationType->TypeDefinition->Name, (unsigned int)index, implementationType->GenericType->Parameters[index]->TypeDefinition->Namespace, implementationType->GenericType->Parameters[index]->TypeDefinition->Name);
 				}
+				field->FieldType = implementationType;
 				HASH_ADD(HashHandle, pFile->Assembly->GenericTypesHashTable, GenericType, sizeof(IRGenericType) - sizeof(IRType*) - sizeof(UT_hash_handle), implementationType->GenericType);
 				AppDomain_ResolveGenericTypeParameters(pDomain, pFile, implementationType);
 			}
@@ -855,9 +873,7 @@ void AppDomain_ResolveGenericTypeParameters(AppDomain* pDomain, CLIFile* pFile, 
 		}
 		else if (field->FieldType->IsGenericParameter)
 		{
-			uint32_t parameterIndex = field->FieldType->GenericParameterIndex;
-			free(field->FieldType);
-			field->FieldType = pType->GenericType->Parameters[parameterIndex];
+			field->FieldType = pType->GenericType->Parameters[field->FieldType->GenericParameterIndex];
 		}
 	}
 
@@ -865,6 +881,68 @@ void AppDomain_ResolveGenericTypeParameters(AppDomain* pDomain, CLIFile* pFile, 
 	{
 		IRMethod* method = pType->Methods[index];
 		AppDomain_ResolveGenericMethodParameters(pDomain, pFile, pType, method);
+	}
+
+	IRInterfaceImpl* removed = NULL;
+	for (IRInterfaceImpl* iterator = pType->InterfaceTable, *iteratorNext = NULL; iterator; iterator = iteratorNext)
+	{
+		iteratorNext = (IRInterfaceImpl*)iterator->HashHandle.next;
+		if (iterator->InterfaceType->IsGeneric && !iterator->InterfaceType->IsGenericInstantiation)
+		{
+			HASH_DELETE(HashHandle, pType->InterfaceTable, iterator);
+			HASH_ADD(HashHandle, removed, InterfaceType, sizeof(void*), iterator);
+		}
+	}
+	for (IRInterfaceImpl* iterator = removed, *iteratorNext = NULL; iterator; iterator = iteratorNext)
+	{
+		iteratorNext = (IRInterfaceImpl*)iterator->HashHandle.next;
+		
+		IRType* interfaceType = iterator->InterfaceType;
+		IRGenericType key;
+		IRGenericType* keyPtr = &key;
+		key.GenericType = pType->GenericType->GenericType;
+		key.ParameterCount = pType->GenericType->ParameterCount;
+		for (uint32_t index = 0; index < pType->GenericType->ParameterCount; ++index)
+		{
+			if (interfaceType->GenericType->Parameters[index]->IsGenericParameter)
+			{
+				key.Parameters[index] = pType->GenericType->Parameters[interfaceType->GenericType->Parameters[index]->GenericParameterIndex];
+			}
+			else
+			{
+				key.Parameters[index] = interfaceType->GenericType->Parameters[index];
+			}
+		}
+		IRGenericType* lookupType = NULL;
+		HASH_FIND(HashHandle, pFile->Assembly->GenericTypesHashTable, (void*)&keyPtr, sizeof(IRGenericType) - sizeof(IRType*) - sizeof(UT_hash_handle), lookupType);
+		if (!lookupType)
+		{
+			IRType* implementationType = IRType_GenericDeepCopy(interfaceType, pFile->Assembly);
+			implementationType->GenericType = IRGenericType_Create(interfaceType, implementationType);
+			implementationType->GenericType->ParameterCount = pType->GenericType->ParameterCount;
+			for (uint32_t index = 0; index < pType->GenericType->ParameterCount; ++index)
+			{
+				if (interfaceType->GenericType->Parameters[index]->IsGenericParameter)
+				{
+					implementationType->GenericType->Parameters[index] = pType->GenericType->Parameters[interfaceType->GenericType->Parameters[index]->GenericParameterIndex];
+				}
+				else
+				{
+					implementationType->GenericType->Parameters[index] = interfaceType->GenericType->Parameters[index];
+				}
+				printf("ResolveGenericTypeParameters, GenericInstantiation Interface Type %s.%s, Param %u Type %s.%s\n", implementationType->TypeDefinition->Namespace, implementationType->TypeDefinition->Name, (unsigned int)index, implementationType->GenericType->Parameters[index]->TypeDefinition->Namespace, implementationType->GenericType->Parameters[index]->TypeDefinition->Name);
+			}
+			iterator->InterfaceType = implementationType;
+			HASH_ADD(HashHandle, pFile->Assembly->GenericTypesHashTable, GenericType, sizeof(IRGenericType) - sizeof(IRType*) - sizeof(UT_hash_handle), implementationType->GenericType);
+			AppDomain_ResolveGenericTypeParameters(pDomain, pFile, implementationType);
+		}
+		else
+		{
+			iterator->InterfaceType = lookupType->ImplementationType;
+		}
+
+		HASH_DELETE(HashHandle, removed, iterator);
+		HASH_ADD(HashHandle, pType->InterfaceTable, InterfaceType, sizeof(void*), iterator);
 	}
 }
 
@@ -881,7 +959,17 @@ void AppDomain_ResolveGenericMethodParametersInternal(AppDomain* pDomain, CLIFil
 	IRType* type = *pResolvingType;
 	if (type->IsGenericParameter)
 	{
-
+		if (type->IsGenericParameterFromParentType)
+		{
+			if (!pType) Panic("This shouldn't happen ever!");
+			*pResolvingType = pType->GenericType->Parameters[type->GenericParameterIndex];
+		}
+		else
+		{
+			if (!pMethod->GenericMethod) Panic("This better not happen ever!");
+			*pResolvingType = pMethod->GenericMethod->Parameters[type->GenericParameterIndex];
+		}
+		return;
 	}
 	IRGenericType key;
 	IRGenericType* keyPtr = &key;
@@ -889,15 +977,22 @@ void AppDomain_ResolveGenericMethodParametersInternal(AppDomain* pDomain, CLIFil
 	key.ParameterCount = type->GenericParameterCount;
 	for (uint32_t index = 0; index < type->GenericParameterCount; ++index)
 	{
-		if (type->GenericParameters[index].FromParentType)
+		if (type->GenericType->Parameters[index]->IsGenericParameter)
 		{
-			if (!pType) Panic("This shouldn't happen!");
-			key.Parameters[index] = pType->GenericType->Parameters[type->GenericParameters[index].Index];
+			if (type->IsGenericParameterFromParentType)
+			{
+				if (!pType) Panic("This shouldn't happen!");
+				key.Parameters[index] = pType->GenericType->Parameters[type->GenericParameterIndex];
+			}
+			else
+			{
+				if (!pMethod->GenericMethod) Panic("This better not happen!");
+				key.Parameters[index] = pMethod->GenericMethod->Parameters[type->GenericParameterIndex];
+			}
 		}
 		else
 		{
-			if (!pMethod->GenericMethod) Panic("This better not happen!");
-			key.Parameters[index] = pMethod->GenericMethod->Parameters[type->GenericParameters[index].Index];
+			key.Parameters[index] = type->GenericType->Parameters[index];
 		}
 	}
 	IRGenericType* lookupType = NULL;
@@ -909,15 +1004,24 @@ void AppDomain_ResolveGenericMethodParametersInternal(AppDomain* pDomain, CLIFil
 		implementationType->GenericType->ParameterCount = pType->GenericType->ParameterCount;
 		for (uint32_t index = 0; index < pType->GenericType->ParameterCount; ++index)
 		{
-			if (type->GenericParameters[index].FromParentType)
+			if (type->GenericType->Parameters[index]->IsGenericParameter)
 			{
-				implementationType->GenericType->Parameters[index] = pType->GenericType->Parameters[type->GenericParameters[index].Index];
-				printf("ResolveGenericMethodParameters from Type, GenericInstantiation Type %s.%s, Param %u Type %s.%s\n", implementationType->TypeDefinition->Namespace, implementationType->TypeDefinition->Name, (unsigned int)index, implementationType->GenericType->Parameters[index]->TypeDefinition->Namespace, implementationType->GenericType->Parameters[index]->TypeDefinition->Name);
+				if (type->IsGenericParameterFromParentType)
+				{
+					if (!pType) Panic("This shouldn't happen!");
+					implementationType->GenericType->Parameters[index] = pType->GenericType->Parameters[type->GenericParameterIndex];
+					printf("ResolveGenericMethodParameters from Type, GenericInstantiation Type %s.%s, Param %u Type %s.%s\n", implementationType->TypeDefinition->Namespace, implementationType->TypeDefinition->Name, (unsigned int)index, implementationType->GenericType->Parameters[index]->TypeDefinition->Namespace, implementationType->GenericType->Parameters[index]->TypeDefinition->Name);
+				}
+				else
+				{
+					if (!pMethod->GenericMethod) Panic("This better not happen!");
+					implementationType->GenericType->Parameters[index] = pMethod->GenericMethod->Parameters[type->GenericParameterIndex];
+					printf("ResolveGenericMethodParameters from Method, GenericInstantiation Type %s.%s, Param %u Type %s.%s\n", implementationType->TypeDefinition->Namespace, implementationType->TypeDefinition->Name, (unsigned int)index, implementationType->GenericType->Parameters[index]->TypeDefinition->Namespace, implementationType->GenericType->Parameters[index]->TypeDefinition->Name);
+				}
 			}
 			else
 			{
-				implementationType->GenericType->Parameters[index] = pMethod->GenericMethod->Parameters[type->GenericParameters[index].Index];
-				printf("ResolveGenericMethodParameters from Method, GenericInstantiation Type %s.%s, Param %u Type %s.%s\n", implementationType->TypeDefinition->Namespace, implementationType->TypeDefinition->Name, (unsigned int)index, implementationType->GenericType->Parameters[index]->TypeDefinition->Namespace, implementationType->GenericType->Parameters[index]->TypeDefinition->Name);
+				implementationType->GenericType->Parameters[index] = type->GenericType->Parameters[index];
 			}
 		}
 		*pResolvingType = implementationType;
@@ -938,7 +1042,8 @@ void AppDomain_ResolveGenericMethodParameters(AppDomain* pDomain, CLIFile* pFile
 		return;
 	}
 
-	if (pMethod->Returns && pMethod->ReturnType->IsGeneric && !pMethod->ReturnType->IsGenericInstantiation)
+	if (pMethod->Returns &&
+		((pMethod->ReturnType->IsGeneric && !pMethod->ReturnType->IsGenericInstantiation) || pMethod->ReturnType->IsGenericParameter))
 	{
 		AppDomain_ResolveGenericMethodParametersInternal(pDomain, pFile, pType, pMethod, &pMethod->ReturnType);
 	}
@@ -946,7 +1051,7 @@ void AppDomain_ResolveGenericMethodParameters(AppDomain* pDomain, CLIFile* pFile
 	for (uint32_t index = 0; index < pMethod->LocalVariableCount; index++)
 	{
 		IRLocalVariable* local = pMethod->LocalVariables[index];
-		if (local->VariableType->IsGeneric && !local->VariableType->IsGenericInstantiation)
+		if ((local->VariableType->IsGeneric && !local->VariableType->IsGenericInstantiation) || local->VariableType->IsGenericParameter)
 		{
 			AppDomain_ResolveGenericMethodParametersInternal(pDomain, pFile, pType, pMethod, &local->VariableType);
 		}
@@ -955,7 +1060,7 @@ void AppDomain_ResolveGenericMethodParameters(AppDomain* pDomain, CLIFile* pFile
 	for (uint32_t index = 0; index < pMethod->ParameterCount; index++)
 	{
 		IRParameter* param = pMethod->Parameters[index];
-		if (param->Type->IsGeneric && !param->Type->IsGenericInstantiation)
+		if ((param->Type->IsGeneric && !param->Type->IsGenericInstantiation) || param->Type->IsGenericParameter)
 		{
 			AppDomain_ResolveGenericMethodParametersInternal(pDomain, pFile, pType, pMethod, &param->Type);
 		}
@@ -982,7 +1087,8 @@ void AppDomain_ResolveGenericMethodParameters(AppDomain* pDomain, CLIFile* pFile
 			case IROpcode_SizeOf:
 			case IROpcode_Call_Virtual:
 			case IROpcode_Load_VirtualFunction:
-				if (((IRType*)instruction->Arg1)->IsGeneric && ((IRType*)instruction->Arg1)->IsGenericInstantiation)
+				if ((((IRType*)instruction->Arg1)->IsGeneric && !((IRType*)instruction->Arg1)->IsGenericInstantiation) ||
+					((IRType*)instruction->Arg1)->IsGenericParameter)
 				{
 					AppDomain_ResolveGenericMethodParametersInternal(pDomain, pFile, pType, pMethod, (IRType**)&instruction->Arg1);
 				}
@@ -1000,7 +1106,8 @@ void AppDomain_ResolveGenericMethodParameters(AppDomain* pDomain, CLIFile* pFile
 			case IROpcode_Load_StaticField:
 			case IROpcode_Load_StaticFieldAddress:
 			case IROpcode_Store_StaticField:
-				if (((IRField*)instruction->Arg1)->FieldType->IsGeneric && !((IRField*)instruction->Arg1)->FieldType->IsGenericInstantiation)
+				if ((((IRField*)instruction->Arg1)->FieldType->IsGeneric && !((IRField*)instruction->Arg1)->FieldType->IsGenericInstantiation) ||
+					((IRField*)instruction->Arg1)->FieldType->IsGenericParameter)
 				{
 					Panic("Deal with this later");
 				}
@@ -1020,11 +1127,13 @@ void AppDomain_ResolveGenericMethodParameters(AppDomain* pDomain, CLIFile* pFile
 			case IROpcode_Load_ElementAddress:
 			case IROpcode_Store_Element:
 			case IROpcode_Initialize_Object:
-				if (((IRType*)instruction->Arg1)->IsGeneric && ((IRType*)instruction->Arg1)->IsGenericInstantiation)
+				if ((((IRType*)instruction->Arg1)->IsGeneric && !((IRType*)instruction->Arg1)->IsGenericInstantiation) ||
+					((IRType*)instruction->Arg1)->IsGenericParameter)
 				{
 					AppDomain_ResolveGenericMethodParametersInternal(pDomain, pFile, pType, pMethod, (IRType**)&instruction->Arg1);
 				}
-				if (((IRType*)instruction->Arg2)->IsGeneric && ((IRType*)instruction->Arg2)->IsGenericInstantiation)
+				if ((((IRType*)instruction->Arg2)->IsGeneric && !((IRType*)instruction->Arg2)->IsGenericInstantiation) ||
+					((IRType*)instruction->Arg2)->IsGenericParameter)
 				{
 					AppDomain_ResolveGenericMethodParametersInternal(pDomain, pFile, pType, pMethod, (IRType**)&instruction->Arg2);
 				}
@@ -1035,21 +1144,25 @@ void AppDomain_ResolveGenericMethodParameters(AppDomain* pDomain, CLIFile* pFile
 			case IROpcode_Div:
 			case IROpcode_Rem:
 			case IROpcode_Shift:
-				if (((IRType*)instruction->Arg2)->IsGeneric && ((IRType*)instruction->Arg2)->IsGenericInstantiation)
+				if ((((IRType*)instruction->Arg2)->IsGeneric && !((IRType*)instruction->Arg2)->IsGenericInstantiation) ||
+					((IRType*)instruction->Arg2)->IsGenericParameter)
 				{
 					AppDomain_ResolveGenericMethodParametersInternal(pDomain, pFile, pType, pMethod, (IRType**)&instruction->Arg2);
 				}
-				if (((IRType*)instruction->Arg3)->IsGeneric && ((IRType*)instruction->Arg3)->IsGenericInstantiation)
+				if ((((IRType*)instruction->Arg3)->IsGeneric && !((IRType*)instruction->Arg3)->IsGenericInstantiation) ||
+					((IRType*)instruction->Arg3)->IsGenericParameter)
 				{
 					AppDomain_ResolveGenericMethodParametersInternal(pDomain, pFile, pType, pMethod, (IRType**)&instruction->Arg3);
 				}
 				break;
 			case IROpcode_Branch:
-				if (((IRType*)instruction->Arg3)->IsGeneric && ((IRType*)instruction->Arg3)->IsGenericInstantiation)
+				if ((((IRType*)instruction->Arg3)->IsGeneric && !((IRType*)instruction->Arg3)->IsGenericInstantiation) ||
+					((IRType*)instruction->Arg3)->IsGenericParameter)
 				{
 					AppDomain_ResolveGenericMethodParametersInternal(pDomain, pFile, pType, pMethod, (IRType**)&instruction->Arg3);
 				}
-				if (((IRType*)instruction->Arg4)->IsGeneric && ((IRType*)instruction->Arg4)->IsGenericInstantiation)
+				if ((((IRType*)instruction->Arg4)->IsGeneric && !((IRType*)instruction->Arg4)->IsGenericInstantiation) ||
+					((IRType*)instruction->Arg4)->IsGenericParameter)
 				{
 					AppDomain_ResolveGenericMethodParametersInternal(pDomain, pFile, pType, pMethod, (IRType**)&instruction->Arg4);
 				}

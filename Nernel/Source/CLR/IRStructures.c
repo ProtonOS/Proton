@@ -127,16 +127,7 @@ IRType* IRType_Create(IRAssembly* pAssembly, TypeDefinition* pTypeDefinition)
 	ILDecomposition_GetFieldLayout(type, pTypeDefinition);
 
 	type->IsGeneric = pTypeDefinition->GenericParameterCount > 0;
-	if (type->IsGeneric)
-	{
-		type->GenericParameterCount = pTypeDefinition->GenericParameterCount;
-		type->GenericParameters = (IRGenericParameter*)calloc(1, sizeof(IRGenericParameter) * type->GenericParameterCount);
-		for (uint32_t index = 0; index < type->GenericParameterCount; index++)
-		{
-			type->GenericParameters[index].FromParentType = TRUE;
-			type->GenericParameters[index].Index = pTypeDefinition->GenericParameters[index]->Index;
-		}
-	}
+	type->GenericParameterCount = pTypeDefinition->GenericParameterCount;
 
 	if (AppDomain_IsStructure(pTypeDefinition->File->Assembly->ParentDomain, pTypeDefinition))
 	{
@@ -175,6 +166,12 @@ IRType* IRType_GenericDeepCopy(IRType* pType, IRAssembly* pAssembly)
 	IRType* type = (IRType*)calloc(1, sizeof(IRType));
 	Log_WriteLine(LOGLEVEL__Memory, "Memory: IRType_GenericDeepCopy @ 0x%x, of 0x%x", (unsigned int)type, (unsigned int)pType);
 	*type = *pType;
+	type->ParentAssembly = pAssembly;
+	type->FieldsLayedOut = FALSE;
+	type->IsGenericInstantiation = TRUE;
+	if (pType->SizeCalculated || pType->Size) Panic("This should not be happening");
+	type->StaticConstructorCalled = FALSE;
+
 	type->Fields = (IRField**)calloc(1, pType->FieldCount * sizeof(IRField*));
 	for (uint32_t index = 0; index < pType->FieldCount; ++index)
 	{
@@ -198,13 +195,6 @@ IRType* IRType_GenericDeepCopy(IRType* pType, IRAssembly* pAssembly)
 		IRInterfaceImpl* newInterface = IRInterfaceImpl_Create(iterator->InterfaceType);
 		HASH_ADD(HashHandle, type->InterfaceTable, InterfaceType, sizeof(void*), newInterface);
 	}
-	type->ParentAssembly = pAssembly;
-	type->FieldsLayedOut = FALSE;
-	type->IsGenericInstantiation = TRUE;
-	if (pType->SizeCalculated || pType->Size) Panic("This should not be happening");
-	type->StaticConstructorCalled = FALSE;
-	type->GenericParameterCount = 0;
-	type->GenericParameters = NULL;
 	return type;
 }
 
@@ -212,7 +202,6 @@ void IRType_Destroy(IRType* pType)
 {
 	Log_WriteLine(LOGLEVEL__Memory, "Memory: IRType_Destroy @ 0x%x", (unsigned int)pType);
 	// TODO: Deal with copies not freeing their fields/methods, or having their own deep copies
-	if (pType->GenericParameters) free(pType->GenericParameters);
 	free(pType->Fields);
 	free(pType->Methods);
 	free(pType);
@@ -240,12 +229,6 @@ IRMethod* IRMethod_Create(IRAssembly* pAssembly, MethodDefinition* pMethodDefini
 
 	method->IsGeneric = pMethodDefinition->GenericParameterCount > 0;
 	method->GenericParameterCount = pMethodDefinition->GenericParameterCount;
-	method->GenericParameters = (IRGenericParameter*)calloc(1, method->GenericParameterCount * sizeof(IRGenericParameter));
-	for (uint32_t index = 0; index < pMethodDefinition->GenericParameterCount; index++)
-	{
-		method->GenericParameters[index].FromParentType = FALSE;
-		method->GenericParameters[index].Index = pMethodDefinition->GenericParameters[index]->Index;
-	}
 
 	method->ParameterCount = pMethodDefinition->SignatureCache->ParameterCount;
 	bool_t addingThis = FALSE;
@@ -315,7 +298,6 @@ IRMethod* IRMethod_GenericDeepCopy(IRMethod* pMethod, IRAssembly* pAssembly)
 	if (method->IsGeneric)
 	{
 		method->GenericParameterCount = 0;
-		method->GenericParameters = NULL;
 	}
 	return method;
 }
@@ -337,7 +319,6 @@ void IRMethod_Destroy(IRMethod* pMethod)
 			IRParameter_Destroy(pMethod->Parameters[index]);
 		}
 	}
-	if (pMethod->GenericParameters) free(pMethod->GenericParameters);
 	free(pMethod->LocalVariables);
 	free(pMethod->Parameters);
     free(pMethod);

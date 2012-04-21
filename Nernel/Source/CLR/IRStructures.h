@@ -99,7 +99,6 @@ struct _IRType
 	IRGenericType* GenericType;
 
 	uint32_t GenericParameterCount;
-	IRGenericParameter* GenericParameters;
 
 	bool_t IsGenericParameter;
 	bool_t IsGenericParameterFromParentType;
@@ -134,7 +133,6 @@ struct _IRMethod
 	bool_t IsGeneric;
 	bool_t IsGenericImplementation;
 	uint32_t GenericParameterCount;
-	IRGenericParameter* GenericParameters;
 	IRGenericMethod* GenericMethod;
 
     void(*AssembledMethod)();
