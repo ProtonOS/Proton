@@ -95,6 +95,7 @@ IRType* IRAssembly_CreateGenericParameter(IRAssembly* pAssembly, bool_t pIsFromP
 {
 	IRType* type = (IRType*)calloc(1, sizeof(IRType));
 	Log_WriteLine(LOGLEVEL__Memory, "Memory: Generic Parameter @ 0x%x", (unsigned int)type);
+	type->IsGeneric = TRUE;
 	type->IsGenericParameter = TRUE;
 	type->IsGenericParameterFromParentType = pIsFromParentType;
 	type->GenericParameterIndex = pIndex;

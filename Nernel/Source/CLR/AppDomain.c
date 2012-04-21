@@ -407,7 +407,7 @@ IRType* AppDomain_GetIRTypeFromSignatureType(AppDomain* pDomain, IRAssembly* pAs
 			if (type->GenericParameterCount != pType->GenericInstGenericArgumentCount)
 			{
 				printf("type->TypeDef->GenericParameterCount (%u), type->GenericParameterCount (%u) != pType->GenericInstGenericArgumentCount (%u)\n", (unsigned int)type->TypeDefinition->GenericParameterCount, (unsigned int)type->GenericParameterCount, (unsigned int)pType->GenericInstGenericArgumentCount);
-				Panic("AppDomain_GetIRTypeFromSignatureType GenericInstantiation Parameter Count Mismatch");
+				//Panic("AppDomain_GetIRTypeFromSignatureType GenericInstantiation Parameter Count Mismatch");
 			}
 			key.ParameterCount = pType->GenericInstGenericArgumentCount;
 			for (uint32_t index = 0; index < pType->GenericInstGenericArgumentCount; ++index)
@@ -810,7 +810,7 @@ void AppDomain_ResolveMemberReference(AppDomain* pDomain, CLIFile* pFile, Member
 		}
 		case MemberRefParentType_TypeSpecification:
 		{
-			printf("Member reference resolution through TypeSpec not yet supported!\n");
+			Panic("Member reference resolution through TypeSpec not yet supported!\n");
 			break;
 		}
 		default: Panic("Unhandled member reference resolution"); break;
