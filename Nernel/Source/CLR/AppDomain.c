@@ -302,6 +302,22 @@ IRType* AppDomain_GetIRTypeFromSignatureType(AppDomain* pDomain, IRAssembly* pAs
 			CLIFile_DestroyMetadataToken(token);
 			break;
 		}
+		case SignatureElementType_Array:
+		{
+			IRType* sysArrayType = pDomain->IRAssemblies[0]->Types[pDomain->CachedType___System_Array->TableIndex - 1];
+			IRType* elementType = AppDomain_GetIRTypeFromSignatureType(pDomain, pAssembly, pType->ArrayType);
+			IRArrayType* lookupType = NULL;
+			HASH_FIND(HashHandle, pAssembly->ArrayTypesHashTable, (void*)&elementType, sizeof(void*), lookupType);
+			if (!lookupType)
+			{
+				type = IRType_Copy(sysArrayType);
+				type->IsArrayType = TRUE;
+				type->ArrayType = IRArrayType_Create(type, elementType);
+				HASH_ADD(HashHandle, pAssembly->ArrayTypesHashTable, ElementType, sizeof(void*), type->ArrayType);
+			}
+			else type = lookupType->ArrayType;
+			break;
+		}
 		case SignatureElementType_SingleDimensionArray:
 		{
 			IRType* sysArrayType = pDomain->IRAssemblies[0]->Types[pDomain->CachedType___System_Array->TableIndex - 1];
@@ -362,6 +378,7 @@ IRType* AppDomain_GetIRTypeFromSignatureType(AppDomain* pDomain, IRAssembly* pAs
 			Panic("AppDomain_GetIRTypeFromSignatureType Unknown Signature Element Type");
 			break;
 	}
+	//if (!type) Panic("AppDomain_GetIRTypeFromSignatureType returning NULL!");
 	return type;
 }
 
