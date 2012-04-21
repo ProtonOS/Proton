@@ -50,6 +50,7 @@ void IRAssembly_AddField(IRAssembly* pAssembly, IRField* pField);
 void IRAssembly_AddType(IRAssembly* pAssembly, IRType* pType);
 IRType* IRAssembly_MakePointerType(IRAssembly* pAssembly, IRType* pType);
 IRType* IRAssembly_MakeArrayType(IRAssembly* pAssembly, IRType* pType);
+IRType* IRAssembly_CreateGenericParameter(IRAssembly* pAssembly, bool_t pIsFromParentType, uint32_t pIndex);
 
 struct _IRGenericParameter
 {
@@ -99,6 +100,10 @@ struct _IRType
 
 	uint32_t GenericParameterCount;
 	IRGenericParameter* GenericParameters;
+
+	bool_t IsGenericParameter;
+	bool_t IsGenericParameterFromParentType;
+	uint32_t GenericParameterIndex;
 };
 
 IRType* IRType_Create(IRAssembly* pAssembly, TypeDefinition* pTypeDefinition);

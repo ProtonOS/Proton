@@ -365,11 +365,15 @@ IRType* AppDomain_GetIRTypeFromSignatureType(AppDomain* pDomain, IRAssembly* pAs
 			break;
 		}
 		case SignatureElementType_MethodVar:
-			printf("WARNING: Generics aren't supported yet!\n");
+		{
+			type = IRAssembly_CreateGenericParameter(pAssembly, FALSE, pType->MVarNumber);
 			break;
+		}
 		case SignatureElementType_Var:
-			printf("WARNING: Generics aren't supported yet!\n");
+		{
+			type = IRAssembly_CreateGenericParameter(pAssembly, TRUE, pType->VarNumber);
 			break;
+		}
 		case SignatureElementType_GenericInstantiation:
 		{
 			MetadataToken* token = CLIFile_ExpandTypeDefRefOrSpecToken(pAssembly->ParentFile, pType->GenericInstTypeDefOrRefOrSpecToken);
@@ -820,7 +824,14 @@ void AppDomain_ResolveGenericTypeParameters(AppDomain* pDomain, CLIFile* pFile, 
 			key.ParameterCount = pType->GenericType->ParameterCount;
 			for (uint32_t index = 0; index < pType->GenericType->ParameterCount; ++index)
 			{
-				key.Parameters[index] = pType->GenericType->Parameters[fieldType->GenericParameters[index].Index];
+				if(pType->GenericType->Parameters[fieldType->GenericParameters[index].Index]->IsGenericParameter)
+				{
+
+				}
+				else
+				{
+					key.Parameters[index] = pType->GenericType->Parameters[fieldType->GenericParameters[index].Index];
+				}
 			}
 			IRGenericType* lookupType = NULL;
 			HASH_FIND(HashHandle, pFile->Assembly->GenericTypesHashTable, (void*)&keyPtr, sizeof(IRGenericType) - sizeof(IRType*) - sizeof(UT_hash_handle), lookupType);
@@ -842,6 +853,12 @@ void AppDomain_ResolveGenericTypeParameters(AppDomain* pDomain, CLIFile* pFile, 
 				field->FieldType = lookupType->ImplementationType;
 			}
 		}
+		else if (field->FieldType->IsGenericParameter)
+		{
+			uint32_t parameterIndex = field->FieldType->GenericParameterIndex;
+			free(field->FieldType);
+			field->FieldType = pType->GenericType->Parameters[parameterIndex];
+		}
 	}
 
 	for(uint32_t index = 0; index < pType->MethodCount; index++)
@@ -853,7 +870,19 @@ void AppDomain_ResolveGenericTypeParameters(AppDomain* pDomain, CLIFile* pFile, 
 
 void AppDomain_ResolveGenericMethodParametersInternal(AppDomain* pDomain, CLIFile* pFile, IRType* pType, IRMethod* pMethod, IRType** pResolvingType)
 {
+	if (pType)
+	{
+		printf("Resolving for %s.%s.%s\n", pType->TypeDefinition->Namespace, pType->TypeDefinition->Name, pMethod->MethodDefinition->Name);
+	}
+	else
+	{
+		Panic("This shouldn't be occuring yet!");
+	}
 	IRType* type = *pResolvingType;
+	if (type->IsGenericParameter)
+	{
+
+	}
 	IRGenericType key;
 	IRGenericType* keyPtr = &key;
 	key.GenericType = type;
