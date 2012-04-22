@@ -2437,7 +2437,31 @@ bool_t MethodSignature_Compare(AppDomain* pDomain, IRAssembly* pAssemblyA, Metho
 		{
 			IRType* paramAType = AppDomain_GetIRTypeFromSignatureType(pDomain, pAssemblyA, pMethodSignatureA->Parameters[index]->Type);
 			IRType* paramBType = AppDomain_GetIRTypeFromSignatureType(pDomain, pAssemblyB, pMethodSignatureB->Parameters[index]->Type);
-			if (paramAType != paramBType) return FALSE;
+			//printf("Param %u A @ 0x%x (tdef: 0x%x) %s, B @ 0x%x (tdef: 0x%x) %s\n", (unsigned int)index, (unsigned int)paramAType, (unsigned int)paramAType->TypeDefinition, paramAType->TypeDefinition->Name, (unsigned int)paramBType, (unsigned int)paramBType->TypeDefinition, paramBType->TypeDefinition->Name);
+			if (paramAType->IsGenericParameter || paramBType->IsGenericParameter) 
+			{
+				if (paramAType->IsGenericParameter)
+				{
+					if (!paramBType->IsGenericParameter)
+					{
+						free(paramAType);
+					}
+					else
+					{
+						free(paramAType);
+						free(paramBType);
+					}
+				}
+				else
+				{
+					free(paramBType);
+					return FALSE;
+				}
+			}
+			else
+			{
+				if (paramAType != paramBType) return FALSE;
+			}
 		}
 	}
 

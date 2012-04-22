@@ -778,10 +778,21 @@ void AppDomain_ResolveMemberReference(AppDomain* pDomain, CLIFile* pFile, Member
 			}
 			else
 			{
+				//printf("Searching for %s, from 0x%x\n", pMemberReference->Name, (unsigned int)typeDef);
 				for (uint32_t i2 = 0; i2 < typeDef->MethodDefinitionListCount; ++i2)
 				{
+					//printf("Checking %s.%s.%s\n", typeDef->Namespace, typeDef->Name, typeDef->MethodDefinitionList[i2].Name);
+					if (!typeDef->MethodDefinitionList[i2].SignatureCache)
+					{
+						typeDef->MethodDefinitionList[i2].SignatureCache = MethodSignature_Expand(typeDef->MethodDefinitionList[i2].Signature, typeDef->File);
+					}
+					if (!pMemberReference->MethodSignatureCache)
+					{
+						pMemberReference->MethodSignatureCache = MethodSignature_Expand(pMemberReference->Signature, pFile);
+					}
+
 					if (!strcmp(typeDef->MethodDefinitionList[i2].Name, pMemberReference->Name) &&
-						!memcmp(typeDef->MethodDefinitionList[i2].Signature, pMemberReference->Signature, pMemberReference->SignatureLength))
+						MethodSignature_Compare(pDomain, typeDef->File->Assembly, typeDef->MethodDefinitionList[i2].SignatureCache, pFile->Assembly, pMemberReference->MethodSignatureCache))
 					{
 						pMemberReference->TypeOfResolved = FieldOrMethodDefType_MethodDefinition;
 						pMemberReference->Resolved.MethodDefinition = &typeDef->MethodDefinitionList[i2];
@@ -858,7 +869,7 @@ void AppDomain_ResolveMemberReference(AppDomain* pDomain, CLIFile* pFile, Member
 						break;
 					}
 				}
-				if (!pMemberReference->Resolved.Field) Panic("Failed to resolve member reference through type reference for field.");
+				if (!pMemberReference->Resolved.Field) Panic("Failed to resolve member reference through type specification for field.");
 			}
 			else
 			{
@@ -883,7 +894,7 @@ void AppDomain_ResolveMemberReference(AppDomain* pDomain, CLIFile* pFile, Member
 						break;
 					}
 				}
-				if (!pMemberReference->Resolved.MethodDefinition) Panic("Failed to resolve member reference through type reference for method definition.");
+				if (!pMemberReference->Resolved.MethodDefinition) Panic("Failed to resolve member reference through type specification for method definition.");
 			}
 			//Panic("Member reference resolution through TypeSpec not yet supported!\n");
 			break;
