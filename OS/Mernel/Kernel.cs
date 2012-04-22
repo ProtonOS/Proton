@@ -22,14 +22,25 @@ namespace Mernel
                     Console.WriteLine("Case Default");
                     break;
             }
-            List<int> test = new List<int>();
-            test.Add(x);
+            SomeType<int> test = new SomeType<int>();
+            test.AnotherMethod();
+            //Type t = typeof(SomeType<int>);
+            //Console.WriteLine(t.Name);
         }
     }
 
     public class SomeType<T>
     {
-        public static T SomeField;
+        public T SomeField;
 
+        public SomeType()
+        {
+            Console.WriteLine("I says hello!");
+        }
+
+        public void AnotherMethod()
+        {
+            Console.WriteLine("Hy lookide!");
+        }
     }
 }
