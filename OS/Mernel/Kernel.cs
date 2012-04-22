@@ -22,8 +22,10 @@ namespace Mernel
                     Console.WriteLine("Case Default");
                     break;
             }
-            SomeType<int> test = new SomeType<int>();
-            test.AnotherMethod();
+            List<int> t2 = new List<int>();
+            t2.Add(x);
+            //SomeType<int> test = new SomeType<int>();
+            //test.AnotherMethod();
             //Type t = typeof(SomeType<int>);
             //Console.WriteLine(t.Name);
         }
@@ -31,7 +33,7 @@ namespace Mernel
 
     public class SomeType<T>
     {
-        public T SomeField;
+        public static T SomeField;
 
         public SomeType()
         {

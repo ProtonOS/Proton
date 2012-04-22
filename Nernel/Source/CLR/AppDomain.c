@@ -424,9 +424,7 @@ IRType* AppDomain_GetIRTypeFromSignatureType(AppDomain* pDomain, IRAssembly* pAs
 				implementationType->GenericType->ParameterCount = pType->GenericInstGenericArgumentCount;
 				for (uint32_t index = 0; index < pType->GenericInstGenericArgumentCount; ++index)
 				{
-
 					implementationType->GenericType->Parameters[index] = AppDomain_GetIRTypeFromSignatureType(pDomain, pAssembly, pType->GenericInstGenericArguments[index]);
-					printf("Tests: 0x%x\n", (unsigned int)implementationType->GenericType->Parameters[index]->IsGenericParameter);
 					printf("GenericInstantiation Type %s.%s, Param %u Type %s.%s\n", implementationType->TypeDefinition->Namespace, implementationType->TypeDefinition->Name, (unsigned int)index, implementationType->GenericType->Parameters[index]->TypeDefinition->Namespace, implementationType->GenericType->Parameters[index]->TypeDefinition->Name);
 				}
 				HASH_ADD(HashHandle, pAssembly->GenericTypesHashTable, GenericType, offsetof(IRGenericType, ImplementationType), implementationType->GenericType);
@@ -1085,20 +1083,33 @@ void AppDomain_ResolveGenericMethodParametersInternal(AppDomain* pDomain, CLIFil
 			{
 				if (type->IsGenericParameterFromParentType)
 				{
-					if (!pType) Panic("This shouldn't happen!");
 					implementationType->GenericType->Parameters[index] = pType->GenericType->Parameters[type->GenericParameterIndex];
-					printf("ResolveGenericMethodParameters from Type, GenericInstantiation Type %s.%s, Param %u Type %s.%s\n", implementationType->TypeDefinition->Namespace, implementationType->TypeDefinition->Name, (unsigned int)index, implementationType->GenericType->Parameters[index]->TypeDefinition->Namespace, implementationType->GenericType->Parameters[index]->TypeDefinition->Name);
+					if (pType->GenericType->Parameters[type->GenericParameterIndex]->IsGenericParameter)
+					{
+						printf("ResolveGenericMethodParameters from Type, GenericInstantiation Type %s.%s, Param %u Still Generic\n", implementationType->TypeDefinition->Namespace, implementationType->TypeDefinition->Name, (unsigned int)index);
+					}
+					else
+					{
+						printf("ResolveGenericMethodParameters from Type, GenericInstantiation Type %s.%s, Param %u Type %s.%s\n", implementationType->TypeDefinition->Namespace, implementationType->TypeDefinition->Name, (unsigned int)index, implementationType->GenericType->Parameters[index]->TypeDefinition->Namespace, implementationType->GenericType->Parameters[index]->TypeDefinition->Name);
+					}
 				}
 				else
 				{
-					if (!pMethod->GenericMethod) Panic("This better not happen!");
 					implementationType->GenericType->Parameters[index] = pMethod->GenericMethod->Parameters[type->GenericParameterIndex];
-					printf("ResolveGenericMethodParameters from Method, GenericInstantiation Type %s.%s, Param %u Type %s.%s\n", implementationType->TypeDefinition->Namespace, implementationType->TypeDefinition->Name, (unsigned int)index, implementationType->GenericType->Parameters[index]->TypeDefinition->Namespace, implementationType->GenericType->Parameters[index]->TypeDefinition->Name);
+					if (pMethod->GenericMethod->Parameters[type->GenericParameterIndex]->IsGenericParameter)
+					{
+						printf("ResolveGenericMethodParameters from Method, GenericInstantiation Type %s.%s, Param %u Still Generic\n", implementationType->TypeDefinition->Namespace, implementationType->TypeDefinition->Name, (unsigned int)index);
+					}
+					else
+					{
+						printf("ResolveGenericMethodParameters from Method, GenericInstantiation Type %s.%s, Param %u Type %s.%s\n", implementationType->TypeDefinition->Namespace, implementationType->TypeDefinition->Name, (unsigned int)index, implementationType->GenericType->Parameters[index]->TypeDefinition->Namespace, implementationType->GenericType->Parameters[index]->TypeDefinition->Name);
+					}
 				}
 			}
 			else
 			{
 				implementationType->GenericType->Parameters[index] = type->GenericType->Parameters[index];
+				printf("ResolveGenericMethodParameters, GenericInstantiation Type %s.%s, Param %u was already Type %s.%s\n", implementationType->TypeDefinition->Namespace, implementationType->TypeDefinition->Name, (unsigned int)index, implementationType->GenericType->Parameters[index]->TypeDefinition->Namespace, implementationType->GenericType->Parameters[index]->TypeDefinition->Name);
 			}
 		}
 		*pResolvingType = implementationType;
