@@ -415,7 +415,7 @@ IRType* AppDomain_GetIRTypeFromSignatureType(AppDomain* pDomain, IRAssembly* pAs
 				key.Parameters[index] = AppDomain_GetIRTypeFromSignatureType(pDomain, pAssembly, pType->GenericInstGenericArguments[index]);
 			}
 			IRGenericType* lookupType = NULL;
-			HASH_FIND(HashHandle, pAssembly->GenericTypesHashTable, (void*)&keyPtr, sizeof(IRGenericType) - sizeof(IRType*) - sizeof(UT_hash_handle), lookupType);
+			HASH_FIND(HashHandle, pAssembly->GenericTypesHashTable, (void*)&keyPtr, offsetof(IRGenericType, ImplementationType), lookupType);
 			IRType* implementationType = NULL;
 			if (!lookupType)
 			{
@@ -429,7 +429,7 @@ IRType* AppDomain_GetIRTypeFromSignatureType(AppDomain* pDomain, IRAssembly* pAs
 					printf("Tests: 0x%x\n", (unsigned int)implementationType->GenericType->Parameters[index]->IsGenericParameter);
 					printf("GenericInstantiation Type %s.%s, Param %u Type %s.%s\n", implementationType->TypeDefinition->Namespace, implementationType->TypeDefinition->Name, (unsigned int)index, implementationType->GenericType->Parameters[index]->TypeDefinition->Namespace, implementationType->GenericType->Parameters[index]->TypeDefinition->Name);
 				}
-				HASH_ADD(HashHandle, pAssembly->GenericTypesHashTable, GenericType, sizeof(IRGenericType) - sizeof(IRType*) - sizeof(UT_hash_handle), implementationType->GenericType);
+				HASH_ADD(HashHandle, pAssembly->GenericTypesHashTable, GenericType, offsetof(IRGenericType, ImplementationType), implementationType->GenericType);
 				AppDomain_ResolveGenericTypeParameters(pDomain, pAssembly->ParentFile, implementationType);
 			}
 			else
@@ -445,11 +445,89 @@ IRType* AppDomain_GetIRTypeFromSignatureType(AppDomain* pDomain, IRAssembly* pAs
 			Panic("AppDomain_GetIRTypeFromSignatureType Unknown Signature Element Type");
 			break;
 	}
-	//if (!type) Panic("AppDomain_GetIRTypeFromSignatureType returning NULL!");
+	if (!type) Panic("AppDomain_GetIRTypeFromSignatureType returning NULL!");
 	return type;
 }
 
-IRType* AppDomain_GetIRTypeFromMetadataToken(AppDomain* pDomain, IRAssembly* pAssembly, uint32_t pToken, uint32_t* pFieldIndex)
+IRField* AppDomain_GetIRFieldFromMetadataToken(AppDomain* pDomain, IRAssembly* pAssembly, uint32_t pToken, uint32_t* pFieldIndex)
+{
+	MetadataToken* token = CLIFile_ExpandMetadataToken(pAssembly->ParentFile, pToken);
+	IRField* field = NULL;
+	switch(token->Table)
+	{
+		case MetadataTable_StandAloneSignature:
+		{
+			Panic("AppDomain_GetIRTypeFromMetadataToken: StandAloneSignatures not yet supported\n");
+			break;
+		}
+		case MetadataTable_Field:
+		{
+			Field* fieldDef = (Field*)token->Data;
+			if (fieldDef->Flags & FieldAttributes_Static)
+			{
+				field = fieldDef->File->Assembly->Fields[fieldDef->TableIndex - 1];
+			}
+			else
+			{
+				IRType* type = fieldDef->TypeDefinition->File->Assembly->Types[fieldDef->TypeDefinition->TableIndex - 1];
+				for (uint32_t index = 0; index < type->FieldCount; index++)
+				{
+					if (!strcmp(fieldDef->Name, type->Fields[index]->FieldDefinition->Name))
+					{
+						if (Signature_Equals(fieldDef->Signature, fieldDef->SignatureLength, type->Fields[index]->FieldDefinition->Signature, type->Fields[index]->FieldDefinition->SignatureLength))
+						{
+							field = type->Fields[index];
+							*pFieldIndex = index;
+							break;
+						}
+					}
+				}
+				if (!field)
+				{
+					Panic("AppDomain_GetIRFieldFromMetadataToken: Unable to resolve Field");
+				}
+			}
+			break;
+		}
+		case MetadataTable_MemberReference:
+		{
+			AppDomain_ResolveMemberReference(pDomain, pAssembly->ParentFile, ((MemberReference*)token->Data));
+			Field* fieldDef = ((MemberReference*)token->Data)->Resolved.Field;
+			if (fieldDef->Flags & FieldAttributes_Static)
+			{
+				field = fieldDef->File->Assembly->Fields[fieldDef->TableIndex - 1];
+			}
+			else
+			{
+				IRType* type = fieldDef->TypeDefinition->File->Assembly->Types[fieldDef->TypeDefinition->TableIndex - 1];
+				for (uint32_t index = 0; index < type->FieldCount; index++)
+				{
+					if (!strcmp(fieldDef->Name, type->Fields[index]->FieldDefinition->Name))
+					{
+						if (Signature_Equals(fieldDef->Signature, fieldDef->SignatureLength, type->Fields[index]->FieldDefinition->Signature, type->Fields[index]->FieldDefinition->SignatureLength))
+						{
+							field = type->Fields[index];
+							*pFieldIndex = index;
+							break;
+						}
+					}
+				}
+				if (!field)
+				{
+					Panic("AppDomain_GetIRFieldFromMetadataToken: Unable to resolve Field");
+				}
+			}
+			break;
+		}
+		default:
+			Panic("AppDomain_GetIRFieldFromMetadataToken: Unknown Table");
+			break;
+	}
+	CLIFile_DestroyMetadataToken(token);
+	return field;
+}
+
+IRType* AppDomain_GetIRTypeFromMetadataToken(AppDomain* pDomain, IRAssembly* pAssembly, uint32_t pToken)
 {
 	MetadataToken* token = CLIFile_ExpandMetadataToken(pAssembly->ParentFile, pToken);
 	IRType* type = NULL;
@@ -486,58 +564,14 @@ IRType* AppDomain_GetIRTypeFromMetadataToken(AppDomain* pDomain, IRAssembly* pAs
 			break;
 		}
 		case MetadataTable_TypeSpecification:
-			Panic("AppDomain_GetIRTypeFromMetadataToken: TypeSpecifications not yet supported\n");
+		{
+			SignatureType* sig =  SignatureType_Expand(((TypeSpecification*)token->Data)->Signature, ((TypeSpecification*)token->Data)->File);
+			type = AppDomain_GetIRTypeFromSignatureType(pDomain, pAssembly, sig);
 			break;
+		}
 		case MetadataTable_StandAloneSignature:
 		{
 			Panic("AppDomain_GetIRTypeFromMetadataToken: StandAloneSignatures not yet supported\n");
-			break;
-		}
-		case MetadataTable_Field:
-		{
-			Field* fieldDef = (Field*)token->Data;
-			TypeDefinition* typeDef = fieldDef->TypeDefinition;
-			for (uint32_t index = 0; index < typeDef->FieldListCount; index++)
-			{
-				if (!strcmp(fieldDef->Name, typeDef->FieldList[index].Name))
-				{
-					if (Signature_Equals(fieldDef->Signature, fieldDef->SignatureLength, typeDef->FieldList[index].Signature, typeDef->FieldList[index].SignatureLength))
-					{
-						*pFieldIndex = index;
-						type = pAssembly->Types[typeDef->TableIndex - 1];
-						type = type->Fields[index]->FieldType;
-						break;
-					}
-				}
-			}
-			if (!type)
-			{
-				Panic("AppDomain_GetIRTypeFromMetadataToken: Unable to resolve Field");
-			}
-			break;
-		}
-		case MetadataTable_MemberReference:
-		{
-			AppDomain_ResolveMemberReference(pDomain, pAssembly->ParentFile, ((MemberReference*)token->Data));
-			Field* fieldDef = ((MemberReference*)token->Data)->Resolved.Field;
-			TypeDefinition* typeDef = fieldDef->TypeDefinition;
-			for (uint32_t index = 0; index < typeDef->FieldListCount; index++)
-			{
-				if (!strcmp(fieldDef->Name, typeDef->FieldList[index].Name))
-				{
-					if (Signature_Equals(fieldDef->Signature, fieldDef->SignatureLength, typeDef->FieldList[index].Signature, typeDef->FieldList[index].SignatureLength))
-					{
-						*pFieldIndex = index;
-						type = typeDef->File->Assembly->Types[typeDef->TableIndex - 1];
-						type = type->Fields[index]->FieldType;
-						break;
-					}
-				}
-			}
-			if (!type)
-			{
-				Panic("AppDomain_GetIRTypeFromMetadataToken: Unable to resolve MemberReference");
-			}
 			break;
 		}
 		default:
@@ -887,7 +921,7 @@ void AppDomain_ResolveGenericTypeParameters(AppDomain* pDomain, CLIFile* pFile, 
 				}
 			}
 			IRGenericType* lookupType = NULL;
-			HASH_FIND(HashHandle, pFile->Assembly->GenericTypesHashTable, (void*)&keyPtr, sizeof(IRGenericType) - sizeof(IRType*) - sizeof(UT_hash_handle), lookupType);
+			HASH_FIND(HashHandle, pFile->Assembly->GenericTypesHashTable, (void*)&keyPtr, offsetof(IRGenericType, ImplementationType), lookupType);
 			if (!lookupType)
 			{
 				IRType* implementationType = IRType_GenericDeepCopy(fieldType, pFile->Assembly);
@@ -906,7 +940,7 @@ void AppDomain_ResolveGenericTypeParameters(AppDomain* pDomain, CLIFile* pFile, 
 					printf("ResolveGenericTypeParameters, GenericInstantiation Type %s.%s, Param %u Type %s.%s\n", implementationType->TypeDefinition->Namespace, implementationType->TypeDefinition->Name, (unsigned int)index, implementationType->GenericType->Parameters[index]->TypeDefinition->Namespace, implementationType->GenericType->Parameters[index]->TypeDefinition->Name);
 				}
 				field->FieldType = implementationType;
-				HASH_ADD(HashHandle, pFile->Assembly->GenericTypesHashTable, GenericType, sizeof(IRGenericType) - sizeof(IRType*) - sizeof(UT_hash_handle), implementationType->GenericType);
+				HASH_ADD(HashHandle, pFile->Assembly->GenericTypesHashTable, GenericType, offsetof(IRGenericType, ImplementationType), implementationType->GenericType);
 				AppDomain_ResolveGenericTypeParameters(pDomain, pFile, implementationType);
 			}
 			else
@@ -957,7 +991,7 @@ void AppDomain_ResolveGenericTypeParameters(AppDomain* pDomain, CLIFile* pFile, 
 			}
 		}
 		IRGenericType* lookupType = NULL;
-		HASH_FIND(HashHandle, pFile->Assembly->GenericTypesHashTable, (void*)&keyPtr, sizeof(IRGenericType) - sizeof(IRType*) - sizeof(UT_hash_handle), lookupType);
+		HASH_FIND(HashHandle, pFile->Assembly->GenericTypesHashTable, (void*)&keyPtr, offsetof(IRGenericType, ImplementationType), lookupType);
 		if (!lookupType)
 		{
 			IRType* implementationType = IRType_GenericDeepCopy(interfaceType, pFile->Assembly);
@@ -976,7 +1010,7 @@ void AppDomain_ResolveGenericTypeParameters(AppDomain* pDomain, CLIFile* pFile, 
 				printf("ResolveGenericTypeParameters, GenericInstantiation Interface Type %s.%s, Param %u Type %s.%s\n", implementationType->TypeDefinition->Namespace, implementationType->TypeDefinition->Name, (unsigned int)index, implementationType->GenericType->Parameters[index]->TypeDefinition->Namespace, implementationType->GenericType->Parameters[index]->TypeDefinition->Name);
 			}
 			iterator->InterfaceType = implementationType;
-			HASH_ADD(HashHandle, pFile->Assembly->GenericTypesHashTable, GenericType, sizeof(IRGenericType) - sizeof(IRType*) - sizeof(UT_hash_handle), implementationType->GenericType);
+			HASH_ADD(HashHandle, pFile->Assembly->GenericTypesHashTable, GenericType, offsetof(IRGenericType, ImplementationType), implementationType->GenericType);
 			AppDomain_ResolveGenericTypeParameters(pDomain, pFile, implementationType);
 		}
 		else
@@ -1039,7 +1073,7 @@ void AppDomain_ResolveGenericMethodParametersInternal(AppDomain* pDomain, CLIFil
 		}
 	}
 	IRGenericType* lookupType = NULL;
-	HASH_FIND(HashHandle, pFile->Assembly->GenericTypesHashTable, (void*)&keyPtr, sizeof(IRGenericType) - sizeof(IRType*) - sizeof(UT_hash_handle), lookupType);
+	HASH_FIND(HashHandle, pFile->Assembly->GenericTypesHashTable, (void*)&keyPtr, offsetof(IRGenericType, ImplementationType), lookupType);
 	if (!lookupType)
 	{
 		IRType* implementationType = IRType_GenericDeepCopy(type, pFile->Assembly);
@@ -1068,7 +1102,7 @@ void AppDomain_ResolveGenericMethodParametersInternal(AppDomain* pDomain, CLIFil
 			}
 		}
 		*pResolvingType = implementationType;
-		HASH_ADD(HashHandle, pFile->Assembly->GenericTypesHashTable, GenericType, sizeof(IRGenericType) - sizeof(IRType*) - sizeof(UT_hash_handle), implementationType->GenericType);
+		HASH_ADD(HashHandle, pFile->Assembly->GenericTypesHashTable, GenericType, offsetof(IRGenericType, ImplementationType), implementationType->GenericType);
 		AppDomain_ResolveGenericTypeParameters(pDomain, pFile, implementationType);
 	}
 	else
@@ -1129,6 +1163,7 @@ void AppDomain_ResolveGenericMethodParameters(AppDomain* pDomain, CLIFile* pFile
 			case IROpcode_Allocate_Local:
 			case IROpcode_SizeOf:
 			case IROpcode_Call_Virtual:
+			case IROpcode_Call_Constrained:
 			case IROpcode_Load_VirtualFunction:
 				if ((((IRType*)instruction->Arg1)->IsGeneric && !((IRType*)instruction->Arg1)->IsGenericInstantiation) ||
 					((IRType*)instruction->Arg1)->IsGenericParameter)

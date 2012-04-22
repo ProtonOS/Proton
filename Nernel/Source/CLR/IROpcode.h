@@ -1289,6 +1289,27 @@ typedef enum IROpcode
 	IROpcode_Call_Virtual,
 	/*
 		Description:
+			Call a method, with overload checking.
+		
+		Stack:
+			..., arg0, arg1, ..., argN -> ..., value (present for return values)
+
+		Arg1: IRType*
+			A pointer to the IRType that contains the method.
+
+		Arg2: uint32_t
+			The index to the IRMethod to be called.
+
+		Arg3:
+			N/A
+
+		Arg4:
+			N/A
+
+	 */
+	IROpcode_Call_Constrained,
+	/*
+		Description:
 			Call a method, without overload checking.
 		
 		Stack:

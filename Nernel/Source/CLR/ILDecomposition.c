@@ -2036,15 +2036,14 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 					SR(SyntheticStack_Pop(stack));
 				}
 
-				ILDecomposition_ConvertInstructions(method);
-				Log_WriteLine(LOGLEVEL__ILReader, "Returning to Converting Method: %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
-
 				if (method->MethodDefinition->InternalCall)
 				{
 					EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Call_Internal, method);
 				}
 				else
 				{
+					ILDecomposition_ConvertInstructions(method);
+					Log_WriteLine(LOGLEVEL__ILReader, "Returning to Converting Method: %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
 					EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Call_Absolute, method);
 				}
 
@@ -2113,20 +2112,15 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 					SR(SyntheticStack_Pop(stack));
 				}
 
-				ILDecomposition_ConvertInstructions(method);
-				Log_WriteLine(LOGLEVEL__ILReader, "Returning to Converting Method: %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
-
 				if (method->MethodDefinition->InternalCall)
 				{
 					EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Call_Internal, method);
 				}
 				else if(((methodDef->Flags & MethodAttributes_Virtual) == 0) || (methodDef->Flags & MethodAttributes_RTSpecialName) || (methodDef->TypeDefinition->Flags & TypeAttributes_Sealed) || AppDomain_IsStructure(domain, methodDef->TypeDefinition))
 				{
+					ILDecomposition_ConvertInstructions(method);
+					Log_WriteLine(LOGLEVEL__ILReader, "Returning to Converting Method: %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
 					EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Call_Absolute, method);
-				}
-				else if(prefixConstrained)
-				{
-					Panic("Constrained not yet supported");
 				}
 				else
 				{
@@ -2162,7 +2156,14 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 						Panic("Unable to resolve virtual call");
 					}
 
-					EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Call_Virtual, methodParentType, (uint32_t*)methodIndex);
+					if (prefixConstrained)
+					{
+						EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Call_Constrained, AppDomain_GetIRTypeFromMetadataToken(domain, assembly, prefixConstrainedToken), (uint32_t*)methodIndex);
+					}
+					else
+					{
+						EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Call_Virtual, methodParentType, (uint32_t*)methodIndex);
+					}
 				}
 
 				if (method->Returns)
@@ -2598,104 +2599,73 @@ BranchCommon:
                 break;
 			}
                 
-
             case ILOpcode_Add:				// 0x58
 				BINARY_NUMERIC_OPERATION(Add, Add, None);
-
             case ILOpcode_Add_Ovf:			// 0xD6
 				BINARY_NUMERIC_OPERATION(Add.Ovf, Add, Signed);
-
             case ILOpcode_Add_Ovf_Un:		// 0xD7
 				BINARY_NUMERIC_OPERATION(Add.Ovf.Un, Add, Unsigned);
-
             case ILOpcode_Sub:				// 0x59
 				BINARY_NUMERIC_OPERATION(Sub, Sub, None);
-
             case ILOpcode_Sub_Ovf:			// 0xDA
 				BINARY_NUMERIC_OPERATION(Sub.Ovf, Sub, Signed);
-
             case ILOpcode_Sub_Ovf_Un:		// 0xDB
 				BINARY_NUMERIC_OPERATION(Sub.Ovf.Un, Sub, Unsigned);
-				
             case ILOpcode_Mul:				// 0x5A
 				BINARY_NUMERIC_OPERATION(Mul, Mul, None);
-
             case ILOpcode_Mul_Ovf:			// 0xD8
 				BINARY_NUMERIC_OPERATION(Mul.Ovf, Mul, Signed);
-
             case ILOpcode_Mul_Ovf_Un:		// 0xD9
 				BINARY_NUMERIC_OPERATION(Mul.Ovf.Un, Mul, Unsigned);
-
             case ILOpcode_Div:				// 0x5B
 				BINARY_NUMERIC_OPERATION(Div, Div, Signed);
-
             case ILOpcode_Div_Un:			// 0x5C
 				BINARY_NUMERIC_OPERATION(Div.Un, Div, Unsigned);
-
             case ILOpcode_Rem:				// 0x5D
 				BINARY_NUMERIC_OPERATION(Rem, Rem, Signed);
-
             case ILOpcode_Rem_Un:			// 0x5E
 				BINARY_NUMERIC_OPERATION(Rem.Un, Rem, Unsigned);
 
             case ILOpcode_And:				// 0x5F
 				BITWISE_NUMERIC_OPERATION(And);
-
             case ILOpcode_Or:				// 0x60
 				BITWISE_NUMERIC_OPERATION(Or);
-
             case ILOpcode_Xor:				// 0x61
 				BITWISE_NUMERIC_OPERATION(Xor);
-
             case ILOpcode_Neg:				// 0x65
 				UNARY_NUMERIC_OPERATION(Neg);
-
 			case ILOpcode_Not:				// 0x66
 				UNARY_NUMERIC_OPERATION(Not);
 
 			case ILOpcode_Shl:				// 0x62
 				SHIFT_NUMERIC_OPERATION(Shl, Left);
-
             case ILOpcode_Shr:				// 0x63
 				SHIFT_NUMERIC_OPERATION(Shr, Right_Sign_Extended);
-
             case ILOpcode_Shr_Un:			// 0x64
 				SHIFT_NUMERIC_OPERATION(Shr.Un, Right);
 
-
             case ILOpcode_Conv_I1:			// 0x67
 				UNCHECKED_CONVERSION_NUMERIC_OPERATION(I1, domain->IRAssemblies[0]->Types[domain->CachedType___System_SByte->TableIndex - 1]);
-
             case ILOpcode_Conv_U1:			// 0xD2
 				UNCHECKED_CONVERSION_NUMERIC_OPERATION(U1, domain->IRAssemblies[0]->Types[domain->CachedType___System_Byte->TableIndex - 1]);
-
             case ILOpcode_Conv_I2:			// 0x68
 				UNCHECKED_CONVERSION_NUMERIC_OPERATION(I2, domain->IRAssemblies[0]->Types[domain->CachedType___System_Int16->TableIndex - 1]);
-
             case ILOpcode_Conv_U2:			// 0xD1
 				UNCHECKED_CONVERSION_NUMERIC_OPERATION(U2, domain->IRAssemblies[0]->Types[domain->CachedType___System_UInt16->TableIndex - 1]);
-
             case ILOpcode_Conv_I4:			// 0x69
 				UNCHECKED_CONVERSION_NUMERIC_OPERATION(I4, domain->IRAssemblies[0]->Types[domain->CachedType___System_Int32->TableIndex - 1]);
-
             case ILOpcode_Conv_U4:			// 0x6D
 				UNCHECKED_CONVERSION_NUMERIC_OPERATION(U4, domain->IRAssemblies[0]->Types[domain->CachedType___System_UInt32->TableIndex - 1]);
-
             case ILOpcode_Conv_I8:			// 0x6A
 				UNCHECKED_CONVERSION_NUMERIC_OPERATION(I8, domain->IRAssemblies[0]->Types[domain->CachedType___System_Int64->TableIndex - 1]);
-
             case ILOpcode_Conv_U8:			// 0x6E
 				UNCHECKED_CONVERSION_NUMERIC_OPERATION(U8, domain->IRAssemblies[0]->Types[domain->CachedType___System_UInt64->TableIndex - 1]);
-
             case ILOpcode_Conv_R4:			// 0x6B
 				UNCHECKED_CONVERSION_NUMERIC_OPERATION(R4, domain->IRAssemblies[0]->Types[domain->CachedType___System_Single->TableIndex - 1]);
-
             case ILOpcode_Conv_R8:			// 0x6C
 				UNCHECKED_CONVERSION_NUMERIC_OPERATION(R8, domain->IRAssemblies[0]->Types[domain->CachedType___System_Double->TableIndex - 1]);
-
             case ILOpcode_Conv_I:			// 0xD3
 				UNCHECKED_CONVERSION_NUMERIC_OPERATION(I, domain->IRAssemblies[0]->Types[domain->CachedType___System_IntPtr->TableIndex - 1]);
-
             case ILOpcode_Conv_U:			// 0xE0
 				UNCHECKED_CONVERSION_NUMERIC_OPERATION(U, domain->IRAssemblies[0]->Types[domain->CachedType___System_UIntPtr->TableIndex - 1]);
 
@@ -2759,7 +2729,7 @@ BranchCommon:
 			{
 				Log_WriteLine(LOGLEVEL__ILReader, "Read NewArr");
 
-				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer));
 
 				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_New_Array, type);
 
@@ -2775,7 +2745,7 @@ BranchCommon:
 			{
 				Log_WriteLine(LOGLEVEL__ILReader, "Read CastClass");
 
-				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer));
 
 				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_CastClass, type);
 
@@ -2791,7 +2761,7 @@ BranchCommon:
 			{
 				Log_WriteLine(LOGLEVEL__ILReader, "Read IsInst");
 
-				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer));
 
 				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_IsInst, type);
 
@@ -2807,7 +2777,7 @@ BranchCommon:
 			{
 				Log_WriteLine(LOGLEVEL__ILReader, "Read Unbox");
 
-				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer));
 
 				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Unbox, type);
 
@@ -2823,7 +2793,7 @@ BranchCommon:
 			{
 				Log_WriteLine(LOGLEVEL__ILReader, "Read Unbox.Any");
 
-				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer));
 
 				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Unbox_Any, type);
 
@@ -2839,7 +2809,7 @@ BranchCommon:
 			{
 				Log_WriteLine(LOGLEVEL__ILReader, "Read Box");
 
-				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer));
 
 				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Box, type);
 
@@ -2870,7 +2840,8 @@ BranchCommon:
 				Log_WriteLine(LOGLEVEL__ILReader, "Read LdFld");
 
 				uint32_t fieldIndex = 0;
-				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), &fieldIndex);
+				IRField* field = AppDomain_GetIRFieldFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), &fieldIndex);
+				type = field->FieldType;
 
 				StackObject* obj = SyntheticStack_Peek(stack);
 
@@ -2888,7 +2859,8 @@ BranchCommon:
 				Log_WriteLine(LOGLEVEL__ILReader, "Read LdFldA");
 
 				uint32_t fieldIndex = 0;
-				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), &fieldIndex);
+				IRField* field = AppDomain_GetIRFieldFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), &fieldIndex);
+				type = field->FieldType;
 
 				StackObject* obj = SyntheticStack_Peek(stack);
 
@@ -2907,7 +2879,8 @@ BranchCommon:
 				Log_WriteLine(LOGLEVEL__ILReader, "Read StFld");
 
 				uint32_t fieldIndex = 0;
-				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), &fieldIndex);
+				IRField* field = AppDomain_GetIRFieldFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), &fieldIndex);
+				type = field->FieldType;
 
 				SR(SyntheticStack_Pop(stack));
 				StackObject* obj = SyntheticStack_Pop(stack);
@@ -2923,10 +2896,10 @@ BranchCommon:
 			{
 				Log_WriteLine(LOGLEVEL__ILReader, "Read LdSFld");
 
-				uint32_t fieldIndex = 0;
-				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), &fieldIndex);
+				IRField* field = AppDomain_GetIRFieldFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
+				type = field->FieldType;
 				
-				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_StaticField, type->Fields[fieldIndex]);
+				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_StaticField, field);
 
 				StackObject* obj = SA();
 				obj->Type = type;
@@ -2940,11 +2913,11 @@ BranchCommon:
             case ILOpcode_LdSFldA:			// 0x7F
 			{
 				Log_WriteLine(LOGLEVEL__ILReader, "Read LdSFldA");
+				
+				IRField* field = AppDomain_GetIRFieldFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
+				type = field->FieldType;
 
-				uint32_t fieldIndex = 0;
-				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), &fieldIndex);
-
-				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_StaticFieldAddress, type->Fields[fieldIndex]);
+				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_StaticFieldAddress, field);
 
 				StackObject* obj = SA();
 				obj->Type = IRAssembly_MakePointerType(assembly, type);
@@ -2959,12 +2932,11 @@ BranchCommon:
 			{
 				Log_WriteLine(LOGLEVEL__ILReader, "Read StSFld");
 
-				uint32_t fieldIndex = 0;
-				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), &fieldIndex);
+				IRField* field = AppDomain_GetIRFieldFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
 
 				SR(SyntheticStack_Pop(stack));
 
-				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Store_StaticField, type->Fields[fieldIndex]);
+				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Store_StaticField, field);
 
 				ClearFlags();
 				break;
@@ -2975,7 +2947,7 @@ BranchCommon:
             {
                 Log_WriteLine(LOGLEVEL__ILReader, "Read LdObj");
 
-				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer));
 
 				StackObject* obj = SyntheticStack_Peek(stack);
 
@@ -2992,7 +2964,7 @@ BranchCommon:
 			{
 				Log_WriteLine(LOGLEVEL__ILReader, "Read StObj");
 
-				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer));
 
 				SR(SyntheticStack_Pop(stack));
 				StackObject* obj = SyntheticStack_Peek(stack);
@@ -3010,7 +2982,7 @@ BranchCommon:
 			{
 				Log_WriteLine(LOGLEVEL__ILReader, "Read CpObj");
 
-				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer));
 
 				SR(SyntheticStack_Pop(stack));
 				StackObject* obj = SyntheticStack_Pop(stack);
@@ -3092,7 +3064,7 @@ BranchCommon:
             {
                 Log_WriteLine(LOGLEVEL__ILReader, "Read LdElemA");
 
-				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer));
 
 				SR(SyntheticStack_Pop(stack));
 				StackObject* obj = SyntheticStack_Peek(stack);
@@ -3108,34 +3080,24 @@ BranchCommon:
 
             case ILOpcode_LdElem_I1:		// 0x90
 				LOAD_ELEMENT_OPERATION(I1, domain->IRAssemblies[0]->Types[domain->CachedType___System_SByte->TableIndex - 1]);
-
             case ILOpcode_LdElem_U1:		// 0x91
 				LOAD_ELEMENT_OPERATION(U1, domain->IRAssemblies[0]->Types[domain->CachedType___System_Byte->TableIndex - 1]);
-
             case ILOpcode_LdElem_I2:		// 0x92
 				LOAD_ELEMENT_OPERATION(I2, domain->IRAssemblies[0]->Types[domain->CachedType___System_Int16->TableIndex - 1]);
-
             case ILOpcode_LdElem_U2:		// 0x93
 				LOAD_ELEMENT_OPERATION(U2, domain->IRAssemblies[0]->Types[domain->CachedType___System_UInt16->TableIndex - 1]);
-
             case ILOpcode_LdElem_I4:		// 0x94
 				LOAD_ELEMENT_OPERATION(I4, domain->IRAssemblies[0]->Types[domain->CachedType___System_Int32->TableIndex - 1]);
-
             case ILOpcode_LdElem_U4:		// 0x95
 				LOAD_ELEMENT_OPERATION(U4, domain->IRAssemblies[0]->Types[domain->CachedType___System_UInt32->TableIndex - 1]);
-
             case ILOpcode_LdElem_I8:		// 0x96
 				LOAD_ELEMENT_OPERATION(I8, domain->IRAssemblies[0]->Types[domain->CachedType___System_Int64->TableIndex - 1]);
-
             case ILOpcode_LdElem_I:			// 0x97
 				LOAD_ELEMENT_OPERATION(I, domain->IRAssemblies[0]->Types[domain->CachedType___System_IntPtr->TableIndex - 1]);
-
             case ILOpcode_LdElem_R4:		// 0x98
 				LOAD_ELEMENT_OPERATION(R4, domain->IRAssemblies[0]->Types[domain->CachedType___System_Single->TableIndex - 1]);
-
             case ILOpcode_LdElem_R8:		// 0x99
 				LOAD_ELEMENT_OPERATION(R8, domain->IRAssemblies[0]->Types[domain->CachedType___System_Double->TableIndex - 1]);
-
             case ILOpcode_LdElem_Ref:		// 0x9A
             {
                 Log_WriteLine(LOGLEVEL__ILReader, "Read LdElem.Ref");
@@ -3156,7 +3118,7 @@ BranchCommon:
             {
                 Log_WriteLine(LOGLEVEL__ILReader, "Read LdElem");
 
-				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer));
 
 				SR(SyntheticStack_Pop(stack));
 				StackObject* obj = SyntheticStack_Peek(stack);
@@ -3172,25 +3134,18 @@ BranchCommon:
 
             case ILOpcode_StElem_I:			// 0x9B
 				STORE_ELEMENT_OPERATION(I, domain->IRAssemblies[0]->Types[domain->CachedType___System_IntPtr->TableIndex - 1]);
-
             case ILOpcode_StElem_I1:		// 0x9C
 				STORE_ELEMENT_OPERATION(I, domain->IRAssemblies[0]->Types[domain->CachedType___System_SByte->TableIndex - 1]);
-
             case ILOpcode_StElem_I2:		// 0x9D
 				STORE_ELEMENT_OPERATION(I, domain->IRAssemblies[0]->Types[domain->CachedType___System_Int16->TableIndex - 1]);
-
             case ILOpcode_StElem_I4:		// 0x9E
 				STORE_ELEMENT_OPERATION(I, domain->IRAssemblies[0]->Types[domain->CachedType___System_Int32->TableIndex - 1]);
-
             case ILOpcode_StElem_I8:		// 0x9F
 				STORE_ELEMENT_OPERATION(I, domain->IRAssemblies[0]->Types[domain->CachedType___System_Int64->TableIndex - 1]);
-
             case ILOpcode_StElem_R4:		// 0xA0
 				STORE_ELEMENT_OPERATION(I, domain->IRAssemblies[0]->Types[domain->CachedType___System_Single->TableIndex - 1]);
-
             case ILOpcode_StElem_R8:		// 0xA1
 				STORE_ELEMENT_OPERATION(I, domain->IRAssemblies[0]->Types[domain->CachedType___System_Double->TableIndex - 1]);
-
             case ILOpcode_StElem_Ref:		// 0xA2
             {
                 Log_WriteLine(LOGLEVEL__ILReader, "Read StElem.Ref");
@@ -3210,7 +3165,7 @@ BranchCommon:
             {
                 Log_WriteLine(LOGLEVEL__ILReader, "Read StElem");
 
-				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer));
 
 				SR(SyntheticStack_Pop(stack));
 				SR(SyntheticStack_Pop(stack));
@@ -3543,7 +3498,7 @@ BranchCommon:
 					{
 						Log_WriteLine(LOGLEVEL__ILReader, "Read InitObj");
 
-						type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
+						type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer));
 
 						StackObject* obj = SyntheticStack_Pop(stack);
 
@@ -3589,7 +3544,7 @@ BranchCommon:
 					{
 						Log_WriteLine(LOGLEVEL__ILReader, "Read SizeOf");
 
-						type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), NULL);
+						type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer));
 
 						EMIT_IR_1ARG_NO_DISPOSE(IROpcode_SizeOf, type);
 						
@@ -3680,6 +3635,7 @@ bool_t ILDecomposition_MethodUsesGenerics(IRMethod* pMethod)
 			case IROpcode_Allocate_Local:
 			case IROpcode_SizeOf:
 			case IROpcode_Call_Virtual:
+			case IROpcode_Call_Constrained:
 			case IROpcode_Load_VirtualFunction:
 				if ((((IRType*)instruction->Arg1)->IsGeneric && !((IRType*)instruction->Arg1)->IsGenericInstantiation) ||
 					((IRType*)instruction->Arg1)->IsGenericParameter) return TRUE;

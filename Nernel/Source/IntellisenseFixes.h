@@ -53,4 +53,10 @@
 #undef _EXFNPTR
 #define _EXFNPTR(funcName, params) (funcName)params
 
+#undef __builtin_offsetof
+#define __builtin_offsetof(type, member) 0
+
+#undef offsetof
+#define offsetof(type, member)  __builtin_offsetof(type, member)
+
 #endif

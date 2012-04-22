@@ -135,6 +135,8 @@ struct _IRMethod
 	uint32_t GenericParameterCount;
 	IRGenericMethod* GenericMethod;
 
+	bool_t IsDomainSpecific;
+
     void(*AssembledMethod)();
 };
 

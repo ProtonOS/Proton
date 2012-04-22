@@ -40,7 +40,7 @@ namespace Mernel
 
         public void AnotherMethod()
         {
-            Console.WriteLine("Hy lookide!");
+            Console.WriteLine("Hy lookide!" + SomeField.ToString());
         }
     }
 }
