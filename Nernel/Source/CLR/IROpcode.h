@@ -1456,6 +1456,26 @@ typedef enum IROpcode
 
      */
     IROpcode_Compare,
+    /*
+        Loads a token into a handle.
+
+		Stack:
+			... -> ..., handle
+
+		Arg1: IRType*
+			A pointer to the IRType of the handle.
+
+        Arg2: RuntimeHandleType
+            The type of metadata.
+
+        Arg3: void*
+			A pointer to the metadata based on the type.
+
+        Arg4:
+			N/A
+
+     */
+    IROpcode_Load_Token,
 } IROpcode;
 
 typedef enum OverflowType
@@ -1535,3 +1555,12 @@ typedef enum CompareCondition
 	CompareCondition_Less_Than,
 	CompareCondition_Less_Than_Unsigned,
 } CompareCondition;
+
+typedef enum RuntimeHandleType
+{
+	RuntimeHandleType_FieldDefinition,
+	RuntimeHandleType_MethodDefinition,
+	RuntimeHandleType_MethodSpecification,
+	RuntimeHandleType_TypeDefinition,
+	RuntimeHandleType_TypeSpecification,
+} RuntimeHandleType;

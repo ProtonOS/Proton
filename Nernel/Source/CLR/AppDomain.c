@@ -108,6 +108,18 @@ void AppDomain_LinkCorlib(AppDomain* pDomain, CLIFile* pCorlibFile)
 			{
 				pDomain->CachedType___System_Object = type;
 			}
+			else if (!strcmp(type->Name, "RuntimeFieldHandle"))
+			{
+				pDomain->CachedType___System_RuntimeFieldHandle = type;
+			}
+			else if (!strcmp(type->Name, "RuntimeMethodHandle"))
+			{
+				pDomain->CachedType___System_RuntimeMethodHandle = type;
+			}
+			else if (!strcmp(type->Name, "RuntimeTypeHandle"))
+			{
+				pDomain->CachedType___System_RuntimeTypeHandle = type;
+			}
 			else if (!strcmp(type->Name, "SByte"))
 			{
 				pDomain->CachedType___System_SByte = type;

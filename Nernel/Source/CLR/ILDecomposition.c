@@ -148,6 +148,9 @@ IRAssembly* ILDecomposition_CreateAssembly(AppDomain* pDomain, CLIFile* pFile)
 		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_Int64);
 		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_IntPtr);
 		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_Object);
+		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_RuntimeFieldHandle);
+		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_RuntimeMethodHandle);
+		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_RuntimeTypeHandle);
 		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_SByte);
 		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_Single);
 		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_String);
@@ -3195,7 +3198,92 @@ BranchCommon:
 				UNSUPPORTED_OPERATION(MkRefAny);
 
 			case ILOpcode_LdToken:			// 0xD0
-				UNSUPPORTED_OPERATION(LdToken);
+            {
+                Log_WriteLine(LOGLEVEL__ILReader, "Read LdToken");
+
+				MetadataToken* token = CLIFile_ExpandMetadataToken(file, ReadUInt32(currentDataPointer));
+				RuntimeHandleType handleType = (RuntimeHandleType)0;
+				void* handleData = NULL;
+
+				switch (token->Table)
+				{
+					case MetadataTable_Field:
+					{
+						type = domain->IRAssemblies[0]->Types[domain->CachedType___System_RuntimeFieldHandle->TableIndex - 1];
+						handleType = RuntimeHandleType_FieldDefinition;
+						handleData = token->Data;
+						break;
+					}
+					case MetadataTable_MethodDefinition:
+					{
+						type = domain->IRAssemblies[0]->Types[domain->CachedType___System_RuntimeMethodHandle->TableIndex - 1];
+						handleType = RuntimeHandleType_MethodDefinition;
+						handleData = token->Data;
+						break;
+					}
+					case MetadataTable_MethodSpecification:
+					{
+						type = domain->IRAssemblies[0]->Types[domain->CachedType___System_RuntimeMethodHandle->TableIndex - 1];
+						handleType = RuntimeHandleType_MethodSpecification;
+						handleData = token->Data;
+						break;
+					}
+					case MetadataTable_TypeDefinition:
+					{
+						type = domain->IRAssemblies[0]->Types[domain->CachedType___System_RuntimeTypeHandle->TableIndex - 1];
+						handleType = RuntimeHandleType_TypeDefinition;
+						handleData = token->Data;
+						break;
+					}
+					case MetadataTable_TypeReference:
+					{
+						type = domain->IRAssemblies[0]->Types[domain->CachedType___System_RuntimeTypeHandle->TableIndex - 1];
+						handleType = RuntimeHandleType_TypeDefinition;
+						handleData = ((TypeReference*)token->Data)->ResolvedType;
+						break;
+					}
+					case MetadataTable_TypeSpecification:
+					{
+						type = domain->IRAssemblies[0]->Types[domain->CachedType___System_RuntimeTypeHandle->TableIndex - 1];
+						handleType = RuntimeHandleType_TypeSpecification;
+						handleData = token->Data;
+						break;
+					}
+					case MetadataTable_MemberReference:
+					{
+						if (((MemberReference*)token->Data)->TypeOfResolved == FieldOrMethodDefType_Field)
+						{
+							type = domain->IRAssemblies[0]->Types[domain->CachedType___System_RuntimeFieldHandle->TableIndex - 1];
+							handleType = RuntimeHandleType_FieldDefinition;
+							handleData = ((MemberReference*)token->Data)->Resolved.Field;
+						}
+						else if (((MemberReference*)token->Data)->TypeOfResolved == FieldOrMethodDefType_MethodDefinition)
+						{
+							type = domain->IRAssemblies[0]->Types[domain->CachedType___System_RuntimeMethodHandle->TableIndex - 1];
+							handleType = RuntimeHandleType_MethodDefinition;
+							handleData = ((MemberReference*)token->Data)->Resolved.MethodDefinition;
+						}
+						else
+						{
+							Panic("Unknown MemberReference for LdToken");
+						}
+						
+						break;
+					}
+					default:
+						Panic("Unknown Table for LdToken");
+						break;
+				}
+
+				EMIT_IR_3ARG_NO_DISPOSE(IROpcode_Load_Token, (uint32_t*)type, (uint32_t*)handleType, handleData);
+
+				StackObject* obj = SA();
+				obj->Type = type;
+				obj->SourceType = StackObjectSourceType_Stack;
+
+				ClearFlags();
+	            break;
+            }
 
             case ILOpcode_EndFinally:		// 0xDC
 				UNSUPPORTED_OPERATION(EndFinally);

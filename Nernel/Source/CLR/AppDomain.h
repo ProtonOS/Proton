@@ -28,6 +28,9 @@ struct _AppDomain
 	TypeDefinition* CachedType___System_Int64;
 	TypeDefinition* CachedType___System_IntPtr;
 	TypeDefinition* CachedType___System_Object;
+	TypeDefinition* CachedType___System_RuntimeFieldHandle;
+	TypeDefinition* CachedType___System_RuntimeMethodHandle;
+	TypeDefinition* CachedType___System_RuntimeTypeHandle;
 	TypeDefinition* CachedType___System_SByte;
 	TypeDefinition* CachedType___System_Single;
 	TypeDefinition* CachedType___System_String;
