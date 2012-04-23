@@ -2161,7 +2161,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
 					if (prefixConstrained)
 					{
-						EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Call_Constrained, AppDomain_GetIRTypeFromMetadataToken(domain, assembly, prefixConstrainedToken), (uint32_t*)methodIndex);
+						EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Call_Constrained, AppDomain_GetIRTypeFromMetadataToken(domain, assembly, prefixConstrainedToken, FALSE), (uint32_t*)methodIndex);
 					}
 					else
 					{
@@ -2732,7 +2732,7 @@ BranchCommon:
 			{
 				Log_WriteLine(LOGLEVEL__ILReader, "Read NewArr");
 
-				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer));
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), FALSE);
 
 				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_New_Array, type);
 
@@ -2748,7 +2748,7 @@ BranchCommon:
 			{
 				Log_WriteLine(LOGLEVEL__ILReader, "Read CastClass");
 
-				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer));
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), FALSE);
 
 				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_CastClass, type);
 
@@ -2764,7 +2764,7 @@ BranchCommon:
 			{
 				Log_WriteLine(LOGLEVEL__ILReader, "Read IsInst");
 
-				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer));
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), FALSE);
 
 				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_IsInst, type);
 
@@ -2780,7 +2780,7 @@ BranchCommon:
 			{
 				Log_WriteLine(LOGLEVEL__ILReader, "Read Unbox");
 
-				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer));
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), FALSE);
 
 				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Unbox, type);
 
@@ -2796,7 +2796,7 @@ BranchCommon:
 			{
 				Log_WriteLine(LOGLEVEL__ILReader, "Read Unbox.Any");
 
-				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer));
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), FALSE);
 
 				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Unbox_Any, type);
 
@@ -2812,7 +2812,7 @@ BranchCommon:
 			{
 				Log_WriteLine(LOGLEVEL__ILReader, "Read Box");
 
-				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer));
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), FALSE);
 
 				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Box, type);
 
@@ -2950,7 +2950,7 @@ BranchCommon:
             {
                 Log_WriteLine(LOGLEVEL__ILReader, "Read LdObj");
 
-				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer));
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), FALSE);
 
 				StackObject* obj = SyntheticStack_Peek(stack);
 
@@ -2967,7 +2967,7 @@ BranchCommon:
 			{
 				Log_WriteLine(LOGLEVEL__ILReader, "Read StObj");
 
-				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer));
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), FALSE);
 
 				SR(SyntheticStack_Pop(stack));
 				StackObject* obj = SyntheticStack_Peek(stack);
@@ -2985,7 +2985,7 @@ BranchCommon:
 			{
 				Log_WriteLine(LOGLEVEL__ILReader, "Read CpObj");
 
-				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer));
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), FALSE);
 
 				SR(SyntheticStack_Pop(stack));
 				StackObject* obj = SyntheticStack_Pop(stack);
@@ -3067,7 +3067,7 @@ BranchCommon:
             {
                 Log_WriteLine(LOGLEVEL__ILReader, "Read LdElemA");
 
-				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer));
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), FALSE);
 
 				SR(SyntheticStack_Pop(stack));
 				StackObject* obj = SyntheticStack_Peek(stack);
@@ -3121,7 +3121,7 @@ BranchCommon:
             {
                 Log_WriteLine(LOGLEVEL__ILReader, "Read LdElem");
 
-				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer));
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), FALSE);
 
 				SR(SyntheticStack_Pop(stack));
 				StackObject* obj = SyntheticStack_Peek(stack);
@@ -3168,7 +3168,7 @@ BranchCommon:
             {
                 Log_WriteLine(LOGLEVEL__ILReader, "Read StElem");
 
-				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer));
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), FALSE);
 
 				SR(SyntheticStack_Pop(stack));
 				SR(SyntheticStack_Pop(stack));
@@ -3195,7 +3195,21 @@ BranchCommon:
 			} 
 
 			case ILOpcode_MkRefAny:			// 0xC6
-				UNSUPPORTED_OPERATION(MkRefAny);
+            {
+                Log_WriteLine(LOGLEVEL__ILReader, "Read MkRefAny");
+
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), TRUE);
+
+				StackObject* obj = SyntheticStack_Peek(stack);
+
+				EMIT_IR_2ARG_NO_DISPOSE(IROpcode_MkRefAny, obj->Type, type);
+
+				obj->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_TypedReference->TableIndex - 1];
+				obj->SourceType = StackObjectSourceType_Stack;
+
+				ClearFlags();
+	            break;
+            }
 
 			case ILOpcode_LdToken:			// 0xD0
             {
@@ -3274,6 +3288,7 @@ BranchCommon:
 						Panic("Unknown Table for LdToken");
 						break;
 				}
+				CLIFile_DestroyMetadataToken(token);
 
 				EMIT_IR_3ARG_NO_DISPOSE(IROpcode_Load_Token, (uint32_t*)type, (uint32_t*)handleType, handleData);
 
@@ -3586,7 +3601,7 @@ BranchCommon:
 					{
 						Log_WriteLine(LOGLEVEL__ILReader, "Read InitObj");
 
-						type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer));
+						type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), FALSE);
 
 						StackObject* obj = SyntheticStack_Pop(stack);
 
@@ -3632,7 +3647,7 @@ BranchCommon:
 					{
 						Log_WriteLine(LOGLEVEL__ILReader, "Read SizeOf");
 
-						type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer));
+						type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), FALSE);
 
 						EMIT_IR_1ARG_NO_DISPOSE(IROpcode_SizeOf, type);
 						
@@ -3725,6 +3740,7 @@ bool_t ILDecomposition_MethodUsesGenerics(IRMethod* pMethod)
 			case IROpcode_Call_Virtual:
 			case IROpcode_Call_Constrained:
 			case IROpcode_Load_VirtualFunction:
+			case IROpcode_Load_Token:
 				if ((((IRType*)instruction->Arg1)->IsGeneric && !((IRType*)instruction->Arg1)->IsGenericInstantiation) ||
 					((IRType*)instruction->Arg1)->IsGenericParameter) return TRUE;
 				break;
@@ -3756,6 +3772,7 @@ bool_t ILDecomposition_MethodUsesGenerics(IRMethod* pMethod)
 			case IROpcode_Load_ElementAddress:
 			case IROpcode_Store_Element:
 			case IROpcode_Initialize_Object:
+			case IROpcode_MkRefAny:
 				if ((((IRType*)instruction->Arg1)->IsGeneric && ((IRType*)instruction->Arg1)->IsGenericInstantiation) ||
 					((IRType*)instruction->Arg1)->IsGenericParameter) return TRUE;
 				if ((((IRType*)instruction->Arg2)->IsGeneric && ((IRType*)instruction->Arg2)->IsGenericInstantiation) ||

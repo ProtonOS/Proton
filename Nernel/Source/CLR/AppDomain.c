@@ -537,9 +537,17 @@ IRField* AppDomain_GetIRFieldFromMetadataToken(AppDomain* pDomain, IRAssembly* p
 	return field;
 }
 
-IRType* AppDomain_GetIRTypeFromMetadataToken(AppDomain* pDomain, IRAssembly* pAssembly, uint32_t pToken)
+IRType* AppDomain_GetIRTypeFromMetadataToken(AppDomain* pDomain, IRAssembly* pAssembly, uint32_t pToken, bool_t pClassToken)
 {
-	MetadataToken* token = CLIFile_ExpandMetadataToken(pAssembly->ParentFile, pToken);
+	MetadataToken* token = NULL;
+	if (pClassToken)
+	{
+		token = CLIFile_ExpandTypeDefRefOrSpecToken(pAssembly->ParentFile, pToken);
+	}
+	else
+	{
+		token = CLIFile_ExpandMetadataToken(pAssembly->ParentFile, pToken);
+	}
 	IRType* type = NULL;
 	switch(token->Table)
 	{
@@ -1199,6 +1207,7 @@ void AppDomain_ResolveGenericMethodParameters(AppDomain* pDomain, CLIFile* pFile
 			case IROpcode_Call_Virtual:
 			case IROpcode_Call_Constrained:
 			case IROpcode_Load_VirtualFunction:
+			case IROpcode_Load_Token:
 				if ((((IRType*)instruction->Arg1)->IsGeneric && !((IRType*)instruction->Arg1)->IsGenericInstantiation) ||
 					((IRType*)instruction->Arg1)->IsGenericParameter)
 				{
@@ -1239,6 +1248,7 @@ void AppDomain_ResolveGenericMethodParameters(AppDomain* pDomain, CLIFile* pFile
 			case IROpcode_Load_ElementAddress:
 			case IROpcode_Store_Element:
 			case IROpcode_Initialize_Object:
+			case IROpcode_MkRefAny:
 				if ((((IRType*)instruction->Arg1)->IsGeneric && !((IRType*)instruction->Arg1)->IsGenericInstantiation) ||
 					((IRType*)instruction->Arg1)->IsGenericParameter)
 				{

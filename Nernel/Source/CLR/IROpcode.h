@@ -1476,6 +1476,26 @@ typedef enum IROpcode
 
      */
     IROpcode_Load_Token,
+    /*
+        Loads a TypedReference from a pointer.
+
+		Stack:
+			..., pointer -> ..., typedRef
+
+		Arg1: IRType*
+			A pointer to the IRType of the pointer.
+
+        Arg2: IRType*
+            A pointer to the IRType of the class being loaded.
+
+        Arg3:
+			N/A
+
+        Arg4:
+			N/A
+
+     */
+    IROpcode_MkRefAny,
 } IROpcode;
 
 typedef enum OverflowType
