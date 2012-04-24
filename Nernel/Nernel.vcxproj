@@ -16,6 +16,7 @@
     <ClCompile Include="Source\CLR\ILDecomposition.c" />
     <ClCompile Include="Source\CLR\Internal.c" />
     <ClCompile Include="Source\CLR\Internal\Proton.IO.PortIO.c" />
+    <ClCompile Include="Source\CLR\IROptimizer.c" />
     <ClCompile Include="Source\CLR\IRStructures.c" />
     <ClCompile Include="Source\CLR\MetadataStructures.c" />
     <ClCompile Include="Source\CLR\SyntheticStack.c" />
@@ -58,6 +59,7 @@
     <ClInclude Include="Source\CLR\Internal.h" />
     <ClInclude Include="Source\CLR\Internal\Proton.IO.PortIO.h" />
     <ClInclude Include="Source\CLR\IROpcode.h" />
+    <ClInclude Include="Source\CLR\IROptimizer.h" />
     <ClInclude Include="Source\CLR\IRStructures.h" />
     <ClInclude Include="Source\CLR\MetadataStructures.h" />
     <ClInclude Include="Source\CLR\SyntheticStack.h" />

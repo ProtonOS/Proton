@@ -1,5 +1,6 @@
 #include <CLR/AppDomain.h>
 #include <CLR/ILDecomposition.h>
+#include <CLR/IROptimizer.h>
 #include <System/Atomics.h>
 #include <System/Multiboot.h>
 
@@ -418,7 +419,7 @@ IRType* AppDomain_GetIRTypeFromSignatureType(AppDomain* pDomain, IRAssembly* pAs
 			key.GenericType = type;
 			if (type->GenericParameterCount != pType->GenericInstGenericArgumentCount)
 			{
-				printf("type->TypeDef->GenericParameterCount (%u), type->GenericParameterCount (%u) != pType->GenericInstGenericArgumentCount (%u)\n", (unsigned int)type->TypeDefinition->GenericParameterCount, (unsigned int)type->GenericParameterCount, (unsigned int)pType->GenericInstGenericArgumentCount);
+				//printf("type->TypeDef->GenericParameterCount (%u), type->GenericParameterCount (%u) != pType->GenericInstGenericArgumentCount (%u)\n", (unsigned int)type->TypeDefinition->GenericParameterCount, (unsigned int)type->GenericParameterCount, (unsigned int)pType->GenericInstGenericArgumentCount);
 				//Panic("AppDomain_GetIRTypeFromSignatureType GenericInstantiation Parameter Count Mismatch");
 			}
 			key.ParameterCount = pType->GenericInstGenericArgumentCount;
@@ -437,7 +438,7 @@ IRType* AppDomain_GetIRTypeFromSignatureType(AppDomain* pDomain, IRAssembly* pAs
 				for (uint32_t index = 0; index < pType->GenericInstGenericArgumentCount; ++index)
 				{
 					implementationType->GenericType->Parameters[index] = AppDomain_GetIRTypeFromSignatureType(pDomain, pAssembly, pType->GenericInstGenericArguments[index]);
-					printf("GenericInstantiation Type %s.%s, Param %u Type %s.%s\n", implementationType->TypeDefinition->Namespace, implementationType->TypeDefinition->Name, (unsigned int)index, implementationType->GenericType->Parameters[index]->TypeDefinition->Namespace, implementationType->GenericType->Parameters[index]->TypeDefinition->Name);
+					//printf("GenericInstantiation Type %s.%s, Param %u Type %s.%s\n", implementationType->TypeDefinition->Namespace, implementationType->TypeDefinition->Name, (unsigned int)index, implementationType->GenericType->Parameters[index]->TypeDefinition->Namespace, implementationType->GenericType->Parameters[index]->TypeDefinition->Name);
 				}
 				HASH_ADD(HashHandle, pAssembly->GenericTypesHashTable, GenericType, offsetof(IRGenericType, ImplementationType), implementationType->GenericType);
 				AppDomain_ResolveGenericTypeParameters(pDomain, pAssembly->ParentFile, implementationType);
@@ -1298,4 +1299,6 @@ void AppDomain_ResolveGenericMethodParameters(AppDomain* pDomain, CLIFile* pFile
 void AppDomain_ExecuteMethod(AppDomain* pDomain, IRMethod* pMethod)
 {
 	ILDecomposition_ConvertInstructions(pMethod);
+	IROptimizer_EnterSSA(pMethod);
+	IROptimizer_LeaveSSA(pMethod);
 }

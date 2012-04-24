@@ -17,6 +17,7 @@ typedef enum LogLevel
 	LOGLEVEL__IREmitter =							1 << 8,
 	LOGLEVEL__Link_Internals =						1 << 9,
 	LOGLEVEL__Link_Branches =						1 << 10,
+	LOGLEVEL__Optimize_SSA =						1 << 11,
 } LogLevel;
 
 #ifdef LOG__DISABLE
@@ -34,15 +35,14 @@ void Log_WriteLine(LogLevel pLevel, const char* pFormatString, ...);
 		| LOGLEVEL__SyntheticStack \
 		| LOGLEVEL__Decomposition \
 		| LOGLEVEL__MethodLayout \
-		*/ \
 		| LOGLEVEL__FieldLayout \
 		| LOGLEVEL__Exceptions \
 		| LOGLEVEL__ILReader \
 		| LOGLEVEL__IREmitter \
-		/* \
 		| LOGLEVEL__Link_Internals \
 		| LOGLEVEL__Link_Branches \
 		*/ \
+		| LOGLEVEL__Optimize_SSA \
         ))
 
 #define Log_WriteLine(ll, ...) \

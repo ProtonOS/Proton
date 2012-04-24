@@ -67,6 +67,7 @@
 	Source/CLR/CLIFile.c
 	Source/CLR/ILDecomposition.c
 	Source/CLR/Internal.c
+	Source/CLR/IROptimizer.c
 	Source/CLR/IRStructures.c
 	Source/CLR/MetadataStructures.c
 	Source/CLR/SyntheticStack.c

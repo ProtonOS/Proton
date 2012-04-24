@@ -90,6 +90,9 @@
     <ClCompile Include="Source\CLR\Internal.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\CLR\IROptimizer.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\System\Multiboot.h">
@@ -201,6 +204,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\CLR\Internal.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\CLR\IROptimizer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

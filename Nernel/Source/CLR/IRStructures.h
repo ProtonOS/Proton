@@ -137,6 +137,8 @@ struct _IRMethod
 
 	bool_t IsDomainSpecific;
 
+	bool_t IsOptimized;
+
     void(*AssembledMethod)();
 };
 
