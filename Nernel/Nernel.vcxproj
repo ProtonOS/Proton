@@ -14,6 +14,7 @@
     <ClCompile Include="Source\CLR\AppDomain.c" />
     <ClCompile Include="Source\CLR\CLIFile.c" />
     <ClCompile Include="Source\CLR\ILDecomposition.c" />
+    <ClCompile Include="Source\CLR\Internal.c" />
     <ClCompile Include="Source\CLR\Internal\Proton.IO.PortIO.c" />
     <ClCompile Include="Source\CLR\IRStructures.c" />
     <ClCompile Include="Source\CLR\MetadataStructures.c" />
@@ -54,6 +55,7 @@
     <ClInclude Include="Source\CLR\ILDecompositionMacros.h" />
     <ClInclude Include="Source\CLR\ILOpcode.h" />
     <ClInclude Include="Source\CLR\ILDecomposition.h" />
+    <ClInclude Include="Source\CLR\Internal.h" />
     <ClInclude Include="Source\CLR\Internal\Proton.IO.PortIO.h" />
     <ClInclude Include="Source\CLR\IROpcode.h" />
     <ClInclude Include="Source\CLR\IRStructures.h" />
