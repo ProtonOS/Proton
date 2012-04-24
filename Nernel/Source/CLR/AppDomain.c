@@ -1208,6 +1208,7 @@ void AppDomain_ResolveGenericMethodParameters(AppDomain* pDomain, CLIFile* pFile
 			case IROpcode_Call_Constrained:
 			case IROpcode_Load_VirtualFunction:
 			case IROpcode_Load_Token:
+			case IROpcode_RefAnyVal:
 				if ((((IRType*)instruction->Arg1)->IsGeneric && !((IRType*)instruction->Arg1)->IsGenericInstantiation) ||
 					((IRType*)instruction->Arg1)->IsGenericParameter)
 				{

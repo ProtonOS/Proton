@@ -3182,7 +3182,20 @@ BranchCommon:
             }
 
 			case ILOpcode_RefAnyVal:		// 0xC2
-				UNSUPPORTED_OPERATION(RefAnyVal);
+            {
+                Log_WriteLine(LOGLEVEL__ILReader, "Read RefAnyVal");
+
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), FALSE);
+
+				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_RefAnyVal, type);
+
+				StackObject* obj = SyntheticStack_Peek(stack);
+				obj->Type = IRAssembly_MakePointerType(assembly, type);
+				obj->SourceType = StackObjectSourceType_Stack;
+
+				ClearFlags();
+	            break;
+            }
 
             case ILOpcode_CkFinite:			// 0xC3
 			{
@@ -3661,7 +3674,18 @@ BranchCommon:
 					}
 
                     case ILOpcode_Extended_RefAnyType:		// 0x1D
-						UNSUPPORTED_OPERATION(RefAnyType);
+					{
+						Log_WriteLine(LOGLEVEL__ILReader, "Read RefAnyType");
+
+						EMIT_IR(IROpcode_RefAnyType);
+
+						StackObject* obj = SyntheticStack_Peek(stack);
+						obj->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_UInt32->TableIndex - 1];
+						obj->SourceType = StackObjectSourceType_Stack;
+
+						ClearFlags();
+						break;
+					}
 
 
                     case ILOpcode_Extended_Constrained__:	// 0x16
@@ -3741,6 +3765,7 @@ bool_t ILDecomposition_MethodUsesGenerics(IRMethod* pMethod)
 			case IROpcode_Call_Constrained:
 			case IROpcode_Load_VirtualFunction:
 			case IROpcode_Load_Token:
+			case IROpcode_RefAnyVal:
 				if ((((IRType*)instruction->Arg1)->IsGeneric && !((IRType*)instruction->Arg1)->IsGenericInstantiation) ||
 					((IRType*)instruction->Arg1)->IsGenericParameter) return TRUE;
 				break;
