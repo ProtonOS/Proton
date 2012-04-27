@@ -1299,6 +1299,6 @@ void AppDomain_ResolveGenericMethodParameters(AppDomain* pDomain, CLIFile* pFile
 void AppDomain_CompileMethod(AppDomain* pDomain, IRMethod* pMethod)
 {
 	ILDecomposition_ConvertInstructions(pMethod);
-	IROptimizer_EnterSSA(pMethod);
-	IROptimizer_LeaveSSA(pMethod);
+	IROptimizer_Optimize(pMethod);
+	// Wherever we're currently calling this needs to be calling into the JIT instead.
 }

@@ -72,6 +72,8 @@
 	Source/CLR/MetadataStructures.c
 	Source/CLR/SyntheticStack.c
 	Source/CLR/InternalCalls/Proton.IO.PortIO.c
+	Source/CLR/Optimizations/EnterSSA.c
+	Source/CLR/Optimizations/LeaveSSA.c
 	Source/System/APIC.c
 	Source/System/Console.c
 	Source/System/CPUID.c
