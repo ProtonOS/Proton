@@ -1,4 +1,4 @@
-#include <CLR/Internal/Proton.IO.PortIO.h>
+#include <CLR/InternalCalls/Proton.IO.PortIO.h>
 #include <System/x86/PortIO.h>
 
 uint32_t Proton_IO_PortIO_InByte(AppDomain* pAppDomain, uint32_t port)

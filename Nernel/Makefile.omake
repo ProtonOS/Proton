@@ -66,12 +66,12 @@
 	Source/CLR/AppDomain.c
 	Source/CLR/CLIFile.c
 	Source/CLR/ILDecomposition.c
-	Source/CLR/Internal.c
+	Source/CLR/InternalCalls.c
 	Source/CLR/IROptimizer.c
 	Source/CLR/IRStructures.c
 	Source/CLR/MetadataStructures.c
 	Source/CLR/SyntheticStack.c
-	Source/CLR/Internal/Proton.IO.PortIO.c
+	Source/CLR/InternalCalls/Proton.IO.PortIO.c
 	Source/System/APIC.c
 	Source/System/Console.c
 	Source/System/CPUID.c
