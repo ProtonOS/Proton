@@ -276,6 +276,44 @@ typedef enum SourceType
 	SourceType_StaticField,
 } SourceType;
 
+#define Define_SourceData(sourceDataName) \
+	union sourceDataName \
+	{ \
+		struct LocalVariable \
+		{ \
+			uint32_t LocalVariableIndex; \
+		} LocalVariable; \
+		struct Parameter \
+		{ \
+			uint32_t ParameterIndex; \
+		} Parameter; \
+		struct ConstantI4 \
+		{ \
+			uint32_t Value; \
+		} ConstantI4; \
+		struct ConstantI8 \
+		{ \
+			uint64_t Value; \
+		} ConstantI8; \
+		struct ConstantR4 \
+		{ \
+			uint32_t Value; \
+		} ConstantR4; \
+		struct ConstantR8 \
+		{ \
+			uint64_t Value; \
+		} ConstantR8; \
+		struct Field \
+		{ \
+			uint32_t FieldIndex; \
+			IRType* ParentType; \
+		} Field; \
+		struct StaticField \
+		{ \
+			IRField* Field; \
+		} StaticField; \
+	} sourceDataName; 
+
 struct _IRInstruction
 {
     uint32_t ILLocation;
@@ -289,9 +327,16 @@ struct _IRInstruction
     void* Arg3;
     bool_t Arg4NeedsDisposing;
     void* Arg4;
-
+	
 	SourceType Source1Type;
+	Define_SourceData(Source1Data);
+	SourceType Source2Type;
+	Define_SourceData(Source2Data);
+	SourceType Source3Type;
+	Define_SourceData(Source3Data);
 
+	SourceType DestinationType;
+	Define_SourceData(DestinationData);
 };
 
 IRInstruction* IRInstruction_Create(uint32_t pILLocation, IROpcode pOpcode);
