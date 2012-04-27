@@ -2,9 +2,16 @@
 #include <CLR/SyntheticStack.h>
 
 #define PA() StackObjectPool_Allocate(stack)
-#define PR() StackObjectPool_Release(stack)
+#define PR(obj) StackObjectPool_Release(stack, obj)
 #define Push(obj) SyntheticStack_Push(stack, obj)
 #define Pop() SyntheticStack_Pop(stack)
+
+uint32_t AddLocal(IRType* localType, IRMethod* pMethod)
+{
+	IRLocalVariable* loc = IRLocalVariable_Create(pMethod, localType);
+	IRMethod_AddLocal(pMethod, loc);
+	return loc->LocalVariableIndex;
+}
 
 void IROptimizer_LinearizeStack(IRMethod* pMethod)
 {
@@ -133,34 +140,50 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 					obj = Pop();
 					ins->Source1Type = obj->LinearData.Source;
 					ins->Source1Data = obj->LinearData.SourceData;
+					PR(obj);
 				}
                 break;
-            case IROpcode_Store_Parameter:
-                break;
+            case IROpcode_Throw:
             case IROpcode_Store_Local:
+				obj = Pop();
+				ins->Source1Type = obj->LinearData.Source;
+				ins->Source1Data = obj->LinearData.SourceData;
+				PR(obj);
                 break;
+
+            case IROpcode_Store_Parameter:
             case IROpcode_Pop:
+				Panic("I don't quite know what to do here yet!");
                 break;
+
             case IROpcode_Load_Indirect:
                 break;
             case IROpcode_Store_Indirect:
                 break;
-            case IROpcode_Add:
-                break;
-            case IROpcode_Sub:
-                break;
-            case IROpcode_Mul:
-                break;
-            case IROpcode_Div:
-                break;
+				
             case IROpcode_Rem:
-                break;
+            case IROpcode_Div:
+            case IROpcode_Mul:
+            case IROpcode_Sub:
+            case IROpcode_Add:
             case IROpcode_And:
-                break;
             case IROpcode_Or:
-                break;
             case IROpcode_Xor:
+				obj = Pop();
+				ins->Source1Type = obj->LinearData.Source;
+				ins->Source1Data = obj->LinearData.SourceData;
+				PR(obj);
+				obj = Pop();
+				ins->Source2Type = obj->LinearData.Source;
+				ins->Source2Data = obj->LinearData.SourceData;
+				PR(obj);
+				printf("Need to get the proper IRType here!\n");
+				obj = PA();
+				obj->LinearData.Source = SourceType_Local;
+				obj->LinearData.SourceData.LocalVariable.LocalVariableIndex = AddLocal(pMethod->ParentAssembly->ParentDomain->IRAssemblies[0]->Types[pMethod->ParentAssembly->ParentDomain->CachedType___System_Int32->TableIndex - 1], pMethod);
+				Push(obj);
                 break;
+
             case IROpcode_Neg:
                 break;
             case IROpcode_Not:
@@ -180,8 +203,6 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
             case IROpcode_Unbox_Any:
                 break;
             case IROpcode_Box:
-                break;
-            case IROpcode_Throw:
                 break;
             case IROpcode_Load_Object:
                 break;
@@ -260,3 +281,4 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 	StackObjectPool_Destroy(stack);
 	SyntheticStack_Destroy(stack);
 }
+
