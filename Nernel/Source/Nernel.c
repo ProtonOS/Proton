@@ -40,7 +40,7 @@ void Startup()
 	printf("AppDomain_Create took %uMS\n", (unsigned int)(stoppedTicks - startedTicks));
 	LoadedModule* mernelModule = Multiboot_GetLoadedModule("/boot/mernel.exe");
 	AppDomain_AddAssembly(gMernelDomain, ILDecomposition_CreateAssembly(gMernelDomain, CLIFile_Create((uint8_t*)mernelModule->Address, mernelModule->Size, "mernel.exe")));
-	AppDomain_ExecuteMethod(gMernelDomain, gMernelDomain->IRAssemblies[1]->EntryPoint);
+	AppDomain_CompileMethod(gMernelDomain, gMernelDomain->IRAssemblies[1]->EntryPoint);
 
 	while(TRUE)
 	{

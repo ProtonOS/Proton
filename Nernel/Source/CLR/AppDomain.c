@@ -1296,7 +1296,7 @@ void AppDomain_ResolveGenericMethodParameters(AppDomain* pDomain, CLIFile* pFile
 	}
 }
 
-void AppDomain_ExecuteMethod(AppDomain* pDomain, IRMethod* pMethod)
+void AppDomain_CompileMethod(AppDomain* pDomain, IRMethod* pMethod)
 {
 	ILDecomposition_ConvertInstructions(pMethod);
 	IROptimizer_EnterSSA(pMethod);

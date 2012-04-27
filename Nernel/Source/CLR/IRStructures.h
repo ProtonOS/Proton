@@ -137,8 +137,6 @@ struct _IRMethod
 
 	bool_t IsDomainSpecific;
 
-	bool_t IsOptimized;
-
     void(*AssembledMethod)();
 };
 
@@ -166,6 +164,9 @@ struct _IRLocalVariable
 	uint32_t Offset;
 	uint32_t Size;
 	bool_t Pinned;
+
+	IRLocalVariable* Ancestor;
+	bool_t Used;
 };
 
 IRLocalVariable* IRLocalVariable_Create(IRMethod* pMethod, IRType* pType);
