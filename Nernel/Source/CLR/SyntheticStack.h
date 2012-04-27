@@ -2,8 +2,15 @@
 
 typedef struct _SyntheticStack SyntheticStack;
 typedef struct _StackObject StackObject;
+typedef struct _StackLinearizationData StackLinearizationData;
 
 #include <CLR/IRStructures.h>
+
+struct _StackLinearizationData
+{
+	SourceType Source;
+	SourceData SourceData;
+};
 
 typedef enum StackObjectSourceType
 {
@@ -17,9 +24,16 @@ typedef enum StackObjectSourceType
 
 struct _StackObject
 {
-	StackObjectSourceType SourceType;
-	IRInstruction* Source;
-    IRType* Type;
+	union
+	{
+		struct
+		{
+			StackObjectSourceType SourceType;
+			IRType* Type;
+			IRInstruction* Source;
+		};
+		StackLinearizationData LinearData;
+	};
     StackObject* PrevObj;
     StackObject* NextObj;
 };

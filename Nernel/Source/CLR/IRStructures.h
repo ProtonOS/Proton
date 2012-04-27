@@ -266,53 +266,80 @@ void IRGenericMethod_Destroy(IRGenericMethod* pGenericType);
 
 typedef enum SourceType
 {
+	SourceType_Null,
 	SourceType_Local,
+	SourceType_LocalAddress,
 	SourceType_Parameter,
+	SourceType_ParameterAddress,
 	SourceType_ConstantI4,
 	SourceType_ConstantI8,
 	SourceType_ConstantR4,
 	SourceType_ConstantR8,
+	SourceType_StringLiteral,
 	SourceType_Field,
+	SourceType_FieldAddress,
 	SourceType_StaticField,
+	SourceType_StaticFieldAddress,
 } SourceType;
 
-#define Define_SourceData(sourceDataName) \
-	union sourceDataName \
-	{ \
-		struct LocalVariable \
-		{ \
-			uint32_t LocalVariableIndex; \
-		} LocalVariable; \
-		struct Parameter \
-		{ \
-			uint32_t ParameterIndex; \
-		} Parameter; \
-		struct ConstantI4 \
-		{ \
-			uint32_t Value; \
-		} ConstantI4; \
-		struct ConstantI8 \
-		{ \
-			uint64_t Value; \
-		} ConstantI8; \
-		struct ConstantR4 \
-		{ \
-			uint32_t Value; \
-		} ConstantR4; \
-		struct ConstantR8 \
-		{ \
-			uint64_t Value; \
-		} ConstantR8; \
-		struct Field \
-		{ \
-			uint32_t FieldIndex; \
-			IRType* ParentType; \
-		} Field; \
-		struct StaticField \
-		{ \
-			IRField* Field; \
-		} StaticField; \
-	} sourceDataName; 
+typedef union SourceData
+{
+	struct LocalVariable
+	{
+		uint32_t LocalVariableIndex;
+	} LocalVariable;
+	struct LocalVariableAddress
+	{
+		uint32_t LocalVariableIndex;
+	} LocalVariableAddress;
+	struct Parameter
+	{
+		uint32_t ParameterIndex;
+	} Parameter;
+	struct ParameterAddress
+	{
+		uint32_t ParameterIndex;
+	} ParameterAddress;
+	struct ConstantI4
+	{
+		uint32_t Value;
+	} ConstantI4;
+	struct ConstantI8
+	{
+		uint64_t Value;
+	} ConstantI8;
+	struct ConstantR4
+	{
+		uint32_t Value;
+	} ConstantR4;
+	struct ConstantR8
+	{
+		uint64_t Value;
+	} ConstantR8;
+	struct Field
+	{
+		uint32_t FieldIndex;
+		IRType* ParentType;
+	} Field;
+	struct FieldAddress
+	{
+		uint32_t FieldIndex;
+		IRType* ParentType;
+	} FieldAddress;
+	struct StaticField
+	{
+		IRField* Field;
+	} StaticField;
+	struct StaticFieldAddress
+	{
+		IRField* Field;
+	} StaticFieldAddress;
+	struct StringLiteral
+	{
+		uint32_t Length;
+		uint8_t* Data;
+	} StringLiteral;
+} SourceData;
 
 struct _IRInstruction
 {
@@ -329,14 +356,14 @@ struct _IRInstruction
     void* Arg4;
 	
 	SourceType Source1Type;
-	Define_SourceData(Source1Data);
+	SourceData Source1Data;
 	SourceType Source2Type;
-	Define_SourceData(Source2Data);
+	SourceData Source2Data;
 	SourceType Source3Type;
-	Define_SourceData(Source3Data);
+	SourceData Source3Data;
 
 	SourceType DestinationType;
-	Define_SourceData(DestinationData);
+	SourceData DestinationData;
 };
 
 IRInstruction* IRInstruction_Create(uint32_t pILLocation, IROpcode pOpcode);

@@ -21,6 +21,7 @@
     <ClCompile Include="Source\CLR\MetadataStructures.c" />
     <ClCompile Include="Source\CLR\Optimizations\EnterSSA.c" />
     <ClCompile Include="Source\CLR\Optimizations\LeaveSSA.c" />
+    <ClCompile Include="Source\CLR\Optimizations\LinearizeStack.c" />
     <ClCompile Include="Source\CLR\SyntheticStack.c" />
     <ClCompile Include="Source\System\APIC.c" />
     <ClCompile Include="Source\System\Console.c" />
@@ -66,6 +67,7 @@
     <ClInclude Include="Source\CLR\MetadataStructures.h" />
     <ClInclude Include="Source\CLR\Optimizations\EnterSSA.h" />
     <ClInclude Include="Source\CLR\Optimizations\LeaveSSA.h" />
+    <ClInclude Include="Source\CLR\Optimizations\LinearizeStack.h" />
     <ClInclude Include="Source\CLR\SyntheticStack.h" />
     <ClInclude Include="Source\Inline.h" />
     <ClInclude Include="Source\System\APIC.h" />
