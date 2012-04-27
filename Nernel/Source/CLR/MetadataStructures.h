@@ -1499,25 +1499,40 @@ uint8_t* SignatureCustomModifier_Parse(uint8_t* pCursor, SignatureCustomModifier
 struct _SignatureType
 {
     uint8_t ElementType;
-    SignatureType* ArrayType;
-    SignatureArrayShape* ArrayShape;
-    uint32_t ClassTypeDefOrRefOrSpecToken;
-    MethodSignature* FnPtrMethodSignature;
-    bool_t GenericInstClass;
-    bool_t GenericInstValue;
-    uint32_t GenericInstTypeDefOrRefOrSpecToken;
-    uint32_t GenericInstGenericArgumentCount;
-    SignatureType** GenericInstGenericArguments;
-    uint32_t MVarNumber;
-    uint32_t PtrCustomModifierCount;
-    SignatureCustomModifier** PtrCustomModifiers;
-    SignatureType* PtrType;
-    bool_t PtrVoid;
-    uint32_t SZArrayCustomModifierCount;
-    SignatureCustomModifier** SZArrayCustomModifiers;
-    SignatureType* SZArrayType;
-    uint32_t ValueTypeDefOrRefOrSpecToken;
-    uint32_t VarNumber;
+	union
+	{
+		struct
+		{
+			SignatureType* ArrayType;
+			SignatureArrayShape* ArrayShape;
+		};
+		uint32_t ClassTypeDefOrRefOrSpecToken;
+		MethodSignature* FnPtrMethodSignature;
+		struct
+		{
+			uint32_t GenericInstTypeDefOrRefOrSpecToken;
+			uint32_t GenericInstGenericArgumentCount;
+			SignatureType** GenericInstGenericArguments;
+			bool_t GenericInstClass : 1;
+			bool_t GenericInstValue;
+		};
+		uint32_t MVarNumber;
+		struct
+		{
+			uint32_t PtrCustomModifierCount;
+			SignatureCustomModifier** PtrCustomModifiers;
+			SignatureType* PtrType;
+			bool_t PtrVoid;
+		};
+		struct
+		{
+			uint32_t SZArrayCustomModifierCount;
+			SignatureCustomModifier** SZArrayCustomModifiers;
+			SignatureType* SZArrayType;
+		};
+		uint32_t ValueTypeDefOrRefOrSpecToken;
+		uint32_t VarNumber;
+	};
 };
 
 SignatureType* SignatureType_Create();

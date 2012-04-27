@@ -264,6 +264,18 @@ struct _IRGenericMethod
 IRGenericMethod* IRGenericMethod_Create(IRType* pParentType, IRMethod* pGenericMethod, IRMethod* pImplementationMethod);
 void IRGenericMethod_Destroy(IRGenericMethod* pGenericType);
 
+typedef enum SourceType
+{
+	SourceType_Local,
+	SourceType_Parameter,
+	SourceType_ConstantI4,
+	SourceType_ConstantI8,
+	SourceType_ConstantR4,
+	SourceType_ConstantR8,
+	SourceType_Field,
+	SourceType_StaticField,
+} SourceType;
+
 struct _IRInstruction
 {
     uint32_t ILLocation;
@@ -277,6 +289,9 @@ struct _IRInstruction
     void* Arg3;
     bool_t Arg4NeedsDisposing;
     void* Arg4;
+
+	SourceType Source1Type;
+
 };
 
 IRInstruction* IRInstruction_Create(uint32_t pILLocation, IROpcode pOpcode);
