@@ -1195,8 +1195,6 @@ void AppDomain_ResolveGenericMethodParameters(AppDomain* pDomain, CLIFile* pFile
 			case IROpcode_Pop:
 			case IROpcode_Load_Indirect:
 			case IROpcode_Store_Indirect:
-			case IROpcode_Neg:
-			case IROpcode_Not:
 			case IROpcode_CastClass:
 			case IROpcode_IsInst:
 			case IROpcode_Unbox:
@@ -1235,11 +1233,6 @@ void AppDomain_ResolveGenericMethodParameters(AppDomain* pDomain, CLIFile* pFile
 					Panic("Deal with this later");
 				}
 				break;
-			case IROpcode_And:
-			case IROpcode_Or:
-			case IROpcode_Xor:
-			case IROpcode_Convert_Unchecked:
-			case IROpcode_Convert_Checked:
 			case IROpcode_Load_Object:
 			case IROpcode_Store_Object:
 			case IROpcode_Copy_Object:
@@ -1260,23 +1253,6 @@ void AppDomain_ResolveGenericMethodParameters(AppDomain* pDomain, CLIFile* pFile
 					((IRType*)instruction->Arg2)->IsGenericParameter)
 				{
 					AppDomain_ResolveGenericMethodParametersInternal(pDomain, pFile, pType, pMethod, (IRType**)&instruction->Arg2);
-				}
-				break;
-			case IROpcode_Add:
-			case IROpcode_Sub:
-			case IROpcode_Mul:
-			case IROpcode_Div:
-			case IROpcode_Rem:
-			case IROpcode_Shift:
-				if ((((IRType*)instruction->Arg2)->IsGeneric && !((IRType*)instruction->Arg2)->IsGenericInstantiation) ||
-					((IRType*)instruction->Arg2)->IsGenericParameter)
-				{
-					AppDomain_ResolveGenericMethodParametersInternal(pDomain, pFile, pType, pMethod, (IRType**)&instruction->Arg2);
-				}
-				if ((((IRType*)instruction->Arg3)->IsGeneric && !((IRType*)instruction->Arg3)->IsGenericInstantiation) ||
-					((IRType*)instruction->Arg3)->IsGenericParameter)
-				{
-					AppDomain_ResolveGenericMethodParametersInternal(pDomain, pFile, pType, pMethod, (IRType**)&instruction->Arg3);
 				}
 				break;
 			case IROpcode_Branch:

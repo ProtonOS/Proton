@@ -513,6 +513,24 @@ IRField** ILDecomposition_GetFieldLayout(IRType* pType, TypeDefinition* pTypeDef
 	return pType->Fields;
 }
 
+ElementType ILDecomposition_GetElementTypeFromIRType(IRType* pType)
+{
+	AppDomain* domain = pType->ParentAssembly->ParentDomain;
+	TypeDefinition* typeDef = pType->TypeDefinition;
+	if (typeDef == domain->CachedType___System_Byte) return ElementType_U1;
+	if (typeDef == domain->CachedType___System_UInt16) return ElementType_U2;
+	if (typeDef == domain->CachedType___System_UInt32) return ElementType_U4;
+	if (typeDef == domain->CachedType___System_SByte) return ElementType_I1;
+	if (typeDef == domain->CachedType___System_Int16) return ElementType_I2;
+	if (typeDef == domain->CachedType___System_Int32) return ElementType_I4;
+	if (typeDef == domain->CachedType___System_IntPtr) return ElementType_I;
+	if (typeDef == domain->CachedType___System_UIntPtr) return ElementType_U;
+	if (typeDef == domain->CachedType___System_Single) return ElementType_R4;
+	if (typeDef == domain->CachedType___System_Double) return ElementType_R8;
+	Panic("ILDecomposition_GetElementTypeFromIRType: Unknown Type");
+	return (ElementType)0;
+}
+
 ALWAYS_INLINE void ILDecomposition_CheckBinaryNumericOperandTypesAndSetResult(IRType* pOperandA, IRType* pOperandB, BinaryNumericOperation pBinaryNumericOperation, StackObject* pResultObject)
 {
 	AppDomain* domain = pOperandA->ParentAssembly->ParentDomain;
@@ -913,7 +931,7 @@ void ILDecomposition_CheckConversionNumericOperandType(StackObject* pOperand, El
 		StackObject* value2 = SyntheticStack_Pop(stack); \
 		StackObject* obj = SA(); \
 		ILDecomposition_CheckBinaryNumericOperandTypesAndSetResult(value1->Type, value2->Type, BinaryNumericOperation_##pIROpcode, obj); \
-		EMIT_IR_3ARG_NO_DISPOSE(IROpcode_##pIROpcode, (uint32_t*)OverflowType_##pOverflowType, value1->Type, value2->Type); \
+		EMIT_IR_3ARG_NO_DISPOSE(IROpcode_##pIROpcode, (uint32_t*)OverflowType_##pOverflowType, (uint32_t*)ILDecomposition_GetElementTypeFromIRType(value1->Type), (uint32_t*)ILDecomposition_GetElementTypeFromIRType(value2->Type)); \
 		SR(value1); \
 		SR(value2); \
 		obj->SourceType = StackObjectSourceType_Stack; \
@@ -927,7 +945,7 @@ void ILDecomposition_CheckConversionNumericOperandType(StackObject* pOperand, El
 		StackObject* value2 = SyntheticStack_Pop(stack); \
 		StackObject* obj = SA(); \
 		ILDecomposition_CheckBitwiseNumericOperandTypesAndSetResult(value1->Type, value2->Type, BitwiseNumericOperation_##pILOpcode, obj); \
-		EMIT_IR_2ARG_NO_DISPOSE(IROpcode_##pILOpcode, value1->Type, value2->Type); \
+		EMIT_IR_2ARG_NO_DISPOSE(IROpcode_##pILOpcode, (uint32_t*)ILDecomposition_GetElementTypeFromIRType(value1->Type), (uint32_t*)ILDecomposition_GetElementTypeFromIRType(value2->Type)); \
 		SR(value1); \
 		SR(value2); \
 		obj->SourceType = StackObjectSourceType_Stack; \
@@ -940,7 +958,7 @@ void ILDecomposition_CheckConversionNumericOperandType(StackObject* pOperand, El
 		StackObject* value = SyntheticStack_Pop(stack); \
 		StackObject* obj = SA(); \
 		ILDecomposition_CheckUnaryNumericOperandTypesAndSetResult(value->Type, UnaryNumericOperation_##pILOpcode, obj); \
-		EMIT_IR_1ARG_NO_DISPOSE(IROpcode_##pILOpcode, value->Type); \
+		EMIT_IR_1ARG_NO_DISPOSE(IROpcode_##pILOpcode, (uint32_t*)ILDecomposition_GetElementTypeFromIRType(value->Type)); \
 		SR(value); \
 		obj->SourceType = StackObjectSourceType_Stack; \
 		SyntheticStack_Push(stack, obj); \
@@ -955,7 +973,7 @@ void ILDecomposition_CheckConversionNumericOperandType(StackObject* pOperand, El
 		IRType* value2GeneralType = NULL; \
 		StackObject* obj = SA(); \
 		ILDecomposition_CheckShiftNumericOperandTypesAndSetResult(value1->Type, value2->Type, ShiftNumericOperation_##pShiftNumericOperation, obj, &value1GeneralType, &value2GeneralType); \
-		EMIT_IR_3ARG_NO_DISPOSE(IROpcode_Shift, (uint32_t*)ShiftNumericOperation_##pShiftNumericOperation, value1GeneralType, value2GeneralType); \
+		EMIT_IR_3ARG_NO_DISPOSE(IROpcode_Shift, (uint32_t*)ShiftNumericOperation_##pShiftNumericOperation, (uint32_t*)ILDecomposition_GetElementTypeFromIRType(value1GeneralType), (uint32_t*)ILDecomposition_GetElementTypeFromIRType(value2GeneralType)); \
 		SR(value1); \
 		SR(value2); \
 		obj->SourceType = StackObjectSourceType_Stack; \
@@ -3628,8 +3646,6 @@ bool_t ILDecomposition_MethodUsesGenerics(IRMethod* pMethod)
 			case IROpcode_Pop:
 			case IROpcode_Load_Indirect:
 			case IROpcode_Store_Indirect:
-			case IROpcode_Neg:
-			case IROpcode_Not:
 			case IROpcode_CastClass:
 			case IROpcode_IsInst:
 			case IROpcode_Unbox:
@@ -3659,11 +3675,6 @@ bool_t ILDecomposition_MethodUsesGenerics(IRMethod* pMethod)
 				if ((((IRField*)instruction->Arg1)->FieldType->IsGeneric && !((IRField*)instruction->Arg1)->FieldType->IsGenericInstantiation) ||
 					((IRField*)instruction->Arg1)->FieldType->IsGenericParameter) return TRUE;
 				break;
-			case IROpcode_And:
-			case IROpcode_Or:
-			case IROpcode_Xor:
-			case IROpcode_Convert_Unchecked:
-			case IROpcode_Convert_Checked:
 			case IROpcode_Load_Object:
 			case IROpcode_Store_Object:
 			case IROpcode_Copy_Object:
@@ -3679,17 +3690,6 @@ bool_t ILDecomposition_MethodUsesGenerics(IRMethod* pMethod)
 					((IRType*)instruction->Arg1)->IsGenericParameter) return TRUE;
 				if ((((IRType*)instruction->Arg2)->IsGeneric && ((IRType*)instruction->Arg2)->IsGenericInstantiation) ||
 					((IRType*)instruction->Arg2)->IsGenericParameter) return TRUE;
-				break;
-			case IROpcode_Add:
-			case IROpcode_Sub:
-			case IROpcode_Mul:
-			case IROpcode_Div:
-			case IROpcode_Rem:
-			case IROpcode_Shift:
-				if ((((IRType*)instruction->Arg2)->IsGeneric && ((IRType*)instruction->Arg2)->IsGenericInstantiation) ||
-					((IRType*)instruction->Arg2)->IsGenericParameter) return TRUE;
-				if ((((IRType*)instruction->Arg3)->IsGeneric && ((IRType*)instruction->Arg3)->IsGenericInstantiation) ||
-					((IRType*)instruction->Arg3)->IsGenericParameter) return TRUE;
 				break;
 			case IROpcode_Branch:
 				if ((((IRType*)instruction->Arg3)->IsGeneric && ((IRType*)instruction->Arg3)->IsGenericInstantiation) ||

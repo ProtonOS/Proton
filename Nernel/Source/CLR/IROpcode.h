@@ -414,11 +414,11 @@ typedef enum IROpcode
 		Arg1: OverflowType
 			The type of the overflow checks to perform.
 
-		Arg2: IRType*
-			A pointer to the IRType of the first value.
+		Arg2: ElementType
+			The type of the first value.
 
-		Arg3: IRType*
-			A pointer to the IRType of the second value.
+		Arg3: ElementType
+			The type of the second value.
 
 		Arg4:
 			N/A
@@ -435,11 +435,11 @@ typedef enum IROpcode
 		Arg1: OverflowType
 			The type of the overflow checks to perform.
 
-		Arg2: IRType*
-			A pointer to the IRType of the first value.
+		Arg2: ElementType
+			The type of the first value.
 
-		Arg3: IRType*
-			A pointer to the IRType of the second value.
+		Arg3: ElementType
+			The type of the second value.
 
 		Arg4:
 			N/A
@@ -456,11 +456,11 @@ typedef enum IROpcode
 		Arg1: OverflowType
 			The type of the overflow checks to perform.
 
-		Arg2: IRType*
-			A pointer to the IRType of the first value.
+		Arg2: ElementType
+			The type of the first value.
 
-		Arg3: IRType*
-			A pointer to the IRType of the second value.
+		Arg3: ElementType
+			The type of the second value.
 
 		Arg4:
 			N/A
@@ -477,11 +477,11 @@ typedef enum IROpcode
 		Arg1: OverflowType
 			The type of the overflow checks to perform.
 
-		Arg2: IRType*
-			A pointer to the IRType of the first value.
+		Arg2: ElementType
+			The type of the first value.
 
-		Arg3: IRType*
-			A pointer to the IRType of the second value.
+		Arg3: ElementType
+			The type of the second value.
 
 		Arg4:
 			N/A
@@ -498,11 +498,11 @@ typedef enum IROpcode
 		Arg1: OverflowType
 			The type of the overflow checks to perform.
 
-		Arg2: IRType*
-			A pointer to the IRType of the first value.
+		Arg2: ElementType
+			The type of the first value.
 
-		Arg3: IRType*
-			A pointer to the IRType of the second value.
+		Arg3: ElementType
+			The type of the second value.
 
 		Arg4:
 			N/A
@@ -516,11 +516,11 @@ typedef enum IROpcode
 		Stack:
 			..., value1, value2 -> ..., result
 
-		Arg1: IRType*
-			A pointer to the IRType of the first value.
+		Arg1: ElementType
+			The type of the first value.
 
-		Arg2: IRType*
-			A pointer to the IRType of the second value.
+		Arg2: ElementType
+			The type of the second value.
 
 		Arg3:
 			N/A
@@ -537,11 +537,11 @@ typedef enum IROpcode
 		Stack:
 			..., value1, value2 -> ..., result
 
-		Arg1: IRType*
-			A pointer to the IRType of the first value.
+		Arg1: ElementType
+			The type of the first value.
 
-		Arg2: IRType*
-			A pointer to the IRType of the second value.
+		Arg2: ElementType
+			The type of the second value.
 
 		Arg3:
 			N/A
@@ -558,11 +558,11 @@ typedef enum IROpcode
 		Stack:
 			..., value1, value2 -> ..., result
 
-		Arg1: IRType*
-			A pointer to the IRType of the first value.
+		Arg1: ElementType
+			The type of the first value.
 
-		Arg2: IRType*
-			A pointer to the IRType of the second value.
+		Arg2: ElementType
+			The type of the second value.
 
 		Arg3:
 			N/A
@@ -579,8 +579,8 @@ typedef enum IROpcode
 		Stack:
 			..., value -> ..., result
 
-		Arg1: IRType*
-			A pointer to the IRType of the value.
+		Arg1: ElementType
+			The type of the value.
 
 		Arg2:
 			N/A
@@ -600,8 +600,8 @@ typedef enum IROpcode
 		Stack:
 			..., value -> ..., result
 
-		Arg1: IRType*
-			A pointer to the IRType of the value.
+		Arg1: ElementType
+			The type of the value.
 
 		Arg2:
 			N/A
@@ -624,11 +624,11 @@ typedef enum IROpcode
 		Arg1: ShiftNumericOperation
 			The type of the shift to handle.
 
-		Arg2: IRType*
-			A pointer to the general IRType of the amount.
+		Arg2: ElementType
+			The type of the amount.
 
-		Arg3: IRType*
-			A pointer to the general IRType of the value.
+		Arg2: ElementType
+			The type of the value.
 
 		Arg4:
 			N/A
@@ -642,11 +642,11 @@ typedef enum IROpcode
 		Stack:
 			..., value -> ..., result
 
-		Arg1: IRType*
-			A pointer to the IRType of the value.
+		Arg1: ElementType
+			The type of the value.
 
-		Arg2: IRType*
-			A pointer to the IRType of the result.
+		Arg2: ElementType
+			The type of the result.
 
 		Arg3:
 			N/A
@@ -663,11 +663,11 @@ typedef enum IROpcode
 		Stack:
 			..., value -> ..., result
 
-		Arg1: IRType*
-			A pointer to the IRType of the value.
+		Arg1: ElementType
+			The type of the value.
 
-		Arg2: IRType*
-			A pointer to the IRType of the result.
+		Arg2: ElementType
+			The type of the result.
 
 		Arg3: OverflowType
 			The type over overflow checks to handle.
