@@ -181,6 +181,8 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 				obj = PA();
 				obj->LinearData.Source = SourceType_Local;
 				obj->LinearData.SourceData.LocalVariable.LocalVariableIndex = AddLocal(pMethod->ParentAssembly->ParentDomain->IRAssemblies[0]->Types[pMethod->ParentAssembly->ParentDomain->CachedType___System_Int32->TableIndex - 1], pMethod);
+				ins->DestinationType = SourceType_Local;
+				ins->DestinationData.LocalVariable.LocalVariableIndex = obj->LinearData.SourceData.LocalVariable.LocalVariableIndex;
 				Push(obj);
                 break;
 
