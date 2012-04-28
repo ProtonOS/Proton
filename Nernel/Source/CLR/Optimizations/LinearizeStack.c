@@ -45,6 +45,44 @@
 			break; \
 	}
 
+#define GetIRTypeOfSourceType(dest, sourceType, sourceData) \
+	switch(sourceType) \
+	{ \
+		case SourceType_ConstantI4: \
+			dest = pMethod->ParentAssembly->ParentDomain->IRAssemblies[0]->Types[pMethod->ParentAssembly->ParentDomain->CachedType___System_Int32->TableIndex - 1]; \
+			break; \
+		case SourceType_ConstantI8: \
+			dest = pMethod->ParentAssembly->ParentDomain->IRAssemblies[0]->Types[pMethod->ParentAssembly->ParentDomain->CachedType___System_Int64->TableIndex - 1]; \
+			break; \
+		case SourceType_ConstantR4: \
+			dest = pMethod->ParentAssembly->ParentDomain->IRAssemblies[0]->Types[pMethod->ParentAssembly->ParentDomain->CachedType___System_Single->TableIndex - 1]; \
+			break; \
+		case SourceType_ConstantR8: \
+			dest = pMethod->ParentAssembly->ParentDomain->IRAssemblies[0]->Types[pMethod->ParentAssembly->ParentDomain->CachedType___System_Double->TableIndex - 1]; \
+			break; \
+		case SourceType_FieldAddress: \
+		case SourceType_LocalAddress: \
+		case SourceType_ParameterAddress: \
+		case SourceType_StaticFieldAddress: \
+			dest = pMethod->ParentAssembly->ParentDomain->IRAssemblies[0]->Types[pMethod->ParentAssembly->ParentDomain->CachedType___System_IntPtr->TableIndex - 1]; \
+			break; \
+		case SourceType_Field: \
+			dest = sourceData.Field.ParentType->Fields[sourceData.Field.FieldIndex]->FieldType; \
+			break; \
+		case SourceType_StaticField: \
+			dest = sourceData.StaticField.Field->FieldType; \
+			break; \
+		case SourceType_Local: \
+			dest = pMethod->LocalVariables[sourceData.LocalVariable.LocalVariableIndex]->VariableType; \
+			break; \
+		case SourceType_Parameter: \
+			dest = pMethod->Parameters[sourceData.Parameter.ParameterIndex]->Type; \
+			break; \
+		default: \
+			Panic("Invalid source type!"); \
+			break; \
+	}
+
 uint32_t AddLocal(IRType* localType, IRMethod* pMethod)
 {
 	IRLocalVariable* loc = IRLocalVariable_Create(pMethod, localType);
@@ -67,131 +105,155 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 			// These next few are all source points.
             case IROpcode_Load_Parameter:
 				obj = PA();
-				obj->LinearData.Source = SourceType_Parameter;
-				obj->LinearData.SourceData.Parameter.ParameterIndex = (uint32_t)ins->Arg1;
+				obj->LinearData.Type = SourceType_Local;
+				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(pMethod->Parameters[((uint32_t)ins->Arg1)]->Type, pMethod);
+				ins->Destination.Type = SourceType_Local;
+				ins->Destination.Data = obj->LinearData.Data;
 				Push(obj);
-				ins->Opcode = IROpcode_Nop;
                 break;
             case IROpcode_Load_Parameter_Address:
 				obj = PA();
-				obj->LinearData.Source = SourceType_ParameterAddress;
-				obj->LinearData.SourceData.ParameterAddress.ParameterIndex = (uint32_t)ins->Arg1;
+				obj->LinearData.Type = SourceType_Local;
+				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, ElementType_I), pMethod);
+				ins->Destination.Type = SourceType_Local;
+				ins->Destination.Data = obj->LinearData.Data;
 				Push(obj);
-				ins->Opcode = IROpcode_Nop;
                 break;
             case IROpcode_Load_Local:
 				obj = PA();
-				obj->LinearData.Source = SourceType_Local;
-				obj->LinearData.SourceData.LocalVariable.LocalVariableIndex = (uint32_t)ins->Arg1;
+				obj->LinearData.Type = SourceType_Local;
+				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(pMethod->LocalVariables[((uint32_t)ins->Arg1)]->VariableType, pMethod);
+				ins->Destination.Type = SourceType_Local;
+				ins->Destination.Data = obj->LinearData.Data;
 				Push(obj);
-				ins->Opcode = IROpcode_Nop;
                 break;
             case IROpcode_Load_Local_Address:
 				obj = PA();
-				obj->LinearData.Source = SourceType_LocalAddress;
-				obj->LinearData.SourceData.LocalVariableAddress.LocalVariableIndex = (uint32_t)ins->Arg1;
+				obj->LinearData.Type = SourceType_Local;
+				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, ElementType_I), pMethod);
+				ins->Destination.Type = SourceType_Local;
+				ins->Destination.Data = obj->LinearData.Data;
 				Push(obj);
-				ins->Opcode = IROpcode_Nop;
                 break;
             case IROpcode_Load_Null:
 				obj = PA();
-				obj->LinearData.Source = SourceType_Null;
+				obj->LinearData.Type = SourceType_Local;
+				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(pMethod->ParentAssembly->ParentDomain->IRAssemblies[0]->Types[pMethod->ParentAssembly->ParentDomain->CachedType___System_Object->TableIndex - 1], pMethod);
+				ins->Destination.Type = SourceType_Local;
+				ins->Destination.Data = obj->LinearData.Data;
 				Push(obj);
-				ins->Opcode = IROpcode_Nop;
                 break;
             case IROpcode_Load_String:
 				obj = PA();
-				obj->LinearData.Source = SourceType_StringLiteral;
-				obj->LinearData.SourceData.StringLiteral.Length = (uint32_t)ins->Arg1;
-				obj->LinearData.SourceData.StringLiteral.Data = (uint8_t*)ins->Arg2;
+				obj->LinearData.Type = SourceType_Local;
+				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(pMethod->ParentAssembly->ParentDomain->IRAssemblies[0]->Types[pMethod->ParentAssembly->ParentDomain->CachedType___System_String->TableIndex - 1], pMethod);
+				ins->Destination.Type = SourceType_Local;
+				ins->Destination.Data = obj->LinearData.Data;
 				Push(obj);
-				ins->Opcode = IROpcode_Nop;
                 break;
             case IROpcode_Load_Int32:
 				obj = PA();
-				obj->LinearData.Source = SourceType_ConstantI4;
-				obj->LinearData.SourceData.ConstantI4.Value = (uint32_t)ins->Arg1;
+				obj->LinearData.Type = SourceType_Local;
+				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, ElementType_I4), pMethod);
+				ins->Destination.Type = SourceType_Local;
+				ins->Destination.Data = obj->LinearData.Data;
 				Push(obj);
-				ins->Opcode = IROpcode_Nop;
                 break;
             case IROpcode_Load_Int64:
 				obj = PA();
-				obj->LinearData.Source = SourceType_ConstantI8;
-				obj->LinearData.SourceData.ConstantI8.Value = *(uint64_t*)ins->Arg1;
-				free(ins->Arg1);
-				ins->Arg1NeedsDisposing = FALSE;
+				obj->LinearData.Type = SourceType_Local;
+				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, ElementType_I8), pMethod);
+				ins->Destination.Type = SourceType_Local;
+				ins->Destination.Data = obj->LinearData.Data;
 				Push(obj);
-				ins->Opcode = IROpcode_Nop;
                 break;
             case IROpcode_Load_Float32:
 				obj = PA();
-				obj->LinearData.Source = SourceType_ConstantR4;
-				obj->LinearData.SourceData.ConstantR4.Value = (uint32_t)ins->Arg1;
+				obj->LinearData.Type = SourceType_Local;
+				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, ElementType_R4), pMethod);
+				ins->Destination.Type = SourceType_Local;
+				ins->Destination.Data = obj->LinearData.Data;
 				Push(obj);
-				ins->Opcode = IROpcode_Nop;
                 break;
             case IROpcode_Load_Float64:
 				obj = PA();
-				obj->LinearData.Source = SourceType_ConstantR8;
-				obj->LinearData.SourceData.ConstantR8.Value = *(uint64_t*)ins->Arg1;
-				free(ins->Arg1);
-				ins->Arg1NeedsDisposing = FALSE;
+				obj->LinearData.Type = SourceType_Local;
+				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, ElementType_R8), pMethod);
+				ins->Destination.Type = SourceType_Local;
+				ins->Destination.Data = obj->LinearData.Data;
 				Push(obj);
-				ins->Opcode = IROpcode_Nop;
                 break;
             case IROpcode_Load_Field:
 				obj = PA();
-				obj->LinearData.Source = SourceType_Field;
-				obj->LinearData.SourceData.Field.ParentType = (IRType*)ins->Arg1;
-				obj->LinearData.SourceData.Field.FieldIndex = (uint32_t)ins->Arg3;
+				obj->LinearData.Type = SourceType_Local;
+				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(((IRType*)ins->Arg1)->Fields[((uint32_t)ins->Arg3)]->FieldType, pMethod);
+				ins->Destination.Type = SourceType_Local;
+				ins->Destination.Data = obj->LinearData.Data;
 				Push(obj);
-				ins->Opcode = IROpcode_Nop;
                 break;
             case IROpcode_Load_FieldAddress:
 				obj = PA();
-				obj->LinearData.Source = SourceType_FieldAddress;
-				obj->LinearData.SourceData.FieldAddress.ParentType = (IRType*)ins->Arg1;
-				obj->LinearData.SourceData.FieldAddress.FieldIndex = (uint32_t)ins->Arg3;
+				obj->LinearData.Type = SourceType_Local;
+				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, ElementType_I), pMethod);
+				ins->Destination.Type = SourceType_Local;
+				ins->Destination.Data = obj->LinearData.Data;
 				Push(obj);
-				ins->Opcode = IROpcode_Nop;
                 break;
             case IROpcode_Load_StaticField:
 				obj = PA();
-				obj->LinearData.Source = SourceType_StaticField;
-				obj->LinearData.SourceData.StaticField.Field = (IRField*)ins->Arg1;
+				obj->LinearData.Type = SourceType_Local;
+				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(((IRField*)ins->Arg1)->FieldType, pMethod);
+				ins->Destination.Type = SourceType_Local;
+				ins->Destination.Data = obj->LinearData.Data;
 				Push(obj);
-				ins->Opcode = IROpcode_Nop;
                 break;
             case IROpcode_Load_StaticFieldAddress:
 				obj = PA();
-				obj->LinearData.Source = SourceType_StaticFieldAddress;
-				obj->LinearData.SourceData.StaticFieldAddress.Field = (IRField*)ins->Arg1;
+				obj->LinearData.Type = SourceType_Local;
+				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, ElementType_I), pMethod);
+				ins->Destination.Type = SourceType_Local;
+				ins->Destination.Data = obj->LinearData.Data;
 				Push(obj);
-				ins->Opcode = IROpcode_Nop;
                 break;
 
 				
             case IROpcode_Dup:
+			{
+				IRType* destType = NULL;
 				obj = PA();
-				obj2 = Peek();
-				obj->LinearData.Source = obj2->LinearData.Source;
-				obj->LinearData.SourceData = obj2->LinearData.SourceData;
+
+				obj2 = Pop();
+				GetIRTypeOfSourceType(destType, obj2->LinearData.Type, obj2->LinearData.Data);
+				PR(obj2);
+
+				obj->LinearData.Type = SourceType_Local;
+				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(destType, pMethod);
+				ins->Destination.Type = SourceType_Local;
+				ins->Destination.Data.LocalVariable.LocalVariableIndex = obj->LinearData.Data.LocalVariable.LocalVariableIndex;
+				Push(obj);
+
+				obj = PA();
+				obj->LinearData.Type = SourceType_Local;
+				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(destType, pMethod);
+				ins->Source3.Type = SourceType_Local;
+				ins->Source3.Data.LocalVariable.LocalVariableIndex = obj->LinearData.Data.LocalVariable.LocalVariableIndex;
 				Push(obj);
                 break;
+			}
             case IROpcode_Return:
 				if (pMethod->Returns)
 				{
 					obj = Pop();
-					ins->Source1Type = obj->LinearData.Source;
-					ins->Source1Data = obj->LinearData.SourceData;
+					ins->Source1.Type = obj->LinearData.Type;
+					ins->Source1.Data = obj->LinearData.Data;
 					PR(obj);
 				}
                 break;
             case IROpcode_Throw:
             case IROpcode_Store_Local:
 				obj = Pop();
-				ins->Source1Type = obj->LinearData.Source;
-				ins->Source1Data = obj->LinearData.SourceData;
+				ins->Source1.Type = obj->LinearData.Type;
+				ins->Source1.Data = obj->LinearData.Data;
 				PR(obj);
                 break;
 
@@ -213,14 +275,14 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 				ElementType arg2 = (ElementType)0;
 
 				obj = Pop();
-				ins->Source1Type = obj->LinearData.Source;
-				ins->Source1Data = obj->LinearData.SourceData;
-				GetElementTypeOfSourceType(arg1, ins->Source1Type, ins->Source1Data);
+				ins->Source1.Type = obj->LinearData.Type;
+				ins->Source1.Data = obj->LinearData.Data;
+				GetElementTypeOfSourceType(arg1, ins->Source1.Type, ins->Source1.Data);
 				PR(obj);
 				obj = Pop();
-				ins->Source2Type = obj->LinearData.Source;
-				ins->Source2Data = obj->LinearData.SourceData;
-				GetElementTypeOfSourceType(arg2, ins->Source2Type, ins->Source2Data);
+				ins->Source2.Type = obj->LinearData.Type;
+				ins->Source2.Data = obj->LinearData.Data;
+				GetElementTypeOfSourceType(arg2, ins->Source2.Type, ins->Source2.Data);
 				PR(obj);
 
 				IRType* destType = NULL;
@@ -298,10 +360,10 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 						break;
 				}
 				obj = PA();
-				obj->LinearData.Source = SourceType_Local;
-				obj->LinearData.SourceData.LocalVariable.LocalVariableIndex = AddLocal(destType, pMethod);
-				ins->DestinationType = SourceType_Local;
-				ins->DestinationData.LocalVariable.LocalVariableIndex = obj->LinearData.SourceData.LocalVariable.LocalVariableIndex;
+				obj->LinearData.Type = SourceType_Local;
+				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(destType, pMethod);
+				ins->Destination.Type = SourceType_Local;
+				ins->Destination.Data.LocalVariable.LocalVariableIndex = obj->LinearData.Data.LocalVariable.LocalVariableIndex;
 				Push(obj);
                 break;
 			}
@@ -309,14 +371,14 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
             case IROpcode_Not:
             case IROpcode_Neg:
 				obj = Pop();
-				ins->Source1Type = obj->LinearData.Source;
-				ins->Source1Data = obj->LinearData.SourceData;
+				ins->Source1.Type = obj->LinearData.Type;
+				ins->Source1.Data = obj->LinearData.Data;
 				PR(obj);
 				obj = PA();
-				obj->LinearData.Source = SourceType_Local;
-				obj->LinearData.SourceData.LocalVariable.LocalVariableIndex = AddLocal(AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, (ElementType)(uint32_t)ins->Arg1), pMethod);
-				ins->DestinationType = SourceType_Local;
-				ins->DestinationData.LocalVariable.LocalVariableIndex = obj->LinearData.SourceData.LocalVariable.LocalVariableIndex;
+				obj->LinearData.Type = SourceType_Local;
+				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, (ElementType)(uint32_t)ins->Arg1), pMethod);
+				ins->Destination.Type = SourceType_Local;
+				ins->Destination.Data.LocalVariable.LocalVariableIndex = obj->LinearData.Data.LocalVariable.LocalVariableIndex;
 				Push(obj);
                 break;
 
@@ -326,14 +388,14 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 				ElementType arg2 = (ElementType)0;
 
 				obj = Pop();
-				ins->Source1Type = obj->LinearData.Source;
-				ins->Source1Data = obj->LinearData.SourceData;
-				GetElementTypeOfSourceType(arg1, ins->Source1Type, ins->Source1Data);
+				ins->Source1.Type = obj->LinearData.Type;
+				ins->Source1.Data = obj->LinearData.Data;
+				GetElementTypeOfSourceType(arg1, ins->Source1.Type, ins->Source1.Data);
 				PR(obj);
 				obj = Pop();
-				ins->Source2Type = obj->LinearData.Source;
-				ins->Source2Data = obj->LinearData.SourceData;
-				GetElementTypeOfSourceType(arg2, ins->Source2Type, ins->Source2Data);
+				ins->Source2.Type = obj->LinearData.Type;
+				ins->Source2.Data = obj->LinearData.Data;
+				GetElementTypeOfSourceType(arg2, ins->Source2.Type, ins->Source2.Data);
 				PR(obj);
 
 				IRType* destType = NULL;
@@ -396,13 +458,20 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 						break;
 				}
 				obj = PA();
-				obj->LinearData.Source = SourceType_Local;
-				obj->LinearData.SourceData.LocalVariable.LocalVariableIndex = AddLocal(destType, pMethod);
-				ins->DestinationType = SourceType_Local;
-				ins->DestinationData.LocalVariable.LocalVariableIndex = obj->LinearData.SourceData.LocalVariable.LocalVariableIndex;
+				obj->LinearData.Type = SourceType_Local;
+				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(destType, pMethod);
+				ins->Destination.Type = SourceType_Local;
+				ins->Destination.Data.LocalVariable.LocalVariableIndex = obj->LinearData.Data.LocalVariable.LocalVariableIndex;
 				Push(obj);
                 break;
 			}
+
+            case IROpcode_New_Object:
+                break;
+            case IROpcode_Load_ArrayLength:
+                break;
+            case IROpcode_New_Array:
+                break;
 				
 
             case IROpcode_Load_Indirect:
@@ -428,12 +497,6 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
             case IROpcode_Store_Object:
                 break;
             case IROpcode_Copy_Object:
-                break;
-            case IROpcode_New_Object:
-                break;
-            case IROpcode_Load_ArrayLength:
-                break;
-            case IROpcode_New_Array:
                 break;
             case IROpcode_CheckFinite:
                 break;

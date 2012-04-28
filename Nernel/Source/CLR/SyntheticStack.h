@@ -6,12 +6,6 @@ typedef struct _StackLinearizationData StackLinearizationData;
 
 #include <CLR/IRStructures.h>
 
-struct _StackLinearizationData
-{
-	SourceType Source;
-	SourceData SourceData;
-};
-
 typedef enum StackObjectSourceType
 {
 	StackObjectSourceType_Constant,
@@ -32,7 +26,7 @@ struct _StackObject
 			IRType* Type;
 			IRInstruction* Source;
 		};
-		StackLinearizationData LinearData;
+		SourceTypeData LinearData;
 	};
     StackObject* PrevObj;
     StackObject* NextObj;

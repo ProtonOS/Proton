@@ -339,6 +339,20 @@ typedef enum IROpcode
 		Arg4:
 			N/A
 
+		Source1:
+			Value to duplicate.
+
+		Source2:
+			N/A
+
+		Source3:
+			This is actually used as
+			a second destination.
+
+		Destination:
+			The location to store the
+			first copy of the value.
+
 	 */
 	IROpcode_Dup,
 	/*

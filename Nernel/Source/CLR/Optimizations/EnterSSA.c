@@ -83,15 +83,15 @@ void IROptimizer_EnterSSA(IRMethod* pMethod)
 	for (uint32_t index = 0; index < pMethod->IRCodesCount; ++index)
 	{
 		IRInstruction* instruction = pMethod->IRCodes[index];
-		if (instruction->DestinationType == SourceType_Local)
+		if (instruction->Destination.Type == SourceType_Local)
 		{
-			prevLocalVariable = pMethod->LocalVariables[instruction->DestinationData.LocalVariable.LocalVariableIndex];
+			prevLocalVariable = pMethod->LocalVariables[instruction->Destination.Data.LocalVariable.LocalVariableIndex];
 			nextLocalVariable = prevLocalVariable;
 			if (prevLocalVariable->Used)
 			{
 				nextLocalVariable = IRLocalVariable_Copy(prevLocalVariable);
 				nextLocalVariable->LocalVariableIndex = pMethod->LocalVariableCount++;
-				nextLocalVariable->Ancestor = pMethod->LocalVariables[instruction->DestinationData.LocalVariable.LocalVariableIndex];
+				nextLocalVariable->Ancestor = pMethod->LocalVariables[instruction->Destination.Data.LocalVariable.LocalVariableIndex];
 
 				pMethod->LocalVariables = (IRLocalVariable**)realloc(pMethod->LocalVariables, pMethod->LocalVariableCount * sizeof(IRLocalVariable*));
 				pMethod->LocalVariables[nextLocalVariable->LocalVariableIndex] = nextLocalVariable;
@@ -99,26 +99,26 @@ void IROptimizer_EnterSSA(IRMethod* pMethod)
 				for (uint32_t searchIndex = index + 1; searchIndex < pMethod->IRCodesCount; ++searchIndex)
 				{
 					IRInstruction* searchInstruction = pMethod->IRCodes[searchIndex];
-					if (searchInstruction->Source1Type == SourceType_Local &&
-						searchInstruction->Source1Data.LocalVariable.LocalVariableIndex == instruction->DestinationData.LocalVariable.LocalVariableIndex)
+					if (searchInstruction->Source1.Type == SourceType_Local &&
+						searchInstruction->Source1.Data.LocalVariable.LocalVariableIndex == instruction->Destination.Data.LocalVariable.LocalVariableIndex)
 					{
-						searchInstruction->Source1Data.LocalVariable.LocalVariableIndex = nextLocalVariable->LocalVariableIndex;
+						searchInstruction->Source1.Data.LocalVariable.LocalVariableIndex = nextLocalVariable->LocalVariableIndex;
 					}
-					else if (searchInstruction->Source2Type == SourceType_Local &&
-							 searchInstruction->Source2Data.LocalVariable.LocalVariableIndex == instruction->DestinationData.LocalVariable.LocalVariableIndex)
+					else if (searchInstruction->Source2.Type == SourceType_Local &&
+							 searchInstruction->Source2.Data.LocalVariable.LocalVariableIndex == instruction->Destination.Data.LocalVariable.LocalVariableIndex)
 					{
-						searchInstruction->Source2Data.LocalVariable.LocalVariableIndex = nextLocalVariable->LocalVariableIndex;
+						searchInstruction->Source2.Data.LocalVariable.LocalVariableIndex = nextLocalVariable->LocalVariableIndex;
 					}
-					else if (searchInstruction->Source3Type == SourceType_Local &&
-							 searchInstruction->Source3Data.LocalVariable.LocalVariableIndex == instruction->DestinationData.LocalVariable.LocalVariableIndex)
+					else if (searchInstruction->Source3.Type == SourceType_Local &&
+							 searchInstruction->Source3.Data.LocalVariable.LocalVariableIndex == instruction->Destination.Data.LocalVariable.LocalVariableIndex)
 					{
-						searchInstruction->Source3Data.LocalVariable.LocalVariableIndex = nextLocalVariable->LocalVariableIndex;
+						searchInstruction->Source3.Data.LocalVariable.LocalVariableIndex = nextLocalVariable->LocalVariableIndex;
 					}
 				}
 
-				Log_WriteLine(LOGLEVEL__Optimize_SSA, "Iterating assignment of local %u into %u on instruction %u", (unsigned int)instruction->DestinationData.LocalVariable.LocalVariableIndex, (unsigned int)nextLocalVariable->LocalVariableIndex, (unsigned int)index);
+				Log_WriteLine(LOGLEVEL__Optimize_SSA, "Iterating assignment of local %u into %u on instruction %u", (unsigned int)instruction->Destination.Data.LocalVariable.LocalVariableIndex, (unsigned int)nextLocalVariable->LocalVariableIndex, (unsigned int)index);
 
-				instruction->DestinationData.LocalVariable.LocalVariableIndex = nextLocalVariable->LocalVariableIndex;
+				instruction->Destination.Data.LocalVariable.LocalVariableIndex = nextLocalVariable->LocalVariableIndex;
 			}
 			nextLocalVariable->Used = TRUE;
 		}

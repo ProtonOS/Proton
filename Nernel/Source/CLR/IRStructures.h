@@ -342,6 +342,12 @@ typedef union SourceData
 	} StringLiteral;
 } SourceData;
 
+typedef struct SourceTypeData
+{
+	SourceType Type;
+	SourceData Data;
+} SourceTypeData;
+
 struct _IRInstruction
 {
     uint32_t ILLocation;
@@ -356,15 +362,17 @@ struct _IRInstruction
     bool_t Arg4NeedsDisposing;
     void* Arg4;
 	
-	SourceType Source1Type;
-	SourceData Source1Data;
-	SourceType Source2Type;
-	SourceData Source2Data;
-	SourceType Source3Type;
-	SourceData Source3Data;
+	SourceTypeData Source1;
+	SourceTypeData Source2;
+	/*
+		As a note, the Dup instruction uses
+		this source as a second destination.
+	*/
+	SourceTypeData Source3;
 
-	SourceType DestinationType;
-	SourceData DestinationData;
+	SourceTypeData* SourceArray;
+
+	SourceTypeData Destination;
 };
 
 IRInstruction* IRInstruction_Create(uint32_t pILLocation, IROpcode pOpcode);
