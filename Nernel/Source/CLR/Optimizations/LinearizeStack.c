@@ -270,6 +270,19 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 								break;
 						}
 						break;
+					case ElementType_I8:
+					case ElementType_U8:
+						switch(arg2)
+						{
+							case ElementType_I8:
+							case ElementType_U8:
+								destType = AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, ElementType_I8);
+								break;
+							default:
+								Panic("Invalid Element Type!");
+								break;
+						}
+						break;
 					case ElementType_R4:
 					case ElementType_R8:
 						switch(arg2)
@@ -306,13 +319,95 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 				ins->DestinationData.LocalVariable.LocalVariableIndex = obj->LinearData.SourceData.LocalVariable.LocalVariableIndex;
 				Push(obj);
                 break;
+
+            case IROpcode_Shift:
+			{
+				ElementType arg1 = (ElementType)0;
+				ElementType arg2 = (ElementType)0;
+
+				obj = Pop();
+				ins->Source1Type = obj->LinearData.Source;
+				ins->Source1Data = obj->LinearData.SourceData;
+				GetElementTypeOfSourceType(arg1, ins->Source1Type, ins->Source1Data);
+				PR(obj);
+				obj = Pop();
+				ins->Source2Type = obj->LinearData.Source;
+				ins->Source2Data = obj->LinearData.SourceData;
+				GetElementTypeOfSourceType(arg2, ins->Source2Type, ins->Source2Data);
+				PR(obj);
+
+				IRType* destType = NULL;
+				switch(arg1)
+				{
+					case ElementType_I:
+					case ElementType_U:
+						switch(arg2)
+						{
+							case ElementType_I:
+							case ElementType_U:
+							case ElementType_I1:
+							case ElementType_I2:
+							case ElementType_I4:
+							case ElementType_U1:
+							case ElementType_U2:
+							case ElementType_U4:
+								destType = AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, ElementType_I);
+								break;
+							default:
+								Panic("Invalid Element Type!");
+								break;
+						}
+						break;
+					case ElementType_I1:
+					case ElementType_I2:
+					case ElementType_I4:
+					case ElementType_U1:
+					case ElementType_U2:
+					case ElementType_U4:
+						switch(arg2)
+						{
+							case ElementType_I:
+							case ElementType_U:
+							case ElementType_I1:
+							case ElementType_I2:
+							case ElementType_I4:
+							case ElementType_U1:
+							case ElementType_U2:
+							case ElementType_U4:
+								destType = AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, ElementType_I4);
+								break;
+							default:
+								Panic("Invalid Element Type!");
+								break;
+						}
+						break;
+					case ElementType_I8:
+					case ElementType_U8:
+						switch(arg2)
+						{
+							case ElementType_I8:
+							case ElementType_U8:
+								destType = AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, ElementType_I8);
+								break;
+							default:
+								Panic("Invalid Element Type!");
+								break;
+						}
+						break;
+				}
+				obj = PA();
+				obj->LinearData.Source = SourceType_Local;
+				obj->LinearData.SourceData.LocalVariable.LocalVariableIndex = AddLocal(destType, pMethod);
+				ins->DestinationType = SourceType_Local;
+				ins->DestinationData.LocalVariable.LocalVariableIndex = obj->LinearData.SourceData.LocalVariable.LocalVariableIndex;
+				Push(obj);
+                break;
+			}
 				
 
             case IROpcode_Load_Indirect:
                 break;
             case IROpcode_Store_Indirect:
-                break;
-            case IROpcode_Shift:
                 break;
             case IROpcode_Convert_Unchecked:
                 break;
