@@ -205,6 +205,9 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
             case IROpcode_Mul:
             case IROpcode_Sub:
             case IROpcode_Add:
+            case IROpcode_And:
+            case IROpcode_Or:
+            case IROpcode_Xor:
 			{
 				ElementType arg1 = (ElementType)0;
 				ElementType arg2 = (ElementType)0;
@@ -289,20 +292,25 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 				Push(obj);
                 break;
 			}
-
-            case IROpcode_And:
-            case IROpcode_Or:
-            case IROpcode_Xor:
-				break;
+			
+            case IROpcode_Not:
+            case IROpcode_Neg:
+				obj = Pop();
+				ins->Source1Type = obj->LinearData.Source;
+				ins->Source1Data = obj->LinearData.SourceData;
+				PR(obj);
+				obj = PA();
+				obj->LinearData.Source = SourceType_Local;
+				obj->LinearData.SourceData.LocalVariable.LocalVariableIndex = AddLocal(AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, (ElementType)(uint32_t)ins->Arg1), pMethod);
+				ins->DestinationType = SourceType_Local;
+				ins->DestinationData.LocalVariable.LocalVariableIndex = obj->LinearData.SourceData.LocalVariable.LocalVariableIndex;
+				Push(obj);
+                break;
 				
 
             case IROpcode_Load_Indirect:
                 break;
             case IROpcode_Store_Indirect:
-                break;
-            case IROpcode_Neg:
-                break;
-            case IROpcode_Not:
                 break;
             case IROpcode_Shift:
                 break;
