@@ -484,8 +484,24 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
                 break;
 			}
             case IROpcode_Load_ArrayLength:
+				obj = Pop();
+				ins->Source1 = obj->LinearData;
+				PR(obj);
+				obj = PA();
+				obj->LinearData.Type = SourceType_Local;
+				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, ElementType_I4), pMethod);
+				ins->Destination = obj->LinearData;
+				Push(obj);
                 break;
             case IROpcode_New_Array:
+				obj = Pop();
+				ins->Source1 = obj->LinearData;
+				PR(obj);
+				obj = PA();
+				obj->LinearData.Type = SourceType_Local;
+				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(IRAssembly_MakeArrayType(pMethod->ParentAssembly, (IRType*)ins->Arg1), pMethod);
+				ins->Destination = obj->LinearData;
+				Push(obj);
                 break;
 				
 
