@@ -12,15 +12,15 @@ void IROptimizer_EnterSSA(IRMethod* pMethod)
 	for (uint32_t index = 0; index < pMethod->IRCodesCount; ++index)
 	{
 		IRInstruction* instruction = pMethod->IRCodes[index];
-		if (instruction->Opcode == IROpcode_Store_Local)
+		if (instruction->DestinationType == SourceType_Local)
 		{
-			prevLocalVariable = pMethod->LocalVariables[(uint32_t)instruction->Arg1];
+			prevLocalVariable = pMethod->LocalVariables[instruction->DestinationData.LocalVariable.LocalVariableIndex];
 			nextLocalVariable = prevLocalVariable;
 			if (prevLocalVariable->Used)
 			{
 				nextLocalVariable = IRLocalVariable_Copy(prevLocalVariable);
 				nextLocalVariable->LocalVariableIndex = pMethod->LocalVariableCount++;
-				nextLocalVariable->Ancestor = pMethod->LocalVariables[(uint32_t)instruction->Arg1];
+				nextLocalVariable->Ancestor = pMethod->LocalVariables[instruction->DestinationData.LocalVariable.LocalVariableIndex];
 
 				pMethod->LocalVariables = (IRLocalVariable**)realloc(pMethod->LocalVariables, pMethod->LocalVariableCount * sizeof(IRLocalVariable*));
 				pMethod->LocalVariables[nextLocalVariable->LocalVariableIndex] = nextLocalVariable;
@@ -28,14 +28,24 @@ void IROptimizer_EnterSSA(IRMethod* pMethod)
 				for (uint32_t searchIndex = index + 1; searchIndex < pMethod->IRCodesCount; ++searchIndex)
 				{
 					IRInstruction* searchInstruction = pMethod->IRCodes[searchIndex];
-					if ((searchInstruction->Opcode == IROpcode_Load_Local || searchInstruction->Opcode == IROpcode_Load_Local_Address) &&
-						(uint32_t)searchInstruction->Arg1 == (uint32_t)instruction->Arg1)
+					if (searchInstruction->Source1Type == SourceType_Local &&
+						searchInstruction->Source1Data.LocalVariable.LocalVariableIndex == instruction->DestinationData.LocalVariable.LocalVariableIndex)
 					{
-						searchInstruction->Arg1 = (uint32_t*)nextLocalVariable->LocalVariableIndex;
+						searchInstruction->Source1Data.LocalVariable.LocalVariableIndex = nextLocalVariable->LocalVariableIndex;
+					}
+					else if (searchInstruction->Source2Type == SourceType_Local &&
+							 searchInstruction->Source2Data.LocalVariable.LocalVariableIndex == instruction->DestinationData.LocalVariable.LocalVariableIndex)
+					{
+						searchInstruction->Source2Data.LocalVariable.LocalVariableIndex = nextLocalVariable->LocalVariableIndex;
+					}
+					else if (searchInstruction->Source3Type == SourceType_Local &&
+							 searchInstruction->Source3Data.LocalVariable.LocalVariableIndex == instruction->DestinationData.LocalVariable.LocalVariableIndex)
+					{
+						searchInstruction->Source3Data.LocalVariable.LocalVariableIndex = nextLocalVariable->LocalVariableIndex;
 					}
 				}
 
-				instruction->Arg1 = (uint32_t*)nextLocalVariable->LocalVariableIndex;
+				instruction->DestinationData.LocalVariable.LocalVariableIndex = nextLocalVariable->LocalVariableIndex;
 			}
 			nextLocalVariable->Used = TRUE;
 		}
