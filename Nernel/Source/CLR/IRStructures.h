@@ -370,6 +370,7 @@ struct _IRInstruction
 	*/
 	SourceTypeData Source3;
 
+	uint32_t SourceArrayLength;
 	SourceTypeData* SourceArray;
 
 	SourceTypeData Destination;

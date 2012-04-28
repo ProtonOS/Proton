@@ -7,81 +7,72 @@
 #define Pop() SyntheticStack_Pop(stack)
 #define Peek() SyntheticStack_Peek(stack)
 
-#define GetElementTypeOfSourceType(dest, sourceType, sourceData) \
-	switch(sourceType) \
-	{ \
-		case SourceType_ConstantI4: \
-			dest = ElementType_I4; \
-			break; \
-		case SourceType_ConstantI8: \
-			dest = ElementType_I8; \
-			break; \
-		case SourceType_ConstantR4: \
-			dest = ElementType_R4; \
-			break; \
-		case SourceType_ConstantR8: \
-			dest = ElementType_R8; \
-			break; \
-		case SourceType_FieldAddress: \
-		case SourceType_LocalAddress: \
-		case SourceType_ParameterAddress: \
-		case SourceType_StaticFieldAddress: \
-			dest = ElementType_I; \
-			break; \
-		case SourceType_Field: \
-			dest = AppDomain_GetElementTypeFromIRType(pMethod->ParentAssembly->ParentDomain, sourceData.Field.ParentType->Fields[sourceData.Field.FieldIndex]->FieldType); \
-			break; \
-		case SourceType_StaticField: \
-			dest = AppDomain_GetElementTypeFromIRType(pMethod->ParentAssembly->ParentDomain, sourceData.StaticField.Field->FieldType); \
-			break; \
-		case SourceType_Local: \
-			dest = AppDomain_GetElementTypeFromIRType(pMethod->ParentAssembly->ParentDomain, pMethod->LocalVariables[sourceData.LocalVariable.LocalVariableIndex]->VariableType); \
-			break; \
-		case SourceType_Parameter: \
-			dest = AppDomain_GetElementTypeFromIRType(pMethod->ParentAssembly->ParentDomain, pMethod->Parameters[sourceData.Parameter.ParameterIndex]->Type); \
-			break; \
-		default: \
-			Panic("Invalid source type!"); \
-			break; \
+ElementType GetElementTypeOfSourceType(SourceType sourceType, SourceData sourceData, IRMethod* pMethod)
+{
+	switch(sourceType)
+	{
+		case SourceType_ConstantI4:
+			return ElementType_I4;
+		case SourceType_ConstantI8:
+			return ElementType_I8;
+		case SourceType_ConstantR4:
+			return ElementType_R4;
+		case SourceType_ConstantR8:
+			return ElementType_R8;
+		case SourceType_FieldAddress:
+		case SourceType_LocalAddress:
+		case SourceType_ParameterAddress:
+		case SourceType_StaticFieldAddress:
+			return ElementType_I;
+		case SourceType_Field:
+			return AppDomain_GetElementTypeFromIRType(pMethod->ParentAssembly->ParentDomain, sourceData.Field.ParentType->Fields[sourceData.Field.FieldIndex]->FieldType);
+		case SourceType_StaticField:
+			return AppDomain_GetElementTypeFromIRType(pMethod->ParentAssembly->ParentDomain, sourceData.StaticField.Field->FieldType);
+		case SourceType_Local:
+			return AppDomain_GetElementTypeFromIRType(pMethod->ParentAssembly->ParentDomain, pMethod->LocalVariables[sourceData.LocalVariable.LocalVariableIndex]->VariableType);
+		case SourceType_Parameter:
+			return AppDomain_GetElementTypeFromIRType(pMethod->ParentAssembly->ParentDomain, pMethod->Parameters[sourceData.Parameter.ParameterIndex]->Type);
+		default:
+			Panic("Invalid SourceType!");
+			break;
 	}
+	Panic("Unknown SourceType!");
+	return (ElementType)0xFFFF;
+}
 
-#define GetIRTypeOfSourceType(dest, sourceType, sourceData) \
-	switch(sourceType) \
-	{ \
-		case SourceType_ConstantI4: \
-			dest = pMethod->ParentAssembly->ParentDomain->IRAssemblies[0]->Types[pMethod->ParentAssembly->ParentDomain->CachedType___System_Int32->TableIndex - 1]; \
-			break; \
-		case SourceType_ConstantI8: \
-			dest = pMethod->ParentAssembly->ParentDomain->IRAssemblies[0]->Types[pMethod->ParentAssembly->ParentDomain->CachedType___System_Int64->TableIndex - 1]; \
-			break; \
-		case SourceType_ConstantR4: \
-			dest = pMethod->ParentAssembly->ParentDomain->IRAssemblies[0]->Types[pMethod->ParentAssembly->ParentDomain->CachedType___System_Single->TableIndex - 1]; \
-			break; \
-		case SourceType_ConstantR8: \
-			dest = pMethod->ParentAssembly->ParentDomain->IRAssemblies[0]->Types[pMethod->ParentAssembly->ParentDomain->CachedType___System_Double->TableIndex - 1]; \
-			break; \
-		case SourceType_FieldAddress: \
-		case SourceType_LocalAddress: \
-		case SourceType_ParameterAddress: \
-		case SourceType_StaticFieldAddress: \
-			dest = pMethod->ParentAssembly->ParentDomain->IRAssemblies[0]->Types[pMethod->ParentAssembly->ParentDomain->CachedType___System_IntPtr->TableIndex - 1]; \
-			break; \
-		case SourceType_Field: \
-			dest = sourceData.Field.ParentType->Fields[sourceData.Field.FieldIndex]->FieldType; \
-			break; \
-		case SourceType_StaticField: \
-			dest = sourceData.StaticField.Field->FieldType; \
-			break; \
-		case SourceType_Local: \
-			dest = pMethod->LocalVariables[sourceData.LocalVariable.LocalVariableIndex]->VariableType; \
-			break; \
-		case SourceType_Parameter: \
-			dest = pMethod->Parameters[sourceData.Parameter.ParameterIndex]->Type; \
-			break; \
-		default: \
-			Panic("Invalid source type!"); \
-			break; \
+IRType* GetIRTypeOfSourceType(SourceType sourceType, SourceData sourceData, IRMethod* pMethod)
+{
+	switch(sourceType)
+	{
+		case SourceType_ConstantI4:
+			return pMethod->ParentAssembly->ParentDomain->IRAssemblies[0]->Types[pMethod->ParentAssembly->ParentDomain->CachedType___System_Int32->TableIndex - 1];
+		case SourceType_ConstantI8:
+			return pMethod->ParentAssembly->ParentDomain->IRAssemblies[0]->Types[pMethod->ParentAssembly->ParentDomain->CachedType___System_Int64->TableIndex - 1];
+		case SourceType_ConstantR4:
+			return pMethod->ParentAssembly->ParentDomain->IRAssemblies[0]->Types[pMethod->ParentAssembly->ParentDomain->CachedType___System_Single->TableIndex - 1];
+		case SourceType_ConstantR8:
+			return pMethod->ParentAssembly->ParentDomain->IRAssemblies[0]->Types[pMethod->ParentAssembly->ParentDomain->CachedType___System_Double->TableIndex - 1];
+		case SourceType_StringLiteral:
+			return pMethod->ParentAssembly->ParentDomain->IRAssemblies[0]->Types[pMethod->ParentAssembly->ParentDomain->CachedType___System_String->TableIndex - 1];
+		case SourceType_Null:
+			return pMethod->ParentAssembly->ParentDomain->IRAssemblies[0]->Types[pMethod->ParentAssembly->ParentDomain->CachedType___System_Object->TableIndex - 1];
+		case SourceType_FieldAddress:
+		case SourceType_LocalAddress:
+		case SourceType_ParameterAddress:
+		case SourceType_StaticFieldAddress:
+			return pMethod->ParentAssembly->ParentDomain->IRAssemblies[0]->Types[pMethod->ParentAssembly->ParentDomain->CachedType___System_IntPtr->TableIndex - 1];
+		case SourceType_Field:
+			return sourceData.Field.ParentType->Fields[sourceData.Field.FieldIndex]->FieldType;
+		case SourceType_StaticField:
+			return sourceData.StaticField.Field->FieldType;
+		case SourceType_Local:
+			return pMethod->LocalVariables[sourceData.LocalVariable.LocalVariableIndex]->VariableType;
+		case SourceType_Parameter:
+			return pMethod->Parameters[sourceData.Parameter.ParameterIndex]->Type;
 	}
+	Panic("Unknown SourceType!");
+	return NULL;
+}
 
 uint32_t AddLocal(IRType* localType, IRMethod* pMethod)
 {
@@ -101,7 +92,6 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 		IRInstruction* ins = pMethod->IRCodes[i];
 		switch(ins->Opcode)
 		{
-
 			// These next few are all source points.
             case IROpcode_Load_Parameter:
 				obj = PA();
@@ -223,7 +213,7 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 				obj = PA();
 
 				obj2 = Pop();
-				GetIRTypeOfSourceType(destType, obj2->LinearData.Type, obj2->LinearData.Data);
+				destType = GetIRTypeOfSourceType(obj2->LinearData.Type, obj2->LinearData.Data, pMethod);
 				PR(obj2);
 
 				obj->LinearData.Type = SourceType_Local;
@@ -277,12 +267,12 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 				obj = Pop();
 				ins->Source1.Type = obj->LinearData.Type;
 				ins->Source1.Data = obj->LinearData.Data;
-				GetElementTypeOfSourceType(arg1, ins->Source1.Type, ins->Source1.Data);
+				arg1 = GetElementTypeOfSourceType(ins->Source1.Type, ins->Source1.Data, pMethod);
 				PR(obj);
 				obj = Pop();
 				ins->Source2.Type = obj->LinearData.Type;
 				ins->Source2.Data = obj->LinearData.Data;
-				GetElementTypeOfSourceType(arg2, ins->Source2.Type, ins->Source2.Data);
+				arg2 = GetElementTypeOfSourceType(ins->Source2.Type, ins->Source2.Data, pMethod);
 				PR(obj);
 
 				IRType* destType = NULL;
@@ -390,12 +380,12 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 				obj = Pop();
 				ins->Source1.Type = obj->LinearData.Type;
 				ins->Source1.Data = obj->LinearData.Data;
-				GetElementTypeOfSourceType(arg1, ins->Source1.Type, ins->Source1.Data);
+				arg1 = GetElementTypeOfSourceType(ins->Source1.Type, ins->Source1.Data, pMethod);
 				PR(obj);
 				obj = Pop();
 				ins->Source2.Type = obj->LinearData.Type;
 				ins->Source2.Data = obj->LinearData.Data;
-				GetElementTypeOfSourceType(arg2, ins->Source2.Type, ins->Source2.Data);
+				arg2 = GetElementTypeOfSourceType(ins->Source2.Type, ins->Source2.Data, pMethod);
 				PR(obj);
 
 				IRType* destType = NULL;
@@ -456,6 +446,9 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 								break;
 						}
 						break;
+					default:
+						Panic("Invalid Element Type!");
+						break;
 				}
 				obj = PA();
 				obj->LinearData.Type = SourceType_Local;
@@ -467,7 +460,29 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 			}
 
             case IROpcode_New_Object:
+			{
+				uint32_t paramCount = ((IRMethod*)ins->Arg1)->ParameterCount - 1;
+				ins->SourceArray = (SourceTypeData*)calloc(1, sizeof(SourceTypeData) * paramCount);
+				ins->SourceArrayLength = paramCount;
+				for (uint32_t i2 = 0; i2 < paramCount; i2++)
+				{
+					obj = Pop();
+					ins->SourceArray[i2].Type = obj->LinearData.Type;
+					ins->SourceArray[i2].Data = obj->LinearData.Data;
+					PR(obj);
+				}
+
+				// This is a new object call, all constructors are instance
+				// methods, so the first arg will always be the parent type.
+				IRType* objType = ((IRMethod*)ins->Arg1)->Parameters[0]->Type;
+				obj = PA();
+				obj->LinearData.Type = SourceType_Local;
+				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(objType, pMethod);
+				ins->Destination.Type = SourceType_Local;
+				ins->Destination.Data.LocalVariable.LocalVariableIndex = obj->LinearData.Data.LocalVariable.LocalVariableIndex;
+				Push(obj);
                 break;
+			}
             case IROpcode_Load_ArrayLength:
                 break;
             case IROpcode_New_Array:
