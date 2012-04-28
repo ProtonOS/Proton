@@ -45,6 +45,8 @@ void IROptimizer_EnterSSA(IRMethod* pMethod)
 					}
 				}
 
+				Log_WriteLine(LOGLEVEL__Optimize_SSA, "Iterating assignment of local %u into %u on instruction %u", (unsigned int)instruction->DestinationData.LocalVariable.LocalVariableIndex, (unsigned int)nextLocalVariable->LocalVariableIndex, (unsigned int)index);
+
 				instruction->DestinationData.LocalVariable.LocalVariableIndex = nextLocalVariable->LocalVariableIndex;
 			}
 			nextLocalVariable->Used = TRUE;
