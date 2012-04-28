@@ -93,6 +93,8 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 		switch(ins->Opcode)
 		{
 			// These next few are all source points.
+			// Note: String, Int64, and Float64 need
+			// to do the same things as Int32.
             case IROpcode_Load_Parameter:
 				obj = PA();
 				obj->LinearData.Type = SourceType_Local;
@@ -127,11 +129,9 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
                 break;
             case IROpcode_Load_Null:
 				obj = PA();
-				obj->LinearData.Type = SourceType_Local;
-				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(pMethod->ParentAssembly->ParentDomain->IRAssemblies[0]->Types[pMethod->ParentAssembly->ParentDomain->CachedType___System_Object->TableIndex - 1], pMethod);
-				ins->Destination.Type = SourceType_Local;
-				ins->Destination.Data = obj->LinearData.Data;
+				obj->LinearData.Type = SourceType_Null;
 				Push(obj);
+				ins->Opcode = IROpcode_Nop;
                 break;
             case IROpcode_Load_String:
 				obj = PA();
@@ -143,11 +143,10 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
                 break;
             case IROpcode_Load_Int32:
 				obj = PA();
-				obj->LinearData.Type = SourceType_Local;
-				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, ElementType_I4), pMethod);
-				ins->Destination.Type = SourceType_Local;
-				ins->Destination.Data = obj->LinearData.Data;
+				obj->LinearData.Type = SourceType_ConstantI4;
+				obj->LinearData.Data.ConstantI4.Value = (uint32_t)ins->Arg1;
 				Push(obj);
+				ins->Opcode = IROpcode_Nop;
                 break;
             case IROpcode_Load_Int64:
 				obj = PA();
@@ -159,11 +158,10 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
                 break;
             case IROpcode_Load_Float32:
 				obj = PA();
-				obj->LinearData.Type = SourceType_Local;
-				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, ElementType_R4), pMethod);
-				ins->Destination.Type = SourceType_Local;
-				ins->Destination.Data = obj->LinearData.Data;
+				obj->LinearData.Type = SourceType_ConstantR4;
+				obj->LinearData.Data.ConstantR4.Value = (uint32_t)ins->Arg1;
 				Push(obj);
+				ins->Opcode = IROpcode_Nop;
                 break;
             case IROpcode_Load_Float64:
 				obj = PA();
