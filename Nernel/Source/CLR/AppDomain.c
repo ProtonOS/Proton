@@ -601,6 +601,39 @@ IRType* AppDomain_GetIRTypeFromMetadataToken(AppDomain* pDomain, IRAssembly* pAs
 	return type;
 }
 
+IRType* AppDomain_GetIRTypeFromElementType(AppDomain* pDomain, ElementType pType)
+{
+	switch(pType)
+	{
+		case ElementType_I:
+			return pDomain->IRAssemblies[0]->Types[pDomain->CachedType___System_IntPtr->TableIndex - 1];
+		case ElementType_U:
+			return pDomain->IRAssemblies[0]->Types[pDomain->CachedType___System_UIntPtr->TableIndex - 1];
+		case ElementType_I1:
+			return pDomain->IRAssemblies[0]->Types[pDomain->CachedType___System_SByte->TableIndex - 1];
+		case ElementType_I2:
+			return pDomain->IRAssemblies[0]->Types[pDomain->CachedType___System_Int16->TableIndex - 1];
+		case ElementType_I4:
+			return pDomain->IRAssemblies[0]->Types[pDomain->CachedType___System_Int32->TableIndex - 1];
+		case ElementType_I8:
+			return pDomain->IRAssemblies[0]->Types[pDomain->CachedType___System_Int64->TableIndex - 1];
+		case ElementType_U1:
+			return pDomain->IRAssemblies[0]->Types[pDomain->CachedType___System_Byte->TableIndex - 1];
+		case ElementType_U2:
+			return pDomain->IRAssemblies[0]->Types[pDomain->CachedType___System_UInt16->TableIndex - 1];
+		case ElementType_U4:
+			return pDomain->IRAssemblies[0]->Types[pDomain->CachedType___System_UInt32->TableIndex - 1];
+		case ElementType_U8:
+			return pDomain->IRAssemblies[0]->Types[pDomain->CachedType___System_UInt64->TableIndex - 1];
+		case ElementType_R4:
+			return pDomain->IRAssemblies[0]->Types[pDomain->CachedType___System_Single->TableIndex - 1];
+		case ElementType_R8:
+			return pDomain->IRAssemblies[0]->Types[pDomain->CachedType___System_Double->TableIndex - 1];
+		// This doesn't have a default for a reason.
+	}
+	return NULL;
+}
+
 ElementType AppDomain_GetElementTypeFromIRType(AppDomain* pDomain, IRType* pType)
 {
 	/*
@@ -625,7 +658,7 @@ ElementType AppDomain_GetElementTypeFromIRType(AppDomain* pDomain, IRType* pType
 	if (pType->TypeDefinition == pDomain->CachedType___System_UInt32) return ElementType_U4;
 	if (pType->TypeDefinition == pDomain->CachedType___System_Int64) return ElementType_I8;
 	if (pType->TypeDefinition == pDomain->CachedType___System_UInt64) return ElementType_U8;
-	if (pType->TypeDefinition == pDomain->CachedType___System_IntPtr) return ElementType_I;
+	if (pType->TypeDefinition == pDomain->CachedType___System_IntPtr || pType->IsPointerType) return ElementType_I;
 	if (pType->TypeDefinition == pDomain->CachedType___System_UIntPtr) return ElementType_U;
 	if (pType->TypeDefinition == pDomain->CachedType___System_Single) return ElementType_R4;
 	if (pType->TypeDefinition == pDomain->CachedType___System_Double) return ElementType_R8;

@@ -67,10 +67,13 @@ AppDomain* AppDomain_Create();
 void AppDomain_Destroy(AppDomain* pDomain);
 void AppDomain_AddAssembly(AppDomain* pDomain, IRAssembly* pAssembly);
 void AppDomain_LinkCorlib(AppDomain* pDomain, CLIFile* pCorlibFile);
+
+ElementType AppDomain_GetElementTypeFromIRType(AppDomain* pDomain, IRType* pType);
 IRField* AppDomain_GetIRFieldFromMetadataToken(AppDomain* pDomain, IRAssembly* pAssembly, uint32_t pToken, uint32_t* pFieldIndex);
+IRType* AppDomain_GetIRTypeFromElementType(AppDomain* pDomain, ElementType pType)
 IRType* AppDomain_GetIRTypeFromSignatureType(AppDomain* pDomain, IRAssembly* pAssembly, SignatureType* pType);
 IRType* AppDomain_GetIRTypeFromMetadataToken(AppDomain* pDomain, IRAssembly* pAssembly, uint32_t pToken, bool_t pClassToken);
-ElementType AppDomain_GetElementTypeFromIRType(AppDomain* pDomain, IRType* pType);
+
 bool_t AppDomain_IsStructure(AppDomain* pDomain, TypeDefinition* pTypeDefinition);
 TypeDefinition* AppDomain_ResolveTypeReference(AppDomain* pDomain, CLIFile* pFile, TypeReference* pTypeReference);
 void AppDomain_ResolveMemberReference(AppDomain* pDomain, CLIFile* pFile, MemberReference* pMemberReference);
