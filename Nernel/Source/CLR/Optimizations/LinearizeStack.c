@@ -81,7 +81,7 @@ uint32_t AddLocal(IRType* localType, IRMethod* pMethod)
 	return loc->LocalVariableIndex;
 }
 
-void IROptimizer_LinearizeStack(IRMethod* pMethod)
+void IROptimizer_LinearizeStack(IRMethod* pMethod, IRBranch* pBranches, uint32_t pBranchCount)
 {
 	SyntheticStack* stack = SyntheticStack_Create();
 	StackObjectPool_Initialize(stack);

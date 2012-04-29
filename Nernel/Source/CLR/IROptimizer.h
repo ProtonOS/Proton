@@ -13,4 +13,4 @@ struct _IRBranch
 };
 
 void IROptimizer_Optimize(IRMethod* pMethod);
-uint32_t IROptimizer_ProcessBranches(IRMethod* pMethod, uint32_t pStartIndex, IRBranch** pBranches, uint32_t* pBranchesCount);
+

@@ -3,6 +3,9 @@
 #include <CLR/Optimizations/LeaveSSA.h>
 #include <CLR/Optimizations/LinearizeStack.h>
 
+// This is only called in this file.
+uint32_t IROptimizer_ProcessBranches(IRMethod* pMethod, uint32_t pStartIndex, IRBranch** pBranches, uint32_t* pBranchesCount);
+
 void IROptimizer_Optimize(IRMethod* pMethod)
 {
 	IRBranch* branches = NULL;

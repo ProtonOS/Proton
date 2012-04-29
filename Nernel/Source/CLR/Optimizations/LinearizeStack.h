@@ -3,4 +3,4 @@
 
 #include <CLR/IROptimizer.h>
 
-void IROptimizer_LinearizeStack(IRMethod* pMethod);
+void IROptimizer_LinearizeStack(IRMethod* pMethod, IRBranch* pBranches, uint32_t pBranchCount);
