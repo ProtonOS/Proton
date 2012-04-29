@@ -19,7 +19,7 @@ IRMethodNode* IRMethodNode_Create()
 	return node;
 }
 
-void IROptimizer_EnterSSA(IRMethod* pMethod)
+void IROptimizer_EnterSSA(IRMethod* pMethod, IRBranch* pBranches, uint32_t pBranchCount)
 {
 	Log_WriteLine(LOGLEVEL__Optimize_SSA, "Started Entering SSA for %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
 
@@ -70,16 +70,6 @@ void IROptimizer_EnterSSA(IRMethod* pMethod)
 			}
 			nextLocalVariable->Used = TRUE;
 		}
-	}
-	
-	IRBranch** branches = NULL;
-	uint32_t branchesCount = 0;
-	IROptimizer_ProcessBranches(pMethod, 0, &branches, &branchesCount);
-	Log_WriteLine(LOGLEVEL__Optimize_SSA, "Found Convergences for %u Branches", (unsigned int)branchesCount);
-	for (uint32_t index = 0; index < branchesCount; ++index)
-	{
-		IRBranch* branch = branches[index];
-		Log_WriteLine(LOGLEVEL__Optimize_SSA, "    Left 0x%x/0x%x:0x%x/0x%x, Right 0x%x/0x%x:0x%x/0x%x", (unsigned int)branch->FirstLeftInstruction, (unsigned int)branch->LeftConvergence, (unsigned int)pMethod->IRCodes[branch->FirstLeftInstruction]->ILLocation, (unsigned int)pMethod->IRCodes[branch->LeftConvergence]->ILLocation, (unsigned int)branch->FirstRightInstruction, (unsigned int)branch->RightConvergence, (unsigned int)pMethod->IRCodes[branch->FirstRightInstruction]->ILLocation, (unsigned int)pMethod->IRCodes[branch->RightConvergence]->ILLocation);
 	}
 
 	// Stage 2
