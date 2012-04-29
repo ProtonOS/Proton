@@ -1,7 +1,6 @@
 #include <CLR/Optimizations/EnterSSA.h>
 
 typedef struct _IRMethodNode IRMethodNode;
-typedef struct _IRBranch IRBranch;
 
 struct _IRMethodNode
 {
@@ -13,63 +12,11 @@ struct _IRMethodNode
 	uint32_t DominatesCount;
 };
 
-struct _IRBranch
-{
-	uint32_t FirstLeftInstruction;
-	uint32_t FirstRightInstruction;
-	uint32_t LeftConvergence;
-	uint32_t RightConvergence;
-};
-
 
 IRMethodNode* IRMethodNode_Create()
 {
 	IRMethodNode* node = (IRMethodNode*)calloc(1, sizeof(IRMethodNode));
 	return node;
-}
-
-
-uint32_t IROptimizer_ProcessBranches(IRMethod* pMethod, uint32_t pStartIndex, IRBranch*** pBranches, uint32_t* pBranchesCount)
-{
-	IRInstruction* instruction = NULL;
-	uint32_t index = pStartIndex;
-	while (index < pMethod->IRCodesCount)
-	{
-		instruction = pMethod->IRCodes[index];
-		if (instruction->Opcode == IROpcode_Return) return index;
-		else if (instruction->Opcode == IROpcode_Branch)
-		{
-			if ((BranchCondition)(uint32_t)instruction->Arg1 == BranchCondition_Always) return ((IRInstruction*)instruction->Arg2)->IRLocation;
-			else
-			{
-				bool_t alreadyAdded = FALSE;
-				for (uint32_t searchIndex = 0; searchIndex < *pBranchesCount; ++searchIndex)
-				{
-					if ((*pBranches)[searchIndex]->FirstLeftInstruction == index + 1 &&
-						(*pBranches)[searchIndex]->FirstRightInstruction == ((IRInstruction*)instruction->Arg2)->IRLocation)
-					{
-						alreadyAdded = TRUE;
-						break;
-					}
-				}
-				if (!alreadyAdded)
-				{
-					uint32_t branchIndex = *pBranchesCount;
-					*pBranchesCount += 1;
-					*pBranches = (IRBranch**)realloc(*pBranches, *pBranchesCount * sizeof(IRBranch*));
-					(*pBranches)[branchIndex] = (IRBranch*)calloc(1, sizeof(IRBranch));
-					(*pBranches)[branchIndex]->FirstLeftInstruction = index + 1;
-					(*pBranches)[branchIndex]->FirstRightInstruction = ((IRInstruction*)instruction->Arg2)->IRLocation;
-					(*pBranches)[branchIndex]->LeftConvergence = IROptimizer_ProcessBranches(pMethod, index + 1, pBranches, pBranchesCount);
-					printf("Branch to IRLoc = 0x%x, ILLoc = 0x%x\n", (unsigned int)((IRInstruction*)instruction->Arg2)->IRLocation, (unsigned int)((IRInstruction*)instruction->Arg2)->ILLocation);
-					(*pBranches)[branchIndex]->RightConvergence = IROptimizer_ProcessBranches(pMethod, ((IRInstruction*)instruction->Arg2)->IRLocation, pBranches, pBranchesCount);
-				}
-			}
-		}
-		else if (instruction->Opcode == IROpcode_Jump) Panic("Don't know how to handle this yet!");
-		++index;
-	}
-	return index;
 }
 
 void IROptimizer_EnterSSA(IRMethod* pMethod)
