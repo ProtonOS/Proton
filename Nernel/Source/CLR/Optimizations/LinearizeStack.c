@@ -538,6 +538,10 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod, IRBranch* pBranches, uint32_t
 				ins->Destination = obj->LinearData;
 				Push(obj);
                 break;
+
+			// 1 Source, 1 Destination Type in Arg1
+            case IROpcode_IsInst:
+            case IROpcode_CastClass:
             case IROpcode_Load_Indirect:
 				obj = Pop();
 				ins->Source1 = obj->LinearData;
@@ -549,6 +553,7 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod, IRBranch* pBranches, uint32_t
 				Push(obj);
                 break;
 			// 1 Source, No Destination
+            case IROpcode_Initialize_Object:
             case IROpcode_Store_StaticField:
 				obj = Pop();
 				ins->Source1 = obj->LinearData;
@@ -671,24 +676,34 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod, IRBranch* pBranches, uint32_t
 				}
                 break;
 			}
+            case IROpcode_Load_Object:
+				obj = Pop();
+				ins->Source1 = obj->LinearData;
+				PR(obj);
+				obj = PA();
+				obj->LinearData.Type = SourceType_Local;
+				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal((IRType*)ins->Arg2, pMethod, stack->StackDepth, &stackLocalTable);
+				ins->Destination = obj->LinearData;
+				Push(obj);
+                break;
+            case IROpcode_CheckFinite:
+				obj = Pop();
+				ins->Source1 = obj->LinearData;
+				PR(obj);
+				obj = PA();
+				obj->LinearData.Type = SourceType_Local;
+				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, ElementType_R8), pMethod, stack->StackDepth, &stackLocalTable);
+				ins->Destination = obj->LinearData;
+				Push(obj);
+                break;
 
-            case IROpcode_CastClass:
-                break;
-            case IROpcode_IsInst:
-                break;
             case IROpcode_Unbox:
                 break;
             case IROpcode_Unbox_Any:
                 break;
             case IROpcode_Box:
                 break;
-            case IROpcode_Load_Object:
-                break;
-            case IROpcode_CheckFinite:
-                break;
             case IROpcode_Allocate_Local:
-                break;
-            case IROpcode_Initialize_Object:
                 break;
             case IROpcode_Branch:
                 break;
