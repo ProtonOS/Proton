@@ -538,8 +538,6 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod, IRBranch* pBranches, uint32_t
 				ins->Destination = obj->LinearData;
 				Push(obj);
                 break;
-				
-
             case IROpcode_Load_Indirect:
 				obj = Pop();
 				ins->Source1 = obj->LinearData;
@@ -550,8 +548,14 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod, IRBranch* pBranches, uint32_t
 				ins->Destination = obj->LinearData;
 				Push(obj);
                 break;
-
+			// 1 Source, No Destination
+            case IROpcode_Store_StaticField:
+				obj = Pop();
+				ins->Source1 = obj->LinearData;
+				PR(obj);
+                break;
 			// 2 Sources, No Destination
+            case IROpcode_Store_Field:
             case IROpcode_Copy_Object:
             case IROpcode_Store_Object:
             case IROpcode_Store_Indirect:
@@ -562,7 +566,6 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod, IRBranch* pBranches, uint32_t
 				ins->Source2 = obj->LinearData;
 				PR(obj);
                 break;
-
 			// 3 Sources, No Destination
             case IROpcode_Store_Element:
             case IROpcode_Initialize_Block:
@@ -577,7 +580,6 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod, IRBranch* pBranches, uint32_t
 				ins->Source3 = obj->LinearData;
 				PR(obj);
                 break;
-				
             case IROpcode_Convert_Checked:
             case IROpcode_Convert_Unchecked:
 				obj = Pop();
@@ -589,6 +591,33 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod, IRBranch* pBranches, uint32_t
 				ins->Destination = obj->LinearData;
 				Push(obj);
                 break;
+            case IROpcode_Load_Element:
+				obj = Pop();
+				ins->Source1 = obj->LinearData;
+				PR(obj);
+				obj = Pop();
+				ins->Source2 = obj->LinearData;
+				PR(obj);
+				obj = PA();
+				obj->LinearData.Type = SourceType_Local;
+				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal((IRType*)ins->Arg2, pMethod, stack->StackDepth, &stackLocalTable);
+				ins->Destination = obj->LinearData;
+				Push(obj);
+                break;
+            case IROpcode_Load_ElementAddress:
+				obj = Pop();
+				ins->Source1 = obj->LinearData;
+				PR(obj);
+				obj = Pop();
+				ins->Source2 = obj->LinearData;
+				PR(obj);
+				obj = PA();
+				obj->LinearData.Type = SourceType_Local;
+				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, ElementType_I), pMethod, stack->StackDepth, &stackLocalTable);
+				ins->Destination = obj->LinearData;
+				Push(obj);
+                break;
+
             case IROpcode_CastClass:
                 break;
             case IROpcode_IsInst:
@@ -602,14 +631,6 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod, IRBranch* pBranches, uint32_t
             case IROpcode_Load_Object:
                 break;
             case IROpcode_CheckFinite:
-                break;
-            case IROpcode_Store_Field:
-                break;
-            case IROpcode_Store_StaticField:
-                break;
-            case IROpcode_Load_Element:
-                break;
-            case IROpcode_Load_ElementAddress:
                 break;
             case IROpcode_Allocate_Local:
                 break;
