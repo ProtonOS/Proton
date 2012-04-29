@@ -577,10 +577,17 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod, IRBranch* pBranches, uint32_t
 				ins->Source3 = obj->LinearData;
 				PR(obj);
                 break;
-
-            case IROpcode_Convert_Unchecked:
-                break;
+				
             case IROpcode_Convert_Checked:
+            case IROpcode_Convert_Unchecked:
+				obj = Pop();
+				ins->Source1 = obj->LinearData;
+				PR(obj);
+				obj = PA();
+				obj->LinearData.Type = SourceType_Local;
+				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, (ElementType)(uint32_t)ins->Arg2), pMethod, stack->StackDepth, &stackLocalTable);
+				ins->Destination = obj->LinearData;
+				Push(obj);
                 break;
             case IROpcode_CastClass:
                 break;
