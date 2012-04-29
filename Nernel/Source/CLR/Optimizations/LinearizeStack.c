@@ -617,6 +617,60 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod, IRBranch* pBranches, uint32_t
 				ins->Destination = obj->LinearData;
 				Push(obj);
                 break;
+            case IROpcode_Call_Internal:
+            case IROpcode_Call_Absolute:
+			{
+				IRMethod* mth = (IRMethod*)ins->Arg1;
+				uint32_t paramCount = mth->ParameterCount - 1;
+				ins->SourceArray = (SourceTypeData*)calloc(1, sizeof(SourceTypeData) * paramCount);
+				ins->SourceArrayLength = paramCount;
+				for (uint32_t i2 = 0; i2 < paramCount; i2++)
+				{
+					obj = Pop();
+					ins->SourceArray[i2].Type = obj->LinearData.Type;
+					ins->SourceArray[i2].Data = obj->LinearData.Data;
+					PR(obj);
+				}
+
+				if (mth->Returns)
+				{
+					IRType* retType = mth->ReturnType;
+					obj = PA();
+					obj->LinearData.Type = SourceType_Local;
+					obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(retType, pMethod, stack->StackDepth, &stackLocalTable);
+					ins->Destination.Type = SourceType_Local;
+					ins->Destination.Data.LocalVariable.LocalVariableIndex = obj->LinearData.Data.LocalVariable.LocalVariableIndex;
+					Push(obj);
+				}
+                break;
+			}
+            case IROpcode_Call_Constrained:
+            case IROpcode_Call_Virtual:
+			{
+				IRMethod* mth = ((IRType*)ins->Arg1)->Methods[(uint32_t)ins->Arg2];
+				uint32_t paramCount = mth->ParameterCount - 1;
+				ins->SourceArray = (SourceTypeData*)calloc(1, sizeof(SourceTypeData) * paramCount);
+				ins->SourceArrayLength = paramCount;
+				for (uint32_t i2 = 0; i2 < paramCount; i2++)
+				{
+					obj = Pop();
+					ins->SourceArray[i2].Type = obj->LinearData.Type;
+					ins->SourceArray[i2].Data = obj->LinearData.Data;
+					PR(obj);
+				}
+
+				if (mth->Returns)
+				{
+					IRType* retType = mth->ReturnType;
+					obj = PA();
+					obj->LinearData.Type = SourceType_Local;
+					obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(retType, pMethod, stack->StackDepth, &stackLocalTable);
+					ins->Destination.Type = SourceType_Local;
+					ins->Destination.Data.LocalVariable.LocalVariableIndex = obj->LinearData.Data.LocalVariable.LocalVariableIndex;
+					Push(obj);
+				}
+                break;
+			}
 
             case IROpcode_CastClass:
                 break;
@@ -635,16 +689,6 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod, IRBranch* pBranches, uint32_t
             case IROpcode_Allocate_Local:
                 break;
             case IROpcode_Initialize_Object:
-                break;
-            case IROpcode_Jump:
-                break;
-            case IROpcode_Call_Virtual:
-                break;
-            case IROpcode_Call_Constrained:
-                break;
-            case IROpcode_Call_Absolute:
-                break;
-            case IROpcode_Call_Internal:
                 break;
             case IROpcode_Branch:
                 break;
@@ -668,6 +712,7 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod, IRBranch* pBranches, uint32_t
 			// These op-codes do nothing
 			// in terms of stack analysis
 			// or linearization of the stack.
+            case IROpcode_Jump:
             case IROpcode_Nop:
             case IROpcode_Break:
                 break;
