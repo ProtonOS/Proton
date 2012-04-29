@@ -64,6 +64,7 @@ uint32_t IROptimizer_ProcessBranches(IRMethod* pMethod, uint32_t pStartIndex, IR
 						(*pBranches)[branchIndex].RightConvergence = IROptimizer_ProcessBranches(pMethod, ((IRInstruction*)instruction->Arg2)->IRLocation, pBranches, pBranchesCount);
 					}
 				}
+				break;
 			}
 			case IROpcode_Jump:
 				Panic("Don't know how to handle this yet!");
