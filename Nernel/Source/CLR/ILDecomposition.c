@@ -3132,66 +3132,66 @@ BranchCommon:
 					case MetadataTable_Field:
 					{
 						type = domain->IRAssemblies[0]->Types[domain->CachedType___System_RuntimeFieldHandle->TableIndex - 1];
-						handleType = RuntimeHandleType_FieldDefinition;
-						handleData = token->Data;
+						handleType = RuntimeHandleType_IRField;
+						handleData = ((Field*)token->Data)->File->Assembly->Fields[((Field*)token->Data)->TableIndex - 1];
 						break;
 					}
-					case MetadataTable_MethodDefinition:
-					{
-						type = domain->IRAssemblies[0]->Types[domain->CachedType___System_RuntimeMethodHandle->TableIndex - 1];
-						handleType = RuntimeHandleType_MethodDefinition;
-						handleData = token->Data;
-						break;
-					}
-					case MetadataTable_MethodSpecification:
-					{
-						type = domain->IRAssemblies[0]->Types[domain->CachedType___System_RuntimeMethodHandle->TableIndex - 1];
-						handleType = RuntimeHandleType_MethodSpecification;
-						handleData = token->Data;
-						break;
-					}
-					case MetadataTable_TypeDefinition:
-					{
-						type = domain->IRAssemblies[0]->Types[domain->CachedType___System_RuntimeTypeHandle->TableIndex - 1];
-						handleType = RuntimeHandleType_TypeDefinition;
-						handleData = token->Data;
-						break;
-					}
-					case MetadataTable_TypeReference:
-					{
-						type = domain->IRAssemblies[0]->Types[domain->CachedType___System_RuntimeTypeHandle->TableIndex - 1];
-						handleType = RuntimeHandleType_TypeDefinition;
-						handleData = ((TypeReference*)token->Data)->ResolvedType;
-						break;
-					}
-					case MetadataTable_TypeSpecification:
-					{
-						type = domain->IRAssemblies[0]->Types[domain->CachedType___System_RuntimeTypeHandle->TableIndex - 1];
-						handleType = RuntimeHandleType_TypeSpecification;
-						handleData = token->Data;
-						break;
-					}
-					case MetadataTable_MemberReference:
-					{
-						if (((MemberReference*)token->Data)->TypeOfResolved == FieldOrMethodDefType_Field)
-						{
-							type = domain->IRAssemblies[0]->Types[domain->CachedType___System_RuntimeFieldHandle->TableIndex - 1];
-							handleType = RuntimeHandleType_FieldDefinition;
-							handleData = ((MemberReference*)token->Data)->Resolved.Field;
-						}
-						else if (((MemberReference*)token->Data)->TypeOfResolved == FieldOrMethodDefType_MethodDefinition)
-						{
-							type = domain->IRAssemblies[0]->Types[domain->CachedType___System_RuntimeMethodHandle->TableIndex - 1];
-							handleType = RuntimeHandleType_MethodDefinition;
-							handleData = ((MemberReference*)token->Data)->Resolved.MethodDefinition;
-						}
-						else
-						{
-							Panic("Unknown MemberReference for LdToken");
-						}
-						
-						break;
-					}
+					//case MetadataTable_MethodDefinition:
+					//{
+					//	type = domain->IRAssemblies[0]->Types[domain->CachedType___System_RuntimeMethodHandle->TableIndex - 1];
+					//	handleType = RuntimeHandleType_MethodDefinition;
+					//	handleData = token->Data;
+					//	break;
+					//}
+					//case MetadataTable_MethodSpecification:
+					//{
+					//	type = domain->IRAssemblies[0]->Types[domain->CachedType___System_RuntimeMethodHandle->TableIndex - 1];
+					//	handleType = RuntimeHandleType_MethodSpecification;
+					//	handleData = token->Data;
+					//	break;
+					//}
+					//case MetadataTable_TypeDefinition:
+					//{
+					//	type = domain->IRAssemblies[0]->Types[domain->CachedType___System_RuntimeTypeHandle->TableIndex - 1];
+					//	handleType = RuntimeHandleType_TypeDefinition;
+					//	handleData = token->Data;
+					//	break;
+					//}
+					//case MetadataTable_TypeReference:
+					//{
+					//	type = domain->IRAssemblies[0]->Types[domain->CachedType___System_RuntimeTypeHandle->TableIndex - 1];
+					//	handleType = RuntimeHandleType_TypeDefinition;
+					//	handleData = ((TypeReference*)token->Data)->ResolvedType;
+					//	break;
+					//}
+					//case MetadataTable_TypeSpecification:
+					//{
+					//	type = domain->IRAssemblies[0]->Types[domain->CachedType___System_RuntimeTypeHandle->TableIndex - 1];
+					//	handleType = RuntimeHandleType_TypeSpecification;
+					//	handleData = token->Data;
+					//	break;
+					//}
+					//case MetadataTable_MemberReference:
+					//{
+					//	if (((MemberReference*)token->Data)->TypeOfResolved == FieldOrMethodDefType_Field)
+					//	{
+					//		type = domain->IRAssemblies[0]->Types[domain->CachedType___System_RuntimeFieldHandle->TableIndex - 1];
+					//		handleType = RuntimeHandleType_IRField;
+					//		handleData = ((MemberReference*)token->Data)->Resolved.Field;
+					//	}
+					//	else if (((MemberReference*)token->Data)->TypeOfResolved == FieldOrMethodDefType_MethodDefinition)
+					//	{
+					//		type = domain->IRAssemblies[0]->Types[domain->CachedType___System_RuntimeMethodHandle->TableIndex - 1];
+					//		handleType = RuntimeHandleType_MethodDefinition;
+					//		handleData = ((MemberReference*)token->Data)->Resolved.MethodDefinition;
+					//	}
+					//	else
+					//	{
+					//		Panic("Unknown MemberReference for LdToken");
+					//	}
+					//	
+					//	break;
+					//}
 					default:
 						Panic("Unknown Table for LdToken");
 						break;

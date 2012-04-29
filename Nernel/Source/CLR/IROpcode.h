@@ -1482,7 +1482,7 @@ typedef enum IROpcode
         Arg2: RuntimeHandleType
             The type of metadata.
 
-        Arg3: void*
+        Arg3: IRType* / IRField* / IRMethod*
 			A pointer to the metadata based on the type.
 
         Arg4:
@@ -1632,9 +1632,7 @@ typedef enum CompareCondition
 
 typedef enum RuntimeHandleType
 {
-	RuntimeHandleType_FieldDefinition,
-	RuntimeHandleType_MethodDefinition,
-	RuntimeHandleType_MethodSpecification,
-	RuntimeHandleType_TypeDefinition,
-	RuntimeHandleType_TypeSpecification,
+	RuntimeHandleType_IRField,
+	RuntimeHandleType_IRMethod,
+	RuntimeHandleType_IRType,
 } RuntimeHandleType;
