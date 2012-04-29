@@ -735,6 +735,8 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod, IRBranch* pBranches, uint32_t
 				ins->Destination = obj->LinearData;
 				Push(obj);
                 break;
+			// 1 Source, 1 Destination of Native Int
+            case IROpcode_Unbox:
             case IROpcode_Load_VirtualFunction:
             case IROpcode_Allocate_Local:
 				obj = Pop();
@@ -753,6 +755,13 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod, IRBranch* pBranches, uint32_t
 				ins->Destination = obj->LinearData;
 				Push(obj);
                 break;
+            case IROpcode_Switch:
+			{
+				obj = Pop();
+				ins->Source1 = obj->LinearData;
+				PR(obj);
+				break;
+			}
             case IROpcode_Branch:
 			{
 				switch((BranchCondition)(uint32_t)ins->Arg1)
@@ -790,10 +799,8 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod, IRBranch* pBranches, uint32_t
 				break;
 			}
 
-            case IROpcode_Unbox:
             case IROpcode_Unbox_Any:
             case IROpcode_Box:
-            case IROpcode_Switch:
             case IROpcode_MkRefAny:
             case IROpcode_RefAnyVal:
             case IROpcode_RefAnyType:

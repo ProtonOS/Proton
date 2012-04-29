@@ -9,17 +9,17 @@ namespace Mernel
         {
             int x = 0;
             int y = 1;
-            if ((x + y) == 0) return;
-            else if ((x + y) == 1) Console.WriteLine("Mernel: Startup");
-            else if ((x + y) == 2) Console.WriteLine("Mernel: WTF");
-            x++;
+            //if ((x + y) == 0) return;
+            //else if ((x + y) == 1) Console.WriteLine("Mernel: Startup");
+            //else if ((x + y) == 2) Console.WriteLine("Mernel: WTF");
+            //x++;
             int z = 0;
-            z = x + y * 2;
+            z = (x > y) ? 1 : 0;
             z++;
-            if (x > 0 && (z = ((x + y) > 1 ? 9 : 10)) == 9)
-            {
-                x = z;
-            }
+            //if (x > 0 && (z = ((x + y) > 1 ? 9 : 10)) == 9)
+            //{
+            //    x = z;
+            //}
         }
     }
 

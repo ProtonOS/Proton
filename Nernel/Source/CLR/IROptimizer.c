@@ -19,9 +19,9 @@ void IROptimizer_Optimize(IRMethod* pMethod)
 	}
 
 	IROptimizer_LinearizeStack(pMethod, branches, branchesCount);
-	//IROptimizer_EnterSSA(pMethod, branches, branchesCount);
+	IROptimizer_EnterSSA(pMethod, branches, branchesCount);
 
-	//IROptimizer_LeaveSSA(pMethod, branches, branchesCount);
+	IROptimizer_LeaveSSA(pMethod, branches, branchesCount);
 
 	free(branches);
 }
