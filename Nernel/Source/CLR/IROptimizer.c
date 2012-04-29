@@ -18,10 +18,10 @@ void IROptimizer_Optimize(IRMethod* pMethod)
 		Log_WriteLine(LOGLEVEL__Optimize, "    Left 0x%x/0x%x:0x%x/0x%x, Right 0x%x/0x%x:0x%x/0x%x", (unsigned int)branch->FirstLeftInstruction, (unsigned int)branch->LeftConvergence, (unsigned int)pMethod->IRCodes[branch->FirstLeftInstruction]->ILLocation, (unsigned int)pMethod->IRCodes[branch->LeftConvergence]->ILLocation, (unsigned int)branch->FirstRightInstruction, (unsigned int)branch->RightConvergence, (unsigned int)pMethod->IRCodes[branch->FirstRightInstruction]->ILLocation, (unsigned int)pMethod->IRCodes[branch->RightConvergence]->ILLocation);
 	}
 
-	//IROptimizer_LinearizeStack(pMethod, branches, branchesCount);
-	IROptimizer_EnterSSA(pMethod, branches, branchesCount);
+	IROptimizer_LinearizeStack(pMethod, branches, branchesCount);
+	//IROptimizer_EnterSSA(pMethod, branches, branchesCount);
 
-	IROptimizer_LeaveSSA(pMethod, branches, branchesCount);
+	//IROptimizer_LeaveSSA(pMethod, branches, branchesCount);
 
 	free(branches);
 }

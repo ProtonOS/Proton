@@ -336,7 +336,7 @@ void IRMethod_AddInstruction(IRMethod* pMethod, IRInstruction* pInstruction)
 void IRMethod_AddLocal(IRMethod* pMethod, IRLocalVariable* pLocal)
 {
 	pLocal->LocalVariableIndex = pMethod->LocalVariableCount;
-	pMethod->LocalVariables = (IRLocalVariable**)realloc(pMethod->IRCodes, sizeof(IRLocalVariable*) * (pMethod->LocalVariableCount + 1));
+	pMethod->LocalVariables = (IRLocalVariable**)realloc(pMethod->LocalVariables, sizeof(IRLocalVariable*) * (pMethod->LocalVariableCount + 1));
 	pMethod->LocalVariables[pMethod->LocalVariableCount] = pLocal;
 	pMethod->LocalVariableCount++;
 }

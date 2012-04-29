@@ -1434,7 +1434,7 @@ typedef enum IROpcode
 			Loads a native method pointer from the specified method.
 		
 		Stack:
-			... -> ..., pointer
+			..., object -> ..., pointer
 
 		Arg1: IRType*
 			A pointer to the IRType containing the method.

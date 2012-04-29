@@ -92,7 +92,7 @@ uint32_t AddLocal(IRType* localType, IRMethod* pMethod, uint32_t depth, StackLoc
 	lKey.Type = localType;
 
 	StackLocal* fLocal = NULL;
-	HASH_FIND(HashHandle, *stackLocalTable, (void*)&lKeyPtr, offsetof(StackLocal, LocalIndex), fLocal);
+	HASH_FIND(HashHandle, *stackLocalTable, lKeyPtr, offsetof(StackLocal, LocalIndex), fLocal);
 	if (!fLocal)
 	{
 		IRLocalVariable* loc = IRLocalVariable_Create(pMethod, localType);
@@ -102,10 +102,12 @@ uint32_t AddLocal(IRType* localType, IRMethod* pMethod, uint32_t depth, StackLoc
 		fLocal->Type = localType;
 		fLocal->LocalIndex = loc->LocalVariableIndex;
 		HASH_ADD(HashHandle, *stackLocalTable, StackDepthLocation, offsetof(StackLocal, LocalIndex), fLocal);
+		printf("Creating a local at index %i for stack depth of %i of the type (0x%x) %s.%s\n", (int)loc->LocalVariableIndex, (int)depth, (unsigned int)localType, localType->TypeDefinition->Namespace, localType->TypeDefinition->Name);
 		return loc->LocalVariableIndex;
 	}
 	else
 	{
+		printf("Not creating a local at index %i for stack depth of %i of the type (0x%x) %s.%s\n", (int)fLocal->LocalIndex, (int)depth, (unsigned int)localType, localType->TypeDefinition->Namespace, localType->TypeDefinition->Name);
 		return fLocal->LocalIndex;
 	}
 }
@@ -117,9 +119,11 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod, IRBranch* pBranches, uint32_t
 	StackObjectPool_Initialize(stack);
 	StackObject* obj = NULL;
 	StackObject* obj2 = NULL;
+	printf("IRCode Count: %i\n", (int)pMethod->IRCodesCount);
 	for (uint32_t i = 0; i < pMethod->IRCodesCount; i++)
 	{
 		IRInstruction* ins = pMethod->IRCodes[i];
+		printf("Instruction %i is %i at IL 0x%x\n", (int)i, (int)ins->Opcode, (unsigned int)ins->ILLocation);
 		switch(ins->Opcode)
 		{
 			// These next few are all source points.
@@ -284,7 +288,7 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod, IRBranch* pBranches, uint32_t
 
             case IROpcode_Store_Parameter:
             case IROpcode_Pop:
-				Panic("I don't quite know what to do here yet!");
+				Panic("Linearize - I don't quite know what to do here yet!");
                 break;
 				
             case IROpcode_Rem:
@@ -718,30 +722,82 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod, IRBranch* pBranches, uint32_t
 				Push(obj);
                 break;
 			}
-
-            case IROpcode_Unbox:
-                break;
-            case IROpcode_Unbox_Any:
-                break;
-            case IROpcode_Box:
-                break;
-            case IROpcode_Allocate_Local:
-                break;
-            case IROpcode_Branch:
-                break;
-            case IROpcode_Switch:
-                break;
-            case IROpcode_Load_Function:
+            case IROpcode_Compare:
+				obj = Pop();
+				ins->Source1 = obj->LinearData;
+				PR(obj);
+				obj = Pop();
+				ins->Source2 = obj->LinearData;
+				PR(obj);
+				obj = PA();
+				obj->LinearData.Type = SourceType_Local;
+				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, ElementType_I4), pMethod, stack->StackDepth, &stackLocalTable);
+				ins->Destination = obj->LinearData;
+				Push(obj);
                 break;
             case IROpcode_Load_VirtualFunction:
+            case IROpcode_Allocate_Local:
+				obj = Pop();
+				ins->Source1 = obj->LinearData;
+				PR(obj);
+				obj = PA();
+				obj->LinearData.Type = SourceType_Local;
+				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, ElementType_I), pMethod, stack->StackDepth, &stackLocalTable);
+				ins->Destination = obj->LinearData;
+				Push(obj);
                 break;
-            case IROpcode_Compare:
+            case IROpcode_Load_Function:
+				obj = PA();
+				obj->LinearData.Type = SourceType_Local;
+				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, ElementType_I), pMethod, stack->StackDepth, &stackLocalTable);
+				ins->Destination = obj->LinearData;
+				Push(obj);
                 break;
+            case IROpcode_Branch:
+			{
+				switch((BranchCondition)(uint32_t)ins->Arg1)
+				{
+					case BranchCondition_Always:
+						if (stack->StackDepth > 0)
+						{
+							PR(Pop());
+						}
+						break;
+					case BranchCondition_False:
+					case BranchCondition_True:
+						obj = Pop();
+						ins->Source1 = obj->LinearData;
+						PR(obj);
+						break;
+					case BranchCondition_Greater:
+					case BranchCondition_Greater_Or_Equal:
+					case BranchCondition_Greater_Or_Equal_Unsigned:
+					case BranchCondition_Greater_Unsigned:
+					case BranchCondition_Less:
+					case BranchCondition_Less_Or_Equal:
+					case BranchCondition_Less_Or_Equal_Unsigned:
+					case BranchCondition_Less_Unsigned:
+					case BranchCondition_Equal:
+					case BranchCondition_NotEqual_Unsigned:
+						obj = Pop();
+						ins->Source1 = obj->LinearData;
+						PR(obj);
+						obj = Pop();
+						ins->Source2 = obj->LinearData;
+						PR(obj);
+						break;
+				}
+				break;
+			}
+
+            case IROpcode_Unbox:
+            case IROpcode_Unbox_Any:
+            case IROpcode_Box:
+            case IROpcode_Switch:
             case IROpcode_MkRefAny:
-                break;
             case IROpcode_RefAnyVal:
-                break;
             case IROpcode_RefAnyType:
+				Panic("Not yet supported!");
                 break;
 				
 			// These op-codes do nothing
