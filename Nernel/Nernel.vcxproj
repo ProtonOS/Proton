@@ -128,7 +128,7 @@
     <NMakeOutput>Nernel.bin</NMakeOutput>
     <NMakeCleanCommandLine>..\SDK\bin\omake clean</NMakeCleanCommandLine>
     <NMakeReBuildCommandLine>..\SDK\bin\omake rebuild</NMakeReBuildCommandLine>
-    <NMakePreprocessorDefinitions>DEBUG;__extension__</NMakePreprocessorDefinitions>
+    <NMakePreprocessorDefinitions>DEBUG;__extension__;_HAVE_STDC</NMakePreprocessorDefinitions>
     <NMakeIncludeSearchPath>..\SDK\include;.\Source</NMakeIncludeSearchPath>
     <NMakeForcedIncludes>types.h;IntellisenseFixes.h;Common.h</NMakeForcedIncludes>
     <ExecutablePath />
@@ -137,13 +137,15 @@
     <LibraryPath />
     <SourcePath />
     <ExcludePath />
+    <AdditionalOptions>
+    </AdditionalOptions>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <NMakeBuildCommandLine>..\SDK\bin\omake build</NMakeBuildCommandLine>
     <NMakeOutput>Nernel.bin</NMakeOutput>
     <NMakeCleanCommandLine>..\SDK\bin\omake clean</NMakeCleanCommandLine>
     <NMakeReBuildCommandLine>..\SDK\bin\omake rebuild</NMakeReBuildCommandLine>
-    <NMakePreprocessorDefinitions>__extension__</NMakePreprocessorDefinitions>
+    <NMakePreprocessorDefinitions>__extension__;_HAVE_STDC</NMakePreprocessorDefinitions>
     <NMakeIncludeSearchPath>..\SDK\include;.\Source</NMakeIncludeSearchPath>
     <NMakeForcedIncludes>types.h;IntellisenseFixes.h;Common.h</NMakeForcedIncludes>
     <ExecutablePath />
@@ -152,6 +154,8 @@
     <LibraryPath />
     <SourcePath />
     <ExcludePath />
+    <AdditionalOptions>
+    </AdditionalOptions>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <BuildLog>
