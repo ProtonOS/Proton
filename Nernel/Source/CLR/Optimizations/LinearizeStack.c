@@ -696,6 +696,28 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod, IRBranch* pBranches, uint32_t
 				ins->Destination = obj->LinearData;
 				Push(obj);
                 break;
+            case IROpcode_Load_Token:
+			{
+				IRType* localType = 0;
+				switch((RuntimeHandleType)(uint32_t)ins->Arg2)
+				{
+					case RuntimeHandleType_IRField:
+						localType = pMethod->ParentAssembly->ParentDomain->IRAssemblies[0]->Types[pMethod->ParentAssembly->ParentDomain->CachedType___System_RuntimeFieldHandle->TableIndex - 1];
+						break;
+					case RuntimeHandleType_IRMethod:
+						localType = pMethod->ParentAssembly->ParentDomain->IRAssemblies[0]->Types[pMethod->ParentAssembly->ParentDomain->CachedType___System_RuntimeMethodHandle->TableIndex - 1];
+						break;
+					case RuntimeHandleType_IRType:
+						localType = pMethod->ParentAssembly->ParentDomain->IRAssemblies[0]->Types[pMethod->ParentAssembly->ParentDomain->CachedType___System_RuntimeTypeHandle->TableIndex - 1];
+						break;
+				}
+				obj = PA();
+				obj->LinearData.Type = SourceType_Local;
+				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(localType, pMethod, stack->StackDepth, &stackLocalTable);
+				ins->Destination = obj->LinearData;
+				Push(obj);
+                break;
+			}
 
             case IROpcode_Unbox:
                 break;
@@ -714,8 +736,6 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod, IRBranch* pBranches, uint32_t
             case IROpcode_Load_VirtualFunction:
                 break;
             case IROpcode_Compare:
-                break;
-            case IROpcode_Load_Token:
                 break;
             case IROpcode_MkRefAny:
                 break;
