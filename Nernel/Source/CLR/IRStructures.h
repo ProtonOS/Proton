@@ -281,6 +281,7 @@ typedef enum SourceType
 	SourceType_FieldAddress,
 	SourceType_StaticField,
 	SourceType_StaticFieldAddress,
+	SourceType_SizeOf,
 } SourceType;
 
 typedef union SourceData
@@ -340,6 +341,10 @@ typedef union SourceData
 		uint32_t Length;
 		uint8_t* Data;
 	} StringLiteral;
+	struct SizeOf
+	{
+		IRType* Type;
+	} SizeOf;
 } SourceData;
 
 typedef struct SourceTypeData

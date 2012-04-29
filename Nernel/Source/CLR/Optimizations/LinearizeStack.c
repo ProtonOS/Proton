@@ -44,6 +44,7 @@ IRType* GetIRTypeOfSourceType(SourceType sourceType, SourceData sourceData, IRMe
 {
 	switch(sourceType)
 	{
+		case SourceType_SizeOf:
 		case SourceType_ConstantI4:
 			return pMethod->ParentAssembly->ParentDomain->IRAssemblies[0]->Types[pMethod->ParentAssembly->ParentDomain->CachedType___System_Int32->TableIndex - 1];
 		case SourceType_ConstantI8:
@@ -153,6 +154,13 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod, IRBranch* pBranches, uint32_t
 				ins->Destination.Type = SourceType_Local;
 				ins->Destination.Data = obj->LinearData.Data;
 				Push(obj);
+                break;
+            case IROpcode_SizeOf:
+				obj = PA();
+				obj->LinearData.Type = SourceType_SizeOf;
+				obj->LinearData.Data.SizeOf.Type = (IRType*)ins->Arg1;
+				Push(obj);
+				ins->Opcode = IROpcode_Nop;
                 break;
             case IROpcode_Load_Null:
 				obj = PA();
@@ -533,9 +541,43 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod, IRBranch* pBranches, uint32_t
 				
 
             case IROpcode_Load_Indirect:
+				obj = Pop();
+				ins->Source1 = obj->LinearData;
+				PR(obj);
+				obj = PA();
+				obj->LinearData.Type = SourceType_Local;
+				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal((IRType*)ins->Arg1, pMethod, stack->StackDepth, &stackLocalTable);
+				ins->Destination = obj->LinearData;
+				Push(obj);
                 break;
+
+			// 2 Sources, No Destination
+            case IROpcode_Copy_Object:
+            case IROpcode_Store_Object:
             case IROpcode_Store_Indirect:
+				obj = Pop();
+				ins->Source1 = obj->LinearData;
+				PR(obj);
+				obj = Pop();
+				ins->Source2 = obj->LinearData;
+				PR(obj);
                 break;
+
+			// 3 Sources, No Destination
+            case IROpcode_Store_Element:
+            case IROpcode_Initialize_Block:
+            case IROpcode_Copy_Block:
+				obj = Pop();
+				ins->Source1 = obj->LinearData;
+				PR(obj);
+				obj = Pop();
+				ins->Source2 = obj->LinearData;
+				PR(obj);
+				obj = Pop();
+				ins->Source3 = obj->LinearData;
+				PR(obj);
+                break;
+
             case IROpcode_Convert_Unchecked:
                 break;
             case IROpcode_Convert_Checked:
@@ -552,10 +594,6 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod, IRBranch* pBranches, uint32_t
                 break;
             case IROpcode_Load_Object:
                 break;
-            case IROpcode_Store_Object:
-                break;
-            case IROpcode_Copy_Object:
-                break;
             case IROpcode_CheckFinite:
                 break;
             case IROpcode_Store_Field:
@@ -566,17 +604,9 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod, IRBranch* pBranches, uint32_t
                 break;
             case IROpcode_Load_ElementAddress:
                 break;
-            case IROpcode_Store_Element:
-                break;
             case IROpcode_Allocate_Local:
                 break;
             case IROpcode_Initialize_Object:
-                break;
-            case IROpcode_Copy_Block:
-                break;
-            case IROpcode_Initialize_Block:
-                break;
-            case IROpcode_SizeOf:
                 break;
             case IROpcode_Jump:
                 break;
