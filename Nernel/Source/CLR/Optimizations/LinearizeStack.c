@@ -93,8 +93,6 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod, IRBranch* pBranches, uint32_t
 		switch(ins->Opcode)
 		{
 			// These next few are all source points.
-			// Note: String, Int64, and Float64 need
-			// to do the same things as Int32.
             case IROpcode_Load_Parameter:
 				obj = PA();
 				obj->LinearData.Type = SourceType_Local;
@@ -135,11 +133,11 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod, IRBranch* pBranches, uint32_t
                 break;
             case IROpcode_Load_String:
 				obj = PA();
-				obj->LinearData.Type = SourceType_Local;
-				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(pMethod->ParentAssembly->ParentDomain->IRAssemblies[0]->Types[pMethod->ParentAssembly->ParentDomain->CachedType___System_String->TableIndex - 1], pMethod);
-				ins->Destination.Type = SourceType_Local;
-				ins->Destination.Data = obj->LinearData.Data;
+				obj->LinearData.Type = SourceType_StringLiteral;
+				obj->LinearData.Data.StringLiteral.Length = (uint32_t)ins->Arg1;
+				obj->LinearData.Data.StringLiteral.Data = (uint8_t*)ins->Arg2;
 				Push(obj);
+				ins->Opcode = IROpcode_Nop;
                 break;
             case IROpcode_Load_Int32:
 				obj = PA();
@@ -150,11 +148,12 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod, IRBranch* pBranches, uint32_t
                 break;
             case IROpcode_Load_Int64:
 				obj = PA();
-				obj->LinearData.Type = SourceType_Local;
-				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, ElementType_I8), pMethod);
-				ins->Destination.Type = SourceType_Local;
-				ins->Destination.Data = obj->LinearData.Data;
+				obj->LinearData.Type = SourceType_ConstantI8;
+				obj->LinearData.Data.ConstantI8.Value = *(uint64_t*)ins->Arg1;
 				Push(obj);
+				free(ins->Arg1);
+				ins->Arg1NeedsDisposing = FALSE;
+				ins->Opcode = IROpcode_Nop;
                 break;
             case IROpcode_Load_Float32:
 				obj = PA();
@@ -165,11 +164,12 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod, IRBranch* pBranches, uint32_t
                 break;
             case IROpcode_Load_Float64:
 				obj = PA();
-				obj->LinearData.Type = SourceType_Local;
-				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, ElementType_R8), pMethod);
-				ins->Destination.Type = SourceType_Local;
-				ins->Destination.Data = obj->LinearData.Data;
+				obj->LinearData.Type = SourceType_ConstantR8;
+				obj->LinearData.Data.ConstantR8.Value = *(uint64_t*)ins->Arg1;
 				Push(obj);
+				free(ins->Arg1);
+				ins->Arg1NeedsDisposing = FALSE;
+				ins->Opcode = IROpcode_Nop;
                 break;
             case IROpcode_Load_Field:
 				obj = PA();
