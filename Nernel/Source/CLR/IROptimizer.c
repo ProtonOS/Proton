@@ -103,9 +103,9 @@ void IROptimizer_Optimize(IRMethod* pMethod)
 	}
 
 	IROptimizer_LinearizeStack(pMethod);
-	IROptimizer_EnterSSA(pMethod);
+	IROptimizer_EnterSSA(pMethod, nodes[0]);
 
-	IROptimizer_LeaveSSA(pMethod);
+	IROptimizer_LeaveSSA(pMethod, nodes[0]);
 
 	for (uint32_t index = 0; index < nodesCount; ++index) IRCodeNode_Destroy(nodes[index]);
 	free(nodes);

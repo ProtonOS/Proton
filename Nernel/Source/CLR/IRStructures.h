@@ -166,8 +166,6 @@ struct _IRLocalVariable
 	uint32_t Size;
 	bool_t Pinned;
 
-	IRLocalVariable* Ancestor;
-	bool_t Used;
 };
 
 IRLocalVariable* IRLocalVariable_Create(IRMethod* pMethod, IRType* pType);
