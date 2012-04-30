@@ -112,7 +112,7 @@ uint32_t AddLocal(IRType* localType, IRMethod* pMethod, uint32_t depth, StackLoc
 	}
 }
 
-void IROptimizer_LinearizeStack(IRMethod* pMethod, IRBranch* pBranches, uint32_t pBranchCount)
+void IROptimizer_LinearizeStack(IRMethod* pMethod)
 {
 	StackLocal* stackLocalTable = NULL;
 	SyntheticStack* stack = SyntheticStack_Create();

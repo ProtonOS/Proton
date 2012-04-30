@@ -93,13 +93,10 @@
     <ClCompile Include="Source\CLR\InternalCalls\Proton.IO.PortIO.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\CLR\Optimizations\LeaveSSA.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CLR\Optimizations\EnterSSA.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Source\CLR\Optimizations\LinearizeStack.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\CLR\Optimizations\SSA.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -218,13 +215,10 @@
     <ClInclude Include="Source\CLR\InternalCalls\Proton.IO.PortIO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\CLR\Optimizations\EnterSSA.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\CLR\Optimizations\LeaveSSA.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Source\CLR\Optimizations\LinearizeStack.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\CLR\Optimizations\SSA.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
