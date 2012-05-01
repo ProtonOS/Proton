@@ -109,7 +109,7 @@ typedef enum IROpcode
 			N/A
 
 	 */
-	IROpcode_Load_Parameter_Address,
+	IROpcode_Load_ParameterAddress,
 	/*
 		Description:
 			Stores a value to the parameter at the index in Arg1.
@@ -172,7 +172,7 @@ typedef enum IROpcode
 			N/A
 
 	 */
-	IROpcode_Load_Local_Address,
+	IROpcode_Load_LocalAddress,
 	/*
 		Description:
 			Stores a value to the local variable at the index in Arg1.
@@ -774,7 +774,7 @@ typedef enum IROpcode
 			N/A
 
 	 */
-	IROpcode_Unbox_Any,
+	IROpcode_UnboxAny,
 	/*
 		Description:
 			Boxes a value into an object.

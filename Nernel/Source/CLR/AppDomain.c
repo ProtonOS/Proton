@@ -1231,7 +1231,7 @@ void AppDomain_ResolveGenericMethodParameters(AppDomain* pDomain, CLIFile* pFile
 			case IROpcode_CastClass:
 			case IROpcode_IsInst:
 			case IROpcode_Unbox:
-			case IROpcode_Unbox_Any:
+			case IROpcode_UnboxAny:
 			case IROpcode_Box:
 			case IROpcode_New_Array:
 			case IROpcode_Allocate_Local:

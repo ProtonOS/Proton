@@ -135,7 +135,7 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 				ins->Destination.Data = obj->LinearData.Data;
 				Push(obj);
                 break;
-            case IROpcode_Load_Parameter_Address:
+            case IROpcode_Load_ParameterAddress:
 				obj = PA();
 				obj->LinearData.Type = SourceType_Local;
 				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, ElementType_I), pMethod, stack->StackDepth, &stackLocalTable);
@@ -151,7 +151,7 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 				ins->Destination.Data = obj->LinearData.Data;
 				Push(obj);
                 break;
-            case IROpcode_Load_Local_Address:
+            case IROpcode_Load_LocalAddress:
 				obj = PA();
 				obj->LinearData.Type = SourceType_Local;
 				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, ElementType_I), pMethod, stack->StackDepth, &stackLocalTable);
@@ -799,7 +799,7 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 				break;
 			}
 
-            case IROpcode_Unbox_Any:
+            case IROpcode_UnboxAny:
             case IROpcode_Box:
             case IROpcode_MkRefAny:
             case IROpcode_RefAnyVal:

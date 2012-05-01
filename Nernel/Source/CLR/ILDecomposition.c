@@ -1408,7 +1408,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 			{
                 Log_WriteLine(LOGLEVEL__ILReader, "Read LdArgA.S");
 				uint32_t paramIndex = ReadUInt8(currentDataPointer);
-                EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Parameter_Address, (uint32_t*)paramIndex);
+                EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_ParameterAddress, (uint32_t*)paramIndex);
 					
 				StackObject* obj = SA();
 				obj->Type = IRAssembly_MakePointerType(assembly, pMethod->Parameters[paramIndex]->Type);
@@ -1542,7 +1542,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 			{
                 Log_WriteLine(LOGLEVEL__ILReader, "Read LdLocA.S");
 				uint32_t localIndex = ReadUInt8(currentDataPointer);
-                EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Local_Address, (uint32_t*)localIndex);
+                EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_LocalAddress, (uint32_t*)localIndex);
 					
 				StackObject* obj = SA();
 				obj->Type = IRAssembly_MakePointerType(assembly, pMethod->LocalVariables[localIndex]->VariableType);
@@ -2693,7 +2693,7 @@ BranchCommon:
 
 				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), FALSE);
 
-				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Unbox_Any, type);
+				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_UnboxAny, type);
 
 				StackObject* obj = SyntheticStack_Peek(stack);
 				obj->Type = type;
@@ -3415,7 +3415,7 @@ BranchCommon:
 					{
 						Log_WriteLine(LOGLEVEL__ILReader, "Read LdArgA");
 						uint32_t paramIndex = ReadUInt16(currentDataPointer);
-						EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Parameter_Address, (uint32_t*)paramIndex);
+						EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_ParameterAddress, (uint32_t*)paramIndex);
 					
 						StackObject* obj = SA();
 						obj->Type = IRAssembly_MakePointerType(assembly, pMethod->Parameters[paramIndex]->Type);
@@ -3464,7 +3464,7 @@ BranchCommon:
 					{
 						Log_WriteLine(LOGLEVEL__ILReader, "Read LdLocA");
 						uint32_t localIndex = ReadUInt16(currentDataPointer);
-						EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_Local_Address, (uint32_t*)localIndex);
+						EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Load_LocalAddress, (uint32_t*)localIndex);
 					
 						StackObject* obj = SA();
 						obj->Type = IRAssembly_MakePointerType(assembly, pMethod->LocalVariables[localIndex]->VariableType);
@@ -3649,7 +3649,7 @@ bool_t ILDecomposition_MethodUsesGenerics(IRMethod* pMethod)
 			case IROpcode_CastClass:
 			case IROpcode_IsInst:
 			case IROpcode_Unbox:
-			case IROpcode_Unbox_Any:
+			case IROpcode_UnboxAny:
 			case IROpcode_Box:
 			case IROpcode_New_Array:
 			case IROpcode_Allocate_Local:
