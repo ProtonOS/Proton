@@ -69,6 +69,7 @@
     <ClInclude Include="Source\CLR\IRStructures.h" />
     <ClInclude Include="Source\CLR\JIT.h" />
     <ClInclude Include="Source\CLR\JIT\BranchRegistry.h" />
+    <ClInclude Include="Source\CLR\JIT\x86\Layout.h" />
     <ClInclude Include="Source\CLR\JIT\x86\x86-codegen-extra.h" />
     <ClInclude Include="Source\CLR\JIT\x86\x86-codegen.h" />
     <ClInclude Include="Source\CLR\MetadataStructures.h" />

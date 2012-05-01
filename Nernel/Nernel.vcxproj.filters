@@ -245,6 +245,9 @@
     <ClInclude Include="Source\CLR\JIT\BranchRegistry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Source\CLR\JIT\x86\Layout.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Source\System\x86\Boot.asm">

@@ -1,4 +1,5 @@
 #include <CLR/JIT.h>
+#include <CLR/JIT/x86/Layout.h>
 #include <CLR/JIT/x86/x86-codegen.h>
 
 void JIT_BranchLinker(BranchRegistry* pBranchRegistry)

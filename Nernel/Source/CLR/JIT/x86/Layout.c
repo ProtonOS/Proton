@@ -1,4 +1,5 @@
 #include <CLR/JIT.h>
+#include <CLR/JIT/x86/Layout.h>
 
 uint32_t JIT_StackAlign(uint32_t pSize)
 {
@@ -73,7 +74,8 @@ void JIT_CalculateParameterLayout(IRMethod* pMethod)
 	if (!pMethod->ParametersLayedOut)
 	{
 		IRParameter* parameter = NULL;
-		uint32_t offset = 24;
+		// Accounts for caller IRMethod*, AppDomain*, Reent*, return pointer, and saved stack frame in parameters space
+		uint32_t offset = 5 * gSizeOfPointerInBytes;
 		for (uint32_t index = 0; index < pMethod->ParameterCount; ++index)
 		{
 			parameter = pMethod->Parameters[index];
@@ -91,7 +93,8 @@ void JIT_CalculateLocalLayout(IRMethod* pMethod)
 	if (!pMethod->LocalsLayedOut)
 	{
 		IRLocalVariable* local = NULL;
-		uint32_t offset = 0;
+		// Accounts for current IRMethod* in locals space
+		uint32_t offset = gSizeOfPointerInBytes;
 		for (uint32_t index = 0; index < pMethod->LocalVariableCount; ++index)
 		{
 			local = pMethod->LocalVariables[index];
