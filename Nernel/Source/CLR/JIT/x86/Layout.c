@@ -1,16 +1,6 @@
 #include <CLR/JIT.h>
 #include <CLR/JIT/x86/Layout.h>
 
-uint32_t JIT_StackAlign(uint32_t pSize)
-{
-	uint32_t remainder = pSize % gSizeOfPointerInBytes;
-	if (remainder)
-	{
-		pSize += gSizeOfPointerInBytes - remainder;
-	}
-	return pSize;
-}
-
 uint32_t JIT_GetStackSizeOfType(IRType* pType)
 {
 	if (pType->IsValueType)
