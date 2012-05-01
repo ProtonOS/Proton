@@ -108,6 +108,12 @@ void JIT_CalculateLocalLayout(IRMethod* pMethod)
 	}
 }
 
+#define EMITTER(pInstruction) \
+case IROpcode_##pInstruction: \
+{ Log_WriteLine(LOGLEVEL__Compile_Emit, "Emitting " #pInstruction " @ 0x%x", (unsigned int)compiledCode); \
+	compiledCode = JIT_Emit_##pInstruction(compiledCode, pMethod, pMethod->IRCodes[index], branchRegistry); \
+	break; }
+
 void JIT_CompileMethod(IRMethod* pMethod)
 {
 	if (pMethod->AssembledMethod) return;
@@ -118,7 +124,42 @@ void JIT_CompileMethod(IRMethod* pMethod)
 	JIT_CalculateParameterLayout(pMethod);
 	JIT_CalculateLocalLayout(pMethod);
 
-	char* compiledCode = malloc(pMethod->IRCodesCount * 128);
-	Log_WriteLine(LOGLEVEL__Compile, "Compiling @ 0x%x, Size: 0x%x", (unsigned int)compiledCode, (unsigned int)(pMethod->IRCodesCount * 128));
+	uint32_t compiledCodeLength = pMethod->IRCodesCount * 128;
+	char* compiledCode = malloc(compiledCodeLength);
+	char* startOfCompiledCode = compiledCode;
+	Log_WriteLine(LOGLEVEL__Compile, "Started Compiling @ 0x%x, Size: 0x%x", (unsigned int)compiledCode, (unsigned int)(pMethod->IRCodesCount * 128));
 	pMethod->AssembledMethod = ((void(*)())((unsigned int)compiledCode));
+
+	BranchRegistry* branchRegistry = BranchRegistry_Create(pMethod->IRCodes[pMethod->IRCodesCount - 1]->ILLocation);
+
+	compiledCode = JIT_Emit_Prologue(compiledCode, pMethod);
+
+	for (uint32_t index = 0, offset = 0; index < pMethod->IRCodesCount; ++index)
+	{
+		branchRegistry->InstructionLocations[pMethod->IRCodes[index]->ILLocation] = (size_t)compiledCode;
+		switch (pMethod->IRCodes[index]->Opcode)
+		{
+			EMITTER(Nop);
+			default:
+				printf("Missing emitter for opcode 0x%x\n", pMethod->IRCodes[index]->Opcode);
+				break;
+		}
+		if ((compiledCodeLength - (compiledCode - startOfCompiledCode)) < 128)
+		{
+			offset = compiledCode - startOfCompiledCode;
+			compiledCodeLength += (pMethod->IRCodesCount - index) * 128;
+			startOfCompiledCode = (char*)realloc(startOfCompiledCode, compiledCodeLength);
+			compiledCode = startOfCompiledCode + offset;
+		}
+	}
+
+	compiledCode = JIT_Emit_Epilogue(compiledCode, pMethod);
+
+	JIT_BranchLinker(branchRegistry);
+	BranchRegistry_Destroy(branchRegistry);
+
+	compiledCodeLength = compiledCode - startOfCompiledCode;
+	startOfCompiledCode = (char*)realloc(startOfCompiledCode, compiledCodeLength);
+	compiledCode = startOfCompiledCode + compiledCodeLength;
+	Log_WriteLine(LOGLEVEL__Compile, "Finished Compiling @ 0x%x to 0x%x, Size: 0x%x", (unsigned int)startOfCompiledCode, (unsigned int)compiledCode, (unsigned int)compiledCodeLength);
 }

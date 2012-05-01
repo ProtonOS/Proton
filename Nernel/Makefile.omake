@@ -73,6 +73,8 @@
 	Source/CLR/MetadataStructures.c
 	Source/CLR/SyntheticStack.c
 	Source/CLR/InternalCalls/Proton.IO.PortIO.c
+	Source/CLR/JIT/BranchRegistry.c
+	Source/CLR/JIT/x86/Emitters.c
 	Source/CLR/Optimizations/LinearizeStack.c
 	Source/CLR/Optimizations/SSA.c
 	Source/System/APIC.c

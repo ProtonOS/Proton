@@ -18,6 +18,8 @@
     <ClCompile Include="Source\CLR\InternalCalls\Proton.IO.PortIO.c" />
     <ClCompile Include="Source\CLR\IROptimizer.c" />
     <ClCompile Include="Source\CLR\IRStructures.c" />
+    <ClCompile Include="Source\CLR\JIT\BranchRegistry.c" />
+    <ClCompile Include="Source\CLR\JIT\x86\Emitters.c" />
     <ClCompile Include="Source\CLR\MetadataStructures.c" />
     <ClCompile Include="Source\CLR\Optimizations\SSA.c" />
     <ClCompile Include="Source\CLR\Optimizations\LinearizeStack.c" />
@@ -65,6 +67,9 @@
     <ClInclude Include="Source\CLR\IROptimizer.h" />
     <ClInclude Include="Source\CLR\IRStructures.h" />
     <ClInclude Include="Source\CLR\JIT.h" />
+    <ClInclude Include="Source\CLR\JIT\BranchRegistry.h" />
+    <ClInclude Include="Source\CLR\JIT\x86\x86-codegen-extra.h" />
+    <ClInclude Include="Source\CLR\JIT\x86\x86-codegen.h" />
     <ClInclude Include="Source\CLR\MetadataStructures.h" />
     <ClInclude Include="Source\CLR\Optimizations\SSA.h" />
     <ClInclude Include="Source\CLR\Optimizations\LinearizeStack.h" />
