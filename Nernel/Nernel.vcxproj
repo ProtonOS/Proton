@@ -20,6 +20,7 @@
     <ClCompile Include="Source\CLR\IRStructures.c" />
     <ClCompile Include="Source\CLR\JIT\BranchRegistry.c" />
     <ClCompile Include="Source\CLR\JIT\x86\Emitters.c" />
+    <ClCompile Include="Source\CLR\JIT\x86\Layout.c" />
     <ClCompile Include="Source\CLR\MetadataStructures.c" />
     <ClCompile Include="Source\CLR\Optimizations\SSA.c" />
     <ClCompile Include="Source\CLR\Optimizations\LinearizeStack.c" />
