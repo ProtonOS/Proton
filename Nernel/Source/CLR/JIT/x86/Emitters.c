@@ -33,6 +33,9 @@ char* JIT_Emit_Epilogue(char* pCompiledCode, IRMethod* pMethod)
 
 char* JIT_Emit_Nop(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
-	x86_nop(pCompiledCode);
+	if ((uint32_t)pInstruction->Arg1)
+	{
+		x86_nop(pCompiledCode);
+	}
 	return pCompiledCode;
 }

@@ -1289,7 +1289,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
             case ILOpcode_Nop:				// 0x00
                 Log_WriteLine(LOGLEVEL__ILReader, "Read Nop");
 
-                EMIT_IR(IROpcode_Nop);
+                EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Nop, (uint32_t*)TRUE);
 
                 ClearFlags();
                 break;

@@ -9,8 +9,8 @@ typedef enum IROpcode
 		Stack:
 			... -> ...
 
-		Arg1:
-			N/A
+		Arg1: bool_t
+			A value to determine if this nop should be emitted.
 
 		Arg2:
 			N/A
