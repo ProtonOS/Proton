@@ -25,7 +25,7 @@ void JIT_CompileMethod(IRMethod* pMethod)
 	bool_t compiled = FALSE;
 	while (!compiled)
 	{
-		char* compiledCode = malloc(compiledCodeLength);
+		char* compiledCode = calloc(1, compiledCodeLength);
 		char* startOfCompiledCode = compiledCode;
 		Log_WriteLine(LOGLEVEL__JIT, "Started Compiling %s.%s.%s @ 0x%x, Size: 0x%x", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name, (unsigned int)compiledCode, (unsigned int)(pMethod->IRCodesCount * 128));
 		pMethod->AssembledMethod = ((void(*)())((unsigned int)compiledCode));
@@ -105,7 +105,6 @@ void JIT_CompileMethod(IRMethod* pMethod)
 				EMITTER(Call_Absolute);
 				EMITTER(Call_Internal);
 				EMITTER(Branch);
-				EMITTER(Switch);
 				EMITTER(Load_Function);
 				EMITTER(Load_VirtualFunction);
 				EMITTER(Compare);
@@ -113,11 +112,26 @@ void JIT_CompileMethod(IRMethod* pMethod)
 				EMITTER(MkRefAny);
 				EMITTER(RefAnyVal);
 				EMITTER(RefAnyType);
+				case IROpcode_Switch:
+				{
+					if (((int)compiledCodeLength - (compiledCode - startOfCompiledCode) - ((uint32_t)pMethod->IRCodes[index]->Arg1 * gSizeOfPointerInBytes)) < 32)
+					{
+						// Trigger insufficient space
+						compiledCodeLength += ((uint32_t)pMethod->IRCodes[index]->Arg1 * gSizeOfPointerInBytes);
+						compiledCode = startOfCompiledCode + compiledCodeLength;
+					}
+					else
+					{
+						Log_WriteLine(LOGLEVEL__JIT_Emit, "Emitting Switch @ 0x%x", (unsigned int)compiledCode);
+						compiledCode = JIT_Emit_Switch(compiledCode, pMethod, pMethod->IRCodes[index], branchRegistry);
+					}
+					break;
+				}
 				default:
 					printf("Missing emitter for opcode 0x%x\n", pMethod->IRCodes[index]->Opcode);
 					break;
 			}
-			if ((compiledCodeLength - (compiledCode - startOfCompiledCode)) < 32)
+			if (((int)compiledCodeLength - (compiledCode - startOfCompiledCode)) < 32)
 			{
 				Log_WriteLine(LOGLEVEL__JIT, "Insufficient space to compile method, adding space and restarting");
 				compiledCodeLength += (pMethod->IRCodesCount - index) * 128;
@@ -129,6 +143,7 @@ void JIT_CompileMethod(IRMethod* pMethod)
 		}
 		if (restartCompiling) continue;
 
+		branchRegistry->InstructionLocations[branchRegistry->InstructionCount + 1] = (size_t)compiledCode;
 		compiledCode = JIT_Emit_Epilogue(compiledCode, pMethod);
 
 		JIT_BranchLinker(branchRegistry);

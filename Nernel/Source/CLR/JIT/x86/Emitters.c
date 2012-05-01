@@ -95,6 +95,9 @@ char* JIT_Emit_Break(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pIns
 
 char* JIT_Emit_Return(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+	// Register a branch target for return to immediately jump into epilogue
+	BranchRegistry_RegisterBranch(pBranchRegistry, pInstruction->ILLocation, pBranchRegistry->InstructionCount + 1, pCompiledCode);
+	x86_jump32(pCompiledCode, 0);
 	return pCompiledCode;
 }
 
