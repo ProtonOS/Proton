@@ -39,19 +39,4 @@ namespace Mernel
             a = b;
         }
     }
-
-    public class SomeType<T>
-    {
-        public static T SomeField;
-
-        public SomeType()
-        {
-            Console.WriteLine("I says hello!");
-        }
-
-        public void AnotherMethod()
-        {
-            Console.WriteLine("Hy lookide!" + SomeField.ToString());
-        }
-    }
 }

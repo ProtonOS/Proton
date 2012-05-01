@@ -1,17 +1,8 @@
 #pragma once
 
-typedef struct _IRBranch IRBranch;
 typedef struct _IRCodeNode IRCodeNode;
 
 #include <CLR/IRStructures.h>
-
-struct _IRBranch
-{
-	uint32_t FirstLeftInstruction;
-	uint32_t FirstRightInstruction;
-	uint32_t LeftConvergence;
-	uint32_t RightConvergence;
-};
 
 struct _IRCodeNode
 {

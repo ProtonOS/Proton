@@ -19,6 +19,8 @@ typedef enum LogLevel
 	LOGLEVEL__Link_Branches =						1 << 10,
 	LOGLEVEL__Optimize =							1 << 11,
 	LOGLEVEL__Optimize_SSA =						1 << 12,
+	LOGLEVEL__Compile =								1 << 13,
+	LOGLEVEL__Compile_Layout =						1 << 14,
 } LogLevel;
 
 #ifdef LOG__DISABLE
@@ -45,6 +47,8 @@ void Log_WriteLine(LogLevel pLevel, const char* pFormatString, ...);
 		*/ \
 		| LOGLEVEL__Optimize \
 		| LOGLEVEL__Optimize_SSA \
+		| LOGLEVEL__Compile \
+		| LOGLEVEL__Compile_Layout \
         ))
 
 #define Log_WriteLine(ll, ...) \

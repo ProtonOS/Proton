@@ -69,6 +69,7 @@
 	Source/CLR/InternalCalls.c
 	Source/CLR/IROptimizer.c
 	Source/CLR/IRStructures.c
+	Source/CLR/JIT.c
 	Source/CLR/MetadataStructures.c
 	Source/CLR/SyntheticStack.c
 	Source/CLR/InternalCalls/Proton.IO.PortIO.c

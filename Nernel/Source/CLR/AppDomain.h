@@ -79,4 +79,3 @@ TypeDefinition* AppDomain_ResolveTypeReference(AppDomain* pDomain, CLIFile* pFil
 void AppDomain_ResolveMemberReference(AppDomain* pDomain, CLIFile* pFile, MemberReference* pMemberReference);
 void AppDomain_ResolveGenericTypeParameters(AppDomain* pDomain, CLIFile* pFile, IRType* pType);
 void AppDomain_ResolveGenericMethodParameters(AppDomain* pDomain, CLIFile* pFile, IRType* pType, IRMethod* pMethod);
-void AppDomain_CompileMethod(AppDomain* pDomain, IRMethod* pMethod);

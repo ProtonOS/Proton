@@ -22,6 +22,7 @@
     <ClCompile Include="Source\CLR\Optimizations\SSA.c" />
     <ClCompile Include="Source\CLR\Optimizations\LinearizeStack.c" />
     <ClCompile Include="Source\CLR\SyntheticStack.c" />
+    <ClCompile Include="Source\CLR\JIT.c" />
     <ClCompile Include="Source\System\APIC.c" />
     <ClCompile Include="Source\System\Console.c" />
     <ClCompile Include="Source\System\CPUID.c" />
@@ -63,6 +64,7 @@
     <ClInclude Include="Source\CLR\IROpcode.h" />
     <ClInclude Include="Source\CLR\IROptimizer.h" />
     <ClInclude Include="Source\CLR\IRStructures.h" />
+    <ClInclude Include="Source\CLR\JIT.h" />
     <ClInclude Include="Source\CLR\MetadataStructures.h" />
     <ClInclude Include="Source\CLR\Optimizations\SSA.h" />
     <ClInclude Include="Source\CLR\Optimizations\LinearizeStack.h" />
