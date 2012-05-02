@@ -9,3 +9,4 @@ ALWAYS_INLINE inline uint32_t JIT_StackAlign(uint32_t pSize)
 }
 
 uint32_t JIT_GetStackSizeOfType(IRType* pType);
+uint32_t JIT_GetSizeOfType(IRType* pType);

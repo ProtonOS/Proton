@@ -1,49 +1,54 @@
 #include <CLR/JIT.h>
 #include <CLR/JIT/x86/Layout.h>
 
+const uint32_t gSizeOfPointerInBytes = 4;
+const uint32_t gPointerDivideShift = 2;
+
 uint32_t JIT_GetStackSizeOfType(IRType* pType)
 {
+	if (pType->StackSizeCalculated) return pType->StackSize;
+	pType->StackSizeCalculated = TRUE;
+
 	if (pType->IsValueType)
 	{
-		if (pType->Size) return pType->Size;
 		if (pType->TypeDefinition->ClassLayout)
 		{
-			pType->Size = pType->TypeDefinition->ClassLayout->ClassSize;
-			return pType->Size;
+			pType->StackSize = pType->TypeDefinition->ClassLayout->ClassSize;
+			return pType->StackSize;
 		}
 		AppDomain* domain = pType->ParentAssembly->ParentDomain;
 		if (pType->TypeDefinition == domain->CachedType___System_Byte ||
 			pType->TypeDefinition == domain->CachedType___System_SByte ||
 			pType->TypeDefinition == domain->CachedType___System_Boolean)
 		{
-			pType->Size = 1;
+			pType->StackSize = 1;
 			return 1;
 		}
 		if (pType->TypeDefinition == domain->CachedType___System_Int16 ||
 			pType->TypeDefinition == domain->CachedType___System_UInt16 ||
 			pType->TypeDefinition == domain->CachedType___System_Char)
 		{
-			pType->Size = 2;
+			pType->StackSize = 2;
 			return 2;
 		}
 		if (pType->TypeDefinition == domain->CachedType___System_Int32 ||
 			pType->TypeDefinition == domain->CachedType___System_UInt32 ||
 			pType->TypeDefinition == domain->CachedType___System_Single)
 		{
-			pType->Size = 4;
+			pType->StackSize = 4;
 			return 4;
 		}
 		if (pType->TypeDefinition == domain->CachedType___System_Int64 ||
 			pType->TypeDefinition == domain->CachedType___System_UInt64 ||
 			pType->TypeDefinition == domain->CachedType___System_Double)
 		{
-			pType->Size = 8;
+			pType->StackSize = 8;
 			return 8;
 		}
 		if (pType->TypeDefinition == domain->CachedType___System_IntPtr ||
 			pType->TypeDefinition == domain->CachedType___System_UIntPtr)
 		{
-			pType->Size = gSizeOfPointerInBytes;
+			pType->StackSize = gSizeOfPointerInBytes;
 			return gSizeOfPointerInBytes;
 		}
 
@@ -53,10 +58,30 @@ uint32_t JIT_GetStackSizeOfType(IRType* pType)
 			if (pType->Fields[index]->FieldType->IsReferenceType) totalSize += gSizeOfPointerInBytes;
 			else totalSize += JIT_GetStackSizeOfType(pType->Fields[index]->FieldType);
 		}
-		pType->Size = totalSize;
+		pType->StackSize = totalSize;
 		return totalSize;
 	}
+	pType->StackSize = gSizeOfPointerInBytes;
 	return gSizeOfPointerInBytes;
+}
+
+uint32_t JIT_GetSizeOfType(IRType* pType)
+{
+	if (pType->SizeCalculated) return pType->Size;
+	pType->SizeCalculated = TRUE;
+	if (pType->IsValueType)
+	{
+		pType->Size = JIT_GetStackSizeOfType(pType);
+		return pType->Size;
+	}
+	uint32_t sizeOfType = 0;
+	for (uint32_t index = 0; index < pType->FieldCount; ++index)
+	{
+		if (pType->Fields[index]->FieldType->IsReferenceType) sizeOfType += gSizeOfPointerInBytes;
+		else sizeOfType += JIT_GetStackSizeOfType(pType->Fields[index]->FieldType);
+	}
+	pType->Size = sizeOfType;
+	return sizeOfType;
 }
 
 void JIT_CalculateParameterLayout(IRMethod* pMethod)

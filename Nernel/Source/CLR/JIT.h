@@ -4,6 +4,7 @@
 #include <CLR/JIT/BranchRegistry.h>
 
 extern const uint32_t gSizeOfPointerInBytes;
+extern const uint32_t gPointerDivideShift;
 
 void JIT_CalculateParameterLayout(IRMethod* pMethod);
 void JIT_CalculateLocalLayout(IRMethod* pMethod);

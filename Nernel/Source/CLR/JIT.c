@@ -2,8 +2,6 @@
 #include <CLR/IROptimizer.h>
 #include <CLR/JIT.h>
 
-const uint32_t gSizeOfPointerInBytes = sizeof(void*);
-
 
 #define EMITTER(pInstruction) \
 case IROpcode_##pInstruction: \
