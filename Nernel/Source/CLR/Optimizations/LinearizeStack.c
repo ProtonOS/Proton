@@ -53,8 +53,6 @@ IRType* GetIRTypeOfSourceType(SourceType sourceType, SourceData sourceData, IRMe
 			return pMethod->ParentAssembly->ParentDomain->IRAssemblies[0]->Types[pMethod->ParentAssembly->ParentDomain->CachedType___System_Single->TableIndex - 1];
 		case SourceType_ConstantR8:
 			return pMethod->ParentAssembly->ParentDomain->IRAssemblies[0]->Types[pMethod->ParentAssembly->ParentDomain->CachedType___System_Double->TableIndex - 1];
-		case SourceType_StringLiteral:
-			return pMethod->ParentAssembly->ParentDomain->IRAssemblies[0]->Types[pMethod->ParentAssembly->ParentDomain->CachedType___System_String->TableIndex - 1];
 		case SourceType_Null:
 			return pMethod->ParentAssembly->ParentDomain->IRAssemblies[0]->Types[pMethod->ParentAssembly->ParentDomain->CachedType___System_Object->TableIndex - 1];
 		case SourceType_FieldAddress:
@@ -174,11 +172,10 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
                 break;
             case IROpcode_Load_String:
 				obj = PA();
-				obj->LinearData.Type = SourceType_StringLiteral;
-				obj->LinearData.Data.StringLiteral.Length = (uint32_t)ins->Arg1;
-				obj->LinearData.Data.StringLiteral.Data = (uint8_t*)ins->Arg2;
+				obj->LinearData.Type = SourceType_Local;
+				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(pMethod->ParentAssembly->ParentDomain->IRAssemblies[0]->Types[pMethod->ParentAssembly->ParentDomain->CachedType___System_String->TableIndex - 1], pMethod, stack->StackDepth, &stackLocalTable);
+				ins->Destination = obj->LinearData;
 				Push(obj);
-				ins->Opcode = IROpcode_Nop;
                 break;
             case IROpcode_Load_Int32:
 				obj = PA();
