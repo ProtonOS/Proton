@@ -8,6 +8,8 @@ extern const uint32_t gPointerDivideShift;
 
 void JIT_CalculateParameterLayout(IRMethod* pMethod);
 void JIT_CalculateLocalLayout(IRMethod* pMethod);
+void JIT_CalculateFieldLayout(IRType* pType);
+void JIT_CalculateStaticFieldLayout(IRAssembly* pAssembly);
 void JIT_CompileMethod(IRMethod* pMethod);
 
 

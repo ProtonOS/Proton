@@ -7,81 +7,74 @@ const uint32_t gPointerDivideShift = 2;
 uint32_t JIT_GetStackSizeOfType(IRType* pType)
 {
 	if (pType->StackSizeCalculated) return pType->StackSize;
-	pType->StackSizeCalculated = TRUE;
 
 	if (pType->IsValueType)
 	{
+		AppDomain* domain = pType->ParentAssembly->ParentDomain;
 		if (pType->TypeDefinition->ClassLayout)
 		{
 			pType->StackSize = pType->TypeDefinition->ClassLayout->ClassSize;
-			return pType->StackSize;
 		}
-		AppDomain* domain = pType->ParentAssembly->ParentDomain;
-		if (pType->TypeDefinition == domain->CachedType___System_Byte ||
-			pType->TypeDefinition == domain->CachedType___System_SByte ||
-			pType->TypeDefinition == domain->CachedType___System_Boolean)
+		else if (pType->TypeDefinition == domain->CachedType___System_Byte ||
+			     pType->TypeDefinition == domain->CachedType___System_SByte ||
+			     pType->TypeDefinition == domain->CachedType___System_Boolean)
 		{
 			pType->StackSize = 1;
-			return 1;
 		}
-		if (pType->TypeDefinition == domain->CachedType___System_Int16 ||
-			pType->TypeDefinition == domain->CachedType___System_UInt16 ||
-			pType->TypeDefinition == domain->CachedType___System_Char)
+		else if (pType->TypeDefinition == domain->CachedType___System_Int16 ||
+			     pType->TypeDefinition == domain->CachedType___System_UInt16 ||
+			     pType->TypeDefinition == domain->CachedType___System_Char)
 		{
 			pType->StackSize = 2;
-			return 2;
 		}
-		if (pType->TypeDefinition == domain->CachedType___System_Int32 ||
-			pType->TypeDefinition == domain->CachedType___System_UInt32 ||
-			pType->TypeDefinition == domain->CachedType___System_Single)
+		else if (pType->TypeDefinition == domain->CachedType___System_Int32 ||
+			     pType->TypeDefinition == domain->CachedType___System_UInt32 ||
+			     pType->TypeDefinition == domain->CachedType___System_Single)
 		{
 			pType->StackSize = 4;
-			return 4;
 		}
-		if (pType->TypeDefinition == domain->CachedType___System_Int64 ||
-			pType->TypeDefinition == domain->CachedType___System_UInt64 ||
-			pType->TypeDefinition == domain->CachedType___System_Double)
+		else if (pType->TypeDefinition == domain->CachedType___System_Int64 ||
+			     pType->TypeDefinition == domain->CachedType___System_UInt64 ||
+			     pType->TypeDefinition == domain->CachedType___System_Double)
 		{
 			pType->StackSize = 8;
-			return 8;
 		}
-		if (pType->TypeDefinition == domain->CachedType___System_IntPtr ||
-			pType->TypeDefinition == domain->CachedType___System_UIntPtr)
+		else if (pType->TypeDefinition == domain->CachedType___System_IntPtr ||
+			     pType->TypeDefinition == domain->CachedType___System_UIntPtr)
 		{
 			pType->StackSize = gSizeOfPointerInBytes;
-			return gSizeOfPointerInBytes;
 		}
-
-		uint32_t totalSize = 0;
-		for (uint32_t index = 0; index < pType->FieldCount; ++index)
+		else
 		{
-			if (pType->Fields[index]->FieldType->IsReferenceType) totalSize += gSizeOfPointerInBytes;
-			else totalSize += JIT_GetStackSizeOfType(pType->Fields[index]->FieldType);
+			uint32_t totalSize = 0;
+			for (uint32_t index = 0; index < pType->FieldCount; ++index)
+			{
+				if (pType->Fields[index]->FieldType->IsReferenceType) totalSize += gSizeOfPointerInBytes;
+				else totalSize += JIT_GetStackSizeOfType(pType->Fields[index]->FieldType);
+			}
+			pType->StackSize = totalSize;
 		}
-		pType->StackSize = totalSize;
-		return totalSize;
 	}
-	pType->StackSize = gSizeOfPointerInBytes;
-	return gSizeOfPointerInBytes;
+	else pType->StackSize = gSizeOfPointerInBytes;
+	pType->StackSizeCalculated = TRUE;
+	return pType->StackSize;
 }
 
 uint32_t JIT_GetSizeOfType(IRType* pType)
 {
 	if (pType->SizeCalculated) return pType->Size;
+	if (pType->IsValueType) pType->Size = JIT_GetStackSizeOfType(pType);
+	else
+	{
+		uint32_t sizeOfType = 0;
+		for (uint32_t index = 0; index < pType->FieldCount; ++index)
+		{
+			sizeOfType += JIT_GetStackSizeOfType(pType->Fields[index]->FieldType);
+		}
+		pType->Size = sizeOfType;
+	}
 	pType->SizeCalculated = TRUE;
-	if (pType->IsValueType)
-	{
-		pType->Size = JIT_GetStackSizeOfType(pType);
-		return pType->Size;
-	}
-	uint32_t sizeOfType = 0;
-	for (uint32_t index = 0; index < pType->FieldCount; ++index)
-	{
-		if (pType->Fields[index]->FieldType->IsReferenceType) sizeOfType += gSizeOfPointerInBytes;
-		else sizeOfType += JIT_GetStackSizeOfType(pType->Fields[index]->FieldType);
-	}
-	pType->Size = sizeOfType;
-	return sizeOfType;
+	return pType->Size;
 }
 
 void JIT_CalculateParameterLayout(IRMethod* pMethod)
@@ -91,6 +84,7 @@ void JIT_CalculateParameterLayout(IRMethod* pMethod)
 		IRParameter* parameter = NULL;
 		// Accounts for caller IRMethod*, AppDomain*, Reent*, return pointer, and saved stack frame in parameters space
 		uint32_t offset = 5 * gSizeOfPointerInBytes;
+		Log_WriteLine(LOGLEVEL__JIT_Layout, "Laying Out Parameters of %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
 		for (uint32_t index = 0; index < pMethod->ParameterCount; ++index)
 		{
 			parameter = pMethod->Parameters[index];
@@ -110,6 +104,7 @@ void JIT_CalculateLocalLayout(IRMethod* pMethod)
 		IRLocalVariable* local = NULL;
 		// Accounts for current IRMethod* in locals space
 		uint32_t offset = gSizeOfPointerInBytes;
+		Log_WriteLine(LOGLEVEL__JIT_Layout, "Laying Out Locals of %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
 		for (uint32_t index = 0; index < pMethod->LocalVariableCount; ++index)
 		{
 			local = pMethod->LocalVariables[index];
@@ -120,4 +115,41 @@ void JIT_CalculateLocalLayout(IRMethod* pMethod)
 		}
 		pMethod->LocalsLayedOut = TRUE;
 	}
+}
+
+void JIT_CalculateFieldLayout(IRType* pType)
+{
+	if (!pType->FieldsLayedOut)
+	{
+		IRField* field = NULL;
+		uint32_t offset = 0;
+		Log_WriteLine(LOGLEVEL__JIT_Layout, "Laying Out Fields of %s.%s", pType->TypeDefinition->Namespace, pType->TypeDefinition->Name);
+		for (uint32_t index = 0; index < pType->FieldCount; ++index)
+		{
+			field = pType->Fields[index];
+			field->Size = JIT_GetStackSizeOfType(field->FieldType);
+			field->Offset = offset;
+			offset += field->Size;
+			Log_WriteLine(LOGLEVEL__JIT_Layout, "Layout Field %u @ 0x%x, Size: 0x%x", (unsigned int)index, (unsigned int)field->Offset, (unsigned int)field->Size);
+		}
+		pType->FieldsLayedOut = TRUE;
+	}
+}
+
+void JIT_CalculateStaticFieldLayout(IRAssembly* pAssembly)
+{
+	IRField* field = NULL;
+	uint32_t offset = 0;
+	uint32_t totalSize = 0;
+	Log_WriteLine(LOGLEVEL__JIT_Layout, "Laying Out Static Fields of %s", pAssembly->ParentFile->Filename);
+	for (uint32_t index = 0; index < pAssembly->StaticFieldCount; ++index)
+	{
+		field = pAssembly->StaticFields[index];
+		field->Size = JIT_GetStackSizeOfType(field->FieldType);
+		field->Offset = offset;
+		offset += field->Size;
+		totalSize += field->Size;
+		Log_WriteLine(LOGLEVEL__JIT_Layout, "Layout Static Field %u @ 0x%x, Size: 0x%x", (unsigned int)index, (unsigned int)field->Offset, (unsigned int)field->Size);
+	}
+	pAssembly->ParentDomain->StaticValues[pAssembly->AssemblyIndex] = realloc(pAssembly->ParentDomain->StaticValues[pAssembly->AssemblyIndex], totalSize);
 }

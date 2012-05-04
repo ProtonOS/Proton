@@ -4,6 +4,7 @@
 #include <CLR/ILOpcode.h>
 #include <CLR/InternalCalls.h>
 #include <CLR/IROpcode.h>
+#include <CLR/JIT.h>
 #include <CLR/SyntheticStack.h>
 #include <System/Multiboot.h>
 
@@ -86,12 +87,12 @@ IRAssembly* ILDecomposition_CreateAssembly(AppDomain* pDomain, CLIFile* pFile)
 		CLIFile_DestroyMetadataToken(token);
 	}
 
+	if (assembly->StaticFieldIndex != assembly->StaticFieldCount) Panic("Somehow we found more statics than we previously allocated space for!");
 	IRType* type = NULL;
 	for (uint32_t index = 1; index <= assembly->FieldCount; ++index)
 	{
 		if ((assembly->ParentFile->Fields[index].Flags & (FieldAttributes_Static | FieldAttributes_Literal)) == FieldAttributes_Static)
 		{
-			if (assembly->StaticFieldIndex == assembly->StaticFieldCount) Panic("Somehow we found more statics than we previously allocated space for!");
 			if (!(type = assembly->Types[assembly->ParentFile->Fields[index].TypeDefinition->TableIndex - 1]))
 			{
 				type = IRType_Create(assembly, assembly->ParentFile->Fields[index].TypeDefinition);
@@ -101,6 +102,7 @@ IRAssembly* ILDecomposition_CreateAssembly(AppDomain* pDomain, CLIFile* pFile)
 			Log_WriteLine(LOGLEVEL__FieldLayout, "Adding Static Field %s.%s.%s from table index %i at %i", type->TypeDefinition->Namespace, type->TypeDefinition->Name, assembly->ParentFile->Fields[index].Name, (int)assembly->ParentFile->Fields[index].TableIndex, (int)field->StaticFieldIndex);
 		}
 	}
+	JIT_CalculateStaticFieldLayout(assembly);
 	return assembly;
 }
 

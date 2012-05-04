@@ -188,7 +188,6 @@ struct _IRField
 
 	bool_t IsStatic;
 	uint32_t StaticFieldIndex;
-	void* StaticValue;
 };
 
 IRField* IRField_Create(IRType* pType, Field* pField);

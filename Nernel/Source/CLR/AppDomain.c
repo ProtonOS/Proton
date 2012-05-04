@@ -52,6 +52,7 @@ void AppDomain_AddAssembly(AppDomain* pDomain, IRAssembly* pAssembly)
 	pDomain->IRAssemblyCount++;
 	pDomain->IRAssemblies = (IRAssembly**)realloc(pDomain->IRAssemblies, sizeof(IRAssembly*) * pDomain->IRAssemblyCount);
 	pDomain->IRAssemblies[pDomain->IRAssemblyCount - 1] = pAssembly;
+	pDomain->StaticValues = (void**)realloc(pDomain->StaticValues, pDomain->IRAssemblyCount * sizeof(void*));
 }
 
 void AppDomain_LinkCorlib(AppDomain* pDomain, CLIFile* pCorlibFile)

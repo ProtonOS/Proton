@@ -22,7 +22,7 @@ char* JIT_Emit_LoadSource(char* pCompiledCode, IRMethod* pMethod, SourceTypeData
 				default:
 				{
 					x86_adjust_stack(pCompiledCode, -((int32_t)sizeOfSource));
-					uint32_t count = sizeOfSource / gSizeOfPointerInBytes;
+					uint32_t count = sizeOfSource >> gPointerDivideShift;
 					uint32_t offset = 0;
 					for (uint32_t index = 0; index < count; index++, offset += gSizeOfPointerInBytes)
 					{
@@ -56,7 +56,7 @@ char* JIT_Emit_LoadSource(char* pCompiledCode, IRMethod* pMethod, SourceTypeData
 				default:
 				{
 					x86_adjust_stack(pCompiledCode, -((int32_t)sizeOfSource));
-					uint32_t count = sizeOfSource / gSizeOfPointerInBytes;
+					uint32_t count = sizeOfSource >> gPointerDivideShift;
 					uint32_t offset = 0;
 					for (uint32_t index = 0; index < count; index++, offset += gSizeOfPointerInBytes)
 					{
@@ -102,48 +102,42 @@ char* JIT_Emit_LoadSource(char* pCompiledCode, IRMethod* pMethod, SourceTypeData
 			x86_mov_reg_imm(pCompiledCode, pDestination2Register, pSource->Data.ConstantR8.Value >> 32);
 			break;
 		}
-		case SourceType_StringLiteral:
-		{
-			sizeOfSource = gSizeOfPointerInBytes;
-			// This is a problem, do we need them to be RTO's? if so, literals need to be cleaned up, but they aren't stored
-			// in a local anywhere, which means we'd have to register and unregister literals, not reasonable. Alternatively,
-			// adding an optimizer step that deals with turning string literals into actual RTO string objects. Still kind of
-			// messy, so...
-			// We can treat all strings the same, and where we load RTO strings elsewhere, we would have to also assign dest2reg
-			// to the length like here. I think this is the way we should go, to avoid having to deal with turning string literals
-			// into RTO's with local variables and adding pressure to the GC, keeps literals faster too, but costs us the understanding
-			// that strings always load using 2 destination registers, even when other RTO's would load using only 1. However,
-			// this way still requires we interact with the RTO strings in order to obtain the length somehow in the other loaders,
-			// which we stored differently before, now the pointer for RTO's basically starts in the middle, with data before it for the
-			// RTO header, and all data from RTO pointer onward for the object data, meaning the RTO strings would have to calculate length
-			// from the object length in the RTO header (divide by 2 for number of characters as length)
-			x86_mov_reg_imm(pCompiledCode, pDestination1Register, pSource->Data.StringLiteral.Data);
-			x86_mov_reg_imm(pCompiledCode, pDestination2Register, pSource->Data.StringLiteral.Length);
-			break;
-		}
 		case SourceType_Field:
 		{
 			// Note: pDestination1Register must contain a pointer to the object the field is being loaded from
+			JIT_CalculateFieldLayout(pSource->Data.Field.ParentType);
 			IRField* field = pSource->Data.Field.ParentType->Fields[pSource->Data.Field.FieldIndex];
-			sizeOfSource = JIT_StackAlign(JIT_GetStackSizeOfType(field->FieldType));
+			sizeOfSource = JIT_GetStackSizeOfType(field->FieldType);
 			switch (sizeOfSource)
 			{
+				case 1:
+				case 2:
+				case 3:
 				case 4:
-					x86_mov_reg_membase(pCompiledCode, pDestination1Register, pDestination1Register, field->Offset, 4);
+					x86_mov_reg_membase(pCompiledCode, pDestination1Register, pDestination1Register, field->Offset, sizeOfSource);
 					break;
+				case 5:
+				case 6:
+				case 7:
 				case 8:
-					x86_mov_reg_membase(pCompiledCode, pDestination2Register, pDestination1Register, (field->Offset + 4), 4);
+					x86_mov_reg_membase(pCompiledCode, pDestination2Register, pDestination1Register, (field->Offset + 4), sizeOfSource - 4);
 					x86_mov_reg_membase(pCompiledCode, pDestination1Register, pDestination1Register, field->Offset, 4);
 					break;
 				default:
 				{
-					x86_adjust_stack(pCompiledCode, -((int32_t)sizeOfSource));
-					uint32_t count = sizeOfSource / gSizeOfPointerInBytes;
+					x86_adjust_stack(pCompiledCode, -((int32_t)JIT_StackAlign(sizeOfSource)));
+					uint32_t count = sizeOfSource >> gPointerDivideShift;
 					uint32_t offset = 0;
 					for (uint32_t index = 0; index < count; index++, offset += gSizeOfPointerInBytes)
 					{
 						x86_mov_reg_membase(pCompiledCode, X86_EDX, pDestination1Register, (field->Offset + (index << gPointerDivideShift)), gSizeOfPointerInBytes);
 						x86_mov_membase_reg(pCompiledCode, X86_ESP, offset, X86_EDX, gSizeOfPointerInBytes);
+					}
+					uint32_t remainder = sizeOfSource % gSizeOfPointerInBytes;
+					if (remainder)
+					{
+						x86_mov_reg_membase(pCompiledCode, X86_EDX, pDestination1Register, (field->Offset + (count << gPointerDivideShift)), remainder);
+						x86_mov_membase_reg(pCompiledCode, X86_ESP, offset, X86_EDX, remainder);
 					}
 					x86_mov_reg_reg(pCompiledCode, pDestination1Register, X86_ESP, gSizeOfPointerInBytes);
 					break;
@@ -153,32 +147,46 @@ char* JIT_Emit_LoadSource(char* pCompiledCode, IRMethod* pMethod, SourceTypeData
 		}
 		case SourceType_FieldAddress:
 		{
+			JIT_CalculateFieldLayout(pSource->Data.FieldAddress.ParentType);
 			sizeOfSource = gSizeOfPointerInBytes;
 			x86_alu_reg_imm(pCompiledCode, X86_ADD, pDestination1Register, pSource->Data.FieldAddress.ParentType->Fields[pSource->Data.FieldAddress.FieldIndex]->Offset);
 			break;
 		}
 		case SourceType_StaticField:
 		{
-			sizeOfSource = JIT_StackAlign(JIT_GetStackSizeOfType(pSource->Data.StaticField.Field->FieldType));
-			x86_mov_reg_imm(pCompiledCode, pDestination1Register, pSource->Data.StaticField.Field->StaticValue);
+			IRField* field = pSource->Data.StaticField.Field;
+			sizeOfSource = JIT_GetStackSizeOfType(field->FieldType);
+			x86_mov_reg_imm(pCompiledCode, pDestination1Register, (size_t)((uint8_t*)field->ParentAssembly->ParentDomain->StaticValues[field->ParentAssembly->AssemblyIndex] + field->Offset));
 			switch (sizeOfSource)
 			{
+				case 1:
+				case 2:
+				case 3:
 				case 4:
-					x86_mov_reg_membase(pCompiledCode, pDestination1Register, pDestination1Register, 0, 4);
+					x86_mov_reg_membase(pCompiledCode, pDestination1Register, pDestination1Register, 0, sizeOfSource);
 					break;
+				case 5:
+				case 6:
+				case 7:
 				case 8:
-					x86_mov_reg_membase(pCompiledCode, pDestination2Register, pDestination1Register, 4, 4);
+					x86_mov_reg_membase(pCompiledCode, pDestination2Register, pDestination1Register, 4, sizeOfSource - 4);
 					x86_mov_reg_membase(pCompiledCode, pDestination1Register, pDestination1Register, 0, 4);
 					break;
 				default:
 				{
-					x86_adjust_stack(pCompiledCode, -((int32_t)sizeOfSource));
-					uint32_t count = sizeOfSource / gSizeOfPointerInBytes;
+					x86_adjust_stack(pCompiledCode, -((int32_t)JIT_StackAlign(sizeOfSource)));
+					uint32_t count = sizeOfSource >> gPointerDivideShift;
 					uint32_t offset = 0;
 					for (uint32_t index = 0; index < count; index++, offset += gSizeOfPointerInBytes)
 					{
 						x86_mov_reg_membase(pCompiledCode, X86_EDX, pDestination1Register, (index << gPointerDivideShift), gSizeOfPointerInBytes);
 						x86_mov_membase_reg(pCompiledCode, X86_ESP, offset, X86_EDX, gSizeOfPointerInBytes);
+					}
+					uint32_t remainder = sizeOfSource % gSizeOfPointerInBytes;
+					if (remainder)
+					{
+						x86_mov_reg_membase(pCompiledCode, X86_EDX, pDestination1Register, (field->Offset + (count << gPointerDivideShift)), remainder);
+						x86_mov_membase_reg(pCompiledCode, X86_ESP, offset, X86_EDX, remainder);
 					}
 					x86_mov_reg_reg(pCompiledCode, pDestination1Register, X86_ESP, gSizeOfPointerInBytes);
 					break;
@@ -188,8 +196,9 @@ char* JIT_Emit_LoadSource(char* pCompiledCode, IRMethod* pMethod, SourceTypeData
 		}
 		case SourceType_StaticFieldAddress:
 		{
+			IRField* field = pSource->Data.StaticFieldAddress.Field;
 			sizeOfSource = gSizeOfPointerInBytes;
-			x86_mov_reg_imm(pCompiledCode, pDestination1Register, pSource->Data.StaticField.Field->StaticValue);
+			x86_mov_reg_imm(pCompiledCode, pDestination1Register, (size_t)((uint8_t*)field->ParentAssembly->ParentDomain->StaticValues[field->ParentAssembly->AssemblyIndex] + field->Offset));
 			break;
 		}
 		case SourceType_SizeOf:
