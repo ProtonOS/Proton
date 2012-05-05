@@ -43,7 +43,6 @@ void JIT_CompileMethod(IRMethod* pMethod)
 				EMITTER(Return);
 				EMITTER(Load_String);
 				EMITTER(Dup);
-				EMITTER(Pop);
 				EMITTER(Load_Indirect);
 				EMITTER(Store_Indirect);
 				EMITTER(Add);
@@ -131,6 +130,7 @@ void JIT_CompileMethod(IRMethod* pMethod)
 				case IROpcode_Load_StaticFieldAddress:
 				case IROpcode_Store_StaticField:
 				case IROpcode_SizeOf:
+				case IROpcode_Pop:
 					Panic("These Instructions shouldn't exist!");
 					break;
 				default:

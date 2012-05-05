@@ -2384,11 +2384,8 @@ char* JIT_Emit_Load_String(char* pCompiledCode, IRMethod* pMethod, IRInstruction
 
 char* JIT_Emit_Dup(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
-	return pCompiledCode;
-}
-
-char* JIT_Emit_Pop(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
-{
+	JIT_Emit_Move(pCompiledCode, pMethod, &pInstruction->Source1, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+	JIT_Emit_Move(pCompiledCode, pMethod, &pInstruction->Source1, &pInstruction->Source3, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
 	return pCompiledCode;
 }
 
