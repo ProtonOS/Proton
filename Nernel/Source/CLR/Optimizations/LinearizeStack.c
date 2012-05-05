@@ -279,6 +279,55 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 				ins->Arg1 = NULL;
 				Push(obj);
                 break;
+            case IROpcode_Store_Local:
+				obj = Pop();
+				ins->Source1.Type = obj->LinearData.Type;
+				ins->Source1.Data = obj->LinearData.Data;
+				PR(obj);
+				ins->Opcode = IROpcode_Move;
+				ins->Destination.Type = SourceType_Local;
+				ins->Destination.Data.LocalVariable.LocalVariableIndex = (uint32_t)ins->Arg1;
+				ins->Arg1 = NULL;
+                break;
+            case IROpcode_Store_StaticField:
+				obj = Pop();
+				ins->Source1 = obj->LinearData;
+				PR(obj);
+				ins->Opcode = IROpcode_Move;
+				ins->Destination.Type = SourceType_StaticField;
+				ins->Destination.Data.StaticField.Field = (IRField*)ins->Arg1;
+				ins->Arg1 = NULL;
+                break;
+            case IROpcode_Store_Parameter:
+				obj = Pop();
+				ins->Source1.Type = obj->LinearData.Type;
+				ins->Source1.Data = obj->LinearData.Data;
+				PR(obj);
+				ins->Opcode = IROpcode_Move;
+				ins->Destination.Type = SourceType_Parameter;
+				ins->Destination.Data.Parameter.ParameterIndex = (uint32_t)ins->Arg1;
+				ins->Arg1 = NULL;
+                break;
+            case IROpcode_Store_Field:
+				obj = Pop();
+				ins->Source1 = obj->LinearData;
+				PR(obj);
+				obj = Pop();
+				ins->Source2 = obj->LinearData;
+				PR(obj);
+				ins->Opcode = IROpcode_Move;
+				ins->Destination.Type = SourceType_Field;
+				ins->Destination.Data.Field.ParentType = (IRType*)ins->Arg1;
+				ins->Destination.Data.Field.FieldIndex = (uint32_t)ins->Arg3;
+				ins->Arg1 = NULL;
+				ins->Arg2 = NULL;
+				ins->Arg3 = NULL;
+                break;
+
+            case IROpcode_Pop:
+				PR(Pop());
+				ins->Opcode = IROpcode_Nop;
+                break;
 
 				
             case IROpcode_Dup:
@@ -314,16 +363,10 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 				}
                 break;
             case IROpcode_Throw:
-            case IROpcode_Store_Local:
 				obj = Pop();
 				ins->Source1.Type = obj->LinearData.Type;
 				ins->Source1.Data = obj->LinearData.Data;
 				PR(obj);
-                break;
-
-            case IROpcode_Store_Parameter:
-            case IROpcode_Pop:
-				Panic("Linearize - I don't quite know what to do here yet!");
                 break;
 				
             case IROpcode_Rem:
@@ -593,13 +636,11 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
                 break;
 			// 1 Source, No Destination
             case IROpcode_Initialize_Object:
-            case IROpcode_Store_StaticField:
 				obj = Pop();
 				ins->Source1 = obj->LinearData;
 				PR(obj);
                 break;
 			// 2 Sources, No Destination
-            case IROpcode_Store_Field:
             case IROpcode_Copy_Object:
             case IROpcode_Store_Object:
             case IROpcode_Store_Indirect:
