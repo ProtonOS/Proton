@@ -415,12 +415,1871 @@ char* JIT_Emit_Store(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pDe
 			break;
 		}
 		default:
-			Panic("Unknown source type for JIT_Emit_LoadSource");
+			Panic("Unknown destination type for JIT_Emit_Store");
 			break;
 	}
 	*pSize = sizeOfDestination;
 	return pCompiledCode;
 }
+
+char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSource, SourceTypeData* pDestination, X86_Reg_No pRegister1, X86_Reg_No pRegister2, X86_Reg_No pRegister3, size_t* pSize)
+{
+	uint32_t sizeOfSource = 0;
+	uint32_t sizeOfDestination = 0;
+	switch (pSource->Type)
+	{
+		// From Local
+		case SourceType_Local:
+		{
+			sizeOfSource = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->VariableType));
+			switch (pDestination->Type)
+			{
+				// Local to Local (both aligned)
+				case SourceType_Local:
+				{
+					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->VariableType));
+					switch (sizeOfDestination)
+					{
+						case 4:
+							x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, -pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset, 4);
+							x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister1, 4);
+							break;
+						case 8:
+							x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, -pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset, 4);
+							x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, -(pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset - 4), 4);
+							x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister1, 4);
+							x86_mov_membase_reg(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - 4), pRegister2, 4);
+							break;
+						default:
+						{
+							uint32_t count = sizeOfDestination >> gPointerDivideShift;
+							uint32_t offset = 0;
+							for (uint32_t index = 0; index < count; index++, offset += gSizeOfPointerInBytes)
+							{
+								x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, -(pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset - (index << gPointerDivideShift)), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - (index << gPointerDivideShift)), pRegister2, gSizeOfPointerInBytes);
+							}
+							break;
+						}
+					}
+					break;
+				}
+				// Local to Local Address (not possible)
+				case SourceType_LocalAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Local to Parameter (both aligned)
+				case SourceType_Parameter:
+				{
+					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Type));
+					switch (sizeOfDestination)
+					{
+						case 4:
+							x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, -pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset, 4);
+							x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister1, 4);
+							break;
+						case 8:
+							x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, -pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset, 4);
+							x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, -(pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset - 4), 4);
+							x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister1, 4);
+							x86_mov_membase_reg(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + 4), pRegister2, 4);
+							break;
+						default:
+						{
+							uint32_t count = sizeOfDestination >> gPointerDivideShift;
+							uint32_t offset = 0;
+							for (uint32_t index = 0; index < count; index++, offset += gSizeOfPointerInBytes)
+							{
+								x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, -(pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset - (index << gPointerDivideShift)), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + (index << gPointerDivideShift)), pRegister2, gSizeOfPointerInBytes);
+							}
+							break;
+						}
+					}
+					break;
+				}
+				// Local to Parameter Address (not possible)
+				case SourceType_ParameterAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Local to Constant (not possible)
+				case SourceType_ConstantI4:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Local to Constant (not possible)
+				case SourceType_ConstantI8:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Local to Constant (not possible)
+				case SourceType_ConstantR4:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Local to Constant (not possible)
+				case SourceType_ConstantR8:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Local to Field (source aligned)
+				case SourceType_Field:
+				{
+					// Note: pRegister3 must contain a pointer to the object the field is being stored to
+					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
+					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
+					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
+					switch (sizeOfDestination)
+					{
+						case 1:
+						case 2:
+						case 3:
+						case 4:
+							x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, -pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset, 4);
+							x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset, pRegister1, sizeOfDestination);
+							break;
+						case 5:
+						case 6:
+						case 7:
+						case 8:
+							x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, -pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset, 4);
+							x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, -(pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset - 4), 4);
+							x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset, pRegister1, 4);
+							x86_mov_membase_reg(pCompiledCode, pRegister3, (field->Offset + 4), pRegister2, sizeOfDestination - 4);
+							break;
+						default:
+						{
+							uint32_t count = sizeOfDestination >> gPointerDivideShift;
+							for (uint32_t index = 0; index < count; index++)
+							{
+								x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, -(pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset - (index << gPointerDivideShift)), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, pRegister3, (field->Offset + (index << gPointerDivideShift)), pRegister2, gSizeOfPointerInBytes);
+							}
+							uint32_t remainder = sizeOfDestination & (gSizeOfPointerInBytes - 1);
+							if (remainder)
+							{
+								x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, -(pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset - (count << gPointerDivideShift)), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, pRegister3, (field->Offset + (count << gPointerDivideShift)), pRegister2, remainder);
+							}
+							break;
+						}
+					}
+					break;
+				}
+				// Local to Field Address (not possible)
+				case SourceType_FieldAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Local to Static Field (source aligned)
+				case SourceType_StaticField:
+				{
+					IRField* field = pDestination->Data.StaticField.Field;
+					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
+					x86_mov_reg_membase(pCompiledCode, pRegister3, X86_EBP, gSizeOfPointerInBytes << 1, gSizeOfPointerInBytes);
+					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, offsetof(AppDomain, StaticValues) + (field->ParentAssembly->AssemblyIndex << gPointerDivideShift));
+					x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, 0, gSizeOfPointerInBytes);
+					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
+					switch (sizeOfDestination)
+					{
+						case 1:
+						case 2:
+						case 3:
+						case 4:
+							x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, -pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset, 4);
+							x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, sizeOfDestination);
+							break;
+						case 5:
+						case 6:
+						case 7:
+						case 8:
+							x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, -pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset, 4);
+							x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, -(pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset - 4), 4);
+							x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, 4);
+							x86_mov_membase_reg(pCompiledCode, pRegister3, 4, pRegister2, sizeOfDestination - 4);
+							break;
+						default:
+						{
+							uint32_t count = sizeOfDestination >> gPointerDivideShift;
+							uint32_t offset = 0;
+							for (uint32_t index = 0; index < count; index++, offset += gSizeOfPointerInBytes)
+							{
+								x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, -(pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset - (index << gPointerDivideShift)), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, pRegister3, (index << gPointerDivideShift), pRegister2, gSizeOfPointerInBytes);
+							}
+							uint32_t remainder = sizeOfDestination & (gSizeOfPointerInBytes - 1);
+							if (remainder)
+							{
+								x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, -(pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset - (count << gPointerDivideShift)), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, pRegister3, (field->Offset + (count << gPointerDivideShift)), pRegister2, remainder);
+							}
+							break;
+						}
+					}
+					break;
+				}
+				// Local to Static Field Address (not possible)
+				case SourceType_StaticFieldAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Local to SizeOf (not possible)
+				case SourceType_SizeOf:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				default:
+					Panic("JIT_Emit_Move: Unknown destination type for Local");
+					break;
+			}
+			break;
+		}
+		// From Local Address
+		case SourceType_LocalAddress:
+		{
+			sizeOfSource = gSizeOfPointerInBytes;
+			x86_mov_reg_reg(pCompiledCode, pRegister1, X86_EBP, gSizeOfPointerInBytes);
+			x86_alu_reg_imm(pCompiledCode, X86_SUB, pRegister1, pMethod->LocalVariables[pSource->Data.LocalVariableAddress.LocalVariableIndex]->Offset);
+			switch (pDestination->Type)
+			{
+				// Local Address to Local (both aligned)
+				case SourceType_Local:
+				{
+					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->VariableType));
+					x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister1, gSizeOfPointerInBytes);
+					break;
+				}
+				// Local Address to Local Address (not possible)
+				case SourceType_LocalAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Local Address to Parameter (both aligned)
+				case SourceType_Parameter:
+				{
+					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Type));
+					x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister1, gSizeOfPointerInBytes);
+					break;
+				}
+				// Local Address to Parameter Address (not possible)
+				case SourceType_ParameterAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Local Address to Constant (not possible)
+				case SourceType_ConstantI4:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Local Address to Constant (not possible)
+				case SourceType_ConstantI8:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Local Address to Constant (not possible)
+				case SourceType_ConstantR4:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Local Address to Constant (not possible)
+				case SourceType_ConstantR8:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Local Address to Field (both aligned)
+				case SourceType_Field:
+				{
+					// Note: pRegister3 must contain a pointer to the object the field is being stored to
+					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
+					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
+					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
+					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset, pRegister1, gSizeOfPointerInBytes);
+					break;
+				}
+				// Local Address to Field Address (not possible)
+				case SourceType_FieldAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Local Address to Static Field (both aligned)
+				case SourceType_StaticField:
+				{
+					IRField* field = pDestination->Data.StaticField.Field;
+					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
+					x86_mov_reg_membase(pCompiledCode, pRegister3, X86_EBP, gSizeOfPointerInBytes << 1, gSizeOfPointerInBytes);
+					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, offsetof(AppDomain, StaticValues) + (field->ParentAssembly->AssemblyIndex << gPointerDivideShift));
+					x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, 0, gSizeOfPointerInBytes);
+					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
+					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, gSizeOfPointerInBytes);
+					break;
+				}
+				// Local Address to Static Field Address (not possible)
+				case SourceType_StaticFieldAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Local Address to SizeOf (not possible)
+				case SourceType_SizeOf:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				default:
+					Panic("JIT_Emit_Move: Unknown destination type for Local Address");
+					break;
+			}
+			break;
+		}
+		// From Parameter
+		case SourceType_Parameter:
+		{
+			sizeOfSource = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Type));
+			switch (pDestination->Type)
+			{
+				// Parameter to Local (both aligned)
+				case SourceType_Local:
+				{
+					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->VariableType));
+					switch (sizeOfDestination)
+					{
+						case 4:
+							x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset, 4);
+							x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister1, 4);
+							break;
+						case 8:
+							x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset, 4);
+							x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, (pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset + 4), 4);
+							x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister1, 4);
+							x86_mov_membase_reg(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - 4), pRegister2, 4);
+							break;
+						default:
+						{
+							uint32_t count = sizeOfDestination >> gPointerDivideShift;
+							uint32_t offset = 0;
+							for (uint32_t index = 0; index < count; index++, offset += gSizeOfPointerInBytes)
+							{
+								x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, (pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset + (index << gPointerDivideShift)), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - (index << gPointerDivideShift)), pRegister2, gSizeOfPointerInBytes);
+							}
+							break;
+						}
+					}
+					break;
+				}
+				// Parameter to Local Address (not possible)
+				case SourceType_LocalAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Parameter to Parameter (both aligned)
+				case SourceType_Parameter:
+				{
+					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Type));
+					switch (sizeOfDestination)
+					{
+						case 4:
+							x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset, 4);
+							x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister1, 4);
+							break;
+						case 8:
+							x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset, 4);
+							x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, (pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset + 4), 4);
+							x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister1, 4);
+							x86_mov_membase_reg(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + 4), pRegister2, 4);
+							break;
+						default:
+						{
+							uint32_t count = sizeOfDestination >> gPointerDivideShift;
+							uint32_t offset = 0;
+							for (uint32_t index = 0; index < count; index++, offset += gSizeOfPointerInBytes)
+							{
+								x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, (pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset + (index << gPointerDivideShift)), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + (index << gPointerDivideShift)), pRegister2, gSizeOfPointerInBytes);
+							}
+							break;
+						}
+					}
+					break;
+				}
+				// Parameter to Parameter Address (not possible)
+				case SourceType_ParameterAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Parameter to Constant (not possible)
+				case SourceType_ConstantI4:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Parameter to Constant (not possible)
+				case SourceType_ConstantI8:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Parameter to Constant (not possible)
+				case SourceType_ConstantR4:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Parameter to Constant (not possible)
+				case SourceType_ConstantR8:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Parameter to Field (source aligned)
+				case SourceType_Field:
+				{
+					// Note: pRegister3 must contain a pointer to the object the field is being stored to
+					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
+					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
+					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
+					switch (sizeOfDestination)
+					{
+						case 1:
+						case 2:
+						case 3:
+						case 4:
+							x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset, 4);
+							x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset, pRegister1, sizeOfDestination);
+							break;
+						case 5:
+						case 6:
+						case 7:
+						case 8:
+							x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset, 4);
+							x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, (pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset + 4), 4);
+							x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset, pRegister1, 4);
+							x86_mov_membase_reg(pCompiledCode, pRegister3, (field->Offset + 4), pRegister2, sizeOfDestination - 4);
+							break;
+						default:
+						{
+							uint32_t count = sizeOfDestination >> gPointerDivideShift;
+							for (uint32_t index = 0; index < count; index++)
+							{
+								x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, (pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset + (index << gPointerDivideShift)), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, pRegister3, (field->Offset + (index << gPointerDivideShift)), pRegister2, gSizeOfPointerInBytes);
+							}
+							uint32_t remainder = sizeOfDestination & (gSizeOfPointerInBytes - 1);
+							if (remainder)
+							{
+								x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, (pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset + (count << gPointerDivideShift)), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, pRegister3, (field->Offset + (count << gPointerDivideShift)), pRegister2, remainder);
+							}
+							break;
+						}
+					}
+					break;
+				}
+				// Parameter to Field Address (not possible)
+				case SourceType_FieldAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Parameter to Static Field (source aligned)
+				case SourceType_StaticField:
+				{
+					IRField* field = pDestination->Data.StaticField.Field;
+					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
+					x86_mov_reg_membase(pCompiledCode, pRegister3, X86_EBP, gSizeOfPointerInBytes << 1, gSizeOfPointerInBytes);
+					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, offsetof(AppDomain, StaticValues) + (field->ParentAssembly->AssemblyIndex << gPointerDivideShift));
+					x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, 0, gSizeOfPointerInBytes);
+					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
+					switch (sizeOfDestination)
+					{
+						case 1:
+						case 2:
+						case 3:
+						case 4:
+							x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset, 4);
+							x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, sizeOfDestination);
+							break;
+						case 5:
+						case 6:
+						case 7:
+						case 8:
+							x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset, 4);
+							x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, (pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset + 4), 4);
+							x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, 4);
+							x86_mov_membase_reg(pCompiledCode, pRegister3, 4, pRegister2, sizeOfDestination - 4);
+							break;
+						default:
+						{
+							uint32_t count = sizeOfDestination >> gPointerDivideShift;
+							uint32_t offset = 0;
+							for (uint32_t index = 0; index < count; index++, offset += gSizeOfPointerInBytes)
+							{
+								x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, (pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset + (index << gPointerDivideShift)), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, pRegister3, (index << gPointerDivideShift), pRegister2, gSizeOfPointerInBytes);
+							}
+							uint32_t remainder = sizeOfDestination & (gSizeOfPointerInBytes - 1);
+							if (remainder)
+							{
+								x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, (pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset + (count << gPointerDivideShift)), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, pRegister3, (field->Offset + (count << gPointerDivideShift)), pRegister2, remainder);
+							}
+							break;
+						}
+					}
+					break;
+				}
+				// Parameter to Static Field Address (not possible)
+				case SourceType_StaticFieldAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Parameter to SizeOf (not possible)
+				case SourceType_SizeOf:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				default:
+					Panic("JIT_Emit_Move: Unknown destination type for Parameter");
+					break;
+			}
+			break;
+		}
+		// From Parameter Address
+		case SourceType_ParameterAddress:
+		{
+			sizeOfSource = gSizeOfPointerInBytes;
+			x86_mov_reg_reg(pCompiledCode, pRegister1, X86_EBP, gSizeOfPointerInBytes);
+			x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister1, pMethod->Parameters[pSource->Data.ParameterAddress.ParameterIndex]->Offset);
+			switch (pDestination->Type)
+			{
+				// Parameter Address to Local (both aligned)
+				case SourceType_Local:
+				{
+					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->VariableType));
+					x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister1, gSizeOfPointerInBytes);
+					break;
+				}
+				// Parameter Address to Local Address (not possible)
+				case SourceType_LocalAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Parameter Address to Parameter (both aligned)
+				case SourceType_Parameter:
+				{
+					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Type));
+					x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister1, gSizeOfPointerInBytes);
+					break;
+				}
+				// Parameter Address to Parameter Address (not possible)
+				case SourceType_ParameterAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Parameter Address to Constant (not possible)
+				case SourceType_ConstantI4:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Parameter Address to Constant (not possible)
+				case SourceType_ConstantI8:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Parameter Address to Constant (not possible)
+				case SourceType_ConstantR4:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Parameter Address to Constant (not possible)
+				case SourceType_ConstantR8:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Parameter Address to Field (both aligned)
+				case SourceType_Field:
+				{
+					// Note: pRegister3 must contain a pointer to the object the field is being stored to
+					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
+					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
+					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
+					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset, pRegister1, gSizeOfPointerInBytes);
+					break;
+				}
+				// Parameter Address to Field Address (not possible)
+				case SourceType_FieldAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Parameter Address to Static Field (both aligned)
+				case SourceType_StaticField:
+				{
+					IRField* field = pDestination->Data.StaticField.Field;
+					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
+					x86_mov_reg_membase(pCompiledCode, pRegister3, X86_EBP, gSizeOfPointerInBytes << 1, gSizeOfPointerInBytes);
+					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, offsetof(AppDomain, StaticValues) + (field->ParentAssembly->AssemblyIndex << gPointerDivideShift));
+					x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, 0, gSizeOfPointerInBytes);
+					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
+					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, gSizeOfPointerInBytes);
+					break;
+				}
+				// Parameter Address to Static Field Address (not possible)
+				case SourceType_StaticFieldAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Parameter Address to SizeOf (not possible)
+				case SourceType_SizeOf:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				default:
+					Panic("JIT_Emit_Move: Unknown destination type for Parameter Address");
+					break;
+			}
+			break;
+		}
+		// From Constant
+		case SourceType_ConstantI4:
+		{
+			sizeOfSource = 4;
+			x86_mov_reg_imm(pCompiledCode, pRegister1, pSource->Data.ConstantI4.Value);
+			switch (pDestination->Type)
+			{
+				// ConstantI4 to Local (both aligned)
+				case SourceType_Local:
+				{
+					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->VariableType));
+					x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister1, 4);
+					break;
+				}
+				// ConstantI4 to Local Address (not possible)
+				case SourceType_LocalAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// ConstantI4 to Parameter (both aligned)
+				case SourceType_Parameter:
+				{
+					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Type));
+					x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister1, 4);
+					break;
+				}
+				// ConstantI4 to Parameter Address (not possible)
+				case SourceType_ParameterAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// ConstantI4 to Constant (not possible)
+				case SourceType_ConstantI4:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// ConstantI4 to Constant (not possible)
+				case SourceType_ConstantI8:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// ConstantI4 to Constant (not possible)
+				case SourceType_ConstantR4:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// ConstantI4 to Constant (not possible)
+				case SourceType_ConstantR8:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// ConstantI4 to Field (both aligned)
+				case SourceType_Field:
+				{
+					// Note: pRegister3 must contain a pointer to the object the field is being stored to
+					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
+					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
+					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
+					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset, pRegister1, 4);
+					break;
+				}
+				// ConstantI4 to Field Address (not possible)
+				case SourceType_FieldAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// ConstantI4 to Static Field (both aligned)
+				case SourceType_StaticField:
+				{
+					IRField* field = pDestination->Data.StaticField.Field;
+					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
+					x86_mov_reg_membase(pCompiledCode, pRegister3, X86_EBP, gSizeOfPointerInBytes << 1, gSizeOfPointerInBytes);
+					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, offsetof(AppDomain, StaticValues) + (field->ParentAssembly->AssemblyIndex << gPointerDivideShift));
+					x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, 0, gSizeOfPointerInBytes);
+					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
+					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, 4);
+					break;
+				}
+				// ConstantI4 to Static Field Address (not possible)
+				case SourceType_StaticFieldAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// ConstantI4 to SizeOf (not possible)
+				case SourceType_SizeOf:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				default:
+					Panic("JIT_Emit_Move: Unknown destination type for ConstantI4");
+					break;
+			}
+			break;
+		}
+		// From Constant
+		case SourceType_ConstantI8:
+		{
+			sizeOfSource = 8;
+			x86_mov_reg_imm(pCompiledCode, pRegister1, pSource->Data.ConstantI8.Value);
+			x86_mov_reg_imm(pCompiledCode, pRegister2, pSource->Data.ConstantI8.Value >> 32);
+			switch (pDestination->Type)
+			{
+				// ConstantI8 to Local (both aligned)
+				case SourceType_Local:
+				{
+					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->VariableType));
+					x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister1, 4);
+					x86_mov_membase_reg(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - 4), pRegister2, 4);
+					break;
+				}
+				// ConstantI8 to Local Address (not possible)
+				case SourceType_LocalAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// ConstantI8 to Parameter (both aligned)
+				case SourceType_Parameter:
+				{
+					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Type));
+					x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister1, 4);
+					x86_mov_membase_reg(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + 4), pRegister2, 4);
+					break;
+				}
+				// ConstantI8 to Parameter Address (not possible)
+				case SourceType_ParameterAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// ConstantI8 to Constant (not possible)
+				case SourceType_ConstantI4:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// ConstantI8 to Constant (not possible)
+				case SourceType_ConstantI8:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// ConstantI8 to Constant (not possible)
+				case SourceType_ConstantR4:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// ConstantI8 to Constant (not possible)
+				case SourceType_ConstantR8:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// ConstantI8 to Field (both aligned)
+				case SourceType_Field:
+				{
+					// Note: pRegister3 must contain a pointer to the object the field is being stored to
+					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
+					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
+					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
+					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset, pRegister1, 4);
+					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset + 4, pRegister2, 4);
+					break;
+				}
+				// ConstantI8 to Field Address (not possible)
+				case SourceType_FieldAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// ConstantI8 to Static Field (both aligned)
+				case SourceType_StaticField:
+				{
+					IRField* field = pDestination->Data.StaticField.Field;
+					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
+					x86_mov_reg_membase(pCompiledCode, pRegister3, X86_EBP, gSizeOfPointerInBytes << 1, gSizeOfPointerInBytes);
+					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, offsetof(AppDomain, StaticValues) + (field->ParentAssembly->AssemblyIndex << gPointerDivideShift));
+					x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, 0, gSizeOfPointerInBytes);
+					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
+					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, 4);
+					x86_mov_membase_reg(pCompiledCode, pRegister3, 4, pRegister2, 4);
+					break;
+				}
+				// ConstantI8 to Static Field Address (not possible)
+				case SourceType_StaticFieldAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// ConstantI8 to SizeOf (not possible)
+				case SourceType_SizeOf:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				default:
+					Panic("JIT_Emit_Move: Unknown destination type for ConstantI8");
+					break;
+			}
+			break;
+		}
+		// From Constant
+		case SourceType_ConstantR4:
+		{
+			sizeOfSource = 4;
+			x86_mov_reg_imm(pCompiledCode, pRegister1, pSource->Data.ConstantR4.Value);
+			switch (pDestination->Type)
+			{
+				// ConstantR4 to Local (both aligned)
+				case SourceType_Local:
+				{
+					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->VariableType));
+					x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister1, 4);
+					break;
+				}
+				// ConstantR4 to Local Address (not possible)
+				case SourceType_LocalAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// ConstantR4 to Parameter (both aligned)
+				case SourceType_Parameter:
+				{
+					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Type));
+					x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister1, 4);
+					break;
+				}
+				// ConstantR4 to Parameter Address (not possible)
+				case SourceType_ParameterAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// ConstantR4 to Constant (not possible)
+				case SourceType_ConstantI4:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// ConstantR4 to Constant (not possible)
+				case SourceType_ConstantI8:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// ConstantR4 to Constant (not possible)
+				case SourceType_ConstantR4:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// ConstantR4 to Constant (not possible)
+				case SourceType_ConstantR8:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// ConstantR4 to Field (both aligned)
+				case SourceType_Field:
+				{
+					// Note: pRegister3 must contain a pointer to the object the field is being stored to
+					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
+					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
+					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
+					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset, pRegister1, 4);
+					break;
+				}
+				// ConstantR4 to Field Address (not possible)
+				case SourceType_FieldAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// ConstantR4 to Static Field (both aligned)
+				case SourceType_StaticField:
+				{
+					IRField* field = pDestination->Data.StaticField.Field;
+					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
+					x86_mov_reg_membase(pCompiledCode, pRegister3, X86_EBP, gSizeOfPointerInBytes << 1, gSizeOfPointerInBytes);
+					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, offsetof(AppDomain, StaticValues) + (field->ParentAssembly->AssemblyIndex << gPointerDivideShift));
+					x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, 0, gSizeOfPointerInBytes);
+					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
+					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, 4);
+					break;
+				}
+				// ConstantR4 to Static Field Address (not possible)
+				case SourceType_StaticFieldAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// ConstantR4 to SizeOf (not possible)
+				case SourceType_SizeOf:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				default:
+					Panic("JIT_Emit_Move: Unknown destination type for ConstantR4");
+					break;
+			}
+			break;
+		}
+		// From Constant
+		case SourceType_ConstantR8:
+		{
+			sizeOfSource = 8;
+			x86_mov_reg_imm(pCompiledCode, pRegister1, pSource->Data.ConstantR8.Value);
+			x86_mov_reg_imm(pCompiledCode, pRegister2, pSource->Data.ConstantR8.Value >> 32);
+			switch (pDestination->Type)
+			{
+				// ConstantR8 to Local (both aligned)
+				case SourceType_Local:
+				{
+					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->VariableType));
+					x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister1, 4);
+					x86_mov_membase_reg(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - 4), pRegister2, 4);
+					break;
+				}
+				// ConstantR8 to Local Address (not possible)
+				case SourceType_LocalAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// ConstantR8 to Parameter (both aligned)
+				case SourceType_Parameter:
+				{
+					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Type));
+					x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister1, 4);
+					x86_mov_membase_reg(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + 4), pRegister2, 4);
+					break;
+				}
+				// ConstantR8 to Parameter Address (not possible)
+				case SourceType_ParameterAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// ConstantR8 to Constant (not possible)
+				case SourceType_ConstantI4:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// ConstantR8 to Constant (not possible)
+				case SourceType_ConstantI8:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// ConstantR8 to Constant (not possible)
+				case SourceType_ConstantR4:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// ConstantR8 to Constant (not possible)
+				case SourceType_ConstantR8:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// ConstantR8 to Field (both aligned)
+				case SourceType_Field:
+				{
+					// Note: pRegister3 must contain a pointer to the object the field is being stored to
+					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
+					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
+					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
+					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset, pRegister1, 4);
+					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset + 4, pRegister2, 4);
+					break;
+				}
+				// ConstantR8 to Field Address (not possible)
+				case SourceType_FieldAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// ConstantR8 to Static Field (both aligned)
+				case SourceType_StaticField:
+				{
+					IRField* field = pDestination->Data.StaticField.Field;
+					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
+					x86_mov_reg_membase(pCompiledCode, pRegister3, X86_EBP, gSizeOfPointerInBytes << 1, gSizeOfPointerInBytes);
+					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, offsetof(AppDomain, StaticValues) + (field->ParentAssembly->AssemblyIndex << gPointerDivideShift));
+					x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, 0, gSizeOfPointerInBytes);
+					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
+					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, 4);
+					x86_mov_membase_reg(pCompiledCode, pRegister3, 4, pRegister2, 4);
+					break;
+				}
+				// ConstantR8 to Static Field Address (not possible)
+				case SourceType_StaticFieldAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// ConstantR8 to SizeOf (not possible)
+				case SourceType_SizeOf:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				default:
+					Panic("JIT_Emit_Move: Unknown destination type for ConstantR8");
+					break;
+			}
+			break;
+		}
+		// From Field
+		case SourceType_Field:
+		{
+			// Note: pRegister3 must contain a pointer to the object the field is being loaded from
+			JIT_CalculateFieldLayout(pSource->Data.Field.ParentType);
+			IRField* sourceField = pSource->Data.Field.ParentType->Fields[pSource->Data.Field.FieldIndex];
+			sizeOfSource = JIT_GetStackSizeOfType(sourceField->FieldType);
+			switch (pDestination->Type)
+			{
+				// Field to Local (destination aligned)
+				case SourceType_Local:
+				{
+					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->VariableType));
+					switch (sizeOfDestination)
+					{
+						case 4:
+							x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, sourceField->Offset, sizeOfSource);
+							x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister1, 4);
+							break;
+						case 8:
+							x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, sourceField->Offset, 4);
+							x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister3, (sourceField->Offset + 4), sizeOfSource - 4);
+							x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister1, 4);
+							x86_mov_membase_reg(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - 4), pRegister2, 4);
+							break;
+						default:
+						{
+							uint32_t count = sizeOfDestination >> gPointerDivideShift;
+							for (uint32_t index = 0; index < count; index++)
+							{
+								x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister3, (sourceField->Offset + (index << gPointerDivideShift)), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - (index << gPointerDivideShift)), pRegister2, gSizeOfPointerInBytes);
+							}
+							uint32_t remainder = sizeOfSource & (gSizeOfPointerInBytes - 1);
+							if (remainder)
+							{
+								x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister3, (sourceField->Offset + (count << gPointerDivideShift)), remainder);
+								x86_mov_membase_reg(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - (count << gPointerDivideShift)), pRegister2, remainder);
+							}
+							break;
+						}
+					}
+					break;
+				}
+				// Field to Local Address (not possible)
+				case SourceType_LocalAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Field to Parameter (destination aligned)
+				case SourceType_Parameter:
+				{
+					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Type));
+					switch (sizeOfDestination)
+					{
+						case 4:
+							x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, sourceField->Offset, sizeOfSource);
+							x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister1, 4);
+							break;
+						case 8:
+							x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, sourceField->Offset, 4);
+							x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister3, (sourceField->Offset + 4), sizeOfSource - 4);
+							x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister1, 4);
+							x86_mov_membase_reg(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + 4), pRegister2, 4);
+							break;
+						default:
+						{
+							uint32_t count = sizeOfDestination >> gPointerDivideShift;
+							uint32_t offset = 0;
+							for (uint32_t index = 0; index < count; index++, offset += gSizeOfPointerInBytes)
+							{
+								x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister3, (sourceField->Offset + (index << gPointerDivideShift)), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + (index << gPointerDivideShift)), pRegister2, gSizeOfPointerInBytes);
+							}
+							uint32_t remainder = sizeOfSource & (gSizeOfPointerInBytes - 1);
+							if (remainder)
+							{
+								x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister3, (sourceField->Offset + (count << gPointerDivideShift)), remainder);
+								x86_mov_membase_reg(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + (count << gPointerDivideShift)), pRegister2, remainder);
+							}
+							break;
+						}
+					}
+					break;
+				}
+				// Field to Parameter Address (not possible)
+				case SourceType_ParameterAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Field to Constant (not possible)
+				case SourceType_ConstantI4:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Field to Constant (not possible)
+				case SourceType_ConstantI8:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Field to Constant (not possible)
+				case SourceType_ConstantR4:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Field to Constant (not possible)
+				case SourceType_ConstantR8:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Field to Field (neither aligned)
+				case SourceType_Field:
+				{
+					// Note: pRegister2 must contain a pointer to the object the field is being stored to
+					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
+					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
+					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
+					switch (sizeOfDestination)
+					{
+						case 1:
+						case 2:
+						case 3:
+						case 4:
+							x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, sourceField->Offset, sizeOfSource);
+							x86_mov_membase_reg(pCompiledCode, pRegister2, field->Offset, pRegister1, sizeOfDestination);
+							break;
+						case 5:
+						case 6:
+						case 7:
+						case 8:
+							x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, sourceField->Offset, 4);
+							x86_mov_membase_reg(pCompiledCode, pRegister2, field->Offset, pRegister1, 4);
+							x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, (sourceField->Offset + 4), sizeOfSource - 4);
+							x86_mov_membase_reg(pCompiledCode, pRegister2, (field->Offset + 4), pRegister1, sizeOfDestination - 4);
+							break;
+						default:
+						{
+							uint32_t count = sizeOfDestination >> gPointerDivideShift;
+							for (uint32_t index = 0; index < count; index++)
+							{
+								x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, (sourceField->Offset + (index << gPointerDivideShift)), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, pRegister2, (field->Offset + (index << gPointerDivideShift)), pRegister1, gSizeOfPointerInBytes);
+							}
+							uint32_t remainder = sizeOfDestination & (gSizeOfPointerInBytes - 1);
+							if (remainder)
+							{
+								x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, (sourceField->Offset + (count << gPointerDivideShift)), remainder);
+								x86_mov_membase_reg(pCompiledCode, pRegister2, (field->Offset + (count << gPointerDivideShift)), pRegister1, remainder);
+							}
+							break;
+						}
+					}
+					break;
+				}
+				// Field to Field Address (not possible)
+				case SourceType_FieldAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Field to Static Field (neither aligned)
+				case SourceType_StaticField:
+				{
+					IRField* field = pDestination->Data.StaticField.Field;
+					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
+					x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, gSizeOfPointerInBytes << 1, gSizeOfPointerInBytes);
+					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister2, offsetof(AppDomain, StaticValues) + (field->ParentAssembly->AssemblyIndex << gPointerDivideShift));
+					x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister2, 0, gSizeOfPointerInBytes);
+					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister2, field->Offset);
+					switch (sizeOfDestination)
+					{
+						case 1:
+						case 2:
+						case 3:
+						case 4:
+							x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, sourceField->Offset, sizeOfSource);
+							x86_mov_membase_reg(pCompiledCode, pRegister2, 0, pRegister1, sizeOfDestination);
+							break;
+						case 5:
+						case 6:
+						case 7:
+						case 8:
+							x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, sourceField->Offset, 4);
+							x86_mov_membase_reg(pCompiledCode, pRegister2, 0, pRegister1, 4);
+							x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, (sourceField->Offset + 4), sizeOfSource - 4);
+							x86_mov_membase_reg(pCompiledCode, pRegister2, 4, pRegister1, sizeOfDestination - 4);
+							break;
+						default:
+						{
+							uint32_t count = sizeOfDestination >> gPointerDivideShift;
+							uint32_t offset = 0;
+							for (uint32_t index = 0; index < count; index++, offset += gSizeOfPointerInBytes)
+							{
+								x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, (sourceField->Offset + (index << gPointerDivideShift)), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, pRegister2, (index << gPointerDivideShift), pRegister1, gSizeOfPointerInBytes);
+							}
+							uint32_t remainder = sizeOfDestination & (gSizeOfPointerInBytes - 1);
+							if (remainder)
+							{
+								x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, (sourceField->Offset + (count << gPointerDivideShift)), remainder);
+								x86_mov_membase_reg(pCompiledCode, pRegister2, (field->Offset + (count << gPointerDivideShift)), pRegister1, remainder);
+							}
+							break;
+						}
+					}
+					break;
+				}
+				// Field to Static Field Address (not possible)
+				case SourceType_StaticFieldAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Field to SizeOf (not possible)
+				case SourceType_SizeOf:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				default:
+					Panic("JIT_Emit_Move: Unknown destination type for Field");
+					break;
+			}
+			break;
+		}
+		// From Field Address
+		case SourceType_FieldAddress:
+		{
+			// Note: pRegister3 must contain a pointer to the object the field is being loaded from
+			JIT_CalculateFieldLayout(pSource->Data.FieldAddress.ParentType);
+			sizeOfSource = gSizeOfPointerInBytes;
+			x86_mov_reg_reg(pCompiledCode, pRegister1, pRegister3, gSizeOfPointerInBytes);
+			x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister1, pSource->Data.FieldAddress.ParentType->Fields[pSource->Data.FieldAddress.FieldIndex]->Offset);
+			switch (pDestination->Type)
+			{
+				// Field Address to Local (both aligned)
+				case SourceType_Local:
+				{
+					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->VariableType));
+					x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister1, gSizeOfPointerInBytes);
+					break;
+				}
+				// Field Address to Local Address (not possible)
+				case SourceType_LocalAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Field Address to Parameter (both aligned)
+				case SourceType_Parameter:
+				{
+					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Type));
+					x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister1, gSizeOfPointerInBytes);
+					break;
+				}
+				// Field Address to Parameter Address (not possible)
+				case SourceType_ParameterAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Field Address to Constant (not possible)
+				case SourceType_ConstantI4:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Field Address to Constant (not possible)
+				case SourceType_ConstantI8:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Field Address to Constant (not possible)
+				case SourceType_ConstantR4:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Field Address to Constant (not possible)
+				case SourceType_ConstantR8:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Field Address to Field (both aligned)
+				case SourceType_Field:
+				{
+					// Note: pRegister3 must contain a pointer to the object the field is being stored to
+					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
+					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
+					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
+					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset, pRegister1, gSizeOfPointerInBytes);
+					break;
+				}
+				// Field Address to Field Address (not possible)
+				case SourceType_FieldAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Field Address to Static Field (both aligned)
+				case SourceType_StaticField:
+				{
+					IRField* field = pDestination->Data.StaticField.Field;
+					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
+					x86_mov_reg_membase(pCompiledCode, pRegister3, X86_EBP, gSizeOfPointerInBytes << 1, gSizeOfPointerInBytes);
+					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, offsetof(AppDomain, StaticValues) + (field->ParentAssembly->AssemblyIndex << gPointerDivideShift));
+					x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, 0, gSizeOfPointerInBytes);
+					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
+					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, gSizeOfPointerInBytes);
+					break;
+				}
+				// Field Address to Static Field Address (not possible)
+				case SourceType_StaticFieldAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Field Address to SizeOf (not possible)
+				case SourceType_SizeOf:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				default:
+					Panic("JIT_Emit_Move: Unknown destination type for Field Address");
+					break;
+			}
+			break;
+		}
+		// From Static Field
+		case SourceType_StaticField:
+		{
+			IRField* field = pSource->Data.StaticField.Field;
+			sizeOfSource = JIT_GetStackSizeOfType(field->FieldType);
+			x86_mov_reg_membase(pCompiledCode, pRegister3, X86_EBP, gSizeOfPointerInBytes << 1, gSizeOfPointerInBytes);
+			x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, offsetof(AppDomain, StaticValues) + (field->ParentAssembly->AssemblyIndex << gPointerDivideShift));
+			x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, 0, gSizeOfPointerInBytes);
+			x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
+			switch (pDestination->Type)
+			{
+				// Static Field to Local (destination aligned)
+				case SourceType_Local:
+				{
+					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->VariableType));
+					switch (sizeOfDestination)
+					{
+						case 4:
+							x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, 0, sizeOfSource);
+							x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister1, 4);
+							break;
+						case 8:
+							x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, 0, 4);
+							x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister3, 4, sizeOfSource - 4);
+							x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister1, 4);
+							x86_mov_membase_reg(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - 4), pRegister2, 4);
+							break;
+						default:
+						{
+							uint32_t count = sizeOfDestination >> gPointerDivideShift;
+							for (uint32_t index = 0; index < count; index++)
+							{
+								x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister3, (index << gPointerDivideShift), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - (index << gPointerDivideShift)), pRegister2, gSizeOfPointerInBytes);
+							}
+							uint32_t remainder = sizeOfSource & (gSizeOfPointerInBytes - 1);
+							if (remainder)
+							{
+								x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister3, (count << gPointerDivideShift), remainder);
+								x86_mov_membase_reg(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - (count << gPointerDivideShift)), pRegister2, remainder);
+							}
+							break;
+						}
+					}
+					break;
+				}
+				// Static Field to Local Address (not possible)
+				case SourceType_LocalAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Static Field to Parameter (destination aligned)
+				case SourceType_Parameter:
+				{
+					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Type));
+					switch (sizeOfDestination)
+					{
+						case 4:
+							x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, 0, sizeOfSource);
+							x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister1, 4);
+							break;
+						case 8:
+							x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, 0, 4);
+							x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister3, 4, sizeOfSource - 4);
+							x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister1, 4);
+							x86_mov_membase_reg(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + 4), pRegister2, 4);
+							break;
+						default:
+						{
+							uint32_t count = sizeOfDestination >> gPointerDivideShift;
+							uint32_t offset = 0;
+							for (uint32_t index = 0; index < count; index++, offset += gSizeOfPointerInBytes)
+							{
+								x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister3, (index << gPointerDivideShift), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + (index << gPointerDivideShift)), pRegister2, gSizeOfPointerInBytes);
+							}
+							uint32_t remainder = sizeOfSource & (gSizeOfPointerInBytes - 1);
+							if (remainder)
+							{
+								x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister3, (count << gPointerDivideShift), remainder);
+								x86_mov_membase_reg(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + (count << gPointerDivideShift)), pRegister2, remainder);
+							}
+							break;
+						}
+					}
+					break;
+				}
+				// Static Field to Parameter Address (not possible)
+				case SourceType_ParameterAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Static Field to Constant (not possible)
+				case SourceType_ConstantI4:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Static Field to Constant (not possible)
+				case SourceType_ConstantI8:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Static Field to Constant (not possible)
+				case SourceType_ConstantR4:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Static Field to Constant (not possible)
+				case SourceType_ConstantR8:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Static Field to Field (neither aligned)
+				case SourceType_Field:
+				{
+					// Note: pRegister2 must contain a pointer to the object the field is being stored to
+					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
+					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
+					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
+					switch (sizeOfDestination)
+					{
+						case 1:
+						case 2:
+						case 3:
+						case 4:
+							x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, 0, sizeOfSource);
+							x86_mov_membase_reg(pCompiledCode, pRegister2, field->Offset, pRegister1, sizeOfDestination);
+							break;
+						case 5:
+						case 6:
+						case 7:
+						case 8:
+							x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, 0, 4);
+							x86_mov_membase_reg(pCompiledCode, pRegister2, field->Offset, pRegister1, 4);
+							x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, 4, sizeOfSource - 4);
+							x86_mov_membase_reg(pCompiledCode, pRegister2, (field->Offset + 4), pRegister1, sizeOfDestination - 4);
+							break;
+						default:
+						{
+							uint32_t count = sizeOfDestination >> gPointerDivideShift;
+							for (uint32_t index = 0; index < count; index++)
+							{
+								x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, (index << gPointerDivideShift), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, pRegister2, (field->Offset + (index << gPointerDivideShift)), pRegister1, gSizeOfPointerInBytes);
+							}
+							uint32_t remainder = sizeOfDestination & (gSizeOfPointerInBytes - 1);
+							if (remainder)
+							{
+								x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, (count << gPointerDivideShift), remainder);
+								x86_mov_membase_reg(pCompiledCode, pRegister2, (field->Offset + (count << gPointerDivideShift)), pRegister1, remainder);
+							}
+							break;
+						}
+					}
+					break;
+				}
+				// Static Field to Field Address (not possible)
+				case SourceType_FieldAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Static Field to Static Field (neither aligned)
+				case SourceType_StaticField:
+				{
+					IRField* field = pDestination->Data.StaticField.Field;
+					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
+					x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, gSizeOfPointerInBytes << 1, gSizeOfPointerInBytes);
+					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister2, offsetof(AppDomain, StaticValues) + (field->ParentAssembly->AssemblyIndex << gPointerDivideShift));
+					x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister2, 0, gSizeOfPointerInBytes);
+					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister2, field->Offset);
+					switch (sizeOfDestination)
+					{
+						case 1:
+						case 2:
+						case 3:
+						case 4:
+							x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, 0, sizeOfSource);
+							x86_mov_membase_reg(pCompiledCode, pRegister2, 0, pRegister1, sizeOfDestination);
+							break;
+						case 5:
+						case 6:
+						case 7:
+						case 8:
+							x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, 0, 4);
+							x86_mov_membase_reg(pCompiledCode, pRegister2, 0, pRegister1, 4);
+							x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, 4, sizeOfSource - 4);
+							x86_mov_membase_reg(pCompiledCode, pRegister2, 4, pRegister1, sizeOfDestination - 4);
+							break;
+						default:
+						{
+							uint32_t count = sizeOfDestination >> gPointerDivideShift;
+							uint32_t offset = 0;
+							for (uint32_t index = 0; index < count; index++, offset += gSizeOfPointerInBytes)
+							{
+								x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, (index << gPointerDivideShift), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, pRegister2, (index << gPointerDivideShift), pRegister1, gSizeOfPointerInBytes);
+							}
+							uint32_t remainder = sizeOfDestination & (gSizeOfPointerInBytes - 1);
+							if (remainder)
+							{
+								x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, (count << gPointerDivideShift), remainder);
+								x86_mov_membase_reg(pCompiledCode, pRegister2, (count << gPointerDivideShift), pRegister1, remainder);
+							}
+							break;
+						}
+					}
+					break;
+				}
+				// Static Field to Static Field Address (not possible)
+				case SourceType_StaticFieldAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Static Field to SizeOf (not possible)
+				case SourceType_SizeOf:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				default:
+					Panic("JIT_Emit_Move: Unknown destination type for Static Field");
+					break;
+			}
+			break;
+		}
+		// From Static Field Address
+		case SourceType_StaticFieldAddress:
+		{
+			IRField* field = pSource->Data.StaticFieldAddress.Field;
+			sizeOfSource = gSizeOfPointerInBytes;
+			x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, gSizeOfPointerInBytes << 1, gSizeOfPointerInBytes);
+			x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister1, offsetof(AppDomain, StaticValues) + (field->ParentAssembly->AssemblyIndex << gPointerDivideShift));
+			x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister1, 0, gSizeOfPointerInBytes);
+			x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister1, field->Offset);
+			switch (pDestination->Type)
+			{
+				// Static Field Address to Local (both aligned)
+				case SourceType_Local:
+				{
+					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->VariableType));
+					x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister1, gSizeOfPointerInBytes);
+					break;
+				}
+				// Static Field Address to Local Address (not possible)
+				case SourceType_LocalAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Static Field Address to Parameter (both aligned)
+				case SourceType_Parameter:
+				{
+					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Type));
+					x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister1, gSizeOfPointerInBytes);
+					break;
+				}
+				// Static Field Address to Parameter Address (not possible)
+				case SourceType_ParameterAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Static Field Address to Constant (not possible)
+				case SourceType_ConstantI4:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Static Field Address to Constant (not possible)
+				case SourceType_ConstantI8:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Static Field Address to Constant (not possible)
+				case SourceType_ConstantR4:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Static Field Address to Constant (not possible)
+				case SourceType_ConstantR8:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Static Field Address to Field (both aligned)
+				case SourceType_Field:
+				{
+					// Note: pRegister2 must contain a pointer to the object the field is being stored to
+					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
+					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
+					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
+					x86_mov_membase_reg(pCompiledCode, pRegister2, field->Offset, pRegister1, gSizeOfPointerInBytes);
+					break;
+				}
+				// Static Field Address to Field Address (not possible)
+				case SourceType_FieldAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Static Field Address to Static Field (both aligned)
+				case SourceType_StaticField:
+				{
+					IRField* field = pDestination->Data.StaticField.Field;
+					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
+					x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, gSizeOfPointerInBytes << 1, gSizeOfPointerInBytes);
+					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister2, offsetof(AppDomain, StaticValues) + (field->ParentAssembly->AssemblyIndex << gPointerDivideShift));
+					x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister2, 0, gSizeOfPointerInBytes);
+					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister2, field->Offset);
+					x86_mov_membase_reg(pCompiledCode, pRegister2, 0, pRegister1, gSizeOfPointerInBytes);
+					break;
+				}
+				// Static Field Address to Static Field Address (not possible)
+				case SourceType_StaticFieldAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// Static Field Address to SizeOf (not possible)
+				case SourceType_SizeOf:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				default:
+					Panic("JIT_Emit_Move: Unknown destination type for Static Field Address");
+					break;
+			}
+			break;
+		}
+		// From SizeOf
+		case SourceType_SizeOf:
+		{
+			sizeOfSource = 4;
+			x86_mov_reg_imm(pCompiledCode, pRegister1, JIT_GetSizeOfType(pSource->Data.SizeOf.Type));
+			switch (pDestination->Type)
+			{
+				// SizeOf to Local (both aligned)
+				case SourceType_Local:
+				{
+					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->VariableType));
+					x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister1, gSizeOfPointerInBytes);
+					break;
+				}
+				// SizeOf to Local Address (not possible)
+				case SourceType_LocalAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// SizeOf to Parameter (both aligned)
+				case SourceType_Parameter:
+				{
+					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Type));
+					x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister1, gSizeOfPointerInBytes);
+					break;
+				}
+				// SizeOf to Parameter Address (not possible)
+				case SourceType_ParameterAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// SizeOf to Constant (not possible)
+				case SourceType_ConstantI4:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// SizeOf to Constant (not possible)
+				case SourceType_ConstantI8:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// SizeOf to Constant (not possible)
+				case SourceType_ConstantR4:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// SizeOf to Constant (not possible)
+				case SourceType_ConstantR8:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// SizeOf to Field (both aligned)
+				case SourceType_Field:
+				{
+					// Note: pRegister2 must contain a pointer to the object the field is being stored to
+					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
+					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
+					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
+					x86_mov_membase_reg(pCompiledCode, pRegister2, field->Offset, pRegister1, gSizeOfPointerInBytes);
+					break;
+				}
+				// SizeOf to Field Address (not possible)
+				case SourceType_FieldAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// SizeOf to Static Field (both aligned)
+				case SourceType_StaticField:
+				{
+					IRField* field = pDestination->Data.StaticField.Field;
+					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
+					x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, gSizeOfPointerInBytes << 1, gSizeOfPointerInBytes);
+					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister2, offsetof(AppDomain, StaticValues) + (field->ParentAssembly->AssemblyIndex << gPointerDivideShift));
+					x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister2, 0, gSizeOfPointerInBytes);
+					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister2, field->Offset);
+					x86_mov_membase_reg(pCompiledCode, pRegister2, 0, pRegister1, gSizeOfPointerInBytes);
+					break;
+				}
+				// SizeOf to Static Field Address (not possible)
+				case SourceType_StaticFieldAddress:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				// SizeOf to SizeOf (not possible)
+				case SourceType_SizeOf:
+				{
+					Panic("This should not be happening!");
+					break;
+				}
+				default:
+					Panic("JIT_Emit_Move: Unknown destination type for SizeOf");
+					break;
+			}
+			break;
+		}
+		default:
+			Panic("Unknown source type for JIT_Emit_Move");
+			break;
+	}
+	if (pSize) *pSize = sizeOfDestination;
+	return pCompiledCode;
+}
+
 
 void JIT_BranchLinker(BranchRegistry* pBranchRegistry)
 {
