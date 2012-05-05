@@ -41,18 +41,7 @@ void JIT_CompileMethod(IRMethod* pMethod)
 				EMITTER(Nop);
 				EMITTER(Break);
 				EMITTER(Return);
-				EMITTER(Load_Parameter);
-				EMITTER(Load_ParameterAddress);
-				EMITTER(Store_Parameter);
-				EMITTER(Load_Local);
-				EMITTER(Load_LocalAddress);
-				EMITTER(Store_Local);
-				EMITTER(Load_Null);
 				EMITTER(Load_String);
-				EMITTER(Load_Int32);
-				EMITTER(Load_Int64);
-				EMITTER(Load_Float32);
-				EMITTER(Load_Float64);
 				EMITTER(Dup);
 				EMITTER(Pop);
 				EMITTER(Load_Indirect);
@@ -83,12 +72,6 @@ void JIT_CompileMethod(IRMethod* pMethod)
 				EMITTER(Load_ArrayLength);
 				EMITTER(New_Array);
 				EMITTER(CheckFinite);
-				EMITTER(Load_Field);
-				EMITTER(Load_FieldAddress);
-				EMITTER(Store_Field);
-				EMITTER(Load_StaticField);
-				EMITTER(Load_StaticFieldAddress);
-				EMITTER(Store_StaticField);
 				EMITTER(Load_Element);
 				EMITTER(Load_ElementAddress);
 				EMITTER(Store_Element);
@@ -96,7 +79,6 @@ void JIT_CompileMethod(IRMethod* pMethod)
 				EMITTER(Initialize_Object);
 				EMITTER(Copy_Block);
 				EMITTER(Initialize_Block);
-				EMITTER(SizeOf);
 				EMITTER(Jump);
 				EMITTER(Call_Virtual);
 				EMITTER(Call_Constrained);
@@ -125,8 +107,35 @@ void JIT_CompileMethod(IRMethod* pMethod)
 					}
 					break;
 				}
+				case IROpcode_Move:
+				{
+					Log_WriteLine(LOGLEVEL__JIT_Emit, "Emitting Move @ 0x%x", (unsigned int)compiledCode);
+					compiledCode = JIT_Emit_Move_OpCode(compiledCode, pMethod, pMethod->IRCodes[index], branchRegistry);
+					break; 
+				}
+				case IROpcode_Load_Parameter:
+				case IROpcode_Load_ParameterAddress:
+				case IROpcode_Store_Parameter:
+				case IROpcode_Load_Local:
+				case IROpcode_Load_LocalAddress:
+				case IROpcode_Store_Local:
+				case IROpcode_Load_Int32:
+				case IROpcode_Load_Int64:
+				case IROpcode_Load_Float32:
+				case IROpcode_Load_Float64:
+				case IROpcode_Load_Null:
+				case IROpcode_Load_Field:
+				case IROpcode_Load_FieldAddress:
+				case IROpcode_Store_Field:
+				case IROpcode_Load_StaticField:
+				case IROpcode_Load_StaticFieldAddress:
+				case IROpcode_Store_StaticField:
+				case IROpcode_SizeOf:
+					Panic("These Instructions shouldn't exist!");
+					break;
 				default:
 					printf("Missing emitter for opcode 0x%x\n", pMethod->IRCodes[index]->Opcode);
+					Panic("Unknown IROpcode!");
 					break;
 			}
 			if (((int)compiledCodeLength - (compiledCode - startOfCompiledCode)) < 32)

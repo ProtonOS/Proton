@@ -2,6 +2,10 @@
 #include <CLR/JIT/x86/Layout.h>
 #include <CLR/JIT/x86/x86-codegen.h>
 
+#define PRIMARY_REG X86_EAX
+#define SECONDARY_REG X86_EBX
+#define THIRD_REG X86_ECX
+
 char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSource, X86_Reg_No pRegister1, X86_Reg_No pRegister2, X86_Reg_No pRegister3, size_t* pSize)
 {
 	uint32_t sizeOfSource = 0;
@@ -446,9 +450,9 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 							break;
 						case 8:
 							x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, -pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset, 4);
-							x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, -(pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset - 4), 4);
 							x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister1, 4);
-							x86_mov_membase_reg(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - 4), pRegister2, 4);
+							x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, -(pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset - 4), 4);
+							x86_mov_membase_reg(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - 4), pRegister1, 4);
 							break;
 						default:
 						{
@@ -456,8 +460,8 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 							uint32_t offset = 0;
 							for (uint32_t index = 0; index < count; index++, offset += gSizeOfPointerInBytes)
 							{
-								x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, -(pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset - (index << gPointerDivideShift)), gSizeOfPointerInBytes);
-								x86_mov_membase_reg(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - (index << gPointerDivideShift)), pRegister2, gSizeOfPointerInBytes);
+								x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, -(pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset - (index << gPointerDivideShift)), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - (index << gPointerDivideShift)), pRegister1, gSizeOfPointerInBytes);
 							}
 							break;
 						}
@@ -482,9 +486,9 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 							break;
 						case 8:
 							x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, -pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset, 4);
-							x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, -(pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset - 4), 4);
 							x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister1, 4);
-							x86_mov_membase_reg(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + 4), pRegister2, 4);
+							x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, -(pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset - 4), 4);
+							x86_mov_membase_reg(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + 4), pRegister1, 4);
 							break;
 						default:
 						{
@@ -492,8 +496,8 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 							uint32_t offset = 0;
 							for (uint32_t index = 0; index < count; index++, offset += gSizeOfPointerInBytes)
 							{
-								x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, -(pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset - (index << gPointerDivideShift)), gSizeOfPointerInBytes);
-								x86_mov_membase_reg(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + (index << gPointerDivideShift)), pRegister2, gSizeOfPointerInBytes);
+								x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, -(pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset - (index << gPointerDivideShift)), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + (index << gPointerDivideShift)), pRegister1, gSizeOfPointerInBytes);
 							}
 							break;
 						}
@@ -551,23 +555,23 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 						case 7:
 						case 8:
 							x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, -pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset, 4);
-							x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, -(pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset - 4), 4);
 							x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset, pRegister1, 4);
-							x86_mov_membase_reg(pCompiledCode, pRegister3, (field->Offset + 4), pRegister2, sizeOfDestination - 4);
+							x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, -(pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset - 4), 4);
+							x86_mov_membase_reg(pCompiledCode, pRegister3, (field->Offset + 4), pRegister1, sizeOfDestination - 4);
 							break;
 						default:
 						{
 							uint32_t count = sizeOfDestination >> gPointerDivideShift;
 							for (uint32_t index = 0; index < count; index++)
 							{
-								x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, -(pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset - (index << gPointerDivideShift)), gSizeOfPointerInBytes);
-								x86_mov_membase_reg(pCompiledCode, pRegister3, (field->Offset + (index << gPointerDivideShift)), pRegister2, gSizeOfPointerInBytes);
+								x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, -(pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset - (index << gPointerDivideShift)), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, pRegister3, (field->Offset + (index << gPointerDivideShift)), pRegister1, gSizeOfPointerInBytes);
 							}
 							uint32_t remainder = sizeOfDestination & (gSizeOfPointerInBytes - 1);
 							if (remainder)
 							{
-								x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, -(pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset - (count << gPointerDivideShift)), gSizeOfPointerInBytes);
-								x86_mov_membase_reg(pCompiledCode, pRegister3, (field->Offset + (count << gPointerDivideShift)), pRegister2, remainder);
+								x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, -(pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset - (count << gPointerDivideShift)), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, pRegister3, (field->Offset + (count << gPointerDivideShift)), pRegister1, remainder);
 							}
 							break;
 						}
@@ -603,9 +607,9 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 						case 7:
 						case 8:
 							x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, -pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset, 4);
-							x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, -(pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset - 4), 4);
 							x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, 4);
-							x86_mov_membase_reg(pCompiledCode, pRegister3, 4, pRegister2, sizeOfDestination - 4);
+							x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, -(pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset - 4), 4);
+							x86_mov_membase_reg(pCompiledCode, pRegister3, 4, pRegister1, sizeOfDestination - 4);
 							break;
 						default:
 						{
@@ -613,14 +617,14 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 							uint32_t offset = 0;
 							for (uint32_t index = 0; index < count; index++, offset += gSizeOfPointerInBytes)
 							{
-								x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, -(pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset - (index << gPointerDivideShift)), gSizeOfPointerInBytes);
-								x86_mov_membase_reg(pCompiledCode, pRegister3, (index << gPointerDivideShift), pRegister2, gSizeOfPointerInBytes);
+								x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, -(pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset - (index << gPointerDivideShift)), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, pRegister3, (index << gPointerDivideShift), pRegister1, gSizeOfPointerInBytes);
 							}
 							uint32_t remainder = sizeOfDestination & (gSizeOfPointerInBytes - 1);
 							if (remainder)
 							{
-								x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, -(pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset - (count << gPointerDivideShift)), gSizeOfPointerInBytes);
-								x86_mov_membase_reg(pCompiledCode, pRegister3, (field->Offset + (count << gPointerDivideShift)), pRegister2, remainder);
+								x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, -(pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset - (count << gPointerDivideShift)), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, pRegister3, (field->Offset + (count << gPointerDivideShift)), pRegister1, remainder);
 							}
 							break;
 						}
@@ -649,6 +653,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 		case SourceType_LocalAddress:
 		{
 			sizeOfSource = gSizeOfPointerInBytes;
+			sizeOfDestination = gSizeOfPointerInBytes;
 			x86_mov_reg_reg(pCompiledCode, pRegister1, X86_EBP, gSizeOfPointerInBytes);
 			x86_alu_reg_imm(pCompiledCode, X86_SUB, pRegister1, pMethod->LocalVariables[pSource->Data.LocalVariableAddress.LocalVariableIndex]->Offset);
 			switch (pDestination->Type)
@@ -656,7 +661,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				// Local Address to Local (both aligned)
 				case SourceType_Local:
 				{
-					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->VariableType));
 					x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister1, gSizeOfPointerInBytes);
 					break;
 				}
@@ -669,7 +673,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				// Local Address to Parameter (both aligned)
 				case SourceType_Parameter:
 				{
-					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Type));
 					x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister1, gSizeOfPointerInBytes);
 					break;
 				}
@@ -709,7 +712,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					// Note: pRegister3 must contain a pointer to the object the field is being stored to
 					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
 					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
-					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
 					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset, pRegister1, gSizeOfPointerInBytes);
 					break;
 				}
@@ -723,7 +725,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				case SourceType_StaticField:
 				{
 					IRField* field = pDestination->Data.StaticField.Field;
-					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
 					x86_mov_reg_membase(pCompiledCode, pRegister3, X86_EBP, gSizeOfPointerInBytes << 1, gSizeOfPointerInBytes);
 					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, offsetof(AppDomain, StaticValues) + (field->ParentAssembly->AssemblyIndex << gPointerDivideShift));
 					x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, 0, gSizeOfPointerInBytes);
@@ -767,9 +768,9 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 							break;
 						case 8:
 							x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset, 4);
-							x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, (pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset + 4), 4);
 							x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister1, 4);
-							x86_mov_membase_reg(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - 4), pRegister2, 4);
+							x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, (pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset + 4), 4);
+							x86_mov_membase_reg(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - 4), pRegister1, 4);
 							break;
 						default:
 						{
@@ -777,8 +778,8 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 							uint32_t offset = 0;
 							for (uint32_t index = 0; index < count; index++, offset += gSizeOfPointerInBytes)
 							{
-								x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, (pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset + (index << gPointerDivideShift)), gSizeOfPointerInBytes);
-								x86_mov_membase_reg(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - (index << gPointerDivideShift)), pRegister2, gSizeOfPointerInBytes);
+								x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, (pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset + (index << gPointerDivideShift)), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - (index << gPointerDivideShift)), pRegister1, gSizeOfPointerInBytes);
 							}
 							break;
 						}
@@ -803,9 +804,9 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 							break;
 						case 8:
 							x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset, 4);
-							x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, (pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset + 4), 4);
 							x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister1, 4);
-							x86_mov_membase_reg(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + 4), pRegister2, 4);
+							x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, (pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset + 4), 4);
+							x86_mov_membase_reg(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + 4), pRegister1, 4);
 							break;
 						default:
 						{
@@ -813,8 +814,8 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 							uint32_t offset = 0;
 							for (uint32_t index = 0; index < count; index++, offset += gSizeOfPointerInBytes)
 							{
-								x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, (pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset + (index << gPointerDivideShift)), gSizeOfPointerInBytes);
-								x86_mov_membase_reg(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + (index << gPointerDivideShift)), pRegister2, gSizeOfPointerInBytes);
+								x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, (pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset + (index << gPointerDivideShift)), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + (index << gPointerDivideShift)), pRegister1, gSizeOfPointerInBytes);
 							}
 							break;
 						}
@@ -872,23 +873,23 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 						case 7:
 						case 8:
 							x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset, 4);
-							x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, (pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset + 4), 4);
 							x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset, pRegister1, 4);
-							x86_mov_membase_reg(pCompiledCode, pRegister3, (field->Offset + 4), pRegister2, sizeOfDestination - 4);
+							x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, (pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset + 4), 4);
+							x86_mov_membase_reg(pCompiledCode, pRegister3, (field->Offset + 4), pRegister1, sizeOfDestination - 4);
 							break;
 						default:
 						{
 							uint32_t count = sizeOfDestination >> gPointerDivideShift;
 							for (uint32_t index = 0; index < count; index++)
 							{
-								x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, (pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset + (index << gPointerDivideShift)), gSizeOfPointerInBytes);
-								x86_mov_membase_reg(pCompiledCode, pRegister3, (field->Offset + (index << gPointerDivideShift)), pRegister2, gSizeOfPointerInBytes);
+								x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, (pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset + (index << gPointerDivideShift)), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, pRegister3, (field->Offset + (index << gPointerDivideShift)), pRegister1, gSizeOfPointerInBytes);
 							}
 							uint32_t remainder = sizeOfDestination & (gSizeOfPointerInBytes - 1);
 							if (remainder)
 							{
-								x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, (pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset + (count << gPointerDivideShift)), gSizeOfPointerInBytes);
-								x86_mov_membase_reg(pCompiledCode, pRegister3, (field->Offset + (count << gPointerDivideShift)), pRegister2, remainder);
+								x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, (pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset + (count << gPointerDivideShift)), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, pRegister3, (field->Offset + (count << gPointerDivideShift)), pRegister1, remainder);
 							}
 							break;
 						}
@@ -924,9 +925,9 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 						case 7:
 						case 8:
 							x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset, 4);
-							x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, (pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset + 4), 4);
 							x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, 4);
-							x86_mov_membase_reg(pCompiledCode, pRegister3, 4, pRegister2, sizeOfDestination - 4);
+							x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, (pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset + 4), 4);
+							x86_mov_membase_reg(pCompiledCode, pRegister3, 4, pRegister1, sizeOfDestination - 4);
 							break;
 						default:
 						{
@@ -934,14 +935,14 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 							uint32_t offset = 0;
 							for (uint32_t index = 0; index < count; index++, offset += gSizeOfPointerInBytes)
 							{
-								x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, (pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset + (index << gPointerDivideShift)), gSizeOfPointerInBytes);
-								x86_mov_membase_reg(pCompiledCode, pRegister3, (index << gPointerDivideShift), pRegister2, gSizeOfPointerInBytes);
+								x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, (pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset + (index << gPointerDivideShift)), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, pRegister3, (index << gPointerDivideShift), pRegister1, gSizeOfPointerInBytes);
 							}
 							uint32_t remainder = sizeOfDestination & (gSizeOfPointerInBytes - 1);
 							if (remainder)
 							{
-								x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, (pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset + (count << gPointerDivideShift)), gSizeOfPointerInBytes);
-								x86_mov_membase_reg(pCompiledCode, pRegister3, (field->Offset + (count << gPointerDivideShift)), pRegister2, remainder);
+								x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, (pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset + (count << gPointerDivideShift)), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, pRegister3, (field->Offset + (count << gPointerDivideShift)), pRegister1, remainder);
 							}
 							break;
 						}
@@ -970,6 +971,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 		case SourceType_ParameterAddress:
 		{
 			sizeOfSource = gSizeOfPointerInBytes;
+			sizeOfDestination = gSizeOfPointerInBytes;
 			x86_mov_reg_reg(pCompiledCode, pRegister1, X86_EBP, gSizeOfPointerInBytes);
 			x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister1, pMethod->Parameters[pSource->Data.ParameterAddress.ParameterIndex]->Offset);
 			switch (pDestination->Type)
@@ -977,7 +979,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				// Parameter Address to Local (both aligned)
 				case SourceType_Local:
 				{
-					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->VariableType));
 					x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister1, gSizeOfPointerInBytes);
 					break;
 				}
@@ -990,7 +991,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				// Parameter Address to Parameter (both aligned)
 				case SourceType_Parameter:
 				{
-					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Type));
 					x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister1, gSizeOfPointerInBytes);
 					break;
 				}
@@ -1030,7 +1030,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					// Note: pRegister3 must contain a pointer to the object the field is being stored to
 					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
 					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
-					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
 					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset, pRegister1, gSizeOfPointerInBytes);
 					break;
 				}
@@ -1044,7 +1043,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				case SourceType_StaticField:
 				{
 					IRField* field = pDestination->Data.StaticField.Field;
-					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
 					x86_mov_reg_membase(pCompiledCode, pRegister3, X86_EBP, gSizeOfPointerInBytes << 1, gSizeOfPointerInBytes);
 					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, offsetof(AppDomain, StaticValues) + (field->ParentAssembly->AssemblyIndex << gPointerDivideShift));
 					x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, 0, gSizeOfPointerInBytes);
@@ -1070,7 +1068,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 			}
 			break;
 		}
-		// From Constant
+		// From Constant I4
 		case SourceType_ConstantI4:
 		{
 			sizeOfSource = 4;
@@ -1173,10 +1171,11 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 			}
 			break;
 		}
-		// From Constant
+		// From Constant I8
 		case SourceType_ConstantI8:
 		{
 			sizeOfSource = 8;
+			sizeOfDestination = 8;
 			x86_mov_reg_imm(pCompiledCode, pRegister1, pSource->Data.ConstantI8.Value);
 			x86_mov_reg_imm(pCompiledCode, pRegister2, pSource->Data.ConstantI8.Value >> 32);
 			switch (pDestination->Type)
@@ -1184,7 +1183,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				// ConstantI8 to Local (both aligned)
 				case SourceType_Local:
 				{
-					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->VariableType));
 					x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister1, 4);
 					x86_mov_membase_reg(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - 4), pRegister2, 4);
 					break;
@@ -1198,7 +1196,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				// ConstantI8 to Parameter (both aligned)
 				case SourceType_Parameter:
 				{
-					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Type));
 					x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister1, 4);
 					x86_mov_membase_reg(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + 4), pRegister2, 4);
 					break;
@@ -1239,7 +1236,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					// Note: pRegister3 must contain a pointer to the object the field is being stored to
 					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
 					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
-					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
 					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset, pRegister1, 4);
 					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset + 4, pRegister2, 4);
 					break;
@@ -1513,23 +1509,23 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 							break;
 						case 8:
 							x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, sourceField->Offset, 4);
-							x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister3, (sourceField->Offset + 4), sizeOfSource - 4);
 							x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister1, 4);
-							x86_mov_membase_reg(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - 4), pRegister2, 4);
+							x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, (sourceField->Offset + 4), sizeOfSource - 4);
+							x86_mov_membase_reg(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - 4), pRegister1, 4);
 							break;
 						default:
 						{
 							uint32_t count = sizeOfDestination >> gPointerDivideShift;
 							for (uint32_t index = 0; index < count; index++)
 							{
-								x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister3, (sourceField->Offset + (index << gPointerDivideShift)), gSizeOfPointerInBytes);
-								x86_mov_membase_reg(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - (index << gPointerDivideShift)), pRegister2, gSizeOfPointerInBytes);
+								x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, (sourceField->Offset + (index << gPointerDivideShift)), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - (index << gPointerDivideShift)), pRegister1, gSizeOfPointerInBytes);
 							}
 							uint32_t remainder = sizeOfSource & (gSizeOfPointerInBytes - 1);
 							if (remainder)
 							{
-								x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister3, (sourceField->Offset + (count << gPointerDivideShift)), remainder);
-								x86_mov_membase_reg(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - (count << gPointerDivideShift)), pRegister2, remainder);
+								x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, (sourceField->Offset + (count << gPointerDivideShift)), remainder);
+								x86_mov_membase_reg(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - (count << gPointerDivideShift)), pRegister1, remainder);
 							}
 							break;
 						}
@@ -1554,9 +1550,9 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 							break;
 						case 8:
 							x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, sourceField->Offset, 4);
-							x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister3, (sourceField->Offset + 4), sizeOfSource - 4);
 							x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister1, 4);
-							x86_mov_membase_reg(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + 4), pRegister2, 4);
+							x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, (sourceField->Offset + 4), sizeOfSource - 4);
+							x86_mov_membase_reg(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + 4), pRegister1, 4);
 							break;
 						default:
 						{
@@ -1564,14 +1560,14 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 							uint32_t offset = 0;
 							for (uint32_t index = 0; index < count; index++, offset += gSizeOfPointerInBytes)
 							{
-								x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister3, (sourceField->Offset + (index << gPointerDivideShift)), gSizeOfPointerInBytes);
-								x86_mov_membase_reg(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + (index << gPointerDivideShift)), pRegister2, gSizeOfPointerInBytes);
+								x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, (sourceField->Offset + (index << gPointerDivideShift)), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + (index << gPointerDivideShift)), pRegister1, gSizeOfPointerInBytes);
 							}
 							uint32_t remainder = sizeOfSource & (gSizeOfPointerInBytes - 1);
 							if (remainder)
 							{
-								x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister3, (sourceField->Offset + (count << gPointerDivideShift)), remainder);
-								x86_mov_membase_reg(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + (count << gPointerDivideShift)), pRegister2, remainder);
+								x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, (sourceField->Offset + (count << gPointerDivideShift)), remainder);
+								x86_mov_membase_reg(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + (count << gPointerDivideShift)), pRegister1, remainder);
 							}
 							break;
 						}
@@ -1612,6 +1608,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				case SourceType_Field:
 				{
 					// Note: pRegister2 must contain a pointer to the object the field is being stored to
+					// Note: Should switch this to be pRegister2 as the source, and pRegister3 for the destination.
 					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
 					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
 					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
@@ -1729,6 +1726,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 			// Note: pRegister3 must contain a pointer to the object the field is being loaded from
 			JIT_CalculateFieldLayout(pSource->Data.FieldAddress.ParentType);
 			sizeOfSource = gSizeOfPointerInBytes;
+			sizeOfDestination = gSizeOfPointerInBytes;
 			x86_mov_reg_reg(pCompiledCode, pRegister1, pRegister3, gSizeOfPointerInBytes);
 			x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister1, pSource->Data.FieldAddress.ParentType->Fields[pSource->Data.FieldAddress.FieldIndex]->Offset);
 			switch (pDestination->Type)
@@ -1736,7 +1734,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				// Field Address to Local (both aligned)
 				case SourceType_Local:
 				{
-					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->VariableType));
 					x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister1, gSizeOfPointerInBytes);
 					break;
 				}
@@ -1749,7 +1746,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				// Field Address to Parameter (both aligned)
 				case SourceType_Parameter:
 				{
-					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Type));
 					x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister1, gSizeOfPointerInBytes);
 					break;
 				}
@@ -1789,7 +1785,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					// Note: pRegister3 must contain a pointer to the object the field is being stored to
 					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
 					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
-					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
 					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset, pRegister1, gSizeOfPointerInBytes);
 					break;
 				}
@@ -1803,7 +1798,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				case SourceType_StaticField:
 				{
 					IRField* field = pDestination->Data.StaticField.Field;
-					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
 					x86_mov_reg_membase(pCompiledCode, pRegister3, X86_EBP, gSizeOfPointerInBytes << 1, gSizeOfPointerInBytes);
 					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, offsetof(AppDomain, StaticValues) + (field->ParentAssembly->AssemblyIndex << gPointerDivideShift));
 					x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, 0, gSizeOfPointerInBytes);
@@ -1852,23 +1846,23 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 							break;
 						case 8:
 							x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, 0, 4);
-							x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister3, 4, sizeOfSource - 4);
 							x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister1, 4);
-							x86_mov_membase_reg(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - 4), pRegister2, 4);
+							x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, 4, sizeOfSource - 4);
+							x86_mov_membase_reg(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - 4), pRegister1, 4);
 							break;
 						default:
 						{
 							uint32_t count = sizeOfDestination >> gPointerDivideShift;
 							for (uint32_t index = 0; index < count; index++)
 							{
-								x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister3, (index << gPointerDivideShift), gSizeOfPointerInBytes);
-								x86_mov_membase_reg(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - (index << gPointerDivideShift)), pRegister2, gSizeOfPointerInBytes);
+								x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, (index << gPointerDivideShift), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - (index << gPointerDivideShift)), pRegister1, gSizeOfPointerInBytes);
 							}
 							uint32_t remainder = sizeOfSource & (gSizeOfPointerInBytes - 1);
 							if (remainder)
 							{
-								x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister3, (count << gPointerDivideShift), remainder);
-								x86_mov_membase_reg(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - (count << gPointerDivideShift)), pRegister2, remainder);
+								x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, (count << gPointerDivideShift), remainder);
+								x86_mov_membase_reg(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - (count << gPointerDivideShift)), pRegister1, remainder);
 							}
 							break;
 						}
@@ -1893,9 +1887,9 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 							break;
 						case 8:
 							x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, 0, 4);
-							x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister3, 4, sizeOfSource - 4);
 							x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister1, 4);
-							x86_mov_membase_reg(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + 4), pRegister2, 4);
+							x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, 4, sizeOfSource - 4);
+							x86_mov_membase_reg(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + 4), pRegister1, 4);
 							break;
 						default:
 						{
@@ -1903,14 +1897,14 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 							uint32_t offset = 0;
 							for (uint32_t index = 0; index < count; index++, offset += gSizeOfPointerInBytes)
 							{
-								x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister3, (index << gPointerDivideShift), gSizeOfPointerInBytes);
-								x86_mov_membase_reg(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + (index << gPointerDivideShift)), pRegister2, gSizeOfPointerInBytes);
+								x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, (index << gPointerDivideShift), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + (index << gPointerDivideShift)), pRegister1, gSizeOfPointerInBytes);
 							}
 							uint32_t remainder = sizeOfSource & (gSizeOfPointerInBytes - 1);
 							if (remainder)
 							{
-								x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister3, (count << gPointerDivideShift), remainder);
-								x86_mov_membase_reg(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + (count << gPointerDivideShift)), pRegister2, remainder);
+								x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, (count << gPointerDivideShift), remainder);
+								x86_mov_membase_reg(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + (count << gPointerDivideShift)), pRegister1, remainder);
 							}
 							break;
 						}
@@ -2067,6 +2061,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 		{
 			IRField* field = pSource->Data.StaticFieldAddress.Field;
 			sizeOfSource = gSizeOfPointerInBytes;
+			sizeOfDestination = gSizeOfPointerInBytes;
 			x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, gSizeOfPointerInBytes << 1, gSizeOfPointerInBytes);
 			x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister1, offsetof(AppDomain, StaticValues) + (field->ParentAssembly->AssemblyIndex << gPointerDivideShift));
 			x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister1, 0, gSizeOfPointerInBytes);
@@ -2076,7 +2071,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				// Static Field Address to Local (both aligned)
 				case SourceType_Local:
 				{
-					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->VariableType));
 					x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister1, gSizeOfPointerInBytes);
 					break;
 				}
@@ -2089,7 +2083,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				// Static Field Address to Parameter (both aligned)
 				case SourceType_Parameter:
 				{
-					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Type));
 					x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister1, gSizeOfPointerInBytes);
 					break;
 				}
@@ -2129,7 +2122,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					// Note: pRegister2 must contain a pointer to the object the field is being stored to
 					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
 					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
-					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
 					x86_mov_membase_reg(pCompiledCode, pRegister2, field->Offset, pRegister1, gSizeOfPointerInBytes);
 					break;
 				}
@@ -2143,7 +2135,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				case SourceType_StaticField:
 				{
 					IRField* field = pDestination->Data.StaticField.Field;
-					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
 					x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, gSizeOfPointerInBytes << 1, gSizeOfPointerInBytes);
 					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister2, offsetof(AppDomain, StaticValues) + (field->ParentAssembly->AssemblyIndex << gPointerDivideShift));
 					x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister2, 0, gSizeOfPointerInBytes);
@@ -2372,6 +2363,12 @@ char* JIT_Emit_Break(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pIns
 	return pCompiledCode;
 }
 
+char* JIT_Emit_Move_OpCode(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
+{
+	JIT_Emit_Move(pCompiledCode, pMethod, &pInstruction->Source1, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+	return pCompiledCode;
+}
+
 char* JIT_Emit_Return(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
 	// Register a branch target for return to immediately jump into epilogue
@@ -2380,62 +2377,7 @@ char* JIT_Emit_Return(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pIn
 	return pCompiledCode;
 }
 
-char* JIT_Emit_Load_Parameter(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
-{
-	return pCompiledCode;
-}
-
-char* JIT_Emit_Load_ParameterAddress(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
-{
-	return pCompiledCode;
-}
-
-char* JIT_Emit_Store_Parameter(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
-{
-	return pCompiledCode;
-}
-
-char* JIT_Emit_Load_Local(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
-{
-	return pCompiledCode;
-}
-
-char* JIT_Emit_Load_LocalAddress(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
-{
-	return pCompiledCode;
-}
-
-char* JIT_Emit_Store_Local(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
-{
-	return pCompiledCode;
-}
-
-char* JIT_Emit_Load_Null(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
-{
-	return pCompiledCode;
-}
-
 char* JIT_Emit_Load_String(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
-{
-	return pCompiledCode;
-}
-
-char* JIT_Emit_Load_Int32(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
-{
-	return pCompiledCode;
-}
-
-char* JIT_Emit_Load_Int64(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
-{
-	return pCompiledCode;
-}
-
-char* JIT_Emit_Load_Float32(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
-{
-	return pCompiledCode;
-}
-
-char* JIT_Emit_Load_Float64(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
 	return pCompiledCode;
 }
@@ -2590,36 +2532,6 @@ char* JIT_Emit_CheckFinite(char* pCompiledCode, IRMethod* pMethod, IRInstruction
 	return pCompiledCode;
 }
 
-char* JIT_Emit_Load_Field(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
-{
-	return pCompiledCode;
-}
-
-char* JIT_Emit_Load_FieldAddress(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
-{
-	return pCompiledCode;
-}
-
-char* JIT_Emit_Store_Field(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
-{
-	return pCompiledCode;
-}
-
-char* JIT_Emit_Load_StaticField(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
-{
-	return pCompiledCode;
-}
-
-char* JIT_Emit_Load_StaticFieldAddress(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
-{
-	return pCompiledCode;
-}
-
-char* JIT_Emit_Store_StaticField(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
-{
-	return pCompiledCode;
-}
-
 char* JIT_Emit_Load_Element(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
 	return pCompiledCode;
@@ -2651,11 +2563,6 @@ char* JIT_Emit_Copy_Block(char* pCompiledCode, IRMethod* pMethod, IRInstruction*
 }
 
 char* JIT_Emit_Initialize_Block(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
-{
-	return pCompiledCode;
-}
-
-char* JIT_Emit_SizeOf(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
 	return pCompiledCode;
 }

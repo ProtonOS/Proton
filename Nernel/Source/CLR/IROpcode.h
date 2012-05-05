@@ -1550,6 +1550,38 @@ typedef enum IROpcode
 
      */
     IROpcode_RefAnyType,
+    /*
+        Moves a value from a source to a destination.
+
+		Stack:
+			... -> ...
+
+		Arg1:
+			N/A
+
+        Arg2:
+            N/A
+
+        Arg3:
+			N/A
+
+        Arg4:
+			N/A
+
+		Source1:
+			Value to move.
+
+		Source2:
+			N/A
+
+		Source3:
+			N/A
+
+		Destination:
+			The location to move into.
+
+     */
+    IROpcode_Move,
 } IROpcode;
 
 typedef enum OverflowType
