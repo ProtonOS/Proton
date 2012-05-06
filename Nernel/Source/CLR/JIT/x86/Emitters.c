@@ -34,6 +34,7 @@ default: \
 
 // These source types aren't valid destinations
 #define Define_Bad_Destinations() \
+	case SourceType_Null: \
 	case SourceType_ParameterAddress: \
 	case SourceType_ConstantI4: \
 	case SourceType_ConstantI8: \
@@ -43,7 +44,7 @@ default: \
 	case SourceType_FieldAddress: \
 	case SourceType_StaticFieldAddress: \
 	case SourceType_SizeOf: \
-	case SourceType_Null: \
+	case SourceType_ArrayElementAddress: \
 	{ \
 		Panic("This should not be happening!"); \
 		break; \
@@ -156,11 +157,11 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 		}
 		case SourceType_Field:
 		{
-			// Note: pRegister3 must contain a pointer to the object the field is being loaded from
 			JIT_CalculateFieldLayout(pSource->Data.Field.ParentType);
-			IRField* field = pSource->Data.Field.ParentType->Fields[pSource->Data.Field.FieldIndex];
-			sizeOfSource = JIT_GetStackSizeOfType(field->FieldType);
-			x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
+			IRField* sourceField = pSource->Data.Field.ParentType->Fields[pSource->Data.Field.FieldIndex];
+			sizeOfSource = JIT_GetStackSizeOfType(sourceField->FieldType);
+			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pSource->Data.Field.FieldSource, pRegister3, pRegister2, pRegister1, NULL);
+			x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, sourceField->Offset);
 			switch (sizeOfSource)
 			{
 				case 1:
@@ -202,10 +203,9 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 		}
 		case SourceType_FieldAddress:
 		{
-			// Note: pRegister3 must contain a pointer to the object the field is being loaded from
 			JIT_CalculateFieldLayout(pSource->Data.FieldAddress.ParentType);
 			sizeOfSource = gSizeOfPointerInBytes;
-			x86_mov_reg_reg(pCompiledCode, pRegister1, pRegister3, gSizeOfPointerInBytes);
+			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pSource->Data.FieldAddress.FieldSource, pRegister1, pRegister2, pRegister3, NULL);
 			x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister1, pSource->Data.FieldAddress.ParentType->Fields[pSource->Data.FieldAddress.FieldIndex]->Offset);
 			break;
 		}
@@ -380,10 +380,14 @@ char* JIT_Emit_Store(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pDe
 		}
 		case SourceType_Field:
 		{
-			// Note: pRegister3 must contain a pointer to the object the field is being stored to
 			JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
 			IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
 			sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
+			x86_push_reg(pCompiledCode, pRegister1);
+			x86_push_reg(pCompiledCode, pRegister2);
+			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Field.FieldSource, pRegister3, pRegister2, pRegister1, NULL);
+			x86_pop_reg(pCompiledCode, pRegister2);
+			x86_pop_reg(pCompiledCode, pRegister1);
 			x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
 			switch (sizeOfDestination)
 			{
@@ -468,7 +472,11 @@ char* JIT_Emit_Store(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pDe
 		case SourceType_Indirect:
 		{
 			sizeOfDestination = JIT_GetStackSizeOfType(pDestination->Data.Indirect.Type);
+			x86_push_reg(pCompiledCode, pRegister1);
+			x86_push_reg(pCompiledCode, pRegister2);
 			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Indirect.AddressSource, pRegister3, pRegister2, pRegister1, NULL);
+			x86_pop_reg(pCompiledCode, pRegister2);
+			x86_pop_reg(pCompiledCode, pRegister1);
 			switch (sizeOfDestination)
 			{
 				case 1:
@@ -539,9 +547,9 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				// Null to Field (both aligned)
 				case SourceType_Field:
 				{
-					// Note: pRegister3 must contain a pointer to the object the field is being stored to
 					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
 					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Field.FieldSource, pRegister3, pRegister2, pRegister1, NULL);
 					x86_mov_membase_imm(pCompiledCode, pRegister3, field->Offset, 0, gSizeOfPointerInBytes);
 					break;
 				}
@@ -635,10 +643,10 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				// Local to Field (source aligned)
 				case SourceType_Field:
 				{
-					// Note: pRegister3 must contain a pointer to the object the field is being stored to
 					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
 					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
 					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Field.FieldSource, pRegister3, pRegister2, pRegister1, NULL);
 					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
 					switch (sizeOfDestination)
 					{
@@ -794,9 +802,11 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				// Local Address to Field (both aligned)
 				case SourceType_Field:
 				{
-					// Note: pRegister3 must contain a pointer to the object the field is being stored to
 					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
 					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
+					x86_push_reg(pCompiledCode, pRegister1);
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Field.FieldSource, pRegister3, pRegister2, pRegister1, NULL);
+					x86_pop_reg(pCompiledCode, pRegister1);
 					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset, pRegister1, gSizeOfPointerInBytes);
 					break;
 				}
@@ -892,10 +902,10 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				// Parameter to Field (source aligned)
 				case SourceType_Field:
 				{
-					// Note: pRegister3 must contain a pointer to the object the field is being stored to
 					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
 					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
 					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Field.FieldSource, pRegister3, pRegister2, pRegister1, NULL);
 					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
 					switch (sizeOfDestination)
 					{
@@ -1051,9 +1061,11 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				// Parameter Address to Field (both aligned)
 				case SourceType_Field:
 				{
-					// Note: pRegister3 must contain a pointer to the object the field is being stored to
 					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
 					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
+					x86_push_reg(pCompiledCode, pRegister1);
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Field.FieldSource, pRegister3, pRegister2, pRegister1, NULL);
+					x86_pop_reg(pCompiledCode, pRegister1);
 					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset, pRegister1, gSizeOfPointerInBytes);
 					break;
 				}
@@ -1086,31 +1098,30 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 		case SourceType_ConstantI4:
 		{
 			sizeOfSource = 4;
-			x86_mov_reg_imm(pCompiledCode, pRegister1, pSource->Data.ConstantI4.Value);
 			switch (pDestination->Type)
 			{
 				// ConstantI4 to Local (both aligned)
 				case SourceType_Local:
 				{
 					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->VariableType));
-					x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister1, 4);
+					x86_mov_membase_imm(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pSource->Data.ConstantI4.Value, 4);
 					break;
 				}
 				// ConstantI4 to Parameter (both aligned)
 				case SourceType_Parameter:
 				{
 					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Type));
-					x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister1, 4);
+					x86_mov_membase_imm(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pSource->Data.ConstantI4.Value, 4);
 					break;
 				}
 				// ConstantI4 to Field (both aligned)
 				case SourceType_Field:
 				{
-					// Note: pRegister3 must contain a pointer to the object the field is being stored to
 					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
 					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
 					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
-					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset, pRegister1, 4);
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Field.FieldSource, pRegister3, pRegister2, pRegister1, NULL);
+					x86_mov_membase_imm(pCompiledCode, pRegister3, field->Offset, pSource->Data.ConstantI4.Value, 4);
 					break;
 				}
 				// ConstantI4 to Static Field (both aligned)
@@ -1122,16 +1133,15 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, offsetof(AppDomain, StaticValues) + (field->ParentAssembly->AssemblyIndex << gPointerDivideShift));
 					x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, 0, gSizeOfPointerInBytes);
 					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
-					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, 4);
+					x86_mov_membase_imm(pCompiledCode, pRegister3, 0, pSource->Data.ConstantI4.Value, 4);
 					break;
 				}
 				// ConstantI4 to Indirect (both aligned)
 				case SourceType_Indirect:
 				{
-					x86_push_reg(pCompiledCode, pRegister1);
+					sizeOfDestination = JIT_GetStackSizeOfType(pDestination->Data.Indirect.Type);
 					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Indirect.AddressSource, pRegister3, pRegister2, pRegister1, NULL);
-					x86_pop_reg(pCompiledCode, pRegister1);
-					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, 4);
+					x86_mov_membase_imm(pCompiledCode, pRegister3, 0, pSource->Data.ConstantI4.Value, 4);
 					break;
 				}
 				Define_Bad_Destinations();
@@ -1144,57 +1154,50 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 		{
 			sizeOfSource = 8;
 			sizeOfDestination = 8;
-			x86_mov_reg_imm(pCompiledCode, pRegister1, pSource->Data.ConstantI8.Value);
-			x86_mov_reg_imm(pCompiledCode, pRegister2, pSource->Data.ConstantI8.Value >> 32);
 			switch (pDestination->Type)
 			{
 				// ConstantI8 to Local (both aligned)
 				case SourceType_Local:
 				{
-					x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister1, 4);
-					x86_mov_membase_reg(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - 4), pRegister2, 4);
+					x86_mov_membase_imm(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pSource->Data.ConstantI8.Value, 4);
+					x86_mov_membase_imm(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - 4), pSource->Data.ConstantI8.Value >> 32, 4);
 					break;
 				}
 				// ConstantI8 to Parameter (both aligned)
 				case SourceType_Parameter:
 				{
-					x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister1, 4);
-					x86_mov_membase_reg(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + 4), pRegister2, 4);
+					x86_mov_membase_imm(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pSource->Data.ConstantI8.Value, 4);
+					x86_mov_membase_imm(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + 4), pSource->Data.ConstantI8.Value >> 32, 4);
 					break;
 				}
 				// ConstantI8 to Field (both aligned)
 				case SourceType_Field:
 				{
-					// Note: pRegister3 must contain a pointer to the object the field is being stored to
 					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
 					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
-					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset, pRegister1, 4);
-					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset + 4, pRegister2, 4);
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Field.FieldSource, pRegister3, pRegister2, pRegister1, NULL);
+					x86_mov_membase_imm(pCompiledCode, pRegister3, field->Offset, pSource->Data.ConstantI8.Value, 4);
+					x86_mov_membase_imm(pCompiledCode, pRegister3, field->Offset + 4, pSource->Data.ConstantI8.Value >> 32, 4);
 					break;
 				}
 				// ConstantI8 to Static Field (both aligned)
 				case SourceType_StaticField:
 				{
 					IRField* field = pDestination->Data.StaticField.Field;
-					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
 					x86_mov_reg_membase(pCompiledCode, pRegister3, X86_EBP, gSizeOfPointerInBytes << 1, gSizeOfPointerInBytes);
 					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, offsetof(AppDomain, StaticValues) + (field->ParentAssembly->AssemblyIndex << gPointerDivideShift));
 					x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, 0, gSizeOfPointerInBytes);
 					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
-					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, 4);
-					x86_mov_membase_reg(pCompiledCode, pRegister3, 4, pRegister2, 4);
+					x86_mov_membase_imm(pCompiledCode, pRegister3, 0, pSource->Data.ConstantI8.Value, 4);
+					x86_mov_membase_imm(pCompiledCode, pRegister3, 4, pSource->Data.ConstantI8.Value >> 32, 4);
 					break;
 				}
 				// ConstantI8 to Indirect (both aligned)
 				case SourceType_Indirect:
 				{
-					x86_push_reg(pCompiledCode, pRegister1);
-					x86_push_reg(pCompiledCode, pRegister2);
 					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Indirect.AddressSource, pRegister3, pRegister2, pRegister1, NULL);
-					x86_pop_reg(pCompiledCode, pRegister2);
-					x86_pop_reg(pCompiledCode, pRegister1);
-					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, 4);
-					x86_mov_membase_reg(pCompiledCode, pRegister3, 4, pRegister2, 4);
+					x86_mov_membase_imm(pCompiledCode, pRegister3, 0, pSource->Data.ConstantI8.Value, 4);
+					x86_mov_membase_imm(pCompiledCode, pRegister3, 4, pSource->Data.ConstantI8.Value >> 32, 4);
 					break;
 				}
 				Define_Bad_Destinations();
@@ -1206,31 +1209,30 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 		case SourceType_ConstantR4:
 		{
 			sizeOfSource = 4;
-			x86_mov_reg_imm(pCompiledCode, pRegister1, pSource->Data.ConstantR4.Value);
 			switch (pDestination->Type)
 			{
 				// ConstantR4 to Local (both aligned)
 				case SourceType_Local:
 				{
 					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->VariableType));
-					x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister1, 4);
+					x86_mov_membase_imm(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pSource->Data.ConstantR4.Value, 4);
 					break;
 				}
 				// ConstantR4 to Parameter (both aligned)
 				case SourceType_Parameter:
 				{
 					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Type));
-					x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister1, 4);
+					x86_mov_membase_imm(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pSource->Data.ConstantR4.Value, 4);
 					break;
 				}
 				// ConstantR4 to Field (both aligned)
 				case SourceType_Field:
 				{
-					// Note: pRegister3 must contain a pointer to the object the field is being stored to
 					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
 					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
 					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
-					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset, pRegister1, 4);
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Field.FieldSource, pRegister3, pRegister2, pRegister1, NULL);
+					x86_mov_membase_imm(pCompiledCode, pRegister3, field->Offset, pSource->Data.ConstantR4.Value, 4);
 					break;
 				}
 				// ConstantR4 to Static Field (both aligned)
@@ -1242,16 +1244,15 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, offsetof(AppDomain, StaticValues) + (field->ParentAssembly->AssemblyIndex << gPointerDivideShift));
 					x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, 0, gSizeOfPointerInBytes);
 					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
-					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, 4);
+					x86_mov_membase_imm(pCompiledCode, pRegister3, 0, pSource->Data.ConstantR4.Value, 4);
 					break;
 				}
 				// ConstantR4 to Indirect (both aligned)
 				case SourceType_Indirect:
 				{
-					x86_push_reg(pCompiledCode, pRegister1);
+					sizeOfDestination = JIT_GetStackSizeOfType(pDestination->Data.Indirect.Type);
 					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Indirect.AddressSource, pRegister3, pRegister2, pRegister1, NULL);
-					x86_pop_reg(pCompiledCode, pRegister1);
-					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, 4);
+					x86_mov_membase_imm(pCompiledCode, pRegister3, 0, pSource->Data.ConstantR4.Value, 4);
 					break;
 				}
 				Define_Bad_Destinations();
@@ -1263,60 +1264,51 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 		case SourceType_ConstantR8:
 		{
 			sizeOfSource = 8;
-			x86_mov_reg_imm(pCompiledCode, pRegister1, pSource->Data.ConstantR8.Value);
-			x86_mov_reg_imm(pCompiledCode, pRegister2, pSource->Data.ConstantR8.Value >> 32);
+			sizeOfDestination = 8;
 			switch (pDestination->Type)
 			{
 				// ConstantR8 to Local (both aligned)
 				case SourceType_Local:
 				{
-					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->VariableType));
-					x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister1, 4);
-					x86_mov_membase_reg(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - 4), pRegister2, 4);
+					x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pSource->Data.ConstantR8.Value, 4);
+					x86_mov_membase_reg(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - 4), pSource->Data.ConstantR8.Value >> 32, 4);
 					break;
 				}
 				// ConstantR8 to Parameter (both aligned)
 				case SourceType_Parameter:
 				{
-					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Type));
-					x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister1, 4);
-					x86_mov_membase_reg(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + 4), pRegister2, 4);
+					x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pSource->Data.ConstantR8.Value, 4);
+					x86_mov_membase_reg(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + 4), pSource->Data.ConstantR8.Value >> 32, 4);
 					break;
 				}
 				// ConstantR8 to Field (both aligned)
 				case SourceType_Field:
 				{
-					// Note: pRegister3 must contain a pointer to the object the field is being stored to
 					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
 					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
-					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
-					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset, pRegister1, 4);
-					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset + 4, pRegister2, 4);
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Field.FieldSource, pRegister3, pRegister2, pRegister1, NULL);
+					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset, pSource->Data.ConstantR8.Value, 4);
+					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset + 4, pSource->Data.ConstantR8.Value >> 32, 4);
 					break;
 				}
 				// ConstantR8 to Static Field (both aligned)
 				case SourceType_StaticField:
 				{
 					IRField* field = pDestination->Data.StaticField.Field;
-					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
 					x86_mov_reg_membase(pCompiledCode, pRegister3, X86_EBP, gSizeOfPointerInBytes << 1, gSizeOfPointerInBytes);
 					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, offsetof(AppDomain, StaticValues) + (field->ParentAssembly->AssemblyIndex << gPointerDivideShift));
 					x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, 0, gSizeOfPointerInBytes);
 					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
-					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, 4);
-					x86_mov_membase_reg(pCompiledCode, pRegister3, 4, pRegister2, 4);
+					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pSource->Data.ConstantR8.Value, 4);
+					x86_mov_membase_reg(pCompiledCode, pRegister3, 4, pSource->Data.ConstantR8.Value >> 32, 4);
 					break;
 				}
 				// ConstantR8 to Indirect (both aligned)
 				case SourceType_Indirect:
 				{
-					x86_push_reg(pCompiledCode, pRegister1);
-					x86_push_reg(pCompiledCode, pRegister2);
 					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Indirect.AddressSource, pRegister3, pRegister2, pRegister1, NULL);
-					x86_pop_reg(pCompiledCode, pRegister2);
-					x86_pop_reg(pCompiledCode, pRegister1);
-					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, 4);
-					x86_mov_membase_reg(pCompiledCode, pRegister3, 4, pRegister2, 4);
+					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pSource->Data.ConstantR8.Value, 4);
+					x86_mov_membase_reg(pCompiledCode, pRegister3, 4, pSource->Data.ConstantR8.Value >> 32, 4);
 					break;
 				}
 				Define_Bad_Destinations();
@@ -1327,10 +1319,10 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 		// From Field
 		case SourceType_Field:
 		{
-			// Note: pRegister1 must contain a pointer to the object the field is being loaded from
 			JIT_CalculateFieldLayout(pSource->Data.Field.ParentType);
 			IRField* sourceField = pSource->Data.Field.ParentType->Fields[pSource->Data.Field.FieldIndex];
 			sizeOfSource = JIT_GetStackSizeOfType(sourceField->FieldType);
+			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pSource->Data.Field.FieldSource, pRegister1, pRegister2, pRegister3, NULL);
 			x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister1, sourceField->Offset);
 			switch (pDestination->Type)
 			{
@@ -1413,10 +1405,12 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				// Field to Field (neither aligned)
 				case SourceType_Field:
 				{
-					// Note: pRegister3 must contain a pointer to the object the field is being stored to
 					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
 					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
 					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
+					x86_push_reg(pCompiledCode, pRegister1);
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Field.FieldSource, pRegister3, pRegister2, pRegister1, NULL);
+					x86_pop_reg(pCompiledCode, pRegister1);
 					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
 					switch (sizeOfDestination)
 					{
@@ -1562,11 +1556,10 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 		// From Field Address
 		case SourceType_FieldAddress:
 		{
-			// Note: pRegister3 must contain a pointer to the object the field is being loaded from
 			JIT_CalculateFieldLayout(pSource->Data.FieldAddress.ParentType);
 			sizeOfSource = gSizeOfPointerInBytes;
 			sizeOfDestination = gSizeOfPointerInBytes;
-			x86_mov_reg_reg(pCompiledCode, pRegister1, pRegister3, gSizeOfPointerInBytes);
+			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pSource->Data.FieldAddress.FieldSource, pRegister1, pRegister2, pRegister3, NULL);
 			x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister1, pSource->Data.FieldAddress.ParentType->Fields[pSource->Data.FieldAddress.FieldIndex]->Offset);
 			switch (pDestination->Type)
 			{
@@ -1585,10 +1578,12 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				// Field Address to Field (both aligned)
 				case SourceType_Field:
 				{
-					// Note: pRegister2 must contain a pointer to the object the field is being stored to
 					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
 					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
-					x86_mov_membase_reg(pCompiledCode, pRegister2, field->Offset, pRegister1, gSizeOfPointerInBytes);
+					x86_push_reg(pCompiledCode, pRegister1);
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Field.FieldSource, pRegister3, pRegister2, pRegister1, NULL);
+					x86_pop_reg(pCompiledCode, pRegister1);
+					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset, pRegister1, gSizeOfPointerInBytes);
 					break;
 				}
 				// Field Address to Static Field (both aligned)
@@ -1706,10 +1701,12 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				// Static Field to Field (neither aligned)
 				case SourceType_Field:
 				{
-					// Note: pRegister3 must contain a pointer to the object the field is being stored to
 					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
 					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
 					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
+					x86_push_reg(pCompiledCode, pRegister1);
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Field.FieldSource, pRegister3, pRegister2, pRegister1, NULL);
+					x86_pop_reg(pCompiledCode, pRegister1);
 					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
 					switch (sizeOfDestination)
 					{
@@ -1879,9 +1876,11 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				// Static Field Address to Field (both aligned)
 				case SourceType_Field:
 				{
-					// Note: pRegister3 must contain a pointer to the object the field is being stored to
 					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
 					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
+					x86_push_reg(pCompiledCode, pRegister1);
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Field.FieldSource, pRegister3, pRegister2, pRegister1, NULL);
+					x86_pop_reg(pCompiledCode, pRegister1);
 					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset, pRegister1, gSizeOfPointerInBytes);
 					break;
 				}
@@ -1996,10 +1995,12 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				// Indirect to Field (neither aligned)
 				case SourceType_Field:
 				{
-					// Note: pRegister3 must contain a pointer to the object the field is being stored to
 					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
 					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
 					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
+					x86_push_reg(pCompiledCode, pRegister1);
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Field.FieldSource, pRegister3, pRegister2, pRegister1, NULL);
+					x86_pop_reg(pCompiledCode, pRegister1);
 					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
 					switch (sizeOfDestination)
 					{
@@ -2166,10 +2167,10 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				// SizeOf to Field (both aligned)
 				case SourceType_Field:
 				{
-					// Note: pRegister3 must contain a pointer to the object the field is being stored to
 					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
 					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
 					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Field.FieldSource, pRegister3, pRegister2, pRegister1, NULL);
 					x86_mov_membase_imm(pCompiledCode, pRegister3, field->Offset, sizeOfType, 4);
 					break;
 				}
