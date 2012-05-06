@@ -279,6 +279,7 @@ typedef enum SourceType
 	SourceType_FieldAddress,
 	SourceType_StaticField,
 	SourceType_StaticFieldAddress,
+	SourceType_Indirect,
 	SourceType_SizeOf,
 } SourceType;
 
@@ -334,6 +335,10 @@ typedef union SourceData
 	{
 		IRField* Field;
 	} StaticFieldAddress;
+	struct Indirect
+	{
+		IRType* Type;
+	} Indirect;
 	struct SizeOf
 	{
 		IRType* Type;
