@@ -375,6 +375,8 @@ struct _SourceTypeData
 	SourceData Data;
 } _SourceTypeData;
 
+#define SourceTypeData_Equal(source1, source2) !memcmp(&source1, &source2, sizeof(SourceTypeData))
+
 struct _IRInstruction
 {
     uint32_t ILLocation;
