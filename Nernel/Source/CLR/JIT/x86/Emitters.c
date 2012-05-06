@@ -6,6 +6,49 @@
 #define SECONDARY_REG X86_EBX
 #define THIRD_REG X86_ECX
 
+//#define MemoryCorruptionChecks
+
+#ifdef MemoryCorruptionChecks
+
+#define Move_Destination_Default(parentFunc, type) \
+default: \
+	Panic(#parentFunc ": Unknown destination type for " #type "!"); \
+	break;
+
+#define Destination_Default(parentFunc) \
+default: \
+	Panic(#parentFunc ": Unknown destination type!"); \
+	break;
+
+#define Source_Default(parentFunc) \
+default: \
+	Panic(#parentFunc ": Unknown source type!"); \
+	break; 
+#else
+
+#define Move_Destination_Default(parentFunc, type)
+#define Destination_Default(parentFunc)
+#define Source_Default(parentFunc)
+
+#endif
+
+// These source types aren't valid destinations
+#define Define_Bad_Destinations() \
+	case SourceType_ParameterAddress: \
+	case SourceType_ConstantI4: \
+	case SourceType_ConstantI8: \
+	case SourceType_ConstantR4: \
+	case SourceType_ConstantR8: \
+	case SourceType_LocalAddress: \
+	case SourceType_FieldAddress: \
+	case SourceType_StaticFieldAddress: \
+	case SourceType_SizeOf: \
+	case SourceType_Null: \
+	{ \
+		Panic("This should not be happening!"); \
+		break; \
+	}
+
 char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSource, X86_Reg_No pRegister1, X86_Reg_No pRegister2, X86_Reg_No pRegister3, size_t* pSize)
 {
 	uint32_t sizeOfSource = 0;
@@ -272,9 +315,7 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 			x86_mov_reg_imm(pCompiledCode, pRegister1, JIT_GetSizeOfType(pSource->Data.SizeOf.Type));
 			break;
 		}
-		default:
-			Panic("Unknown source type for JIT_Emit_Load");
-			break;
+		Source_Default(JIT_Emit_Load);
 	}
 	if (pSize) *pSize = sizeOfSource;
 	return pCompiledCode;
@@ -285,11 +326,6 @@ char* JIT_Emit_Store(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pDe
 	uint32_t sizeOfDestination = 0;
 	switch (pDestination->Type)
 	{
-		case SourceType_Null:
-		{
-			Panic("This should not be happening!");
-			break;
-		}
 		case SourceType_Local:
 		{
 			sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->VariableType));
@@ -316,11 +352,6 @@ char* JIT_Emit_Store(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pDe
 			}
 			break;
 		}
-		case SourceType_LocalAddress:
-		{
-			Panic("This should not be happening!");
-			break;
-		}
 		case SourceType_Parameter:
 		{
 			sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Type));
@@ -345,31 +376,6 @@ char* JIT_Emit_Store(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pDe
 					break;
 				}
 			}
-			break;
-		}
-		case SourceType_ParameterAddress:
-		{
-			Panic("This should not be happening!");
-			break;
-		}
-		case SourceType_ConstantI4:
-		{
-			Panic("This should not be happening!");
-			break;
-		}
-		case SourceType_ConstantI8:
-		{
-			Panic("This should not be happening!");
-			break;
-		}
-		case SourceType_ConstantR4:
-		{
-			Panic("This should not be happening!");
-			break;
-		}
-		case SourceType_ConstantR8:
-		{
-			Panic("This should not be happening!");
 			break;
 		}
 		case SourceType_Field:
@@ -413,11 +419,6 @@ char* JIT_Emit_Store(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pDe
 					break;
 				}
 			}
-			break;
-		}
-		case SourceType_FieldAddress:
-		{
-			Panic("This should not be happening!");
 			break;
 		}
 		case SourceType_StaticField:
@@ -464,11 +465,6 @@ char* JIT_Emit_Store(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pDe
 			}
 			break;
 		}
-		case SourceType_StaticFieldAddress:
-		{
-			Panic("This should not be happening!");
-			break;
-		}
 		case SourceType_Indirect:
 		{
 			sizeOfDestination = JIT_GetStackSizeOfType(pDestination->Data.Indirect.Type);
@@ -509,14 +505,8 @@ char* JIT_Emit_Store(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pDe
 			}
 			break;
 		}
-		case SourceType_SizeOf:
-		{
-			Panic("This should not be happening!");
-			break;
-		}
-		default:
-			Panic("Unknown destination type for JIT_Emit_Store");
-			break;
+		Define_Bad_Destinations();
+		Destination_Default(JIT_Emit_Store);
 	}
 	if (pSize) *pSize = sizeOfDestination;
 	return pCompiledCode;
@@ -534,58 +524,16 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 			sizeOfDestination = gSizeOfPointerInBytes;
 			switch (pDestination->Type)
 			{
-				// Null to Null (not possible)
-				case SourceType_Null:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// Null to Local (both aligned)
 				case SourceType_Local:
 				{
 					x86_mov_membase_imm(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, 0, gSizeOfPointerInBytes);
 					break;
 				}
-				// Null to Local Address (not possible)
-				case SourceType_LocalAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// Null to Parameter (both aligned)
 				case SourceType_Parameter:
 				{
 					x86_mov_membase_imm(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, 0, gSizeOfPointerInBytes);
-					break;
-				}
-				// Null to Parameter Address (not possible)
-				case SourceType_ParameterAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// Null to Constant (not possible)
-				case SourceType_ConstantI4:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// Null to Constant (not possible)
-				case SourceType_ConstantI8:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// Null to Constant (not possible)
-				case SourceType_ConstantR4:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// Null to Constant (not possible)
-				case SourceType_ConstantR8:
-				{
-					Panic("This should not be happening!");
 					break;
 				}
 				// Null to Field (both aligned)
@@ -595,12 +543,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
 					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
 					x86_mov_membase_imm(pCompiledCode, pRegister3, field->Offset, 0, gSizeOfPointerInBytes);
-					break;
-				}
-				// Null to Field Address (not possible)
-				case SourceType_FieldAddress:
-				{
-					Panic("This should not be happening!");
 					break;
 				}
 				// Null to Static Field (both aligned)
@@ -614,12 +556,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_mov_membase_imm(pCompiledCode, pRegister3, 0, 0, gSizeOfPointerInBytes);
 					break;
 				}
-				// Null to Static Field Address (not possible)
-				case SourceType_StaticFieldAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// Null to Indirect (both aligned)
 				case SourceType_Indirect:
 				{
@@ -627,15 +563,8 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_mov_membase_imm(pCompiledCode, pRegister3, 0, 0, gSizeOfPointerInBytes);
 					break;
 				}
-				// Null to SizeOf (not possible)
-				case SourceType_SizeOf:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				default:
-					Panic("JIT_Emit_Move: Unknown destination type for Local Address");
-					break;
+				Define_Bad_Destinations();
+				Move_Destination_Default(JIT_Emit_Move, Null);
 			}
 			break;
 		}
@@ -645,12 +574,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 			sizeOfSource = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->VariableType));
 			switch (pDestination->Type)
 			{
-				// Local to Null (not possible)
-				case SourceType_Null:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// Local to Local (both aligned)
 				case SourceType_Local:
 				{
@@ -680,12 +603,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					}
 					break;
 				}
-				// Local to Local Address (not possible)
-				case SourceType_LocalAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// Local to Parameter (both aligned)
 				case SourceType_Parameter:
 				{
@@ -713,36 +630,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 							break;
 						}
 					}
-					break;
-				}
-				// Local to Parameter Address (not possible)
-				case SourceType_ParameterAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// Local to Constant (not possible)
-				case SourceType_ConstantI4:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// Local to Constant (not possible)
-				case SourceType_ConstantI8:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// Local to Constant (not possible)
-				case SourceType_ConstantR4:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// Local to Constant (not possible)
-				case SourceType_ConstantR8:
-				{
-					Panic("This should not be happening!");
 					break;
 				}
 				// Local to Field (source aligned)
@@ -788,12 +675,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 							break;
 						}
 					}
-					break;
-				}
-				// Local to Field Address (not possible)
-				case SourceType_FieldAddress:
-				{
-					Panic("This should not be happening!");
 					break;
 				}
 				// Local to Static Field (source aligned)
@@ -842,12 +723,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					}
 					break;
 				}
-				// Local to Static Field Address (not possible)
-				case SourceType_StaticFieldAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// Local to Indirect (source aligned)
 				case SourceType_Indirect:
 				{
@@ -890,15 +765,8 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					}
 					break;
 				}
-				// Local to SizeOf (not possible)
-				case SourceType_SizeOf:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				default:
-					Panic("JIT_Emit_Move: Unknown destination type for Local");
-					break;
+				Define_Bad_Destinations();
+				Move_Destination_Default(JIT_Emit_Move, Local);
 			}
 			break;
 		}
@@ -911,58 +779,16 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 			x86_alu_reg_imm(pCompiledCode, X86_SUB, pRegister1, pMethod->LocalVariables[pSource->Data.LocalVariableAddress.LocalVariableIndex]->Offset);
 			switch (pDestination->Type)
 			{
-				// Local Address to Null (not possible)
-				case SourceType_Null:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// Local Address to Local (both aligned)
 				case SourceType_Local:
 				{
 					x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister1, gSizeOfPointerInBytes);
 					break;
 				}
-				// Local Address to Local Address (not possible)
-				case SourceType_LocalAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// Local Address to Parameter (both aligned)
 				case SourceType_Parameter:
 				{
 					x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister1, gSizeOfPointerInBytes);
-					break;
-				}
-				// Local Address to Parameter Address (not possible)
-				case SourceType_ParameterAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// Local Address to Constant (not possible)
-				case SourceType_ConstantI4:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// Local Address to Constant (not possible)
-				case SourceType_ConstantI8:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// Local Address to Constant (not possible)
-				case SourceType_ConstantR4:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// Local Address to Constant (not possible)
-				case SourceType_ConstantR8:
-				{
-					Panic("This should not be happening!");
 					break;
 				}
 				// Local Address to Field (both aligned)
@@ -972,12 +798,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
 					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
 					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset, pRegister1, gSizeOfPointerInBytes);
-					break;
-				}
-				// Local Address to Field Address (not possible)
-				case SourceType_FieldAddress:
-				{
-					Panic("This should not be happening!");
 					break;
 				}
 				// Local Address to Static Field (both aligned)
@@ -991,12 +811,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, gSizeOfPointerInBytes);
 					break;
 				}
-				// Local Address to Static Field Address (not possible)
-				case SourceType_StaticFieldAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// Local Address to Indirect (both aligned)
 				case SourceType_Indirect:
 				{
@@ -1006,15 +820,8 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, gSizeOfPointerInBytes);
 					break;
 				}
-				// Local Address to SizeOf (not possible)
-				case SourceType_SizeOf:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				default:
-					Panic("JIT_Emit_Move: Unknown destination type for Local Address");
-					break;
+				Define_Bad_Destinations();
+				Move_Destination_Default(JIT_Emit_Move, Local Address);
 			}
 			break;
 		}
@@ -1024,12 +831,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 			sizeOfSource = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Type));
 			switch (pDestination->Type)
 			{
-				// Parameter to Null (not possible)
-				case SourceType_Null:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// Parameter to Local (both aligned)
 				case SourceType_Local:
 				{
@@ -1059,12 +860,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					}
 					break;
 				}
-				// Parameter to Local Address (not possible)
-				case SourceType_LocalAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// Parameter to Parameter (both aligned)
 				case SourceType_Parameter:
 				{
@@ -1092,36 +887,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 							break;
 						}
 					}
-					break;
-				}
-				// Parameter to Parameter Address (not possible)
-				case SourceType_ParameterAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// Parameter to Constant (not possible)
-				case SourceType_ConstantI4:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// Parameter to Constant (not possible)
-				case SourceType_ConstantI8:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// Parameter to Constant (not possible)
-				case SourceType_ConstantR4:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// Parameter to Constant (not possible)
-				case SourceType_ConstantR8:
-				{
-					Panic("This should not be happening!");
 					break;
 				}
 				// Parameter to Field (source aligned)
@@ -1167,12 +932,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 							break;
 						}
 					}
-					break;
-				}
-				// Parameter to Field Address (not possible)
-				case SourceType_FieldAddress:
-				{
-					Panic("This should not be happening!");
 					break;
 				}
 				// Parameter to Static Field (source aligned)
@@ -1221,12 +980,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					}
 					break;
 				}
-				// Parameter to Static Field Address (not possible)
-				case SourceType_StaticFieldAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// Parameter to Indirect (source aligned)
 				case SourceType_Indirect:
 				{
@@ -1269,15 +1022,8 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					}
 					break;
 				}
-				// Parameter to SizeOf (not possible)
-				case SourceType_SizeOf:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				default:
-					Panic("JIT_Emit_Move: Unknown destination type for Parameter");
-					break;
+				Define_Bad_Destinations();
+				Move_Destination_Default(JIT_Emit_Move, Parameter);
 			}
 			break;
 		}
@@ -1290,58 +1036,16 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 			x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister1, pMethod->Parameters[pSource->Data.ParameterAddress.ParameterIndex]->Offset);
 			switch (pDestination->Type)
 			{
-				// Parameter Address to Null (not possible)
-				case SourceType_Null:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// Parameter Address to Local (both aligned)
 				case SourceType_Local:
 				{
 					x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister1, gSizeOfPointerInBytes);
 					break;
 				}
-				// Parameter Address to Local Address (not possible)
-				case SourceType_LocalAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// Parameter Address to Parameter (both aligned)
 				case SourceType_Parameter:
 				{
 					x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister1, gSizeOfPointerInBytes);
-					break;
-				}
-				// Parameter Address to Parameter Address (not possible)
-				case SourceType_ParameterAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// Parameter Address to Constant (not possible)
-				case SourceType_ConstantI4:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// Parameter Address to Constant (not possible)
-				case SourceType_ConstantI8:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// Parameter Address to Constant (not possible)
-				case SourceType_ConstantR4:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// Parameter Address to Constant (not possible)
-				case SourceType_ConstantR8:
-				{
-					Panic("This should not be happening!");
 					break;
 				}
 				// Parameter Address to Field (both aligned)
@@ -1351,12 +1055,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
 					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
 					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset, pRegister1, gSizeOfPointerInBytes);
-					break;
-				}
-				// Parameter Address to Field Address (not possible)
-				case SourceType_FieldAddress:
-				{
-					Panic("This should not be happening!");
 					break;
 				}
 				// Parameter Address to Static Field (both aligned)
@@ -1370,12 +1068,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, gSizeOfPointerInBytes);
 					break;
 				}
-				// Parameter Address to Static Field Address (not possible)
-				case SourceType_StaticFieldAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// Parameter Address to Indirect (both aligned)
 				case SourceType_Indirect:
 				{
@@ -1385,15 +1077,8 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, gSizeOfPointerInBytes);
 					break;
 				}
-				// Parameter Address to SizeOf (not possible)
-				case SourceType_SizeOf:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				default:
-					Panic("JIT_Emit_Move: Unknown destination type for Parameter Address");
-					break;
+				Define_Bad_Destinations();
+				Move_Destination_Default(JIT_Emit_Move, Parameter Address);
 			}
 			break;
 		}
@@ -1404,12 +1089,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 			x86_mov_reg_imm(pCompiledCode, pRegister1, pSource->Data.ConstantI4.Value);
 			switch (pDestination->Type)
 			{
-				// ConstantI4 to Null (not possible)
-				case SourceType_Null:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// ConstantI4 to Local (both aligned)
 				case SourceType_Local:
 				{
@@ -1417,47 +1096,11 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister1, 4);
 					break;
 				}
-				// ConstantI4 to Local Address (not possible)
-				case SourceType_LocalAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// ConstantI4 to Parameter (both aligned)
 				case SourceType_Parameter:
 				{
 					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Type));
 					x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister1, 4);
-					break;
-				}
-				// ConstantI4 to Parameter Address (not possible)
-				case SourceType_ParameterAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// ConstantI4 to Constant (not possible)
-				case SourceType_ConstantI4:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// ConstantI4 to Constant (not possible)
-				case SourceType_ConstantI8:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// ConstantI4 to Constant (not possible)
-				case SourceType_ConstantR4:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// ConstantI4 to Constant (not possible)
-				case SourceType_ConstantR8:
-				{
-					Panic("This should not be happening!");
 					break;
 				}
 				// ConstantI4 to Field (both aligned)
@@ -1468,12 +1111,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
 					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
 					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset, pRegister1, 4);
-					break;
-				}
-				// ConstantI4 to Field Address (not possible)
-				case SourceType_FieldAddress:
-				{
-					Panic("This should not be happening!");
 					break;
 				}
 				// ConstantI4 to Static Field (both aligned)
@@ -1488,12 +1125,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, 4);
 					break;
 				}
-				// ConstantI4 to Static Field Address (not possible)
-				case SourceType_StaticFieldAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// ConstantI4 to Indirect (both aligned)
 				case SourceType_Indirect:
 				{
@@ -1503,15 +1134,8 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, 4);
 					break;
 				}
-				// ConstantI4 to SizeOf (not possible)
-				case SourceType_SizeOf:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				default:
-					Panic("JIT_Emit_Move: Unknown destination type for ConstantI4");
-					break;
+				Define_Bad_Destinations();
+				Move_Destination_Default(JIT_Emit_Move, ConstantI4);
 			}
 			break;
 		}
@@ -1524,12 +1148,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 			x86_mov_reg_imm(pCompiledCode, pRegister2, pSource->Data.ConstantI8.Value >> 32);
 			switch (pDestination->Type)
 			{
-				// ConstantI8 to Null (not possible)
-				case SourceType_Null:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// ConstantI8 to Local (both aligned)
 				case SourceType_Local:
 				{
@@ -1537,47 +1155,11 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_mov_membase_reg(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - 4), pRegister2, 4);
 					break;
 				}
-				// ConstantI8 to Local Address (not possible)
-				case SourceType_LocalAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// ConstantI8 to Parameter (both aligned)
 				case SourceType_Parameter:
 				{
 					x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister1, 4);
 					x86_mov_membase_reg(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + 4), pRegister2, 4);
-					break;
-				}
-				// ConstantI8 to Parameter Address (not possible)
-				case SourceType_ParameterAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// ConstantI8 to Constant (not possible)
-				case SourceType_ConstantI4:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// ConstantI8 to Constant (not possible)
-				case SourceType_ConstantI8:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// ConstantI8 to Constant (not possible)
-				case SourceType_ConstantR4:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// ConstantI8 to Constant (not possible)
-				case SourceType_ConstantR8:
-				{
-					Panic("This should not be happening!");
 					break;
 				}
 				// ConstantI8 to Field (both aligned)
@@ -1588,12 +1170,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
 					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset, pRegister1, 4);
 					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset + 4, pRegister2, 4);
-					break;
-				}
-				// ConstantI8 to Field Address (not possible)
-				case SourceType_FieldAddress:
-				{
-					Panic("This should not be happening!");
 					break;
 				}
 				// ConstantI8 to Static Field (both aligned)
@@ -1609,12 +1185,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_mov_membase_reg(pCompiledCode, pRegister3, 4, pRegister2, 4);
 					break;
 				}
-				// ConstantI8 to Static Field Address (not possible)
-				case SourceType_StaticFieldAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// ConstantI8 to Indirect (both aligned)
 				case SourceType_Indirect:
 				{
@@ -1627,15 +1197,8 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_mov_membase_reg(pCompiledCode, pRegister3, 4, pRegister2, 4);
 					break;
 				}
-				// ConstantI8 to SizeOf (not possible)
-				case SourceType_SizeOf:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				default:
-					Panic("JIT_Emit_Move: Unknown destination type for ConstantI8");
-					break;
+				Define_Bad_Destinations();
+				Move_Destination_Default(JIT_Emit_Move, ConstantI8);
 			}
 			break;
 		}
@@ -1646,12 +1209,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 			x86_mov_reg_imm(pCompiledCode, pRegister1, pSource->Data.ConstantR4.Value);
 			switch (pDestination->Type)
 			{
-				// ConstantR4 to Null (not possible)
-				case SourceType_Null:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// ConstantR4 to Local (both aligned)
 				case SourceType_Local:
 				{
@@ -1659,47 +1216,11 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister1, 4);
 					break;
 				}
-				// ConstantR4 to Local Address (not possible)
-				case SourceType_LocalAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// ConstantR4 to Parameter (both aligned)
 				case SourceType_Parameter:
 				{
 					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Type));
 					x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister1, 4);
-					break;
-				}
-				// ConstantR4 to Parameter Address (not possible)
-				case SourceType_ParameterAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// ConstantR4 to Constant (not possible)
-				case SourceType_ConstantI4:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// ConstantR4 to Constant (not possible)
-				case SourceType_ConstantI8:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// ConstantR4 to Constant (not possible)
-				case SourceType_ConstantR4:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// ConstantR4 to Constant (not possible)
-				case SourceType_ConstantR8:
-				{
-					Panic("This should not be happening!");
 					break;
 				}
 				// ConstantR4 to Field (both aligned)
@@ -1710,12 +1231,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
 					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
 					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset, pRegister1, 4);
-					break;
-				}
-				// ConstantR4 to Field Address (not possible)
-				case SourceType_FieldAddress:
-				{
-					Panic("This should not be happening!");
 					break;
 				}
 				// ConstantR4 to Static Field (both aligned)
@@ -1730,12 +1245,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, 4);
 					break;
 				}
-				// ConstantR4 to Static Field Address (not possible)
-				case SourceType_StaticFieldAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// ConstantR4 to Indirect (both aligned)
 				case SourceType_Indirect:
 				{
@@ -1745,15 +1254,8 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, 4);
 					break;
 				}
-				// ConstantR4 to SizeOf (not possible)
-				case SourceType_SizeOf:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				default:
-					Panic("JIT_Emit_Move: Unknown destination type for ConstantR4");
-					break;
+				Define_Bad_Destinations();
+				Move_Destination_Default(JIT_Emit_Move, ConstantR4);
 			}
 			break;
 		}
@@ -1765,12 +1267,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 			x86_mov_reg_imm(pCompiledCode, pRegister2, pSource->Data.ConstantR8.Value >> 32);
 			switch (pDestination->Type)
 			{
-				// ConstantR8 to Null (not possible)
-				case SourceType_Null:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// ConstantR8 to Local (both aligned)
 				case SourceType_Local:
 				{
@@ -1779,48 +1275,12 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_mov_membase_reg(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - 4), pRegister2, 4);
 					break;
 				}
-				// ConstantR8 to Local Address (not possible)
-				case SourceType_LocalAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// ConstantR8 to Parameter (both aligned)
 				case SourceType_Parameter:
 				{
 					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Type));
 					x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister1, 4);
 					x86_mov_membase_reg(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + 4), pRegister2, 4);
-					break;
-				}
-				// ConstantR8 to Parameter Address (not possible)
-				case SourceType_ParameterAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// ConstantR8 to Constant (not possible)
-				case SourceType_ConstantI4:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// ConstantR8 to Constant (not possible)
-				case SourceType_ConstantI8:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// ConstantR8 to Constant (not possible)
-				case SourceType_ConstantR4:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// ConstantR8 to Constant (not possible)
-				case SourceType_ConstantR8:
-				{
-					Panic("This should not be happening!");
 					break;
 				}
 				// ConstantR8 to Field (both aligned)
@@ -1832,12 +1292,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
 					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset, pRegister1, 4);
 					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset + 4, pRegister2, 4);
-					break;
-				}
-				// ConstantR8 to Field Address (not possible)
-				case SourceType_FieldAddress:
-				{
-					Panic("This should not be happening!");
 					break;
 				}
 				// ConstantR8 to Static Field (both aligned)
@@ -1853,12 +1307,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_mov_membase_reg(pCompiledCode, pRegister3, 4, pRegister2, 4);
 					break;
 				}
-				// ConstantR8 to Static Field Address (not possible)
-				case SourceType_StaticFieldAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// ConstantR8 to Indirect (both aligned)
 				case SourceType_Indirect:
 				{
@@ -1871,15 +1319,8 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_mov_membase_reg(pCompiledCode, pRegister3, 4, pRegister2, 4);
 					break;
 				}
-				// ConstantR8 to SizeOf (not possible)
-				case SourceType_SizeOf:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				default:
-					Panic("JIT_Emit_Move: Unknown destination type for ConstantR8");
-					break;
+				Define_Bad_Destinations();
+				Move_Destination_Default(JIT_Emit_Move, ConstantR8);
 			}
 			break;
 		}
@@ -1893,12 +1334,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 			x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister1, sourceField->Offset);
 			switch (pDestination->Type)
 			{
-				// Field to Null (not possible)
-				case SourceType_Null:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// Field to Local (destination aligned)
 				case SourceType_Local:
 				{
@@ -1937,12 +1372,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					}
 					break;
 				}
-				// Field to Local Address (not possible)
-				case SourceType_LocalAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// Field to Parameter (destination aligned)
 				case SourceType_Parameter:
 				{
@@ -1979,36 +1408,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 							break;
 						}
 					}
-					break;
-				}
-				// Field to Parameter Address (not possible)
-				case SourceType_ParameterAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// Field to Constant (not possible)
-				case SourceType_ConstantI4:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// Field to Constant (not possible)
-				case SourceType_ConstantI8:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// Field to Constant (not possible)
-				case SourceType_ConstantR4:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// Field to Constant (not possible)
-				case SourceType_ConstantR8:
-				{
-					Panic("This should not be happening!");
 					break;
 				}
 				// Field to Field (neither aligned)
@@ -2057,12 +1456,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 							break;
 						}
 					}
-					break;
-				}
-				// Field to Field Address (not possible)
-				case SourceType_FieldAddress:
-				{
-					Panic("This should not be happening!");
 					break;
 				}
 				// Field to Static Field (neither aligned)
@@ -2114,12 +1507,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					}
 					break;
 				}
-				// Field to Static Field Address (not possible)
-				case SourceType_StaticFieldAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// Field to Indirect (neither aligned)
 				case SourceType_Indirect:
 				{
@@ -2167,15 +1554,8 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					}
 					break;
 				}
-				// Field to SizeOf (not possible)
-				case SourceType_SizeOf:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				default:
-					Panic("JIT_Emit_Move: Unknown destination type for Field");
-					break;
+				Define_Bad_Destinations();
+				Move_Destination_Default(JIT_Emit_Move, Field);
 			}
 			break;
 		}
@@ -2190,58 +1570,16 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 			x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister1, pSource->Data.FieldAddress.ParentType->Fields[pSource->Data.FieldAddress.FieldIndex]->Offset);
 			switch (pDestination->Type)
 			{
-				// Field Address to Null (not possible)
-				case SourceType_Null:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// Field Address to Local (both aligned)
 				case SourceType_Local:
 				{
 					x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister1, gSizeOfPointerInBytes);
 					break;
 				}
-				// Field Address to Local Address (not possible)
-				case SourceType_LocalAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// Field Address to Parameter (both aligned)
 				case SourceType_Parameter:
 				{
 					x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister1, gSizeOfPointerInBytes);
-					break;
-				}
-				// Field Address to Parameter Address (not possible)
-				case SourceType_ParameterAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// Field Address to Constant (not possible)
-				case SourceType_ConstantI4:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// Field Address to Constant (not possible)
-				case SourceType_ConstantI8:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// Field Address to Constant (not possible)
-				case SourceType_ConstantR4:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// Field Address to Constant (not possible)
-				case SourceType_ConstantR8:
-				{
-					Panic("This should not be happening!");
 					break;
 				}
 				// Field Address to Field (both aligned)
@@ -2251,12 +1589,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
 					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
 					x86_mov_membase_reg(pCompiledCode, pRegister2, field->Offset, pRegister1, gSizeOfPointerInBytes);
-					break;
-				}
-				// Field Address to Field Address (not possible)
-				case SourceType_FieldAddress:
-				{
-					Panic("This should not be happening!");
 					break;
 				}
 				// Field Address to Static Field (both aligned)
@@ -2270,12 +1602,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, gSizeOfPointerInBytes);
 					break;
 				}
-				// Field Address to Static Field Address (not possible)
-				case SourceType_StaticFieldAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// Field Address to Indirect (both aligned)
 				case SourceType_Indirect:
 				{
@@ -2285,15 +1611,8 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, gSizeOfPointerInBytes);
 					break;
 				}
-				// Field Address to SizeOf (not possible)
-				case SourceType_SizeOf:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				default:
-					Panic("JIT_Emit_Move: Unknown destination type for Field Address");
-					break;
+				Define_Bad_Destinations();
+				Move_Destination_Default(JIT_Emit_Move, Field Address);
 			}
 			break;
 		}
@@ -2308,12 +1627,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 			x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister1, field->Offset);
 			switch (pDestination->Type)
 			{
-				// Static Field to Null (not possible)
-				case SourceType_Null:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// Static Field to Local (destination aligned)
 				case SourceType_Local:
 				{
@@ -2352,12 +1665,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					}
 					break;
 				}
-				// Static Field to Local Address (not possible)
-				case SourceType_LocalAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// Static Field to Parameter (destination aligned)
 				case SourceType_Parameter:
 				{
@@ -2394,36 +1701,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 							break;
 						}
 					}
-					break;
-				}
-				// Static Field to Parameter Address (not possible)
-				case SourceType_ParameterAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// Static Field to Constant (not possible)
-				case SourceType_ConstantI4:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// Static Field to Constant (not possible)
-				case SourceType_ConstantI8:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// Static Field to Constant (not possible)
-				case SourceType_ConstantR4:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// Static Field to Constant (not possible)
-				case SourceType_ConstantR8:
-				{
-					Panic("This should not be happening!");
 					break;
 				}
 				// Static Field to Field (neither aligned)
@@ -2472,12 +1749,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 							break;
 						}
 					}
-					break;
-				}
-				// Static Field to Field Address (not possible)
-				case SourceType_FieldAddress:
-				{
-					Panic("This should not be happening!");
 					break;
 				}
 				// Static Field to Static Field (neither aligned)
@@ -2529,12 +1800,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					}
 					break;
 				}
-				// Static Field to Static Field Address (not possible)
-				case SourceType_StaticFieldAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// Static Field to Indirect (neither aligned)
 				case SourceType_Indirect:
 				{
@@ -2582,15 +1847,8 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					}
 					break;
 				}
-				// Static Field to SizeOf (not possible)
-				case SourceType_SizeOf:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				default:
-					Panic("JIT_Emit_Move: Unknown destination type for Static Field");
-					break;
+				Define_Bad_Destinations();
+				Move_Destination_Default(JIT_Emit_Move, Static Field);
 			}
 			break;
 		}
@@ -2606,58 +1864,16 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 			x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister1, field->Offset);
 			switch (pDestination->Type)
 			{
-				// Static Field Address to Null (not possible)
-				case SourceType_Null:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// Static Field Address to Local (both aligned)
 				case SourceType_Local:
 				{
 					x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister1, gSizeOfPointerInBytes);
 					break;
 				}
-				// Static Field Address to Local Address (not possible)
-				case SourceType_LocalAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// Static Field Address to Parameter (both aligned)
 				case SourceType_Parameter:
 				{
 					x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister1, gSizeOfPointerInBytes);
-					break;
-				}
-				// Static Field Address to Parameter Address (not possible)
-				case SourceType_ParameterAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// Static Field Address to Constant (not possible)
-				case SourceType_ConstantI4:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// Static Field Address to Constant (not possible)
-				case SourceType_ConstantI8:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// Static Field Address to Constant (not possible)
-				case SourceType_ConstantR4:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// Static Field Address to Constant (not possible)
-				case SourceType_ConstantR8:
-				{
-					Panic("This should not be happening!");
 					break;
 				}
 				// Static Field Address to Field (both aligned)
@@ -2667,12 +1883,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
 					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
 					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset, pRegister1, gSizeOfPointerInBytes);
-					break;
-				}
-				// Static Field Address to Field Address (not possible)
-				case SourceType_FieldAddress:
-				{
-					Panic("This should not be happening!");
 					break;
 				}
 				// Static Field Address to Static Field (both aligned)
@@ -2686,12 +1896,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, gSizeOfPointerInBytes);
 					break;
 				}
-				// Static Field Address to Static Field Address (not possible)
-				case SourceType_StaticFieldAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// Static Field Address to Indirect (both aligned)
 				case SourceType_Indirect:
 				{
@@ -2701,15 +1905,8 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, gSizeOfPointerInBytes);
 					break;
 				}
-				// Static Field Address to SizeOf (not possible)
-				case SourceType_SizeOf:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				default:
-					Panic("JIT_Emit_Move: Unknown destination type for Static Field Address");
-					break;
+				Define_Bad_Destinations();
+				Move_Destination_Default(JIT_Emit_Move, Static Field Address);
 			}
 			break;
 		}
@@ -2720,12 +1917,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pSource->Data.Indirect.AddressSource, pRegister1, pRegister2, pRegister3, NULL);
 			switch (pDestination->Type)
 			{
-				// Indirect to Null (not possible)
-				case SourceType_Null:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// Indirect to Local (destination aligned)
 				case SourceType_Local:
 				{
@@ -2764,12 +1955,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					}
 					break;
 				}
-				// Indirect to Local Address (not possible)
-				case SourceType_LocalAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// Indirect to Parameter (destination aligned)
 				case SourceType_Parameter:
 				{
@@ -2806,36 +1991,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 							break;
 						}
 					}
-					break;
-				}
-				// Indirect to Parameter Address (not possible)
-				case SourceType_ParameterAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// Indirect to Constant (not possible)
-				case SourceType_ConstantI4:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// Indirect to Constant (not possible)
-				case SourceType_ConstantI8:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// Indirect to Constant (not possible)
-				case SourceType_ConstantR4:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// Indirect to Constant (not possible)
-				case SourceType_ConstantR8:
-				{
-					Panic("This should not be happening!");
 					break;
 				}
 				// Indirect to Field (neither aligned)
@@ -2884,12 +2039,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 							break;
 						}
 					}
-					break;
-				}
-				// Indirect to Field Address (not possible)
-				case SourceType_FieldAddress:
-				{
-					Panic("This should not be happening!");
 					break;
 				}
 				// Indirect to Static Field (neither aligned)
@@ -2941,12 +2090,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					}
 					break;
 				}
-				// Indirect to Static Field Address (not possible)
-				case SourceType_StaticFieldAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// Indirect to Indirect (neither aligned)
 				case SourceType_Indirect:
 				{
@@ -2994,15 +2137,8 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					}
 					break;
 				}
-				// Indirect to SizeOf (not possible)
-				case SourceType_SizeOf:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				default:
-					Panic("JIT_Emit_Move: Unknown destination type for Indirect");
-					break;
+				Define_Bad_Destinations();
+				Move_Destination_Default(JIT_Emit_Move, Indirect);
 			}			
 			break;
 		}
@@ -3013,12 +2149,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 			uint32_t sizeOfType = JIT_GetSizeOfType(pSource->Data.SizeOf.Type);
 			switch (pDestination->Type)
 			{
-				// SizeOf to Null (not possible)
-				case SourceType_Null:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// SizeOf to Local (both aligned)
 				case SourceType_Local:
 				{
@@ -3026,47 +2156,11 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_mov_membase_imm(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, sizeOfType, 4);
 					break;
 				}
-				// SizeOf to Local Address (not possible)
-				case SourceType_LocalAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// SizeOf to Parameter (both aligned)
 				case SourceType_Parameter:
 				{
 					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Type));
 					x86_mov_membase_imm(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, sizeOfType, 4);
-					break;
-				}
-				// SizeOf to Parameter Address (not possible)
-				case SourceType_ParameterAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// SizeOf to Constant (not possible)
-				case SourceType_ConstantI4:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// SizeOf to Constant (not possible)
-				case SourceType_ConstantI8:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// SizeOf to Constant (not possible)
-				case SourceType_ConstantR4:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				// SizeOf to Constant (not possible)
-				case SourceType_ConstantR8:
-				{
-					Panic("This should not be happening!");
 					break;
 				}
 				// SizeOf to Field (both aligned)
@@ -3077,12 +2171,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
 					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
 					x86_mov_membase_imm(pCompiledCode, pRegister3, field->Offset, sizeOfType, 4);
-					break;
-				}
-				// SizeOf to Field Address (not possible)
-				case SourceType_FieldAddress:
-				{
-					Panic("This should not be happening!");
 					break;
 				}
 				// SizeOf to Static Field (both aligned)
@@ -3097,12 +2185,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_mov_membase_imm(pCompiledCode, pRegister3, 0, sizeOfType, 4);
 					break;
 				}
-				// SizeOf to Static Field Address (not possible)
-				case SourceType_StaticFieldAddress:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
 				// SizeOf to Indirect (both aligned)
 				case SourceType_Indirect:
 				{
@@ -3111,21 +2193,12 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_mov_membase_imm(pCompiledCode, pRegister3, 0, sizeOfType, 4);
 					break;
 				}
-				// SizeOf to SizeOf (not possible)
-				case SourceType_SizeOf:
-				{
-					Panic("This should not be happening!");
-					break;
-				}
-				default:
-					Panic("JIT_Emit_Move: Unknown destination type for SizeOf");
-					break;
+				Define_Bad_Destinations();
+				Move_Destination_Default(JIT_Emit_Move, SizeOf);
 			}
 			break;
 		}
-		default:
-			Panic("Unknown source type for JIT_Emit_Move");
-			break;
+		Source_Default(JIT_Emit_Move);
 	}
 	if (pSize) *pSize = sizeOfDestination;
 	return pCompiledCode;
@@ -3250,16 +2323,6 @@ char* JIT_Emit_Dup(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstr
 	return pCompiledCode;
 }
 
-char* JIT_Emit_Load_Indirect(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
-{
-	return pCompiledCode;
-}
-
-char* JIT_Emit_Store_Indirect(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
-{
-	return pCompiledCode;
-}
-
 char* JIT_Emit_Add(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
 	return pCompiledCode;
@@ -3355,16 +2418,6 @@ char* JIT_Emit_Throw(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pIns
 	return pCompiledCode;
 }
 
-char* JIT_Emit_Load_Object(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
-{
-	return pCompiledCode;
-}
-
-char* JIT_Emit_Store_Object(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
-{
-	return pCompiledCode;
-}
-
 char* JIT_Emit_Copy_Object(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
 	return pCompiledCode;
@@ -3375,32 +2428,12 @@ char* JIT_Emit_New_Object(char* pCompiledCode, IRMethod* pMethod, IRInstruction*
 	return pCompiledCode;
 }
 
-char* JIT_Emit_Load_ArrayLength(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
-{
-	return pCompiledCode;
-}
-
 char* JIT_Emit_New_Array(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
 	return pCompiledCode;
 }
 
 char* JIT_Emit_CheckFinite(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
-{
-	return pCompiledCode;
-}
-
-char* JIT_Emit_Load_Element(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
-{
-	return pCompiledCode;
-}
-
-char* JIT_Emit_Load_ElementAddress(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
-{
-	return pCompiledCode;
-}
-
-char* JIT_Emit_Store_Element(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
 	return pCompiledCode;
 }
@@ -3494,3 +2527,4 @@ char* JIT_Emit_RefAnyType(char* pCompiledCode, IRMethod* pMethod, IRInstruction*
 {
 	return pCompiledCode;
 }
+

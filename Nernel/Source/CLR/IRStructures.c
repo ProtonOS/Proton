@@ -510,6 +510,18 @@ void IRInstruction_Destroy(IRInstruction* pInstruction)
 		free(pInstruction->Source1.Data.Field.FieldSource);
 	else if (pInstruction->Source1.Type == SourceType_FieldAddress)
 		free(pInstruction->Source1.Data.FieldAddress.FieldSource);
+	else if (pInstruction->Source1.Type == SourceType_ArrayLength)
+		free(pInstruction->Source1.Data.ArrayLength.ArraySource);
+	else if (pInstruction->Source1.Type == SourceType_ArrayElement)
+	{
+		free(pInstruction->Source1.Data.ArrayElement.ArraySource);
+		free(pInstruction->Source1.Data.ArrayElement.IndexSource);
+	}
+	else if (pInstruction->Source1.Type == SourceType_ArrayElementAddress)
+	{
+		free(pInstruction->Source1.Data.ArrayElementAddress.ArraySource);
+		free(pInstruction->Source1.Data.ArrayElementAddress.IndexSource);
+	}
 
 	if (pInstruction->Source2.Type == SourceType_Indirect)
 		free(pInstruction->Source2.Data.Indirect.AddressSource);
@@ -517,6 +529,18 @@ void IRInstruction_Destroy(IRInstruction* pInstruction)
 		free(pInstruction->Source2.Data.Field.FieldSource);
 	else if (pInstruction->Source2.Type == SourceType_FieldAddress)
 		free(pInstruction->Source2.Data.FieldAddress.FieldSource);
+	else if (pInstruction->Source2.Type == SourceType_ArrayLength)
+		free(pInstruction->Source2.Data.ArrayLength.ArraySource);
+	else if (pInstruction->Source2.Type == SourceType_ArrayElement)
+	{
+		free(pInstruction->Source2.Data.ArrayElement.ArraySource);
+		free(pInstruction->Source2.Data.ArrayElement.IndexSource);
+	}
+	else if (pInstruction->Source2.Type == SourceType_ArrayElementAddress)
+	{
+		free(pInstruction->Source2.Data.ArrayElementAddress.ArraySource);
+		free(pInstruction->Source2.Data.ArrayElementAddress.IndexSource);
+	}
 
 	if (pInstruction->Source3.Type == SourceType_Indirect)
 		free(pInstruction->Source3.Data.Indirect.AddressSource);
@@ -524,6 +548,18 @@ void IRInstruction_Destroy(IRInstruction* pInstruction)
 		free(pInstruction->Source3.Data.Field.FieldSource);
 	else if (pInstruction->Source3.Type == SourceType_FieldAddress)
 		free(pInstruction->Source3.Data.FieldAddress.FieldSource);
+	else if (pInstruction->Source3.Type == SourceType_ArrayLength)
+		free(pInstruction->Source3.Data.ArrayLength.ArraySource);
+	else if (pInstruction->Source3.Type == SourceType_ArrayElement)
+	{
+		free(pInstruction->Source3.Data.ArrayElement.ArraySource);
+		free(pInstruction->Source3.Data.ArrayElement.IndexSource);
+	}
+	else if (pInstruction->Source3.Type == SourceType_ArrayElementAddress)
+	{
+		free(pInstruction->Source3.Data.ArrayElementAddress.ArraySource);
+		free(pInstruction->Source3.Data.ArrayElementAddress.IndexSource);
+	}
 
 	if (pInstruction->Destination.Type == SourceType_Indirect)
 		free(pInstruction->Destination.Data.Indirect.AddressSource);
@@ -531,6 +567,18 @@ void IRInstruction_Destroy(IRInstruction* pInstruction)
 		free(pInstruction->Destination.Data.Field.FieldSource);
 	else if (pInstruction->Destination.Type == SourceType_FieldAddress)
 		free(pInstruction->Destination.Data.FieldAddress.FieldSource);
+	else if (pInstruction->Destination.Type == SourceType_ArrayLength)
+		free(pInstruction->Destination.Data.ArrayLength.ArraySource);
+	else if (pInstruction->Destination.Type == SourceType_ArrayElement)
+	{
+		free(pInstruction->Destination.Data.ArrayElement.ArraySource);
+		free(pInstruction->Destination.Data.ArrayElement.IndexSource);
+	}
+	else if (pInstruction->Destination.Type == SourceType_ArrayElementAddress)
+	{
+		free(pInstruction->Destination.Data.ArrayElementAddress.ArraySource);
+		free(pInstruction->Destination.Data.ArrayElementAddress.IndexSource);
+	}
 
 	free(pInstruction);
 }

@@ -62,16 +62,10 @@ void JIT_CompileMethod(IRMethod* pMethod)
 				EMITTER(UnboxAny);
 				EMITTER(Box);
 				EMITTER(Throw);
-				EMITTER(Load_Object);
-				EMITTER(Store_Object);
 				EMITTER(Copy_Object);
 				EMITTER(New_Object);
-				EMITTER(Load_ArrayLength);
 				EMITTER(New_Array);
 				EMITTER(CheckFinite);
-				EMITTER(Load_Element);
-				EMITTER(Load_ElementAddress);
-				EMITTER(Store_Element);
 				EMITTER(Allocate_Local);
 				EMITTER(Initialize_Object);
 				EMITTER(Copy_Block);
@@ -110,6 +104,12 @@ void JIT_CompileMethod(IRMethod* pMethod)
 					compiledCode = JIT_Emit_Move_OpCode(compiledCode, pMethod, pMethod->IRCodes[index], branchRegistry);
 					break; 
 				}
+				case IROpcode_Load_ArrayLength:
+				case IROpcode_Load_Element:
+				case IROpcode_Load_ElementAddress:
+				case IROpcode_Store_Element:
+				case IROpcode_Load_Object:
+				case IROpcode_Store_Object:
 				case IROpcode_Load_Indirect:
 				case IROpcode_Store_Indirect:
 				case IROpcode_Load_Parameter:

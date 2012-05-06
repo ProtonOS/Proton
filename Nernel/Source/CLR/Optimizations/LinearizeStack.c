@@ -11,6 +11,8 @@ ElementType GetElementTypeOfSourceType(SourceType sourceType, SourceData sourceD
 {
 	switch(sourceType)
 	{
+		case SourceType_SizeOf:
+		case SourceType_ArrayLength:
 		case SourceType_ConstantI4:
 			return ElementType_I4;
 		case SourceType_ConstantI8:
@@ -23,6 +25,7 @@ ElementType GetElementTypeOfSourceType(SourceType sourceType, SourceData sourceD
 		case SourceType_LocalAddress:
 		case SourceType_ParameterAddress:
 		case SourceType_StaticFieldAddress:
+		case SourceType_ArrayElementAddress:
 			return ElementType_I;
 		case SourceType_Field:
 			return AppDomain_GetElementTypeFromIRType(pMethod->ParentAssembly->ParentDomain, sourceData.Field.ParentType->Fields[sourceData.Field.FieldIndex]->FieldType);
@@ -32,8 +35,13 @@ ElementType GetElementTypeOfSourceType(SourceType sourceType, SourceData sourceD
 			return AppDomain_GetElementTypeFromIRType(pMethod->ParentAssembly->ParentDomain, pMethod->LocalVariables[sourceData.LocalVariable.LocalVariableIndex]->VariableType);
 		case SourceType_Parameter:
 			return AppDomain_GetElementTypeFromIRType(pMethod->ParentAssembly->ParentDomain, pMethod->Parameters[sourceData.Parameter.ParameterIndex]->Type);
-		default:
-			Panic("Invalid SourceType!");
+		case SourceType_Indirect:
+			return AppDomain_GetElementTypeFromIRType(pMethod->ParentAssembly->ParentDomain, sourceData.Indirect.Type);
+		case SourceType_ArrayElement:
+			return AppDomain_GetElementTypeFromIRType(pMethod->ParentAssembly->ParentDomain, sourceData.ArrayElement.ElementType);
+
+		case SourceType_Null:
+			Panic("Invalid Source type!");
 			break;
 	}
 	Panic("Unknown SourceType!");
@@ -46,6 +54,7 @@ IRType* GetIRTypeOfSourceType(SourceType sourceType, SourceData sourceData, IRMe
 	{
 		case SourceType_SizeOf:
 		case SourceType_ConstantI4:
+		case SourceType_ArrayLength:
 			return pMethod->ParentAssembly->ParentDomain->IRAssemblies[0]->Types[pMethod->ParentAssembly->ParentDomain->CachedType___System_Int32->TableIndex - 1];
 		case SourceType_ConstantI8:
 			return pMethod->ParentAssembly->ParentDomain->IRAssemblies[0]->Types[pMethod->ParentAssembly->ParentDomain->CachedType___System_Int64->TableIndex - 1];
@@ -59,6 +68,7 @@ IRType* GetIRTypeOfSourceType(SourceType sourceType, SourceData sourceData, IRMe
 		case SourceType_LocalAddress:
 		case SourceType_ParameterAddress:
 		case SourceType_StaticFieldAddress:
+		case SourceType_ArrayElementAddress:
 			return pMethod->ParentAssembly->ParentDomain->IRAssemblies[0]->Types[pMethod->ParentAssembly->ParentDomain->CachedType___System_IntPtr->TableIndex - 1];
 		case SourceType_Field:
 			return sourceData.Field.ParentType->Fields[sourceData.Field.FieldIndex]->FieldType;
@@ -70,6 +80,8 @@ IRType* GetIRTypeOfSourceType(SourceType sourceType, SourceData sourceData, IRMe
 			return pMethod->Parameters[sourceData.Parameter.ParameterIndex]->Type;
 		case SourceType_Indirect:
 			return sourceData.Indirect.Type;
+		case SourceType_ArrayElement:
+			return sourceData.ArrayElement.ElementType;
 	}
 	Panic("Unknown SourceType!");
 	return NULL;
@@ -343,6 +355,7 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 				ins->Destination.Data.Parameter.ParameterIndex = (uint32_t)ins->Arg1;
 				ins->Arg1 = NULL;
                 break;
+            case IROpcode_Store_Object:
             case IROpcode_Store_Indirect:
 			{
 				obj = Pop();
@@ -357,6 +370,7 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 				ins->Destination.Data.Indirect.AddressSource = sDat;
                 break;
 			}
+            case IROpcode_Load_Object:
             case IROpcode_Load_Indirect:
 			{
 				obj = Pop();
@@ -371,6 +385,92 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 				ins->Source1.Type = SourceType_Indirect;
 				ins->Source1.Data.Indirect.Type = (IRType*)ins->Arg1;
 				ins->Source1.Data.Indirect.AddressSource = sDat;
+				Push(obj);
+                break;
+			}
+            case IROpcode_Load_Element:
+			{
+				obj = Pop();
+				SourceTypeData* sIDat = (SourceTypeData*)calloc(1, sizeof(SourceTypeData));
+				*sIDat = obj->LinearData;
+				PR(obj);
+				obj = Pop();
+				SourceTypeData* sADat = (SourceTypeData*)calloc(1, sizeof(SourceTypeData));
+				*sADat = obj->LinearData;
+				PR(obj);
+				ins->Source1.Type = SourceType_ArrayElement;
+				ins->Source1.Data.ArrayElement.IndexSource = sIDat;
+				ins->Source1.Data.ArrayElement.ArraySource = sADat;
+				ins->Source1.Data.ArrayElement.ElementType = (IRType*)ins->Arg2;
+				ins->Opcode = IROpcode_Move;
+				ins->Arg1 = NULL;
+				ins->Arg2 = NULL;
+				obj = PA();
+				obj->LinearData.Type = SourceType_Local;
+				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal((IRType*)ins->Arg2, pMethod, stack->StackDepth, &stackLocalTable);
+				ins->Destination = obj->LinearData;
+				Push(obj);
+                break;
+			}
+            case IROpcode_Load_ElementAddress:
+			{
+				obj = Pop();
+				SourceTypeData* sIDat = (SourceTypeData*)calloc(1, sizeof(SourceTypeData));
+				*sIDat = obj->LinearData;
+				PR(obj);
+				obj = Pop();
+				SourceTypeData* sADat = (SourceTypeData*)calloc(1, sizeof(SourceTypeData));
+				*sADat = obj->LinearData;
+				PR(obj);
+				ins->Source1.Type = SourceType_ArrayElementAddress;
+				ins->Source1.Data.ArrayElementAddress.IndexSource = sIDat;
+				ins->Source1.Data.ArrayElementAddress.ArraySource = sADat;
+				ins->Source1.Data.ArrayElementAddress.ElementType = (IRType*)ins->Arg2;
+				ins->Opcode = IROpcode_Move;
+				ins->Arg1 = NULL;
+				ins->Arg2 = NULL;
+				obj = PA();
+				obj->LinearData.Type = SourceType_Local;
+				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, ElementType_I), pMethod, stack->StackDepth, &stackLocalTable);
+				ins->Destination = obj->LinearData;
+				Push(obj);
+                break;
+			}
+            case IROpcode_Store_Element:
+			{
+				obj = Pop();
+				ins->Source1 = obj->LinearData;
+				PR(obj);
+				obj = Pop();
+				SourceTypeData* sIDat = (SourceTypeData*)calloc(1, sizeof(SourceTypeData));
+				*sIDat = obj->LinearData;
+				PR(obj);
+				obj = Pop();
+				SourceTypeData* sADat = (SourceTypeData*)calloc(1, sizeof(SourceTypeData));
+				*sADat = obj->LinearData;
+				PR(obj);
+				ins->Destination.Type = SourceType_ArrayElement;
+				ins->Destination.Data.ArrayElement.IndexSource = sIDat;
+				ins->Destination.Data.ArrayElement.ArraySource = sADat;
+				ins->Destination.Data.ArrayElement.ElementType = (IRType*)ins->Arg2;
+				ins->Opcode = IROpcode_Move;
+				ins->Arg1 = NULL;
+				ins->Arg2 = NULL;
+                break;
+			}
+            case IROpcode_Load_ArrayLength:
+			{
+				obj = Pop();
+				SourceTypeData* sDat = (SourceTypeData*)calloc(1, sizeof(SourceTypeData));
+				*sDat = obj->LinearData;
+				PR(obj);
+				ins->Source1.Type = SourceType_ArrayLength;
+				ins->Source1.Data.ArrayLength.ArraySource = sDat;
+				ins->Opcode = IROpcode_Move;
+				obj = PA();
+				obj->LinearData.Type = SourceType_Local;
+				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, ElementType_I4), pMethod, stack->StackDepth, &stackLocalTable);
+				ins->Destination = obj->LinearData;
 				Push(obj);
                 break;
 			}
@@ -651,16 +751,6 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 				Push(obj);
                 break;
 			}
-            case IROpcode_Load_ArrayLength:
-				obj = Pop();
-				ins->Source1 = obj->LinearData;
-				PR(obj);
-				obj = PA();
-				obj->LinearData.Type = SourceType_Local;
-				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, ElementType_I4), pMethod, stack->StackDepth, &stackLocalTable);
-				ins->Destination = obj->LinearData;
-				Push(obj);
-                break;
             case IROpcode_New_Array:
 				obj = Pop();
 				ins->Source1 = obj->LinearData;
@@ -692,7 +782,6 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
                 break;
 			// 2 Sources, No Destination
             case IROpcode_Copy_Object:
-            case IROpcode_Store_Object:
 				obj = Pop();
 				ins->Source1 = obj->LinearData;
 				PR(obj);
@@ -722,32 +811,6 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 				obj = PA();
 				obj->LinearData.Type = SourceType_Local;
 				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, (ElementType)(uint32_t)ins->Arg2), pMethod, stack->StackDepth, &stackLocalTable);
-				ins->Destination = obj->LinearData;
-				Push(obj);
-                break;
-            case IROpcode_Load_Element:
-				obj = Pop();
-				ins->Source1 = obj->LinearData;
-				PR(obj);
-				obj = Pop();
-				ins->Source2 = obj->LinearData;
-				PR(obj);
-				obj = PA();
-				obj->LinearData.Type = SourceType_Local;
-				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal((IRType*)ins->Arg2, pMethod, stack->StackDepth, &stackLocalTable);
-				ins->Destination = obj->LinearData;
-				Push(obj);
-                break;
-            case IROpcode_Load_ElementAddress:
-				obj = Pop();
-				ins->Source1 = obj->LinearData;
-				PR(obj);
-				obj = Pop();
-				ins->Source2 = obj->LinearData;
-				PR(obj);
-				obj = PA();
-				obj->LinearData.Type = SourceType_Local;
-				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, ElementType_I), pMethod, stack->StackDepth, &stackLocalTable);
 				ins->Destination = obj->LinearData;
 				Push(obj);
                 break;
@@ -805,16 +868,6 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 				}
                 break;
 			}
-            case IROpcode_Load_Object:
-				obj = Pop();
-				ins->Source1 = obj->LinearData;
-				PR(obj);
-				obj = PA();
-				obj->LinearData.Type = SourceType_Local;
-				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal((IRType*)ins->Arg2, pMethod, stack->StackDepth, &stackLocalTable);
-				ins->Destination = obj->LinearData;
-				Push(obj);
-                break;
             case IROpcode_CheckFinite:
 				obj = Pop();
 				ins->Source1 = obj->LinearData;
