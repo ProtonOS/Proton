@@ -228,6 +228,11 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 				ins->Opcode = IROpcode_Nop;
                 break;
             case IROpcode_Load_Field:
+			{
+				obj = Pop();
+				SourceTypeData* sDat = (SourceTypeData*)calloc(1, sizeof(SourceTypeData));
+				*sDat = obj->LinearData;
+				PR(obj);
 				obj = PA();
 				obj->LinearData.Type = SourceType_Local;
 				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(((IRType*)ins->Arg1)->Fields[((uint32_t)ins->Arg3)]->FieldType, pMethod, stack->StackDepth, &stackLocalTable);
@@ -237,12 +242,19 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 				ins->Source1.Type = SourceType_Field;
 				ins->Source1.Data.Field.FieldIndex = (uint32_t)ins->Arg3;
 				ins->Source1.Data.Field.ParentType = (IRType*)ins->Arg1;
+				ins->Source1.Data.Field.FieldSource = sDat;
 				ins->Arg1 = NULL;
 				ins->Arg2 = NULL;
 				ins->Arg3 = NULL;
 				Push(obj);
                 break;
+			}
             case IROpcode_Load_FieldAddress:
+			{
+				obj = Pop();
+				SourceTypeData* sDat = (SourceTypeData*)calloc(1, sizeof(SourceTypeData));
+				*sDat = obj->LinearData;
+				PR(obj);
 				obj = PA();
 				obj->LinearData.Type = SourceType_Local;
 				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, ElementType_I), pMethod, stack->StackDepth, &stackLocalTable);
@@ -252,11 +264,32 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 				ins->Source1.Type = SourceType_FieldAddress;
 				ins->Source1.Data.FieldAddress.FieldIndex = (uint32_t)ins->Arg3;
 				ins->Source1.Data.FieldAddress.ParentType = (IRType*)ins->Arg1;
+				ins->Source1.Data.FieldAddress.FieldSource = sDat;
 				ins->Arg1 = NULL;
 				ins->Arg2 = NULL;
 				ins->Arg3 = NULL;
 				Push(obj);
                 break;
+			}
+            case IROpcode_Store_Field:
+			{
+				obj = Pop();
+				ins->Source1 = obj->LinearData;
+				PR(obj);
+				obj = Pop();
+				SourceTypeData* sDat = (SourceTypeData*)calloc(1, sizeof(SourceTypeData));
+				*sDat = obj->LinearData;
+				PR(obj);
+				ins->Opcode = IROpcode_Move;
+				ins->Destination.Type = SourceType_Field;
+				ins->Destination.Data.Field.ParentType = (IRType*)ins->Arg1;
+				ins->Destination.Data.Field.FieldIndex = (uint32_t)ins->Arg3;
+				ins->Destination.Data.Field.FieldSource = sDat;
+				ins->Arg1 = NULL;
+				ins->Arg2 = NULL;
+				ins->Arg3 = NULL;
+                break;
+			}
             case IROpcode_Load_StaticField:
 				obj = PA();
 				obj->LinearData.Type = SourceType_Local;
@@ -309,21 +342,6 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 				ins->Destination.Type = SourceType_Parameter;
 				ins->Destination.Data.Parameter.ParameterIndex = (uint32_t)ins->Arg1;
 				ins->Arg1 = NULL;
-                break;
-            case IROpcode_Store_Field:
-				obj = Pop();
-				ins->Source1 = obj->LinearData;
-				PR(obj);
-				obj = Pop();
-				ins->Source2 = obj->LinearData;
-				PR(obj);
-				ins->Opcode = IROpcode_Move;
-				ins->Destination.Type = SourceType_Field;
-				ins->Destination.Data.Field.ParentType = (IRType*)ins->Arg1;
-				ins->Destination.Data.Field.FieldIndex = (uint32_t)ins->Arg3;
-				ins->Arg1 = NULL;
-				ins->Arg2 = NULL;
-				ins->Arg3 = NULL;
                 break;
             case IROpcode_Store_Indirect:
 			{

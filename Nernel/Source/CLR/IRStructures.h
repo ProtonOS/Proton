@@ -323,11 +323,13 @@ typedef union SourceData
 	{
 		uint32_t FieldIndex;
 		IRType* ParentType;
+		SourceTypeData* FieldSource;
 	} Field;
 	struct FieldAddress
 	{
 		uint32_t FieldIndex;
 		IRType* ParentType;
+		SourceTypeData* FieldSource;
 	} FieldAddress;
 	struct StaticField
 	{

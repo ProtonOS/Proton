@@ -506,11 +506,31 @@ void IRInstruction_Destroy(IRInstruction* pInstruction)
 	Log_WriteLine(LOGLEVEL__Memory, "Memory: IRInstruction_Destroy @ 0x%x", (unsigned int)pInstruction);
 	if (pInstruction->Source1.Type == SourceType_Indirect)
 		free(pInstruction->Source1.Data.Indirect.AddressSource);
+	else if (pInstruction->Source1.Type == SourceType_Field)
+		free(pInstruction->Source1.Data.Field.FieldSource);
+	else if (pInstruction->Source1.Type == SourceType_FieldAddress)
+		free(pInstruction->Source1.Data.FieldAddress.FieldSource);
+
 	if (pInstruction->Source2.Type == SourceType_Indirect)
 		free(pInstruction->Source2.Data.Indirect.AddressSource);
+	else if (pInstruction->Source2.Type == SourceType_Field)
+		free(pInstruction->Source2.Data.Field.FieldSource);
+	else if (pInstruction->Source2.Type == SourceType_FieldAddress)
+		free(pInstruction->Source2.Data.FieldAddress.FieldSource);
+
 	if (pInstruction->Source3.Type == SourceType_Indirect)
 		free(pInstruction->Source3.Data.Indirect.AddressSource);
+	else if (pInstruction->Source3.Type == SourceType_Field)
+		free(pInstruction->Source3.Data.Field.FieldSource);
+	else if (pInstruction->Source3.Type == SourceType_FieldAddress)
+		free(pInstruction->Source3.Data.FieldAddress.FieldSource);
+
 	if (pInstruction->Destination.Type == SourceType_Indirect)
 		free(pInstruction->Destination.Data.Indirect.AddressSource);
+	else if (pInstruction->Destination.Type == SourceType_Field)
+		free(pInstruction->Destination.Data.Field.FieldSource);
+	else if (pInstruction->Destination.Type == SourceType_FieldAddress)
+		free(pInstruction->Destination.Data.FieldAddress.FieldSource);
+
 	free(pInstruction);
 }
