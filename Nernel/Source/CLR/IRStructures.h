@@ -264,6 +264,8 @@ struct _IRGenericMethod
 IRGenericMethod* IRGenericMethod_Create(IRType* pParentType, IRMethod* pGenericMethod, IRMethod* pImplementationMethod);
 void IRGenericMethod_Destroy(IRGenericMethod* pGenericType);
 
+typedef struct _SourceTypeData SourceTypeData;
+
 typedef enum SourceType
 {
 	SourceType_Null,
@@ -338,6 +340,7 @@ typedef union SourceData
 	struct Indirect
 	{
 		IRType* Type;
+		SourceTypeData* AddressSource;
 	} Indirect;
 	struct SizeOf
 	{
@@ -345,11 +348,11 @@ typedef union SourceData
 	} SizeOf;
 } SourceData;
 
-typedef struct SourceTypeData
+struct _SourceTypeData
 {
 	SourceType Type;
 	SourceData Data;
-} SourceTypeData;
+} _SourceTypeData;
 
 struct _IRInstruction
 {

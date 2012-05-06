@@ -43,8 +43,6 @@ void JIT_CompileMethod(IRMethod* pMethod)
 				EMITTER(Return);
 				EMITTER(Load_String);
 				EMITTER(Dup);
-				EMITTER(Load_Indirect);
-				EMITTER(Store_Indirect);
 				EMITTER(Add);
 				EMITTER(Sub);
 				EMITTER(Mul);
@@ -112,6 +110,8 @@ void JIT_CompileMethod(IRMethod* pMethod)
 					compiledCode = JIT_Emit_Move_OpCode(compiledCode, pMethod, pMethod->IRCodes[index], branchRegistry);
 					break; 
 				}
+				case IROpcode_Load_Indirect:
+				case IROpcode_Store_Indirect:
 				case IROpcode_Load_Parameter:
 				case IROpcode_Load_ParameterAddress:
 				case IROpcode_Store_Parameter:

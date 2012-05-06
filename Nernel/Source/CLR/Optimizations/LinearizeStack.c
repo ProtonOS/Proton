@@ -68,6 +68,8 @@ IRType* GetIRTypeOfSourceType(SourceType sourceType, SourceData sourceData, IRMe
 			return pMethod->LocalVariables[sourceData.LocalVariable.LocalVariableIndex]->VariableType;
 		case SourceType_Parameter:
 			return pMethod->Parameters[sourceData.Parameter.ParameterIndex]->Type;
+		case SourceType_Indirect:
+			return sourceData.Indirect.Type;
 	}
 	Panic("Unknown SourceType!");
 	return NULL;
@@ -323,6 +325,37 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 				ins->Arg2 = NULL;
 				ins->Arg3 = NULL;
                 break;
+            case IROpcode_Store_Indirect:
+			{
+				obj = Pop();
+				ins->Source1 = obj->LinearData;
+				PR(obj);
+				obj = Pop();
+				SourceTypeData* sDat = (SourceTypeData*)calloc(1, sizeof(SourceTypeData));
+				*sDat = obj->LinearData;
+				PR(obj);
+				ins->Destination.Type = SourceType_Indirect;
+				ins->Destination.Data.Indirect.Type = (IRType*)ins->Arg1;
+				ins->Destination.Data.Indirect.AddressSource = sDat;
+                break;
+			}
+            case IROpcode_Load_Indirect:
+			{
+				obj = Pop();
+				SourceTypeData* sDat = (SourceTypeData*)calloc(1, sizeof(SourceTypeData));
+				*sDat = obj->LinearData;
+				PR(obj);
+				obj = PA();
+				obj->LinearData.Type = SourceType_Local;
+				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal((IRType*)ins->Arg1, pMethod, stack->StackDepth, &stackLocalTable);
+				ins->Destination = obj->LinearData;
+				ins->Opcode = IROpcode_Move;
+				ins->Source1.Type = SourceType_Indirect;
+				ins->Source1.Data.Indirect.Type = (IRType*)ins->Arg1;
+				ins->Source1.Data.Indirect.AddressSource = sDat;
+				Push(obj);
+                break;
+			}
 
             case IROpcode_Pop:
 				PR(Pop());
@@ -624,7 +657,6 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 			// 1 Source, 1 Destination Type in Arg1
             case IROpcode_IsInst:
             case IROpcode_CastClass:
-            case IROpcode_Load_Indirect:
 				obj = Pop();
 				ins->Source1 = obj->LinearData;
 				PR(obj);
@@ -633,7 +665,7 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal((IRType*)ins->Arg1, pMethod, stack->StackDepth, &stackLocalTable);
 				ins->Destination = obj->LinearData;
 				Push(obj);
-                break;
+				break;
 			// 1 Source, No Destination
             case IROpcode_Initialize_Object:
 				obj = Pop();
@@ -643,7 +675,6 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 			// 2 Sources, No Destination
             case IROpcode_Copy_Object:
             case IROpcode_Store_Object:
-            case IROpcode_Store_Indirect:
 				obj = Pop();
 				ins->Source1 = obj->LinearData;
 				PR(obj);
