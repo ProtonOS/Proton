@@ -103,9 +103,7 @@ void JIT_CalculateLocalLayout(IRMethod* pMethod)
 	{
 		IRLocalVariable* local = NULL;
 		// Accounts for current IRMethod* in locals space
-		// Also adds a single 4-byte local for use in
-		// the move function.
-		uint32_t offset = gSizeOfPointerInBytes * 2;
+		uint32_t offset = gSizeOfPointerInBytes;
 		Log_WriteLine(LOGLEVEL__JIT_Layout, "Laying Out Locals of %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
 		for (uint32_t index = 0; index < pMethod->LocalVariableCount; ++index)
 		{
