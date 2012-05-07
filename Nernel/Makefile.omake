@@ -76,6 +76,7 @@
 	Source/CLR/JIT/BranchRegistry.c
 	Source/CLR/JIT/x86/Emitters.c
 	Source/CLR/JIT/x86/Layout.c
+	Source/CLR/Optimizations/CFG.c
 	Source/CLR/Optimizations/LinearizeStack.c
 	Source/CLR/Optimizations/SSA.c
 	Source/System/APIC.c

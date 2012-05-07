@@ -96,9 +96,6 @@
     <ClCompile Include="Source\CLR\Optimizations\LinearizeStack.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\CLR\Optimizations\SSA.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Source\CLR\JIT.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -109,6 +106,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\CLR\JIT\x86\Layout.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\CLR\Optimizations\CFG.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\CLR\Optimizations\SSA.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -230,9 +233,6 @@
     <ClInclude Include="Source\CLR\Optimizations\LinearizeStack.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\CLR\Optimizations\SSA.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Source\CLR\JIT.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -249,6 +249,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\CLR\GC.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\CLR\Optimizations\CFG.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\CLR\Optimizations\SSA.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
