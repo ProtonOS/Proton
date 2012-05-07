@@ -6,6 +6,7 @@
 #define PRIMARY_REG X86_EAX
 #define SECONDARY_REG X86_EBX
 #define THIRD_REG X86_ECX
+#define FOURTH_REG X86_EDX
 
 //#define MemoryCorruptionChecks
 
@@ -3496,6 +3497,115 @@ char* JIT_Emit_Dup(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstr
 
 char* JIT_Emit_Add(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+	switch((OverflowType)(uint32_t)pInstruction->Arg1)
+	{
+		case OverflowType_Signed:
+		case OverflowType_Unsigned:
+			Panic("Unsupported overflow type!");
+			break;
+		case OverflowType_None: break;
+	}
+	ElementType sAType = (ElementType)(uint32_t)pInstruction->Arg2;
+	ElementType sBType = (ElementType)(uint32_t)pInstruction->Arg3;
+	ElementType destType = (ElementType)0;
+	switch(sAType)
+	{
+		case ElementType_I:
+		case ElementType_U:
+		case ElementType_I1:
+		case ElementType_I2:
+		case ElementType_I4:
+		case ElementType_U1:
+		case ElementType_U2:
+		case ElementType_U4:
+			switch(sBType)
+			{
+				case ElementType_I:
+				case ElementType_U:
+				case ElementType_I1:
+				case ElementType_I2:
+				case ElementType_I4:
+				case ElementType_U1:
+				case ElementType_U2:
+				case ElementType_U4:
+					destType = ElementType_I4;
+					break;
+				case ElementType_I8:
+				case ElementType_U8:
+					destType = ElementType_I8;
+					break;
+				case ElementType_R4:
+				case ElementType_R8:
+					Panic("Invalid parameter!");
+					break;
+			}
+			break;
+		case ElementType_I8:
+		case ElementType_U8:
+			destType = ElementType_I8;
+			break;
+		case ElementType_R4:
+		case ElementType_R8:
+			destType = ElementType_R8;
+			break;
+	}
+
+	if (SourceTypeData_Equal(pInstruction->Source1, pInstruction->Destination))
+	{
+		if (pInstruction->Source2.Type == SourceType_ConstantI4)
+		{
+			if (pInstruction->Source1.Type == SourceType_Local)
+			{
+				x86_alu_membase_imm(pCompiledCode, X86_ADD, X86_EBP, -pMethod->LocalVariables[pInstruction->Source1.Data.LocalVariable.LocalVariableIndex]->Offset, pInstruction->Source2.Data.ConstantI4.Value);
+			}
+			else if (pInstruction->Source1.Type == SourceType_Parameter)
+			{
+				x86_alu_membase_imm(pCompiledCode, X86_ADD, X86_EBP, pMethod->Parameters[pInstruction->Source1.Data.Parameter.ParameterIndex]->Offset, pInstruction->Source2.Data.ConstantI4.Value);
+			}
+			else
+			{
+				pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+				x86_alu_reg_imm(pCompiledCode, X86_ADD, PRIMARY_REG, pInstruction->Source2.Data.ConstantI4.Value);
+				pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+			}
+		}
+		else
+		{
+			switch(destType)
+			{
+				case ElementType_I4:
+				{
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					if (pInstruction->Source1.Type == SourceType_Local)
+					{
+						x86_alu_membase_reg(pCompiledCode, X86_ADD, X86_EBP, -pMethod->LocalVariables[pInstruction->Source1.Data.LocalVariable.LocalVariableIndex]->Offset, PRIMARY_REG);
+					}
+					else if (pInstruction->Source1.Type == SourceType_Parameter)
+					{
+						x86_alu_membase_reg(pCompiledCode, X86_ADD, X86_EBP, pMethod->Parameters[pInstruction->Source1.Data.Parameter.ParameterIndex]->Offset, PRIMARY_REG);
+					}
+					else
+					{
+						pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, FOURTH_REG, SECONDARY_REG, THIRD_REG, NULL);
+						x86_alu_reg_reg(pCompiledCode, X86_ADD, FOURTH_REG, PRIMARY_REG);
+						pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, FOURTH_REG, SECONDARY_REG, THIRD_REG, NULL);
+					}
+					break;
+				}
+				case ElementType_I8:
+					//break;
+				case ElementType_R8:
+					//break;
+				default:
+					Panic("Invalid destination type!");
+					break;
+			}
+		}
+	}
+	else
+	{
+		Panic("Unsupported!");
+	}
 	return pCompiledCode;
 }
 
