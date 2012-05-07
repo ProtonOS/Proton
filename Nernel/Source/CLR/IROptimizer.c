@@ -2,6 +2,17 @@
 #include <CLR/Optimizations/LinearizeStack.h>
 #include <CLR/Optimizations/SSA.h>
 
+bool_t IROptimizer_ExistsInDominatorTree(IRCodeNode* pDominator, IRCodeNode* pBranch)
+{
+	if (pBranch == pDominator) return TRUE;
+	while (pBranch->Dominator != pBranch)
+	{
+		pBranch = pBranch->Dominator;
+		if (pBranch == pDominator) return TRUE;
+	}
+	return FALSE;
+}
+
 void IROptimizer_Optimize(IRMethod* pMethod)
 {
 	Log_WriteLine(LOGLEVEL__Optimize, "Optimizing %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
@@ -32,6 +43,7 @@ void IROptimizer_Optimize(IRMethod* pMethod)
 	bool_t startNewNode = FALSE;
 	bool_t addBefore = FALSE;
 	uint32_t nodesIndex = 0;
+	currentNode->Index = 0;
 	for (uint32_t index = 0; index < pMethod->IRCodesCount; ++index)
 	{
 		instruction = pMethod->IRCodes[index];
@@ -60,6 +72,7 @@ void IROptimizer_Optimize(IRMethod* pMethod)
 			nodes = (IRCodeNode**)realloc(nodes, nodesCount * sizeof(IRCodeNode*));
 			nodes[nodesIndex] = IRCodeNode_Create();
 			currentNode = nodes[nodesIndex];
+			currentNode->Index = nodesIndex;
 			if (!addBefore)
 			{
 				IRCodeNode_AddInstruction(currentNode, index);
@@ -72,7 +85,8 @@ void IROptimizer_Optimize(IRMethod* pMethod)
 	Log_WriteLine(LOGLEVEL__Optimize, "Identified %u nodes", (unsigned int)nodesCount);
 
 	// Now we should have an array of IRCodeNode's that describe the blocks of code,
-	// but they have not been linked to each other yet through dominance checks
+	// but they have not been linked to each other yet through flow checks to create
+	// the control flow graph
 	uint32_t instructionIndex = 0;
 	for (uint32_t index = 0; index < nodesCount; ++index)
 	{
@@ -91,7 +105,7 @@ void IROptimizer_Optimize(IRMethod* pMethod)
 					break;
 				}
 			}
-			if (!childNode) Panic("Unable to locate child for dominator linking");
+			if (!childNode) Panic("Unable to locate child for flow linking");
 			if ((BranchCondition)(uint32_t)instruction->Arg1 != BranchCondition_Always)
 			{
 				IRCodeNode_AddRelationship(currentNode, nodes[index + 1]);
@@ -100,6 +114,40 @@ void IROptimizer_Optimize(IRMethod* pMethod)
 			IRCodeNode_AddRelationship(currentNode, childNode);
 			Log_WriteLine(LOGLEVEL__Optimize, "Connected parent %u to child %u", (unsigned int)index, (unsigned int)searchIndex);
 		}
+		else if (instruction->Opcode == IROpcode_Return) continue;
+		else
+		{
+			IRCodeNode_AddRelationship(currentNode, nodes[index + 1]);
+			Log_WriteLine(LOGLEVEL__Optimize, "Connected parent %u to child %u", (unsigned int)index, (unsigned int)(index + 1));
+		}
+	}
+	
+	// Now we should have an accurate control flow graph, we need to calculate the
+	// dominance tree, which determines exactly which node strictly dominates each node
+	for (uint32_t index = 0; index < nodesCount; ++index)
+	{
+		currentNode = nodes[index];
+		if (currentNode->ParentsCount == 0) currentNode->Dominator = currentNode;
+		else if (currentNode->ParentsCount == 1) currentNode->Dominator = currentNode->Parents[0];
+		else
+		{
+			IRCodeNode* dominator = nodes[0];
+			for (IRCodeNode* leftNode = currentNode->Parents[0]; leftNode->Dominator != leftNode; leftNode = leftNode->Dominator)
+			{
+				bool_t foundDominator = TRUE;
+				for (uint32_t searchIndex = 1; foundDominator && searchIndex < currentNode->ParentsCount; ++searchIndex)
+				{
+					foundDominator = IROptimizer_ExistsInDominatorTree(leftNode, currentNode->Parents[searchIndex]);
+				}
+				if (foundDominator)
+				{
+					dominator = leftNode;
+					break;
+				}
+			}
+			currentNode->Dominator = dominator;
+		}
+		Log_WriteLine(LOGLEVEL__Optimize, "Node %u dominated by %u", (unsigned int)index, (unsigned int)currentNode->Dominator->Index);
 	}
 
 	IROptimizer_LinearizeStack(pMethod);

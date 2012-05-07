@@ -87,7 +87,6 @@ IRAssembly* ILDecomposition_CreateAssembly(AppDomain* pDomain, CLIFile* pFile)
 		CLIFile_DestroyMetadataToken(token);
 	}
 
-	if (assembly->StaticFieldIndex != assembly->StaticFieldCount) Panic("Somehow we found more statics than we previously allocated space for!");
 	IRType* type = NULL;
 	for (uint32_t index = 1; index <= assembly->FieldCount; ++index)
 	{
@@ -102,6 +101,7 @@ IRAssembly* ILDecomposition_CreateAssembly(AppDomain* pDomain, CLIFile* pFile)
 			Log_WriteLine(LOGLEVEL__FieldLayout, "Adding Static Field %s.%s.%s from table index %i at %i", type->TypeDefinition->Namespace, type->TypeDefinition->Name, assembly->ParentFile->Fields[index].Name, (int)assembly->ParentFile->Fields[index].TableIndex, (int)field->StaticFieldIndex);
 		}
 	}
+	if (assembly->StaticFieldIndex != assembly->StaticFieldCount) Panic("Somehow we found more statics than we previously allocated space for, means we would corrupted memory!");
 	JIT_CalculateStaticFieldLayout(assembly);
 	return assembly;
 }

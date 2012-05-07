@@ -790,7 +790,6 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 				PR(obj);
                 break;
 			// 3 Sources, No Destination
-            case IROpcode_Store_Element:
             case IROpcode_Initialize_Block:
             case IROpcode_Copy_Block:
 				obj = Pop();

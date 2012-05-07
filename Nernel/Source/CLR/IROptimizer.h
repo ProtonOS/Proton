@@ -6,6 +6,7 @@ typedef struct _IRCodeNode IRCodeNode;
 
 struct _IRCodeNode
 {
+	uint32_t Index;
 	uint32_t* Instructions;
 	uint32_t InstructionsCount;
 
