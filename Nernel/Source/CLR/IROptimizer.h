@@ -13,6 +13,9 @@ struct _IRCodeNode
 	uint32_t ParentsCount;
 	IRCodeNode** Children;
 	uint32_t ChildrenCount;
+
+	IRCodeNode* Dominator;
+	bool_t IsFrontier;
 };
 
 void IROptimizer_Optimize(IRMethod* pMethod);

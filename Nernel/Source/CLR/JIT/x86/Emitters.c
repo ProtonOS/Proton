@@ -764,6 +764,26 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_mov_membase_imm(pCompiledCode, pRegister3, 0, 0, gSizeOfPointerInBytes);
 					break;
 				}
+				// Null to ArrayElement (both aligned)
+				case SourceType_ArrayElement:
+				{
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.ArrayElement.ArraySource, pRegister3, pRegister2, pRegister1, NULL);
+					if (pDestination->Data.ArrayElement.IndexSource->Type == SourceType_ConstantI4)
+					{
+						x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, sizeOfDestination * pDestination->Data.ArrayElement.IndexSource->Data.ConstantI4.Value);
+					}
+					else
+					{
+						x86_push_reg(pCompiledCode, pRegister3);
+						pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.ArrayElement.IndexSource, pRegister2, pRegister1, pRegister3, NULL);
+						x86_pop_reg(pCompiledCode, pRegister3);
+
+						if (sizeOfDestination != 1) x86_imul_reg_reg_imm(pCompiledCode, pRegister2, pRegister2, sizeOfDestination);
+						x86_alu_reg_reg(pCompiledCode, X86_ADD, pRegister3, pRegister2);
+					}
+					x86_mov_membase_imm(pCompiledCode, pRegister3, 0, 0, gSizeOfPointerInBytes);
+					break;
+				}
 				Define_Bad_Destinations();
 				Move_Destination_Default(JIT_Emit_Move, Null);
 			}
@@ -966,6 +986,61 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					}
 					break;
 				}
+				// Local to ArrayElement (source aligned)
+				case SourceType_ArrayElement:
+				{
+					sizeOfDestination = JIT_GetStackSizeOfType(pDestination->Data.ArrayElement.ElementType);
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.ArrayElement.ArraySource, pRegister3, pRegister2, pRegister1, NULL);
+					if (pDestination->Data.ArrayElement.IndexSource->Type == SourceType_ConstantI4)
+					{
+						x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, sizeOfDestination * pDestination->Data.ArrayElement.IndexSource->Data.ConstantI4.Value);
+					}
+					else
+					{
+						x86_push_reg(pCompiledCode, pRegister3);
+						pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.ArrayElement.IndexSource, pRegister2, pRegister1, pRegister3, NULL);
+						x86_pop_reg(pCompiledCode, pRegister3);
+
+						if (sizeOfDestination != 1) x86_imul_reg_reg_imm(pCompiledCode, pRegister2, pRegister2, sizeOfDestination);
+						x86_alu_reg_reg(pCompiledCode, X86_ADD, pRegister3, pRegister2);
+					}
+					switch (sizeOfDestination)
+					{
+						case 1:
+						case 2:
+						case 3:
+						case 4:
+							x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, -pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset, 4);
+							x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister2, sizeOfDestination);
+							break;
+						case 5:
+						case 6:
+						case 7:
+						case 8:
+							x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, -pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset, 4);
+							x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister2, 4);
+							x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, -(pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset - 4), 4);
+							x86_mov_membase_reg(pCompiledCode, pRegister3, 4, pRegister2, sizeOfDestination - 4);
+							break;
+						default:
+						{
+							uint32_t count = sizeOfDestination >> gPointerDivideShift;
+							for (uint32_t index = 0; index < count; index++)
+							{
+								x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, -(pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset - (index << gPointerDivideShift)), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, pRegister3, (index << gPointerDivideShift), pRegister2, gSizeOfPointerInBytes);
+							}
+							uint32_t remainder = sizeOfDestination & (gSizeOfPointerInBytes - 1);
+							if (remainder)
+							{
+								x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, -(pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset - (count << gPointerDivideShift)), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, pRegister3, (count << gPointerDivideShift), pRegister2, remainder);
+							}
+							break;
+						}
+					}
+					break;
+				}
 				Define_Bad_Destinations();
 				Move_Destination_Default(JIT_Emit_Move, Local);
 			}
@@ -1020,6 +1095,31 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_push_reg(pCompiledCode, pRegister1);
 					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Indirect.AddressSource, pRegister3, pRegister2, pRegister1, NULL);
 					x86_pop_reg(pCompiledCode, pRegister1);
+					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, gSizeOfPointerInBytes);
+					break;
+				}
+				// Local Address to ArrayElement (both aligned)
+				case SourceType_ArrayElement:
+				{
+					sizeOfDestination = JIT_GetStackSizeOfType(pDestination->Data.ArrayElement.ElementType);
+					x86_push_reg(pCompiledCode, pRegister1);
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.ArrayElement.ArraySource, pRegister3, pRegister2, pRegister1, NULL);
+					x86_pop_reg(pCompiledCode, pRegister1);
+					if (pDestination->Data.ArrayElement.IndexSource->Type == SourceType_ConstantI4)
+					{
+						x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, sizeOfDestination * pDestination->Data.ArrayElement.IndexSource->Data.ConstantI4.Value);
+					}
+					else
+					{
+						x86_push_reg(pCompiledCode, pRegister1);
+						x86_push_reg(pCompiledCode, pRegister3);
+						pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.ArrayElement.IndexSource, pRegister2, pRegister1, pRegister3, NULL);
+						x86_pop_reg(pCompiledCode, pRegister3);
+						x86_pop_reg(pCompiledCode, pRegister1);
+
+						if (sizeOfDestination != 1) x86_imul_reg_reg_imm(pCompiledCode, pRegister2, pRegister2, sizeOfDestination);
+						x86_alu_reg_reg(pCompiledCode, X86_ADD, pRegister3, pRegister2);
+					}
 					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, gSizeOfPointerInBytes);
 					break;
 				}
@@ -1225,6 +1325,61 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					}
 					break;
 				}
+				// Parameter to ArrayElement (source aligned)
+				case SourceType_ArrayElement:
+				{
+					sizeOfDestination = JIT_GetStackSizeOfType(pDestination->Data.ArrayElement.ElementType);
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.ArrayElement.ArraySource, pRegister3, pRegister2, pRegister1, NULL);
+					if (pDestination->Data.ArrayElement.IndexSource->Type == SourceType_ConstantI4)
+					{
+						x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, sizeOfDestination * pDestination->Data.ArrayElement.IndexSource->Data.ConstantI4.Value);
+					}
+					else
+					{
+						x86_push_reg(pCompiledCode, pRegister3);
+						pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.ArrayElement.IndexSource, pRegister2, pRegister1, pRegister3, NULL);
+						x86_pop_reg(pCompiledCode, pRegister3);
+
+						if (sizeOfDestination != 1) x86_imul_reg_reg_imm(pCompiledCode, pRegister2, pRegister2, sizeOfDestination);
+						x86_alu_reg_reg(pCompiledCode, X86_ADD, pRegister3, pRegister2);
+					}
+					switch (sizeOfDestination)
+					{
+						case 1:
+						case 2:
+						case 3:
+						case 4:
+							x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset, 4);
+							x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister2, sizeOfDestination);
+							break;
+						case 5:
+						case 6:
+						case 7:
+						case 8:
+							x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset, 4);
+							x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister2, 4);
+							x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, (pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset + 4), 4);
+							x86_mov_membase_reg(pCompiledCode, pRegister3, 4, pRegister2, sizeOfDestination - 4);
+							break;
+						default:
+						{
+							uint32_t count = sizeOfDestination >> gPointerDivideShift;
+							for (uint32_t index = 0; index < count; index++)
+							{
+								x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, (pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset + (index << gPointerDivideShift)), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, pRegister3, (index << gPointerDivideShift), pRegister2, gSizeOfPointerInBytes);
+							}
+							uint32_t remainder = sizeOfDestination & (gSizeOfPointerInBytes - 1);
+							if (remainder)
+							{
+								x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, (pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset + (count << gPointerDivideShift)), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, pRegister3, (count << gPointerDivideShift), pRegister2, remainder);
+							}
+							break;
+						}
+					}
+					break;
+				}
 				Define_Bad_Destinations();
 				Move_Destination_Default(JIT_Emit_Move, Parameter);
 			}
@@ -1282,6 +1437,31 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, gSizeOfPointerInBytes);
 					break;
 				}
+				// Parameter Address to ArrayElement (both aligned)
+				case SourceType_ArrayElement:
+				{
+					sizeOfDestination = JIT_GetStackSizeOfType(pDestination->Data.ArrayElement.ElementType);
+					x86_push_reg(pCompiledCode, pRegister1);
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.ArrayElement.ArraySource, pRegister3, pRegister2, pRegister1, NULL);
+					x86_pop_reg(pCompiledCode, pRegister1);
+					if (pDestination->Data.ArrayElement.IndexSource->Type == SourceType_ConstantI4)
+					{
+						x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, sizeOfDestination * pDestination->Data.ArrayElement.IndexSource->Data.ConstantI4.Value);
+					}
+					else
+					{
+						x86_push_reg(pCompiledCode, pRegister1);
+						x86_push_reg(pCompiledCode, pRegister3);
+						pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.ArrayElement.IndexSource, pRegister2, pRegister1, pRegister3, NULL);
+						x86_pop_reg(pCompiledCode, pRegister3);
+						x86_pop_reg(pCompiledCode, pRegister1);
+
+						if (sizeOfDestination != 1) x86_imul_reg_reg_imm(pCompiledCode, pRegister2, pRegister2, sizeOfDestination);
+						x86_alu_reg_reg(pCompiledCode, X86_ADD, pRegister3, pRegister2);
+					}
+					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, gSizeOfPointerInBytes);
+					break;
+				}
 				Define_Bad_Destinations();
 				Move_Destination_Default(JIT_Emit_Move, Parameter Address);
 			}
@@ -1334,6 +1514,27 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				{
 					sizeOfDestination = JIT_GetStackSizeOfType(pDestination->Data.Indirect.Type);
 					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Indirect.AddressSource, pRegister3, pRegister2, pRegister1, NULL);
+					x86_mov_membase_imm(pCompiledCode, pRegister3, 0, pSource->Data.ConstantI4.Value, 4);
+					break;
+				}
+				// ConstantI4 to ArrayElement (both aligned)
+				case SourceType_ArrayElement:
+				{
+					sizeOfDestination = JIT_GetStackSizeOfType(pDestination->Data.ArrayElement.ElementType);
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.ArrayElement.ArraySource, pRegister3, pRegister2, pRegister1, NULL);
+					if (pDestination->Data.ArrayElement.IndexSource->Type == SourceType_ConstantI4)
+					{
+						x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, sizeOfDestination * pDestination->Data.ArrayElement.IndexSource->Data.ConstantI4.Value);
+					}
+					else
+					{
+						x86_push_reg(pCompiledCode, pRegister3);
+						pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.ArrayElement.IndexSource, pRegister2, pRegister1, pRegister3, NULL);
+						x86_pop_reg(pCompiledCode, pRegister3);
+
+						if (sizeOfDestination != 1) x86_imul_reg_reg_imm(pCompiledCode, pRegister2, pRegister2, sizeOfDestination);
+						x86_alu_reg_reg(pCompiledCode, X86_ADD, pRegister3, pRegister2);
+					}
 					x86_mov_membase_imm(pCompiledCode, pRegister3, 0, pSource->Data.ConstantI4.Value, 4);
 					break;
 				}
@@ -1393,6 +1594,28 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_mov_membase_imm(pCompiledCode, pRegister3, 4, pSource->Data.ConstantI8.Value >> 32, 4);
 					break;
 				}
+				// ConstantI8 to ArrayElement (both aligned)
+				case SourceType_ArrayElement:
+				{
+					sizeOfDestination = JIT_GetStackSizeOfType(pDestination->Data.ArrayElement.ElementType);
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.ArrayElement.ArraySource, pRegister3, pRegister2, pRegister1, NULL);
+					if (pDestination->Data.ArrayElement.IndexSource->Type == SourceType_ConstantI4)
+					{
+						x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, sizeOfDestination * pDestination->Data.ArrayElement.IndexSource->Data.ConstantI4.Value);
+					}
+					else
+					{
+						x86_push_reg(pCompiledCode, pRegister3);
+						pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.ArrayElement.IndexSource, pRegister2, pRegister1, pRegister3, NULL);
+						x86_pop_reg(pCompiledCode, pRegister3);
+
+						if (sizeOfDestination != 1) x86_imul_reg_reg_imm(pCompiledCode, pRegister2, pRegister2, sizeOfDestination);
+						x86_alu_reg_reg(pCompiledCode, X86_ADD, pRegister3, pRegister2);
+					}
+					x86_mov_membase_imm(pCompiledCode, pRegister3, 0, pSource->Data.ConstantI8.Value, 4);
+					x86_mov_membase_imm(pCompiledCode, pRegister3, 4, pSource->Data.ConstantI8.Value >> 32, 4);
+					break;
+				}
 				Define_Bad_Destinations();
 				Move_Destination_Default(JIT_Emit_Move, ConstantI8);
 			}
@@ -1445,6 +1668,27 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				{
 					sizeOfDestination = JIT_GetStackSizeOfType(pDestination->Data.Indirect.Type);
 					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Indirect.AddressSource, pRegister3, pRegister2, pRegister1, NULL);
+					x86_mov_membase_imm(pCompiledCode, pRegister3, 0, pSource->Data.ConstantR4.Value, 4);
+					break;
+				}
+				// ConstantR4 to ArrayElement (both aligned)
+				case SourceType_ArrayElement:
+				{
+					sizeOfDestination = JIT_GetStackSizeOfType(pDestination->Data.ArrayElement.ElementType);
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.ArrayElement.ArraySource, pRegister3, pRegister2, pRegister1, NULL);
+					if (pDestination->Data.ArrayElement.IndexSource->Type == SourceType_ConstantI4)
+					{
+						x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, sizeOfDestination * pDestination->Data.ArrayElement.IndexSource->Data.ConstantI4.Value);
+					}
+					else
+					{
+						x86_push_reg(pCompiledCode, pRegister3);
+						pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.ArrayElement.IndexSource, pRegister2, pRegister1, pRegister3, NULL);
+						x86_pop_reg(pCompiledCode, pRegister3);
+
+						if (sizeOfDestination != 1) x86_imul_reg_reg_imm(pCompiledCode, pRegister2, pRegister2, sizeOfDestination);
+						x86_alu_reg_reg(pCompiledCode, X86_ADD, pRegister3, pRegister2);
+					}
 					x86_mov_membase_imm(pCompiledCode, pRegister3, 0, pSource->Data.ConstantR4.Value, 4);
 					break;
 				}
@@ -1502,6 +1746,28 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Indirect.AddressSource, pRegister3, pRegister2, pRegister1, NULL);
 					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pSource->Data.ConstantR8.Value, 4);
 					x86_mov_membase_reg(pCompiledCode, pRegister3, 4, pSource->Data.ConstantR8.Value >> 32, 4);
+					break;
+				}
+				// ConstantR8 to ArrayElement (both aligned)
+				case SourceType_ArrayElement:
+				{
+					sizeOfDestination = JIT_GetStackSizeOfType(pDestination->Data.ArrayElement.ElementType);
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.ArrayElement.ArraySource, pRegister3, pRegister2, pRegister1, NULL);
+					if (pDestination->Data.ArrayElement.IndexSource->Type == SourceType_ConstantI4)
+					{
+						x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, sizeOfDestination * pDestination->Data.ArrayElement.IndexSource->Data.ConstantI4.Value);
+					}
+					else
+					{
+						x86_push_reg(pCompiledCode, pRegister3);
+						pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.ArrayElement.IndexSource, pRegister2, pRegister1, pRegister3, NULL);
+						x86_pop_reg(pCompiledCode, pRegister3);
+
+						if (sizeOfDestination != 1) x86_imul_reg_reg_imm(pCompiledCode, pRegister2, pRegister2, sizeOfDestination);
+						x86_alu_reg_reg(pCompiledCode, X86_ADD, pRegister3, pRegister2);
+					}
+					x86_mov_membase_imm(pCompiledCode, pRegister3, 0, pSource->Data.ConstantR8.Value, 4);
+					x86_mov_membase_imm(pCompiledCode, pRegister3, 4, pSource->Data.ConstantR8.Value >> 32, 4);
 					break;
 				}
 				Define_Bad_Destinations();
@@ -1741,6 +2007,68 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					}
 					break;
 				}
+				// Field to ArrayElement (neither aligned)
+				case SourceType_ArrayElement:
+				{
+					sizeOfDestination = JIT_GetStackSizeOfType(pDestination->Data.ArrayElement.ElementType);
+					x86_push_reg(pCompiledCode, pRegister1);
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.ArrayElement.ArraySource, pRegister3, pRegister2, pRegister1, NULL);
+					x86_pop_reg(pCompiledCode, pRegister1);
+					if (pDestination->Data.ArrayElement.IndexSource->Type == SourceType_ConstantI4)
+					{
+						x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, sizeOfDestination * pDestination->Data.ArrayElement.IndexSource->Data.ConstantI4.Value);
+					}
+					else
+					{
+						x86_push_reg(pCompiledCode, pRegister1);
+						x86_push_reg(pCompiledCode, pRegister3);
+						pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.ArrayElement.IndexSource, pRegister2, pRegister1, pRegister3, NULL);
+						x86_pop_reg(pCompiledCode, pRegister3);
+						x86_pop_reg(pCompiledCode, pRegister1);
+
+						if (sizeOfDestination != 1) x86_imul_reg_reg_imm(pCompiledCode, pRegister2, pRegister2, sizeOfDestination);
+						x86_alu_reg_reg(pCompiledCode, X86_ADD, pRegister3, pRegister2);
+					}
+					switch (sizeOfDestination)
+					{
+						case 1:
+						case 2:
+						case 3:
+						case 4:
+							x86_alu_reg_reg(pCompiledCode, X86_XOR, pRegister2, pRegister2);
+							x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister1, 0, sizeOfSource);
+							x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister2, sizeOfDestination);
+							break;
+						case 5:
+						case 6:
+						case 7:
+						case 8:
+							x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister1, 0, 4);
+							x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister2, 4);
+							x86_alu_reg_reg(pCompiledCode, X86_XOR, pRegister2, pRegister2);
+							x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister1, 4, sizeOfSource - 4);
+							x86_mov_membase_reg(pCompiledCode, pRegister3, 4, pRegister2, sizeOfDestination - 4);
+							break;
+						default:
+						{
+							uint32_t count = sizeOfDestination >> gPointerDivideShift;
+							for (uint32_t index = 0; index < count; index++)
+							{
+								x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister1, (index << gPointerDivideShift), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, pRegister3, (index << gPointerDivideShift), pRegister2, gSizeOfPointerInBytes);
+							}
+							uint32_t remainder = sizeOfDestination & (gSizeOfPointerInBytes - 1);
+							if (remainder)
+							{
+								x86_alu_reg_reg(pCompiledCode, X86_XOR, pRegister2, pRegister2);
+								x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister1, (count << gPointerDivideShift), remainder);
+								x86_mov_membase_reg(pCompiledCode, pRegister3, (count << gPointerDivideShift), pRegister2, remainder);
+							}
+							break;
+						}
+					}
+					break;
+				}
 				Define_Bad_Destinations();
 				Move_Destination_Default(JIT_Emit_Move, Field);
 			}
@@ -1796,6 +2124,31 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_push_reg(pCompiledCode, pRegister1);
 					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Indirect.AddressSource, pRegister3, pRegister2, pRegister1, NULL);
 					x86_pop_reg(pCompiledCode, pRegister1);
+					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, gSizeOfPointerInBytes);
+					break;
+				}
+				// Field Address to ArrayElement (both aligned)
+				case SourceType_ArrayElement:
+				{
+					sizeOfDestination = JIT_GetStackSizeOfType(pDestination->Data.ArrayElement.ElementType);
+					x86_push_reg(pCompiledCode, pRegister1);
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.ArrayElement.ArraySource, pRegister3, pRegister2, pRegister1, NULL);
+					x86_pop_reg(pCompiledCode, pRegister1);
+					if (pDestination->Data.ArrayElement.IndexSource->Type == SourceType_ConstantI4)
+					{
+						x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, sizeOfDestination * pDestination->Data.ArrayElement.IndexSource->Data.ConstantI4.Value);
+					}
+					else
+					{
+						x86_push_reg(pCompiledCode, pRegister1);
+						x86_push_reg(pCompiledCode, pRegister3);
+						pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.ArrayElement.IndexSource, pRegister2, pRegister1, pRegister3, NULL);
+						x86_pop_reg(pCompiledCode, pRegister3);
+						x86_pop_reg(pCompiledCode, pRegister1);
+
+						if (sizeOfDestination != 1) x86_imul_reg_reg_imm(pCompiledCode, pRegister2, pRegister2, sizeOfDestination);
+						x86_alu_reg_reg(pCompiledCode, X86_ADD, pRegister3, pRegister2);
+					}
 					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, gSizeOfPointerInBytes);
 					break;
 				}
@@ -2037,6 +2390,68 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					}
 					break;
 				}
+				// Static Field to ArrayElement (neither aligned)
+				case SourceType_ArrayElement:
+				{
+					sizeOfDestination = JIT_GetStackSizeOfType(pDestination->Data.ArrayElement.ElementType);
+					x86_push_reg(pCompiledCode, pRegister1);
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.ArrayElement.ArraySource, pRegister3, pRegister2, pRegister1, NULL);
+					x86_pop_reg(pCompiledCode, pRegister1);
+					if (pDestination->Data.ArrayElement.IndexSource->Type == SourceType_ConstantI4)
+					{
+						x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, sizeOfDestination * pDestination->Data.ArrayElement.IndexSource->Data.ConstantI4.Value);
+					}
+					else
+					{
+						x86_push_reg(pCompiledCode, pRegister1);
+						x86_push_reg(pCompiledCode, pRegister3);
+						pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.ArrayElement.IndexSource, pRegister2, pRegister1, pRegister3, NULL);
+						x86_pop_reg(pCompiledCode, pRegister3);
+						x86_pop_reg(pCompiledCode, pRegister1);
+
+						if (sizeOfDestination != 1) x86_imul_reg_reg_imm(pCompiledCode, pRegister2, pRegister2, sizeOfDestination);
+						x86_alu_reg_reg(pCompiledCode, X86_ADD, pRegister3, pRegister2);
+					}
+					switch (sizeOfDestination)
+					{
+						case 1:
+						case 2:
+						case 3:
+						case 4:
+							x86_alu_reg_reg(pCompiledCode, X86_XOR, pRegister2, pRegister2);
+							x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister1, 0, sizeOfSource);
+							x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister2, sizeOfDestination);
+							break;
+						case 5:
+						case 6:
+						case 7:
+						case 8:
+							x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister1, 0, 4);
+							x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister2, 4);
+							x86_alu_reg_reg(pCompiledCode, X86_XOR, pRegister2, pRegister2);
+							x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister1, 4, sizeOfSource - 4);
+							x86_mov_membase_reg(pCompiledCode, pRegister3, 4, pRegister2, sizeOfDestination - 4);
+							break;
+						default:
+						{
+							uint32_t count = sizeOfDestination >> gPointerDivideShift;
+							for (uint32_t index = 0; index < count; index++)
+							{
+								x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister1, (index << gPointerDivideShift), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, pRegister3, (index << gPointerDivideShift), pRegister2, gSizeOfPointerInBytes);
+							}
+							uint32_t remainder = sizeOfDestination & (gSizeOfPointerInBytes - 1);
+							if (remainder)
+							{
+								x86_alu_reg_reg(pCompiledCode, X86_XOR, pRegister2, pRegister2);
+								x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister1, (count << gPointerDivideShift), remainder);
+								x86_mov_membase_reg(pCompiledCode, pRegister3, (count << gPointerDivideShift), pRegister2, remainder);
+							}
+							break;
+						}
+					}
+					break;
+				}
 				Define_Bad_Destinations();
 				Move_Destination_Default(JIT_Emit_Move, Static Field);
 			}
@@ -2094,6 +2509,31 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_push_reg(pCompiledCode, pRegister1);
 					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Indirect.AddressSource, pRegister3, pRegister2, pRegister1, NULL);
 					x86_pop_reg(pCompiledCode, pRegister1);
+					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, gSizeOfPointerInBytes);
+					break;
+				}
+				// Static Field Address to ArrayElement (both aligned)
+				case SourceType_ArrayElement:
+				{
+					sizeOfDestination = JIT_GetStackSizeOfType(pDestination->Data.ArrayElement.ElementType);
+					x86_push_reg(pCompiledCode, pRegister1);
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.ArrayElement.ArraySource, pRegister3, pRegister2, pRegister1, NULL);
+					x86_pop_reg(pCompiledCode, pRegister1);
+					if (pDestination->Data.ArrayElement.IndexSource->Type == SourceType_ConstantI4)
+					{
+						x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, sizeOfDestination * pDestination->Data.ArrayElement.IndexSource->Data.ConstantI4.Value);
+					}
+					else
+					{
+						x86_push_reg(pCompiledCode, pRegister1);
+						x86_push_reg(pCompiledCode, pRegister3);
+						pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.ArrayElement.IndexSource, pRegister2, pRegister1, pRegister3, NULL);
+						x86_pop_reg(pCompiledCode, pRegister3);
+						x86_pop_reg(pCompiledCode, pRegister1);
+
+						if (sizeOfDestination != 1) x86_imul_reg_reg_imm(pCompiledCode, pRegister2, pRegister2, sizeOfDestination);
+						x86_alu_reg_reg(pCompiledCode, X86_ADD, pRegister3, pRegister2);
+					}
 					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, gSizeOfPointerInBytes);
 					break;
 				}
@@ -2331,6 +2771,68 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					}
 					break;
 				}
+				// Indirect to ArrayElement (neither aligned)
+				case SourceType_ArrayElement:
+				{
+					sizeOfDestination = JIT_GetStackSizeOfType(pDestination->Data.ArrayElement.ElementType);
+					x86_push_reg(pCompiledCode, pRegister1);
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.ArrayElement.ArraySource, pRegister3, pRegister2, pRegister1, NULL);
+					x86_pop_reg(pCompiledCode, pRegister1);
+					if (pDestination->Data.ArrayElement.IndexSource->Type == SourceType_ConstantI4)
+					{
+						x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, sizeOfDestination * pDestination->Data.ArrayElement.IndexSource->Data.ConstantI4.Value);
+					}
+					else
+					{
+						x86_push_reg(pCompiledCode, pRegister1);
+						x86_push_reg(pCompiledCode, pRegister3);
+						pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.ArrayElement.IndexSource, pRegister2, pRegister1, pRegister3, NULL);
+						x86_pop_reg(pCompiledCode, pRegister3);
+						x86_pop_reg(pCompiledCode, pRegister1);
+
+						if (sizeOfDestination != 1) x86_imul_reg_reg_imm(pCompiledCode, pRegister2, pRegister2, sizeOfDestination);
+						x86_alu_reg_reg(pCompiledCode, X86_ADD, pRegister3, pRegister2);
+					}
+					switch (sizeOfDestination)
+					{
+						case 1:
+						case 2:
+						case 3:
+						case 4:
+							x86_alu_reg_reg(pCompiledCode, X86_XOR, pRegister2, pRegister2);
+							x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister1, 0, sizeOfSource);
+							x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister2, sizeOfDestination);
+							break;
+						case 5:
+						case 6:
+						case 7:
+						case 8:
+							x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister1, 0, 4);
+							x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister2, 4);
+							x86_alu_reg_reg(pCompiledCode, X86_XOR, pRegister2, pRegister2);
+							x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister1, 4, sizeOfSource - 4);
+							x86_mov_membase_reg(pCompiledCode, pRegister3, 4, pRegister2, sizeOfDestination - 4);
+							break;
+						default:
+						{
+							uint32_t count = sizeOfDestination >> gPointerDivideShift;
+							for (uint32_t index = 0; index < count; index++)
+							{
+								x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister1, (index << gPointerDivideShift), gSizeOfPointerInBytes);
+								x86_mov_membase_reg(pCompiledCode, pRegister3, (index << gPointerDivideShift), pRegister2, gSizeOfPointerInBytes);
+							}
+							uint32_t remainder = sizeOfDestination & (gSizeOfPointerInBytes - 1);
+							if (remainder)
+							{
+								x86_alu_reg_reg(pCompiledCode, X86_XOR, pRegister2, pRegister2);
+								x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister1, (count << gPointerDivideShift), remainder);
+								x86_mov_membase_reg(pCompiledCode, pRegister3, (count << gPointerDivideShift), pRegister2, remainder);
+							}
+							break;
+						}
+					}
+					break;
+				}
 				Define_Bad_Destinations();
 				Move_Destination_Default(JIT_Emit_Move, Indirect);
 			}			
@@ -2384,6 +2886,27 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				{
 					sizeOfDestination = JIT_GetStackSizeOfType(pDestination->Data.Indirect.Type);
 					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Indirect.AddressSource, pRegister3, pRegister2, pRegister1, NULL);
+					x86_mov_membase_imm(pCompiledCode, pRegister3, 0, sizeOfType, 4);
+					break;
+				}
+				// SizeOf to ArrayElement (both aligned)
+				case SourceType_ArrayElement:
+				{
+					sizeOfDestination = JIT_GetStackSizeOfType(pDestination->Data.ArrayElement.ElementType);
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.ArrayElement.ArraySource, pRegister3, pRegister2, pRegister1, NULL);
+					if (pDestination->Data.ArrayElement.IndexSource->Type == SourceType_ConstantI4)
+					{
+						x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, sizeOfDestination * pDestination->Data.ArrayElement.IndexSource->Data.ConstantI4.Value);
+					}
+					else
+					{
+						x86_push_reg(pCompiledCode, pRegister3);
+						pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.ArrayElement.IndexSource, pRegister2, pRegister1, pRegister3, NULL);
+						x86_pop_reg(pCompiledCode, pRegister3);
+
+						if (sizeOfDestination != 1) x86_imul_reg_reg_imm(pCompiledCode, pRegister2, pRegister2, sizeOfDestination);
+						x86_alu_reg_reg(pCompiledCode, X86_ADD, pRegister3, pRegister2);
+					}
 					x86_mov_membase_imm(pCompiledCode, pRegister3, 0, sizeOfType, 4);
 					break;
 				}
