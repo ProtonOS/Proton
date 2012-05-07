@@ -5,6 +5,7 @@ bool_t IROptimizer_ExistsInDominanceTree(IRCodeNode* pDominator, IRCodeNode* pBr
 	if (pBranch == pDominator) return TRUE;
 	while (pBranch->Dominator != pBranch)
 	{
+		if (!pBranch->Dominator) return TRUE;
 		pBranch = pBranch->Dominator;
 		if (pBranch == pDominator) return TRUE;
 	}
