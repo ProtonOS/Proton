@@ -14,6 +14,8 @@ bool_t IROptimizer_ExistsInDominanceTree(IRCodeNode* pDominator, IRCodeNode* pBr
 
 IRCodeNode** IROptimizer_BuildControlFlowGraph(IRMethod* pMethod, uint32_t* pNodesCount)
 {
+	Log_WriteLine(LOGLEVEL__Optimize_SSA, "Started Building CFG for %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
+
 	uint32_t* branchTargets = NULL;
 	uint32_t branchTargetsCount = 0;
 	uint32_t branchTargetsIndex = 0;
@@ -138,5 +140,36 @@ IRCodeNode** IROptimizer_BuildControlFlowGraph(IRMethod* pMethod, uint32_t* pNod
 		}
 		Log_WriteLine(LOGLEVEL__Optimize_CFG, "Node %u is dominated by node %u", (unsigned int)index, (unsigned int)currentNode->Dominator->Index);
 	}
+
+	for (uint32_t index = 0; index < *pNodesCount; ++index)
+	{
+		currentNode = nodes[index];
+		if (currentNode->ParentsCount < 2) continue;
+		for (uint32_t parentIndex = 0; parentIndex < currentNode->ParentsCount; ++parentIndex)
+		{
+			IRCodeNode* parentNode = currentNode->Parents[parentIndex];
+			if (parentNode == currentNode->Dominator)
+			{
+				Log_WriteLine(LOGLEVEL__Optimize_CFG, "Destination Node %u is frontiered with Dominator Source Node %u", (unsigned int)index, (unsigned int)parentNode->Index);
+				IRCodeNode_AddFrontier(parentNode, currentNode);
+			}
+			IRCodeNode* runnerNode = parentNode;
+			while (runnerNode != currentNode->Dominator)
+			{
+				Log_WriteLine(LOGLEVEL__Optimize_CFG, "Destination Node %u is frontiered with Source Node %u", (unsigned int)index, (unsigned int)runnerNode->Index);
+				IRCodeNode_AddFrontier(runnerNode, currentNode);
+				runnerNode = currentNode->Dominator;
+			}
+		}
+	}
+
+	for (uint32_t index = 0; index < *pNodesCount; ++index)
+	{
+		currentNode = nodes[index];
+		if (currentNode->SourceFrontiersCount < 2) continue;
+		Log_WriteLine(LOGLEVEL__Optimize_CFG, "Node %u is a dominance frontier", (unsigned int)index);
+	}
+
+	Log_WriteLine(LOGLEVEL__Optimize_SSA, "Finished Building CFG for %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
 	return nodes;
 }

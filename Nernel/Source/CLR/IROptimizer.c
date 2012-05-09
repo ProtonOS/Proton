@@ -11,9 +11,9 @@ void IROptimizer_Optimize(IRMethod* pMethod)
 	IRCodeNode** nodes = IROptimizer_BuildControlFlowGraph(pMethod, &nodesCount);
 
 	IROptimizer_LinearizeStack(pMethod);
-	IROptimizer_EnterSSA(pMethod, nodes[0]);
+	IROptimizer_EnterSSA(pMethod, nodes, nodesCount);
 
-	IROptimizer_LeaveSSA(pMethod, nodes[0]);
+	IROptimizer_LeaveSSA(pMethod, nodes, nodesCount);
 
 	for (uint32_t index = 0; index < nodesCount; ++index) IRCodeNode_Destroy(nodes[index]);
 	free(nodes);
@@ -29,8 +29,19 @@ IRCodeNode* IRCodeNode_Create()
 
 void IRCodeNode_Destroy(IRCodeNode* pCodeNode)
 {
-	free(pCodeNode->Children);
-	free(pCodeNode->Parents);
+	if (pCodeNode->PhiFunctions)
+	{
+		for (uint32_t index = 0; index < pCodeNode->PhiFunctionsCount; ++index)
+		{
+			IRPhi_Destroy(pCodeNode->PhiFunctions[index]);
+		}
+		free(pCodeNode->PhiFunctions);
+	}
+	if (pCodeNode->FinalIterations) free(pCodeNode->FinalIterations);
+	if (pCodeNode->SourceFrontiers) free(pCodeNode->SourceFrontiers);
+	if (pCodeNode->DestinationFrontiers) free(pCodeNode->DestinationFrontiers);
+	if (pCodeNode->Children) free(pCodeNode->Children);
+	if (pCodeNode->Parents) free(pCodeNode->Parents);
 	free(pCodeNode);
 }
 
@@ -84,4 +95,57 @@ bool_t IRCodeNode_TrimIfContainsInstruction(IRCodeNode* pCodeNode, uint32_t pIns
 		}
 	}
 	return FALSE;
+}
+
+uint32_t IRCodeNode_AddDestinationFrontier(IRCodeNode* pCodeNode, IRCodeNode* pDestinationNode)
+{
+	uint32_t index = pCodeNode->DestinationFrontiersCount;
+	pCodeNode->DestinationFrontiersCount++;
+	pCodeNode->DestinationFrontiers = (IRCodeNode**)realloc(pCodeNode->DestinationFrontiers, pCodeNode->DestinationFrontiersCount * sizeof(IRCodeNode*));
+	pCodeNode->DestinationFrontiers[index] = pDestinationNode;
+	return index;
+}
+
+uint32_t IRCodeNode_AddSourceFrontier(IRCodeNode* pCodeNode, IRCodeNode* pSourceNode)
+{
+	uint32_t index = pCodeNode->SourceFrontiersCount;
+	pCodeNode->SourceFrontiersCount++;
+	pCodeNode->SourceFrontiers = (IRCodeNode**)realloc(pCodeNode->SourceFrontiers, pCodeNode->SourceFrontiersCount * sizeof(IRCodeNode*));
+	pCodeNode->SourceFrontiers[index] = pSourceNode;
+	return index;
+}
+
+void IRCodeNode_AddFrontier(IRCodeNode* pSourceNode, IRCodeNode* pDestinationNode)
+{
+	IRCodeNode_AddDestinationFrontier(pSourceNode, pDestinationNode);
+	IRCodeNode_AddSourceFrontier(pDestinationNode, pSourceNode);
+}
+
+void IRCodeNode_AddPhi(IRCodeNode* pCodeNode, IRPhi* pPhi)
+{
+	uint32_t index = pCodeNode->PhiFunctionsCount;
+	pCodeNode->PhiFunctionsCount++;
+	pCodeNode->PhiFunctions = (IRPhi**)realloc(pCodeNode->PhiFunctions, pCodeNode->PhiFunctionsCount * sizeof(IRPhi*));
+	pCodeNode->PhiFunctions[index] = pPhi;
+}
+
+IRPhi* IRPhi_Create(IRLocalVariable* pResult)
+{
+	IRPhi* phi = (IRPhi*)calloc(1, sizeof(IRPhi));
+	phi->Result = pResult;
+	return phi;
+}
+
+void IRPhi_Destroy(IRPhi* pPhi)
+{
+	if (pPhi->Arguments) free(pPhi->Arguments);
+	free(pPhi);
+}
+
+void IRPhi_AddArgument(IRPhi* pPhi, IRLocalVariable* pArgument)
+{
+	uint32_t index = pPhi->ArgumentsCount;
+	pPhi->ArgumentsCount++;
+	pPhi->Arguments = (IRLocalVariable**)realloc(pPhi->Arguments, pPhi->ArgumentsCount * sizeof(IRLocalVariable*));
+	pPhi->Arguments[index] = pArgument;
 }
