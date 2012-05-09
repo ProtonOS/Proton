@@ -6,6 +6,7 @@ typedef struct _IRType IRType;
 typedef struct _IRMethod IRMethod;
 typedef struct _IRParameter IRParameter;
 typedef struct _IRLocalVariable IRLocalVariable;
+typedef struct _IRLocalSSAData IRLocalSSAData;
 typedef struct _IRField IRField;
 typedef struct _IRArrayType IRArrayType;
 typedef struct _IRInterfaceImpl IRInterfaceImpl;
@@ -168,13 +169,22 @@ struct _IRLocalVariable
 	uint32_t Size;
 	bool_t Pinned;
 
-	IRLocalVariable* Derived;
-	uint32_t Iteration;
+	IRLocalSSAData* SSAData;
 };
 
 IRLocalVariable* IRLocalVariable_Create(IRMethod* pMethod, IRType* pType);
 IRLocalVariable* IRLocalVariable_Copy(IRLocalVariable* pLocalVariable);
 void IRLocalVariable_Destroy(IRLocalVariable* pLocalVariable);
+
+struct _IRLocalSSAData
+{
+	IRLocalVariable* Derived;
+	uint32_t Iteration;
+};
+
+IRLocalSSAData* IRLocalSSAData_Create(IRLocalVariable* pDerivedLocalVariable);
+IRLocalSSAData* IRLocalSSAData_Copy(IRLocalSSAData* pLocalSSAData);
+void IRLocalSSAData_Destroy(IRLocalSSAData* pLocalSSAData);
 
 struct _IRField
 {

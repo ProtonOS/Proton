@@ -377,13 +377,43 @@ IRLocalVariable* IRLocalVariable_Copy(IRLocalVariable* pLocalVariable)
 	IRLocalVariable* localVariable = (IRLocalVariable*)calloc(1, sizeof(IRLocalVariable));
 	Log_WriteLine(LOGLEVEL__Memory, "Memory: IRLocalVariable_Copy @ 0x%x", (unsigned int)localVariable);
 	*localVariable = *pLocalVariable;
+	if (pLocalVariable->SSAData)
+	{
+		localVariable->SSAData = IRLocalSSAData_Copy(pLocalVariable->SSAData);
+	}
 	return localVariable;
 }
 
 void IRLocalVariable_Destroy(IRLocalVariable* pLocalVariable)
 {
 	Log_WriteLine(LOGLEVEL__Memory, "Memory: IRLocalVariable_Destroy @ 0x%x", (unsigned int)pLocalVariable);
+	if (pLocalVariable->SSAData)
+	{
+		IRLocalSSAData_Destroy(pLocalVariable->SSAData);
+	}
 	free(pLocalVariable);
+}
+
+IRLocalSSAData* IRLocalSSAData_Create(IRLocalVariable* pDerivedLocalVariable)
+{
+	IRLocalSSAData* data = (IRLocalSSAData*)calloc(1, sizeof(IRLocalSSAData));
+	Log_WriteLine(LOGLEVEL__Memory, "Memory: IRLocalSSAData_Create @ 0x%x", (unsigned int)data);
+	data->Derived = pDerivedLocalVariable;
+	return data;
+}
+
+IRLocalSSAData* IRLocalSSAData_Copy(IRLocalSSAData* pLocalSSAData)
+{
+	IRLocalSSAData* data = (IRLocalSSAData*)calloc(1, sizeof(IRLocalSSAData));
+	Log_WriteLine(LOGLEVEL__Memory, "Memory: IRLocalSSAData_Copy @ 0x%x", (unsigned int)data);
+	*data = *pLocalSSAData;
+	return data;
+}
+
+void IRLocalSSAData_Destroy(IRLocalSSAData* pLocalSSAData)
+{
+	Log_WriteLine(LOGLEVEL__Memory, "Memory: IRLocalSSAData_Destroy @ 0x%x", (unsigned int)pLocalSSAData);
+	free(pLocalSSAData);
 }
 
 IRField* IRField_Create(IRType* pType, Field* pField)
