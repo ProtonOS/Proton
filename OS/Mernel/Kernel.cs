@@ -70,64 +70,64 @@ namespace Mernel
             //}
             //a = b; // 16 - 1
 
-            //// Node 0 - Dominator 0
-            //bool a = true; // store a0
-            //bool b = false; // store b0
-            //if (a) // load a0
-            //{
-            //    // Node 1 - Dominator 0
-            //    a = false; // store a1
-            //}
-            //else
-            //{
-            //    // Node 2 - Dominator 0
-            //    if (b) // load b0
-            //    {
-            //        // Node 3 - Dominator 2
-            //        b = false; // store b1
-            //    }
-            //    else
-            //    {
-            //        // Node 4 - Dominator 2
-            //        if (a && // load a0
-            //            // Node 5 - Dominator 4
-            //            !b) // load b0
-            //        {
-            //            // Node 6 - Dominator 5
-            //            b = true; // store b2
-            //            a = false; // store a2
-            //        }
-            //        // Node 7 - Dominator 4
-            //        // b3 = phi(b0, b2) (5, 6)
-            //        // a3 = phi(a0, a2) (5, 6)
-            //        b = true; // store b4
-            //    }
-            //    // Node 8 - Dominator 2
-            //    // b5 = phi(b1, b4) (3, 7)
-            //    // a4 = phi(a0, a3) (3, 7)
-            //    a = true; // store a5
-            //}
-            //// Node 9 - Dominator 0
-            //// b6 = phi(b0, b5) (1, 8)
-            //// a6 = phi(a0, a5) (1, 8)
-            //a = b; // store a6 = b6
-
             // Node 0 - Dominator 0
-            int x = 0;
-            // Node 2 - Dominator 0
-            while (x < 10)
+            bool a = true; // a0 <- true
+            bool b = false; // b0 <- true
+            if (a) // a0 -> condition
             {
-                // Node 1 - Dominator 2
-                // stackLocal1 <- x
-                // Nop
-                // stackLocal1 <- stackLocal1 + 1
-                // x <- stackLocal1
-                x = x + 1;
+                // Node 1 - Dominator 0
+                a = false; // a1 <- false
             }
-            // Node 3 - Dominator 2
-            int y = x;
-            ++y;
-            //x = y;
+            else
+            {
+                // Node 2 - Dominator 0
+                if (b) // b0 -> condition
+                {
+                    // Node 3 - Dominator 2
+                    b = false; // b1 <- false
+                }
+                else
+                {
+                    // Node 4 - Dominator 2
+                    if (a && // a0 -> condition
+                        // Node 5 - Dominator 4
+                        !b) // b0 -> condition
+                    {
+                        // Node 6 - Dominator 5
+                        b = true; // b2 <- true
+                        a = false; // a2 <- false
+                    }
+                    // Node 7 - Dominator 4
+                    // a5 <- phi(a0, a0, a2)
+                    // b4 <- phi(b0, b0, b2)
+                    b = true; // b3 <- true
+                }
+                // Node 8 - Dominator 2
+                // a6 <- phi(a0, a5)
+                // b5 <- phi(b1, b3)
+                a = true; // a3 <- true
+            }
+            // Node 9 - Dominator 0
+            // a7 <- phi(a0, a3)
+            // b6 <- phi(b0, b5)
+            a = b; // a4 <- b6
+
+            //// Node 0 - Dominator 0
+            //int x = 0;
+            //// Node 2 - Dominator 0
+            //while (x < 10)
+            //{
+            //    // Node 1 - Dominator 2
+            //    // stackLocal1 <- x
+            //    // Nop
+            //    // stackLocal1 <- stackLocal1 + 1
+            //    // x <- stackLocal1
+            //    x = x + 1;
+            //}
+            //// Node 3 - Dominator 2
+            //int y = x;
+            //++y;
+            ////x = y;
         }
     }
 }

@@ -102,9 +102,10 @@ void IROptimizer_EnterSSA(IRMethod* pMethod, IRCodeNode** pNodes, uint32_t pNode
 				newLocalVariable = IRLocalVariable_Copy(oldLocalVariable->Derived);
 				IRMethod_AddLocal(pMethod, newLocalVariable);
 				derivedIterations[newLocalVariable->Derived->LocalVariableIndex]++;
+				newLocalVariable->Iteration = derivedIterations[newLocalVariable->Derived->LocalVariableIndex];
 				instruction->Destination.Data.LocalVariable.LocalVariableIndex = newLocalVariable->LocalVariableIndex;
 				codeNode->FinalIterations[newLocalVariable->Derived->LocalVariableIndex] = newLocalVariable;
-				Log_WriteLine(LOGLEVEL__Optimize_SSA, "Expanded Local Assignment at instruction %u (Node %u) from %u to %u, iteration %u (Derived %u)", (unsigned int)codeNode->Instructions[instructionIndex], (unsigned int)codeNode->Index, (unsigned int)oldLocalVariable->LocalVariableIndex, (unsigned int)newLocalVariable->LocalVariableIndex, (unsigned int)derivedIterations[newLocalVariable->Derived->LocalVariableIndex], (unsigned int)newLocalVariable->Derived->LocalVariableIndex);
+				Log_WriteLine(LOGLEVEL__Optimize_SSA, "Expanded Local Assignment at instruction %u (Node %u) from %u to %u, iteration %u (Derived %u)", (unsigned int)codeNode->Instructions[instructionIndex], (unsigned int)codeNode->Index, (unsigned int)oldLocalVariable->LocalVariableIndex, (unsigned int)newLocalVariable->LocalVariableIndex, (unsigned int)newLocalVariable->Iteration, (unsigned int)newLocalVariable->Derived->LocalVariableIndex);
 				memset(retargettedNodes, 0x00, pNodesCount * sizeof(bool_t));
 				IROptimizer_RetargetLocalSources(pMethod, codeNode, instructionIndex + 1, oldLocalVariable, newLocalVariable, retargettedNodes);
 			}
@@ -136,15 +137,17 @@ void IROptimizer_EnterSSA(IRMethod* pMethod, IRCodeNode** pNodes, uint32_t pNode
 					newLocalVariable = IRLocalVariable_Copy(pMethod->LocalVariables[derivedIndex]);
 					IRMethod_AddLocal(pMethod, newLocalVariable);
 					derivedIterations[newLocalVariable->Derived->LocalVariableIndex]++;
-					codeNode->FinalIterations[newLocalVariable->Derived->LocalVariableIndex] = newLocalVariable;
+					newLocalVariable->Iteration = derivedIterations[newLocalVariable->Derived->LocalVariableIndex];
+					if (!codeNode->FinalIterations[newLocalVariable->Derived->LocalVariableIndex])
+						codeNode->FinalIterations[newLocalVariable->Derived->LocalVariableIndex] = newLocalVariable;
 					IRPhi* phi = IRPhi_Create(newLocalVariable);
 					IRCodeNode_AddPhi(codeNode, phi);
-					Log_WriteLine(LOGLEVEL__Optimize_SSA, "Phi Local Assignment at instruction %u (Node %u), iteration %u (Derived %u)", (unsigned int)codeNode->Instructions[0], (unsigned int)codeNode->Index, (unsigned int)derivedIterations[newLocalVariable->Derived->LocalVariableIndex], (unsigned int)newLocalVariable->Derived->LocalVariableIndex);
+					Log_WriteLine(LOGLEVEL__Optimize_SSA, "Phi Local Assignment at instruction %u (Node %u) to %u, iteration %u (Derived %u)", (unsigned int)codeNode->Instructions[0], (unsigned int)codeNode->Index, (unsigned int)newLocalVariable->LocalVariableIndex, (unsigned int)newLocalVariable->Iteration, (unsigned int)newLocalVariable->Derived->LocalVariableIndex);
 					for (uint32_t frontierIndex = 0; frontierIndex < codeNode->SourceFrontiersCount; ++frontierIndex)
 					{
 						oldLocalVariable = IROptimizer_GetFinalIteration(pMethod, codeNode->SourceFrontiers[frontierIndex], derivedIndex);
 						IRPhi_AddArgument(phi, oldLocalVariable);
-						Log_WriteLine(LOGLEVEL__Optimize_SSA, "    From %u to %u", (unsigned int)oldLocalVariable->LocalVariableIndex, (unsigned int)newLocalVariable->LocalVariableIndex);
+						Log_WriteLine(LOGLEVEL__Optimize_SSA, "    From %u, iteration %u", (unsigned int)oldLocalVariable->LocalVariableIndex, (unsigned int)oldLocalVariable->Iteration);
 						memset(retargettedNodes, 0x00, pNodesCount * sizeof(bool_t));
 						IROptimizer_RetargetLocalSources(pMethod, codeNode, 0, oldLocalVariable, newLocalVariable, retargettedNodes);
 					}
