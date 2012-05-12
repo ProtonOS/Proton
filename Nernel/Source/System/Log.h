@@ -51,8 +51,8 @@ void Log_WriteLine(LogLevel pLevel, const char* pFormatString, ...);
 		| LOGLEVEL__Optimize \
 		| LOGLEVEL__Optimize_SSA \
 		| LOGLEVEL__Optimize_CFG \
-		/* \
 		| LOGLEVEL__JIT \
+		/* \
 		| LOGLEVEL__JIT_Layout \
 		| LOGLEVEL__JIT_Emit \
 		| LOGLEVEL__JIT_Link \

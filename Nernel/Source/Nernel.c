@@ -27,6 +27,11 @@ void CPUInterruptHandler(InterruptRegisters pRegisters)
 	Panic(buf);
 }
 
+void Mernel_EntrypointCompiled()
+{
+
+}
+
 void Startup();
 #define LocalDef__TickCountMod 50000000
 void Startup()
@@ -42,6 +47,8 @@ void Startup()
 	LoadedModule* mernelModule = Multiboot_GetLoadedModule("/boot/mernel.exe");
 	AppDomain_AddAssembly(gMernelDomain, ILDecomposition_CreateAssembly(gMernelDomain, CLIFile_Create((uint8_t*)mernelModule->Address, mernelModule->Size, "mernel.exe")));
 	JIT_CompileMethod(gMernelDomain->IRAssemblies[1]->EntryPoint);
+
+	Mernel_EntrypointCompiled();
 
 	while(TRUE)
 	{
