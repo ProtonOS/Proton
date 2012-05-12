@@ -1,6 +1,7 @@
 #include <CLR/IROptimizer.h>
 #include <CLR/Optimizations/CFG.h>
 #include <CLR/Optimizations/LinearizeStack.h>
+#include <CLR/Optimizations/Peephole_PreSSA.h>
 #include <CLR/Optimizations/SSA.h>
 
 void IROptimizer_Optimize(IRMethod* pMethod)
@@ -11,6 +12,8 @@ void IROptimizer_Optimize(IRMethod* pMethod)
 	IRCodeNode** nodes = IROptimizer_BuildControlFlowGraph(pMethod, &nodesCount);
 
 	IROptimizer_LinearizeStack(pMethod);
+	IROptimizer_Peephole_PreSSA(pMethod);
+
 	IROptimizer_EnterSSA(pMethod, nodes, nodesCount);
 
 	IROptimizer_LeaveSSA(pMethod, nodes, nodesCount);

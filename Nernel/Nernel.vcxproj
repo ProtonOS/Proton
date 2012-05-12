@@ -23,6 +23,7 @@
     <ClCompile Include="Source\CLR\JIT\x86\Layout.c" />
     <ClCompile Include="Source\CLR\MetadataStructures.c" />
     <ClCompile Include="Source\CLR\Optimizations\CFG.c" />
+    <ClCompile Include="Source\CLR\Optimizations\Peephole_PreSSA.c" />
     <ClCompile Include="Source\CLR\Optimizations\SSA.c" />
     <ClCompile Include="Source\CLR\Optimizations\LinearizeStack.c" />
     <ClCompile Include="Source\CLR\SyntheticStack.c" />
@@ -76,6 +77,7 @@
     <ClInclude Include="Source\CLR\JIT\x86\x86-codegen.h" />
     <ClInclude Include="Source\CLR\MetadataStructures.h" />
     <ClInclude Include="Source\CLR\Optimizations\CFG.h" />
+    <ClInclude Include="Source\CLR\Optimizations\Peephole_PreSSA.h" />
     <ClInclude Include="Source\CLR\Optimizations\SSA.h" />
     <ClInclude Include="Source\CLR\Optimizations\LinearizeStack.h" />
     <ClInclude Include="Source\CLR\SyntheticStack.h" />
