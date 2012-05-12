@@ -114,16 +114,18 @@ namespace Mernel
 
             // Node 0 - Dominator 0
             int x = 0;
+            x++;
+            x += 9;
             // Node 2 - Dominator 0
-            while (x < 10)
-            {
-                // Node 1 - Dominator 2
-                // stackLocal1 <- x
-                // Nop
-                // stackLocal1 <- stackLocal1 + 1
-                // x <- stackLocal1
-                x = x + 1;
-            }
+            //while (x < 10)
+            //{
+            //    // Node 1 - Dominator 2
+            //    // stackLocal1 <- x
+            //    // Nop
+            //    // stackLocal1 <- stackLocal1 + 1
+            //    // x <- stackLocal1
+            //    x = x + 1;
+            //}
             // Node 3 - Dominator 2
             int y = x;
             ++y;

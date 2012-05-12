@@ -78,6 +78,7 @@
 	Source/CLR/JIT/x86/Layout.c
 	Source/CLR/Optimizations/CFG.c
 	Source/CLR/Optimizations/LinearizeStack.c
+	Source/CLR/Optimizations/Peephole_PreSSA.c
 	Source/CLR/Optimizations/SSA.c
 	Source/System/APIC.c
 	Source/System/Console.c
