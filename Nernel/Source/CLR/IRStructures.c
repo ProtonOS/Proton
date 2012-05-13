@@ -333,6 +333,30 @@ void IRMethod_AddInstruction(IRMethod* pMethod, IRInstruction* pInstruction)
 	pMethod->IRCodesCount++;
 }
 
+void IRMethod_InsertInstruction(IRMethod* pMethod, uint32_t pInsertIndex, IRInstruction* pInstruction)
+{
+	uint32_t tempCount = (pMethod->IRCodesCount - pInsertIndex);
+	IRInstruction** temp = NULL;
+	if (tempCount > 0)
+	{
+		temp = (IRInstruction**)malloc((pMethod->IRCodesCount - pInsertIndex) * sizeof(IRInstruction*));
+		for (uint32_t index = 0; index < tempCount; ++index)
+		{
+			temp[index] = pMethod->IRCodes[pInsertIndex + index];
+		}
+	}
+
+	pInstruction->IRLocation = pInsertIndex;
+	pMethod->IRCodes = (IRInstruction**)realloc(pMethod->IRCodes, sizeof(IRInstruction*) * (pMethod->IRCodesCount + 1));
+	pMethod->IRCodes[pInsertIndex] = pInstruction;
+	pMethod->IRCodesCount++;
+	for (uint32_t index = 0; index < tempCount; ++index)
+	{
+		temp[index]->IRLocation++;
+		pMethod->IRCodes[pInsertIndex + 1 + index] = temp[index];
+	}
+}
+
 void IRMethod_AddLocal(IRMethod* pMethod, IRLocalVariable* pLocal)
 {
 	pLocal->LocalVariableIndex = pMethod->LocalVariableCount;

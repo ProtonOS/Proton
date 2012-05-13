@@ -141,7 +141,6 @@ void IROptimizer_EnterSSA(IRMethod* pMethod, IRCodeNode** pNodes, uint32_t pNode
 					if (!codeNode->FinalIterations[newLocalVariable->SSAData->Derived->LocalVariableIndex])
 						codeNode->FinalIterations[newLocalVariable->SSAData->Derived->LocalVariableIndex] = newLocalVariable;
 					IRPhi* phi = IRPhi_Create(newLocalVariable);
-					IRCodeNode_AddPhi(codeNode, phi);
 					Log_WriteLine(LOGLEVEL__Optimize_SSA, "Phi Local Assignment at instruction %u (Node %u) to %u, iteration %u (Derived %u)", (unsigned int)codeNode->Instructions[0], (unsigned int)codeNode->Index, (unsigned int)newLocalVariable->LocalVariableIndex, (unsigned int)newLocalVariable->SSAData->Iteration, (unsigned int)newLocalVariable->SSAData->Derived->LocalVariableIndex);
 					for (uint32_t frontierIndex = 0; frontierIndex < codeNode->SourceFrontiersCount; ++frontierIndex)
 					{
@@ -151,6 +150,7 @@ void IROptimizer_EnterSSA(IRMethod* pMethod, IRCodeNode** pNodes, uint32_t pNode
 						memset(retargettedNodes, 0x00, pNodesCount * sizeof(bool_t));
 						IROptimizer_RetargetLocalSources(pMethod, codeNode, 0, oldLocalVariable, newLocalVariable, retargettedNodes);
 					}
+					IRCodeNode_AddPhi(codeNode, phi);
 				}
 			}
 		}
@@ -165,6 +165,41 @@ void IROptimizer_EnterSSA(IRMethod* pMethod, IRCodeNode** pNodes, uint32_t pNode
 void IROptimizer_LeaveSSA(IRMethod* pMethod, IRCodeNode** pNodes, uint32_t pNodesCount)
 {
 	Log_WriteLine(LOGLEVEL__Optimize_SSA, "Started Leaving SSA for %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
+
+	IRCodeNode* codeNode = NULL;
+	IRInstruction* instruction = NULL;
+	IRPhi* phi = NULL;
+	IRCodeNode* sourceNode = NULL;
+	for (uint32_t nodeIndex = 0; nodeIndex < pNodesCount; ++nodeIndex)
+	{
+		codeNode = pNodes[nodeIndex];
+		for (uint32_t phiIndex = 0; phiIndex < codeNode->PhiFunctionsCount; ++phiIndex)
+		{
+			phi = codeNode->PhiFunctions[phiIndex];
+			Log_WriteLine(LOGLEVEL__Optimize_SSA, "Reducing Phi at instruction %u (Node %u)", (unsigned int)codeNode->Instructions[0], (unsigned int)codeNode->Index);
+			for (uint32_t sourceIndex = 0; sourceIndex  < codeNode->SourceFrontiersCount; ++sourceIndex)
+			{
+				sourceNode = codeNode->SourceFrontiers[sourceIndex];
+				instruction = IRInstruction_Create(pMethod->IRCodes[sourceNode->Instructions[sourceNode->InstructionsCount - 1]]->ILLocation, IROpcode_Move);
+				instruction->Destination.Type = SourceType_Local;
+				instruction->Destination.Data.LocalVariable.LocalVariableIndex = phi->Result->LocalVariableIndex;
+				instruction->Source1.Type = SourceType_Local;
+				instruction->Source1.Data.LocalVariable.LocalVariableIndex = phi->Arguments[sourceIndex]->LocalVariableIndex;
+				IRMethod_InsertInstruction(pMethod, sourceNode->Instructions[sourceNode->InstructionsCount - 1], instruction);
+				sourceNode->InstructionsCount++;
+				sourceNode->Instructions = (uint32_t*)realloc(sourceNode->Instructions, sourceNode->InstructionsCount * sizeof(uint32_t));
+				sourceNode->Instructions[sourceNode->InstructionsCount - 1] = instruction->IRLocation;
+				for (uint32_t fixNodeIndex = nodeIndex; fixNodeIndex < pNodesCount; ++fixNodeIndex)
+				{
+					for (uint32_t fixInstructionIndex = 0; fixInstructionIndex < pNodes[fixNodeIndex]->InstructionsCount; ++fixInstructionIndex)
+					{
+						pNodes[fixNodeIndex]->Instructions[fixInstructionIndex]++;
+					}
+				}
+				Log_WriteLine(LOGLEVEL__Optimize_SSA, "Reducing Phi at instruction %u (Node %u) from %u to %u, iteration %u (Derived %u)", (unsigned int)codeNode->Instructions[0], (unsigned int)codeNode->Index, (unsigned int)phi->Arguments[sourceIndex]->LocalVariableIndex, (unsigned int)phi->Result->LocalVariableIndex, (unsigned int)phi->Result->SSAData->Iteration, (unsigned int)phi->Result->SSAData->Derived->LocalVariableIndex);
+			}
+		}
+	}
 
 	Log_WriteLine(LOGLEVEL__Optimize_SSA, "Finished Leaving SSA for %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
 }

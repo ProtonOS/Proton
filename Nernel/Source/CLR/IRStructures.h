@@ -147,6 +147,7 @@ IRMethod* IRMethod_Create(IRAssembly* pAssembly, MethodDefinition* pMethodDefini
 IRMethod* IRMethod_GenericDeepCopy(IRMethod* pMethod, IRAssembly* pAssembly);
 void IRMethod_Destroy(IRMethod* pMethod);
 void IRMethod_AddInstruction(IRMethod* pMethod, IRInstruction* pInstruction);
+void IRMethod_InsertInstruction(IRMethod* pMethod, uint32_t pInsertIndex, IRInstruction* pInstruction);
 void IRMethod_AddLocal(IRMethod* pMethod, IRLocalVariable* pLocal);
 
 struct _IRParameter
