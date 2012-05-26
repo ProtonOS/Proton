@@ -229,6 +229,7 @@ Retry:
 		Atomic_ReleaseLock(&gThreadScheduler_Busy);
 		if (pAPIC->CurrentThread)
 		{
+			//pAPIC->CurrentThread->SavedFPUState = 
 			pAPIC->CurrentThread->SavedRegisterState = *pRegisters;
 			Atomic_ReleaseLock(&pAPIC->CurrentThread->Busy);
 		}
