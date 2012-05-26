@@ -2847,6 +2847,242 @@ EmitFinished:
 
 char* JIT_Emit_Mul(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+	switch((OverflowType)(uint32_t)pInstruction->Arg1)
+	{
+		case OverflowType_Signed:
+		case OverflowType_Unsigned:
+			Panic("Unsupported overflow type!");
+			break;
+		case OverflowType_None: break;
+	}
+	ElementType sAType = (ElementType)(uint32_t)pInstruction->Arg2;
+	ElementType sBType = (ElementType)(uint32_t)pInstruction->Arg3;
+	ElementType destType = (ElementType)0;
+	switch(sAType)
+	{
+		case ElementType_I:
+		case ElementType_U:
+		case ElementType_I1:
+		case ElementType_I2:
+		case ElementType_I4:
+		case ElementType_U1:
+		case ElementType_U2:
+		case ElementType_U4:
+			switch(sBType)
+			{
+				case ElementType_I:
+				case ElementType_U:
+				case ElementType_I1:
+				case ElementType_I2:
+				case ElementType_I4:
+				case ElementType_U1:
+				case ElementType_U2:
+				case ElementType_U4:
+					destType = ElementType_I4;
+					break;
+				case ElementType_I8:
+				case ElementType_U8:
+					destType = ElementType_I8;
+					break;
+				case ElementType_R4:
+				case ElementType_R8:
+					Panic("Invalid parameter!");
+					break;
+			}
+			break;
+		case ElementType_I8:
+		case ElementType_U8:
+			destType = ElementType_I8;
+			break;
+		case ElementType_R4:
+		case ElementType_R8:
+			destType = ElementType_R8;
+			break;
+	}
+
+	if (SourceTypeData_Equal(pInstruction->Source1, pInstruction->Destination))
+	{
+		if (pInstruction->Source2.Type == SourceType_ConstantI4)
+		{
+			if (pInstruction->Source1.Type == SourceType_Local)
+			{
+				x86_imul_reg_membase_imm(pCompiledCode, PRIMARY_REG, X86_EBP, -pMethod->LocalVariables[pInstruction->Source1.Data.LocalVariable.LocalVariableIndex]->Offset, pInstruction->Source2.Data.ConstantI4.Value);
+				x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pInstruction->Source1.Data.LocalVariable.LocalVariableIndex]->Offset, PRIMARY_REG, 4);
+			}
+			else if (pInstruction->Source1.Type == SourceType_Parameter)
+			{
+				x86_imul_reg_membase_imm(pCompiledCode, PRIMARY_REG, X86_EBP, pMethod->Parameters[pInstruction->Source1.Data.Parameter.ParameterIndex]->Offset, pInstruction->Source2.Data.ConstantI4.Value);
+				x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pInstruction->Source1.Data.Parameter.ParameterIndex]->Offset, PRIMARY_REG, 4);
+			}
+			else
+			{
+				pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+				x86_imul_reg_reg_imm(pCompiledCode, PRIMARY_REG, PRIMARY_REG, pInstruction->Source2.Data.ConstantI4.Value);
+				pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+			}
+			goto EmitFinished;
+		}
+	}
+	else if (SourceTypeData_Equal(pInstruction->Source2, pInstruction->Destination))
+	{
+		if (pInstruction->Source1.Type == SourceType_ConstantI4)
+		{
+			if (pInstruction->Source2.Type == SourceType_Local)
+			{
+				x86_imul_reg_membase_imm(pCompiledCode, PRIMARY_REG, X86_EBP, -pMethod->LocalVariables[pInstruction->Source2.Data.LocalVariable.LocalVariableIndex]->Offset, pInstruction->Source1.Data.ConstantI4.Value);
+				x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pInstruction->Source2.Data.LocalVariable.LocalVariableIndex]->Offset, PRIMARY_REG, 4);
+			}
+			else if (pInstruction->Source2.Type == SourceType_Parameter)
+			{
+				x86_imul_reg_membase_imm(pCompiledCode, PRIMARY_REG, X86_EBP, pMethod->Parameters[pInstruction->Source2.Data.Parameter.ParameterIndex]->Offset, pInstruction->Source1.Data.ConstantI4.Value);
+				x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pInstruction->Source2.Data.Parameter.ParameterIndex]->Offset, PRIMARY_REG, 4);
+			}
+			else
+			{
+				pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+				x86_imul_reg_reg_imm(pCompiledCode, PRIMARY_REG, PRIMARY_REG, pInstruction->Source1.Data.ConstantI4.Value);
+				pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+			}
+			goto EmitFinished;
+		}
+	}
+
+	switch(destType)
+	{
+		case ElementType_I4:
+		{
+			if (pInstruction->Destination.Type == SourceType_Local)
+			{
+				pCompiledCode = JIT_Emit_Move(pCompiledCode, pMethod, &pInstruction->Source2, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+				pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+				x86_imul_reg_membase(pCompiledCode, PRIMARY_REG, X86_EBP, -pMethod->LocalVariables[pInstruction->Destination.Data.LocalVariable.LocalVariableIndex]->Offset);
+				x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pInstruction->Destination.Data.LocalVariable.LocalVariableIndex]->Offset, PRIMARY_REG, 4);
+			}
+			else if (pInstruction->Destination.Type == SourceType_Parameter)
+			{
+				pCompiledCode = JIT_Emit_Move(pCompiledCode, pMethod, &pInstruction->Source2, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+				pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+				x86_imul_reg_membase(pCompiledCode, PRIMARY_REG, X86_EBP, pMethod->Parameters[pInstruction->Destination.Data.Parameter.ParameterIndex]->Offset);
+				x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pInstruction->Destination.Data.Parameter.ParameterIndex]->Offset, PRIMARY_REG, 4);
+			}
+			else
+			{
+				pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+				pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, FOURTH_REG, SECONDARY_REG, THIRD_REG, NULL);
+				x86_imul_reg_reg(pCompiledCode, FOURTH_REG, PRIMARY_REG);
+				pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, FOURTH_REG, SECONDARY_REG, THIRD_REG, NULL);
+			}
+			break;
+		}
+		case ElementType_I8:
+		{
+			switch(sAType)
+			{
+				case ElementType_I:
+				case ElementType_U:
+				case ElementType_I1:
+				case ElementType_I2:
+				case ElementType_I4:
+				case ElementType_U1:
+				case ElementType_U2:
+				case ElementType_U4:
+					// This means that operand 2 is 64-bit.
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					x86_fild_membase(pCompiledCode, X86_ESP, 0, TRUE);
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, PRIMARY_REG, 4);
+					x86_fp_int_op_membase(pCompiledCode, X86_FMUL, X86_ESP, 0, TRUE);
+					x86_fist_pop_membase(pCompiledCode, X86_ESP, 0, TRUE);
+					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					break;
+				case ElementType_I8:
+				case ElementType_U8:
+				{
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					x86_fild_membase(pCompiledCode, X86_ESP, 0, TRUE);
+					size_t arg2Size = 0;
+					x86_adjust_stack(pCompiledCode, 8);
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, PRIMARY_REG, SECONDARY_REG, THIRD_REG, &arg2Size);
+					if (arg2Size <= 4)
+					{
+						x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, PRIMARY_REG, 4);
+						x86_fp_int_op_membase(pCompiledCode, X86_FMUL, X86_ESP, 0, TRUE);
+						x86_adjust_stack(pCompiledCode, -4);
+					}
+					else
+					{
+						x86_fild_membase(pCompiledCode, X86_ESP, 0, TRUE);
+						x86_fp_op(pCompiledCode, X86_FMUL, 1);
+					}
+					x86_fist_pop_membase(pCompiledCode, X86_ESP, 0, TRUE);
+					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					break;
+				}
+				case ElementType_R4:
+				case ElementType_R8:
+					Panic("Invalid operand type!");
+					break;
+			}
+
+			break;
+		}
+		case ElementType_R8:
+		{
+			switch(sAType)
+			{
+				case ElementType_I:
+				case ElementType_U:
+				case ElementType_I1:
+				case ElementType_I2:
+				case ElementType_I4:
+				case ElementType_U1:
+				case ElementType_U2:
+				case ElementType_U4:
+				case ElementType_I8:
+				case ElementType_U8:
+					Panic("Invalid operand type!");
+					break;
+				case ElementType_R4:
+				case ElementType_R8:
+				{
+					size_t argSize = 0;
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, &argSize);
+					if (argSize <= 4)
+					{
+						x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, PRIMARY_REG, 4);
+						x86_fld_membase(pCompiledCode, X86_ESP, 0, FALSE);
+						x86_adjust_stack(pCompiledCode, 4);
+					}
+					else
+					{
+						x86_fld_membase(pCompiledCode, X86_ESP, 0, TRUE);
+						x86_adjust_stack(pCompiledCode, 8);
+					}
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, PRIMARY_REG, SECONDARY_REG, THIRD_REG, &argSize);
+					if (argSize <= 4)
+					{
+						x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, PRIMARY_REG, 4);
+						x86_fld_membase(pCompiledCode, X86_ESP, 0, FALSE);
+						x86_adjust_stack(pCompiledCode, -4);
+					}
+					else
+					{
+						x86_fld_membase(pCompiledCode, X86_ESP, 0, TRUE);
+					}
+					x86_fp_op(pCompiledCode, X86_FMUL, 1);
+					x86_fst_membase(pCompiledCode, X86_ESP, 0, TRUE, TRUE);
+					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					break;
+				}
+			}
+			break;
+		}
+		default:
+			Panic("Invalid destination type!");
+			break;
+	}
+
+EmitFinished:
 	return pCompiledCode;
 }
 
