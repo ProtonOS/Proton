@@ -181,6 +181,8 @@ struct _IRLocalSSAData
 {
 	IRLocalVariable* Derived;
 	uint32_t Iteration;
+	IRInstruction* LifeStarted;
+	IRInstruction* LifeEnded;
 };
 
 IRLocalSSAData* IRLocalSSAData_Create(IRLocalVariable* pDerivedLocalVariable);
