@@ -3098,16 +3098,199 @@ char* JIT_Emit_Rem(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstr
 
 char* JIT_Emit_And(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+	if (SourceTypeData_Equal(pInstruction->Source1, pInstruction->Destination))
+	{
+		if (pInstruction->Source2.Type == SourceType_ConstantI4)
+		{
+			if (pInstruction->Source1.Type == SourceType_Local)
+			{
+				x86_alu_membase_imm(pCompiledCode, X86_AND, X86_EBP, -pMethod->LocalVariables[pInstruction->Source1.Data.LocalVariable.LocalVariableIndex]->Offset, pInstruction->Source2.Data.ConstantI4.Value);
+			}
+			else if (pInstruction->Source1.Type == SourceType_Parameter)
+			{
+				x86_alu_membase_imm(pCompiledCode, X86_AND, X86_EBP, pMethod->Parameters[pInstruction->Source1.Data.Parameter.ParameterIndex]->Offset, pInstruction->Source2.Data.ConstantI4.Value);
+			}
+			else
+			{
+				pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+				x86_alu_reg_imm(pCompiledCode, X86_AND, PRIMARY_REG, pInstruction->Source2.Data.ConstantI4.Value);
+				pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+			}
+			goto EmitFinished;
+		}
+	}
+	else if (SourceTypeData_Equal(pInstruction->Source2, pInstruction->Destination))
+	{
+		if (pInstruction->Source1.Type == SourceType_ConstantI4)
+		{
+			if (pInstruction->Source2.Type == SourceType_Local)
+			{
+				x86_alu_membase_imm(pCompiledCode, X86_AND, X86_EBP, -pMethod->LocalVariables[pInstruction->Source2.Data.LocalVariable.LocalVariableIndex]->Offset, pInstruction->Source1.Data.ConstantI4.Value);
+			}
+			else if (pInstruction->Source2.Type == SourceType_Parameter)
+			{
+				x86_alu_membase_imm(pCompiledCode, X86_AND, X86_EBP, pMethod->Parameters[pInstruction->Source2.Data.Parameter.ParameterIndex]->Offset, pInstruction->Source1.Data.ConstantI4.Value);
+			}
+			else
+			{
+				pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+				x86_alu_reg_imm(pCompiledCode, X86_AND, PRIMARY_REG, pInstruction->Source1.Data.ConstantI4.Value);
+				pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+			}
+			goto EmitFinished;
+		}
+	}
+
+	uint32_t aAS = 0;
+	pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, (size_t*)&aAS);
+	pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, FOURTH_REG, SECONDARY_REG, THIRD_REG, NULL);
+	switch(aAS)
+	{
+		case 4:
+			x86_alu_reg_reg(pCompiledCode, X86_AND, PRIMARY_REG, FOURTH_REG);
+			break;
+		case 8:
+			x86_mov_reg_membase(pCompiledCode, SECONDARY_REG, X86_ESP, 0, 4);
+			x86_alu_membase_reg(pCompiledCode, X86_AND, X86_ESP, 8, SECONDARY_REG);
+			x86_mov_reg_membase(pCompiledCode, SECONDARY_REG, X86_ESP, 4, 4);
+			x86_alu_membase_reg(pCompiledCode, X86_AND, X86_ESP, 12, SECONDARY_REG);
+			x86_adjust_stack(pCompiledCode, 8);
+			break;
+	}
+	pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+EmitFinished:
 	return pCompiledCode;
 }
 
 char* JIT_Emit_Or(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+	if (SourceTypeData_Equal(pInstruction->Source1, pInstruction->Destination))
+	{
+		if (pInstruction->Source2.Type == SourceType_ConstantI4)
+		{
+			if (pInstruction->Source1.Type == SourceType_Local)
+			{
+				x86_alu_membase_imm(pCompiledCode, X86_OR, X86_EBP, -pMethod->LocalVariables[pInstruction->Source1.Data.LocalVariable.LocalVariableIndex]->Offset, pInstruction->Source2.Data.ConstantI4.Value);
+			}
+			else if (pInstruction->Source1.Type == SourceType_Parameter)
+			{
+				x86_alu_membase_imm(pCompiledCode, X86_OR, X86_EBP, pMethod->Parameters[pInstruction->Source1.Data.Parameter.ParameterIndex]->Offset, pInstruction->Source2.Data.ConstantI4.Value);
+			}
+			else
+			{
+				pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+				x86_alu_reg_imm(pCompiledCode, X86_OR, PRIMARY_REG, pInstruction->Source2.Data.ConstantI4.Value);
+				pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+			}
+			goto EmitFinished;
+		}
+	}
+	else if (SourceTypeData_Equal(pInstruction->Source2, pInstruction->Destination))
+	{
+		if (pInstruction->Source1.Type == SourceType_ConstantI4)
+		{
+			if (pInstruction->Source2.Type == SourceType_Local)
+			{
+				x86_alu_membase_imm(pCompiledCode, X86_OR, X86_EBP, -pMethod->LocalVariables[pInstruction->Source2.Data.LocalVariable.LocalVariableIndex]->Offset, pInstruction->Source1.Data.ConstantI4.Value);
+			}
+			else if (pInstruction->Source2.Type == SourceType_Parameter)
+			{
+				x86_alu_membase_imm(pCompiledCode, X86_OR, X86_EBP, pMethod->Parameters[pInstruction->Source2.Data.Parameter.ParameterIndex]->Offset, pInstruction->Source1.Data.ConstantI4.Value);
+			}
+			else
+			{
+				pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+				x86_alu_reg_imm(pCompiledCode, X86_OR, PRIMARY_REG, pInstruction->Source1.Data.ConstantI4.Value);
+				pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+			}
+			goto EmitFinished;
+		}
+	}
+
+	uint32_t aAS = 0;
+	pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, (size_t*)&aAS);
+	pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, FOURTH_REG, SECONDARY_REG, THIRD_REG, NULL);
+	switch(aAS)
+	{
+		case 4:
+			x86_alu_reg_reg(pCompiledCode, X86_OR, PRIMARY_REG, FOURTH_REG);
+			break;
+		case 8:
+			x86_mov_reg_membase(pCompiledCode, SECONDARY_REG, X86_ESP, 0, 4);
+			x86_alu_membase_reg(pCompiledCode, X86_OR, X86_ESP, 8, SECONDARY_REG);
+			x86_mov_reg_membase(pCompiledCode, SECONDARY_REG, X86_ESP, 4, 4);
+			x86_alu_membase_reg(pCompiledCode, X86_OR, X86_ESP, 12, SECONDARY_REG);
+			x86_adjust_stack(pCompiledCode, 8);
+			break;
+	}
+	pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+EmitFinished:
 	return pCompiledCode;
 }
 
 char* JIT_Emit_Xor(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+	if (SourceTypeData_Equal(pInstruction->Source1, pInstruction->Destination))
+	{
+		if (pInstruction->Source2.Type == SourceType_ConstantI4)
+		{
+			if (pInstruction->Source1.Type == SourceType_Local)
+			{
+				x86_alu_membase_imm(pCompiledCode, X86_XOR, X86_EBP, -pMethod->LocalVariables[pInstruction->Source1.Data.LocalVariable.LocalVariableIndex]->Offset, pInstruction->Source2.Data.ConstantI4.Value);
+			}
+			else if (pInstruction->Source1.Type == SourceType_Parameter)
+			{
+				x86_alu_membase_imm(pCompiledCode, X86_XOR, X86_EBP, pMethod->Parameters[pInstruction->Source1.Data.Parameter.ParameterIndex]->Offset, pInstruction->Source2.Data.ConstantI4.Value);
+			}
+			else
+			{
+				pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+				x86_alu_reg_imm(pCompiledCode, X86_XOR, PRIMARY_REG, pInstruction->Source2.Data.ConstantI4.Value);
+				pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+			}
+			goto EmitFinished;
+		}
+	}
+	else if (SourceTypeData_Equal(pInstruction->Source2, pInstruction->Destination))
+	{
+		if (pInstruction->Source1.Type == SourceType_ConstantI4)
+		{
+			if (pInstruction->Source2.Type == SourceType_Local)
+			{
+				x86_alu_membase_imm(pCompiledCode, X86_XOR, X86_EBP, -pMethod->LocalVariables[pInstruction->Source2.Data.LocalVariable.LocalVariableIndex]->Offset, pInstruction->Source1.Data.ConstantI4.Value);
+			}
+			else if (pInstruction->Source2.Type == SourceType_Parameter)
+			{
+				x86_alu_membase_imm(pCompiledCode, X86_XOR, X86_EBP, pMethod->Parameters[pInstruction->Source2.Data.Parameter.ParameterIndex]->Offset, pInstruction->Source1.Data.ConstantI4.Value);
+			}
+			else
+			{
+				pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+				x86_alu_reg_imm(pCompiledCode, X86_XOR, PRIMARY_REG, pInstruction->Source1.Data.ConstantI4.Value);
+				pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+			}
+			goto EmitFinished;
+		}
+	}
+
+	uint32_t aAS = 0;
+	pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, (size_t*)&aAS);
+	pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, FOURTH_REG, SECONDARY_REG, THIRD_REG, NULL);
+	switch(aAS)
+	{
+		case 4:
+			x86_alu_reg_reg(pCompiledCode, X86_XOR, PRIMARY_REG, FOURTH_REG);
+			break;
+		case 8:
+			x86_mov_reg_membase(pCompiledCode, SECONDARY_REG, X86_ESP, 0, 4);
+			x86_alu_membase_reg(pCompiledCode, X86_XOR, X86_ESP, 8, SECONDARY_REG);
+			x86_mov_reg_membase(pCompiledCode, SECONDARY_REG, X86_ESP, 4, 4);
+			x86_alu_membase_reg(pCompiledCode, X86_XOR, X86_ESP, 12, SECONDARY_REG);
+			x86_adjust_stack(pCompiledCode, 8);
+			break;
+	}
+	pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+EmitFinished:
 	return pCompiledCode;
 }
 
