@@ -3300,13 +3300,14 @@ char* JIT_Emit_Neg(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstr
 	{
 		if (pInstruction->Source1.Type == SourceType_Local)
 		{
-			switch(pMethod->LocalVariables[pInstruction->Source1.Data.LocalVariable.LocalVariableIndex]->Size)
+			IRLocalVariable* local = pMethod->LocalVariables[pInstruction->Source1.Data.LocalVariable.LocalVariableIndex];
+			switch(local->Size)
 			{
 				case 1:
 				case 2:
 				case 3:
 				case 4:
-					x86_neg_membase(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pInstruction->Source1.Data.LocalVariable.LocalVariableIndex]->Offset);
+					x86_neg_membase(pCompiledCode, X86_EBP, -local->Offset);
 					break;
 				case 5:
 				case 6:
@@ -3316,19 +3317,19 @@ char* JIT_Emit_Neg(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstr
 					{
 						case ElementType_I8:
 						case ElementType_U8:
-							x86_fild_membase(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pInstruction->Source1.Data.LocalVariable.LocalVariableIndex]->Offset, TRUE);
+							x86_fild_membase(pCompiledCode, X86_EBP, -local->Offset, TRUE);
 							x86_fchs(pCompiledCode);
-							x86_fist_pop_membase(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pInstruction->Source1.Data.LocalVariable.LocalVariableIndex]->Offset, TRUE);
+							x86_fist_pop_membase(pCompiledCode, X86_EBP, -local->Offset, TRUE);
 							break;
 						case ElementType_R4:
-							x86_fld_membase(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pInstruction->Source1.Data.LocalVariable.LocalVariableIndex]->Offset, FALSE);
+							x86_fld_membase(pCompiledCode, X86_EBP, -local->Offset, FALSE);
 							x86_fchs(pCompiledCode);
-							x86_fst_membase(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pInstruction->Source1.Data.LocalVariable.LocalVariableIndex]->Offset, FALSE, TRUE);
+							x86_fst_membase(pCompiledCode, X86_EBP, -local->Offset, FALSE, TRUE);
 							break;
 						case ElementType_R8:
-							x86_fld_membase(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pInstruction->Source1.Data.LocalVariable.LocalVariableIndex]->Offset, TRUE);
+							x86_fld_membase(pCompiledCode, X86_EBP, -local->Offset, TRUE);
 							x86_fchs(pCompiledCode);
-							x86_fst_membase(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pInstruction->Source1.Data.LocalVariable.LocalVariableIndex]->Offset, TRUE, TRUE);
+							x86_fst_membase(pCompiledCode, X86_EBP, -local->Offset, TRUE, TRUE);
 							break;
 						default:
 							Panic("Invalid large operand for Negate!");
@@ -3357,19 +3358,19 @@ char* JIT_Emit_Neg(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstr
 					{
 						case ElementType_I8:
 						case ElementType_U8:
-							x86_fild_membase(pCompiledCode, X86_EBP, pMethod->Parameters[pInstruction->Source1.Data.Parameter.ParameterIndex]->Offset, TRUE);
+							x86_fild_membase(pCompiledCode, X86_EBP, param->Offset, TRUE);
 							x86_fchs(pCompiledCode);
-							x86_fist_pop_membase(pCompiledCode, X86_EBP, pMethod->Parameters[pInstruction->Source1.Data.Parameter.ParameterIndex]->Offset, TRUE);
+							x86_fist_pop_membase(pCompiledCode, X86_EBP, param->Offset, TRUE);
 							break;
 						case ElementType_R4:
-							x86_fld_membase(pCompiledCode, X86_EBP, pMethod->Parameters[pInstruction->Source1.Data.Parameter.ParameterIndex]->Offset, FALSE);
+							x86_fld_membase(pCompiledCode, X86_EBP, param->Offset, FALSE);
 							x86_fchs(pCompiledCode);
-							x86_fst_membase(pCompiledCode, X86_EBP, pMethod->Parameters[pInstruction->Source1.Data.Parameter.ParameterIndex]->Offset, FALSE, TRUE);
+							x86_fst_membase(pCompiledCode, X86_EBP, param->Offset, FALSE, TRUE);
 							break;
 						case ElementType_R8:
-							x86_fld_membase(pCompiledCode, X86_EBP, pMethod->Parameters[pInstruction->Source1.Data.Parameter.ParameterIndex]->Offset, TRUE);
+							x86_fld_membase(pCompiledCode, X86_EBP, param->Offset, TRUE);
 							x86_fchs(pCompiledCode);
-							x86_fst_membase(pCompiledCode, X86_EBP, pMethod->Parameters[pInstruction->Source1.Data.Parameter.ParameterIndex]->Offset, TRUE, TRUE);
+							x86_fst_membase(pCompiledCode, X86_EBP, param->Offset, TRUE, TRUE);
 							break;
 						default:
 							Panic("Invalid large operand for Negate!");
@@ -3418,6 +3419,76 @@ EmitFinished:
 
 char* JIT_Emit_Not(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+	if (SourceTypeData_Equal(pInstruction->Source1, pInstruction->Destination))
+	{
+		if (pInstruction->Source1.Type == SourceType_Local)
+		{
+			IRLocalVariable* local = pMethod->LocalVariables[pInstruction->Source1.Data.LocalVariable.LocalVariableIndex];
+			switch(local->Size)
+			{
+				case 1:
+				case 2:
+				case 3:
+				case 4:
+					x86_not_membase(pCompiledCode, X86_EBP, -local->Offset);
+					break;
+				case 5:
+				case 6:
+				case 7:
+				case 8:
+					x86_not_membase(pCompiledCode, X86_EBP, -local->Offset);
+					x86_not_membase(pCompiledCode, X86_EBP, -local->Offset + 4);
+					break;
+			}
+			goto EmitFinished;
+		}
+		else if (pInstruction->Source1.Type == SourceType_Parameter)
+		{
+			IRParameter* param = pMethod->Parameters[pInstruction->Source1.Data.Parameter.ParameterIndex];
+			switch(param->Size)
+			{
+				case 1:
+				case 2:
+				case 3:
+				case 4:
+					x86_not_membase(pCompiledCode, X86_EBP, param->Offset);
+					break;
+				case 5:
+				case 6:
+				case 7:
+				case 8:
+					x86_not_membase(pCompiledCode, X86_EBP, param->Offset);
+					x86_not_membase(pCompiledCode, X86_EBP, param->Offset + 4);
+					break;
+			}
+			goto EmitFinished;
+		}
+	}
+	
+	pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+	switch((ElementType)(int)pInstruction->Arg1)
+	{
+		case ElementType_I:
+		case ElementType_I1:
+		case ElementType_I2:
+		case ElementType_I4:
+		case ElementType_U:
+		case ElementType_U1:
+		case ElementType_U2:
+		case ElementType_U4:
+			x86_not_reg(pCompiledCode, PRIMARY_REG);
+			break;
+		case ElementType_I8:
+		case ElementType_U8:
+			x86_not_membase(pCompiledCode, X86_ESP, 0);
+			x86_not_membase(pCompiledCode, X86_ESP, 4);
+			break;
+		default:
+			Panic("Invalid type for Not instruction!");
+			break;
+	}
+	pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+EmitFinished:
 	return pCompiledCode;
 }
 
