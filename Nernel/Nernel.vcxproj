@@ -11,15 +11,36 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Kernel\Console.cpp" />
+    <ClCompile Include="Source\Kernel\Multiboot.cpp" />
+    <ClCompile Include="Source\Kernel\Process.cpp" />
+    <ClCompile Include="Source\Kernel\Processor.cpp" />
+    <ClCompile Include="Source\Kernel\x86\Drivers\SerialPortLogger.cpp" />
+    <ClCompile Include="Source\Kernel\x86\Drivers\VGAConsole.cpp" />
+    <ClCompile Include="Source\Kernel\x86\SystemCalls.cpp" />
+    <ClCompile Include="Source\Kernel\Thread.cpp" />
     <ClCompile Include="Source\Main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Inline.h" />
     <ClInclude Include="Source\Common.h" />
     <ClInclude Include="Source\IntellisenseFixes.h" />
+    <ClInclude Include="Source\Kernel\Atomics.h" />
+    <ClInclude Include="Source\Kernel\Console.h" />
+    <ClInclude Include="Source\Kernel\Multiboot.h" />
+    <ClInclude Include="Source\Kernel\Process.h" />
+    <ClInclude Include="Source\Kernel\Processor.h" />
+    <ClInclude Include="Source\Kernel\SerialPort.h" />
+    <ClInclude Include="Source\Kernel\Thread.h" />
+    <ClInclude Include="Source\Kernel\x86\Drivers\SerialPortLogger.h" />
+    <ClInclude Include="Source\Kernel\x86\Drivers\VGAConsole.h" />
+    <ClInclude Include="Source\Kernel\x86\PortIO.h" />
+    <ClInclude Include="Source\Kernel\x86\TSS.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Source\Kernel\x86\Atomics.asm" />
     <None Include="Source\Kernel\x86\Boot.asm" />
+    <None Include="Source\Kernel\x86\TSS.asm" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E5D2B815-40D4-4B6F-A622-0F402DADAD28}</ProjectGuid>
@@ -53,12 +74,12 @@
     <NMakeOutput>Nernel.bin</NMakeOutput>
     <NMakeCleanCommandLine>..\SDK\bin\omake clean</NMakeCleanCommandLine>
     <NMakeReBuildCommandLine>..\SDK\bin\omake rebuild</NMakeReBuildCommandLine>
-    <NMakePreprocessorDefinitions>DEBUG;__extension__;_HAVE_STDC</NMakePreprocessorDefinitions>
-    <NMakeIncludeSearchPath>..\SDK\include;.\Source</NMakeIncludeSearchPath>
-    <NMakeForcedIncludes>types.h;IntellisenseFixes.h;Common.h</NMakeForcedIncludes>
+    <NMakePreprocessorDefinitions>DEBUG;__extension__;_HAVE_STDC;__GXX_EXPERIMENTAL_CXX0X__</NMakePreprocessorDefinitions>
+    <NMakeIncludeSearchPath>..\SDK\include;..\SDK\include\c++;.\Source</NMakeIncludeSearchPath>
+    <NMakeForcedIncludes>IntellisenseFixes.h;Common.h</NMakeForcedIncludes>
     <ExecutablePath>
     </ExecutablePath>
-    <IncludePath>..\SDK\include;.\Source</IncludePath>
+    <IncludePath>..\SDK\include;..\SDK\include\c++;.\Source</IncludePath>
     <ReferencePath />
     <LibraryPath />
     <SourcePath />
@@ -71,12 +92,12 @@
     <NMakeOutput>Nernel.bin</NMakeOutput>
     <NMakeCleanCommandLine>..\SDK\bin\omake clean</NMakeCleanCommandLine>
     <NMakeReBuildCommandLine>..\SDK\bin\omake rebuild</NMakeReBuildCommandLine>
-    <NMakePreprocessorDefinitions>__extension__;_HAVE_STDC</NMakePreprocessorDefinitions>
-    <NMakeIncludeSearchPath>..\SDK\include;.\Source</NMakeIncludeSearchPath>
-    <NMakeForcedIncludes>types.h;IntellisenseFixes.h;Common.h</NMakeForcedIncludes>
+    <NMakePreprocessorDefinitions>__extension__;_HAVE_STDC;__GXX_EXPERIMENTAL_CXX0X__</NMakePreprocessorDefinitions>
+    <NMakeIncludeSearchPath>..\SDK\include;..\SDK\include\c++;.\Source</NMakeIncludeSearchPath>
+    <NMakeForcedIncludes>IntellisenseFixes.h;Common.h</NMakeForcedIncludes>
     <ExecutablePath>
     </ExecutablePath>
-    <IncludePath>..\SDK\include;.\Source</IncludePath>
+    <IncludePath>..\SDK\include;..\SDK\include\c++;.\Source</IncludePath>
     <ReferencePath />
     <LibraryPath />
     <SourcePath />
