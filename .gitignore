@@ -1,0 +1,15 @@
+/Build
+/Logs
+/Nernel/Makefile.omake.cache
+/Nernel/Nernel.log
+/Nernel/Object
+/OS/Mernel/bin
+/OS/Mernel/obj
+/Proton.iso
+/Proton.opensdf
+/Proton.sdf
+/Proton.suo
+/mem.bin
+/SDK
+/SDKInstaller/bin
+/SDKInstaller/obj
