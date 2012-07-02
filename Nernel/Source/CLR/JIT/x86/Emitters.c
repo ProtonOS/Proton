@@ -8,6 +8,9 @@
 #define THIRD_REG X86_ECX
 #define FOURTH_REG X86_EDX
 
+#define STACK_FLAGS_REG X86_ESI
+#define APP_DOMAIN_REG X86_EDI
+
 //#define MemoryCorruptionChecks
 
 #ifdef MemoryCorruptionChecks
