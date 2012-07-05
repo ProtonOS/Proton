@@ -1,9 +1,8 @@
 #pragma once
 
-class Console
+namespace Console
 {
-public:
-	enum Color
+	enum Color : uint8_t
 	{
 		DarkBlack = 0x00,
 		DarkBlue = 0x01,
@@ -22,14 +21,10 @@ public:
 		LightYellow = 0x0E,
 		LightWhite = 0x0F
 	};
-
-	static Console* Instance;
-
-	Console();
-
-	virtual void Clear(Color pForeground, Color pBackground) = 0;
-	virtual void SetColors(Color pForeground, Color pBackground) = 0;
-	virtual Color GetForegroundColor() = 0;
-	virtual Color GetBackgroundColor() = 0;
-	virtual void WriteLine(const char* pLine) = 0;
+	void Startup();
+	void Clear(Color pForeground, Color pBackground);
+	void SetColors(Color pForeground, Color pBackground);
+	Color GetForegroundColor();
+	Color GetBackgroundColor();
+	void WriteLine(const char* pLine);
 };

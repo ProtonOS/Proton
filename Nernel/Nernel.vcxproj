@@ -11,7 +11,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source\Kernel\Console.cpp" />
     <ClCompile Include="Source\Kernel\Multiboot.cpp" />
     <ClCompile Include="Source\Kernel\Process.cpp" />
     <ClCompile Include="Source\Kernel\Processor.cpp" />
@@ -32,8 +31,6 @@
     <ClInclude Include="Source\Kernel\Processor.h" />
     <ClInclude Include="Source\Kernel\SerialPort.h" />
     <ClInclude Include="Source\Kernel\Thread.h" />
-    <ClInclude Include="Source\Kernel\x86\Drivers\SerialPortLogger.h" />
-    <ClInclude Include="Source\Kernel\x86\Drivers\VGAConsole.h" />
     <ClInclude Include="Source\Kernel\x86\PortIO.h" />
     <ClInclude Include="Source\Kernel\x86\TSS.h" />
   </ItemGroup>
@@ -75,11 +72,11 @@
     <NMakeCleanCommandLine>..\SDK\bin\omake clean</NMakeCleanCommandLine>
     <NMakeReBuildCommandLine>..\SDK\bin\omake rebuild</NMakeReBuildCommandLine>
     <NMakePreprocessorDefinitions>DEBUG;__extension__;_HAVE_STDC;__GXX_EXPERIMENTAL_CXX0X__</NMakePreprocessorDefinitions>
-    <NMakeIncludeSearchPath>..\SDK\include;..\SDK\include\c++;.\Source</NMakeIncludeSearchPath>
+    <NMakeIncludeSearchPath>.\Source</NMakeIncludeSearchPath>
     <NMakeForcedIncludes>IntellisenseFixes.h;Common.h</NMakeForcedIncludes>
     <ExecutablePath>
     </ExecutablePath>
-    <IncludePath>..\SDK\include;..\SDK\include\c++;.\Source</IncludePath>
+    <IncludePath>.\Source</IncludePath>
     <ReferencePath />
     <LibraryPath />
     <SourcePath />
@@ -93,11 +90,11 @@
     <NMakeCleanCommandLine>..\SDK\bin\omake clean</NMakeCleanCommandLine>
     <NMakeReBuildCommandLine>..\SDK\bin\omake rebuild</NMakeReBuildCommandLine>
     <NMakePreprocessorDefinitions>__extension__;_HAVE_STDC;__GXX_EXPERIMENTAL_CXX0X__</NMakePreprocessorDefinitions>
-    <NMakeIncludeSearchPath>..\SDK\include;..\SDK\include\c++;.\Source</NMakeIncludeSearchPath>
+    <NMakeIncludeSearchPath>.\Source</NMakeIncludeSearchPath>
     <NMakeForcedIncludes>IntellisenseFixes.h;Common.h</NMakeForcedIncludes>
     <ExecutablePath>
     </ExecutablePath>
-    <IncludePath>..\SDK\include;..\SDK\include\c++;.\Source</IncludePath>
+    <IncludePath>.\Source;$(IncludePath)</IncludePath>
     <ReferencePath />
     <LibraryPath />
     <SourcePath />

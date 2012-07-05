@@ -48,13 +48,7 @@
     <ClInclude Include="Source\Kernel\Console.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Kernel\x86\Drivers\VGAConsole.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Kernel\SerialPort.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Kernel\x86\Drivers\SerialPortLogger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -86,9 +80,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\Kernel\x86\SystemCalls.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Kernel\Console.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\Kernel\x86\Drivers\VGAConsole.cpp">

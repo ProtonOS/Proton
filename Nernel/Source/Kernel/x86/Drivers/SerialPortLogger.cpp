@@ -1,4 +1,4 @@
-#include "SerialPortLogger.h"
+#include "../../SerialPort.h"
 #include "../PortIO.h"
 
 #define SERIALLOGGER__BaseIOPort			0x02F8
@@ -13,21 +13,16 @@
 
 #define SERIALLOGGER__TransmitWait			1000
 
-SerialPortLogger* SerialPortLogger::Instance = nullptr;
-
-SerialPortLogger::SerialPortLogger()
+namespace SerialPort
 {
-	Instance = this;
-}
-
-bool SerialPortLogger::IsReady()
-{
-	return (inb(SERIALLOGGER__IOPort__LineStatus) & 0x20) != 0;
-}
-
-void SerialPortLogger::WriteByte(uint8_t pByte)
-{
-	uint32_t waits = SERIALLOGGER__TransmitWait;
-	while (waits && !IsReady()) --waits;
-	if (IsReady()) outb(SERIALLOGGER__IOPort__Data, pByte);
+    bool IsReady()
+    {
+	    return !!(inb(SERIALLOGGER__IOPort__LineStatus) & 0x20);
+    }
+    void WriteByte(uint8_t pByte)
+    {
+	    uint32_t waits = SERIALLOGGER__TransmitWait;
+	    while (waits && !IsReady()) --waits;
+	    if (IsReady()) outb(SERIALLOGGER__IOPort__Data, pByte);
+    }
 }

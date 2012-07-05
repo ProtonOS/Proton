@@ -29,8 +29,8 @@
 #undef setbuf
 #define setbuf(source, value)
 
-#undef memcpy
-#define memcpy(destination, source, length)
+//#undef memcpy
+//#define memcpy(destination, source, length)
 
 #undef memset
 #define memset(destination, value, length)

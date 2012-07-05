@@ -1,8 +1,7 @@
 #pragma once
 
-class SerialPort
+namespace SerialPort
 {
-public:
-	virtual bool IsReady() = 0;
-	virtual void WriteByte(uint8_t pByte) = 0;
-};
+	bool IsReady();
+	void WriteByte(uint8_t pByte);
+}

@@ -1,7 +1,5 @@
 #include "Kernel/Multiboot.h"
-
-#include "Kernel/x86/Drivers/SerialPortLogger.h"
-#include "Kernel/x86/Drivers/VGAConsole.h"
+#include "Kernel/Console.h"
 
 extern "C" {
 void Main(uint32_t pMultibootMagic, void* pMultibootHeader);
@@ -9,16 +7,13 @@ void Main(uint32_t pMultibootMagic, void* pMultibootHeader);
 
 void Main(uint32_t pMultibootMagic, void* pMultibootHeader)
 {
-	Multiboot::Startup(pMultibootMagic, pMultibootHeader);
-
-	// x86
-	new SerialPortLogger();
-	new VGAConsole();
+	Multiboot::Startup(pMultibootMagic, reinterpret_cast<Multiboot::Header*>(pMultibootHeader));
+	Console::Startup();
 }
 
 void Panic(const char* pMessage)
 {
-	Console::Instance->Clear(Console::Color::DarkBlack, Console::Color::LightRed);
-	Console::Instance->WriteLine(pMessage);
-	while (true) ;
+	Console::Clear(Console::Color::DarkBlack, Console::Color::LightRed);
+	Console::WriteLine(pMessage);
+	while (true);
 }
