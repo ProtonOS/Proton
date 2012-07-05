@@ -14,10 +14,8 @@
 extern "C" {
 #ifdef _WIN32
 #include <IntellisenseFixes.h>
-#define noreturn
-#else
-#define noreturn __attribute__((noreturn))
+#define __attribute__(x)
 #endif
-extern void Halt() noreturn;
-void Panic(const char* pMessage) noreturn;
+extern void Halt() __attribute__((noreturn));
+void Panic(const char* pMessage) __attribute__((noreturn));
 }
