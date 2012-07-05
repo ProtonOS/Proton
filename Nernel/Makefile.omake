@@ -56,7 +56,6 @@
 #define SOURCE(CPP_FILES)
 {
 	Source/Main.cpp
-	Source/Kernel/Console.cpp
 	Source/Kernel/Multiboot.cpp
 	Source/Kernel/Process.cpp
 	Source/Kernel/Processor.cpp

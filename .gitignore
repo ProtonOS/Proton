@@ -13,3 +13,4 @@
 /SDK
 /SDKInstaller/bin
 /SDKInstaller/obj
+*.suo

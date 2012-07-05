@@ -32,8 +32,8 @@ namespace Multiboot
 
 	};
 
-	static void Startup(uint32_t pMultibootMagic, Header* pMultibootHeader);
-	static void Shutdown();
-	static LoadedModule* GetLoadedModule(const char* pFilename);
-	static void* AdjustMemory(ptrdiff_t pAdjustment);
+	void Startup(uint32_t pMultibootMagic, Header* pMultibootHeader);
+	void Shutdown();
+	LoadedModule* GetLoadedModule(const char* pFilename);
+	void* AdjustMemory(ptrdiff_t pAdjustment);
 };

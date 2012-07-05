@@ -9,6 +9,11 @@
 #define MEMORYBLOCK_MAX								64
 #define RESERVEDMEMORYBLOCK_MAX						64
 
+extern char __SOK;
+extern char __EOK;
+extern char gStack;
+extern size_t gStackSize;
+
 namespace Multiboot {
     class Header
 	{
@@ -89,12 +94,7 @@ namespace Multiboot {
     void Startup(uint32_t pMultibootMagic, Header* pMultibootHeader)
     {
         if (pMultibootMagic != MULTIBOOT_MAGIC) Halt();
-        sCommandLine = pMultibootHeader->CommandLine;
-
-        extern char __SOK;
-        extern char __EOK;
-	    extern char gStack;
-	    extern size_t gStackSize;
+        sCommandLine = pMultibootHeader->CommandLine;        
 	    size_t kernelStart = reinterpret_cast<size_t>(&__SOK);
 	    size_t kernelEnd = reinterpret_cast<size_t>(&__EOK);
 	    size_t kernelSize = kernelEnd - kernelStart;
