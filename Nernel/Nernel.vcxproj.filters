@@ -51,6 +51,12 @@
     <ClInclude Include="Source\Kernel\SerialPort.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Kernel\Arch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Kernel\x86\GDT.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Source\Kernel\x86\Boot.asm">
@@ -60,6 +66,9 @@
       <Filter>Source Files</Filter>
     </None>
     <None Include="Source\Kernel\x86\TSS.asm">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="Source\Kernel\x86\GDT.asm">
       <Filter>Source Files</Filter>
     </None>
   </ItemGroup>
@@ -86,6 +95,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\Kernel\x86\Drivers\SerialPortLogger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Kernel\x86\Arch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Kernel\x86\GDT.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

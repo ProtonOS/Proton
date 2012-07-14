@@ -1,28 +1,28 @@
 #include "../../SerialPort.h"
 #include "../PortIO.h"
 
-#define SERIALLOGGER__BaseIOPort			0x02F8
-#define SERIALLOGGER__IOPort__Data			SERIALLOGGER__BaseIOPort + 0x00
-#define SERIALLOGGER__IOPort__Interrupt		SERIALLOGGER__BaseIOPort + 0x01
-#define SERIALLOGGER__IOPort__FIFO			SERIALLOGGER__BaseIOPort + 0x02
-#define SERIALLOGGER__IOPort__LineData		SERIALLOGGER__BaseIOPort + 0x03
-#define SERIALLOGGER__IOPort__ModemData		SERIALLOGGER__BaseIOPort + 0x04
-#define SERIALLOGGER__IOPort__LineStatus	SERIALLOGGER__BaseIOPort + 0x05
-#define SERIALLOGGER__IOPort__ModemStatus	SERIALLOGGER__BaseIOPort + 0x06
-#define SERIALLOGGER__IOPort__Scratch		SERIALLOGGER__BaseIOPort + 0x07
-
-#define SERIALLOGGER__TransmitWait			1000
-
-namespace SerialPort
+namespace SerialPortLogger
 {
-    bool IsReady()
+	const uint16_t IOPORT_BASE = 0x02F8;
+	const uint16_t IOPORT_DATA = IOPORT_BASE + 0x00;
+	const uint16_t IOPORT_INTERRUPT = IOPORT_BASE + 0x01;
+	const uint16_t IOPORT_FIFO = IOPORT_BASE + 0x02;
+	const uint16_t IOPORT_LINEDATA = IOPORT_BASE + 0x03;
+	const uint16_t IOPORT_MODEMDATA = IOPORT_BASE + 0x04;
+	const uint16_t IOPORT_LINESTATUS = IOPORT_BASE + 0x05;
+	const uint16_t IOPORT_MODEMSTATUS = IOPORT_BASE + 0x06;
+	const uint16_t IOPORT_SCRATCH = IOPORT_BASE + 0x07;
+
+	const uint16_t TRANSMITWAIT = 1000;
+
+	bool IsReady()
     {
-	    return !!(inb(SERIALLOGGER__IOPort__LineStatus) & 0x20);
+	    return !(inb(IOPORT_LINESTATUS) & 0x20);
     }
     void WriteByte(uint8_t pByte)
     {
-	    uint32_t waits = SERIALLOGGER__TransmitWait;
+	    uint32_t waits = TRANSMITWAIT;
 	    while (waits && !IsReady()) --waits;
-	    if (IsReady()) outb(SERIALLOGGER__IOPort__Data, pByte);
+	    if (IsReady()) outb(IOPORT_DATA, pByte);
     }
 }

@@ -50,6 +50,7 @@
 {
 	Source/Kernel/x86/Atomics.asm
     Source/Kernel/x86/Boot.asm
+	Source/Kernel/x86/GDT.asm
 	Source/Kernel/x86/TSS.asm
 }
 
@@ -60,6 +61,8 @@
 	Source/Kernel/Process.cpp
 	Source/Kernel/Processor.cpp
 	Source/Kernel/Thread.cpp
+	Source/Kernel/x86/Arch.cpp
+	Source/Kernel/x86/GDT.cpp
 	Source/Kernel/x86/SystemCalls.cpp
 	Source/Kernel/x86/Drivers/SerialPortLogger.cpp
 	Source/Kernel/x86/Drivers/VGAConsole.cpp

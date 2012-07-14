@@ -14,8 +14,10 @@
     <ClCompile Include="Source\Kernel\Multiboot.cpp" />
     <ClCompile Include="Source\Kernel\Process.cpp" />
     <ClCompile Include="Source\Kernel\Processor.cpp" />
+    <ClCompile Include="Source\Kernel\x86\Arch.cpp" />
     <ClCompile Include="Source\Kernel\x86\Drivers\SerialPortLogger.cpp" />
     <ClCompile Include="Source\Kernel\x86\Drivers\VGAConsole.cpp" />
+    <ClCompile Include="Source\Kernel\x86\GDT.cpp" />
     <ClCompile Include="Source\Kernel\x86\SystemCalls.cpp" />
     <ClCompile Include="Source\Kernel\Thread.cpp" />
     <ClCompile Include="Source\Main.cpp" />
@@ -24,6 +26,7 @@
     <ClInclude Include="Source\Inline.h" />
     <ClInclude Include="Source\Common.h" />
     <ClInclude Include="Source\IntellisenseFixes.h" />
+    <ClInclude Include="Source\Kernel\Arch.h" />
     <ClInclude Include="Source\Kernel\Atomics.h" />
     <ClInclude Include="Source\Kernel\Console.h" />
     <ClInclude Include="Source\Kernel\Multiboot.h" />
@@ -31,12 +34,14 @@
     <ClInclude Include="Source\Kernel\Processor.h" />
     <ClInclude Include="Source\Kernel\SerialPort.h" />
     <ClInclude Include="Source\Kernel\Thread.h" />
+    <ClInclude Include="Source\Kernel\x86\GDT.h" />
     <ClInclude Include="Source\Kernel\x86\PortIO.h" />
     <ClInclude Include="Source\Kernel\x86\TSS.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Source\Kernel\x86\Atomics.asm" />
     <None Include="Source\Kernel\x86\Boot.asm" />
+    <None Include="Source\Kernel\x86\GDT.asm" />
     <None Include="Source\Kernel\x86\TSS.asm" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
