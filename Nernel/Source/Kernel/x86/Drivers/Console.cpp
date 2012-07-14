@@ -22,7 +22,7 @@ namespace Console
 	void MoveToNextLine();
 	void Advance();
 	void WriteCharacter(char pCharacter);
-	void WriteString(const char* pString, uint32_t pLength);
+	void WriteString(const char* pString, size_t pLength);
 
     void Startup()
     {
@@ -98,7 +98,7 @@ namespace Console
     	    SerialPortLogger::WriteByte(pCharacter);
         }
     }
-    void WriteString(const char* pString, uint32_t pLength)
+    void WriteString(const char* pString, size_t pLength)
     {
         while (*pString && pLength)
 	    {

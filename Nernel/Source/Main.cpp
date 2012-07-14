@@ -11,6 +11,8 @@ void Main(uint32_t pMultibootMagic, void* pMultibootHeader)
 	Multiboot::Startup(pMultibootMagic, reinterpret_cast<Multiboot::Header*>(pMultibootHeader));
 	Console::Startup();
 	Arch::Startup();
+
+	while (true);
 }
 
 void Panic(const char* pMessage)

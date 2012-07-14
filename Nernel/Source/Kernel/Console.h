@@ -26,5 +26,6 @@ namespace Console
 	void SetColors(Color pForeground, Color pBackground);
 	Color GetForegroundColor();
 	Color GetBackgroundColor();
+	void WriteString(const char* pString, size_t pLength);
 	void WriteLine(const char* pLine);
 };

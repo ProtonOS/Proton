@@ -1,6 +1,8 @@
 #include "../Atomics.h"
+#include "../Console.h"
 #include "../Multiboot.h"
 #include "../Processor.h"
+#include "../SystemClock.h"
 #include "../Thread.h"
 #include "TSS.h"
 
@@ -119,7 +121,7 @@ int write(int pDescriptorIndex, const void* pData, size_t pLength)
     if (pDescriptorIndex == STDOUT_FILENO ||
         pDescriptorIndex == STDERR_FILENO)
     {
-//        Console_WriteString((const char*)pData, pLength);
+        Console::WriteString((const char*)pData, pLength);
         return (int)pLength;
     }
     Panic("WRITE");
@@ -138,11 +140,11 @@ int gettimeofday(struct timeval* pTime, void* pTimeZone)
 	{
         pTime->tv_sec = 0;
         pTime->tv_usec = 0;
-        //if (SystemClock_IsReady())
-        //{
-	       // pTime->tv_sec = (time_t)SystemClock_GetSecondsSinceEpoch();
-	       // pTime->tv_usec = (suseconds_t)SystemClock_GetMilliseconds();
-        //}
+        if (SystemClock::IsReady())
+        {
+	        pTime->tv_sec = (time_t)SystemClock::GetSecondsSinceEpoch();
+	        pTime->tv_usec = (suseconds_t)SystemClock::GetMilliseconds();
+        }
 	}
 	if (pTimeZone)
 	{

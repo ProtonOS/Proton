@@ -1,4 +1,5 @@
 #include "IDT.h"
+#include "../PIC.h"
 
 extern "C" {
 void IDTUpdateRegister(void);
@@ -320,17 +321,25 @@ namespace IDT
 		for (uint8_t interrupt = 0; interrupt < IRQ_BASE; ++interrupt) sCallbacks[interrupt] = CPUInterruptHandler;
 	}
 
-	void WaitFor(uint8_t pInterrupt)
+	void RegisterCallback(uint8_t pInterrupt, Callback pCallback)
+	{
+		sCallbacks[pInterrupt] = pCallback;
+	}
+
+	void Schedule(uint8_t pInterrupt)
 	{
 		sPending[pInterrupt] = true;
+	}
+
+	void WaitFor(uint8_t pInterrupt)
+	{
 		while (sPending[pInterrupt]);
 	}
 }
 
 extern "C" {
-void IDTISRHandler(IDT::InterruptRegisters pRegisters)
+void IDTISRHandler(IDT::InterruptRegisters pRegisters) 
 {
-	printf("IDTISRHandler: %u\n", (unsigned int)pRegisters.int_no);
 	IDT::sPending[pRegisters.int_no] = false;
     IDT::Callback callback = IDT::sCallbacks[pRegisters.int_no];
     if (callback) callback(pRegisters);
@@ -338,10 +347,9 @@ void IDTISRHandler(IDT::InterruptRegisters pRegisters)
 
 void IDTIRQHandler(IDT::InterruptRegisters pRegisters)
 {
-	printf("IDTIRQHandler: %u\n", (unsigned int)pRegisters.int_no);
 	IDT::sPending[IDT::IRQ_BASE + pRegisters.int_no] = false;
     IDT::Callback callback = IDT::sCallbacks[IDT::IRQ_BASE + pRegisters.int_no];
     if (callback) callback(pRegisters);
-    //PIC_ResetInterrupts(pRegisters.int_no >= 9);
+	PIC::ResetInterrupts(pRegisters.int_no >= 9);
 }
 }

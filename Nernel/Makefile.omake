@@ -53,6 +53,7 @@
 	Source/Kernel/x86/GDTUpdateRegister.asm
 	Source/Kernel/x86/IDTStubs.asm
 	Source/Kernel/x86/IDTUpdateRegister.asm
+	Source/Kernel/x86/PICInterrupts.asm
 	Source/Kernel/x86/TSSGetRegister.asm
 	Source/Kernel/x86/TSSUpdateRegister.asm
 }
@@ -68,8 +69,12 @@
 	Source/Kernel/x86/GDT.cpp
 	Source/Kernel/x86/IDT.cpp
 	Source/Kernel/x86/SystemCalls.cpp
-	Source/Kernel/x86/Drivers/SerialPortLogger.cpp
+	Source/Kernel/x86/SystemClock.cpp
 	Source/Kernel/x86/Drivers/Console.cpp
+	Source/Kernel/x86/Drivers/PIC.cpp
+	Source/Kernel/x86/Drivers/PIT.cpp
+	Source/Kernel/x86/Drivers/RTC.cpp
+	Source/Kernel/x86/Drivers/SerialPortLogger.cpp
 }
 
 

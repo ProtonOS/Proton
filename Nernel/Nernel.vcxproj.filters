@@ -63,6 +63,18 @@
     <ClInclude Include="Source\Kernel\x86\IDTExternalStubs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Kernel\PIC.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Kernel\PIT.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Kernel\RTC.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Kernel\SystemClock.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Source\Kernel\x86\Boot.asm">
@@ -84,6 +96,9 @@
       <Filter>Source Files</Filter>
     </None>
     <None Include="Source\Kernel\x86\IDTUpdateRegister.asm">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="Source\Kernel\x86\PICInterrupts.asm">
       <Filter>Source Files</Filter>
     </None>
   </ItemGroup>
@@ -119,6 +134,18 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\Kernel\x86\IDT.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Kernel\x86\Drivers\PIC.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Kernel\x86\Drivers\PIT.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Kernel\x86\Drivers\RTC.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Kernel\x86\SystemClock.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
