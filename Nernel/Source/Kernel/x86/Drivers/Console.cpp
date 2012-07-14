@@ -1,4 +1,4 @@
-#include "../../SerialPort.h"
+#include "../../SerialPortLogger.h"
 #include "../../Console.h"
 #include "../PortIO.h"
 
@@ -86,8 +86,8 @@ namespace Console
         if (pCharacter == '\n')
         {
             MoveToNextLine();
-    	    SerialPort::WriteByte('\r');
-    	    SerialPort::WriteByte('\n');
+    	    SerialPortLogger::WriteByte('\r');
+    	    SerialPortLogger::WriteByte('\n');
         }
         else if (pCharacter != '\r')
         {
@@ -95,7 +95,7 @@ namespace Console
 	        cursor->ch = pCharacter;
 	        cursor->at = mAttributes;
 	        Advance();
-    	    SerialPort::WriteByte(pCharacter);
+    	    SerialPortLogger::WriteByte(pCharacter);
         }
     }
     void WriteString(const char* pString, uint32_t pLength)

@@ -1,6 +1,6 @@
 #pragma once
 
 extern "C" {
-extern void TSSUpdate(uint32_t pSegmentSelector);
-extern uint32_t TSSGetTaskRegister();
+extern uint32_t TSSGetRegister(void);
+extern void TSSUpdateRegister(uint32_t pDescriptorOffset);
 }

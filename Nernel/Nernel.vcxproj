@@ -16,7 +16,7 @@
     <ClCompile Include="Source\Kernel\Processor.cpp" />
     <ClCompile Include="Source\Kernel\x86\Arch.cpp" />
     <ClCompile Include="Source\Kernel\x86\Drivers\SerialPortLogger.cpp" />
-    <ClCompile Include="Source\Kernel\x86\Drivers\VGAConsole.cpp" />
+    <ClCompile Include="Source\Kernel\x86\Drivers\Console.cpp" />
     <ClCompile Include="Source\Kernel\x86\GDT.cpp" />
     <ClCompile Include="Source\Kernel\x86\SystemCalls.cpp" />
     <ClCompile Include="Source\Kernel\Thread.cpp" />
@@ -32,7 +32,7 @@
     <ClInclude Include="Source\Kernel\Multiboot.h" />
     <ClInclude Include="Source\Kernel\Process.h" />
     <ClInclude Include="Source\Kernel\Processor.h" />
-    <ClInclude Include="Source\Kernel\SerialPort.h" />
+    <ClInclude Include="Source\Kernel\SerialPortLogger.h" />
     <ClInclude Include="Source\Kernel\Thread.h" />
     <ClInclude Include="Source\Kernel\x86\GDT.h" />
     <ClInclude Include="Source\Kernel\x86\PortIO.h" />
@@ -41,8 +41,9 @@
   <ItemGroup>
     <None Include="Source\Kernel\x86\Atomics.asm" />
     <None Include="Source\Kernel\x86\Boot.asm" />
-    <None Include="Source\Kernel\x86\GDT.asm" />
-    <None Include="Source\Kernel\x86\TSS.asm" />
+    <None Include="Source\Kernel\x86\GDTUpdateRegister.asm" />
+    <None Include="Source\Kernel\x86\TSSGetRegister.asm" />
+    <None Include="Source\Kernel\x86\TSSUpdateRegister.asm" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E5D2B815-40D4-4B6F-A622-0F402DADAD28}</ProjectGuid>

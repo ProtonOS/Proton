@@ -50,8 +50,9 @@
 {
 	Source/Kernel/x86/Atomics.asm
     Source/Kernel/x86/Boot.asm
-	Source/Kernel/x86/GDT.asm
-	Source/Kernel/x86/TSS.asm
+	Source/Kernel/x86/GDTUpdateRegister.asm
+	Source/Kernel/x86/TSSGetRegister.asm
+	Source/Kernel/x86/TSSUpdateRegister.asm
 }
 
 #define SOURCE(CPP_FILES)
@@ -65,7 +66,7 @@
 	Source/Kernel/x86/GDT.cpp
 	Source/Kernel/x86/SystemCalls.cpp
 	Source/Kernel/x86/Drivers/SerialPortLogger.cpp
-	Source/Kernel/x86/Drivers/VGAConsole.cpp
+	Source/Kernel/x86/Drivers/Console.cpp
 }
 
 

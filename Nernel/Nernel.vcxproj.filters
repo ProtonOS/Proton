@@ -48,13 +48,13 @@
     <ClInclude Include="Source\Kernel\Console.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Kernel\SerialPort.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Kernel\Arch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\Kernel\x86\GDT.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Kernel\SerialPortLogger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -65,10 +65,13 @@
     <None Include="Source\Kernel\x86\Atomics.asm">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="Source\Kernel\x86\TSS.asm">
+    <None Include="Source\Kernel\x86\GDTUpdateRegister.asm">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="Source\Kernel\x86\GDT.asm">
+    <None Include="Source\Kernel\x86\TSSUpdateRegister.asm">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="Source\Kernel\x86\TSSGetRegister.asm">
       <Filter>Source Files</Filter>
     </None>
   </ItemGroup>
@@ -91,9 +94,6 @@
     <ClCompile Include="Source\Kernel\x86\SystemCalls.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Kernel\x86\Drivers\VGAConsole.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Kernel\x86\Drivers\SerialPortLogger.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -101,6 +101,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\Kernel\x86\GDT.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Kernel\x86\Drivers\Console.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

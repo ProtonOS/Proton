@@ -33,9 +33,9 @@ uint8_t gMallocBusy = 0;
 struct _reent* __getreent()
 {
 	if (!gMultitasking) return &gDefaultReent;
-	uint32_t taskRegister = TSSGetTaskRegister();
-	uint32_t apicIndex = (taskRegister - 0x2B) >> 3;
-	Processor* processor = Processor::GetProcessor((uint8_t)apicIndex);
+	uint32_t taskRegister = TSSGetRegister();
+	uint32_t processorIndex = (taskRegister - 0x2B) >> 3;
+	Processor* processor = Processor::GetProcessor((uint8_t)processorIndex);
 	return processor->GetCurrentThread()->GetReentrant();
 }
 

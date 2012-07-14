@@ -1,4 +1,4 @@
-#include "../../SerialPort.h"
+#include "../../SerialPortLogger.h"
 #include "../PortIO.h"
 
 namespace SerialPortLogger
