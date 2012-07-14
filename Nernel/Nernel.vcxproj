@@ -18,6 +18,7 @@
     <ClCompile Include="Source\Kernel\x86\Drivers\SerialPortLogger.cpp" />
     <ClCompile Include="Source\Kernel\x86\Drivers\Console.cpp" />
     <ClCompile Include="Source\Kernel\x86\GDT.cpp" />
+    <ClCompile Include="Source\Kernel\x86\IDT.cpp" />
     <ClCompile Include="Source\Kernel\x86\SystemCalls.cpp" />
     <ClCompile Include="Source\Kernel\Thread.cpp" />
     <ClCompile Include="Source\Main.cpp" />
@@ -35,6 +36,8 @@
     <ClInclude Include="Source\Kernel\SerialPortLogger.h" />
     <ClInclude Include="Source\Kernel\Thread.h" />
     <ClInclude Include="Source\Kernel\x86\GDT.h" />
+    <ClInclude Include="Source\Kernel\x86\IDT.h" />
+    <ClInclude Include="Source\Kernel\x86\IDTExternalStubs.h" />
     <ClInclude Include="Source\Kernel\x86\PortIO.h" />
     <ClInclude Include="Source\Kernel\x86\TSS.h" />
   </ItemGroup>
@@ -42,6 +45,8 @@
     <None Include="Source\Kernel\x86\Atomics.asm" />
     <None Include="Source\Kernel\x86\Boot.asm" />
     <None Include="Source\Kernel\x86\GDTUpdateRegister.asm" />
+    <None Include="Source\Kernel\x86\IDTStubs.asm" />
+    <None Include="Source\Kernel\x86\IDTUpdateRegister.asm" />
     <None Include="Source\Kernel\x86\TSSGetRegister.asm" />
     <None Include="Source\Kernel\x86\TSSUpdateRegister.asm" />
   </ItemGroup>

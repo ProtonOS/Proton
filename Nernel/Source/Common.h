@@ -1,12 +1,14 @@
 #pragma once
 
 #include <cstdint>
+#include <cstddef>
 #include <cerrno>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
 #include <algorithm>
+#include <functional>
 //#include <unistd.h>
 //#include <System/Log.h>
 

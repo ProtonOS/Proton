@@ -29,13 +29,14 @@ int gettimeofday(struct timeval* pTime, void* pTimeZone);
 struct _reent gDefaultReent;
 bool gMultitasking = false;	
 uint8_t gMallocBusy = 0;
+void *__dso_handle = nullptr;
 
 struct _reent* __getreent()
 {
 	if (!gMultitasking) return &gDefaultReent;
 	uint32_t taskRegister = TSSGetRegister();
-	uint32_t processorIndex = (taskRegister - 0x2B) >> 3;
-	Processor* processor = Processor::GetProcessor((uint8_t)processorIndex);
+	uint16_t processorIndex = (taskRegister - 0x2B) >> 3;
+	Processor* processor = Processor::GetProcessor(processorIndex);
 	return processor->GetCurrentThread()->GetReentrant();
 }
 

@@ -5,14 +5,14 @@ class Thread;
 class Processor
 {
 private:
-	uint8_t mIndex;
+	uint16_t mIndex;
 	Thread* mCurrentThread;
 
 	static Processor* sProcessors[];
-	static uint8_t sProcessorCount;
+	static uint16_t sProcessorCount;
 
 public:
-	static Processor* GetProcessor(uint8_t pProcessor);
+	static Processor* GetProcessor(uint16_t pProcessor);
 
 	Processor();
 	~Processor();

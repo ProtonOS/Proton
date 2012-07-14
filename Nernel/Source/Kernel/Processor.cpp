@@ -3,9 +3,9 @@
 #define PROCESSOR__Max						250
 
 Processor* Processor::sProcessors[PROCESSOR__Max];
-uint8_t Processor::sProcessorCount = 0;
+uint16_t Processor::sProcessorCount = 0;
 
-Processor* Processor::GetProcessor(uint8_t pProcessor)
+Processor* Processor::GetProcessor(uint16_t pProcessor)
 {
 	return sProcessors[pProcessor];
 }
