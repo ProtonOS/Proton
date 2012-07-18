@@ -3,7 +3,7 @@
 #include "../Multiboot.h"
 #include "Processor.h"
 #include "../SystemClock.h"
-#include "../Thread.h"
+#include "Thread.h"
 #include "TSS.h"
 
 #include <reent.h>
@@ -38,21 +38,22 @@ struct _reent* __getreent()
 	if (!gMultitasking) return &gDefaultReent;
 	uint32_t taskRegister = TSSGetRegister();
 	uint16_t processorIndex = (taskRegister - 0x28) >> 3;
-	Processor* processor = Processor::GetProcessor(processorIndex);
-	return processor->GetCurrentThread()->GetReentrant();
+	Processor* processor = Processor::sProcessors[processorIndex];
+	return &processor->CurrentThread->Reentrant;
 }
 
 void __malloc_lock(struct _reent* pReent)
 {
 	AtomicCompareExchange(&gMallocBusy, 0, 1);
 	Thread* thread = (Thread*)pReent->_new._reent._unused_rand;
-	thread->IncrementMallocLockDepth();
+	++thread->MallocLockDepth;
 }
 
 void __malloc_unlock(struct _reent* pReent)
 {
 	Thread* thread = (Thread*)pReent->_new._reent._unused_rand;
-	if (thread->DecrementMallocLockDepth()) AtomicReleaseLock(&gMallocBusy);
+	--thread->MallocLockDepth;
+	if (!thread->MallocLockDepth) AtomicReleaseLock(&gMallocBusy);
 }
 
 long sysconf(int pSetting)

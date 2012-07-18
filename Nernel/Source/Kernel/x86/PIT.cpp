@@ -5,6 +5,8 @@
 
 namespace PIT
 {
+	const uint32_t BUS_SAMPLES = 10;
+
 	uint32_t sMaxHertz = 1193182;
 	uint16_t sCycleHertz = 100;
 	uint16_t sMillisecondsPerCycle = 0;
@@ -18,7 +20,7 @@ namespace PIT
 		if (sCalculatingProcessorBus)
 		{
 			++sCalculatingProcessorBusCycles;
-			if (sCalculatingProcessorBusCycles == 20) sCalculatingProcessorBus = false;
+			if (sCalculatingProcessorBusCycles == BUS_SAMPLES) sCalculatingProcessorBus = false;
 		}
 		sMillisecondsElapsed += sMillisecondsPerCycle;
 		if (sMillisecondsElapsed >= 1000)
@@ -59,8 +61,8 @@ namespace PIT
 	{
 		sCalculatingProcessorBusCycles = 0;
 		sCalculatingProcessorBus = true;
-		*reinterpret_cast<uint32_t*>(pProcessor->GetBaseAddress() + Processor::LAPIC_REGISTER_TIMER_INITIALCOUNT) = 0xFFFFFFFF;
+		*reinterpret_cast<uint32_t*>(pProcessor->BaseAddress + Processor::LAPIC_REGISTER_TIMER_INITIALCOUNT) = 0xFFFFFFFF;
 		while (sCalculatingProcessorBus) ;
-		return (((0xFFFFFFFF - *reinterpret_cast<uint32_t*>(pProcessor->GetBaseAddress() + Processor::LAPIC_REGISTER_TIMER_CURRENTCOUNT)) + 1) * 16) * (sCycleHertz / 20);
+		return (((0xFFFFFFFF - *reinterpret_cast<uint32_t*>(pProcessor->BaseAddress + Processor::LAPIC_REGISTER_TIMER_CURRENTCOUNT)) + 1) * 16) * (sCycleHertz / BUS_SAMPLES);
 	}
 }

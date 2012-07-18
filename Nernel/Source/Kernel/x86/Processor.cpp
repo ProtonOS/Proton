@@ -3,6 +3,7 @@
 #include "MSR.h"
 #include "../PIT.h"
 #include "Processor.h"
+#include "ThreadScheduler.h"
 #include "TSS.h"
 
 extern "C" {
@@ -13,38 +14,39 @@ void ProcessorBusFrequencyTimer(IDT::InterruptRegisters pRegisters)
 {
 	uint32_t taskRegister = TSSGetRegister();
 	uint16_t processorIndex = (taskRegister - 0x28) >> 3;
-	Processor* processor = Processor::GetProcessor(processorIndex);
-	*reinterpret_cast<uint32_t*>(processor->GetBaseAddress() + Processor::LAPIC_REGISTER_ENDOFINTERRUPT) = 0;
+	Processor* processor = Processor::sProcessors[processorIndex];
+	*reinterpret_cast<uint32_t*>(processor->BaseAddress + Processor::LAPIC_REGISTER_ENDOFINTERRUPT) = 0;
 }
 
 void ProcessorThreadSchedulerTimer(IDT::InterruptRegisters pRegisters)
 {
 	uint32_t taskRegister = TSSGetRegister();
 	uint16_t processorIndex = (taskRegister - 0x28) >> 3;
-	Processor* processor = Processor::GetProcessor(processorIndex);
-	*reinterpret_cast<uint32_t*>(processor->GetBaseAddress() + Processor::LAPIC_REGISTER_ENDOFINTERRUPT) = 0;
+	Processor* processor = Processor::sProcessors[processorIndex];
+	ThreadScheduler::Schedule(processor, &pRegisters);
+	*reinterpret_cast<uint32_t*>(processor->BaseAddress + Processor::LAPIC_REGISTER_ENDOFINTERRUPT) = 0;
 }
 }
 
 
-#define PROCESSOR__Max						250
-
-Processor* Processor::sProcessors[PROCESSOR__Max];
+Processor** Processor::sProcessors = nullptr;
 uint16_t Processor::sProcessorCount = 0;
 
-Processor* Processor::GetProcessor(uint16_t pProcessor)
+void Processor::AllocateProcessors(uint16_t pProcessorCount)
 {
-	return sProcessors[pProcessor];
+	sProcessors = new Processor*[pProcessorCount];
 }
 
 Processor::Processor()
 {
-	mIndex = sProcessorCount;
-	mCurrentThread = nullptr;
+	Index = sProcessorCount;
+	CurrentThread = nullptr;
 	sProcessors[sProcessorCount++] = this;
+	PreemptedTimerCount = 0;
+	Sleeping = false;
 	
-	mBaseAddress = MSRRead(MSR::REGISTER_LAPIC) & MSR::LAPIC_ADDRESSMASK;
-	MSRWrite(MSR::REGISTER_LAPIC, mBaseAddress | MSR::LAPIC_ENABLE);
+	BaseAddress = MSRRead(MSR::REGISTER_LAPIC) & MSR::LAPIC_ADDRESSMASK;
+	MSRWrite(MSR::REGISTER_LAPIC, BaseAddress | MSR::LAPIC_ENABLE);
 
 	if (sProcessorCount == 1)
 	{
@@ -53,30 +55,25 @@ Processor::Processor()
 		IDT::RegisterCallback(0xFF, ProcessorThreadSchedulerTimer);
 	}
 
-	GDT::SetTSSStackAndRegister(mIndex, reinterpret_cast<uint32_t>(&mStack[0] + STACK_SIZE));
+	GDT::SetTSSStackAndRegister(Index, reinterpret_cast<uint32_t>(&Stack[0] + STACK_SIZE));
 
-	*reinterpret_cast<uint32_t*>(mBaseAddress + LAPIC_REGISTER_SPURIOUSINTERRUPTVECTOR) = 0xFE | LAPIC_FLAGS_SOFTWAREENABLE;
-	*reinterpret_cast<uint32_t*>(mBaseAddress + LAPIC_REGISTER_LVT_TIMER) = 0xFD;
-	*reinterpret_cast<uint32_t*>(mBaseAddress + LAPIC_REGISTER_TIMER_DIVISOR) = 0x03;
+	*reinterpret_cast<uint32_t*>(BaseAddress + LAPIC_REGISTER_SPURIOUSINTERRUPTVECTOR) = 0xFE | LAPIC_FLAGS_SOFTWAREENABLE;
+	*reinterpret_cast<uint32_t*>(BaseAddress + LAPIC_REGISTER_LVT_TIMER) = 0xFD;
+	*reinterpret_cast<uint32_t*>(BaseAddress + LAPIC_REGISTER_TIMER_DIVISOR) = 0x03;
 
-	mBusFrequency = PIT::CalculateProcessorBus(this);
+	BusFrequency = PIT::CalculateProcessorBus(this);
 
-	uint32_t divisor = mBusFrequency / 16 / LAPIC_TIMER_CYCLEHERTZ;
+	uint32_t divisor = BusFrequency / 16 / LAPIC_TIMER_CYCLEHERTZ;
 
-	*reinterpret_cast<uint32_t*>(mBaseAddress + LAPIC_REGISTER_TIMER_INITIALCOUNT) = divisor < 16 ? 16 : divisor;
-	*reinterpret_cast<uint32_t*>(mBaseAddress + LAPIC_REGISTER_LVT_TIMER) = 0xFF | LAPIC_TIMER_PERIODIC;
-	*reinterpret_cast<uint32_t*>(mBaseAddress + LAPIC_REGISTER_TIMER_DIVISOR) = 0x03;
-}
-
-Processor::~Processor()
-{
-	sProcessors[mIndex] = nullptr;
+	*reinterpret_cast<uint32_t*>(BaseAddress + LAPIC_REGISTER_TIMER_INITIALCOUNT) = divisor < 16 ? 16 : divisor;
+	*reinterpret_cast<uint32_t*>(BaseAddress + LAPIC_REGISTER_LVT_TIMER) = 0xFF | LAPIC_TIMER_PERIODIC;
+	*reinterpret_cast<uint32_t*>(BaseAddress + LAPIC_REGISTER_TIMER_DIVISOR) = 0x03;
 }
 
 void Processor::SendInterruptCommand(uint32_t pLowRegister, uint32_t pHighRegister)
 {
-	*reinterpret_cast<uint32_t*>(mBaseAddress + LAPIC_REGISTER_INTERRUPTCOMMANDHIGH) = pHighRegister;
-	*reinterpret_cast<uint32_t*>(mBaseAddress + LAPIC_REGISTER_INTERRUPTCOMMANDLOW) = pLowRegister;
-	while ((*reinterpret_cast<uint32_t*>(mBaseAddress + LAPIC_REGISTER_INTERRUPTCOMMANDLOW) & (1 << 12))) ;
+	*reinterpret_cast<uint32_t*>(BaseAddress + LAPIC_REGISTER_INTERRUPTCOMMANDHIGH) = pHighRegister;
+	*reinterpret_cast<uint32_t*>(BaseAddress + LAPIC_REGISTER_INTERRUPTCOMMANDLOW) = pLowRegister;
+	while ((*reinterpret_cast<uint32_t*>(BaseAddress + LAPIC_REGISTER_INTERRUPTCOMMANDLOW) & (1 << 12))) ;
 }
 

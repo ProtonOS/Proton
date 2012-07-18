@@ -3,9 +3,11 @@
 #include "PortIO.h"
 #include "Processor.h"
 #include "SMP.h"
+#include "ThreadScheduler.h"
 #include "TSS.h"
 
 extern "C" {
+void Started();
 void SMPInit();
 void SMPInitEnd();
 void GDTSwitchToUserMode();
@@ -19,13 +21,10 @@ void SMPEnteredUserMode()
 {
 	uint32_t taskRegister = TSSGetRegister();
 	uint16_t processorIndex = (taskRegister - 0x28) >> 3;
-	Processor* processor = Processor::GetProcessor(processorIndex);
-	if (processor->IsBootstrap())
-	{
-		// TODO: Start Thread Scheduler
-	}
-	printf("Processor %u Ready\n", processorIndex);
+	Processor* processor = Processor::sProcessors[processorIndex];
+	printf("Processor %u Ready, %uMHz Bus\n", processorIndex, (unsigned int)(processor->BusFrequency / 1000 / 1000));
 	++gSMPStartedProcessors;
+	if (processor->Index == 0) ThreadScheduler::Startup((uint32_t)&Started, 0x100000);
 	while (true) ;
 }
 
@@ -33,7 +32,7 @@ uint32_t gEnteredUserModeAddress = (uint32_t)&SMPEnteredUserMode;
 
 void SMPStarted()
 {
-	GDTUpdateRegister();
+	IDTUpdateRegister();
 	new Processor();
 	GDTSwitchToUserMode();
 	while (true) ;
@@ -119,6 +118,7 @@ namespace SMP {
 			configEntryIterator += sizeof(CPU);
 		}
 		GDT::AllocateTSS(cpuCount);
+		Processor::AllocateProcessors(cpuCount);
 
 		Processor* bootstrapProcessor = new Processor();
 

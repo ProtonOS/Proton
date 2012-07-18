@@ -4,18 +4,9 @@ class Thread;
 
 class Processor
 {
-private:
-	static const uint32_t STACK_SIZE = 1024 * 128;
-	uint16_t mIndex;
-	Thread* mCurrentThread;
-	uint32_t mBaseAddress;
-	uint32_t mBusFrequency;
-	uint8_t mStack[STACK_SIZE];
-
-	static Processor* sProcessors[];
-	static uint16_t sProcessorCount;
-
 public:
+	static const uint32_t STACK_SIZE = 1024 * 128;
+
 	static const uint16_t LAPIC_REGISTER_APICID = 0x020;
 	static const uint16_t LAPIC_REGISTER_APICVERSION = 0x030;
 	static const uint16_t LAPIC_REGISTER_TASKPRIORITY = 0x080;
@@ -47,15 +38,20 @@ public:
 	static const uint32_t LAPIC_TIMER_CYCLEHERTZ = 100;
 
 
-	static Processor* GetProcessor(uint16_t pProcessor);
+	uint16_t Index;
+	Thread* CurrentThread;
+	uint32_t BaseAddress;
+	uint32_t BusFrequency;
+	uint32_t PreemptedTimerCount;
+	bool Sleeping;
+	uint8_t Stack[STACK_SIZE];
+
+	static Processor** sProcessors;
+	static uint16_t sProcessorCount;
+
+	static void AllocateProcessors(uint16_t pProcessorCount);
 
 	Processor();
-	~Processor();
-
-	bool IsBootstrap() const { return mIndex == 0; }
-	uint16_t GetIndex() const { return mIndex; }
-	Thread* GetCurrentThread() const { return mCurrentThread; }
-	uint32_t GetBaseAddress() const { return mBaseAddress; }
 
 	void SendInterruptCommand(uint32_t pLowRegister, uint32_t pHighRegister);
 };

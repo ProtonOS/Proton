@@ -30,12 +30,6 @@
     <ClInclude Include="Source\Kernel\x86\PortIO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Kernel\Process.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Kernel\Thread.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Kernel\x86\TSS.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -84,6 +78,12 @@
     <ClInclude Include="Source\Kernel\x86\ThreadScheduler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Kernel\x86\Thread.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Kernel\x86\Process.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Source\Kernel\x86\Boot.asm">
@@ -127,12 +127,6 @@
     <ClCompile Include="Source\Kernel\Multiboot.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Kernel\Process.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Kernel\Thread.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Kernel\x86\SystemCalls.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -167,6 +161,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\Kernel\x86\Processor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Kernel\x86\ThreadScheduler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Kernel\x86\Thread.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Kernel\x86\Process.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

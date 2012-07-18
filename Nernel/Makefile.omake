@@ -65,20 +65,21 @@
 {
 	Source/Main.cpp
 	Source/Kernel/Multiboot.cpp
-	Source/Kernel/Process.cpp
-	Source/Kernel/Thread.cpp
 	Source/Kernel/x86/Arch.cpp
 	Source/Kernel/x86/Console.cpp
 	Source/Kernel/x86/GDT.cpp
 	Source/Kernel/x86/IDT.cpp
 	Source/Kernel/x86/PIC.cpp
 	Source/Kernel/x86/PIT.cpp
+	Source/Kernel/x86/Process.cpp
 	Source/Kernel/x86/Processor.cpp
 	Source/Kernel/x86/RTC.cpp
 	Source/Kernel/x86/SerialPortLogger.cpp
 	Source/Kernel/x86/SMP.cpp
 	Source/Kernel/x86/SystemCalls.cpp
 	Source/Kernel/x86/SystemClock.cpp
+	Source/Kernel/x86/Thread.cpp
+	Source/Kernel/x86/ThreadScheduler.cpp
 }
 
 

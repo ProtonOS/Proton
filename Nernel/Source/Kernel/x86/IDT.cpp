@@ -2,7 +2,6 @@
 #include "../PIC.h"
 
 extern "C" {
-void IDTUpdateRegister(void);
 void* gIDTRegisterPointer = nullptr;
 void IDTEmptyInterrupt(IDT::InterruptRegisters pRegisters);
 

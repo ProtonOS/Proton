@@ -12,7 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Kernel\Multiboot.cpp" />
-    <ClCompile Include="Source\Kernel\Process.cpp" />
+    <ClCompile Include="Source\Kernel\x86\Process.cpp" />
     <ClCompile Include="Source\Kernel\x86\Arch.cpp" />
     <ClCompile Include="Source\Kernel\x86\PIC.cpp" />
     <ClCompile Include="Source\Kernel\x86\PIT.cpp" />
@@ -24,8 +24,9 @@
     <ClCompile Include="Source\Kernel\x86\IDT.cpp" />
     <ClCompile Include="Source\Kernel\x86\SMP.cpp" />
     <ClCompile Include="Source\Kernel\x86\SystemCalls.cpp" />
-    <ClCompile Include="Source\Kernel\Thread.cpp" />
+    <ClCompile Include="Source\Kernel\x86\Thread.cpp" />
     <ClCompile Include="Source\Kernel\x86\SystemClock.cpp" />
+    <ClCompile Include="Source\Kernel\x86\ThreadScheduler.cpp" />
     <ClCompile Include="Source\Main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -38,12 +39,12 @@
     <ClInclude Include="Source\Kernel\Multiboot.h" />
     <ClInclude Include="Source\Kernel\PIC.h" />
     <ClInclude Include="Source\Kernel\PIT.h" />
-    <ClInclude Include="Source\Kernel\Process.h" />
+    <ClInclude Include="Source\Kernel\x86\Process.h" />
     <ClInclude Include="Source\Kernel\x86\MSR.h" />
     <ClInclude Include="Source\Kernel\x86\Processor.h" />
     <ClInclude Include="Source\Kernel\RTC.h" />
     <ClInclude Include="Source\Kernel\SerialPortLogger.h" />
-    <ClInclude Include="Source\Kernel\Thread.h" />
+    <ClInclude Include="Source\Kernel\x86\Thread.h" />
     <ClInclude Include="Source\Kernel\x86\GDT.h" />
     <ClInclude Include="Source\Kernel\x86\IDT.h" />
     <ClInclude Include="Source\Kernel\x86\IDTExternalStubs.h" />

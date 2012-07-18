@@ -1,5 +1,9 @@
 #pragma once
 
+extern "C" {
+void IDTUpdateRegister(void);
+}
+
 namespace IDT
 {
 	const uint8_t IRQ_BASE = 0x20;

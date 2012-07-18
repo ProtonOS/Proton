@@ -1,4 +1,4 @@
-#include "Atomics.h"
+#include "../Atomics.h"
 #include "Process.h"
 #include "Thread.h"
 
@@ -18,27 +18,27 @@ Process::Process(size_t pEntryPoint, size_t pThreadStackSize, uint8_t pPriority)
 		// Compact down unused process pointers
 		Panic("Reached maximum process count, need to compact");
 	}
-	mIdentifier = sNextIdentifier;
+	Identifier = sNextIdentifier;
 	sProcesses[sNextIdentifier++] = this;
 	//Log_WriteLine(LOGLEVEL__Memory, "Memory: Process_Create @ 0x%x", (unsigned int)process);
-	mThreads = new Thread*[PROCESS__DefaultThreadPool_Max];
-	mThreads[0] = new Thread(this, pEntryPoint, pThreadStackSize, pPriority);
-	mThreadCount = 1;
+	Threads = new Thread*[PROCESS__DefaultThreadPool_Max];
+	Threads[0] = new Thread(this, pEntryPoint, pThreadStackSize, pPriority);
+	ThreadCount = 1;
 	AtomicReleaseLock(&sBusy);
 }
 
 Process::~Process()
 {
 	AtomicAquireLock(&sBusy);
-	sProcesses[mIdentifier] = NULL;
+	sProcesses[Identifier] = NULL;
 	//Log_WriteLine(LOGLEVEL__Memory, "Memory: Process_Destroy @ 0x%x", (unsigned int)pProcess);
-	for (uint32_t index = 0; index < mThreadCount; ++index)
+	for (uint32_t index = 0; index < ThreadCount; ++index)
 	{
-		if (mThreads[index])
+		if (Threads[index])
 		{
-			delete mThreads[index];
+			delete Threads[index];
 		}
 	}
-	delete [] mThreads;
+	delete [] Threads;
 	AtomicReleaseLock(&sBusy);
 }
