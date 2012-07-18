@@ -39,9 +39,6 @@
     <ClInclude Include="Source\Kernel\x86\TSS.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Kernel\Processor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Kernel\Atomics.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -75,6 +72,18 @@
     <ClInclude Include="Source\Kernel\SystemClock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Kernel\x86\SMP.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Kernel\x86\Processor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Kernel\x86\MSR.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Kernel\x86\ThreadScheduler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Source\Kernel\x86\Boot.asm">
@@ -101,6 +110,15 @@
     <None Include="Source\Kernel\x86\PICInterrupts.asm">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="Source\Kernel\x86\MSR.asm">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="Source\Kernel\x86\SMPInit.asm">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="Source\Kernel\x86\GDTSwitchToUserMode.asm">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Main.cpp">
@@ -115,13 +133,7 @@
     <ClCompile Include="Source\Kernel\Thread.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Kernel\Processor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Kernel\x86\SystemCalls.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Kernel\x86\Drivers\SerialPortLogger.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\Kernel\x86\Arch.cpp">
@@ -130,22 +142,31 @@
     <ClCompile Include="Source\Kernel\x86\GDT.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Kernel\x86\Drivers\Console.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Kernel\x86\IDT.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Kernel\x86\Drivers\PIC.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Kernel\x86\Drivers\PIT.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Kernel\x86\Drivers\RTC.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Kernel\x86\SystemClock.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Kernel\x86\Console.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Kernel\x86\SerialPortLogger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Kernel\x86\PIC.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Kernel\x86\PIT.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Kernel\x86\RTC.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Kernel\x86\SMP.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Kernel\x86\Processor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

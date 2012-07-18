@@ -1,9 +1,11 @@
 #include "../Arch.h"
+#include "../Console.h"
 #include "GDT.h"
 #include "IDT.h"
 #include "../PIC.h"
 #include "../PIT.h"
 #include "../RTC.h"
+#include "SMP.h"
 #include "../SystemClock.h"
 
 namespace Arch
@@ -18,6 +20,8 @@ namespace Arch
 		SystemClock::Startup();
 
 		PIC::StartInterrupts();
-		printf("Started\n");
+
+		SMP::Startup();
+		while (true) ;
     }
 }

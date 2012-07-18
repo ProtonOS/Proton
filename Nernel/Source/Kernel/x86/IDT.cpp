@@ -4,6 +4,7 @@
 extern "C" {
 void IDTUpdateRegister(void);
 void* gIDTRegisterPointer = nullptr;
+void IDTEmptyInterrupt(IDT::InterruptRegisters pRegisters);
 
 #include "IDTExternalStubs.h" // Must remain here
 }
@@ -334,6 +335,11 @@ namespace IDT
 	void WaitFor(uint8_t pInterrupt)
 	{
 		while (sPending[pInterrupt]);
+	}
+
+	void SetEmptyInterrupt(uint8_t pInterrupt)
+	{
+		sDescriptors[pInterrupt].Set(reinterpret_cast<uint32_t>(IDTEmptyInterrupt), SELECTOR_DESCRIPTORINDEX, TYPE_INTERRUPT386GATE32BIT | TYPE_PRESENT);
 	}
 }
 

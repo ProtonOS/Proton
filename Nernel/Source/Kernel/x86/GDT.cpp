@@ -1,7 +1,7 @@
 #include "GDT.h"
+#include "TSS.h"
 
 extern "C" {
-void GDTUpdateRegister(void);
 void* gGDTRegisterPointer = nullptr;
 }
 
@@ -23,10 +23,11 @@ namespace GDT
 	const uint8_t FLAGS_GRANULARITY4KB = 0x80;
 	const uint8_t FLAGS_SELECTOR32BITGRANULARITY4KB = FLAGS_SELECTOR32BIT | FLAGS_GRANULARITY4KB;
 
-	
 	Register sRegister;
 	Descriptor* sDescriptors = nullptr;
 	uint32_t sDescriptorCount = 0;
+	TSSDescriptor* sTSSDescriptors = nullptr;
+	uint32_t sTSSDescriptorCount = 0;
 
 	void Startup()
 	{
@@ -44,5 +45,51 @@ namespace GDT
 
 		gGDTRegisterPointer = &sRegister;
 		GDTUpdateRegister();
+	}
+
+	void AllocateTSS(uint16_t pProcessorCount)
+	{
+		Descriptor* oldDescriptors = sDescriptors;
+
+		sDescriptors = new Descriptor[5 + pProcessorCount];
+		sDescriptorCount = 5 + pProcessorCount;
+
+		sDescriptors[0].Set(0x00000000, 0x00000000, 0x00, 0x00);
+		sDescriptors[1].Set(0x00000000, 0xFFFFFFFF, ACCESS_READWRITEONEPRESENT | ACCESS_EXECUTABLE, FLAGS_SELECTOR32BITGRANULARITY4KB);
+		sDescriptors[2].Set(0x00000000, 0xFFFFFFFF, ACCESS_READWRITEONEPRESENT, FLAGS_SELECTOR32BITGRANULARITY4KB);
+		sDescriptors[3].Set(0x00000000, 0xFFFFFFFF, ACCESS_READWRITEONEPRESENT | ACCESS_EXECUTABLE | ACCESS_RING3, FLAGS_SELECTOR32BITGRANULARITY4KB);
+		sDescriptors[4].Set(0x00000000, 0xFFFFFFFF, ACCESS_READWRITEONEPRESENT | ACCESS_RING3, FLAGS_SELECTOR32BITGRANULARITY4KB);
+
+	    sRegister.Limit = (sizeof(Descriptor) * sDescriptorCount) - 1;
+		sRegister.Address = (size_t)&sDescriptors[0];
+
+		sTSSDescriptors = new TSSDescriptor[pProcessorCount];
+		sTSSDescriptorCount = pProcessorCount;
+
+		for (uint32_t index = 0; index < sTSSDescriptorCount; ++index)
+		{
+			uint32_t baseAddress = reinterpret_cast<uint32_t>(&sTSSDescriptors[index]);
+			sDescriptors[5 + index].Set(baseAddress, baseAddress + sizeof(TSSDescriptor), 0xE9, 0x00);
+			sTSSDescriptors[index].ss0 = 0x10;
+
+		}
+
+		GDTUpdateRegister();
+
+		delete [] oldDescriptors;
+	}
+
+	void SetTSSStackAndRegister(uint16_t pProcessorIndex, uint32_t pStackAddress)
+	{
+		sTSSDescriptors[pProcessorIndex].esp0 = pStackAddress;
+
+		TSSUpdateRegister(((5 + pProcessorIndex) << 3) | 0x03);
+	}
+
+	void CopyForRealMode(uint32_t pGDTBaseAddress, uint32_t pGDTRegisterAddress)
+	{
+		memcpy((void*)pGDTBaseAddress, (void*)&sDescriptors[0], (unsigned int)(sDescriptorCount * sizeof(Descriptor)));
+		memcpy((void*)pGDTRegisterAddress, (void*)&sRegister, sizeof(Register));
+		((Register*)pGDTRegisterAddress)->Address = pGDTBaseAddress;
 	}
 }

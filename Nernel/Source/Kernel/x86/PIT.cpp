@@ -1,6 +1,7 @@
-#include "../IDT.h"
-#include "../PortIO.h"
-#include "../../PIT.h"
+#include "IDT.h"
+#include "../PIT.h"
+#include "PortIO.h"
+#include "Processor.h"
 
 namespace PIT
 {
@@ -9,9 +10,16 @@ namespace PIT
 	uint16_t sMillisecondsPerCycle = 0;
 	uint32_t sMillisecondsElapsed = 0;
 	uint32_t sSecondsElapsed = 0;
+	bool sCalculatingProcessorBus = false;
+	uint32_t sCalculatingProcessorBusCycles = 0;
 
 	void Channel0(IDT::InterruptRegisters pRegisters)
 	{
+		if (sCalculatingProcessorBus)
+		{
+			++sCalculatingProcessorBusCycles;
+			if (sCalculatingProcessorBusCycles == 20) sCalculatingProcessorBus = false;
+		}
 		sMillisecondsElapsed += sMillisecondsPerCycle;
 		if (sMillisecondsElapsed >= 1000)
 		{
@@ -45,5 +53,14 @@ namespace PIT
 	uint32_t GetMillisecondsElapsed()
 	{
 		return sMillisecondsElapsed;
+	}
+
+	uint32_t CalculateProcessorBus(Processor* pProcessor)
+	{
+		sCalculatingProcessorBusCycles = 0;
+		sCalculatingProcessorBus = true;
+		*reinterpret_cast<uint32_t*>(pProcessor->GetBaseAddress() + Processor::LAPIC_REGISTER_TIMER_INITIALCOUNT) = 0xFFFFFFFF;
+		while (sCalculatingProcessorBus) ;
+		return (((0xFFFFFFFF - *reinterpret_cast<uint32_t*>(pProcessor->GetBaseAddress() + Processor::LAPIC_REGISTER_TIMER_CURRENTCOUNT)) + 1) * 16) * (sCycleHertz / 20);
 	}
 }

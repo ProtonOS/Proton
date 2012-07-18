@@ -75,4 +75,5 @@ namespace IDT
 	void RegisterCallback(uint8_t pInterrupt, Callback pCallback);
 	void Schedule(uint8_t pInterrupt);
 	void WaitFor(uint8_t pInterrupt);
+	void SetEmptyInterrupt(uint8_t pInterrupt);
 };

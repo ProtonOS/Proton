@@ -3,7 +3,6 @@
 .extern gGDTRegisterPointer
 
 GDTUpdateRegister:
-	cli
 	mov eax, gGDTRegisterPointer
     lgdt [eax]
  

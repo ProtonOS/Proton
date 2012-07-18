@@ -1,5 +1,6 @@
 .intel_syntax noprefix
 
+.global IDTEmptyInterrupt
 .global IDTISRDispatch
 .global IDTIRQDispatch
 
@@ -279,6 +280,9 @@
 
 .extern IDTISRHandler
 .extern IDTIRQHandler
+
+IDTEmptyInterrupt:
+	iret
 
 IDTISRDispatch:
     pusha

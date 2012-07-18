@@ -1,6 +1,6 @@
-#include "../../SerialPortLogger.h"
-#include "../../Console.h"
-#include "../PortIO.h"
+#include "../SerialPortLogger.h"
+#include "../Console.h"
+#include "PortIO.h"
 
 namespace Console
 {
@@ -100,6 +100,7 @@ namespace Console
     }
     void WriteString(const char* pString, size_t pLength)
     {
+		if (!pLength) pLength = strlen(pString);
         while (*pString && pLength)
 	    {
             WriteCharacter(*pString);

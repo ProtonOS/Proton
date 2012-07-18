@@ -1,7 +1,7 @@
 #include "../Atomics.h"
 #include "../Console.h"
 #include "../Multiboot.h"
-#include "../Processor.h"
+#include "Processor.h"
 #include "../SystemClock.h"
 #include "../Thread.h"
 #include "TSS.h"
@@ -37,7 +37,7 @@ struct _reent* __getreent()
 {
 	if (!gMultitasking) return &gDefaultReent;
 	uint32_t taskRegister = TSSGetRegister();
-	uint16_t processorIndex = (taskRegister - 0x2B) >> 3;
+	uint16_t processorIndex = (taskRegister - 0x28) >> 3;
 	Processor* processor = Processor::GetProcessor(processorIndex);
 	return processor->GetCurrentThread()->GetReentrant();
 }

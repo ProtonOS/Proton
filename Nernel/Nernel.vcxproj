@@ -13,15 +13,16 @@
   <ItemGroup>
     <ClCompile Include="Source\Kernel\Multiboot.cpp" />
     <ClCompile Include="Source\Kernel\Process.cpp" />
-    <ClCompile Include="Source\Kernel\Processor.cpp" />
     <ClCompile Include="Source\Kernel\x86\Arch.cpp" />
-    <ClCompile Include="Source\Kernel\x86\Drivers\PIC.cpp" />
-    <ClCompile Include="Source\Kernel\x86\Drivers\PIT.cpp" />
-    <ClCompile Include="Source\Kernel\x86\Drivers\RTC.cpp" />
-    <ClCompile Include="Source\Kernel\x86\Drivers\SerialPortLogger.cpp" />
-    <ClCompile Include="Source\Kernel\x86\Drivers\Console.cpp" />
+    <ClCompile Include="Source\Kernel\x86\PIC.cpp" />
+    <ClCompile Include="Source\Kernel\x86\PIT.cpp" />
+    <ClCompile Include="Source\Kernel\x86\Processor.cpp" />
+    <ClCompile Include="Source\Kernel\x86\RTC.cpp" />
+    <ClCompile Include="Source\Kernel\x86\SerialPortLogger.cpp" />
+    <ClCompile Include="Source\Kernel\x86\Console.cpp" />
     <ClCompile Include="Source\Kernel\x86\GDT.cpp" />
     <ClCompile Include="Source\Kernel\x86\IDT.cpp" />
+    <ClCompile Include="Source\Kernel\x86\SMP.cpp" />
     <ClCompile Include="Source\Kernel\x86\SystemCalls.cpp" />
     <ClCompile Include="Source\Kernel\Thread.cpp" />
     <ClCompile Include="Source\Kernel\x86\SystemClock.cpp" />
@@ -38,7 +39,8 @@
     <ClInclude Include="Source\Kernel\PIC.h" />
     <ClInclude Include="Source\Kernel\PIT.h" />
     <ClInclude Include="Source\Kernel\Process.h" />
-    <ClInclude Include="Source\Kernel\Processor.h" />
+    <ClInclude Include="Source\Kernel\x86\MSR.h" />
+    <ClInclude Include="Source\Kernel\x86\Processor.h" />
     <ClInclude Include="Source\Kernel\RTC.h" />
     <ClInclude Include="Source\Kernel\SerialPortLogger.h" />
     <ClInclude Include="Source\Kernel\Thread.h" />
@@ -47,15 +49,20 @@
     <ClInclude Include="Source\Kernel\x86\IDTExternalStubs.h" />
     <ClInclude Include="Source\Kernel\x86\PortIO.h" />
     <ClInclude Include="Source\Kernel\SystemClock.h" />
+    <ClInclude Include="Source\Kernel\x86\SMP.h" />
+    <ClInclude Include="Source\Kernel\x86\ThreadScheduler.h" />
     <ClInclude Include="Source\Kernel\x86\TSS.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Source\Kernel\x86\Atomics.asm" />
     <None Include="Source\Kernel\x86\Boot.asm" />
+    <None Include="Source\Kernel\x86\GDTSwitchToUserMode.asm" />
     <None Include="Source\Kernel\x86\GDTUpdateRegister.asm" />
     <None Include="Source\Kernel\x86\IDTStubs.asm" />
     <None Include="Source\Kernel\x86\IDTUpdateRegister.asm" />
+    <None Include="Source\Kernel\x86\MSR.asm" />
     <None Include="Source\Kernel\x86\PICInterrupts.asm" />
+    <None Include="Source\Kernel\x86\SMPInit.asm" />
     <None Include="Source\Kernel\x86\TSSGetRegister.asm" />
     <None Include="Source\Kernel\x86\TSSUpdateRegister.asm" />
   </ItemGroup>
