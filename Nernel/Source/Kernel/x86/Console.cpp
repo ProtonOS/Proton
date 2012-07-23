@@ -1,6 +1,6 @@
-#include "../SerialPortLogger.h"
-#include "../Console.h"
+#include "Console.h"
 #include "PortIO.h"
+#include "SerialPortLogger.h"
 
 namespace Console
 {
@@ -58,7 +58,7 @@ namespace Console
     {
 	    if (mCursorRow + 1 >= mRows)
 	    {
-            std::memcpy(mBaseMemory, mBaseMemory + mColumns, (mRows - 1) * mColumns);
+			std::memcpy(mBaseMemory, mBaseMemory + mColumns, (mRows - 1) * mColumns * 2);
             //std::copy(mBaseMemory + mColumns, mBaseMemory + mRows * mColumns, mBaseMemory);
 		    for (uint32_t index = 0; index < mColumns; ++index)
 		    {

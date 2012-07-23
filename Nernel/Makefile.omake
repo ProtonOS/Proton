@@ -64,6 +64,9 @@
 #define SOURCE(CPP_FILES)
 {
 	Source/Main.cpp
+	Source/CLR/AppDomain.cpp
+	Source/CLR/CLIFile.cpp
+	Source/CLR/Metadata.cpp
 	Source/Kernel/Multiboot.cpp
 	Source/Kernel/x86/Arch.cpp
 	Source/Kernel/x86/Console.cpp

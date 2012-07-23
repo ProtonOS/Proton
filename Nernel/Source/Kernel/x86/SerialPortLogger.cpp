@@ -1,5 +1,5 @@
-#include "../SerialPortLogger.h"
 #include "PortIO.h"
+#include "SerialPortLogger.h"
 
 namespace SerialPortLogger
 {
@@ -17,7 +17,7 @@ namespace SerialPortLogger
 
 	bool IsReady()
     {
-	    return !(inb(IOPORT_LINESTATUS) & 0x20);
+	    return (inb(IOPORT_LINESTATUS) & 0x20);
     }
     void WriteByte(uint8_t pByte)
     {

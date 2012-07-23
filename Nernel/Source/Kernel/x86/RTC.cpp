@@ -1,5 +1,5 @@
 #include "PortIO.h"
-#include "../RTC.h"
+#include "RTC.h"
 
 namespace RTC
 {

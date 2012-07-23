@@ -1,6 +1,6 @@
 #include "IDT.h"
 #include "PortIO.h"
-#include "../PIC.h"
+#include "PIC.h"
 
 extern "C" {
 void PICStartInterrupts(void);

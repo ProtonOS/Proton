@@ -1,5 +1,5 @@
 #include "IDT.h"
-#include "../PIT.h"
+#include "PIT.h"
 #include "PortIO.h"
 #include "Processor.h"
 

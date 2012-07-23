@@ -1,6 +1,6 @@
-#include "../SystemClock.h"
-#include "../RTC.h"
-#include "../PIT.h"
+#include "PIT.h"
+#include "RTC.h"
+#include "SystemClock.h"
 
 namespace SystemClock
 {

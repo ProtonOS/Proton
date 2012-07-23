@@ -11,6 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\CLR\AppDomain.cpp" />
+    <ClCompile Include="Source\CLR\CLIFile.cpp" />
+    <ClCompile Include="Source\CLR\Metadata.cpp" />
     <ClCompile Include="Source\Kernel\Multiboot.cpp" />
     <ClCompile Include="Source\Kernel\x86\Process.cpp" />
     <ClCompile Include="Source\Kernel\x86\Arch.cpp" />
@@ -30,26 +33,30 @@
     <ClCompile Include="Source\Main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\CLR\AppDomain.h" />
+    <ClInclude Include="Source\CLR\Assembly.h" />
+    <ClInclude Include="Source\CLR\CLIFile.h" />
+    <ClInclude Include="Source\CLR\Metadata.h" />
     <ClInclude Include="Source\Inline.h" />
     <ClInclude Include="Source\Common.h" />
     <ClInclude Include="Source\IntellisenseFixes.h" />
     <ClInclude Include="Source\Kernel\Arch.h" />
     <ClInclude Include="Source\Kernel\Atomics.h" />
-    <ClInclude Include="Source\Kernel\Console.h" />
+    <ClInclude Include="Source\Kernel\x86\Console.h" />
     <ClInclude Include="Source\Kernel\Multiboot.h" />
-    <ClInclude Include="Source\Kernel\PIC.h" />
-    <ClInclude Include="Source\Kernel\PIT.h" />
+    <ClInclude Include="Source\Kernel\x86\PIC.h" />
+    <ClInclude Include="Source\Kernel\x86\PIT.h" />
     <ClInclude Include="Source\Kernel\x86\Process.h" />
     <ClInclude Include="Source\Kernel\x86\MSR.h" />
     <ClInclude Include="Source\Kernel\x86\Processor.h" />
-    <ClInclude Include="Source\Kernel\RTC.h" />
-    <ClInclude Include="Source\Kernel\SerialPortLogger.h" />
+    <ClInclude Include="Source\Kernel\x86\RTC.h" />
+    <ClInclude Include="Source\Kernel\x86\SerialPortLogger.h" />
     <ClInclude Include="Source\Kernel\x86\Thread.h" />
     <ClInclude Include="Source\Kernel\x86\GDT.h" />
     <ClInclude Include="Source\Kernel\x86\IDT.h" />
     <ClInclude Include="Source\Kernel\x86\IDTExternalStubs.h" />
     <ClInclude Include="Source\Kernel\x86\PortIO.h" />
-    <ClInclude Include="Source\Kernel\SystemClock.h" />
+    <ClInclude Include="Source\Kernel\x86\SystemClock.h" />
     <ClInclude Include="Source\Kernel\x86\SMP.h" />
     <ClInclude Include="Source\Kernel\x86\ThreadScheduler.h" />
     <ClInclude Include="Source\Kernel\x86\TSS.h" />

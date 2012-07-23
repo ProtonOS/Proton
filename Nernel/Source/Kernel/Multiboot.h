@@ -18,18 +18,13 @@ namespace Multiboot
 
 	class LoadedModule
 	{
-    private:
-		size_t mAddress;
-		size_t mSize;
-		const char* mIdentifier;
-		size_t mReserved;
-	public:
-        LoadedModule() : mAddress(0), mSize(0), mIdentifier(0), mReserved(0) {}
-		void Initialize(size_t pAddress, size_t pSize, const char* pIdentifier);
-		size_t GetAddress() const { return mAddress; }
-		size_t GetSize() const { return mSize; }
-		const char* GetIdentifier() const { return mIdentifier; }
+    public:
+		size_t Address;
+		size_t Size;
+		const char* Identifier;
+		size_t Reserved;
 
+		LoadedModule() : Address(0), Size(0), Identifier(0), Reserved(0) {}
 	};
 
 	void Startup(uint32_t pMultibootMagic, Header* pMultibootHeader);

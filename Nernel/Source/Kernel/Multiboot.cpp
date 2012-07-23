@@ -85,12 +85,6 @@ namespace Multiboot {
     MemoryBlock sMemoryBlocks[MEMORYBLOCK_MAX];
     uint8_t sMemoryBlockCount = 0;
     uint8_t sCurrentMemoryBlock = 0;
-    void LoadedModule::Initialize(size_t pAddress, size_t pSize, const char* pIdentifier)
-    {
-	    mAddress = pAddress;
-	    mSize = pSize;
-	    mIdentifier = pIdentifier;
-    }
     void Startup(uint32_t pMultibootMagic, Header* pMultibootHeader)
     {
         if (pMultibootMagic != MULTIBOOT_MAGIC) Halt();
@@ -109,7 +103,9 @@ namespace Multiboot {
 
 	    for (uint32_t moduleIndex = 0; moduleIndex < moduleCount; ++moduleIndex, ++module)
 	    {
-		    sLoadedModules[sLoadedModuleCount].Initialize(module->Start, module->End - module->Start, module->Identifier);
+		    sLoadedModules[sLoadedModuleCount].Address = module->Start;
+			sLoadedModules[sLoadedModuleCount].Size = module->End - module->Start;
+			sLoadedModules[sLoadedModuleCount].Identifier = module->Identifier;
             ++sLoadedModuleCount;
 
 		    reservedMemoryBlocks[reservedMemoryBlockCount].Address = module->Start;
@@ -136,45 +132,49 @@ namespace Multiboot {
 		    MemoryBlock* memoryBlock = sMemoryBlocks;
 		    for (uint32_t memoryBlockIndex = 0; memoryBlockIndex < sMemoryBlockCount; ++memoryBlockIndex, ++memoryBlock)
 		    {
-			    if ((reservedMemoryBlock->Address >= memoryBlock->Address && reservedMemoryBlock->Address < (memoryBlock->Address + memoryBlock->Size)) ||
-				    ((reservedMemoryBlock->Address + reservedMemoryBlock->Size) > memoryBlock->Address && (reservedMemoryBlock->Address + reservedMemoryBlock->Size) < (memoryBlock->Address + memoryBlock->Size)))
-			    {
-				    if (reservedMemoryBlock->Address == memoryBlock->Address)
-				    {
-					    memoryBlock->Address = memoryBlock->Address + reservedMemoryBlock->Size;
-					    memoryBlock->Size = memoryBlock->Size - reservedMemoryBlock->Size;
-					    if (memoryBlock->Size == 0)
-					    {
-						    for (uint32_t copyBlockIndex = memoryBlockIndex + 1; copyBlockIndex < sMemoryBlockCount; ++copyBlockIndex)
-						    {
-							    sMemoryBlocks[copyBlockIndex - 1] = sMemoryBlocks[copyBlockIndex];
-						    }
-						    --sMemoryBlockCount;
-						    break;
-					    }
-				    }
-				    else if ((reservedMemoryBlock->Address + reservedMemoryBlock->Size) == (memoryBlock->Address + memoryBlock->Size))
-				    {
-					    memoryBlock->Size = memoryBlock->Size - reservedMemoryBlock->Size;
-					    break;
-				    }
-				    else if (sMemoryBlockCount == MEMORYBLOCK_MAX)
-				    {
-					    Panic("Insufficient memory blocks to process available memory");
-				    }
-				    else
-				    {
-					    ++sMemoryBlockCount;
-					    for (uint32_t copyBlockIndex = sMemoryBlockCount - 1; copyBlockIndex > memoryBlockIndex; --copyBlockIndex)
+
+				if (reservedMemoryBlock->Address + reservedMemoryBlock->Size > memoryBlock->Address &&
+					reservedMemoryBlock->Address < memoryBlock->Address + memoryBlock->Size)
+				{
+					if (reservedMemoryBlock->Address > memoryBlock->Address &&
+						reservedMemoryBlock->Address + reservedMemoryBlock->Size >= memoryBlock->Address + memoryBlock->Size)
+					{
+						// Space left at start, but not at end
+						memoryBlock->Size = reservedMemoryBlock->Address - memoryBlock->Address;
+					}
+					else if (reservedMemoryBlock->Address <= memoryBlock->Address &&
+							 reservedMemoryBlock->Address + reservedMemoryBlock->Size < memoryBlock->Address + memoryBlock->Size)
+					{
+						// Space left at end, but not at start
+						memoryBlock->Size = (memoryBlock->Address + memoryBlock->Size) - (reservedMemoryBlock->Address + reservedMemoryBlock->Size);
+						memoryBlock->Address = reservedMemoryBlock->Address + reservedMemoryBlock->Size;
+					}
+					else if (reservedMemoryBlock->Address > memoryBlock->Address &&
+							 reservedMemoryBlock->Address + reservedMemoryBlock->Size < memoryBlock->Address + memoryBlock->Size)
+					{
+						// Space left at both start and end
+						if (sMemoryBlockCount == MEMORYBLOCK_MAX) Panic("Insufficient memory blocks to process available memory");
+
+						for (uint32_t copyBlockIndex = sMemoryBlockCount; copyBlockIndex > memoryBlockIndex; --copyBlockIndex)
 					    {
 						    sMemoryBlocks[copyBlockIndex] = sMemoryBlocks[copyBlockIndex - 1];
 					    }
-					    size_t originalSize = memoryBlock->Size;
-					    memoryBlock->Size = reservedMemoryBlock->Address - memoryBlock->Address;
-					    (memoryBlock + 1)->Address = reservedMemoryBlock->Address + reservedMemoryBlock->Size;
-					    (memoryBlock + 1)->Size = originalSize - (memoryBlock->Size + reservedMemoryBlock->Size);
-					    break;
-				    }
+					    ++sMemoryBlockCount;
+						
+						sMemoryBlocks[memoryBlockIndex + 1].Size = (memoryBlock->Address + memoryBlock->Size) - (reservedMemoryBlock->Address + reservedMemoryBlock->Size);
+						sMemoryBlocks[memoryBlockIndex + 1].Address = reservedMemoryBlock->Address + reservedMemoryBlock->Size;
+						memoryBlock->Size = reservedMemoryBlock->Address - memoryBlock->Address;
+						
+					}
+					else
+					{
+						// No space, used the whole darn block!
+						for (uint32_t copyBlockIndex = memoryBlockIndex + 1; copyBlockIndex < sMemoryBlockCount; ++copyBlockIndex)
+						{
+							sMemoryBlocks[copyBlockIndex - 1] = sMemoryBlocks[copyBlockIndex];
+						}
+						--sMemoryBlockCount;
+					}
 			    }
 		    }
 	    }
@@ -195,7 +195,7 @@ namespace Multiboot {
     {
         for (uint8_t index = 0; index < sLoadedModuleCount; ++index)
         {
-            if (!strcasecmp(sLoadedModules[index].GetIdentifier(), pFilename)) return &sLoadedModules[index];
+            if (!strcasecmp(sLoadedModules[index].Identifier, pFilename)) return &sLoadedModules[index];
         }
 	    return nullptr;
     }

@@ -1,8 +1,8 @@
 #include "../Atomics.h"
-#include "../Console.h"
+#include "Console.h"
 #include "../Multiboot.h"
 #include "Processor.h"
-#include "../SystemClock.h"
+#include "SystemClock.h"
 #include "Thread.h"
 #include "TSS.h"
 
@@ -32,6 +32,13 @@ struct _reent gDefaultReent;
 bool gMultitasking = false;	
 uint8_t gMallocBusy = 0;
 void *__dso_handle = nullptr;
+
+void Panic(const char* pMessage)
+{
+	Console::Clear(Console::Color::DarkBlack, Console::Color::LightRed);
+	Console::WriteLine(pMessage);
+	while (true);
+}
 
 struct _reent* __getreent()
 {

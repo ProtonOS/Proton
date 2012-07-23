@@ -1,7 +1,7 @@
 #include "GDT.h"
 #include "IDT.h"
 #include "MSR.h"
-#include "../PIT.h"
+#include "PIT.h"
 #include "Processor.h"
 #include "ThreadScheduler.h"
 #include "TSS.h"

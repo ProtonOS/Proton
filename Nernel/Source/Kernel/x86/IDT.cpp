@@ -1,5 +1,5 @@
 #include "IDT.h"
-#include "../PIC.h"
+#include "PIC.h"
 
 extern "C" {
 void* gIDTRegisterPointer = nullptr;

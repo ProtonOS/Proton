@@ -1,3 +1,4 @@
+#include "../Arch.h"
 #include "IDT.h"
 #include "GDT.h"
 #include "PortIO.h"
@@ -7,7 +8,6 @@
 #include "TSS.h"
 
 extern "C" {
-void Started();
 void SMPInit();
 void SMPInitEnd();
 void GDTSwitchToUserMode();
