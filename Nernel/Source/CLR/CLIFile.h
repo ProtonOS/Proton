@@ -271,6 +271,9 @@ namespace CLR
 		static int32_t RotateRight(int32_t pValue, uint8_t pBits);
 		static uint8_t* GetCompressedSigned(uint8_t* pData, int32_t* pValue);
 
+		MetadataToken* ExpandTypeDefRefOrSpecToken(uint32_t pToken);
+		MetadataToken* ExpandMetadataToken(uint32_t pToken);
+
 	private:
 		typedef uint8_t*(CLIFile::*Handler)(uint8_t*);
 		class HandlerEntry

@@ -96,6 +96,15 @@
     <ClInclude Include="Source\CLR\Metadata.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Source\CLR\IR.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\CLR\IROpcode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\uthash.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Source\Kernel\x86\Boot.asm">
@@ -191,6 +200,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\CLR\Metadata.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\CLR\Assembly.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\CLR\IR.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

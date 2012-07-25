@@ -23,5 +23,6 @@ void Started()
 	
 
 	gMernelDomain = new CLR::AppDomain();
+	printf("Mernel Domain Loaded\n");
 	while (true) ;
 }

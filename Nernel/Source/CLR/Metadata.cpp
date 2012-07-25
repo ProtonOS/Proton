@@ -19,6 +19,10 @@ CLR::AssemblyDefinitionData::AssemblyDefinitionData()
 	DeclSecurity = nullptr;
 }
 
+CLR::AssemblyDefinitionData::~AssemblyDefinitionData()
+{
+}
+
 CLR::AssemblyOperatingSystemData::AssemblyOperatingSystemData()
 {
 	TableIndex = 0;
@@ -27,10 +31,18 @@ CLR::AssemblyOperatingSystemData::AssemblyOperatingSystemData()
 	MinorVersion = 0;
 }
 
+CLR::AssemblyOperatingSystemData::~AssemblyOperatingSystemData()
+{
+}
+
 CLR::AssemblyProcessorData::AssemblyProcessorData()
 {
 	TableIndex = 0;
 	Processor = 0;
+}
+
+CLR::AssemblyProcessorData::~AssemblyProcessorData()
+{
 }
 
 CLR::AssemblyReferenceData::AssemblyReferenceData()
@@ -52,6 +64,10 @@ CLR::AssemblyReferenceData::AssemblyReferenceData()
 	CustomAttributes = nullptr;
 }
 
+CLR::AssemblyReferenceData::~AssemblyReferenceData()
+{
+}
+
 CLR::AssemblyReferenceOperatingSystemData::AssemblyReferenceOperatingSystemData()
 {
 	TableIndex = 0;
@@ -61,11 +77,19 @@ CLR::AssemblyReferenceOperatingSystemData::AssemblyReferenceOperatingSystemData(
 	AssemblyReference = nullptr;
 }
 
+CLR::AssemblyReferenceOperatingSystemData::~AssemblyReferenceOperatingSystemData()
+{
+}
+
 CLR::AssemblyReferenceProcessorData::AssemblyReferenceProcessorData()
 {
 	TableIndex = 0;
 	Processor = 0;
 	AssemblyReference = nullptr;
+}
+
+CLR::AssemblyReferenceProcessorData::~AssemblyReferenceProcessorData()
+{
 }
 
 CLR::ClassLayoutData::ClassLayoutData()
@@ -74,6 +98,10 @@ CLR::ClassLayoutData::ClassLayoutData()
 	PackingSize = 0;
 	ClassSize = 0;
 	Parent = nullptr;
+}
+
+CLR::ClassLayoutData::~ClassLayoutData()
+{
 }
 
 CLR::ConstantData::ConstantData()
@@ -85,6 +113,10 @@ CLR::ConstantData::ConstantData()
 	Value = nullptr;
 }
 
+CLR::ConstantData::~ConstantData()
+{
+}
+
 CLR::CustomAttributeData::CustomAttributeData()
 {
 	TableIndex = 0;
@@ -92,6 +124,10 @@ CLR::CustomAttributeData::CustomAttributeData()
 	Type.MethodDefinition = nullptr;
 	ValueLength = 0;
 	Value = nullptr;
+}
+
+CLR::CustomAttributeData::~CustomAttributeData()
+{
 }
 
 CLR::DeclSecurityData::DeclSecurityData()
@@ -106,6 +142,10 @@ CLR::DeclSecurityData::DeclSecurityData()
 	CustomAttributes = nullptr;
 }
 
+CLR::DeclSecurityData::~DeclSecurityData()
+{
+}
+
 CLR::EventData::EventData()
 {
 	TableIndex = 0;
@@ -114,12 +154,20 @@ CLR::EventData::EventData()
 	EventType.TypeDefinition = nullptr;
 }
 
+CLR::EventData::~EventData()
+{
+}
+
 CLR::EventMapData::EventMapData()
 {
 	TableIndex = 0;
 	Parent = nullptr;
 	EventList = nullptr;
 	EventListCount = 0;
+}
+
+CLR::EventMapData::~EventMapData()
+{
 }
 
 CLR::ExportedTypeData::ExportedTypeData()
@@ -133,6 +181,10 @@ CLR::ExportedTypeData::ExportedTypeData()
 
 	CustomAttributeCount = 0;
 	CustomAttributes = nullptr;
+}
+
+CLR::ExportedTypeData::~ExportedTypeData()
+{
 }
 
 CLR::FieldData::FieldData()
@@ -153,11 +205,19 @@ CLR::FieldData::FieldData()
 	TypeDefinition = nullptr;
 }
 
+CLR::FieldData::~FieldData()
+{
+}
+
 CLR::FieldLayoutData::FieldLayoutData()
 {
 	TableIndex = 0;
 	Offset = 0;
 	Field = nullptr;
+}
+
+CLR::FieldLayoutData::~FieldLayoutData()
+{
 }
 
 CLR::FieldMarshalData::FieldMarshalData()
@@ -168,11 +228,19 @@ CLR::FieldMarshalData::FieldMarshalData()
 	NativeType = nullptr;
 }
 
+CLR::FieldMarshalData::~FieldMarshalData()
+{
+}
+
 CLR::FieldRVAData::FieldRVAData()
 {
 	TableIndex = 0;
 	InitialValue = nullptr;
 	Field = nullptr;
+}
+
+CLR::FieldRVAData::~FieldRVAData()
+{
 }
 
 CLR::FileData::FileData()
@@ -185,6 +253,10 @@ CLR::FileData::FileData()
 
 	CustomAttributeCount = 0;
 	CustomAttributes = nullptr;
+}
+
+CLR::FileData::~FileData()
+{
 }
 
 CLR::GenericParameterData::GenericParameterData()
@@ -201,6 +273,10 @@ CLR::GenericParameterData::GenericParameterData()
 	GenericParameterConstraints = nullptr;
 }
 
+CLR::GenericParameterData::~GenericParameterData()
+{
+}
+
 CLR::GenericParameterConstraintData::GenericParameterConstraintData()
 {
 	TableIndex = 0;
@@ -209,6 +285,10 @@ CLR::GenericParameterConstraintData::GenericParameterConstraintData()
 
 	CustomAttributeCount = 0;
 	CustomAttributes = nullptr;
+}
+
+CLR::GenericParameterConstraintData::~GenericParameterConstraintData()
+{
 }
 
 CLR::ImplementationMapData::ImplementationMapData()
@@ -220,6 +300,10 @@ CLR::ImplementationMapData::ImplementationMapData()
 	ImportScope = nullptr;
 }
 
+CLR::ImplementationMapData::~ImplementationMapData()
+{
+}
+
 CLR::InterfaceImplementationData::InterfaceImplementationData()
 {
 	TableIndex = 0;
@@ -228,6 +312,10 @@ CLR::InterfaceImplementationData::InterfaceImplementationData()
 
 	CustomAttributeCount = 0;
 	CustomAttributes = nullptr;
+}
+
+CLR::InterfaceImplementationData::~InterfaceImplementationData()
+{
 }
 
 CLR::ManifestResourceData::ManifestResourceData()
@@ -242,8 +330,13 @@ CLR::ManifestResourceData::ManifestResourceData()
 	CustomAttributes = nullptr;
 }
 
+CLR::ManifestResourceData::~ManifestResourceData()
+{
+}
+
 CLR::MemberReferenceData::MemberReferenceData()
 {
+	File = nullptr;
 	TableIndex = 0;
 	Parent.TypeDefinition = nullptr;
 	Name = nullptr;
@@ -259,6 +352,10 @@ CLR::MemberReferenceData::MemberReferenceData()
 	Resolved.MethodDefinition = nullptr;
 }
 
+CLR::MemberReferenceData::~MemberReferenceData()
+{
+}
+
 CLR::MethodDefinitionBody::MethodDefinitionBody()
 {
 	Flags = 0;
@@ -269,6 +366,10 @@ CLR::MethodDefinitionBody::MethodDefinitionBody()
 	Code = nullptr;
 }
 
+CLR::MethodDefinitionBody::~MethodDefinitionBody()
+{
+}
+
 CLR::MethodDefinitionException::MethodDefinitionException()
 {
 	Flags = 0;
@@ -277,6 +378,10 @@ CLR::MethodDefinitionException::MethodDefinitionException()
 	HandlerOffset = 0;
 	HandlerLength = 0;
 	ClassTokenOrFilterOffset = 0;
+}
+
+CLR::MethodDefinitionException::~MethodDefinitionException()
+{
 }
 
 CLR::MethodDefinitionData::MethodDefinitionData()
@@ -307,6 +412,10 @@ CLR::MethodDefinitionData::MethodDefinitionData()
 	InternalCall = nullptr;
 }
 
+CLR::MethodDefinitionData::~MethodDefinitionData()
+{
+}
+
 CLR::MethodImplementationData::MethodImplementationData()
 {
 	TableIndex = 0;
@@ -315,12 +424,20 @@ CLR::MethodImplementationData::MethodImplementationData()
 	MethodDeclaration.MethodDefinition = nullptr;
 }
 
+CLR::MethodImplementationData::~MethodImplementationData()
+{
+}
+
 CLR::MethodSemanticsData::MethodSemanticsData()
 {
 	TableIndex = 0;
 	Semantics = 0;
 	Method = nullptr;
 	Association.Event = nullptr;
+}
+
+CLR::MethodSemanticsData::~MethodSemanticsData()
+{
 }
 
 CLR::MethodSpecificationData::MethodSpecificationData()
@@ -332,6 +449,10 @@ CLR::MethodSpecificationData::MethodSpecificationData()
 
 	CustomAttributeCount = 0;
 	CustomAttributes = nullptr;
+}
+
+CLR::MethodSpecificationData::~MethodSpecificationData()
+{
 }
 
 CLR::ModuleDefinitionData::ModuleDefinitionData()
@@ -347,6 +468,10 @@ CLR::ModuleDefinitionData::ModuleDefinitionData()
 	CustomAttributes = nullptr;
 }
 
+CLR::ModuleDefinitionData::~ModuleDefinitionData()
+{
+}
+
 CLR::ModuleReferenceData::ModuleReferenceData()
 {
 	TableIndex = 0;
@@ -358,11 +483,19 @@ CLR::ModuleReferenceData::ModuleReferenceData()
 	MemberReferences = nullptr;
 }
 
+CLR::ModuleReferenceData::~ModuleReferenceData()
+{
+}
+
 CLR::NestedClassData::NestedClassData()
 {
 	TableIndex = 0;
 	Nested = nullptr;
 	Enclosing = nullptr;
+}
+
+CLR::NestedClassData::~NestedClassData()
+{
 }
 
 CLR::ParameterData::ParameterData()
@@ -376,6 +509,10 @@ CLR::ParameterData::ParameterData()
 	CustomAttributeCount = 0;
 	CustomAttributes = nullptr;
 	FieldMarshal = nullptr;
+}
+
+CLR::ParameterData::~ParameterData()
+{
 }
 
 CLR::PropertyData::PropertyData()
@@ -392,12 +529,20 @@ CLR::PropertyData::PropertyData()
 	MethodSemantics = nullptr;
 }
 
+CLR::PropertyData::~PropertyData()
+{
+}
+
 CLR::PropertyMapData::PropertyMapData()
 {
 	TableIndex = 0;
 	Parent = nullptr;
 	PropertyList = nullptr;
 	PropertyListCount = 0;
+}
+
+CLR::PropertyMapData::~PropertyMapData()
+{
 }
 
 CLR::StandAloneSignatureData::StandAloneSignatureData()
@@ -408,6 +553,10 @@ CLR::StandAloneSignatureData::StandAloneSignatureData()
 
 	CustomAttributeCount = 0;
 	CustomAttributes = nullptr;
+}
+
+CLR::StandAloneSignatureData::~StandAloneSignatureData()
+{
 }
 
 CLR::TypeDefinitionData::TypeDefinitionData()
@@ -441,6 +590,10 @@ CLR::TypeDefinitionData::TypeDefinitionData()
 	PropertyMap = nullptr;
 }
 
+CLR::TypeDefinitionData::~TypeDefinitionData()
+{
+}
+
 CLR::TypeReferenceData::TypeReferenceData()
 {
 	TableIndex = 0;
@@ -456,6 +609,10 @@ CLR::TypeReferenceData::TypeReferenceData()
 	MemberReferences = nullptr;
 }
 
+CLR::TypeReferenceData::~TypeReferenceData()
+{
+}
+
 CLR::TypeSpecificationData::TypeSpecificationData()
 {
 	File = nullptr;
@@ -469,8 +626,14 @@ CLR::TypeSpecificationData::TypeSpecificationData()
 	MemberReferences = nullptr;
 }
 
-CLR::MethodSignature::MethodSignature()
+CLR::TypeSpecificationData::~TypeSpecificationData()
 {
+}
+
+CLR::MethodSignature::MethodSignature(uint8_t* pSignature, CLIFile* pFile)
+{
+	File = pFile;
+
 	HasThis = false;
 	ExplicitThis = false;
 	Default = false;
@@ -488,11 +651,25 @@ CLR::MethodSignature::MethodSignature()
 	SentinelIndex = 0;
 }
 
+CLR::MethodSignature::~MethodSignature()
+{
+}
+
+bool CLR::MethodSignature::Equals(MethodSignature* pSignature)
+{
+	return false;
+}
+
+
 CLR::FieldSignature::FieldSignature()
 {
 	CustomModifierCount = 0;
 	CustomModifiers = nullptr;
 	Type = nullptr;
+}
+
+CLR::FieldSignature::~FieldSignature()
+{
 }
 
 CLR::PropertySignature::PropertySignature()
@@ -505,10 +682,18 @@ CLR::PropertySignature::PropertySignature()
 	Parameters = nullptr;
 }
 
+CLR::PropertySignature::~PropertySignature()
+{
+}
+
 CLR::LocalsSignature::LocalsSignature()
 {
 	LocalVariableCount = 0;
 	LocalVariables = nullptr;
+}
+
+CLR::LocalsSignature::~LocalsSignature()
+{
 }
 
 CLR::SignatureReturnType::SignatureReturnType()
@@ -521,6 +706,10 @@ CLR::SignatureReturnType::SignatureReturnType()
 	Void = false;
 }
 
+CLR::SignatureReturnType::~SignatureReturnType()
+{
+}
+
 CLR::SignatureParameter::SignatureParameter()
 {
 	CustomModifierCount = 0;
@@ -530,13 +719,21 @@ CLR::SignatureParameter::SignatureParameter()
 	TypedByReference = false;
 }
 
+CLR::SignatureParameter::~SignatureParameter()
+{
+}
+
 CLR::SignatureCustomModifier::SignatureCustomModifier()
 {
 	Optional = false;
 	TypeDefOrRefOrSpecToken = 0;
 }
 
-CLR::SignatureType::SignatureType()
+CLR::SignatureCustomModifier::~SignatureCustomModifier()
+{
+}
+
+CLR::SignatureType::SignatureType(uint8_t* pSignature, CLIFile* pFile)
 {
 	ElementType = 0;
 	GenericInstTypeDefOrRefOrSpecToken = 0;
@@ -546,10 +743,18 @@ CLR::SignatureType::SignatureType()
 	GenericInstValue = false;
 }
 
+CLR::SignatureType::~SignatureType()
+{
+}
+
 CLR::SignatureMethodSpecification::SignatureMethodSpecification()
 {
 	GenericInstGenericArgumentCount = 0;
 	GenericInstGenericArguments = nullptr;
+}
+
+CLR::SignatureMethodSpecification::~SignatureMethodSpecification()
+{
 }
 
 CLR::SignatureArrayShape::SignatureArrayShape()
@@ -561,6 +766,10 @@ CLR::SignatureArrayShape::SignatureArrayShape()
 	LowerBounds = nullptr;
 }
 
+CLR::SignatureArrayShape::~SignatureArrayShape()
+{
+}
+
 CLR::SignatureLocalVariable::SignatureLocalVariable()
 {
 	CustomModifierCount = 0;
@@ -569,4 +778,8 @@ CLR::SignatureLocalVariable::SignatureLocalVariable()
 	Type = nullptr;
 	TypedByReference = false;
 	IsPinned = false;
+}
+
+CLR::SignatureLocalVariable::~SignatureLocalVariable()
+{
 }

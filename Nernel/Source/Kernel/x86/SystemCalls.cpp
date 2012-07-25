@@ -162,3 +162,7 @@ int gettimeofday(struct timeval* pTime, void* pTimeZone)
 	}
 	return 0;
 }
+
+extern "C" {
+void _fini() { }
+}

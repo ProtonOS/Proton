@@ -12,7 +12,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\CLR\AppDomain.cpp" />
+    <ClCompile Include="Source\CLR\Assembly.cpp" />
     <ClCompile Include="Source\CLR\CLIFile.cpp" />
+    <ClCompile Include="Source\CLR\IR.cpp" />
     <ClCompile Include="Source\CLR\Metadata.cpp" />
     <ClCompile Include="Source\Kernel\Multiboot.cpp" />
     <ClCompile Include="Source\Kernel\x86\Process.cpp" />
@@ -36,6 +38,8 @@
     <ClInclude Include="Source\CLR\AppDomain.h" />
     <ClInclude Include="Source\CLR\Assembly.h" />
     <ClInclude Include="Source\CLR\CLIFile.h" />
+    <ClInclude Include="Source\CLR\IR.h" />
+    <ClInclude Include="Source\CLR\IROpcode.h" />
     <ClInclude Include="Source\CLR\Metadata.h" />
     <ClInclude Include="Source\Inline.h" />
     <ClInclude Include="Source\Common.h" />
@@ -60,6 +64,7 @@
     <ClInclude Include="Source\Kernel\x86\SMP.h" />
     <ClInclude Include="Source\Kernel\x86\ThreadScheduler.h" />
     <ClInclude Include="Source\Kernel\x86\TSS.h" />
+    <ClInclude Include="Source\uthash.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Source\Kernel\x86\Atomics.asm" />

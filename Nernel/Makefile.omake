@@ -65,7 +65,9 @@
 {
 	Source/Main.cpp
 	Source/CLR/AppDomain.cpp
+	Source/CLR/Assembly.cpp
 	Source/CLR/CLIFile.cpp
+	Source/CLR/IR.cpp
 	Source/CLR/Metadata.cpp
 	Source/Kernel/Multiboot.cpp
 	Source/Kernel/x86/Arch.cpp

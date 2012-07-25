@@ -323,6 +323,221 @@ uint8_t* CLR::CLIFile::GetCompressedSigned(uint8_t* pData, int32_t* pValue)
     return pData;
 }
 
+CLR::MetadataToken* CLR::CLIFile::ExpandTypeDefRefOrSpecToken(uint32_t pToken)
+{
+    MetadataToken* token = new MetadataToken();
+	uint8_t typeDefRefOrSpec = pToken & 0x03;
+	switch (typeDefRefOrSpec)
+	{
+	case 0: token->Table = MetadataTable::TypeDefinition; break;
+	case 1: token->Table = MetadataTable::TypeReference; break;
+	case 2: token->Table = MetadataTable::TypeSpecification; break;
+	default: Panic("ExpandTypeDefRefOrSpecToken Unknown Table Type"); break;
+	}
+    token->Data = nullptr;
+    uint32_t index = pToken >> 2;
+    if (index == 0) return token;
+    if (token->Table == MetadataTable::UserStrings)
+    {
+        token->IsUserString = true;
+        token->Data = UserStringsHeap + index;
+        return token;
+    }
+    switch (token->Table)
+    {
+	case MetadataTable::TypeReference:
+        if (index > TypeReferenceCount) Panic("ExpandTypeDefRefOrSpecToken TypeReference");
+        token->Data = &TypeReferences[index];
+        break;
+	case MetadataTable::TypeDefinition:
+        if (index > TypeDefinitionCount) Panic("ExpandTypeDefRefOrSpecToken TypeDefinition");
+        token->Data = &TypeDefinitions[index];
+        break;
+	case MetadataTable::TypeSpecification:
+        if (index > TypeSpecificationCount) Panic("ExpandTypeDefRefOrSpecToken TypeSpecification");
+        token->Data = &TypeSpecifications[index];
+        break;
+    default:
+        Panic("ExpandTypeDefRefOrSpecToken Unknown Table Type");
+        break;
+    }
+    return token;
+}
+
+CLR::MetadataToken* CLR::CLIFile::ExpandMetadataToken(uint32_t pToken)
+{
+    MetadataToken* token = new MetadataToken();
+    token->Table = pToken >> 24;
+    token->Data = nullptr;
+    uint32_t index = pToken & 0x00FFFFFF;
+    if (index == 0) return token;
+    if (token->Table == MetadataTable::UserStrings)
+    {
+        token->IsUserString = true;
+        token->Data = UserStringsHeap + index;
+        return token;
+    }
+    switch (token->Table)
+    {
+	case MetadataTable::ModuleDefinition:
+        if (index > ModuleDefinitionCount) Panic("ExpandMetadataToken ModuleDefinition");
+        token->Data = &ModuleDefinitions[index];
+        break;
+	case MetadataTable::TypeReference:
+        if (index > TypeReferenceCount) Panic("ExpandMetadataToken TypeReference");
+        token->Data = &TypeReferences[index];
+        break;
+	case MetadataTable::TypeDefinition:
+        if (index > TypeDefinitionCount) Panic("ExpandMetadataToken TypeDefinition");
+        token->Data = &TypeDefinitions[index];
+        break;
+	case MetadataTable::Field:
+        if (index > FieldCount) Panic("ExpandMetadataToken Field");
+        token->Data = &Fields[index];
+        break;
+	case MetadataTable::MethodDefinition:
+        if (index > MethodDefinitionCount) Panic("ExpandMetadataToken MethodDefinition");
+        token->Data = &MethodDefinitions[index];
+        break;
+	case MetadataTable::Parameter:
+        if (index > ParameterCount) Panic("ExpandMetadataToken Parameter");
+        token->Data = &Parameters[index];
+        break;
+	case MetadataTable::InterfaceImplementation:
+        if (index > InterfaceImplementationCount) Panic("ExpandMetadataToken InterfaceImplementation");
+        token->Data = &InterfaceImplementations[index];
+        break;
+	case MetadataTable::MemberReference:
+        if (index > MemberReferenceCount) Panic("ExpandMetadataToken MemberReference");
+        token->Data = &MemberReferences[index];
+        break;
+	case MetadataTable::Constant:
+        if (index > ConstantCount) Panic("ExpandMetadataToken Constant");
+        token->Data = &Constants[index];
+        break;
+	case MetadataTable::CustomAttribute:
+        if (index > CustomAttributeCount) Panic("ExpandMetadataToken CustomAttribute");
+        token->Data = &CustomAttributes[index];
+        break;
+	case MetadataTable::FieldMarshal:
+        if (index > FieldMarshalCount) Panic("ExpandMetadataToken FieldMarshal");
+        token->Data = &FieldMarshals[index];
+        break;
+	case MetadataTable::DeclSecurity:
+        if (index > DeclSecurityCount) Panic("ExpandMetadataToken DeclSecurity");
+        token->Data = &DeclSecurities[index];
+        break;
+	case MetadataTable::ClassLayout:
+        if (index > ClassLayoutCount) Panic("ExpandMetadataToken ClassLayout");
+        token->Data = &ClassLayouts[index];
+        break;
+	case MetadataTable::FieldLayout:
+        if (index > FieldLayoutCount) Panic("ExpandMetadataToken FieldLayout");
+        token->Data = &FieldLayouts[index];
+        break;
+	case MetadataTable::StandAloneSignature:
+        if (index > StandAloneSignatureCount) Panic("ExpandMetadataToken StandAloneSignature");
+        token->Data = &StandAloneSignatures[index];
+        break;
+	case MetadataTable::EventMap:
+        if (index > EventMapCount) Panic("ExpandMetadataToken EventMap");
+        token->Data = &EventMaps[index];
+        break;
+	case MetadataTable::Event:
+        if (index > EventCount) Panic("ExpandMetadataToken Event");
+        token->Data = &Events[index];
+        break;
+	case MetadataTable::PropertyMap:
+        if (index > PropertyMapCount) Panic("ExpandMetadataToken PropertyMap");
+        token->Data = &PropertyMaps[index];
+        break;
+	case MetadataTable::Property:
+        if (index > PropertyCount) Panic("ExpandMetadataToken Property");
+        token->Data = &Properties[index];
+        break;
+	case MetadataTable::MethodSemantics:
+        if (index > MethodSemanticsCount) Panic("ExpandMetadataToken MethodSemantics");
+        token->Data = &MethodSemantics[index];
+        break;
+	case MetadataTable::MethodImplementation:
+        if (index > MethodImplementationCount) Panic("ExpandMetadataToken MethodImplementation");
+        token->Data = &MethodImplementations[index];
+        break;
+	case MetadataTable::ModuleReference:
+        if (index > ModuleReferenceCount) Panic("ExpandMetadataToken ModuleReference");
+        token->Data = &ModuleReferences[index];
+        break;
+	case MetadataTable::TypeSpecification:
+        if (index > TypeSpecificationCount) Panic("ExpandMetadataToken TypeSpecification");
+        token->Data = &TypeSpecifications[index];
+        break;
+	case MetadataTable::ImplementationMap:
+        if (index > ImplementationMapCount) Panic("ExpandMetadataToken ImplementationMap");
+        token->Data = &ImplementationMaps[index];
+        break;
+	case MetadataTable::FieldRVA:
+        if (index > FieldRVACount) Panic("ExpandMetadataToken FieldRVA");
+        token->Data = &FieldRVAs[index];
+        break;
+	case MetadataTable::AssemblyDefinition:
+        if (index > AssemblyDefinitionCount) Panic("ExpandMetadataToken AssemblyDefinition");
+        token->Data = &AssemblyDefinitions[index];
+        break;
+	case MetadataTable::AssemblyProcessor:
+        if (index > AssemblyProcessorCount) Panic("ExpandMetadataToken AssemblyProcessor");
+        token->Data = &AssemblyProcessors[index];
+        break;
+	case MetadataTable::AssemblyOperatingSystem:
+        if (index > AssemblyOperatingSystemCount) Panic("ExpandMetadataToken AssemblyOperatingSystem");
+        token->Data = &AssemblyOperatingSystems[index];
+        break;
+	case MetadataTable::AssemblyReference:
+        if (index > AssemblyReferenceCount) Panic("ExpandMetadataToken AssemblyReference");
+        token->Data = &AssemblyReferences[index];
+        break;
+	case MetadataTable::AssemblyReferenceProcessor:
+        if (index > AssemblyReferenceProcessorCount) Panic("ExpandMetadataToken AssemblyReferenceProcessor");
+        token->Data = &AssemblyReferenceProcessors[index];
+        break;
+	case MetadataTable::AssemblyReferenceOperatingSystem:
+        if (index > AssemblyReferenceOperatingSystemCount) Panic("ExpandMetadataToken AssemblyReferenceOperatingSystem");
+        token->Data = &AssemblyReferenceOperatingSystems[index];
+        break;
+	case MetadataTable::File:
+        if (index > FileCount) Panic("ExpandMetadataToken File");
+        token->Data = &Files[index];
+        break;
+	case MetadataTable::ExportedType:
+        if (index > ExportedTypeCount) Panic("ExpandMetadataToken ExportedType");
+        token->Data = &ExportedTypes[index];
+        break;
+	case MetadataTable::ManifestResource:
+        if (index > ManifestResourceCount) Panic("ExpandMetadataToken ManifestResource");
+        token->Data = &ManifestResources[index];
+        break;
+	case MetadataTable::NestedClass:
+        if (index > NestedClassCount) Panic("ExpandMetadataToken NestedClass");
+        token->Data = &NestedClasses[index];
+        break;
+	case MetadataTable::GenericParameter:
+        if (index > GenericParameterCount) Panic("ExpandMetadataToken GenericParameter");
+        token->Data = &GenericParameters[index];
+        break;
+	case MetadataTable::MethodSpecification:
+        if (index > MethodSpecificationCount) Panic("ExpandMetadataToken MethodSpecification");
+        token->Data = &MethodSpecifications[index];
+        break;
+	case MetadataTable::GenericParameterConstraint:
+        if (index > GenericParameterConstraintCount) Panic("ExpandMetadataToken GenericParameterConstraint");
+        token->Data = &GenericParameterConstraints[index];
+        break;
+    default:
+        Panic("ExpandMetadataToken Unknown Table Type");
+        break;
+    }
+    return token;
+}
+
 uint8_t* CLR::CLIFile::ModuleDefinitionInitializer(uint8_t* pTableData)
 {
     if ((TablesHeader->PresentTables & (1ull << MetadataTable::ModuleDefinition)) != 0)
@@ -794,6 +1009,7 @@ uint8_t* CLR::CLIFile::MemberReferenceLoader(uint8_t* pTableData)
     uint32_t parentRow = 0;
     for (uint32_t index = 1, heapIndex = 0; index <= MemberReferenceCount; ++index)
     {
+		MemberReferences[index].File = this;
         MemberReferences[index].TableIndex = index;
         if (TypeDefinitionCount > MemberRefParentType::MAXROWS16BIT ||
             TypeReferenceCount > MemberRefParentType::MAXROWS16BIT ||

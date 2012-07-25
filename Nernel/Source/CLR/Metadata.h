@@ -701,6 +701,7 @@ namespace CLR
 		DeclSecurityData* DeclSecurity;
 
 		AssemblyDefinitionData();
+		~AssemblyDefinitionData();
 	};
 
 	class AssemblyOperatingSystemData
@@ -712,6 +713,7 @@ namespace CLR
 		uint32_t MinorVersion;
 
 		AssemblyOperatingSystemData();
+		~AssemblyOperatingSystemData();
 	};
 
 	class AssemblyProcessorData
@@ -721,6 +723,7 @@ namespace CLR
 		uint32_t Processor;
 
 		AssemblyProcessorData();
+		~AssemblyProcessorData();
 	};
 
 	class AssemblyReferenceData
@@ -743,6 +746,7 @@ namespace CLR
 		CustomAttributeData** CustomAttributes;
 
 		AssemblyReferenceData();
+		~AssemblyReferenceData();
 	};
 
 	class AssemblyReferenceOperatingSystemData
@@ -755,6 +759,7 @@ namespace CLR
 		AssemblyReferenceData* AssemblyReference;
 
 		AssemblyReferenceOperatingSystemData();
+		~AssemblyReferenceOperatingSystemData();
 	};
 
 	class AssemblyReferenceProcessorData
@@ -765,6 +770,7 @@ namespace CLR
 		AssemblyReferenceData* AssemblyReference;
 
 		AssemblyReferenceProcessorData();
+		~AssemblyReferenceProcessorData();
 	};
 
 	class ClassLayoutData
@@ -776,6 +782,7 @@ namespace CLR
 		TypeDefinitionData* Parent;
 
 		ClassLayoutData();
+		~ClassLayoutData();
 	};
 
 	class ConstantData
@@ -788,6 +795,7 @@ namespace CLR
 		const uint8_t* Value;
 
 		ConstantData();
+		~ConstantData();
 	};
 
 	class CustomAttributeData
@@ -800,6 +808,7 @@ namespace CLR
 		const uint8_t* Value;
 
 		CustomAttributeData();
+		~CustomAttributeData();
 	};
 
 	class DeclSecurityData
@@ -815,6 +824,7 @@ namespace CLR
 		CustomAttributeData** CustomAttributes;
 
 		DeclSecurityData();
+		~DeclSecurityData();
 	};
 
 	class EventData
@@ -830,6 +840,7 @@ namespace CLR
 		MethodSemanticsData* MethodSemantics;
 
 		EventData();
+		~EventData();
 	};
 
 	class EventMapData
@@ -841,6 +852,7 @@ namespace CLR
 		uint32_t EventListCount;
 
 		EventMapData();
+		~EventMapData();
 	};
 
 	class ExportedTypeData
@@ -857,6 +869,7 @@ namespace CLR
 		CustomAttributeData** CustomAttributes;
 
 		ExportedTypeData();
+		~ExportedTypeData();
 	};
 
 	class FieldData
@@ -878,6 +891,7 @@ namespace CLR
 		TypeDefinitionData* TypeDefinition;
 
 		FieldData();
+		~FieldData();
 	};
 
 	class FieldLayoutData
@@ -888,6 +902,7 @@ namespace CLR
 		FieldData* Field;
 
 		FieldLayoutData();
+		~FieldLayoutData();
 	};
 
 	class FieldMarshalData
@@ -899,6 +914,7 @@ namespace CLR
 		const uint8_t* NativeType;
 
 		FieldMarshalData();
+		~FieldMarshalData();
 	};
 
 	class FieldRVAData
@@ -909,6 +925,7 @@ namespace CLR
 		FieldData* Field;
 
 		FieldRVAData();
+		~FieldRVAData();
 	};
 
 	class FileData
@@ -924,6 +941,7 @@ namespace CLR
 		CustomAttributeData** CustomAttributes;
 
 		FileData();
+		~FileData();
 	};
 
 	class GenericParameterData
@@ -941,6 +959,7 @@ namespace CLR
 		GenericParameterConstraintData** GenericParameterConstraints;
 
 		GenericParameterData();
+		~GenericParameterData();
 	};
 
 	class GenericParameterConstraintData
@@ -954,6 +973,7 @@ namespace CLR
 		CustomAttributeData** CustomAttributes;
 
 		GenericParameterConstraintData();
+		~GenericParameterConstraintData();
 	};
 
 	class ImplementationMapData
@@ -966,6 +986,7 @@ namespace CLR
 		ModuleReferenceData* ImportScope;
 
 		ImplementationMapData();
+		~ImplementationMapData();
 	};
 
 	class InterfaceImplementationData
@@ -979,6 +1000,7 @@ namespace CLR
 		CustomAttributeData** CustomAttributes;
 
 		InterfaceImplementationData();
+		~InterfaceImplementationData();
 	};
 
 	class ManifestResourceData
@@ -994,11 +1016,13 @@ namespace CLR
 		CustomAttributeData** CustomAttributes;
 
 		ManifestResourceData();
+		~ManifestResourceData();
 	};
 
 	class MemberReferenceData
 	{
 	public:
+		CLIFile* File;
 		uint32_t TableIndex;
 		MemberRefParentUnion(Parent)
 		const char* Name;
@@ -1018,6 +1042,7 @@ namespace CLR
 		} Resolved;
 
 		MemberReferenceData();
+		~MemberReferenceData();
 	};
 
 	class MethodDefinitionBodyTinyHeader
@@ -1065,6 +1090,7 @@ namespace CLR
 		uint8_t* Code;
 
 		MethodDefinitionBody();
+		~MethodDefinitionBody();
 	};
 
 	class MethodDefinitionExceptionTinyHeader
@@ -1128,6 +1154,7 @@ namespace CLR
 		uint32_t ClassTokenOrFilterOffset;
 
 		MethodDefinitionException();
+		~MethodDefinitionException();
 	};
 
 	class MethodDefinitionData
@@ -1160,6 +1187,7 @@ namespace CLR
 		void* InternalCall;
 
 		MethodDefinitionData();
+		~MethodDefinitionData();
 	};
 
 	class MethodImplementationData
@@ -1171,6 +1199,7 @@ namespace CLR
 		MethodDefOrRefUnion(MethodDeclaration)
 
 		MethodImplementationData();
+		~MethodImplementationData();
 	};
 
 	class MethodSemanticsData
@@ -1182,6 +1211,7 @@ namespace CLR
 		HasSemanticsUnion(Association)
 
 		MethodSemanticsData();
+		~MethodSemanticsData();
 	};
 
 	class MethodSpecificationData
@@ -1196,6 +1226,7 @@ namespace CLR
 		CustomAttributeData** CustomAttributes;
 
 		MethodSpecificationData();
+		~MethodSpecificationData();
 	};
 
 	class ModuleDefinitionData
@@ -1212,6 +1243,7 @@ namespace CLR
 		CustomAttributeData** CustomAttributes;
 
 		ModuleDefinitionData();
+		~ModuleDefinitionData();
 	};
 
 	class ModuleReferenceData
@@ -1226,6 +1258,7 @@ namespace CLR
 		MemberReferenceData** MemberReferences;
 
 		ModuleReferenceData();
+		~ModuleReferenceData();
 	};
 
 	class NestedClassData
@@ -1236,6 +1269,7 @@ namespace CLR
 		TypeDefinitionData* Enclosing;
 
 		NestedClassData();
+		~NestedClassData();
 	};
 
 	class ParameterData
@@ -1252,6 +1286,7 @@ namespace CLR
 		FieldMarshalData* FieldMarshal;
 
 		ParameterData();
+		~ParameterData();
 	};
 
 	class PropertyData
@@ -1269,6 +1304,7 @@ namespace CLR
 		MethodSemanticsData* MethodSemantics;
 
 		PropertyData();
+		~PropertyData();
 	};
 
 	class PropertyMapData
@@ -1280,6 +1316,7 @@ namespace CLR
 		uint32_t PropertyListCount;
 
 		PropertyMapData();
+		~PropertyMapData();
 	};
 
 	class StandAloneSignatureData
@@ -1293,6 +1330,7 @@ namespace CLR
 		CustomAttributeData** CustomAttributes;
 
 		StandAloneSignatureData();
+		~StandAloneSignatureData();
 	};
 
 	class TypeDefinitionData
@@ -1327,6 +1365,7 @@ namespace CLR
 		PropertyMapData* PropertyMap;
 
 		TypeDefinitionData();
+		~TypeDefinitionData();
 	};
 
 	class TypeReferenceData
@@ -1345,6 +1384,7 @@ namespace CLR
 		MemberReferenceData** MemberReferences;
 
 		TypeReferenceData();
+		~TypeReferenceData();
 	};
 
 	class TypeSpecificationData
@@ -1361,12 +1401,61 @@ namespace CLR
 		MemberReferenceData** MemberReferences;
 
 		TypeSpecificationData();
+		~TypeSpecificationData();
 	};
 
+	namespace SignatureElementType
+	{
+		typedef enum SignatureElementType
+		{
+			End								= 0x00,
+			Void							= 0x01,
+			Boolean							= 0x02,
+			Char							= 0x03,
+			I1								= 0x04,
+			U1								= 0x05,
+			I2								= 0x06,
+			U2								= 0x07,
+			I4								= 0x08,
+			U4								= 0x09,
+			I8								= 0x0A,
+			U8								= 0x0B,
+			R4								= 0x0C,
+			R8								= 0x0D,
+			String							= 0x0E,
+			Pointer							= 0x0F,
+			ByReference						= 0x10,
+			ValueType						= 0x11,
+			Class							= 0x12,
+			Var								= 0x13,
+			Array							= 0x14,
+			GenericInstantiation			= 0x15,
+			TypedByReference				= 0x16,
+			IPointer						= 0x18,
+			UPointer						= 0x19,
+			FunctionPointer					= 0x1B,
+			Object							= 0x1C,
+			SingleDimensionArray			= 0x1D,
+			MethodVar						= 0x1E,
+			CustomModifier_Required			= 0x1F,
+			CustomModifier_Optional			= 0x20,
+			Internal						= 0x21,
+			Modifier						= 0x40,
+			Sentinel						= 0x41,
+			Pinned							= 0x45,
+			Type							= 0x50,
+			CustomAttribute_Boxed			= 0x51,
+			CustomAttribute_Field			= 0x53,
+			CustomAttribute_Property		= 0x54,
+			CustomAttribute_Enum			= 0x55,
+		} SignatureElementType;
+	};
 
 	class MethodSignature
 	{
 	public:
+		CLIFile* File;
+
 		bool HasThis;
 		bool ExplicitThis;
 		bool Default;
@@ -1383,7 +1472,10 @@ namespace CLR
 		bool HasSentinel;
 		uint32_t SentinelIndex;
 
-		MethodSignature();
+		MethodSignature(uint8_t* pSignature, CLIFile* pFile);
+		~MethodSignature();
+
+		bool Equals(MethodSignature* pSignature);
 	};
 
 	class FieldSignature
@@ -1394,6 +1486,7 @@ namespace CLR
 		SignatureType* Type;
 
 		FieldSignature();
+		~FieldSignature();
 	};
 
 	class PropertySignature
@@ -1407,6 +1500,7 @@ namespace CLR
 		SignatureParameter** Parameters;
 
 		PropertySignature();
+		~PropertySignature();
 	};
 
 	class LocalsSignature
@@ -1416,6 +1510,7 @@ namespace CLR
 		SignatureLocalVariable** LocalVariables;
 
 		LocalsSignature();
+		~LocalsSignature();
 	};
 
 	class SignatureReturnType
@@ -1429,6 +1524,7 @@ namespace CLR
 		bool Void;
 
 		SignatureReturnType();
+		~SignatureReturnType();
 	};
 
 	class SignatureParameter
@@ -1441,6 +1537,7 @@ namespace CLR
 		bool TypedByReference;
 
 		SignatureParameter();
+		~SignatureParameter();
 	};
 
 	class SignatureCustomModifier
@@ -1450,6 +1547,7 @@ namespace CLR
 		uint32_t TypeDefOrRefOrSpecToken;
 
 		SignatureCustomModifier();
+		~SignatureCustomModifier();
 	};
 
 	class SignatureType
@@ -1491,7 +1589,8 @@ namespace CLR
 			uint32_t VarNumber;
 		};
 
-		SignatureType();
+		SignatureType(uint8_t* pSignature, CLIFile* pFile);
+		~SignatureType();
 	};
 
 	class SignatureMethodSpecification
@@ -1501,6 +1600,7 @@ namespace CLR
 		SignatureType** GenericInstGenericArguments;
 
 		SignatureMethodSpecification();
+		~SignatureMethodSpecification();
 	};
 
 	class SignatureArrayShape
@@ -1513,6 +1613,7 @@ namespace CLR
 		int32_t* LowerBounds;
 
 		SignatureArrayShape();
+		~SignatureArrayShape();
 	};
 
 	class SignatureLocalVariable
@@ -1526,5 +1627,14 @@ namespace CLR
 		bool IsPinned;
 
 		SignatureLocalVariable();
+		~SignatureLocalVariable();
+	};
+
+	class MetadataToken
+	{
+	public:
+		uint8_t Table;
+		bool IsUserString;
+		void* Data;
 	};
 };
