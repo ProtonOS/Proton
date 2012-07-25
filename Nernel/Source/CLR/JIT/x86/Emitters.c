@@ -8,6 +8,9 @@
 #define THIRD_REG X86_ECX
 #define FOURTH_REG X86_EDX
 
+#define STACK_FLAGS_REG X86_ESI
+#define APP_DOMAIN_REG X86_EDI
+
 //#define MemoryCorruptionChecks
 
 #ifdef MemoryCorruptionChecks
@@ -72,25 +75,6 @@ default: \
 			else \
 				x86_mov_membase_reg(pCompiledCode, destinationBaseReg, destinationOffset, intermediateReg, sizeOfDestination); \
 			break; \
-		/*case 5: \
-		case 6: \
-		case 7: \
-		case 8: \
-			x86_mov_reg_membase(pCompiledCode, intermediateReg, sourceBaseReg, sourceOffset, 4); \
-			x86_mov_membase_reg(pCompiledCode, destinationBaseReg, destinationOffset, intermediateReg, 4); \
-			if (!sourceAligned && destinationAligned && sizeOfSource < 8) \
-				x86_alu_reg_reg(pCompiledCode, X86_XOR, intermediateReg, intermediateReg); \
-			\
-			if (sourceAligned) \
-				x86_mov_reg_membase(pCompiledCode, intermediateReg, sourceBaseReg, (sourceOffset) + 4, gSizeOfPointerInBytes); \
-			else \
-				x86_mov_reg_membase(pCompiledCode, intermediateReg, sourceBaseReg, (sourceOffset) + 4, sizeOfSource - 4); \
-			\
-			if (destinationAligned) \
-				x86_mov_membase_reg(pCompiledCode, destinationBaseReg, (destinationOffset) + 4, intermediateReg, gSizeOfPointerInBytes); \
-			else \
-				x86_mov_membase_reg(pCompiledCode, destinationBaseReg, (destinationOffset) + 4, intermediateReg, sizeOfDestination - 4); \
-			break; */ \
 		default: \
 		{ \
 			uint32_t count = sizeOfDestination >> gPointerDivideShift; \
@@ -132,10 +116,6 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				case 4:
 					x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, -pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset, 4);
 					break;
-				//case 8:
-				//	x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, -pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset, 4);
-				//	x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, -(pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset - 4), 4);
-				//	break;
 				default:
 				{
 					x86_adjust_stack(pCompiledCode, -((int32_t)sizeOfSource));
@@ -165,10 +145,6 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				case 4:
 					x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset, 4);
 					break;
-				//case 8:
-				//	x86_mov_reg_membase(pCompiledCode, pRegister1, X86_EBP, pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset, 4);
-				//	x86_mov_reg_membase(pCompiledCode, pRegister2, X86_EBP, (pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset + 4), 4);
-				//	break;
 				default:
 				{
 					x86_adjust_stack(pCompiledCode, -((int32_t)sizeOfSource));
@@ -232,14 +208,6 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				case 4:
 					x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, 0, sizeOfSource);
 					break;
-				//case 5:
-				//case 6:
-				//case 7:
-				//	x86_alu_reg_reg(pCompiledCode, X86_XOR, pRegister2, pRegister2);
-				//case 8:
-				//	x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, 0, 4);
-				//	x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister3, 4, sizeOfSource - 4);
-				//	break;
 				default:
 				{
 					x86_adjust_stack(pCompiledCode, -((int32_t)JIT_StackAlign(sizeOfSource)));
@@ -286,14 +254,6 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				case 4:
 					x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, 0, sizeOfSource);
 					break;
-				//case 5:
-				//case 6:
-				//case 7:
-				//	x86_alu_reg_reg(pCompiledCode, X86_XOR, pRegister2, pRegister2);
-				//case 8:
-				//	x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, 0, 4);
-				//	x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister3, 4, sizeOfSource - 4);
-				//	break;
 				default:
 				{
 					x86_adjust_stack(pCompiledCode, -((int32_t)JIT_StackAlign(sizeOfSource)));
@@ -338,14 +298,6 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				case 4:
 					x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, 0, sizeOfSource);
 					break;
-				//case 5:
-				//case 6:
-				//case 7:
-				//	x86_alu_reg_reg(pCompiledCode, X86_XOR, pRegister2, pRegister2);
-				//case 8:
-				//	x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, 0, 4);
-				//	x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister3, 4, sizeOfSource - 4);
-				//	break;
 				default:
 				{
 					x86_adjust_stack(pCompiledCode, -((int32_t)JIT_StackAlign(sizeOfSource)));
@@ -398,14 +350,6 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				case 4:
 					x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, 0, sizeOfSource);
 					break;
-				//case 5:
-				//case 6:
-				//case 7:
-				//	x86_alu_reg_reg(pCompiledCode, X86_XOR, pRegister2, pRegister2);
-				//case 8:
-				//	x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, 0, 4);
-				//	x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister3, 4, sizeOfSource - 4);
-				//	break;
 				default:
 				{
 					x86_adjust_stack(pCompiledCode, -((int32_t)JIT_StackAlign(sizeOfSource)));
@@ -472,10 +416,6 @@ char* JIT_Emit_Store(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pDe
 				case 4:
 					x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister1, 4);
 					break;
-				//case 8:
-				//	x86_mov_membase_reg(pCompiledCode, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister1, 4);
-				//	x86_mov_membase_reg(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - 4), pRegister2, 4);
-				//	break;
 				default:
 				{
 					uint32_t count = sizeOfDestination >> gPointerDivideShift;
@@ -498,10 +438,6 @@ char* JIT_Emit_Store(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pDe
 				case 4:
 					x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister1, 4);
 					break;
-				//case 8:
-				//	x86_mov_membase_reg(pCompiledCode, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister1, 4);
-				//	x86_mov_membase_reg(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + 4), pRegister2, 4);
-				//	break;
 				default:
 				{
 					uint32_t count = sizeOfDestination >> gPointerDivideShift;
@@ -547,13 +483,6 @@ char* JIT_Emit_Store(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pDe
 				case 4:
 					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, sizeOfDestination);
 					break;
-				//case 5:
-				//case 6:
-				//case 7:
-				//case 8:
-				//	x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, 4);
-				//	x86_mov_membase_reg(pCompiledCode, pRegister3, 4, pRegister2, sizeOfDestination - 4);
-				//	break;
 				default:
 				{
 					uint32_t count = sizeOfDestination >> gPointerDivideShift;
@@ -590,13 +519,6 @@ char* JIT_Emit_Store(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pDe
 				case 4:
 					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, sizeOfDestination);
 					break;
-				//case 5:
-				//case 6:
-				//case 7:
-				//case 8:
-				//	x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, 4);
-				//	x86_mov_membase_reg(pCompiledCode, pRegister3, 4, pRegister2, sizeOfDestination - 4);
-				//	break;
 				default:
 				{
 					uint32_t count = sizeOfDestination >> gPointerDivideShift;
@@ -645,13 +567,6 @@ char* JIT_Emit_Store(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pDe
 				case 4:
 					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, sizeOfDestination);
 					break;
-				//case 5:
-				//case 6:
-				//case 7:
-				//case 8:
-				//	x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, 4);
-				//	x86_mov_membase_reg(pCompiledCode, pRegister3, 4, pRegister2, sizeOfDestination - 4);
-				//	break;
 				default:
 				{
 					uint32_t count = sizeOfDestination >> gPointerDivideShift;
@@ -730,13 +645,6 @@ char* JIT_Emit_Store(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pDe
 				case 4:
 					x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, sizeOfDestination);
 					break;
-				//case 5:
-				//case 6:
-				//case 7:
-				//case 8:
-				//	x86_mov_membase_reg(pCompiledCode, pRegister3, 0, pRegister1, 4);
-				//	x86_mov_membase_reg(pCompiledCode, pRegister3, 4, pRegister2, sizeOfDestination - 4);
-				//	break;
 				default:
 				{
 					uint32_t count = sizeOfDestination >> gPointerDivideShift;
@@ -3296,11 +3204,199 @@ EmitFinished:
 
 char* JIT_Emit_Neg(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+	if (SourceTypeData_Equal(pInstruction->Source1, pInstruction->Destination))
+	{
+		if (pInstruction->Source1.Type == SourceType_Local)
+		{
+			IRLocalVariable* local = pMethod->LocalVariables[pInstruction->Source1.Data.LocalVariable.LocalVariableIndex];
+			switch(local->Size)
+			{
+				case 1:
+				case 2:
+				case 3:
+				case 4:
+					x86_neg_membase(pCompiledCode, X86_EBP, -local->Offset);
+					break;
+				case 5:
+				case 6:
+				case 7:
+				case 8:
+					switch((ElementType)(int)pInstruction->Arg1)
+					{
+						case ElementType_I8:
+						case ElementType_U8:
+							x86_fild_membase(pCompiledCode, X86_EBP, -local->Offset, TRUE);
+							x86_fchs(pCompiledCode);
+							x86_fist_pop_membase(pCompiledCode, X86_EBP, -local->Offset, TRUE);
+							break;
+						case ElementType_R4:
+							x86_fld_membase(pCompiledCode, X86_EBP, -local->Offset, FALSE);
+							x86_fchs(pCompiledCode);
+							x86_fst_membase(pCompiledCode, X86_EBP, -local->Offset, FALSE, TRUE);
+							break;
+						case ElementType_R8:
+							x86_fld_membase(pCompiledCode, X86_EBP, -local->Offset, TRUE);
+							x86_fchs(pCompiledCode);
+							x86_fst_membase(pCompiledCode, X86_EBP, -local->Offset, TRUE, TRUE);
+							break;
+						default:
+							Panic("Invalid large operand for Negate!");
+							break;
+					}
+					break;
+			}
+			goto EmitFinished;
+		}
+		else if (pInstruction->Source1.Type == SourceType_Parameter)
+		{
+			IRParameter* param = pMethod->Parameters[pInstruction->Source1.Data.Parameter.ParameterIndex];
+			switch(param->Size)
+			{
+				case 1:
+				case 2:
+				case 3:
+				case 4:
+					x86_neg_membase(pCompiledCode, X86_EBP, param->Offset);
+					break;
+				case 5:
+				case 6:
+				case 7:
+				case 8:
+					switch((ElementType)(int)pInstruction->Arg1)
+					{
+						case ElementType_I8:
+						case ElementType_U8:
+							x86_fild_membase(pCompiledCode, X86_EBP, param->Offset, TRUE);
+							x86_fchs(pCompiledCode);
+							x86_fist_pop_membase(pCompiledCode, X86_EBP, param->Offset, TRUE);
+							break;
+						case ElementType_R4:
+							x86_fld_membase(pCompiledCode, X86_EBP, param->Offset, FALSE);
+							x86_fchs(pCompiledCode);
+							x86_fst_membase(pCompiledCode, X86_EBP, param->Offset, FALSE, TRUE);
+							break;
+						case ElementType_R8:
+							x86_fld_membase(pCompiledCode, X86_EBP, param->Offset, TRUE);
+							x86_fchs(pCompiledCode);
+							x86_fst_membase(pCompiledCode, X86_EBP, param->Offset, TRUE, TRUE);
+							break;
+						default:
+							Panic("Invalid large operand for Negate!");
+							break;
+					}
+					break;
+			}
+			goto EmitFinished;
+		}
+	}
+	
+	pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+	switch((ElementType)(int)pInstruction->Arg1)
+	{
+		case ElementType_I:
+		case ElementType_I1:
+		case ElementType_I2:
+		case ElementType_I4:
+		case ElementType_U:
+		case ElementType_U1:
+		case ElementType_U2:
+		case ElementType_U4:
+			x86_neg_reg(pCompiledCode, PRIMARY_REG);
+			break;
+		case ElementType_I8:
+		case ElementType_U8:
+			x86_fild_membase(pCompiledCode, X86_ESP, 0, TRUE);
+			x86_fchs(pCompiledCode);
+			x86_fist_pop_membase(pCompiledCode, X86_ESP, 0, TRUE);
+			break;
+		case ElementType_R4:
+			x86_fld_membase(pCompiledCode, X86_ESP, 0, FALSE);
+			x86_fchs(pCompiledCode);
+			x86_fst_membase(pCompiledCode, X86_ESP, 0, FALSE, TRUE);
+			break;
+		case ElementType_R8:
+			x86_fld_membase(pCompiledCode, X86_ESP, 0, TRUE);
+			x86_fchs(pCompiledCode);
+			x86_fst_membase(pCompiledCode, X86_ESP, 0, TRUE, TRUE);
+			break;
+	}
+	pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+EmitFinished:
 	return pCompiledCode;
 }
 
 char* JIT_Emit_Not(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+	if (SourceTypeData_Equal(pInstruction->Source1, pInstruction->Destination))
+	{
+		if (pInstruction->Source1.Type == SourceType_Local)
+		{
+			IRLocalVariable* local = pMethod->LocalVariables[pInstruction->Source1.Data.LocalVariable.LocalVariableIndex];
+			switch(local->Size)
+			{
+				case 1:
+				case 2:
+				case 3:
+				case 4:
+					x86_not_membase(pCompiledCode, X86_EBP, -local->Offset);
+					break;
+				case 5:
+				case 6:
+				case 7:
+				case 8:
+					x86_not_membase(pCompiledCode, X86_EBP, -local->Offset);
+					x86_not_membase(pCompiledCode, X86_EBP, -local->Offset + 4);
+					break;
+			}
+			goto EmitFinished;
+		}
+		else if (pInstruction->Source1.Type == SourceType_Parameter)
+		{
+			IRParameter* param = pMethod->Parameters[pInstruction->Source1.Data.Parameter.ParameterIndex];
+			switch(param->Size)
+			{
+				case 1:
+				case 2:
+				case 3:
+				case 4:
+					x86_not_membase(pCompiledCode, X86_EBP, param->Offset);
+					break;
+				case 5:
+				case 6:
+				case 7:
+				case 8:
+					x86_not_membase(pCompiledCode, X86_EBP, param->Offset);
+					x86_not_membase(pCompiledCode, X86_EBP, param->Offset + 4);
+					break;
+			}
+			goto EmitFinished;
+		}
+	}
+	
+	pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+	switch((ElementType)(int)pInstruction->Arg1)
+	{
+		case ElementType_I:
+		case ElementType_I1:
+		case ElementType_I2:
+		case ElementType_I4:
+		case ElementType_U:
+		case ElementType_U1:
+		case ElementType_U2:
+		case ElementType_U4:
+			x86_not_reg(pCompiledCode, PRIMARY_REG);
+			break;
+		case ElementType_I8:
+		case ElementType_U8:
+			x86_not_membase(pCompiledCode, X86_ESP, 0);
+			x86_not_membase(pCompiledCode, X86_ESP, 4);
+			break;
+		default:
+			Panic("Invalid type for Not instruction!");
+			break;
+	}
+	pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+EmitFinished:
 	return pCompiledCode;
 }
 
