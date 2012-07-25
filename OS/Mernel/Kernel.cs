@@ -7,6 +7,13 @@ namespace Mernel
     {
         private static void Main()
         {
+            int w = 0; // w0 = 0
+            int x = 1; // x0 = 1
+            int y = w + x; // y0 = w0 + x0
+            int z = y; // z3 = y0
+            if (z != 0) ++z; // if (z3 != 0) z3 = z3 + 1;
+            ++z; // z2 = z3 + 1
+
             //int x = 0;
             //int y = 1;
             ////if ((x + y) == 0) return;
@@ -70,47 +77,47 @@ namespace Mernel
             //}
             //a = b; // 16 - 1
 
-            // Node 0 - Dominator 0
-            bool a = true; // a0 <- true
-            bool b = false; // b0 <- true
-            if (a) // a0 -> condition
-            {
-                // Node 1 - Dominator 0
-                a = false; // a1 <- false
-            }
-            else
-            {
-                // Node 2 - Dominator 0
-                if (b) // b0 -> condition
-                {
-                    // Node 3 - Dominator 2
-                    b = false; // b1 <- false
-                }
-                else
-                {
-                    // Node 4 - Dominator 2
-                    if (a && // a0 -> condition
-                        // Node 5 - Dominator 4
-                        !b) // b0 -> condition
-                    {
-                        // Node 6 - Dominator 5
-                        b = true; // b2 <- true
-                        a = false; // a2 <- false
-                    }
-                    // Node 7 - Dominator 4
-                    // a5 <- phi(a0, a0, a2)
-                    // b4 <- phi(b0, b0, b2)
-                    b = true; // b3 <- true
-                }
-                // Node 8 - Dominator 2
-                // a6 <- phi(a0, a5)
-                // b5 <- phi(b1, b3)
-                a = true; // a3 <- true
-            }
-            // Node 9 - Dominator 0
-            // a7 <- phi(a0, a3)
-            // b6 <- phi(b0, b5)
-            a = b; // a4 <- b6
+            //// Node 0 - Dominator 0
+            //bool a = true; // a0 <- true
+            //bool b = false; // b0 <- true
+            //if (a) // a0 -> condition
+            //{
+            //    // Node 1 - Dominator 0
+            //    a = false; // a1 <- false
+            //}
+            //else
+            //{
+            //    // Node 2 - Dominator 0
+            //    if (b) // b0 -> condition
+            //    {
+            //        // Node 3 - Dominator 2
+            //        b = false; // b1 <- false
+            //    }
+            //    else
+            //    {
+            //        // Node 4 - Dominator 2
+            //        if (a && // a0 -> condition
+            //            // Node 5 - Dominator 4
+            //            !b) // b0 -> condition
+            //        {
+            //            // Node 6 - Dominator 5
+            //            b = true; // b2 <- true
+            //            a = false; // a2 <- false
+            //        }
+            //        // Node 7 - Dominator 4
+            //        // a5 <- phi(a0, a0, a2)
+            //        // b4 <- phi(b0, b0, b2)
+            //        b = true; // b3 <- true
+            //    }
+            //    // Node 8 - Dominator 2
+            //    // a6 <- phi(a0, a5)
+            //    // b5 <- phi(b1, b3)
+            //    a = true; // a3 <- true
+            //}
+            //// Node 9 - Dominator 0
+            //// a7 <- phi(a0, a3)
+            //// b6 <- phi(b0, b5)
+            //a = b; // a4 <- b6
 
             //// Node 0 - Dominator 0
             //int x = 0;

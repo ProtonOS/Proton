@@ -1016,7 +1016,7 @@ typedef enum MethodDefinitionBodyFatFlags
 } MethodDefinitionBodyFatFlags;
 
 #define MethodDefinitionBody_Fat_Flags_Bits								12
-#define MethodDefinitionBody_Fat_Flags_Mask								((1 << MethodDefinitionBodyFlags_HeaderType_Bits) - 1)
+#define MethodDefinitionBody_Fat_Flags_Mask								((1 << MethodDefinitionBody_Fat_Flags_Bits) - 1)
 
 #define MethodDefinitionBody_Tiny_MaxStack								8
 #define MethodDefinitionBody_Fat_BodySize_Multiplier					4

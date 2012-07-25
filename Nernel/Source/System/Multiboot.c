@@ -70,52 +70,52 @@ void Multiboot_Startup(uint32_t pMultibootMagic, MultibootHeader* pMultibootHead
 		MemoryBlock* memoryBlock = gMemoryBlocks;
 		for (uint32_t memoryBlockIndex = 0; memoryBlockIndex < gMemoryBlockCount; ++memoryBlockIndex, ++memoryBlock)
 		{
-			if ((reservedMemoryBlock->Address >= memoryBlock->Address && reservedMemoryBlock->Address < (memoryBlock->Address + memoryBlock->Size)) ||
-				((reservedMemoryBlock->Address + reservedMemoryBlock->Size) > memoryBlock->Address && (reservedMemoryBlock->Address + reservedMemoryBlock->Size) < (memoryBlock->Address + memoryBlock->Size)))
+			if (reservedMemoryBlock->Address + reservedMemoryBlock->Size > memoryBlock->Address &&
+				reservedMemoryBlock->Address < memoryBlock->Address + memoryBlock->Size)
 			{
-				if (reservedMemoryBlock->Address == memoryBlock->Address)
+				if (reservedMemoryBlock->Address > memoryBlock->Address &&
+					reservedMemoryBlock->Address + reservedMemoryBlock->Size >= memoryBlock->Address + memoryBlock->Size)
 				{
-					memoryBlock->Address += reservedMemoryBlock->Size;
-					memoryBlock->Size -= reservedMemoryBlock->Size;
-					if (memoryBlock->Size == 0)
-					{
-						for (uint32_t copyBlockIndex = memoryBlockIndex + 1; copyBlockIndex < gMemoryBlockCount; ++copyBlockIndex)
-						{
-							gMemoryBlocks[copyBlockIndex - 1] = gMemoryBlocks[copyBlockIndex];
-						}
-						--gMemoryBlockCount;
-						break;
-					}
+					// Space left at start, but not at end
+					memoryBlock->Size = reservedMemoryBlock->Address - memoryBlock->Address;
 				}
-				else if ((reservedMemoryBlock->Address + reservedMemoryBlock->Size) == (memoryBlock->Address + memoryBlock->Size))
+				else if (reservedMemoryBlock->Address <= memoryBlock->Address &&
+							reservedMemoryBlock->Address + reservedMemoryBlock->Size < memoryBlock->Address + memoryBlock->Size)
 				{
-					memoryBlock->Size -= reservedMemoryBlock->Size;
-					break;
+					// Space left at end, but not at start
+					memoryBlock->Size = (memoryBlock->Address + memoryBlock->Size) - (reservedMemoryBlock->Address + reservedMemoryBlock->Size);
+					memoryBlock->Address = reservedMemoryBlock->Address + reservedMemoryBlock->Size;
 				}
-				else if (gMemoryBlockCount == MEMORYBLOCK_MAX)
+				else if (reservedMemoryBlock->Address > memoryBlock->Address &&
+							reservedMemoryBlock->Address + reservedMemoryBlock->Size < memoryBlock->Address + memoryBlock->Size)
 				{
-					Panic("Insufficient memory blocks to process available memory");
-				}
-				else
-				{
-					++gMemoryBlockCount;
-					for (uint32_t copyBlockIndex = gMemoryBlockCount - 1; copyBlockIndex > memoryBlockIndex; --copyBlockIndex)
+					// Space left at both start and end
+					if (gMemoryBlockCount == MEMORYBLOCK_MAX) Panic("Insufficient memory blocks to process available memory");
+
+					for (uint32_t copyBlockIndex = gMemoryBlockCount; copyBlockIndex > memoryBlockIndex; --copyBlockIndex)
 					{
 						gMemoryBlocks[copyBlockIndex] = gMemoryBlocks[copyBlockIndex - 1];
 					}
-					size_t originalSize = memoryBlock->Size;
+					++gMemoryBlockCount;
+						
+					gMemoryBlocks[memoryBlockIndex + 1].Size = (memoryBlock->Address + memoryBlock->Size) - (reservedMemoryBlock->Address + reservedMemoryBlock->Size);
+					gMemoryBlocks[memoryBlockIndex + 1].Address = reservedMemoryBlock->Address + reservedMemoryBlock->Size;
 					memoryBlock->Size = reservedMemoryBlock->Address - memoryBlock->Address;
-					(memoryBlock + 1)->Address = reservedMemoryBlock->Address + reservedMemoryBlock->Size;
-					(memoryBlock + 1)->Size = originalSize - (memoryBlock->Size + reservedMemoryBlock->Size);
-					break;
+						
+				}
+				else
+				{
+					// No space, used the whole darn block!
+					for (uint32_t copyBlockIndex = memoryBlockIndex + 1; copyBlockIndex < gMemoryBlockCount; ++copyBlockIndex)
+					{
+						gMemoryBlocks[copyBlockIndex - 1] = gMemoryBlocks[copyBlockIndex];
+					}
+					--gMemoryBlockCount;
 				}
 			}
 		}
 	}
-	if (gMemoryBlockCount == 0)
-	{
-		Panic("There is no memory blocks available");
-	}
+	if (gMemoryBlockCount == 0) Panic("There is no memory blocks available");
 }
 
 void Multiboot_Shutdown()
