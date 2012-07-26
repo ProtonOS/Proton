@@ -54,3 +54,11 @@
 		}	\
 	} while (0)
 
+
+#define x86_ud2(inst)	\
+	do {	\
+		x86_codegen_pre(&(inst), 2); \
+		*(inst)++ = (unsigned char)0x0f;	\
+		*(inst)++ = (unsigned char)0x0b;	\
+	} while (0)
+	
