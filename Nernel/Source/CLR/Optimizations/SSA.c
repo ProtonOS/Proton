@@ -130,12 +130,7 @@ void IROptimizer_EnterSSA(IRMethod* pMethod, IRCodeNode** pNodes, uint32_t pNode
 				}
 				memset(retargettedNodes, 0x00, pNodesCount * sizeof(bool_t));
 				IROptimizer_RetargetLocalSources(pMethod, codeNode, instructionIndex + 1, oldLocalVariable, newLocalVariable, retargettedNodes);
-				Log_WriteLine(LOGLEVEL__Optimize_SSA, "Retargeting LocalVariable Index %u to %u", (unsigned int)oldLocalVariable->LocalVariableIndex, (unsigned int)newLocalVariable->LocalVariableIndex);
-			}
-			else if (instruction->Destination.Type == SourceType_Indirect)
-			{
-				// TODO: Follow through indirect address sources, until we reach non indirect, if it's local, then we need to work with it here like a local
-				Panic("Deal with this later!");
+				//Log_WriteLine(LOGLEVEL__Optimize_SSA, "Retargeting LocalVariable Index %u to %u", (unsigned int)oldLocalVariable->LocalVariableIndex, (unsigned int)newLocalVariable->LocalVariableIndex);
 			}
 		}
 	}
@@ -268,25 +263,13 @@ void IROptimizer_LeaveSSA(IRMethod* pMethod, IRCodeNode** pNodes, uint32_t pNode
 				localVariable->SSAData->LifeEnded = instruction;
 				break;
 			}
-			//else if (instructionIndex == localVariable->SSAData->LifeStarted->IRLocation + 1)
-			//{
-			//	break;
-			//}
 
 			//Log_WriteLine(LOGLEVEL__Optimize_SSA, "ILLocation[%u] Source1Type = %u, Data = %u, Source2Type = %u, Data = %u, DestType = %u, Data = %u", (unsigned int)instruction->ILLocation, (unsigned int)instruction->Source1.Type, (unsigned int)instruction->Source1.Data.ConstantI4.Value, (unsigned int)instruction->Source2.Type, (unsigned int)instruction->Source2.Data.ConstantI4.Value, (unsigned int)instruction->Destination.Type, (unsigned int)instruction->Destination.Data.ConstantI4.Value);
 		}
 
 		if (localVariable->SSAData->LifeStarted->IRLocation == localVariable->SSAData->LifeEnded->IRLocation)
 		{
-			if (localVariable->NonSSADerivable)
-			{
-				Log_WriteLine(LOGLEVEL__Optimize_SSA, "LocalVariable[%u] Lifespan = Dead @ %u Source %u, %u - Dest %u, %u", (unsigned int)localVariable->LocalVariableIndex, (unsigned int)localVariable->SSAData->LifeStarted->ILLocation, (unsigned int)localVariable->SSAData->LifeStarted->Source1.Type, (unsigned int)localVariable->SSAData->LifeStarted->Source1.Data.ConstantI4.Value, (unsigned int)localVariable->SSAData->LifeStarted->Destination.Type, (unsigned int)localVariable->SSAData->LifeStarted->Destination.Data.ConstantI4.Value);
-			}
-			else
-			{
-				Log_WriteLine(LOGLEVEL__Optimize_SSA, "LocalVariable[%u] Lifespan = Dead", (unsigned int)localVariable->LocalVariableIndex);
-			}
-
+			Log_WriteLine(LOGLEVEL__Optimize_SSA, "LocalVariable[%u] Lifespan = Dead", (unsigned int)localVariable->LocalVariableIndex);
 		}
 		else
 		{

@@ -14,6 +14,16 @@ namespace Mernel
             if (z != 0) z = z + 1; // if (z0 != 0) z1 = z0 + 1;
             z = z + 1; // z3 = (z2 = phi(z0, z1)) + 1
 
+            switch (z) // switch (z3)
+            {
+                case 0: y = 0; break; // y1 = 0
+                case 1: y = 1; break; // y2 = 1
+                case 2: y = 2; break; // y3 = 2
+                default: y = 3; break; // y4 = 3
+            }
+
+            z = y; // z4 = (y5 = phi(y1, y2, y3, y4))
+
             //int x = 0;
             //int y = 1;
             ////if ((x + y) == 0) return;

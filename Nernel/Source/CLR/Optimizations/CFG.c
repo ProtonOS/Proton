@@ -29,6 +29,16 @@ IRCodeNode** IROptimizer_BuildControlFlowGraph(IRMethod* pMethod, uint32_t* pNod
 			branchTargets = (uint32_t*)realloc(branchTargets, branchTargetsCount * sizeof(uint32_t));
 			branchTargets[branchTargetsIndex] = ((IRInstruction*)instruction->Arg2)->IRLocation;
 		}
+		else if (instruction->Opcode == IROpcode_Switch)
+		{
+			branchTargetsIndex = branchTargetsCount;
+			branchTargetsCount += (uint32_t)instruction->Arg1;
+			branchTargets = (uint32_t*)realloc(branchTargets, branchTargetsCount * sizeof(uint32_t));
+			for (uint32_t branchIndex = 0; branchIndex < (uint32_t)instruction->Arg1; ++branchIndex)
+			{
+				branchTargets[branchIndex + branchTargetsIndex] = ((IRInstruction**)instruction->Arg2)[branchIndex]->IRLocation;
+			}
+		}
 	}
 	Log_WriteLine(LOGLEVEL__Optimize_CFG, "Starting new node @ 0x0:0x%x", (unsigned int)pMethod->IRCodes[0]->ILLocation);
 	IRCodeNode** nodes = (IRCodeNode**)calloc(1, sizeof(IRCodeNode*));
@@ -42,7 +52,7 @@ IRCodeNode** IROptimizer_BuildControlFlowGraph(IRMethod* pMethod, uint32_t* pNod
 	for (uint32_t index = 0; index < pMethod->IRCodesCount; ++index)
 	{
 		instruction = pMethod->IRCodes[index];
-		startNewNode = instruction->Opcode == IROpcode_Branch;
+		startNewNode = instruction->Opcode == IROpcode_Branch || instruction->Opcode == IROpcode_Switch;
 		addBefore = startNewNode;
 		if (!startNewNode)
 		{
@@ -102,16 +112,38 @@ IRCodeNode** IROptimizer_BuildControlFlowGraph(IRMethod* pMethod, uint32_t* pNod
 			if ((BranchCondition)(uint32_t)instruction->Arg1 != BranchCondition_Always)
 			{
 				IRCodeNode_AddRelationship(currentNode, nodes[index + 1]);
-				Log_WriteLine(LOGLEVEL__Optimize_CFG, "Connected parent %u to child %u", (unsigned int)index, (unsigned int)(index + 1));
+				Log_WriteLine(LOGLEVEL__Optimize_CFG, "Connected fallthrough parent %u to child %u", (unsigned int)index, (unsigned int)(index + 1));
 			}
 			IRCodeNode_AddRelationship(currentNode, childNode);
-			Log_WriteLine(LOGLEVEL__Optimize_CFG, "Connected parent %u to child %u", (unsigned int)index, (unsigned int)searchIndex);
+			Log_WriteLine(LOGLEVEL__Optimize_CFG, "Connected branch parent %u to child %u", (unsigned int)index, (unsigned int)searchIndex);
+		}
+		else if (instruction->Opcode == IROpcode_Switch)
+		{
+			IRCodeNode* childNode = NULL;
+			uint32_t searchIndex = 0;
+
+			IRCodeNode_AddRelationship(currentNode, nodes[index + 1]);
+			Log_WriteLine(LOGLEVEL__Optimize_CFG, "Connected default parent %u to child %u", (unsigned int)index, (unsigned int)(index + 1));
+			for (uint32_t searchIndex2 = 0; searchIndex2 < (uint32_t)instruction->Arg1; ++searchIndex2)
+			{
+				for (; searchIndex < *pNodesCount; ++searchIndex)
+				{
+					if (nodes[searchIndex]->Instructions[0] == ((IRInstruction**)instruction->Arg2)[searchIndex2]->IRLocation)
+					{
+						childNode = nodes[searchIndex];
+
+						IRCodeNode_AddRelationship(currentNode, childNode);
+						Log_WriteLine(LOGLEVEL__Optimize_CFG, "Connected case parent %u to child %u", (unsigned int)index, (unsigned int)searchIndex);
+						break;
+					}
+				}
+			}
 		}
 		else if (instruction->Opcode == IROpcode_Return) continue;
 		else
 		{
 			IRCodeNode_AddRelationship(currentNode, nodes[index + 1]);
-			Log_WriteLine(LOGLEVEL__Optimize_CFG, "Connected parent %u to child %u", (unsigned int)index, (unsigned int)(index + 1));
+			Log_WriteLine(LOGLEVEL__Optimize_CFG, "Connected linear parent %u to child %u", (unsigned int)index, (unsigned int)(index + 1));
 		}
 	}
 
