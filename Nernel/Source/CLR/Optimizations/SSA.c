@@ -33,7 +33,7 @@ void IROptimizer_RetargetLocalSources(IRMethod* pMethod, IRCodeNode* pCodeNode, 
 			instruction->Destination.Data.LocalVariable.LocalVariableIndex = pNewLocalVariable->LocalVariableIndex;
 		}
 		else if (instruction->Destination.Type == SourceType_LocalAddress &&
-				 instruction->Destination.Data.LocalVariableAddress.LocalVariableIndex == pOldLocalVariable->LocalVariableIndex)
+					instruction->Destination.Data.LocalVariableAddress.LocalVariableIndex == pOldLocalVariable->LocalVariableIndex)
 		{
 			instruction->Destination.Data.LocalVariableAddress.LocalVariableIndex = pNewLocalVariable->LocalVariableIndex;
 		}
@@ -43,7 +43,7 @@ void IROptimizer_RetargetLocalSources(IRMethod* pMethod, IRCodeNode* pCodeNode, 
 			instruction->Source1.Data.LocalVariable.LocalVariableIndex = pNewLocalVariable->LocalVariableIndex;
 		}
 		else if (instruction->Source1.Type == SourceType_LocalAddress &&
-				 instruction->Source1.Data.LocalVariableAddress.LocalVariableIndex == pOldLocalVariable->LocalVariableIndex)
+					instruction->Source1.Data.LocalVariableAddress.LocalVariableIndex == pOldLocalVariable->LocalVariableIndex)
 		{
 			instruction->Source1.Data.LocalVariableAddress.LocalVariableIndex = pNewLocalVariable->LocalVariableIndex;
 		}
@@ -53,7 +53,7 @@ void IROptimizer_RetargetLocalSources(IRMethod* pMethod, IRCodeNode* pCodeNode, 
 			instruction->Source2.Data.LocalVariable.LocalVariableIndex = pNewLocalVariable->LocalVariableIndex;
 		}
 		else if (instruction->Source2.Type == SourceType_LocalAddress &&
-				 instruction->Source2.Data.LocalVariableAddress.LocalVariableIndex == pOldLocalVariable->LocalVariableIndex)
+					instruction->Source2.Data.LocalVariableAddress.LocalVariableIndex == pOldLocalVariable->LocalVariableIndex)
 		{
 			instruction->Source2.Data.LocalVariableAddress.LocalVariableIndex = pNewLocalVariable->LocalVariableIndex;
 		}
@@ -63,7 +63,7 @@ void IROptimizer_RetargetLocalSources(IRMethod* pMethod, IRCodeNode* pCodeNode, 
 			instruction->Source3.Data.LocalVariable.LocalVariableIndex = pNewLocalVariable->LocalVariableIndex;
 		}
 		else if (instruction->Source3.Type == SourceType_LocalAddress &&
-				 instruction->Source3.Data.LocalVariableAddress.LocalVariableIndex == pOldLocalVariable->LocalVariableIndex)
+					instruction->Source3.Data.LocalVariableAddress.LocalVariableIndex == pOldLocalVariable->LocalVariableIndex)
 		{
 			instruction->Source3.Data.LocalVariableAddress.LocalVariableIndex = pNewLocalVariable->LocalVariableIndex;
 		}
@@ -372,6 +372,10 @@ void IROptimizer_LeaveSSA(IRMethod* pMethod, IRCodeNode** pNodes, uint32_t pNode
 			}
 		}
 	}
+	for (uint32_t reductionIndex = 0; reductionIndex < sortedLocalVariableCount; ++reductionIndex)
+	{
+		Log_WriteLine(LOGLEVEL__Optimize_SSA, "ReductionTable[%u] = %u", (unsigned int)reductionIndex, (unsigned int)reductionTargetTable[reductionIndex]);
+	}
 	uint32_t localVariableExpandedCount = pMethod->LocalVariableCount;
 	for (IRLocalVariableSSAReductionHolder* iterator = reductionHolderHashTable; iterator; iterator = (IRLocalVariableSSAReductionHolder*)iterator->HashHandle.next)
 	{
@@ -381,7 +385,13 @@ void IROptimizer_LeaveSSA(IRMethod* pMethod, IRCodeNode** pNodes, uint32_t pNode
 			IRMethod_AddLocal(pMethod, newLocal);
 
 			iterator->LocalVariableTerminations[terminationIndex] = (size_t)newLocal;
+			Log_WriteLine(LOGLEVEL__Optimize_SSA, "Added reduced local %u", (unsigned int)newLocal->LocalVariableIndex);
 		}
+	}
+	for (uint32_t instructionIndex = 0; instructionIndex < pMethod->IRCodesCount; ++instructionIndex)
+	{
+		instruction = pMethod->IRCodes[instructionIndex];
+		Log_WriteLine(LOGLEVEL__Optimize_SSA, "ILLocation[%u] Source1Type = %u, Data = %u, Source2Type = %u, Data = %u, DestType = %u, Data = %u", (unsigned int)instruction->ILLocation, (unsigned int)instruction->Source1.Type, (unsigned int)instruction->Source1.Data.ConstantI4.Value, (unsigned int)instruction->Source2.Type, (unsigned int)instruction->Source2.Data.ConstantI4.Value, (unsigned int)instruction->Destination.Type, (unsigned int)instruction->Destination.Data.ConstantI4.Value);
 	}
 	bool_t* retargettedNodes = (bool_t*)calloc(1, sizeof(bool_t) * pNodesCount);
 	for (uint32_t sortedIndex = 0; sortedIndex < sortedLocalVariableCount; ++sortedIndex)
@@ -392,6 +402,12 @@ void IROptimizer_LeaveSSA(IRMethod* pMethod, IRCodeNode** pNodes, uint32_t pNode
 		memset(retargettedNodes, 0x00, sizeof(bool_t) * pNodesCount);
 		IROptimizer_RetargetLocalSources(pMethod, pNodes[0], 0, sortedLocalVariables[sortedIndex], (IRLocalVariable*)lookupHolder->LocalVariableTerminations[reductionTargetTable[sortedIndex]], retargettedNodes);
 	}
+	for (uint32_t instructionIndex = 0; instructionIndex < pMethod->IRCodesCount; ++instructionIndex)
+	{
+		instruction = pMethod->IRCodes[instructionIndex];
+		Log_WriteLine(LOGLEVEL__Optimize_SSA, "ILLocation[%u] Source1Type = %u, Data = %u, Source2Type = %u, Data = %u, DestType = %u, Data = %u", (unsigned int)instruction->ILLocation, (unsigned int)instruction->Source1.Type, (unsigned int)instruction->Source1.Data.ConstantI4.Value, (unsigned int)instruction->Source2.Type, (unsigned int)instruction->Source2.Data.ConstantI4.Value, (unsigned int)instruction->Destination.Type, (unsigned int)instruction->Destination.Data.ConstantI4.Value);
+	}
+
 	for (IRLocalVariableSSAReductionHolder* iterator = reductionHolderHashTable, *iteratorNext = NULL; iterator; iterator = iteratorNext)
 	{
 		iteratorNext = (IRLocalVariableSSAReductionHolder*)iterator->HashHandle.next;
@@ -419,6 +435,12 @@ void IROptimizer_LeaveSSA(IRMethod* pMethod, IRCodeNode** pNodes, uint32_t pNode
 	pMethod->LocalVariables = (IRLocalVariable**)realloc(pMethod->LocalVariables, sizeof(IRLocalVariable*) * pMethod->LocalVariableCount);
 
 	Log_WriteLine(LOGLEVEL__Optimize_SSA, "LocalVariable Lifespan Reduction = %u/%u Used", (unsigned int)pMethod->LocalVariableCount, (unsigned int)localVariableExpandedCount);
+
+	for (uint32_t instructionIndex = 0; instructionIndex < pMethod->IRCodesCount; ++instructionIndex)
+	{
+		instruction = pMethod->IRCodes[instructionIndex];
+		Log_WriteLine(LOGLEVEL__Optimize_SSA, "ILLocation[%u] Source1Type = %u, Data = %u, Source2Type = %u, Data = %u, DestType = %u, Data = %u", (unsigned int)instruction->ILLocation, (unsigned int)instruction->Source1.Type, (unsigned int)instruction->Source1.Data.ConstantI4.Value, (unsigned int)instruction->Source2.Type, (unsigned int)instruction->Source2.Data.ConstantI4.Value, (unsigned int)instruction->Destination.Type, (unsigned int)instruction->Destination.Data.ConstantI4.Value);
+	}
 
 	Log_WriteLine(LOGLEVEL__Optimize_SSA, "Finished Leaving SSA for %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
 }
