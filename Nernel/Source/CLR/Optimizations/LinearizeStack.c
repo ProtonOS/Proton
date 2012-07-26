@@ -108,6 +108,7 @@ uint32_t AddLocal(IRType* localType, IRMethod* pMethod, uint32_t depth, StackLoc
 	if (!fLocal)
 	{
 		IRLocalVariable* loc = IRLocalVariable_Create(pMethod, localType);
+		loc->NonSSADerivable = TRUE;
 		IRMethod_AddLocal(pMethod, loc);
 		fLocal = (StackLocal*)calloc(1, sizeof(StackLocal));
 		fLocal->StackDepthLocation = depth;

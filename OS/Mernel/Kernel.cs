@@ -10,9 +10,9 @@ namespace Mernel
             int w = 0; // w0 = 0
             int x = 1; // x0 = 1
             int y = w + x; // y0 = w0 + x0
-            int z = y; // z3 = y0
-            if (z != 0) ++z; // if (z3 != 0) z3 = z3 + 1;
-            ++z; // z2 = z3 + 1
+            int z = y; // z0 = y0
+            if (z != 0) z = z + 1; // if (z0 != 0) z1 = z0 + 1;
+            z = z + 1; // z3 = (z2 = phi(z0, z1)) + 1
 
             //int x = 0;
             //int y = 1;

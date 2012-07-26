@@ -169,6 +169,7 @@ struct _IRLocalVariable
 	uint32_t Offset;
 	uint32_t Size;
 	bool_t Pinned;
+	bool_t NonSSADerivable;
 
 	IRLocalSSAData* SSAData;
 };
