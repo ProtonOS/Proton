@@ -14,15 +14,15 @@ namespace Mernel
             if (z != 0) z = z + 1; // if (z0 != 0) z1 = z0 + 1;
             z = z + 1; // z3 = (z2 = phi(z0, z1)) + 1
 
-            switch (z) // switch (z3)
-            {
-                case 0: y = 0; break; // y1 = 0
-                case 1: y = 1; break; // y2 = 1
-                case 2: y = 2; break; // y3 = 2
-                default: y = 3; break; // y4 = 3
-            }
+            //switch (z) // switch (z3)
+            //{
+            //    case 0: y = 0; break; // y1 = 0
+            //    case 1: y = 1; break; // y2 = 1
+            //    case 2: y = 2; break; // y3 = 2
+            //    default: y = 3; break; // y4 = 3
+            //}
 
-            z = y; // z4 = (y5 = phi(y1, y2, y3, y4))
+            //z = y; // z4 = (y5 = phi(y1, y2, y3, y4))
 
             //int x = 0;
             //int y = 1;
@@ -37,55 +37,58 @@ namespace Mernel
             ////{
             ////    x = z;
             ////}
-            //bool a = true; // 0 - 0
-            //bool b = false;
-            //int x = 1;
-            //TestLabel: // 1 - 0
-            //if (a)
-            //{
-            //    x = 0; // 2 - 1
-            //    if (x == 0)
-            //    {
-            //        b = true; // 3 - 2
-            //        // stloc.0
-            //        // br.s LoopCondition
-            //        // LoopBody // 4 - 12
-            //        // beq x--
-            //        // ld b // 5 - 4
-            //        // brfalse Load30
-            //        // ld 92 // 6 - 5
-            //        // br.s AfterLoad
-            //        // Load30: ld 30 // 7 - 5
-            //    // AfterLoad:
-            //        // dup // 8 - 6
-            //        // stloc x
-            //        // ld 0
-            //        // beq x++
-            //        // ld b // 9 - 8
-            //        // brfalse x++
-            //        // x-- // 10 - 4
-            //        // x++ // 11 - 8
-            //        // i34++
-            //        // LoopCondition // 12 - 3
-            //        // brtrue.s LoopBody
-            //        for (int i34 = 0; i34 < 99; i34++)
-            //        {
-            //            if (i34 == 8 || ((x = (b ? 92 : 30)) != 0 && b))
-            //            {
-            //                x--;
-            //            }
-            //            x++;
-            //        }
-            //        // 13 - 12
-            //    }
-            //    else
-            //    {
-            //        x = 0; // 14 - 2
-            //        goto TestLabel;
-            //    }
-            //    x = 1; // 15 - 13
-            //}
-            //a = b; // 16 - 1
+
+            
+        //    bool a = true; // 0 - 0
+        //    bool b = false;
+        //    int x = 1;
+        //TestLabel: // 1 - 0
+        //    if (a)
+        //    {
+        //        x = 0; // 2 - 1
+        //        if (x == 0)
+        //        {
+        //            b = true; // 3 - 2
+        //            // stloc.0
+        //            // br.s LoopCondition
+        //            // LoopBody // 4 - 12
+        //            // beq x--
+        //            // ld b // 5 - 4
+        //            // brfalse Load30
+        //            // ld 92 // 6 - 5
+        //            // br.s AfterLoad
+        //            // Load30: ld 30 // 7 - 5
+        //            // AfterLoad:
+        //            // dup // 8 - 6
+        //            // stloc x
+        //            // ld 0
+        //            // beq x++
+        //            // ld b // 9 - 8
+        //            // brfalse x++
+        //            // x-- // 10 - 4
+        //            // x++ // 11 - 8
+        //            // i34++
+        //            // LoopCondition // 12 - 3
+        //            // brtrue.s LoopBody
+        //            for (int i34 = 0; i34 < 99; i34++)
+        //            {
+        //                if (i34 == 8 || ((x = (b ? 92 : 30)) != 0 && b))
+        //                {
+        //                    x--;
+        //                }
+        //                x++;
+        //            }
+        //            // 13 - 12
+        //        }
+        //        else
+        //        {
+        //            x = 0; // 14 - 2
+        //            goto TestLabel;
+        //        }
+        //        x = 1; // 15 - 13
+        //    }
+        //    a = b; // 16 - 1
+
 
             //// Node 0 - Dominator 0
             //bool a = true; // a0 <- true

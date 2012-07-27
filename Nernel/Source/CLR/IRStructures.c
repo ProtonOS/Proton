@@ -355,6 +355,7 @@ void IRMethod_InsertInstruction(IRMethod* pMethod, uint32_t pInsertIndex, IRInst
 		temp[index]->IRLocation++;
 		pMethod->IRCodes[pInsertIndex + 1 + index] = temp[index];
 	}
+	free(temp);
 }
 
 void IRMethod_AddLocal(IRMethod* pMethod, IRLocalVariable* pLocal)

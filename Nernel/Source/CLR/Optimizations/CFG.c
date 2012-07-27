@@ -71,7 +71,7 @@ IRCodeNode** IROptimizer_BuildControlFlowGraph(IRMethod* pMethod, uint32_t* pNod
 			if (addBefore)
 			{
 				IRCodeNode_AddInstruction(currentNode, index);
-				Log_WriteLine(LOGLEVEL__Optimize_CFG, "Starting new node @ 0x%x:0x%x for branch", (unsigned int)index + 1, (unsigned int)pMethod->IRCodes[index + 1]->ILLocation);
+				Log_WriteLine(LOGLEVEL__Optimize_CFG, "Starting new node @ %u:0x%x for branch", (unsigned int)index + 1, (unsigned int)pMethod->IRCodes[index + 1]->ILLocation);
 			}
 			nodesIndex = *pNodesCount;
 			*pNodesCount += 1;
@@ -82,7 +82,7 @@ IRCodeNode** IROptimizer_BuildControlFlowGraph(IRMethod* pMethod, uint32_t* pNod
 			if (!addBefore)
 			{
 				IRCodeNode_AddInstruction(currentNode, index);
-				Log_WriteLine(LOGLEVEL__Optimize_CFG, "Starting new node @ 0x%x:0x%x for target", (unsigned int)index, (unsigned int)instruction->ILLocation);
+				Log_WriteLine(LOGLEVEL__Optimize_CFG, "Starting new node @ %u:0x%x for target", (unsigned int)index, (unsigned int)instruction->ILLocation);
 			}
 		}
 		else IRCodeNode_AddInstruction(currentNode, index);
