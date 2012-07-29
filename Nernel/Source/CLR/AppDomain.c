@@ -29,6 +29,7 @@ AppDomain* AppDomain_Create()
 		if (cliFile)
 		{
 			AppDomain* domain = (AppDomain*)calloc(1, sizeof(AppDomain));
+			domain->GarbageCollector = GC_Create(domain);
 			Log_WriteLine(LOGLEVEL__Memory, "Memory: AppDomain_Create @ 0x%x", (unsigned int)domain);
 			AppDomainRegistry_AddDomain(domain);
 			AppDomain_LinkCorlib(domain, cliFile);

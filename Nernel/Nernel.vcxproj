@@ -13,6 +13,7 @@
   <ItemGroup>
     <ClCompile Include="Source\CLR\AppDomain.c" />
     <ClCompile Include="Source\CLR\CLIFile.c" />
+    <ClCompile Include="Source\CLR\GC.c" />
     <ClCompile Include="Source\CLR\ILDecomposition.c" />
     <ClCompile Include="Source\CLR\InternalCalls.c" />
     <ClCompile Include="Source\CLR\InternalCalls\Proton.IO.PortIO.c" />

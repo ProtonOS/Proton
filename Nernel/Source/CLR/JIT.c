@@ -151,7 +151,6 @@ void JIT_CompileMethod(IRMethod* pMethod)
 		if (restartCompiling) continue;
 
 		branchRegistry->InstructionLocations[branchRegistry->InstructionCount + 1] = (size_t)compiledCode;
-		compiledCode = JIT_Emit_Epilogue(compiledCode, pMethod);
 
 		JIT_BranchLinker(branchRegistry);
 		BranchRegistry_Destroy(branchRegistry);

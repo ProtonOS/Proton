@@ -1,20 +1,37 @@
 #pragma once
 
-typedef struct _GCObjectHeader GCObjectHeader;
+typedef struct _GCObject GCObject;
+typedef struct _GCHeap GCHeap;
+typedef struct _GC GC;
 
+#include <CLR/AppDomain.h>
 #include <CLR/IRStructures.h>
 
-typedef enum GCObjectHeaderFlags
+typedef enum GCObjectFlags
 {
-	GCObjectHeaderFlags_None = 0 << 0,
-	GCObjectHeaderFlags_String = 1 << 0,
-	GCObjectHeaderFlags_Array = 1 << 1,
-} GCObjectHeaderFlags;
+	GCObjectFlags_None = 0 << 0,
+	GCObjectFlags_String = 1 << 0,
+	GCObjectFlags_Array = 1 << 1,
 
-struct _GCObjectHeader
+	GCObjectFlags_Pinned = 1 << 4,
+	GCObjectFlags_Allocated = 1 << 5,
+	GCObjectFlags_Disposed = 1 << 6,
+	GCObjectFlags_Marked = 1 << 7,
+} GCObjectFlags;
+
+#define GCHeap__SmallHeap_Size							(128 * 1024)
+#define GCHeap__SmallHeap_InitialPoolSize				32
+
+#define GCHeap__LargeHeap_Size							(GCHeap__SmallHeap_Size * 4)
+#define GCHeap__LargeHeap_InitialPoolSize				1
+
+struct _GCObject
 {
 	IRType* Type;
-	GCObjectHeaderFlags Flags;
+	GCObjectFlags Flags;
+	void* Data;
+	size_t Size;
+	GCHeap* Heap;
 
 	union
 	{
@@ -31,3 +48,37 @@ struct _GCObjectHeader
 	};
 };
 
+struct _GCHeap
+{
+    uint32_t ObjectPoolSize;
+    GCObject** ObjectPool;
+    uint32_t Size;
+    uint32_t Available;
+    uint32_t Allocated;
+    uint32_t Disposed;
+    uint8_t* Bottom;
+    uint8_t* Top;
+};
+
+struct _GC
+{
+	AppDomain* Domain;
+	uint8_t Busy;
+	GCObject* StringHashTable;
+
+    uint32_t SmallGeneration0HeapCount;
+    GCHeap** SmallGeneration0Heaps;
+    uint32_t SmallGeneration1HeapCount;
+    GCHeap** SmallGeneration1Heaps;
+    uint32_t SmallGeneration2HeapCount;
+    GCHeap** SmallGeneration2Heaps;
+    uint32_t LargeHeapCount;
+    GCHeap** LargeHeaps;
+};
+
+
+GC* GC_Create(AppDomain* pDomain);
+void GC_Destroy(GC* pGC);
+GCHeap* GCHeap_Create(uint32_t pHeapSize, uint32_t pInitialPoolSize);
+void GCHeap_Destroy(GCHeap* pGCHeap);
+void GC_AllocateObject(GC* pGC, IRType* pType, uint32_t pSize, GCObject** pAllocatedObject);

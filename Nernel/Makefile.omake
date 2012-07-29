@@ -65,6 +65,7 @@
 	Source/Nernel.c
 	Source/CLR/AppDomain.c
 	Source/CLR/CLIFile.c
+	Source/CLR/GC.c
 	Source/CLR/ILDecomposition.c
 	Source/CLR/InternalCalls.c
 	Source/CLR/IROptimizer.c

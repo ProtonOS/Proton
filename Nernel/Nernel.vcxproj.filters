@@ -117,6 +117,9 @@
     <ClCompile Include="Source\CLR\Optimizations\Peephole_PreSSA.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\CLR\GC.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\System\Multiboot.h">

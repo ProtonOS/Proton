@@ -394,7 +394,7 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 			sizeOfSource = 4;
 			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pSource->Data.ArrayLength.ArraySource, pRegister1, pRegister2, pRegister3, NULL);
 			x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister1, -gSizeOfPointerInBytes, gSizeOfPointerInBytes);
-			x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister1, offsetof(GCObjectHeader, Array.Length), 4);
+			x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister1, offsetof(GCObject, Array.Length), 4);
 			break;
 		}
 		Source_Default(JIT_Emit_Load);
@@ -1565,7 +1565,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 			sizeOfDestination = 4;
 			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pSource->Data.ArrayLength.ArraySource, pRegister1, pRegister2, pRegister3, NULL);
 			x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister1, -gSizeOfPointerInBytes, gSizeOfPointerInBytes);
-			x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister1, offsetof(GCObjectHeader, Array.Length), 4);
+			x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister1, offsetof(GCObject, Array.Length), 4);
 			switch (pDestination->Type)
 			{
 				// Array Length to Local (both aligned)
@@ -2213,31 +2213,6 @@ char* JIT_Emit_Prologue(char* pCompiledCode, IRMethod* pMethod)
 	return pCompiledCode;
 }
 
-char* JIT_Emit_Epilogue(char* pCompiledCode, IRMethod* pMethod)
-{
-	if (pMethod->Returns)
-	{
-		// Pop the value into EAX, as per cdecl call convention
-		x86_pop_reg(pCompiledCode, X86_EAX);
-		uint32_t sizeOfReturnType = JIT_GetStackSizeOfType(pMethod->ReturnType);
-		if (sizeOfReturnType > 4 && sizeOfReturnType <= 8)
-		{
-			// If the size of the return type is 5-8 bytes, pop the rest into EDX as per cdecl call convention
-			x86_pop_reg(pCompiledCode, X86_EDX);
-		}
-		else
-		{
-			// TODO: Deal with return parameters larger than 8 bytes
-			Panic("Don't know how to support large return types yet, space is allocated before parameters for it");
-		}
-	}
-	// Adjust the stack for local variables, and restore the previous stack frame
-	x86_leave(pCompiledCode);
-	// Pop EIP and return back to caller method
-	x86_ret(pCompiledCode);
-	return pCompiledCode;
-}
-
 char* JIT_Emit_Nop(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
 	if ((uint32_t)pInstruction->Arg1)
@@ -2263,8 +2238,31 @@ char* JIT_Emit_Move_OpCode(char* pCompiledCode, IRMethod* pMethod, IRInstruction
 char* JIT_Emit_Return(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
 	// Register a branch target for return to immediately jump into epilogue
-	BranchRegistry_RegisterBranch(pBranchRegistry, pInstruction->ILLocation, pBranchRegistry->InstructionCount + 1, pCompiledCode);
-	x86_jump32(pCompiledCode, 0);
+	//BranchRegistry_RegisterBranch(pBranchRegistry, pInstruction->ILLocation, pBranchRegistry->InstructionCount + 1, pCompiledCode);
+	//x86_jump32(pCompiledCode, 0);
+
+	if (pMethod->Returns)
+	{
+		// Pop the value into EAX, as per cdecl call convention
+		pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+		if (PRIMARY_REG != X86_EAX) Panic("You changed the expected register behaviour, fix this!");
+		uint32_t sizeOfReturnType = JIT_GetStackSizeOfType(pMethod->ReturnType);
+		if (sizeOfReturnType > 4 && sizeOfReturnType <= 8)
+		{
+			// If the size of the return type is 5-8 bytes, pop the rest into EDX as per cdecl call convention
+			if (SECONDARY_REG != X86_EDX) x86_mov_reg_reg(pCompiledCode, X86_EDX, SECONDARY_REG, gSizeOfPointerInBytes);
+		}
+		else
+		{
+			uint32_t sizeOfDestination = JIT_StackAlign(sizeOfReturnType);
+			uint32_t sizeOfSource = sizeOfDestination;
+			Define_Move_To_Destination(X86_ESP, 0, X86_EBP, -(pMethod->Parameters[pMethod->ParameterCount - 1]->Offset + sizeOfDestination), THIRD_REG, TRUE, TRUE);
+		}
+	}
+	// Adjust the stack for local variables, and restore the previous stack frame
+	x86_leave(pCompiledCode);
+	// Pop EIP and return back to caller method
+	x86_ret(pCompiledCode);
 	return pCompiledCode;
 }
 

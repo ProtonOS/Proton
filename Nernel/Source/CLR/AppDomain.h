@@ -5,6 +5,7 @@ typedef struct _DomainSpecificMethod DomainSpecificMethod;
 typedef struct _StaticGenericField StaticGenericField;
 
 #include <uthash.h>
+#include <CLR/GC.h>
 #include <CLR/IROpcode.h>
 #include <CLR/IRStructures.h>
 #include <CLR/MetadataStructures.h>
@@ -47,6 +48,8 @@ struct _AppDomain
 
 	DomainSpecificMethod* DomainSpecificMethodsTable;
 	StaticGenericField* StaticGenericFieldsTable;
+
+	GC* GarbageCollector;
 };
 
 struct _DomainSpecificMethod
