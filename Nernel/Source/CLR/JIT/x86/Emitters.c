@@ -2774,18 +2774,22 @@ char* JIT_Emit_Mul(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstr
 			switch(sBType)
 			{
 				case ElementType_I:
-				case ElementType_U:
 				case ElementType_I1:
 				case ElementType_I2:
 				case ElementType_I4:
+					destType = ElementType_I4;
+					break;
+				case ElementType_U:
 				case ElementType_U1:
 				case ElementType_U2:
 				case ElementType_U4:
-					destType = ElementType_I4;
+					destType = ElementType_U4;
 					break;
 				case ElementType_I8:
-				case ElementType_U8:
 					destType = ElementType_I8;
+					break;
+				case ElementType_U8:
+					destType = ElementType_U8;
 					break;
 				case ElementType_R4:
 				case ElementType_R8:
@@ -2794,8 +2798,11 @@ char* JIT_Emit_Mul(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstr
 			}
 			break;
 		case ElementType_I8:
-		case ElementType_U8:
 			destType = ElementType_I8;
+			break;
+		case ElementType_U8:
+			if (sBType == ElementType_I8) destType = ElementType_I8;
+			else destType = ElementType_U8;
 			break;
 		case ElementType_R4:
 		case ElementType_R8:
@@ -2877,6 +2884,15 @@ char* JIT_Emit_Mul(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstr
 			}
 			break;
 		}
+		case ElementType_U4:
+		{
+			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, FOURTH_REG, SECONDARY_REG, THIRD_REG, NULL);
+			if (PRIMARY_REG != X86_EAX) Panic("DIE EVIL DOEER!");
+			x86_mul_reg(pCompiledCode, FOURTH_REG, FALSE);
+			pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, FOURTH_REG, SECONDARY_REG, THIRD_REG, NULL);
+			break;
+		}
 		case ElementType_I8:
 		{
 			switch(sAType)
@@ -2918,6 +2934,78 @@ char* JIT_Emit_Mul(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstr
 						x86_fp_op(pCompiledCode, X86_FMUL, 1);
 					}
 					x86_fist_pop_membase(pCompiledCode, X86_ESP, 0, TRUE);
+					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					break;
+				}
+				case ElementType_R4:
+				case ElementType_R8:
+					Panic("Invalid operand type!");
+					break;
+			}
+			break;
+		}
+		case ElementType_U8:
+		{
+			switch(sAType)
+			{
+				case ElementType_I:
+				case ElementType_U:
+				case ElementType_I1:
+				case ElementType_I2:
+				case ElementType_I4:
+				case ElementType_U1:
+				case ElementType_U2:
+				case ElementType_U4:
+				{
+					// This means that operand 2 is 64-bit.
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					x86_adjust_stack(pCompiledCode, 8);
+					x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, PRIMARY_REG, 4);
+					x86_fild_membase(pCompiledCode, X86_ESP, 0, FALSE);
+					x86_fist_pop_membase(pCompiledCode, X86_ESP, 0, TRUE);
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					x86_adjust_stack(pCompiledCode, 8);
+					x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, X86_ESP, 16, 4);
+					x86_mov_membase_reg(pCompiledCode, X86_ESP, 4, PRIMARY_REG, 4);
+					x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, X86_ESP, 20, 4);
+					x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, PRIMARY_REG, 4);
+					x86_mov_reg_membase(pCompiledCode, SECONDARY_REG, X86_ESP, 8, 4);
+					x86_mul_reg(pCompiledCode, SECONDARY_REG, FALSE);
+					x86_xchg_reg_reg(pCompiledCode, PRIMARY_REG, SECONDARY_REG, 4);
+					x86_mul_membase(pCompiledCode, X86_ESP, 4, FALSE);
+					x86_xchg_membase_reg(pCompiledCode, X86_ESP, 4, PRIMARY_REG, 4);
+					x86_alu_reg_reg(pCompiledCode, X86_ADD, SECONDARY_REG, X86_EDX);
+					x86_mul_membase(pCompiledCode, X86_ESP, 12, FALSE);
+					x86_alu_reg_reg(pCompiledCode, X86_ADD, SECONDARY_REG, PRIMARY_REG);
+					x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, X86_ESP, 4, 4);
+					x86_adjust_stack(pCompiledCode, -16);
+					x86_mov_membase_reg(pCompiledCode, X86_ESP, 4, SECONDARY_REG, 4);
+					x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, PRIMARY_REG, 4);
+					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					break;
+				}
+				case ElementType_I8:
+				case ElementType_U8:
+				{
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					x86_adjust_stack(pCompiledCode, 8);
+					x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, X86_ESP, 16, 4);
+					x86_mov_membase_reg(pCompiledCode, X86_ESP, 4, PRIMARY_REG, 4);
+					x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, X86_ESP, 20, 4);
+					x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, PRIMARY_REG, 4);
+					x86_mov_reg_membase(pCompiledCode, SECONDARY_REG, X86_ESP, 8, 4);
+					x86_mul_reg(pCompiledCode, SECONDARY_REG, FALSE);
+					x86_xchg_reg_reg(pCompiledCode, PRIMARY_REG, SECONDARY_REG, 4);
+					x86_mul_membase(pCompiledCode, X86_ESP, 4, FALSE);
+					x86_xchg_membase_reg(pCompiledCode, X86_ESP, 4, PRIMARY_REG, 4);
+					x86_alu_reg_reg(pCompiledCode, X86_ADD, SECONDARY_REG, X86_EDX);
+					x86_mul_membase(pCompiledCode, X86_ESP, 12, FALSE);
+					x86_alu_reg_reg(pCompiledCode, X86_ADD, SECONDARY_REG, PRIMARY_REG);
+					x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, X86_ESP, 4, 4);
+					x86_adjust_stack(pCompiledCode, -16);
+					x86_mov_membase_reg(pCompiledCode, X86_ESP, 4, SECONDARY_REG, 4);
+					x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, PRIMARY_REG, 4);
 					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
 					break;
 				}
