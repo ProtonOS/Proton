@@ -639,9 +639,9 @@ typedef enum IROpcode
 			The type of the shift to handle.
 
 		Arg2: ElementType
-			The type of the amount.
+			The type of the amount being shifted by.
 
-		Arg2: ElementType
+		Arg3: ElementType
 			The type of the value.
 
 		Arg4:

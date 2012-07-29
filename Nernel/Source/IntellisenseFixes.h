@@ -2,6 +2,8 @@
 
 #ifdef _WIN32
 
+#define MAYBE (TRUE || FALSE)
+
 #undef exit
 #define exit(exitCode)
 

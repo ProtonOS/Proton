@@ -13,6 +13,9 @@
 
 //#define MemoryCorruptionChecks
 
+uint64_t __udivdi3(uint64_t pValue, uint64_t pDivisor);
+uint64_t __umoddi3(uint64_t pValue, uint64_t pDivisor);
+
 #ifdef MemoryCorruptionChecks
 
 #define Move_Destination_Default(parentFunc, type) \
@@ -3079,11 +3082,470 @@ EmitFinished:
 
 char* JIT_Emit_Div(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+	switch((OverflowType)(uint32_t)pInstruction->Arg1)
+	{
+		case OverflowType_Signed:
+		case OverflowType_Unsigned:
+			Panic("Unsupported overflow type!");
+			break;
+		case OverflowType_None: break;
+	}
+	ElementType sAType = (ElementType)(uint32_t)pInstruction->Arg2;
+	ElementType sBType = (ElementType)(uint32_t)pInstruction->Arg3;
+	ElementType destType = (ElementType)0;
+	switch(sAType)
+	{
+		case ElementType_I:
+		case ElementType_U:
+		case ElementType_I1:
+		case ElementType_I2:
+		case ElementType_I4:
+		case ElementType_U1:
+		case ElementType_U2:
+		case ElementType_U4:
+			switch(sBType)
+			{
+				case ElementType_I:
+				case ElementType_I1:
+				case ElementType_I2:
+				case ElementType_I4:
+					destType = ElementType_I4;
+					break;
+				case ElementType_U:
+				case ElementType_U1:
+				case ElementType_U2:
+				case ElementType_U4:
+					destType = ElementType_U4;
+					break;
+				case ElementType_I8:
+					destType = ElementType_I8;
+					break;
+				case ElementType_U8:
+					destType = ElementType_U8;
+					break;
+				case ElementType_R4:
+				case ElementType_R8:
+					Panic("Invalid parameter!");
+					break;
+			}
+			break;
+		case ElementType_I8:
+			destType = ElementType_I8;
+			break;
+		case ElementType_U8:
+			if (sBType == ElementType_I8) destType = ElementType_I8;
+			else destType = ElementType_U8;
+			break;
+		case ElementType_R4:
+		case ElementType_R8:
+			destType = ElementType_R8;
+			break;
+	}
+
+	switch(destType)
+	{
+		case ElementType_I4:
+		{
+			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, FOURTH_REG, SECONDARY_REG, THIRD_REG, NULL);
+			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+			x86_div_reg(pCompiledCode, FOURTH_REG, TRUE);
+			pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+			break;
+		}
+		case ElementType_U4:
+		{
+			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, FOURTH_REG, SECONDARY_REG, THIRD_REG, NULL);
+			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+			if (PRIMARY_REG != X86_EAX) Panic("DIE A VERY PAINFUL DEATH EVIL DOEER!");
+			x86_div_reg(pCompiledCode, FOURTH_REG, FALSE);
+			pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+			break;
+		}
+		case ElementType_I8:
+		{
+			switch(sAType)
+			{
+				case ElementType_I:
+				case ElementType_U:
+				case ElementType_I1:
+				case ElementType_I2:
+				case ElementType_I4:
+				case ElementType_U1:
+				case ElementType_U2:
+				case ElementType_U4:
+					// This means that operand 2 is 64-bit.
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					x86_fild_membase(pCompiledCode, X86_ESP, 0, TRUE);
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, PRIMARY_REG, 4);
+					x86_fp_int_op_membase(pCompiledCode, X86_FDIV, X86_ESP, 0, TRUE);
+					x86_fist_pop_membase(pCompiledCode, X86_ESP, 0, TRUE);
+					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					break;
+				case ElementType_I8:
+				case ElementType_U8:
+				{
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					x86_fild_membase(pCompiledCode, X86_ESP, 0, TRUE);
+					size_t arg2Size = 0;
+					x86_adjust_stack(pCompiledCode, 8);
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, PRIMARY_REG, SECONDARY_REG, THIRD_REG, &arg2Size);
+					if (arg2Size <= 4)
+					{
+						x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, PRIMARY_REG, 4);
+						x86_fp_int_op_membase(pCompiledCode, X86_FDIV, X86_ESP, 0, TRUE);
+						x86_adjust_stack(pCompiledCode, -4);
+					}
+					else
+					{
+						x86_fild_membase(pCompiledCode, X86_ESP, 0, TRUE);
+						x86_fp_op(pCompiledCode, X86_FDIV, 1);
+					}
+					x86_fist_pop_membase(pCompiledCode, X86_ESP, 0, TRUE);
+					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					break;
+				}
+				case ElementType_R4:
+				case ElementType_R8:
+					Panic("Invalid operand type!");
+					break;
+			}
+			break;
+		}
+		case ElementType_U8:
+		{
+			switch(sAType)
+			{
+				case ElementType_I:
+				case ElementType_U:
+				case ElementType_I1:
+				case ElementType_I2:
+				case ElementType_I4:
+				case ElementType_U1:
+				case ElementType_U2:
+				case ElementType_U4:
+				{
+					// This means that operand 2 is 64-bit.
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					x86_adjust_stack(pCompiledCode, 8);
+					x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, PRIMARY_REG, 4);
+					x86_fild_membase(pCompiledCode, X86_ESP, 0, FALSE);
+					x86_fist_pop_membase(pCompiledCode, X86_ESP, 0, TRUE);
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					x86_call_code(pCompiledCode, __udivdi3);
+					x86_adjust_stack(pCompiledCode, -8);
+					x86_mov_membase_reg(pCompiledCode, X86_ESP, 4, X86_EDX, 4);
+					x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, X86_EAX, 4);
+					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					break;
+				}
+				case ElementType_I8:
+				case ElementType_U8:
+				{
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					x86_call_code(pCompiledCode, __udivdi3);
+					x86_adjust_stack(pCompiledCode, -8);
+					x86_mov_membase_reg(pCompiledCode, X86_ESP, 4, X86_EDX, 4);
+					x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, X86_EAX, 4);
+					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					break;
+				}
+				case ElementType_R4:
+				case ElementType_R8:
+					Panic("Invalid operand type!");
+					break;
+			}
+
+			break;
+		}
+		case ElementType_R8:
+		{
+			switch(sAType)
+			{
+				case ElementType_I:
+				case ElementType_U:
+				case ElementType_I1:
+				case ElementType_I2:
+				case ElementType_I4:
+				case ElementType_U1:
+				case ElementType_U2:
+				case ElementType_U4:
+				case ElementType_I8:
+				case ElementType_U8:
+					Panic("Invalid operand type!");
+					break;
+				case ElementType_R4:
+				case ElementType_R8:
+				{
+					size_t argSize = 0;
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, &argSize);
+					if (argSize <= 4)
+					{
+						x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, PRIMARY_REG, 4);
+						x86_fld_membase(pCompiledCode, X86_ESP, 0, FALSE);
+						x86_adjust_stack(pCompiledCode, 4);
+					}
+					else
+					{
+						x86_fld_membase(pCompiledCode, X86_ESP, 0, TRUE);
+						x86_adjust_stack(pCompiledCode, 8);
+					}
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, PRIMARY_REG, SECONDARY_REG, THIRD_REG, &argSize);
+					if (argSize <= 4)
+					{
+						x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, PRIMARY_REG, 4);
+						x86_fld_membase(pCompiledCode, X86_ESP, 0, FALSE);
+						x86_adjust_stack(pCompiledCode, -4);
+					}
+					else
+					{
+						x86_fld_membase(pCompiledCode, X86_ESP, 0, TRUE);
+					}
+					x86_fp_op(pCompiledCode, X86_FDIV, 1);
+					x86_fst_membase(pCompiledCode, X86_ESP, 0, TRUE, TRUE);
+					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					break;
+				}
+			}
+			break;
+		}
+		default:
+			Panic("Invalid destination type!");
+			break;
+	}
+
 	return pCompiledCode;
 }
 
 char* JIT_Emit_Rem(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+	switch((OverflowType)(uint32_t)pInstruction->Arg1)
+	{
+		case OverflowType_Signed:
+		case OverflowType_Unsigned:
+			Panic("Unsupported overflow type!");
+			break;
+		case OverflowType_None: break;
+	}
+	ElementType sAType = (ElementType)(uint32_t)pInstruction->Arg2;
+	ElementType sBType = (ElementType)(uint32_t)pInstruction->Arg3;
+	ElementType destType = (ElementType)0;
+	switch(sAType)
+	{
+		case ElementType_I:
+		case ElementType_U:
+		case ElementType_I1:
+		case ElementType_I2:
+		case ElementType_I4:
+		case ElementType_U1:
+		case ElementType_U2:
+		case ElementType_U4:
+			switch(sBType)
+			{
+				case ElementType_I:
+				case ElementType_I1:
+				case ElementType_I2:
+				case ElementType_I4:
+					destType = ElementType_I4;
+					break;
+				case ElementType_U:
+				case ElementType_U1:
+				case ElementType_U2:
+				case ElementType_U4:
+					destType = ElementType_U4;
+					break;
+				case ElementType_I8:
+					destType = ElementType_I8;
+					break;
+				case ElementType_U8:
+					destType = ElementType_U8;
+					break;
+				case ElementType_R4:
+				case ElementType_R8:
+					Panic("Invalid parameter!");
+					break;
+			}
+			break;
+		case ElementType_I8:
+			destType = ElementType_I8;
+			break;
+		case ElementType_U8:
+			if (sBType == ElementType_I8) destType = ElementType_I8;
+			else destType = ElementType_U8;
+			break;
+		case ElementType_R4:
+		case ElementType_R8:
+			destType = ElementType_R8;
+			break;
+	}
+
+	switch(destType)
+	{
+		case ElementType_I4:
+		{
+			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, FOURTH_REG, SECONDARY_REG, THIRD_REG, NULL);
+			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+			x86_div_reg(pCompiledCode, FOURTH_REG, TRUE);
+			pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, X86_EDX, SECONDARY_REG, THIRD_REG, NULL);
+			break;
+		}
+		case ElementType_U4:
+		{
+			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, FOURTH_REG, SECONDARY_REG, THIRD_REG, NULL);
+			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+			if (PRIMARY_REG != X86_EAX) Panic("DIE A VERY PAINFUL DEATH EVIL DOEER!");
+			x86_div_reg(pCompiledCode, FOURTH_REG, FALSE);
+			pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, X86_EDX, SECONDARY_REG, THIRD_REG, NULL);
+			break;
+		}
+		case ElementType_I8:
+		{
+			switch(sAType)
+			{
+				case ElementType_I:
+				case ElementType_U:
+				case ElementType_I1:
+				case ElementType_I2:
+				case ElementType_I4:
+				case ElementType_U1:
+				case ElementType_U2:
+				case ElementType_U4:
+					// This means that operand 2 is 64-bit.
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					x86_fild_membase(pCompiledCode, X86_ESP, 0, TRUE);
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					x86_adjust_stack(pCompiledCode, 4);
+					x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, PRIMARY_REG, 4);     
+					x86_fild_membase(pCompiledCode, X86_ESP, 0, FALSE);
+					x86_fprem1(pCompiledCode);
+					x86_adjust_stack(pCompiledCode, -4);
+					x86_fist_pop_membase(pCompiledCode, X86_ESP, 0, TRUE);
+					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					break;
+				case ElementType_I8:
+				case ElementType_U8:
+				{
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					x86_fild_membase(pCompiledCode, X86_ESP, 0, TRUE);
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					x86_fild_membase(pCompiledCode, X86_ESP, 0, TRUE);
+					x86_fprem1(pCompiledCode);
+					x86_adjust_stack(pCompiledCode, -8);
+					x86_fist_pop_membase(pCompiledCode, X86_ESP, 0, TRUE);
+					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					break;
+				}
+				case ElementType_R4:
+				case ElementType_R8:
+					Panic("Invalid operand type!");
+					break;
+			}
+			break;
+		}
+		case ElementType_U8:
+		{
+			switch(sAType)
+			{
+				case ElementType_I:
+				case ElementType_U:
+				case ElementType_I1:
+				case ElementType_I2:
+				case ElementType_I4:
+				case ElementType_U1:
+				case ElementType_U2:
+				case ElementType_U4:
+				{
+					// This means that operand 2 is 64-bit.
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					x86_adjust_stack(pCompiledCode, 8);
+					x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, PRIMARY_REG, 4);
+					x86_fild_membase(pCompiledCode, X86_ESP, 0, FALSE);
+					x86_fist_pop_membase(pCompiledCode, X86_ESP, 0, TRUE);
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					x86_call_code(pCompiledCode, __umoddi3);
+					x86_adjust_stack(pCompiledCode, -8);
+					x86_mov_membase_reg(pCompiledCode, X86_ESP, 4, X86_EDX, 4);
+					x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, X86_EAX, 4);
+					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					break;
+				}
+				case ElementType_I8:
+				case ElementType_U8:
+				{
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					x86_call_code(pCompiledCode, __umoddi3);
+					x86_adjust_stack(pCompiledCode, -8);
+					x86_mov_membase_reg(pCompiledCode, X86_ESP, 4, X86_EDX, 4);
+					x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, X86_EAX, 4);
+					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					break;
+				}
+				case ElementType_R4:
+				case ElementType_R8:
+					Panic("Invalid operand type!");
+					break;
+			}
+
+			break;
+		}
+		case ElementType_R8:
+		{
+			switch(sAType)
+			{
+				case ElementType_I:
+				case ElementType_U:
+				case ElementType_I1:
+				case ElementType_I2:
+				case ElementType_I4:
+				case ElementType_U1:
+				case ElementType_U2:
+				case ElementType_U4:
+				case ElementType_I8:
+				case ElementType_U8:
+					Panic("Invalid operand type!");
+					break;
+				case ElementType_R4:
+				case ElementType_R8:
+				{
+					size_t argSize = 0;
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, &argSize);
+					if (argSize <= 4)
+					{
+						x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, PRIMARY_REG, 4);
+						x86_fld_membase(pCompiledCode, X86_ESP, 0, FALSE);
+						x86_adjust_stack(pCompiledCode, 4);
+					}
+					else
+					{
+						x86_fld_membase(pCompiledCode, X86_ESP, 0, TRUE);
+						x86_adjust_stack(pCompiledCode, 8);
+					}
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, PRIMARY_REG, SECONDARY_REG, THIRD_REG, &argSize);
+					if (argSize <= 4)
+					{
+						x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, PRIMARY_REG, 4);
+						x86_fld_membase(pCompiledCode, X86_ESP, 0, FALSE);
+						x86_adjust_stack(pCompiledCode, -4);
+					}
+					else
+					{
+						x86_fld_membase(pCompiledCode, X86_ESP, 0, TRUE);
+					}
+					x86_fprem1(pCompiledCode);
+					x86_fst_membase(pCompiledCode, X86_ESP, 0, TRUE, TRUE);
+					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					break;
+				}
+			}
+			break;
+		}
+		default:
+			Panic("Invalid destination type!");
+			break;
+	}
+
 	return pCompiledCode;
 }
 
@@ -3485,6 +3947,155 @@ EmitFinished:
 
 char* JIT_Emit_Shift(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+	//some code written
+	ShiftNumericOperation sType = (ShiftNumericOperation)(uint32_t)pInstruction->Arg1;
+	ElementType sValType;
+	ElementType sbValType;
+	switch ((ElementType)(uint32_t)pInstruction->Arg3)
+	{
+		case ElementType_I1:
+		case ElementType_U1:
+		case ElementType_I2:
+		case ElementType_U2:
+		case ElementType_I4:
+		case ElementType_U4:
+		case ElementType_I:
+		case ElementType_U:
+			sValType = ElementType_I4;
+			break;
+			
+		case ElementType_I8:
+		case ElementType_U8:
+			sValType = ElementType_I8;
+			break;
+
+		case ElementType_R4:
+		case ElementType_R8:
+			Panic("DIE EVIL FLOAT SHIFTER!");
+			break;
+	}
+	switch ((ElementType)(uint32_t)pInstruction->Arg2)
+	{
+		case ElementType_I4:
+		case ElementType_U4:
+		case ElementType_I:
+		case ElementType_U:
+			sbValType = ElementType_I4;
+			break;
+		case ElementType_I1:
+		case ElementType_I2:
+		case ElementType_U1:
+		case ElementType_U2:
+		case ElementType_I8:
+		case ElementType_U8:
+		case ElementType_R4:
+		case ElementType_R8:
+			Panic("WTF DO YOU THINK YOUR DOING?????");
+			break;
+	}
+	switch(sValType)
+	{
+		case ElementType_I4:
+		{
+			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+			switch(sbValType)
+			{
+				case ElementType_I4:
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, SECONDARY_REG, THIRD_REG, FOURTH_REG, NULL);
+					switch(sType)
+					{
+						case ShiftNumericOperation_Left:
+							x86_alu_reg_reg(pCompiledCode, X86_SHL, PRIMARY_REG, SECONDARY_REG);
+							break;
+						case ShiftNumericOperation_Right:
+							x86_alu_reg_reg(pCompiledCode, X86_SHR, PRIMARY_REG, SECONDARY_REG);
+							break;
+						case ShiftNumericOperation_Right_Sign_Extended:
+							x86_alu_reg_reg(pCompiledCode, X86_SAR, PRIMARY_REG, SECONDARY_REG);
+							break;
+					}
+					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					break;
+				default:
+					Panic("Why must you be a pain?");
+					break;
+			}
+			break;
+		}
+		case ElementType_I8:
+		{
+			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+			switch (sbValType)
+			{
+				case ElementType_I4:
+				{
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, X86_ECX, PRIMARY_REG, SECONDARY_REG, NULL);
+					x86_mov_reg_membase(pCompiledCode, X86_EBX, X86_ESP, 4, 4);
+					x86_test_reg_imm(pCompiledCode, X86_ECX, 32);
+					unsigned char* jumpHighPartIsZero = (unsigned char *)pCompiledCode;
+					x86_branch8(pCompiledCode, X86_CC_AE, 0, FALSE);
+					// 32bit or less shift
+					x86_mov_reg_membase(pCompiledCode, X86_EAX, X86_ESP, 0, 4);
+					switch (sType)
+					{
+						case ShiftNumericOperation_Left:
+						{
+							x86_shld_reg(pCompiledCode, X86_EAX, X86_EAX);
+							break;
+						}
+						case ShiftNumericOperation_Right:
+						case ShiftNumericOperation_Right_Sign_Extended:
+						{
+							x86_shrd_reg(pCompiledCode, X86_EAX, X86_EAX);
+							break;
+						}
+					}
+					x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, X86_EAX, 4);
+					switch (sType)
+					{
+						case ShiftNumericOperation_Left:
+							x86_shift_reg(pCompiledCode, X86_SHL, X86_EBX);
+							break;
+						case ShiftNumericOperation_Right:
+							x86_shift_reg(pCompiledCode, X86_SHR, X86_EBX);
+							break;
+						case ShiftNumericOperation_Right_Sign_Extended:
+							x86_shift_reg(pCompiledCode, X86_SAR, X86_EBX);
+							break;
+					}
+					x86_mov_membase_reg(pCompiledCode, X86_ESP, 4, X86_EBX, 4);
+					unsigned char* jumpEnd = (unsigned char *)pCompiledCode;
+					x86_jump8(pCompiledCode, 0);
+					x86_patch(jumpHighPartIsZero, (unsigned char *)pCompiledCode);
+					// 33-64bit shift
+					x86_alu_reg_imm(pCompiledCode, X86_AND, X86_ECX, 0x1F);
+					switch (sType)
+					{
+						case ShiftNumericOperation_Left:
+							x86_shift_reg(pCompiledCode, X86_SHL, X86_EBX);
+							break;
+						case ShiftNumericOperation_Right:
+							x86_shift_reg(pCompiledCode, X86_SHR, X86_EBX);
+							break;
+						case ShiftNumericOperation_Right_Sign_Extended:
+							x86_shift_reg(pCompiledCode, X86_SAR, X86_EBX);
+							break;
+					}
+					x86_mov_membase_reg(pCompiledCode, X86_ESP, 4, X86_EBX, 4);
+					x86_mov_membase_imm(pCompiledCode, X86_ESP, 0, 0, 4);
+					x86_patch(jumpEnd, (unsigned char *)pCompiledCode);
+					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					break;
+				}
+				default:
+					Panic("bad");
+					break;
+			}
+		}
+		default:
+			Panic("moar bad");
+			break;
+	}
 	return pCompiledCode;
 }
 
