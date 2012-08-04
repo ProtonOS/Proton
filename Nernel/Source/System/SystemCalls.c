@@ -15,13 +15,19 @@ struct _reent gDefaultReent;
 bool_t gMultitasking = FALSE;	
 uint8_t gMallocBusy = 0;
 
-struct _reent* __getreent()
+Thread* GetCurrentThread()
 {
-	if (!gMultitasking) return &gDefaultReent;
+	if (!gMultitasking) return NULL;
 	uint32_t taskRegister = TSS_GetTaskRegister();
 	uint32_t apicIndex = (taskRegister - 0x2B) >> 3;
 	APIC* apic = gAPIC_Array[apicIndex];
-	return &apic->CurrentThread->Reentrant;
+	return apic->CurrentThread;
+}
+
+struct _reent* __getreent()
+{
+	if (!gMultitasking) return &gDefaultReent;
+	return &GetCurrentThread()->Reentrant;
 }
 
 void __malloc_lock(struct _reent* pReent)

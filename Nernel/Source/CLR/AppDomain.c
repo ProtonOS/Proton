@@ -20,7 +20,7 @@ void AppDomainRegistry_AddDomain(AppDomain* pDomain)
 
 
 
-AppDomain* AppDomain_Create()
+AppDomain* AppDomain_Create(Thread* pMainThread)
 {
 	LoadedModule* loadedModule = Multiboot_GetLoadedModule("/gac/mscorlib.dll");
 	if (loadedModule)
@@ -29,6 +29,12 @@ AppDomain* AppDomain_Create()
 		if (cliFile)
 		{
 			AppDomain* domain = (AppDomain*)calloc(1, sizeof(AppDomain));
+			domain->Process = pMainThread->Process;
+			domain->ThreadCount = 8;
+			domain->Threads = (Thread**)calloc(1, domain->ThreadCount * sizeof(Thread*));
+			domain->Threads[0] = pMainThread;
+			pMainThread->Domain = domain;
+			Process_AddDomain(domain->Process, domain);
 			domain->GarbageCollector = GC_Create(domain);
 			Log_WriteLine(LOGLEVEL__Memory, "Memory: AppDomain_Create @ 0x%x", (unsigned int)domain);
 			AppDomainRegistry_AddDomain(domain);
@@ -44,6 +50,75 @@ AppDomain* AppDomain_Create()
 	else
 	{
 		Panic("An error occured while loading corlib module!");
+	}
+}
+
+void AppDomain_Destroy(AppDomain* pDomain)
+{
+	for (uint32_t index = 0; index < pDomain->ThreadCount; ++index)
+	{
+		if (pDomain->Threads[index])
+		{
+			Thread_Destroy(pDomain->Threads[index]);
+		}
+	}
+	free(pDomain->Threads);
+	for (uint32_t index = 0; index < pDomain->IRAssemblyCount; ++index)
+	{
+		if (pDomain->IRAssemblies[index])
+		{
+			IRAssembly_Destroy(pDomain->IRAssemblies[index]);
+		}
+	}
+	free(pDomain->IRAssemblies);
+	if (pDomain->StaticValues)
+	{
+		for (uint32_t index = 0; index < pDomain->IRAssemblyCount; ++index)
+		{
+			if (pDomain->StaticValues[index])
+			{
+				free(pDomain->StaticValues[index]);
+			}
+		}
+		free(pDomain->StaticValues);
+	}
+	Process_RemoveDomain(pDomain->Process, pDomain);
+	GC_Destroy(pDomain->GarbageCollector);
+	free(pDomain);
+}
+
+void AppDomain_AddThread(AppDomain* pDomain, Thread* pThread)
+{
+	bool_t foundUnused = FALSE;
+	uint32_t unusedIndex = 0;
+	for (uint32_t index = 0; index < pDomain->ThreadCount; ++index)
+	{
+		if (!pDomain->Threads[index])
+		{
+			unusedIndex = index;
+			foundUnused = TRUE;
+			break;
+		}
+	}
+	if (!foundUnused)
+	{
+		unusedIndex = pDomain->ThreadCount;
+		pDomain->ThreadCount <<= 1;
+		pDomain->Threads = (Thread**)realloc(pDomain->Threads, pDomain->ThreadCount * sizeof(Thread*));
+	}
+	pThread->Domain = pDomain;
+	pDomain->Threads[unusedIndex] = pThread;
+}
+
+void AppDomain_RemoveThread(AppDomain* pDomain, Thread* pThread)
+{
+	for (uint32_t index = 0; index < pDomain->ThreadCount; ++index)
+	{
+		if (pDomain->Threads[index] == pThread)
+		{
+			pDomain->Threads[index] = NULL;
+			break;
+		}
 	}
 }
 

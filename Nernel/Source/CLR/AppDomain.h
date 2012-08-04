@@ -9,11 +9,15 @@ typedef struct _StaticGenericField StaticGenericField;
 #include <CLR/IROpcode.h>
 #include <CLR/IRStructures.h>
 #include <CLR/MetadataStructures.h>
+#include <System/Process.h>
 
 struct _AppDomain
 {
 	uint32_t DomainIndex;
 
+	Process* Process;
+	uint32_t ThreadCount;
+	Thread** Threads;
 	uint32_t IRAssemblyCount;
 	IRAssembly** IRAssemblies;
 
@@ -66,8 +70,10 @@ struct _StaticGenericField
 	UT_hash_handle HashHandle;
 };
 
-AppDomain* AppDomain_Create();
+AppDomain* AppDomain_Create(Thread* pMainThread);
 void AppDomain_Destroy(AppDomain* pDomain);
+void AppDomain_AddThread(AppDomain* pDomain, Thread* pThread);
+void AppDomain_RemoveThread(AppDomain* pDomain, Thread* pThread);
 void AppDomain_AddAssembly(AppDomain* pDomain, IRAssembly* pAssembly);
 void AppDomain_LinkCorlib(AppDomain* pDomain, CLIFile* pCorlibFile);
 

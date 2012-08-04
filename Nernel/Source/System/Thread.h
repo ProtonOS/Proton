@@ -5,12 +5,14 @@ typedef struct _Thread Thread;
 #include "APIC.h"
 #include "IDT.h"
 #include "Process.h"
+#include <CLR/AppDomain.h>
 
 #include <reent.h>
 
 struct _Thread
 {
 	Process* Process;
+	AppDomain* Domain;
 	Thread* Next;
 	Thread* Prev;
 	Thread* SleepingNext;

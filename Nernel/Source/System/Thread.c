@@ -37,7 +37,10 @@ Thread* Thread_Create(Process* pProcess, size_t pEntryPoint, size_t pStackSize, 
 void Thread_Destroy(Thread* pThread)
 {
 	ThreadScheduler_Remove(pThread);
+	if (pThread->Domain) AppDomain_RemoveThread(pThread->Domain, pThread);
+	Process_RemoveThread(pThread->Process, pThread);
 	Log_WriteLine(LOGLEVEL__Memory, "Memory: Thread_Destroy @ 0x%x", (unsigned int)pThread);
+
 	free(pThread->Stack);
 	free(pThread);
 }

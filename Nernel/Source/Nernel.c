@@ -18,6 +18,8 @@
 #include <System/ThreadScheduler.h>
 #include <System/x86/Registers.h>
 
+Thread* GetCurrentThread();
+
 AppDomain* gMernelDomain = NULL;
 
 void CPUInterruptHandler(InterruptRegisters pRegisters)
@@ -41,7 +43,8 @@ void Startup()
 	uint32_t tickCount = 0;
 	uint32_t trueTickCount = 0;
 	uint64_t startedTicks = SystemClock_GetTicks();
-    gMernelDomain = AppDomain_Create();
+	Thread* currentThread = GetCurrentThread();
+    gMernelDomain = AppDomain_Create(currentThread);
 	uint64_t stoppedTicks = SystemClock_GetTicks();
 	printf("AppDomain_Create took %uMS\n", (unsigned int)(stoppedTicks - startedTicks));
 	LoadedModule* mernelModule = Multiboot_GetLoadedModule("/boot/mernel.exe");
