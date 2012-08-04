@@ -14,8 +14,7 @@ struct _Process
 	uint32_t DomainCount;
 };
 
-Process* Process_Create(size_t pEntryPoint, size_t pThreadStackSize);
-Process* Process_PriorityCreate(size_t pEntryPoint, size_t pThreadStackSize, uint8_t pPriority);
+Process* Process_Create(size_t pEntryPoint, size_t pThreadStackSize, uint8_t pPriority);
 Thread* Process_CreateThread(Process* pProcess, size_t pEntryPoint, size_t pThreadStackSize, uint8_t pPriority);
 void Process_RemoveThread(Process* pProcess, Thread* pThread);
 void Process_AddDomain(Process* pProcess, AppDomain* pDomain);

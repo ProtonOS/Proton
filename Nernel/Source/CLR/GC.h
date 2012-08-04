@@ -82,3 +82,4 @@ void GC_Destroy(GC* pGC);
 GCHeap* GCHeap_Create(uint32_t pHeapSize, uint32_t pInitialPoolSize);
 void GCHeap_Destroy(GCHeap* pGCHeap);
 void GC_AllocateObject(GC* pGC, IRType* pType, uint32_t pSize, GCObject** pAllocatedObject);
+GCObject* GC_AllocatePinnedObject(GC* pGC, IRType* pType, uint32_t pSize);

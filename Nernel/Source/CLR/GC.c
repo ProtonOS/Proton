@@ -136,3 +136,19 @@ void GC_AllocateObject(GC* pGC, IRType* pType, uint32_t pSize, GCObject** pAlloc
 	*pAllocatedObject = object;
 	Atomic_ReleaseLock(&pGC->Busy);
 }
+
+GCObject* GC_AllocatePinnedObject(GC* pGC, IRType* pType, uint32_t pSize)
+{
+	if (pSize >= 0x7FFFFFFF) Panic("GC_AllocatePinnedObject pSize >= 0x7FFFFFFF");
+	Atomic_AquireLock(&pGC->Busy);
+    GCObject* object = NULL;
+    if (pSize <= GCHeap__SmallHeap_Size)
+        object = GCHeap_Allocate(&pGC->SmallGeneration0Heaps, &pGC->SmallGeneration0HeapCount, GCHeap__SmallHeap_Size, pSize);
+    else if (pSize <= GCHeap__LargeHeap_Size)
+        object = GCHeap_Allocate(&pGC->LargeHeaps, &pGC->LargeHeapCount, GCHeap__LargeHeap_Size, pSize);
+    else object = GCHeap_Allocate(&pGC->LargeHeaps, &pGC->LargeHeapCount, pSize, pSize);
+	object->Type = pType;
+	object->Flags |= GCObjectFlags_Pinned;
+	Atomic_ReleaseLock(&pGC->Busy);
+	return object;
+}

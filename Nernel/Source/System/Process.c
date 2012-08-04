@@ -3,15 +3,13 @@
 #include <System/Process.h>
 #include <System/x86/PortIO.h>
 
-#define PROCESS__DefaultThreadPool_Max		128
-
 #define PROCESS__Max						2048
 
 uint8_t gProcess_Busy = 0;
 Process* gProcess_Array[PROCESS__Max];
 uint32_t gProcess_NextIndex = 0;
 
-Process* Process_Create(size_t pEntryPoint, size_t pThreadStackSize)
+Process* Process_Create(size_t pEntryPoint, size_t pThreadStackSize, uint8_t pPriority)
 {
 	Process* process = (Process*)calloc(1, sizeof(Process));
 	Atomic_AquireLock(&gProcess_Busy);
@@ -31,36 +29,9 @@ Process* Process_Create(size_t pEntryPoint, size_t pThreadStackSize)
 	else process->Identifier = gProcess_NextIndex++;
 	gProcess_Array[process->Identifier] = process;
 	Log_WriteLine(LOGLEVEL__Memory, "Memory: Process_Create @ 0x%x", (unsigned int)process);
-	process->Threads = (Thread**)calloc(1, (sizeof(Thread*) * PROCESS__DefaultThreadPool_Max));
-	process->Threads[0] = Thread_Create(process, pEntryPoint, pThreadStackSize, 2);
-	process->ThreadCount = 1;
-	Atomic_ReleaseLock(&gProcess_Busy);
-	return process;
-}
-
-Process* Process_PriorityCreate(size_t pEntryPoint, size_t pThreadStackSize, uint8_t pPriority)
-{
-	Process* process = (Process*)calloc(1, sizeof(Process));
-	Atomic_AquireLock(&gProcess_Busy);
-	bool_t foundUnused = FALSE;
-	uint32_t identifier = 0;
-	for (uint32_t index; index < gProcess_NextIndex; ++index)
-	{
-		if (!gProcess_Array[index])
-		{
-			foundUnused = TRUE;
-			identifier = index;
-			break;
-		}
-	}
-	if (foundUnused) process->Identifier = identifier;
-	else if (gProcess_NextIndex >= PROCESS__Max) Panic("Reached maximum process count");
-	else process->Identifier = gProcess_NextIndex++;
-	gProcess_Array[process->Identifier] = process;
-	Log_WriteLine(LOGLEVEL__Memory, "Memory: Process_Create @ 0x%x", (unsigned int)process);
-	process->Threads = (Thread**)calloc(1, (sizeof(Thread*) * PROCESS__DefaultThreadPool_Max));
+	process->ThreadCount = 8;
+	process->Threads = (Thread**)calloc(1, (sizeof(Thread*) * process->ThreadCount));
 	process->Threads[0] = Thread_Create(process, pEntryPoint, pThreadStackSize, pPriority);
-	process->ThreadCount = 1;
 	Atomic_ReleaseLock(&gProcess_Busy);
 	return process;
 }

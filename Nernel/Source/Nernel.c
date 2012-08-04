@@ -31,7 +31,7 @@ void CPUInterruptHandler(InterruptRegisters pRegisters)
 
 void Mernel_EntrypointCompiled()
 {
-
+	printf("Compiled Mernel Entry\n");
 }
 
 void Startup();
@@ -44,6 +44,7 @@ void Startup()
 	uint32_t trueTickCount = 0;
 	uint64_t startedTicks = SystemClock_GetTicks();
 	Thread* currentThread = GetCurrentThread();
+	// At this point we would add to the bitstream for the current thread stack, based on this native startup method
     gMernelDomain = AppDomain_Create(currentThread);
 	uint64_t stoppedTicks = SystemClock_GetTicks();
 	printf("AppDomain_Create took %uMS\n", (unsigned int)(stoppedTicks - startedTicks));
@@ -51,8 +52,11 @@ void Startup()
 	AppDomain_AddAssembly(gMernelDomain, ILDecomposition_CreateAssembly(gMernelDomain, CLIFile_Create((uint8_t*)mernelModule->Address, mernelModule->Size, "mernel.exe")));
 	JIT_CompileMethod(gMernelDomain->IRAssemblies[1]->EntryPoint);
 
+	ThreadScheduler_Suspend(currentThread);
 	Mernel_EntrypointCompiled();
 
+	// TODO: Mernel enters here, and there should be no return (unless Mernel is shutting down/rebooting system)
+	// At this point we would add to the bitstream for the current thread stack, based on mernel entry method
 	while(TRUE)
 	{
 		++tickCount;
@@ -68,6 +72,8 @@ void Startup()
 
 extern uint32_t gStack;
 
+void ThreadScheduler_Idle();
+
 void EnteredUserMode()
 {
 	Log_WriteLine(LOGLEVEL__Processor, "Processor: Started");
@@ -75,6 +81,10 @@ void EnteredUserMode()
 	if (gSMP_StartingBootstrapProcessor)
 	{
 		gThreadScheduler_Running = TRUE;
+	}
+	else
+	{
+		Process_CreateThread(gThreadScheduler_IdleProcess, (size_t)&ThreadScheduler_Idle, 1024, 0);
 	}
 	while(TRUE) ;
 }

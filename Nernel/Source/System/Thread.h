@@ -13,10 +13,11 @@ struct _Thread
 {
 	Process* Process;
 	AppDomain* Domain;
+	bool_t Suspended;
+	bool_t InCriticalSection;
 	Thread* Next;
 	Thread* Prev;
-	Thread* SleepingNext;
-	Thread* SleepingPrev;
+	uint8_t* StackStream;
 	uint8_t* Stack;
 	uint32_t StackSize;
 	size_t EntryPoint;
@@ -32,3 +33,5 @@ struct _Thread
 
 Thread* Thread_Create(Process* pProcess, size_t pEntryPoint, size_t pStackSize, uint8_t pPriority);
 void Thread_Destroy(Thread* pThread);
+void Thread_EnterCriticalRegion();
+void Thread_LeaveCriticalRegion();
