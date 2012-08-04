@@ -69,7 +69,7 @@ GCObject* GCHeap_Allocate(GCHeap*** pGCHeaps, uint32_t* pGCHeapCount, uint32_t p
     for (uint32_t index = 0; !object && index < *pGCHeapCount; ++index)
     {
         heap = *pGCHeaps[index];
-        if (heap->Available >= pSize)
+        if (heap->Available >= (pSize + sizeof(GCObject*)))
         {
             for (uint32_t objectIndex = 0; !object && objectIndex < heap->ObjectPoolSize; ++objectIndex)
 			{
@@ -87,11 +87,11 @@ GCObject* GCHeap_Allocate(GCHeap*** pGCHeaps, uint32_t* pGCHeapCount, uint32_t p
             }
             object->Flags = GCObjectFlags_Allocated;
             object->Size = pSize;
-            object->Data = heap->Top;
+            object->Data = heap->Top + sizeof(GCObject*);
             object->Heap = heap;
-            heap->Available -= pSize;
-            heap->Allocated += pSize;
-            heap->Top += pSize;
+            heap->Available -= pSize + sizeof(GCObject*);
+            heap->Allocated += pSize + sizeof(GCObject*);
+            heap->Top += pSize + sizeof(GCObject*);
         }
     }
     if (!object)
@@ -111,14 +111,15 @@ GCObject* GCHeap_Allocate(GCHeap*** pGCHeaps, uint32_t* pGCHeapCount, uint32_t p
         object = heap->ObjectPool[0];
         object->Flags = GCObjectFlags_Allocated;
         object->Size = pSize;
-        object->Data = heap->Top;
+        object->Data = heap->Top + sizeof(GCObject*);
         object->Heap = heap;
-        heap->Available -= pSize;
-        heap->Allocated += pSize;
-        heap->Top += pSize;
+        heap->Available -= pSize + sizeof(GCObject*);
+        heap->Allocated += pSize + sizeof(GCObject*);
+        heap->Top += pSize + sizeof(GCObject*);
     }
 	if (!object) Panic("Whoa, how did this happen?!");
 	memset(object->Data, 0x00, pSize);
+	*(GCObject**)((size_t)object->Data - sizeof(GCObject*)) = object;
     return object;
 }
 
@@ -127,11 +128,11 @@ void GC_AllocateObject(GC* pGC, IRType* pType, uint32_t pSize, GCObject** pAlloc
 	if (pSize >= 0x7FFFFFFF) Panic("GC_AllocateObject pSize >= 0x7FFFFFFF");
 	Atomic_AquireLock(&pGC->Busy);
     GCObject* object = NULL;
-    if (pSize <= GCHeap__SmallHeap_Size)
+    if (pSize <= GCHeap__SmallHeap_Size - sizeof(GCObject*))
         object = GCHeap_Allocate(&pGC->SmallGeneration0Heaps, &pGC->SmallGeneration0HeapCount, GCHeap__SmallHeap_Size, pSize);
-    else if (pSize <= GCHeap__LargeHeap_Size)
+    else if (pSize <= GCHeap__LargeHeap_Size - sizeof(GCObject*))
         object = GCHeap_Allocate(&pGC->LargeHeaps, &pGC->LargeHeapCount, GCHeap__LargeHeap_Size, pSize);
-    else object = GCHeap_Allocate(&pGC->LargeHeaps, &pGC->LargeHeapCount, pSize, pSize);
+    else object = GCHeap_Allocate(&pGC->LargeHeaps, &pGC->LargeHeapCount, pSize + sizeof(GCObject*), pSize);
 	object->Type = pType;
 	*pAllocatedObject = object;
 	Atomic_ReleaseLock(&pGC->Busy);
@@ -142,11 +143,11 @@ GCObject* GC_AllocatePinnedObject(GC* pGC, IRType* pType, uint32_t pSize)
 	if (pSize >= 0x7FFFFFFF) Panic("GC_AllocatePinnedObject pSize >= 0x7FFFFFFF");
 	Atomic_AquireLock(&pGC->Busy);
     GCObject* object = NULL;
-    if (pSize <= GCHeap__SmallHeap_Size)
+    if (pSize <= GCHeap__SmallHeap_Size - sizeof(GCObject*))
         object = GCHeap_Allocate(&pGC->SmallGeneration0Heaps, &pGC->SmallGeneration0HeapCount, GCHeap__SmallHeap_Size, pSize);
-    else if (pSize <= GCHeap__LargeHeap_Size)
+    else if (pSize <= GCHeap__LargeHeap_Size - sizeof(GCObject*))
         object = GCHeap_Allocate(&pGC->LargeHeaps, &pGC->LargeHeapCount, GCHeap__LargeHeap_Size, pSize);
-    else object = GCHeap_Allocate(&pGC->LargeHeaps, &pGC->LargeHeapCount, pSize, pSize);
+    else object = GCHeap_Allocate(&pGC->LargeHeaps, &pGC->LargeHeapCount, pSize + sizeof(GCObject*), pSize);
 	object->Type = pType;
 	object->Flags |= GCObjectFlags_Pinned;
 	Atomic_ReleaseLock(&pGC->Busy);
