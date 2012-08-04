@@ -52,11 +52,11 @@ void Startup()
 	AppDomain_AddAssembly(gMernelDomain, ILDecomposition_CreateAssembly(gMernelDomain, CLIFile_Create((uint8_t*)mernelModule->Address, mernelModule->Size, "mernel.exe")));
 	JIT_CompileMethod(gMernelDomain->IRAssemblies[1]->EntryPoint);
 
-	ThreadScheduler_Suspend(currentThread);
 	Mernel_EntrypointCompiled();
 
 	// TODO: Mernel enters here, and there should be no return (unless Mernel is shutting down/rebooting system)
 	// At this point we would add to the bitstream for the current thread stack, based on mernel entry method
+	//ThreadScheduler_Suspend(currentThread);
 	while(TRUE)
 	{
 		++tickCount;
@@ -84,7 +84,7 @@ void EnteredUserMode()
 	}
 	else
 	{
-		Process_CreateThread(gThreadScheduler_IdleProcess, (size_t)&ThreadScheduler_Idle, 1024, 0);
+		Process_CreateThread(gThreadScheduler_IdleProcess, (size_t)&ThreadScheduler_Idle, 8192, 0);
 	}
 	while(TRUE) ;
 }
