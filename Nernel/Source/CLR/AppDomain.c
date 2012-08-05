@@ -739,7 +739,7 @@ ElementType AppDomain_GetElementTypeFromIRType(AppDomain* pDomain, IRType* pType
 	if (pType->TypeDefinition == pDomain->CachedType___System_UIntPtr) return ElementType_U;
 	if (pType->TypeDefinition == pDomain->CachedType___System_Single) return ElementType_R4;
 	if (pType->TypeDefinition == pDomain->CachedType___System_Double) return ElementType_R8;
-	Panic("Cannot convert IRType to ElementType");
+	return (ElementType)-1;
 }
 
 

@@ -10,6 +10,7 @@ void JIT_CalculateParameterLayout(IRMethod* pMethod);
 void JIT_CalculateLocalLayout(IRMethod* pMethod);
 void JIT_CalculateFieldLayout(IRType* pType);
 void JIT_CalculateStaticFieldLayout(IRAssembly* pAssembly);
+void JIT_ExecuteMethod(IRMethod* pMethod, AppDomain* pDomain);
 void JIT_CompileMethod(IRMethod* pMethod);
 
 

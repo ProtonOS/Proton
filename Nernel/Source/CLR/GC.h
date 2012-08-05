@@ -25,6 +25,8 @@ typedef enum GCObjectFlags
 #define GCHeap__LargeHeap_Size							(GCHeap__SmallHeap_Size * 4)
 #define GCHeap__LargeHeap_InitialPoolSize				1
 
+#define GC__PressureTriggerInBytes						(1024 * 1024 * 4)
+
 struct _GCObject
 {
 	IRType* Type;
@@ -64,6 +66,7 @@ struct _GC
 {
 	AppDomain* Domain;
 	uint8_t Busy;
+	uint32_t Pressure;
 	GCObject* StringHashTable;
 
     uint32_t SmallGeneration0HeapCount;
@@ -83,3 +86,4 @@ GCHeap* GCHeap_Create(uint32_t pHeapSize, uint32_t pInitialPoolSize);
 void GCHeap_Destroy(GCHeap* pGCHeap);
 void GC_AllocateObject(GC* pGC, IRType* pType, uint32_t pSize, GCObject** pAllocatedObject);
 GCObject* GC_AllocatePinnedObject(GC* pGC, IRType* pType, uint32_t pSize);
+void GC_ApplyPressure(AppDomain* pDomain, uint32_t pBytes);

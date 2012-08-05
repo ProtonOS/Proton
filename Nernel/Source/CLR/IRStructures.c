@@ -133,6 +133,10 @@ IRType* IRType_Create(IRAssembly* pAssembly, TypeDefinition* pTypeDefinition)
 	if (AppDomain_IsStructure(pTypeDefinition->File->Assembly->ParentDomain, pTypeDefinition))
 	{
 		type->IsValueType = TRUE;
+		if (AppDomain_GetElementTypeFromIRType(pTypeDefinition->File->Assembly->ParentDomain, type) == (ElementType)-1)
+		{
+			type->IsStructureType = TRUE;
+		}
 	}
 	else
 	{

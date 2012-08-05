@@ -3,6 +3,10 @@
 #include <CLR/JIT.h>
 
 
+void JIT_ExecuteMethod(IRMethod* pMethod, AppDomain* pDomain)
+{
+}
+
 #define EMITTER(pInstruction) \
 case IROpcode_##pInstruction: \
 { Log_WriteLine(LOGLEVEL__JIT_Emit, "Emitting " #pInstruction " @ 0x%x", (unsigned int)compiledCode); \
