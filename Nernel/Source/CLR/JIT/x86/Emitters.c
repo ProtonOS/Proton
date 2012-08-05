@@ -4112,11 +4112,314 @@ char* JIT_Emit_Shift(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pIns
 
 char* JIT_Emit_Convert_Unchecked(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+	ElementType fromType = *(ElementType*)pInstruction->Arg1;
+	ElementType toType = *(ElementType*)pInstruction->Arg2;
+	//bool_t IsDouble = TRUE;
+ 	switch (fromType)
+	{
+		case ElementType_I:
+		case ElementType_U:
+		case ElementType_I4:
+		case ElementType_I1:
+		case ElementType_I2:
+		case ElementType_U1:
+		case ElementType_U2:
+			switch (toType)
+			{
+				case ElementType_I1:
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					x86_widen_reg(pCompiledCode, PRIMARY_REG, PRIMARY_REG, TRUE, FALSE);
+					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					break;
+				case ElementType_U1:
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					x86_widen_reg(pCompiledCode, PRIMARY_REG, PRIMARY_REG, FALSE, FALSE);
+					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					break;
+				case ElementType_I2:
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					x86_widen_reg(pCompiledCode, PRIMARY_REG, PRIMARY_REG, TRUE, TRUE);
+					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					break;
+				case ElementType_U2:
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					x86_widen_reg(pCompiledCode, PRIMARY_REG, PRIMARY_REG, FALSE, TRUE);
+					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					break;
+				case ElementType_I:
+				case ElementType_I4:
+				case ElementType_U:
+				case ElementType_U4: break;
+				case ElementType_I8:
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, X86_EAX, SECONDARY_REG, THIRD_REG, NULL);
+					x86_cdq(pCompiledCode);
+					x86_push_reg(pCompiledCode, X86_EDX);
+					x86_push_reg(pCompiledCode, X86_EAX);
+					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					break;
+				case ElementType_U8:
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					x86_push_imm(pCompiledCode, 0);
+					x86_push_reg(pCompiledCode, PRIMARY_REG);
+					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					break;
+				case ElementType_R4:
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					x86_push_reg(pCompiledCode, PRIMARY_REG);
+					x86_fild_membase(pCompiledCode, X86_ESP, 0, FALSE);
+					x86_fst_membase(pCompiledCode, X86_ESP, 0, FALSE, TRUE);
+					x86_pop_reg(pCompiledCode, PRIMARY_REG);
+					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					break;
+				case ElementType_R8:
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					x86_adjust_stack(pCompiledCode, 8);
+					x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, PRIMARY_REG, 4);
+					x86_fild_membase(pCompiledCode, X86_ESP, 0, FALSE);
+					x86_fst_membase(pCompiledCode, X86_ESP, 0, TRUE, TRUE);
+					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					break;
+				default:
+					//Panic(String_Format("Convert Unchecked (Branch 1), Invalid Arguments: From = 0x%x, To = 0x%x", (unsigned int)fromType, (unsigned int)toType));
+					Panic("Convert Unchecked (Branch 1), Invalid Arguments");
+					break;
+			}
+			break;
+		case ElementType_I8:
+		case ElementType_U8:
+			switch (toType)
+			{
+				case ElementType_I1:
+				case ElementType_U1:
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, X86_ESP, 0, 4);
+					x86_adjust_stack(pCompiledCode, -8);
+					x86_alu_reg_imm(pCompiledCode, X86_AND, PRIMARY_REG, 0xFF);
+					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					break;
+				case ElementType_I2:
+				case ElementType_U2:
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, X86_ESP, 0, 4);
+					x86_adjust_stack(pCompiledCode, -8);
+					x86_alu_reg_imm(pCompiledCode, X86_AND, PRIMARY_REG, 0xFFFF);
+					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					break;
+				case ElementType_I:
+				case ElementType_I4:
+				case ElementType_U:
+				case ElementType_U4:
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, X86_ESP, 0, 4);
+					x86_adjust_stack(pCompiledCode, -8);
+					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					break;
+				case ElementType_I8:
+				case ElementType_U8: 
+					break;
+				case ElementType_R4:
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					x86_fild_membase(pCompiledCode, X86_ESP, 0, TRUE);
+					x86_fst_membase(pCompiledCode, X86_ESP, 0, FALSE, TRUE);
+					x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, X86_ESP, 0, 4);
+					x86_adjust_stack(pCompiledCode, -8);
+					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					break;
+				case ElementType_R8:
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					x86_fild_membase(pCompiledCode, X86_ESP, 0, TRUE);
+					x86_fst_membase(pCompiledCode, X86_ESP, 0, TRUE, TRUE);
+					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					break;
+				default:
+					{
+						//snprintf(buf, 128, "Convert Unchecked (Branch 2), Invalid Arguments: From = 0x%x, To = 0x%x", (unsigned int)fromType, (unsigned int)toType);
+						Panic("Convert Unchecked (Branch 2), Invalid Arguments");
+					}
+					break;
+			}
+			break;
+		case ElementType_R4:
+		case ElementType_R8:
+			switch (toType)
+			{
+				case ElementType_I1:
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					if (fromType == ElementType_R4)
+					{
+						x86_push_reg(pCompiledCode, PRIMARY_REG);
+						x86_fld_membase(pCompiledCode, X86_ESP, 0, FALSE);
+					}
+					else
+					{
+						x86_fld_membase(pCompiledCode, X86_ESP, 0, TRUE);
+					}
+					x86_fist_pop_membase(pCompiledCode, X86_ESP, 0, TRUE);
+					if (fromType == ElementType_R4)
+					{
+						x86_pop_reg(pCompiledCode, PRIMARY_REG);
+					}
+					else
+					{
+						x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, X86_ESP, 0, 4);
+						x86_adjust_stack(pCompiledCode, -8);
+					}
+					x86_widen_reg(pCompiledCode, PRIMARY_REG, PRIMARY_REG, TRUE, FALSE);
+					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					break;
+				case ElementType_U1:
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					if (fromType == ElementType_R4)
+					{
+						x86_push_reg(pCompiledCode, PRIMARY_REG);
+						x86_fld_membase(pCompiledCode, X86_ESP, 0, FALSE);
+					}
+					else
+					{
+						x86_fld_membase(pCompiledCode, X86_ESP, 0, TRUE);
+					}
+					x86_fist_pop_membase(pCompiledCode, X86_ESP, 0, TRUE);
+					if (fromType == ElementType_R4)
+					{
+						x86_pop_reg(pCompiledCode, PRIMARY_REG);
+					}
+					else
+					{
+						x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, X86_ESP, 0, 4);
+						x86_adjust_stack(pCompiledCode, -8);
+					}
+					x86_widen_reg(pCompiledCode, PRIMARY_REG, PRIMARY_REG, FALSE, FALSE);
+					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					break;
+				case ElementType_I2:
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					if (fromType == ElementType_R4)
+					{
+						x86_push_reg(pCompiledCode, PRIMARY_REG);
+						x86_fld_membase(pCompiledCode, X86_ESP, 0, FALSE);
+					}
+					else
+					{
+						x86_fld_membase(pCompiledCode, X86_ESP, 0, TRUE);
+					}
+					x86_fist_pop_membase(pCompiledCode, X86_ESP, 0, TRUE);
+					if (fromType == ElementType_R4)
+					{
+						x86_pop_reg(pCompiledCode, PRIMARY_REG);
+					}
+					else
+					{
+						x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, X86_ESP, 0, 4);
+						x86_adjust_stack(pCompiledCode, -8);
+					}
+					x86_widen_reg(pCompiledCode, PRIMARY_REG, PRIMARY_REG, TRUE, TRUE);
+					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					break;
+				case ElementType_U2:
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					if (fromType == ElementType_R4)
+					{
+						x86_push_reg(pCompiledCode, PRIMARY_REG);
+						x86_fld_membase(pCompiledCode, X86_ESP, 0, FALSE);
+					}
+					else
+					{
+						x86_fld_membase(pCompiledCode, X86_ESP, 0, TRUE);
+					}
+					x86_fist_pop_membase(pCompiledCode, X86_ESP, 0, TRUE);
+					if (fromType == ElementType_R4)
+					{
+						x86_pop_reg(pCompiledCode, PRIMARY_REG);
+					}
+					else
+					{
+						x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, X86_ESP, 0, 4);
+						x86_adjust_stack(pCompiledCode, -8);
+					}
+					x86_widen_reg(pCompiledCode, PRIMARY_REG, PRIMARY_REG, FALSE, TRUE);
+					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					break;
+				case ElementType_I:
+				case ElementType_I4:
+				case ElementType_U:
+				case ElementType_U4:
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					if (fromType == ElementType_R4)
+					{
+						x86_push_reg(pCompiledCode, PRIMARY_REG);
+						x86_fld_membase(pCompiledCode, X86_ESP, 0, FALSE);
+					}
+					else
+					{
+						x86_fld_membase(pCompiledCode, X86_ESP, 0, TRUE);
+					}
+					x86_fist_pop_membase(pCompiledCode, X86_ESP, 0, TRUE);
+					if (fromType == ElementType_R4)
+					{
+						x86_pop_reg(pCompiledCode, PRIMARY_REG);
+					}
+					else
+					{
+						x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, X86_ESP, 0, 4);
+						x86_adjust_stack(pCompiledCode, -8);
+					}
+					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					break;
+				case ElementType_I8:
+				case ElementType_U8:
+					Panic("Your a bad bad person!");
+					//x86_alu_reg_imm(pCompiledCode, X86_SUB, X86_ESP, 4);
+					//x86_fnstcw_membase(pCompiledCode, X86_ESP, 0);
+					//x86_mov_reg_membase(pCompiledCode, X86_EAX, X86_ESP, 0, 2);
+					//x86_alu_reg_imm(pCompiledCode, X86_OR, X86_EAX, 0x0C00);
+					//x86_mov_membase_reg(pCompiledCode, X86_ESP, 2, X86_EAX, 2);
+					//x86_fldcw_membase(pCompiledCode, X86_ESP, 2);
+					//x86_alu_reg_imm(pCompiledCode, X86_SUB, X86_ESP, 8);
+					//x86_fist_pop_membase(pCompiledCode, X86_ESP, 0, TRUE);
+					//x86_pop_reg(pCompiledCode, X86_EAX);
+					//x86_pop_reg(pCompiledCode, X86_EBX);
+					//x86_fldcw_membase(pCompiledCode, X86_ESP, 0);
+					//x86_alu_reg_imm(pCompiledCode, X86_ADD, X86_ESP, 4);
+					//x86_push_reg(pCompiledCode, X86_EBX);
+					//x86_push_reg(pCompiledCode, X86_EAX);
+					break;
+				case ElementType_R4:
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					x86_fld_membase(pCompiledCode, X86_ESP, 0, TRUE);
+					x86_fst_membase(pCompiledCode, X86_ESP, 0, FALSE, TRUE);
+					x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, X86_ESP, 0, 4);
+					x86_adjust_stack(pCompiledCode, -8);
+					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					break;
+				case ElementType_R8:
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					x86_adjust_stack(pCompiledCode, 8);
+					x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, PRIMARY_REG, 4);
+					x86_fld_membase(pCompiledCode, X86_ESP, 0, FALSE);
+					x86_fst_membase(pCompiledCode, X86_ESP, 0, TRUE, TRUE);
+					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					break;
+				default:
+					{
+						//snprintf(buf, 128, "Convert Unchecked (Branch 3), Invalid Arguments: From = 0x%x, To = 0x%x", (unsigned int)fromType, (unsigned int)toType);
+						Panic("Convert Unchecked (Branch 3), Invalid Arguments");
+					}
+					break;
+			}
+			break;
+		default:
+			{
+				//snprintf(buf, 128, "Convert Unchecked (Branch 4), Invalid Arguments: From = 0x%x, To = 0x%x", (unsigned int)fromType, (unsigned int)toType);
+				Panic("Convert Unchecked (Branch 4), Invalid Arguments");
+			}
+			break;
+	}
 	return pCompiledCode;
 }
 
 char* JIT_Emit_Convert_Checked(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+	Panic("Checked conversions aren't supported yet");
 	return pCompiledCode;
 }
 
@@ -4155,11 +4458,6 @@ char* JIT_Emit_Copy_Object(char* pCompiledCode, IRMethod* pMethod, IRInstruction
 	return pCompiledCode;
 }
 
-char* JIT_Emit_New_Object(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
-{
-	return pCompiledCode;
-}
-
 char* JIT_Emit_New_Array(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
 	return pCompiledCode;
@@ -4191,6 +4489,11 @@ char* JIT_Emit_Initialize_Block(char* pCompiledCode, IRMethod* pMethod, IRInstru
 }
 
 char* JIT_Emit_Jump(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
+{
+	return pCompiledCode;
+}
+
+char* JIT_Emit_New_Object(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
 	return pCompiledCode;
 }
