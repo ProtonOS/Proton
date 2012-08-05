@@ -159,9 +159,31 @@ void GC_AllocateString(AppDomain* pDomain, uint8_t* pString, uint32_t pSize, voi
 		else object = GCHeap_Allocate(&gc->LargeHeaps, &gc->LargeHeapCount, pSize + sizeof(GCObject*), pSize);
 		object->Type = gc->Domain->IRAssemblies[0]->Types[gc->Domain->CachedType___System_String->TableIndex - 1];
 		object->Flags |= GCObjectFlags_String;
+		object->String.Length = pSize;
 		memcpy(object->Data, pString, pSize);
 		HASH_ADD(String.HashHandle, gc->StringHashTable, Data, pSize, object);
 	}
+	*pAllocatedObject = object->Data;
+	Atomic_ReleaseLock(&gc->Busy);
+}
+
+void GC_AllocateArray(AppDomain* pDomain, IRType* pArrayType, uint32_t pElementCount, void** pAllocatedObject)
+{
+	size_t elementSize = pArrayType->ArrayType->ElementType->Size;
+	size_t requiredSize = elementSize * pElementCount;
+	if (requiredSize >= 0x7FFFFFFF) Panic("GC_AllocateObject pSize >= 0x7FFFFFFF");
+	GC* gc = pDomain->GarbageCollector;
+	Atomic_AquireLock(&gc->Busy);
+    GCObject* object = NULL;
+    if (requiredSize <= GCHeap__SmallHeap_Size - sizeof(GCObject*))
+        object = GCHeap_Allocate(&gc->SmallGeneration0Heaps, &gc->SmallGeneration0HeapCount, GCHeap__SmallHeap_Size, requiredSize);
+    else if (requiredSize <= GCHeap__LargeHeap_Size - sizeof(GCObject*))
+        object = GCHeap_Allocate(&gc->LargeHeaps, &gc->LargeHeapCount, GCHeap__LargeHeap_Size, requiredSize);
+    else object = GCHeap_Allocate(&gc->LargeHeaps, &gc->LargeHeapCount, requiredSize + sizeof(GCObject*), requiredSize);
+	object->Type = pArrayType;
+	object->Flags |= GCObjectFlags_Array;
+	object->Array.ElementType = pArrayType->ArrayType->ElementType;
+	object->Array.Length = pElementCount;
 	*pAllocatedObject = object->Data;
 	Atomic_ReleaseLock(&gc->Busy);
 }
@@ -208,20 +230,69 @@ void GC_MarkStructureAtAddress(void** pStructure, IRType* pType);
 void GC_MarkObject(GCObject* pObject)
 {
 	pObject->Flags |= GCObjectFlags_Marked;
-	for (uint32_t index = 0; index < pObject->Type->FieldCount; ++index)
+	if (pObject->Flags & GCObjectFlags_Array)
 	{
-		if (pObject->Type->Fields[index]->FieldType->IsReferenceType)
+		if (pObject->Array.ElementType->IsReferenceType)
 		{
-			void** addressPointer = (void**)((size_t)pObject->Data + pObject->Type->Fields[index]->Offset);
-			if (*addressPointer)
+			for (uint32_t index = 0; index < pObject->Array.Length; index++)
 			{
-				GC_MarkObjectAtAddress(addressPointer);
+				void** addressPointer = (void**)((size_t)pObject->Data + (pObject->Array.ElementType->Size * index));
+				if (*addressPointer)
+				{
+					GC_MarkObjectAtAddress(addressPointer);
+				}
 			}
 		}
-		else if (pObject->Type->Fields[index]->FieldType->IsStructureType)
+		else if (pObject->Array.ElementType->IsStructureType)
 		{
-			void** addressPointer = (void**)((size_t)pObject->Data + pObject->Type->Fields[index]->Offset);
-			GC_MarkStructureAtAddress(addressPointer, pObject->Type->Fields[index]->FieldType);
+			for (uint32_t index = 0; index < pObject->Array.Length; index++)
+			{
+				void** addressPointer = (void**)((size_t)pObject->Data + (pObject->Array.ElementType->Size * index));
+				GC_MarkStructureAtAddress(addressPointer, pObject->Array.ElementType);
+			}
+		}
+
+	}
+	else
+	{
+		for (uint32_t index = 0; index < pObject->Type->FieldCount; ++index)
+		{
+			if (pObject->Type->Fields[index]->FieldType->IsArrayType)
+			{
+				GCObject* object = *(GCObject**)((size_t)*(void**)((size_t)pObject->Data + pObject->Type->Fields[index]->Offset) - gSizeOfPointerInBytes);
+				if (object->Array.ElementType->IsReferenceType)
+				{
+					for (uint32_t index = 0; index < object->Array.Length; index++)
+					{
+						void** addressPointer = (void**)((size_t)object->Data + (object->Array.ElementType->Size * index));
+						if (*addressPointer)
+						{
+							GC_MarkObjectAtAddress(addressPointer);
+						}
+					}
+				}
+				else if (object->Array.ElementType->IsStructureType)
+				{
+					for (uint32_t index = 0; index < object->Array.Length; index++)
+					{
+						void** addressPointer = (void**)((size_t)object->Data + (object->Array.ElementType->Size * index));
+						GC_MarkStructureAtAddress(addressPointer, object->Array.ElementType);
+					}
+				}
+			}
+			else if (pObject->Type->Fields[index]->FieldType->IsReferenceType)
+			{
+				void** addressPointer = (void**)((size_t)pObject->Data + pObject->Type->Fields[index]->Offset);
+				if (*addressPointer)
+				{
+					GC_MarkObjectAtAddress(addressPointer);
+				}
+			}
+			else if (pObject->Type->Fields[index]->FieldType->IsStructureType)
+			{
+				void** addressPointer = (void**)((size_t)pObject->Data + pObject->Type->Fields[index]->Offset);
+				GC_MarkStructureAtAddress(addressPointer, pObject->Type->Fields[index]->FieldType);
+			}
 		}
 	}
 }
@@ -236,7 +307,30 @@ void GC_MarkStructureAtAddress(void** pStructure, IRType* pType)
 {
 	for (uint32_t index = 0; index < pType->FieldCount; ++index)
 	{
-		if (pType->Fields[index]->FieldType->IsReferenceType)
+		if (pType->Fields[index]->FieldType->IsArrayType)
+		{
+			GCObject* object = *(GCObject**)((size_t)*(void**)((size_t)*pStructure + pType->Fields[index]->Offset) - gSizeOfPointerInBytes);
+			if (object->Array.ElementType->IsReferenceType)
+			{
+				for (uint32_t index = 0; index < object->Array.Length; index++)
+				{
+					void** addressPointer = (void**)((size_t)object->Data + (object->Array.ElementType->Size * index));
+					if (*addressPointer)
+					{
+						GC_MarkObjectAtAddress(addressPointer);
+					}
+				}
+			}
+			else if (object->Array.ElementType->IsStructureType)
+			{
+				for (uint32_t index = 0; index < object->Array.Length; index++)
+				{
+					void** addressPointer = (void**)((size_t)object->Data + (object->Array.ElementType->Size * index));
+					GC_MarkStructureAtAddress(addressPointer, object->Array.ElementType);
+				}
+			}
+		}
+		else if (pType->Fields[index]->FieldType->IsReferenceType)
 		{
 			void** addressPointer = (void**)((size_t)*pStructure + pType->Fields[index]->Offset);
 			if (*addressPointer)

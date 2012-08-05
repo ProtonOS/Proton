@@ -86,6 +86,7 @@ GCHeap* GCHeap_Create(uint32_t pHeapSize, uint32_t pInitialPoolSize);
 void GCHeap_Destroy(GCHeap* pGCHeap);
 void GC_AllocateObject(AppDomain* pDomain, IRType* pType, uint32_t pSize, void** pAllocatedObject);
 void GC_AllocateString(AppDomain* pDomain, uint8_t* pString, uint32_t pSize, void** pAllocatedObject);
+void GC_AllocateArray(AppDomain* pDomain, IRType* pArrayType, uint32_t pElementCount, void** pAllocatedObject);
 GCObject* GC_AllocatePinnedObject(GC* pGC, IRType* pType, uint32_t pSize);
 void GC_ApplyPressure(AppDomain* pDomain, uint32_t pBytes);
 

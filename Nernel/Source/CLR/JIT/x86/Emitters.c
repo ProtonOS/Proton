@@ -4585,6 +4585,7 @@ char* JIT_Emit_Copy_Object(char* pCompiledCode, IRMethod* pMethod, IRInstruction
 
 char* JIT_Emit_New_Array(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+
 	return pCompiledCode;
 }
 
