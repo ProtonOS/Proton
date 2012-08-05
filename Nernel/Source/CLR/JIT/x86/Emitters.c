@@ -4532,16 +4532,39 @@ EmitFinished:
 
 char* JIT_Emit_Unbox(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+	IRType* type = (IRType*)pInstruction->Arg1;
+	if (type->IsValueType || type->IsReferenceType)
+	{
+		pCompiledCode = JIT_Emit_Move(pCompiledCode, pMethod, &pInstruction->Source1, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+	}
+	else Panic("Unbox Nullable<T> is not yet supported!");
 	return pCompiledCode;
 }
 
 char* JIT_Emit_UnboxAny(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+	IRType* type = (IRType*)pInstruction->Arg1;
+	if (type->IsValueType)
+	{
+		pCompiledCode = JIT_Emit_LoadDestinationAddress(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG);
+		pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, SECONDARY_REG, THIRD_REG, FOURTH_REG, NULL);
+		size_t sizeOfSource = type->Size;
+		size_t sizeOfDestination = JIT_StackAlign(sizeOfSource);
+		Define_Move_To_Destination(SECONDARY_REG, 0, PRIMARY_REG, 0, THIRD_REG, FALSE, TRUE);
+	}
+	else if(type->IsReferenceType)
+	{
+		pCompiledCode = JIT_Emit_Move(pCompiledCode, pMethod, &pInstruction->Source1, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+	}
+	else Panic("UnboxAny Nullable<T> is not yet supported!");
+
 	return pCompiledCode;
 }
 
 char* JIT_Emit_Throw(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+	x86_push_imm(pCompiledCode, (uint32_t)"An Exception was thrown!");
+	x86_call_code(pCompiledCode, Panic);
 	return pCompiledCode;
 }
 
