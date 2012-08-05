@@ -4570,6 +4570,16 @@ char* JIT_Emit_Throw(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pIns
 
 char* JIT_Emit_Copy_Object(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+	IRType* objectType = (IRType*)pInstruction->Arg2;
+
+	pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL); // Source ptr
+	pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, SECONDARY_REG, THIRD_REG, FOURTH_REG, NULL); // Destination ptr
+
+	size_t sizeOfSource = objectType->Size;
+	if(objectType->IsReferenceType) sizeOfSource = gSizeOfPointerInBytes;
+	size_t sizeOfDestination = sizeOfSource;
+	Define_Move_To_Destination(PRIMARY_REG, 0, SECONDARY_REG, 0, THIRD_REG, FALSE, FALSE);
+
 	return pCompiledCode;
 }
 
