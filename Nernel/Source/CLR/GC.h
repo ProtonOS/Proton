@@ -88,3 +88,5 @@ void GC_AllocateObject(AppDomain* pDomain, IRType* pType, uint32_t pSize, void**
 void GC_AllocateString(AppDomain* pDomain, uint8_t* pString, uint32_t pSize, void** pAllocatedObject);
 GCObject* GC_AllocatePinnedObject(GC* pGC, IRType* pType, uint32_t pSize);
 void GC_ApplyPressure(AppDomain* pDomain, uint32_t pBytes);
+
+void* GCObject_Internal_IsInst(void* pObject, IRType* pType);

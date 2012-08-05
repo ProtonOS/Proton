@@ -113,6 +113,7 @@ IRType* IRType_Create(IRAssembly* pAssembly, TypeDefinition* pTypeDefinition);
 IRType* IRType_Copy(IRType* pType);
 IRType* IRType_GenericDeepCopy(IRType* pType, IRAssembly* pAssembly);
 void IRType_Destroy(IRType* pType);
+bool_t IRType_IsSubclassOf(IRType* pType, IRType* pParentType);
 
 struct _IRMethod
 {

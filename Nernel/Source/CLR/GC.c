@@ -454,3 +454,13 @@ void GC_ApplyPressure(AppDomain* pDomain, uint32_t pBytes)
 	}
 	Atomic_ReleaseLock(&pDomain->GarbageCollector->Busy);
 }
+
+
+void* GCObject_Internal_IsInst(void* pObject, IRType* pType)
+{
+	if (!pObject) return NULL;
+	if (!pType) Panic("This shouldn't be happening");
+	GCObject* object = *(GCObject**)((size_t)pObject - gSizeOfPointerInBytes);
+	if (IRType_IsSubclassOf(object->Type, pType)) return pObject;
+	return NULL;
+}

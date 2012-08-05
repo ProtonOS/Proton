@@ -4425,11 +4425,19 @@ char* JIT_Emit_Convert_Checked(char* pCompiledCode, IRMethod* pMethod, IRInstruc
 
 char* JIT_Emit_CastClass(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+	Panic("CastClass, exceptions not yet supported");
 	return pCompiledCode;
 }
 
 char* JIT_Emit_IsInst(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+	x86_adjust_stack(pCompiledCode, gSizeOfPointerInBytes << 1);
+	x86_mov_membase_imm(pCompiledCode, X86_ESP, gSizeOfPointerInBytes, (size_t)pInstruction->Arg1, gSizeOfPointerInBytes);
+	pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+	x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, PRIMARY_REG, gSizeOfPointerInBytes);
+	x86_call_code(pCompiledCode, GCObject_Internal_IsInst);
+	x86_adjust_stack(pCompiledCode, -(gSizeOfPointerInBytes << 1));
+	pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, X86_EAX, SECONDARY_REG, THIRD_REG, NULL);
 	return pCompiledCode;
 }
 

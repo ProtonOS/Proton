@@ -212,6 +212,31 @@ void IRType_Destroy(IRType* pType)
 	free(pType);
 }
 
+bool_t IRType_IsSubclassOf(IRType* pType, IRType* pParentType)
+{
+	if (pType == pParentType) return TRUE;
+	if (pParentType->IsInterface)
+	{
+		IRInterfaceImpl* lookupType = NULL;
+		HASH_FIND(HashHandle, pType->InterfaceTable, pParentType, sizeof(void*), lookupType);
+		if (lookupType) return TRUE;
+	}
+
+	if (pType->TypeDefinition->Extends.TypeDefinition == NULL) return FALSE;
+	switch(pType->TypeDefinition->TypeOfExtends)
+	{
+		case TypeDefRefOrSpecType_TypeDefinition:
+			return IRType_IsSubclassOf(pType->TypeDefinition->Extends.TypeDefinition->File->Assembly->Types[pType->TypeDefinition->Extends.TypeDefinition->TableIndex - 1], pParentType);
+			break;
+		case TypeDefRefOrSpecType_TypeReference:
+			return IRType_IsSubclassOf(pType->TypeDefinition->Extends.TypeReference->ResolvedType->File->Assembly->Types[pType->TypeDefinition->Extends.TypeReference->ResolvedType->TableIndex - 1], pParentType);
+			break;
+		case TypeDefRefOrSpecType_TypeSpecification:
+			Panic("This isn't supported yet, cannot determine the inheritence chain of a generic class yet.");
+			break;
+	}
+	Panic("Invalid TypeOfExtends!");
+}
 
 IRMethod* IRMethod_Create(IRAssembly* pAssembly, MethodDefinition* pMethodDefinition)
 {
