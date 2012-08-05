@@ -2267,6 +2267,19 @@ char* JIT_Emit_Return(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pIn
 
 char* JIT_Emit_Load_String(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+	// No need to adjust stack stream, AllocateString does not call back into managed code
+	// and maintains GC lock until it has written to the void** in ESP+8, which points to
+	// the destination local variable directly, ensuring GC won't fail to mark it as alive,
+	// and no harm done if GC interrupts after adjusting stack but before call completes as
+	// long as stack streams are cleared to zero when managed calls return
+	x86_adjust_stack(pCompiledCode, (gSizeOfPointerInBytes << 1) + 4);
+	x86_mov_membase_reg(pCompiledCode, X86_ESP, 8, X86_EBP, gSizeOfPointerInBytes);
+	x86_alu_membase_imm(pCompiledCode, X86_SUB, X86_ESP, 8, pMethod->LocalVariables[pInstruction->Destination.Data.LocalVariable.LocalVariableIndex]->Offset);
+	x86_mov_membase_imm(pCompiledCode, X86_ESP, 4, (uint32_t)pInstruction->Arg1, 4);
+	x86_mov_membase_imm(pCompiledCode, X86_ESP, 0, (size_t)pInstruction->Arg2, gSizeOfPointerInBytes);
+	x86_call_code(pCompiledCode, GC_AllocateString);
+	x86_adjust_stack(pCompiledCode, -((gSizeOfPointerInBytes << 1) + 4));
+	
 	return pCompiledCode;
 }
 

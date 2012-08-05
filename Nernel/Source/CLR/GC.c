@@ -127,19 +127,45 @@ GCObject* GCHeap_Allocate(GCHeap*** pGCHeaps, uint32_t* pGCHeapCount, uint32_t p
     return object;
 }
 
-void GC_AllocateObject(GC* pGC, IRType* pType, uint32_t pSize, GCObject** pAllocatedObject)
+void GC_AllocateObject(IRType* pType, uint32_t pSize, void** pAllocatedObject)
 {
 	if (pSize >= 0x7FFFFFFF) Panic("GC_AllocateObject pSize >= 0x7FFFFFFF");
-	Atomic_AquireLock(&pGC->Busy);
+	Thread* currentThread = GetCurrentThread();
+	GC* gc = currentThread->Domain->GarbageCollector;
+	Atomic_AquireLock(&gc->Busy);
     GCObject* object = NULL;
     if (pSize <= GCHeap__SmallHeap_Size - sizeof(GCObject*))
-        object = GCHeap_Allocate(&pGC->SmallGeneration0Heaps, &pGC->SmallGeneration0HeapCount, GCHeap__SmallHeap_Size, pSize);
+        object = GCHeap_Allocate(&gc->SmallGeneration0Heaps, &gc->SmallGeneration0HeapCount, GCHeap__SmallHeap_Size, pSize);
     else if (pSize <= GCHeap__LargeHeap_Size - sizeof(GCObject*))
-        object = GCHeap_Allocate(&pGC->LargeHeaps, &pGC->LargeHeapCount, GCHeap__LargeHeap_Size, pSize);
-    else object = GCHeap_Allocate(&pGC->LargeHeaps, &pGC->LargeHeapCount, pSize + sizeof(GCObject*), pSize);
+        object = GCHeap_Allocate(&gc->LargeHeaps, &gc->LargeHeapCount, GCHeap__LargeHeap_Size, pSize);
+    else object = GCHeap_Allocate(&gc->LargeHeaps, &gc->LargeHeapCount, pSize + sizeof(GCObject*), pSize);
 	object->Type = pType;
-	*pAllocatedObject = object;
-	Atomic_ReleaseLock(&pGC->Busy);
+	*pAllocatedObject = object->Data;
+	Atomic_ReleaseLock(&gc->Busy);
+}
+
+void GC_AllocateString(uint8_t* pString, uint32_t pSize, void** pAllocatedObject)
+{
+	if (pSize >= 0x7FFFFFFF) Panic("GC_AllocateString pSize >= 0x7FFFFFFF");
+	Thread* currentThread = GetCurrentThread();
+	GC* gc = currentThread->Domain->GarbageCollector;
+	Atomic_AquireLock(&gc->Busy);
+    GCObject* object = NULL;
+	HASH_FIND(String.HashHandle, gc->StringHashTable, pString, pSize, object);
+	if (!object)
+	{
+		if (pSize <= GCHeap__SmallHeap_Size - sizeof(GCObject*))
+			object = GCHeap_Allocate(&gc->SmallGeneration0Heaps, &gc->SmallGeneration0HeapCount, GCHeap__SmallHeap_Size, pSize);
+		else if (pSize <= GCHeap__LargeHeap_Size - sizeof(GCObject*))
+			object = GCHeap_Allocate(&gc->LargeHeaps, &gc->LargeHeapCount, GCHeap__LargeHeap_Size, pSize);
+		else object = GCHeap_Allocate(&gc->LargeHeaps, &gc->LargeHeapCount, pSize + sizeof(GCObject*), pSize);
+		object->Type = gc->Domain->IRAssemblies[0]->Types[gc->Domain->CachedType___System_String->TableIndex - 1];
+		object->Flags |= GCObjectFlags_String;
+		memcpy(object->Data, pString, pSize);
+		HASH_ADD(String.HashHandle, gc->StringHashTable, Data, pSize, object);
+	}
+	*pAllocatedObject = object->Data;
+	Atomic_ReleaseLock(&gc->Busy);
 }
 
 GCObject* GC_AllocatePinnedObject(GC* pGC, IRType* pType, uint32_t pSize)
