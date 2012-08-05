@@ -130,6 +130,7 @@ struct _IRMethod
 	uint32_t LocalVariableCount;
 	IRLocalVariable** LocalVariables;
 	bool_t LocalsLayedOut;
+	uint32_t LocalsSize;
 
 	uint32_t IRCodesCount;
 	IRInstruction** IRCodes;

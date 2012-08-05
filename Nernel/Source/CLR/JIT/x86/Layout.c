@@ -82,7 +82,6 @@ void JIT_CalculateParameterLayout(IRMethod* pMethod)
 	if (!pMethod->ParametersLayedOut)
 	{
 		IRParameter* parameter = NULL;
-		// Accounts for caller IRMethod*, AppDomain*, Reent*, return pointer, and saved stack frame in parameters space
 		uint32_t offset = 2 * gSizeOfPointerInBytes;
 		Log_WriteLine(LOGLEVEL__JIT_Layout, "Laying Out Parameters of %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
 		for (uint32_t index = 0; index < pMethod->ParameterCount; ++index)
@@ -113,6 +112,11 @@ void JIT_CalculateLocalLayout(IRMethod* pMethod)
 			local->Offset = offset;
 			Log_WriteLine(LOGLEVEL__JIT_Layout, "Layout Local %u @ 0x%x, Size: 0x%x, Aligned: 0x%x", (unsigned int)index, (unsigned int)local->Offset, (unsigned int)local->Size, (unsigned int)JIT_StackAlign(local->Size));
 		}
+		if (offset & 0x1F)
+		{
+			offset += 32 - (offset & 0x1F);
+		}
+		pMethod->LocalsSize = offset;
 		pMethod->LocalsLayedOut = TRUE;
 	}
 }

@@ -2194,11 +2194,7 @@ char* JIT_Emit_Prologue(char* pCompiledCode, IRMethod* pMethod)
 	// Load new stack frame
 	x86_mov_reg_reg(pCompiledCode, X86_EBP, X86_ESP, gSizeOfPointerInBytes);
 
-	uint32_t localsSize = 0;
-	if (pMethod->LocalVariableCount)
-	{
-		localsSize = pMethod->LocalVariables[pMethod->LocalVariableCount - 1]->Offset;
-	}
+	uint32_t localsSize = pMethod->LocalsSize;
 
 	// Create stack space for locals
 	x86_adjust_stack(pCompiledCode, -((int32_t)localsSize));
