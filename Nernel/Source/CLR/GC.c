@@ -167,7 +167,8 @@ void GCHeap_Sweep(GCHeap** pGCHeaps, uint32_t pGCHeapCount, AppDomain* pDomain)
 		{
 			GCObject* object = heap->ObjectPool[objectIndex];
 			if (!(object->Flags & GCObjectFlags_Marked) &&
-				!(object->Flags & GCObjectFlags_Disposed))
+				!(object->Flags & GCObjectFlags_Disposed) &&
+				!(object->Flags & GCObjectFlags_Pinned))
 			{
 				if (object->Type->Finalizer) JIT_ExecuteMethod(object->Type->Finalizer, pDomain);
 				object->Flags |= GCObjectFlags_Disposed;
