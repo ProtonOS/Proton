@@ -406,6 +406,58 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 	return pCompiledCode;
 }
 
+char* JIT_Emit_LoadDestinationAddress(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pDestination, X86_Reg_No pRegister1, X86_Reg_No pRegister2, X86_Reg_No pRegister3)
+{
+	switch (pDestination->Type)
+	{
+		case SourceType_Local:
+			x86_mov_reg_reg(pCompiledCode, pRegister1, X86_EBP, gSizeOfPointerInBytes);
+			if(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset)
+			{
+				x86_alu_reg_imm(pCompiledCode, X86_SUB, pRegister1, pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset);
+			}
+			break;
+		case SourceType_Parameter:
+			x86_mov_reg_reg(pCompiledCode, pRegister1, X86_EBP, gSizeOfPointerInBytes);
+			if(pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset)
+			{
+				x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister1, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset);
+			}
+			break;
+		case SourceType_Field:
+			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Field.FieldSource, pRegister1, pRegister2, pRegister3, NULL);
+			if (pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex]->Offset)
+			{
+				x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister1, pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex]->Offset);
+			}
+			break;
+		case SourceType_StaticField:
+			x86_mov_reg_reg(pCompiledCode, pRegister1, X86_EDI, gSizeOfPointerInBytes);
+			x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister1, offsetof(AppDomain, StaticValues));
+			x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister1, 0, gSizeOfPointerInBytes);
+			x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister1, (gSizeOfPointerInBytes * pDestination->Data.StaticField.Field->ParentAssembly->AssemblyIndex));
+			x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister1, 0, gSizeOfPointerInBytes);
+			x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister1, pDestination->Data.StaticField.Field->Offset);
+			break;
+		case SourceType_Indirect:
+			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Indirect.AddressSource, pRegister1, pRegister2, pRegister3, NULL);
+			break;
+		case SourceType_ArrayElement:
+			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.ArrayElement.ArraySource, pRegister1, pRegister2, pRegister3, NULL);
+			x86_push_reg(pCompiledCode, pRegister1);
+			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.ArrayElement.IndexSource, pRegister2, pRegister3, pRegister1, NULL);
+			x86_pop_reg(pCompiledCode, pRegister1);
+			if (pDestination->Data.ArrayElement.ElementType->Size != 1)
+			{
+				x86_imul_reg_reg_imm(pCompiledCode, pRegister2, pRegister2, pDestination->Data.ArrayElement.ElementType->Size);
+			}
+			x86_alu_reg_reg(pCompiledCode, X86_ADD, pRegister1, pRegister2);
+			break;
+		Define_Bad_Destinations();
+	}
+	return pCompiledCode;
+}
+
 char* JIT_Emit_Store(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pDestination, X86_Reg_No pRegister1, X86_Reg_No pRegister2, X86_Reg_No pRegister3, size_t* pSize)
 {
 	uint32_t sizeOfDestination = 0;
@@ -2273,14 +2325,17 @@ char* JIT_Emit_Load_String(char* pCompiledCode, IRMethod* pMethod, IRInstruction
 	// No harm is done if GC interrupts after adjusting stack but before call completes as
 	// long as stack streams are cleared to zero when managed calls return so that the bits
 	// are zero for these values if the GC does interrupt
-	x86_adjust_stack(pCompiledCode, (gSizeOfPointerInBytes * 3) + 4);
-	x86_mov_membase_reg(pCompiledCode, X86_ESP, 12, X86_EBP, gSizeOfPointerInBytes);
-	x86_alu_membase_imm(pCompiledCode, X86_SUB, X86_ESP, 12, pMethod->LocalVariables[pInstruction->Destination.Data.LocalVariable.LocalVariableIndex]->Offset);
+	pCompiledCode = JIT_Emit_LoadDestinationAddress(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG);
+	x86_adjust_stack(pCompiledCode, (gSizeOfPointerInBytes * 4) + 4);
+	x86_mov_membase_reg(pCompiledCode, X86_ESP, 16, PRIMARY_REG, gSizeOfPointerInBytes);
+	x86_mov_reg_reg(pCompiledCode, PRIMARY_REG, X86_ESP, gSizeOfPointerInBytes);
+	x86_alu_reg_imm(pCompiledCode, X86_ADD, PRIMARY_REG, 16);
+	x86_mov_membase_reg(pCompiledCode, X86_ESP, 12, PRIMARY_REG, gSizeOfPointerInBytes);
 	x86_mov_membase_imm(pCompiledCode, X86_ESP, 8, (uint32_t)pInstruction->Arg1, 4);
 	x86_mov_membase_imm(pCompiledCode, X86_ESP, 4, (size_t)pInstruction->Arg2, gSizeOfPointerInBytes);
 	x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, X86_EDI, gSizeOfPointerInBytes);
 	x86_call_code(pCompiledCode, GC_AllocateString);
-	x86_adjust_stack(pCompiledCode, -((gSizeOfPointerInBytes * 3) + 4));
+	x86_adjust_stack(pCompiledCode, -((gSizeOfPointerInBytes * 4) + 4));
 	
 	return pCompiledCode;
 }
@@ -4441,17 +4496,46 @@ char* JIT_Emit_IsInst(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pIn
 	return pCompiledCode;
 }
 
+char* JIT_Emit_Box(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
+{
+	IRType* type = (IRType*)pInstruction->Arg1;
+	if (type->IsReferenceType)
+	{
+		pCompiledCode = JIT_Emit_Move(pCompiledCode, pMethod, &pInstruction->Source1, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+		goto EmitFinished;
+	}
+	if (!type->IsValueType) Panic("Nullable<T> not yet supported");
+
+	pCompiledCode = JIT_Emit_LoadDestinationAddress(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG);
+	x86_adjust_stack(pCompiledCode, (gSizeOfPointerInBytes * 4) + 4);
+	x86_mov_membase_reg(pCompiledCode, X86_ESP, 16, PRIMARY_REG, gSizeOfPointerInBytes);
+	x86_mov_reg_reg(pCompiledCode, PRIMARY_REG, X86_ESP, gSizeOfPointerInBytes);
+	x86_alu_reg_imm(pCompiledCode, X86_ADD, PRIMARY_REG, 16);
+	x86_mov_membase_reg(pCompiledCode, X86_ESP, 12, PRIMARY_REG, gSizeOfPointerInBytes);
+	x86_mov_membase_imm(pCompiledCode, X86_ESP, 8, type->Size, 4);
+	x86_mov_membase_imm(pCompiledCode, X86_ESP, 4, (size_t)type, gSizeOfPointerInBytes);
+	x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, X86_EDI, gSizeOfPointerInBytes);
+	x86_call_code(pCompiledCode, GC_AllocateObject);
+	x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, X86_ESP, 16, gSizeOfPointerInBytes);
+	x86_adjust_stack(pCompiledCode, -((gSizeOfPointerInBytes * 4) + 4));
+
+	size_t sizeOfSource = 0;
+	pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Destination, SECONDARY_REG, THIRD_REG, FOURTH_REG, &sizeOfSource);
+	if (sizeOfSource <= gSizeOfPointerInBytes) x86_push_reg(pCompiledCode, SECONDARY_REG);
+	size_t sizeOfDestination = type->Size;
+	Define_Move_To_Destination(X86_ESP, 0, PRIMARY_REG, 0, SECONDARY_REG, TRUE, FALSE);
+	x86_adjust_stack(pCompiledCode, -sizeOfSource);
+
+EmitFinished:
+	return pCompiledCode;
+}
+
 char* JIT_Emit_Unbox(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
 	return pCompiledCode;
 }
 
 char* JIT_Emit_UnboxAny(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
-{
-	return pCompiledCode;
-}
-
-char* JIT_Emit_Box(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
 	return pCompiledCode;
 }
