@@ -127,11 +127,10 @@ GCObject* GCHeap_Allocate(GCHeap*** pGCHeaps, uint32_t* pGCHeapCount, uint32_t p
     return object;
 }
 
-void GC_AllocateObject(IRType* pType, uint32_t pSize, void** pAllocatedObject)
+void GC_AllocateObject(AppDomain* pDomain, IRType* pType, uint32_t pSize, void** pAllocatedObject)
 {
 	if (pSize >= 0x7FFFFFFF) Panic("GC_AllocateObject pSize >= 0x7FFFFFFF");
-	Thread* currentThread = GetCurrentThread();
-	GC* gc = currentThread->Domain->GarbageCollector;
+	GC* gc = pDomain->GarbageCollector;
 	Atomic_AquireLock(&gc->Busy);
     GCObject* object = NULL;
     if (pSize <= GCHeap__SmallHeap_Size - sizeof(GCObject*))
@@ -144,11 +143,10 @@ void GC_AllocateObject(IRType* pType, uint32_t pSize, void** pAllocatedObject)
 	Atomic_ReleaseLock(&gc->Busy);
 }
 
-void GC_AllocateString(uint8_t* pString, uint32_t pSize, void** pAllocatedObject)
+void GC_AllocateString(AppDomain* pDomain, uint8_t* pString, uint32_t pSize, void** pAllocatedObject)
 {
 	if (pSize >= 0x7FFFFFFF) Panic("GC_AllocateString pSize >= 0x7FFFFFFF");
-	Thread* currentThread = GetCurrentThread();
-	GC* gc = currentThread->Domain->GarbageCollector;
+	GC* gc = pDomain->GarbageCollector;
 	Atomic_AquireLock(&gc->Busy);
     GCObject* object = NULL;
 	HASH_FIND(String.HashHandle, gc->StringHashTable, pString, pSize, object);
