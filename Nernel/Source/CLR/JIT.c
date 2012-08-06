@@ -17,10 +17,20 @@ void JIT_CompileMethod(IRMethod* pMethod)
 {
 	if (pMethod->AssembledMethod) return;
 
-	ILDecomposition_ConvertInstructions(pMethod);
-	IROptimizer_Optimize(pMethod);
+	if (!pMethod->MethodDefinition->InternalCall)
+	{
+		ILDecomposition_ConvertInstructions(pMethod);
+		IROptimizer_Optimize(pMethod);
+	}
 
 	JIT_CalculateParameterLayout(pMethod);
+
+	if (pMethod->MethodDefinition->InternalCall)
+	{
+		pMethod->AssembledMethod = pMethod->MethodDefinition->InternalCall;
+		return;
+	}
+
 	JIT_CalculateLocalLayout(pMethod);
 
 	uint32_t compiledCodeLength = pMethod->IRCodesCount * 128;

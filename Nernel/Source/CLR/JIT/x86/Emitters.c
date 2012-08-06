@@ -5072,6 +5072,84 @@ char* JIT_Emit_Jump(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInst
 
 char* JIT_Emit_New_Object(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+	IRMethod* method = (IRMethod*)pInstruction->Arg1;
+	IRType* type = method->ParentAssembly->Types[method->MethodDefinition->TypeDefinition->TableIndex - 1];
+	pCompiledCode = JIT_Emit_LoadDestinationAddress(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG);
+
+	if (!method->AssembledMethod) JIT_CompileMethod(method);
+
+	if (type->TypeDefinition != method->ParentAssembly->ParentDomain->CachedType___System_String)
+	{
+		x86_adjust_stack(pCompiledCode, (gSizeOfPointerInBytes * 3) + 4);
+		x86_mov_membase_reg(pCompiledCode, X86_ESP, 12, PRIMARY_REG, gSizeOfPointerInBytes);
+		x86_mov_membase_imm(pCompiledCode, X86_ESP, 8, type->Size, 4);
+		x86_mov_membase_imm(pCompiledCode, X86_ESP, 4, (size_t)type, gSizeOfPointerInBytes);
+		x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, X86_EDI, gSizeOfPointerInBytes);
+		x86_call_code(pCompiledCode, GC_AllocateObject);
+		x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, X86_ESP, 12, gSizeOfPointerInBytes); // Contains GCObject->Data**
+		x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, PRIMARY_REG, 0, gSizeOfPointerInBytes); // Contains GCObject->Data*
+		x86_adjust_stack(pCompiledCode, -((gSizeOfPointerInBytes * 3) + 4));
+
+		uint32_t parametersSize = 0;
+		size_t sizeOfParameter = 0;
+		for (uint32_t index = 0; index < pInstruction->SourceArrayLength; ++index)
+		{
+			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->SourceArray[index], SECONDARY_REG, THIRD_REG, FOURTH_REG, &sizeOfParameter);
+			if (sizeOfParameter <= gSizeOfPointerInBytes) x86_push_reg(pCompiledCode, SECONDARY_REG);
+			parametersSize += JIT_StackAlign(sizeOfParameter);
+		}
+		x86_push_reg(pCompiledCode, PRIMARY_REG); // Push the GCObject->Data* (this reference)
+		parametersSize += gSizeOfPointerInBytes;
+		if (method->MethodDefinition->InternalCall)
+		{
+			// Internal calls must push domain pointer (EDI) and stream pointer (ESI) to stack as first two parameters
+			x86_adjust_stack(pCompiledCode, gSizeOfPointerInBytes << 1);
+			x86_mov_membase_reg(pCompiledCode, X86_ESP, gSizeOfPointerInBytes, X86_ESI, gSizeOfPointerInBytes);
+			x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, X86_EDI, gSizeOfPointerInBytes);
+			parametersSize += gSizeOfPointerInBytes << 1;
+		}
+
+		x86_call_code(pCompiledCode, method->AssembledMethod);
+		if (method->MethodDefinition->InternalCall)
+		{
+			// Internal calls must restore domain pointer (EDI) and stream pointer (ESI) from first two parameters
+			// when returning to managed code
+			x86_mov_reg_membase(pCompiledCode, X86_ESI, X86_ESP, gSizeOfPointerInBytes, gSizeOfPointerInBytes);
+			x86_mov_reg_membase(pCompiledCode, X86_EDI, X86_ESP, 0, gSizeOfPointerInBytes);
+		}
+		x86_adjust_stack(pCompiledCode, -parametersSize);
+	}
+	else
+	{
+		// String constructors are all internal calls, but we need to mangle the way they work a bit, since they are only
+		// ever called from here, it should be alright
+		// First, they will return their own new object from the constructor, due to dynamic size allocation and the hash table
+		// Secondly, since they are internal calls they must pass the domain and stream pointers on stack, but they do not
+		// take an existing "this" reference, so we will put the output parameter void** for the allocated object there instead
+		// just for string constructors to pass their newly allocated object back directly to the destination address
+		uint32_t parametersSize = 0;
+		size_t sizeOfParameter = 0;
+		for (uint32_t index = 0; index < pInstruction->SourceArrayLength; ++index)
+		{
+			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->SourceArray[index], SECONDARY_REG, THIRD_REG, FOURTH_REG, &sizeOfParameter);
+			if (sizeOfParameter <= gSizeOfPointerInBytes) x86_push_reg(pCompiledCode, SECONDARY_REG);
+			parametersSize += JIT_StackAlign(sizeOfParameter);
+		}
+		x86_adjust_stack(pCompiledCode, gSizeOfPointerInBytes * 3);
+		x86_mov_membase_reg(pCompiledCode, X86_ESP, gSizeOfPointerInBytes << 1, PRIMARY_REG, gSizeOfPointerInBytes); // Contains GCObject->Data**, instead of GCObject->Data*
+		// Internal calls must push domain pointer (EDI) and stream pointer (ESI) to stack as first two parameters
+		x86_mov_membase_reg(pCompiledCode, X86_ESP, gSizeOfPointerInBytes, X86_ESI, gSizeOfPointerInBytes);
+		x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, X86_EDI, gSizeOfPointerInBytes);
+		parametersSize += gSizeOfPointerInBytes * 3;
+
+		x86_call_code(pCompiledCode, method->AssembledMethod);
+		// Internal calls must restore domain pointer (EDI) and stream pointer (ESI) from first two parameters
+		// when returning to managed code
+		x86_mov_reg_membase(pCompiledCode, X86_ESI, X86_ESP, gSizeOfPointerInBytes, gSizeOfPointerInBytes);
+		x86_mov_reg_membase(pCompiledCode, X86_EDI, X86_ESP, 0, gSizeOfPointerInBytes);
+		x86_adjust_stack(pCompiledCode, -parametersSize);
+	}
+
 	return pCompiledCode;
 }
 
