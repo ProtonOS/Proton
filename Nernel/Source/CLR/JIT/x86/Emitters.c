@@ -4842,6 +4842,10 @@ char* JIT_Emit_Switch(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pIn
 
 char* JIT_Emit_Load_Function(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+	IRMethod* method = (IRMethod*)pInstruction->Arg1;
+	if (!method->AssembledMethod) JIT_CompileMethod(method);
+	x86_mov_reg_imm(pCompiledCode, PRIMARY_REG, method->AssembledMethod);
+	pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
 	return pCompiledCode;
 }
 
