@@ -13,7 +13,8 @@ namespace Mernel
             int z = y; // z0 = y0
             if (z != 0) z = z + 1; // if (z0 != 0) z1 = z0 + 1;
             z = z + 1; // z3 = (z2 = phi(z0, z1)) + 1
-
+            RuntimeTypeHandle handle = new RuntimeTypeHandle();
+            IntPtr a = handle.Value;
             //switch (z) // switch (z3)
             //{
             //    case 0: y = 0; break; // y1 = 0

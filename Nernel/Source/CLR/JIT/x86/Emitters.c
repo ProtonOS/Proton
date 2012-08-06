@@ -5028,6 +5028,8 @@ char* JIT_Emit_Compare(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pI
 
 char* JIT_Emit_Load_Token(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+	x86_mov_reg_imm(pCompiledCode, PRIMARY_REG, pInstruction->Arg3);
+	pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
 	return pCompiledCode;
 }
 
