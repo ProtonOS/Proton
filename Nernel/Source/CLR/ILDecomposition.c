@@ -1638,7 +1638,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				strLength -= 1; // Remove the null terminator
 				CLIFile_DestroyMetadataToken(token);
 
-				EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Load_String, (uint32_t*)strLength, str);
+				EMIT_IR_2ARG_NO_DISPOSE(IROpcode_Load_String, (uint32_t*)(strLength >> 1), str);
 
 				StackObject* obj = SA();
 				obj->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_String->TableIndex - 1];

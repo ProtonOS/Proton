@@ -223,10 +223,10 @@ typedef enum IROpcode
 			... -> ..., string
 
 		Arg1: uint32_t
-			The length of the string.
+			The length of the string in characters.
 
 		Arg2: uint8_t*
-			A pointer to the string data.
+			A pointer to the unicode character data.
 
 		Arg3:
 			N/A

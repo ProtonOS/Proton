@@ -17,6 +17,7 @@
     <ClCompile Include="Source\CLR\ILDecomposition.c" />
     <ClCompile Include="Source\CLR\InternalCalls.c" />
     <ClCompile Include="Source\CLR\InternalCalls\Proton.IO.PortIO.c" />
+    <ClCompile Include="Source\CLR\InternalCalls\System.String.c" />
     <ClCompile Include="Source\CLR\IROptimizer.c" />
     <ClCompile Include="Source\CLR\IRStructures.c" />
     <ClCompile Include="Source\CLR\JIT\BranchRegistry.c" />
@@ -68,6 +69,7 @@
     <ClInclude Include="Source\CLR\ILDecomposition.h" />
     <ClInclude Include="Source\CLR\InternalCalls.h" />
     <ClInclude Include="Source\CLR\InternalCalls\Proton.IO.PortIO.h" />
+    <ClInclude Include="Source\CLR\InternalCalls\System.String.h" />
     <ClInclude Include="Source\CLR\IROpcode.h" />
     <ClInclude Include="Source\CLR\IROptimizer.h" />
     <ClInclude Include="Source\CLR\IRStructures.h" />

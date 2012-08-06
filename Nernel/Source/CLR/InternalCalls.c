@@ -1,5 +1,6 @@
 #include <CLR/InternalCalls.h>
 #include <CLR/InternalCalls/Proton.IO.PortIO.h>
+#include <CLR/InternalCalls/System.String.h>
 
 
 const InternalCall InternalCallTable[] = 
@@ -11,6 +12,7 @@ const InternalCall InternalCallTable[] =
 	{	NULL,				NULL,				"OutUShort",			SignatureElementType_Void,		2,	{ SignatureElementType_U4, SignatureElementType_U2 }, &Proton_IO_PortIO_OutUShort },
 	{	NULL,				NULL,				"OutUInt",				SignatureElementType_Void,		2,	{ SignatureElementType_U4, SignatureElementType_U4 }, &Proton_IO_PortIO_OutUInt },
 
+	{	"System",			"String",			".ctor",				SignatureElementType_Void,		2,	{ SignatureElementType_Char, SignatureElementType_I4 }, &System_String_Ctor_CharAndCount },
 
 	{	NULL,				NULL,				NULL,					SignatureElementType_End,		0,	{ }, NULL }
 };
@@ -115,7 +117,7 @@ void* ILDecomposition_ResolveInternalCall(MethodDefinition* pMethodDefinition, C
 
 	Log_WriteLine(LOGLEVEL__Link_Internals, "InternalCall Missing: %s.%s.%s", pMethodDefinition->TypeDefinition->Namespace, pMethodDefinition->TypeDefinition->Name, pMethodDefinition->Name);
 	if (sig->ReturnType->Void) { Log_WriteLine(LOGLEVEL__Link_Internals, "                      Returns  = Void"); }
-	else if (sig->ReturnType->TypedByReference) { Log_WriteLine(LOGLEVEL__Link_Internals, "                      Returns  = TypedByReference"); }
+	else if (sig->ReturnType->TypedByReference) { Log_WriteLine(LOGLEVEL__Link_Internals, "                      Returns  = TypedReference"); }
 	else { Log_WriteLine(LOGLEVEL__Link_Internals, "                      Returns  = type 0x%x", sig->ReturnType->Type->ElementType); }
 	for (uint32_t index = 0; index < pMethodDefinition->ParameterListCount; ++index) { Log_WriteLine(LOGLEVEL__Link_Internals, "                      Param[%u] = %s, type 0x%x", (unsigned int)index, pMethodDefinition->ParameterList[index].Name, sig->Parameters[index]->Type->ElementType); }
 
