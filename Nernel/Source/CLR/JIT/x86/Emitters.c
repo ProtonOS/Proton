@@ -4815,6 +4815,28 @@ char* JIT_Emit_Branch(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pIn
 
 char* JIT_Emit_Switch(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+	uint32_t targetCount = *(uint32_t*)pInstruction->Arg1;
+	IRInstruction** targets = (IRInstruction**)pInstruction->Arg2;
+
+	pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+	x86_alu_reg_imm(pCompiledCode, X86_CMP, PRIMARY_REG, targetCount);
+	unsigned char* jumpToDefault = (unsigned char*)pCompiledCode;
+	x86_branch32(pCompiledCode, X86_CC_AE, 0, FALSE);
+	x86_shift_reg_imm(pCompiledCode, X86_SHL, PRIMARY_REG, 2);
+	unsigned char* skipTable = (unsigned char*)pCompiledCode;
+	x86_jump32(pCompiledCode, 0);
+	uint32_t switchTableLocation = (uint32_t)pCompiledCode;
+	for (uint32_t index = 0; index < targetCount; ++index)
+	{
+		BranchRegistry_RegisterSpecialBranch(pBranchRegistry, pInstruction->ILLocation + (index << 2), targets[index]->ILLocation, pCompiledCode);
+		x86_imm_emit32(pCompiledCode, targets[index]->ILLocation);
+	}
+	x86_patch(skipTable, (unsigned char*)pCompiledCode);
+	x86_alu_reg_imm(pCompiledCode, X86_ADD, PRIMARY_REG, switchTableLocation);
+	x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, PRIMARY_REG, 0, 4);
+	x86_jump_reg(pCompiledCode, PRIMARY_REG);
+	// After this is the default case.
+	x86_patch(jumpToDefault, (unsigned char*)pCompiledCode);
 	return pCompiledCode;
 }
 
