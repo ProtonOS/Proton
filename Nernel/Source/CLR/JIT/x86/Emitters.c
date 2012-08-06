@@ -4596,26 +4596,60 @@ char* JIT_Emit_New_Array(char* pCompiledCode, IRMethod* pMethod, IRInstruction* 
 
 char* JIT_Emit_CheckFinite(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+	x86_push_imm(pCompiledCode, (uint32_t)"CheckFinite is not yet supported!");
+	x86_call_code(pCompiledCode, Panic);
 	return pCompiledCode;
 }
 
 char* JIT_Emit_Allocate_Local(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+	Panic("AllocateLocal emitter not yet implemented!");
 	return pCompiledCode;
 }
 
 char* JIT_Emit_Initialize_Object(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+	IRType* objectType = (IRType*)pInstruction->Arg2;
+	uint32_t blockCount = objectType->Size >> gPointerDivideShift;
+	uint32_t remainderCount = objectType->Size & (gSizeOfPointerInBytes - 1);
+	pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+	for (uint32_t index = 0; index < blockCount; ++index)
+	{
+		x86_mov_membase_imm(pCompiledCode, PRIMARY_REG, index * gSizeOfPointerInBytes, 0, gSizeOfPointerInBytes);
+	}
+	if (remainderCount)
+	{
+		x86_mov_membase_imm(pCompiledCode, PRIMARY_REG, blockCount * gSizeOfPointerInBytes, 0, remainderCount);
+	}
+	
 	return pCompiledCode;
 }
 
 char* JIT_Emit_Copy_Block(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+	x86_adjust_stack(pCompiledCode, gSizeOfPointerInBytes * 3);
+	pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+	x86_mov_membase_reg(pCompiledCode, X86_ESP, gSizeOfPointerInBytes << 1, PRIMARY_REG, gSizeOfPointerInBytes);
+	pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+	x86_mov_membase_reg(pCompiledCode, X86_ESP, gSizeOfPointerInBytes, PRIMARY_REG, gSizeOfPointerInBytes);
+	pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source3, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+	x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, PRIMARY_REG, gSizeOfPointerInBytes);
+	x86_call_code(pCompiledCode, memcpy);
+	x86_adjust_stack(pCompiledCode, -(gSizeOfPointerInBytes * 3));
 	return pCompiledCode;
 }
 
 char* JIT_Emit_Initialize_Block(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+	x86_adjust_stack(pCompiledCode, gSizeOfPointerInBytes * 3);
+	pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+	x86_mov_membase_reg(pCompiledCode, X86_ESP, gSizeOfPointerInBytes << 1, PRIMARY_REG, gSizeOfPointerInBytes);
+	pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+	x86_mov_membase_reg(pCompiledCode, X86_ESP, gSizeOfPointerInBytes, PRIMARY_REG, gSizeOfPointerInBytes);
+	pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source3, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+	x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, PRIMARY_REG, gSizeOfPointerInBytes);
+	x86_call_code(pCompiledCode, memset);
+	x86_adjust_stack(pCompiledCode, -(gSizeOfPointerInBytes * 3));
 	return pCompiledCode;
 }
 
