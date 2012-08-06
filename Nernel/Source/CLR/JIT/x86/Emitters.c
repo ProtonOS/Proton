@@ -5035,6 +5035,12 @@ char* JIT_Emit_Load_Token(char* pCompiledCode, IRMethod* pMethod, IRInstruction*
 
 char* JIT_Emit_MkRefAny(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+	pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+	x86_adjust_stack(pCompiledCode, gSizeOfPointerInBytes * 3);
+	x86_mov_membase_imm(pCompiledCode, X86_ESP, gSizeOfPointerInBytes << 1, 0, gSizeOfPointerInBytes);
+	x86_mov_membase_reg(pCompiledCode, X86_ESP, gSizeOfPointerInBytes, PRIMARY_REG, gSizeOfPointerInBytes);
+	x86_mov_membase_imm(pCompiledCode, X86_ESP, 0, (size_t)pInstruction->Arg2, gSizeOfPointerInBytes);
+	pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
 	return pCompiledCode;
 }
 
