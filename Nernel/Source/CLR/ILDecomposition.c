@@ -2207,19 +2207,19 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 BranchCommon:
             {
                 branchTarget = ((((size_t)(*currentDataPointer)) - originalDataPointer) + ((int32_t)branchTarget));
-				IRType* arg1Type = NULL;
-				IRType* arg2Type = NULL;
+				ElementType arg1Type = (ElementType)-1;
+				ElementType arg2Type = (ElementType)-1;
 				if (branchArg1)
 				{
-					arg1Type = branchArg1->Type;
+					arg1Type = AppDomain_GetElementTypeFromIRType(domain, branchArg1->Type);
 					branchArg1 = NULL;
 				}
 				if (branchArg2)
 				{
-					arg2Type = branchArg2->Type;
+					arg2Type = AppDomain_GetElementTypeFromIRType(domain, branchArg2->Type);
 					branchArg2 = NULL;
 				}
-                EMIT_IR_4ARG_NO_DISPOSE(IROpcode_Branch, (uint32_t*)branchCondition, (uint32_t*)branchTarget, arg1Type, arg2Type);
+                EMIT_IR_4ARG_NO_DISPOSE(IROpcode_Branch, (uint32_t*)branchCondition, (uint32_t*)branchTarget, (void*)arg1Type, (void*)arg2Type);
 
 				ClearFlags();
 				break;

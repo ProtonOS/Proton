@@ -1379,11 +1379,11 @@ typedef enum IROpcode
 			The absolute location in memory to target of branch.
 			Resolves to IRInstruction* directly.
 
-		Arg3: IRType*
-			A pointer to the IRType of arg0 if present.
+		Arg3: ElementType
+			The ElementType of arg0 if present.
 
-		Arg4: IRType*
-			A pointer to the IRType of arg1 if present.
+		Arg4: ElementType
+			The ElementType of arg1 if present.
 
 	 */
 	IROpcode_Branch,

@@ -4653,38 +4653,163 @@ char* JIT_Emit_Initialize_Block(char* pCompiledCode, IRMethod* pMethod, IRInstru
 	return pCompiledCode;
 }
 
-char* JIT_Emit_Jump(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
-{
-	return pCompiledCode;
-}
-
-char* JIT_Emit_New_Object(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
-{
-	return pCompiledCode;
-}
-
-char* JIT_Emit_Call_Virtual(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
-{
-	return pCompiledCode;
-}
-
-char* JIT_Emit_Call_Constrained(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
-{
-	return pCompiledCode;
-}
-
-char* JIT_Emit_Call_Absolute(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
-{
-	return pCompiledCode;
-}
-
-char* JIT_Emit_Call_Internal(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
-{
-	return pCompiledCode;
-}
-
 char* JIT_Emit_Branch(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+	BranchCondition condition = *(BranchCondition*)pInstruction->Arg1;
+	IRInstruction* target = (IRInstruction*)pInstruction->Arg2;
+	if (condition == BranchCondition_Always)
+	{
+		unsigned char* comp = (unsigned char*)pCompiledCode;
+		x86_jump_code(comp, 0);
+		BranchRegistry_RegisterBranch(pBranchRegistry, pInstruction->ILLocation, target->ILLocation, pCompiledCode);
+		pCompiledCode = (char*)comp;
+	}
+	else if(condition == BranchCondition_False || condition == BranchCondition_True)
+	{
+		ElementType ArgType = (ElementType)(uint32_t)pInstruction->Arg3;
+		switch(ArgType)
+		{
+			case ElementType_I1:
+			case ElementType_I2:
+			case ElementType_I4:
+			case ElementType_I:
+			case ElementType_U1:
+			case ElementType_U2:
+			case ElementType_U4:
+			case ElementType_U:
+				{
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					x86_test_reg_reg(pCompiledCode, PRIMARY_REG, PRIMARY_REG);
+
+					unsigned char* comp = (unsigned char*)pCompiledCode;
+					if (condition == BranchCondition_False)
+					{
+							x86_branch32(comp, X86_CC_Z, 0, FALSE);
+					}
+					else
+					{
+							x86_branch32(comp, X86_CC_NZ, 0, FALSE);
+					}
+					BranchRegistry_RegisterBranch(pBranchRegistry, pInstruction->ILLocation, target->ILLocation, pCompiledCode);
+					pCompiledCode = (char*)comp;
+				}
+				break;
+			default:
+				Panic("Invalid argument type for simple branch!");
+				break;
+		}
+	}
+	else
+	{
+		ElementType Arg1Type = (ElementType)(uint32_t)pInstruction->Arg3;
+		//ElementType Arg2Type = *(ElementType*)instr->Arg4;
+		//if (Arg1Type != Arg2Type)
+		//	Panic("Something went very wrong in the decomp, because this shouldn't be possible.");
+
+		switch(Arg1Type) // Here we get to load the arguments and call cmp on them.
+		{
+			case ElementType_I:
+			case ElementType_U:
+			case ElementType_I4:
+			case ElementType_U4:
+			case ElementType_I2:
+			case ElementType_I1:
+			case ElementType_U2:
+			case ElementType_U1:
+			{
+				pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+				pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, SECONDARY_REG, THIRD_REG, FOURTH_REG, NULL);
+				x86_alu_reg_reg(pCompiledCode, X86_CMP, SECONDARY_REG, PRIMARY_REG);
+				break;
+			}
+			case ElementType_I8:
+			case ElementType_U8:
+			{
+				pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+				x86_fild_membase(pCompiledCode, X86_ESP, 0, TRUE);
+				pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+				x86_fild_membase(pCompiledCode, X86_ESP, 0, TRUE);
+				x86_fcomip(pCompiledCode, 1);
+				x86_fdecstp(pCompiledCode);
+				x86_adjust_stack(pCompiledCode, -16);
+				break;
+			}
+			case ElementType_R4:
+			case ElementType_R8:
+			{
+				pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+				if (Arg1Type == ElementType_R4)
+				{
+					x86_push_reg(pCompiledCode, PRIMARY_REG);
+					x86_fld_membase(pCompiledCode, X86_ESP, 0, FALSE);
+					x86_adjust_stack(pCompiledCode, -4);
+				}
+				else
+				{
+					x86_fld_membase(pCompiledCode, X86_ESP, 0, TRUE);
+					x86_adjust_stack(pCompiledCode, -8);
+				}
+				pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+				if (Arg1Type == ElementType_R4)
+				{
+					x86_push_reg(pCompiledCode, PRIMARY_REG);
+					x86_fld_membase(pCompiledCode, X86_ESP, 0, FALSE);
+					x86_adjust_stack(pCompiledCode, -4);
+				}
+				else
+				{
+					x86_fld_membase(pCompiledCode, X86_ESP, 0, TRUE);
+					x86_adjust_stack(pCompiledCode, -8);
+				}
+				x86_fcomip(pCompiledCode, 1);
+				x86_fdecstp(pCompiledCode);
+				break;
+			}
+
+			default:
+				Panic("Invalid type for non-simple branch comparison.");
+				break;
+		}
+		unsigned char* comp = (unsigned char*)pCompiledCode;
+		switch(condition) // the flags should now be set, so we just emit a conditional jump now.
+		{
+			case BranchCondition_Equal:
+				x86_branch32(comp, X86_CC_E, 0, TRUE);
+				break;
+			case BranchCondition_Greater_Or_Equal:
+				x86_branch32(comp, X86_CC_GE, 0, TRUE);
+				break;
+			case BranchCondition_Greater_Or_Equal_Unsigned:
+				x86_branch32(comp, X86_CC_GE, 0, FALSE);
+				break;
+			case BranchCondition_Greater:
+				x86_branch32(comp, X86_CC_GT, 0, TRUE);
+				break;
+			case BranchCondition_Greater_Unsigned:
+				x86_branch32(comp, X86_CC_GT, 0, FALSE);
+				break;
+			case BranchCondition_Less_Or_Equal:
+				x86_branch32(comp, X86_CC_LE, 0, TRUE);
+				break;
+			case BranchCondition_Less_Or_Equal_Unsigned:
+				x86_branch32(comp, X86_CC_LE, 0, FALSE);
+				break;
+			case BranchCondition_Less:
+				x86_branch32(comp, X86_CC_LT, 0, TRUE);
+				break;
+			case BranchCondition_Less_Unsigned:
+				x86_branch32(comp, X86_CC_LT, 0, FALSE);
+				break;
+			case BranchCondition_NotEqual_Unsigned:
+				x86_branch32(comp, X86_CC_NE, 0, FALSE);
+				break;
+			default:
+				Panic("WTF?!?!?!"); // unknown branch condition.
+				break;
+		}
+		BranchRegistry_RegisterBranch(pBranchRegistry, pInstruction->ILLocation, target->ILLocation, pCompiledCode);
+		pCompiledCode = (char*)comp;
+	}
 	return pCompiledCode;
 }
 
@@ -4724,6 +4849,39 @@ char* JIT_Emit_RefAnyVal(char* pCompiledCode, IRMethod* pMethod, IRInstruction* 
 }
 
 char* JIT_Emit_RefAnyType(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
+{
+	return pCompiledCode;
+}
+
+// Stuff that calls methods
+
+char* JIT_Emit_Jump(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
+{
+	Panic("Jump emitter not yet implemented!");
+	return pCompiledCode;
+}
+
+char* JIT_Emit_New_Object(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
+{
+	return pCompiledCode;
+}
+
+char* JIT_Emit_Call_Virtual(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
+{
+	return pCompiledCode;
+}
+
+char* JIT_Emit_Call_Constrained(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
+{
+	return pCompiledCode;
+}
+
+char* JIT_Emit_Call_Absolute(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
+{
+	return pCompiledCode;
+}
+
+char* JIT_Emit_Call_Internal(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
 	return pCompiledCode;
 }
