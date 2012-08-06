@@ -3107,12 +3107,12 @@ BranchCommon:
 			case ILOpcode_MkRefAny:			// 0xC6
             {
                 Log_WriteLine(LOGLEVEL__ILReader, "Read MkRefAny");
-
-				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), TRUE);
+				uint32_t token = ReadUInt32(currentDataPointer);
+				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, token, TRUE);
 
 				StackObject* obj = SyntheticStack_Peek(stack);
 
-				EMIT_IR_2ARG_NO_DISPOSE(IROpcode_MkRefAny, obj->Type, type);
+				EMIT_IR_3ARG_NO_DISPOSE(IROpcode_MkRefAny, obj->Type, type, (void*)token);
 
 				obj->Type = domain->IRAssemblies[0]->Types[domain->CachedType___System_TypedReference->TableIndex - 1];
 				obj->SourceType = StackObjectSourceType_Stack;

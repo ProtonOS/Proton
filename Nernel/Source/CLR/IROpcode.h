@@ -1502,8 +1502,8 @@ typedef enum IROpcode
         Arg2: IRType*
             A pointer to the IRType of the class being loaded.
 
-        Arg3:
-			N/A
+        Arg3: uint32_t
+			The original metadata token of the class being loaded.
 
         Arg4:
 			N/A
