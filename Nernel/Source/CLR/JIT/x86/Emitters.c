@@ -4875,6 +4875,154 @@ char* JIT_Emit_Load_VirtualFunction(char* pCompiledCode, IRMethod* pMethod, IRIn
 
 char* JIT_Emit_Compare(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+	CompareCondition cond = (CompareCondition)(uint32_t)pInstruction->Arg1;
+	ElementType et1 = (ElementType)(uint32_t)pInstruction->Arg2;
+	ElementType et2 = (ElementType)(uint32_t)pInstruction->Arg3;
+	bool_t fCompare = FALSE;
+	bool_t is64bit = FALSE;
+	switch (et1)
+	{
+		case ElementType_I:
+		case ElementType_U:
+			switch (et2)
+			{
+				case ElementType_I:
+				case ElementType_U:
+				case ElementType_I4:
+				case ElementType_U4:
+				case ElementType_I2:
+				case ElementType_I1:
+				case ElementType_U2:
+				case ElementType_U1:
+					break;
+				default:
+					Panic("Invalid arguments for Compare");
+					break;
+			}
+			break;
+		case ElementType_I4:
+		case ElementType_U4:
+		case ElementType_I2:
+		case ElementType_I1:
+		case ElementType_U2:
+		case ElementType_U1:
+			switch (et2)
+			{
+				case ElementType_I:
+				case ElementType_U:
+				case ElementType_I4:
+				case ElementType_U4:
+				case ElementType_I2:
+				case ElementType_I1:
+				case ElementType_U2:
+				case ElementType_U1:
+					break;
+				default:
+					Panic("Invalid arguments for Compare");
+					break;
+			}
+			break;
+		case ElementType_I8:
+		case ElementType_U8:
+			if (et2 != ElementType_I8 && et2 != ElementType_U8) Panic("Invalid arguments for Compare");
+			is64bit = TRUE;
+			break;
+		case ElementType_R4:
+		case ElementType_R8:
+			switch (et2)
+			{
+				case ElementType_R4:
+				case ElementType_R8:
+					fCompare = TRUE;
+					break;
+				default:
+					Panic("Invalid arguments for Compare");
+					break;
+			}
+			break;
+		default:
+			Panic("Invalid arguments for Compare");
+			break;
+	}
+	if (!fCompare && !is64bit)
+	{
+		pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+		pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, SECONDARY_REG, THIRD_REG, FOURTH_REG, NULL);
+		x86_alu_reg_reg(pCompiledCode, X86_CMP, PRIMARY_REG, SECONDARY_REG);
+	}
+	else
+	{
+		if (is64bit)
+		{
+			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, SECONDARY_REG, THIRD_REG, FOURTH_REG, NULL);
+			x86_fild_membase(pCompiledCode, X86_ESP, 0, TRUE);
+			x86_fild_membase(pCompiledCode, X86_ESP, 8, TRUE);
+			x86_adjust_stack(pCompiledCode, -16);
+		}
+		else
+		{
+			size_t sizeOfSource1 = 0;
+			size_t sizeOfSource2 = 0;
+			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, &sizeOfSource1);
+			if (sizeOfSource1 <= gSizeOfPointerInBytes) x86_push_reg(pCompiledCode, PRIMARY_REG);
+			x86_fld_membase(pCompiledCode, X86_ESP, 0, TRUE);
+			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, PRIMARY_REG, SECONDARY_REG, THIRD_REG, &sizeOfSource2);
+			if (sizeOfSource2 <= gSizeOfPointerInBytes) x86_push_reg(pCompiledCode, PRIMARY_REG);
+			x86_fld_membase(pCompiledCode, X86_ESP, 0, TRUE);
+			x86_adjust_stack(pCompiledCode, -(sizeOfSource1 + sizeOfSource2));
+		}
+		x86_fcomip(pCompiledCode, 1);
+		x86_fdecstp(pCompiledCode);
+	}
+	unsigned char* BranchTrue = NULL;
+	unsigned char* BranchFalse = NULL;
+
+	switch (cond)
+	{
+		case CompareCondition_Equal:
+			BranchTrue = (unsigned char*)pCompiledCode;
+			x86_branch32(pCompiledCode, X86_CC_EQ, 0, FALSE);
+			BranchFalse = (unsigned char*)pCompiledCode;
+			x86_jump32(pCompiledCode, 0);
+			break;
+		case CompareCondition_Greater_Than:
+			BranchTrue = (unsigned char*)pCompiledCode;
+			x86_branch32(pCompiledCode, X86_CC_GT, 0, TRUE);
+			BranchFalse = (unsigned char*)pCompiledCode;
+			x86_jump32(pCompiledCode, 0);
+			break;
+		case CompareCondition_Greater_Than_Unsigned:
+			BranchTrue = (unsigned char*)pCompiledCode;
+			x86_branch32(pCompiledCode, X86_CC_GT, 0, FALSE);
+			BranchFalse = (unsigned char*)pCompiledCode;
+			x86_jump32(pCompiledCode, 0);
+			break;
+		case CompareCondition_Less_Than:
+			BranchTrue = (unsigned char*)pCompiledCode;
+			x86_branch32(pCompiledCode, X86_CC_LT, 0, TRUE);
+			BranchFalse = (unsigned char*)pCompiledCode;
+			x86_jump32(pCompiledCode, 0);
+			break;
+		case CompareCondition_Less_Than_Unsigned:
+			BranchTrue = (unsigned char*)pCompiledCode;
+			x86_branch32(pCompiledCode, X86_CC_LT, 0, FALSE);
+			BranchFalse = (unsigned char*)pCompiledCode;
+			x86_jump32(pCompiledCode, 0);
+			break;
+		default:
+			Panic("Unknown CompareCondition");
+			break;
+	}
+	x86_patch(BranchTrue, (unsigned char*)pCompiledCode);
+	x86_mov_reg_imm(pCompiledCode, PRIMARY_REG, 1);
+	pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+	unsigned char* end = (unsigned char*)pCompiledCode;
+	x86_jump32(pCompiledCode, 0);
+	x86_patch(BranchFalse, (unsigned char*)pCompiledCode);
+	x86_alu_reg_reg(pCompiledCode, X86_XOR, PRIMARY_REG, PRIMARY_REG);
+	pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+	x86_patch(end, (unsigned char*)pCompiledCode);
 	return pCompiledCode;
 }
 
