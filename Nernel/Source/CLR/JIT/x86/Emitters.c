@@ -4851,6 +4851,25 @@ char* JIT_Emit_Load_Function(char* pCompiledCode, IRMethod* pMethod, IRInstructi
 
 char* JIT_Emit_Load_VirtualFunction(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+	uint32_t functionIndex = (uint32_t)pInstruction->Arg2;
+	pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+	x86_alu_reg_imm(pCompiledCode, X86_SUB, PRIMARY_REG, gSizeOfPointerInBytes);
+	x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, PRIMARY_REG, 0, gSizeOfPointerInBytes); // Contains GCObject*
+	x86_alu_reg_imm(pCompiledCode, X86_ADD, PRIMARY_REG, offsetof(GCObject, Type));
+	x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, PRIMARY_REG, 0, gSizeOfPointerInBytes); // Contains GCObject->Type*
+	x86_alu_reg_imm(pCompiledCode, X86_ADD, PRIMARY_REG, offsetof(IRType, Methods));
+	x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, PRIMARY_REG, 0, gSizeOfPointerInBytes); // Contains GCObject->Type->Methods**
+	x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, PRIMARY_REG, 0, gSizeOfPointerInBytes); // Contains GCObject->Type->Methods*
+	x86_alu_reg_imm(pCompiledCode, X86_ADD, PRIMARY_REG, functionIndex * gSizeOfPointerInBytes);
+	x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, PRIMARY_REG, 0, gSizeOfPointerInBytes); // Contains virtual IRMethod*
+
+	x86_push_reg(pCompiledCode, PRIMARY_REG);
+	x86_call_code(pCompiledCode, JIT_CompileMethod);
+	x86_pop_reg(pCompiledCode, PRIMARY_REG);
+
+	x86_alu_reg_imm(pCompiledCode, X86_ADD, PRIMARY_REG, offsetof(IRMethod, AssembledMethod));
+	pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+
 	return pCompiledCode;
 }
 
