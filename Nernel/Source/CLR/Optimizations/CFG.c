@@ -40,18 +40,20 @@ IRCodeNode** IROptimizer_BuildControlFlowGraph(IRMethod* pMethod, uint32_t* pNod
 			}
 		}
 	}
-	Log_WriteLine(LOGLEVEL__Optimize_CFG, "Starting new node @ 0x0:0x%x", (unsigned int)pMethod->IRCodes[0]->ILLocation);
+	Log_WriteLine(LOGLEVEL__Optimize_CFG, "Starting new node @ 0:0x%x", (unsigned int)pMethod->IRCodes[0]->ILLocation);
 	IRCodeNode** nodes = (IRCodeNode**)calloc(1, sizeof(IRCodeNode*));
 	*pNodesCount = 1;
 	nodes[0] = IRCodeNode_Create();
 	IRCodeNode* currentNode = nodes[0];
 	bool_t startNewNode = FALSE;
 	bool_t addBefore = FALSE;
+	bool_t lastInstruction = FALSE;
 	uint32_t nodesIndex = 0;
 	currentNode->Index = 0;
 	for (uint32_t index = 0; index < pMethod->IRCodesCount; ++index)
 	{
 		instruction = pMethod->IRCodes[index];
+		lastInstruction = index == pMethod->IRCodesCount - 1;
 		startNewNode = instruction->Opcode == IROpcode_Branch || instruction->Opcode == IROpcode_Switch;
 		addBefore = startNewNode;
 		if (!startNewNode)
@@ -71,18 +73,21 @@ IRCodeNode** IROptimizer_BuildControlFlowGraph(IRMethod* pMethod, uint32_t* pNod
 			if (addBefore)
 			{
 				IRCodeNode_AddInstruction(currentNode, index);
-				Log_WriteLine(LOGLEVEL__Optimize_CFG, "Starting new node @ %u:0x%x for branch", (unsigned int)index + 1, (unsigned int)pMethod->IRCodes[index + 1]->ILLocation);
+				if (!lastInstruction) Log_WriteLine(LOGLEVEL__Optimize_CFG, "Starting new node @ %u:0x%x for branch", (unsigned int)index + 1, (unsigned int)pMethod->IRCodes[index + 1]->ILLocation);
 			}
-			nodesIndex = *pNodesCount;
-			*pNodesCount += 1;
-			nodes = (IRCodeNode**)realloc(nodes, *pNodesCount * sizeof(IRCodeNode*));
-			nodes[nodesIndex] = IRCodeNode_Create();
-			currentNode = nodes[nodesIndex];
-			currentNode->Index = nodesIndex;
-			if (!addBefore)
+			if (!addBefore || !lastInstruction)
 			{
-				IRCodeNode_AddInstruction(currentNode, index);
-				Log_WriteLine(LOGLEVEL__Optimize_CFG, "Starting new node @ %u:0x%x for target", (unsigned int)index, (unsigned int)instruction->ILLocation);
+				nodesIndex = *pNodesCount;
+				*pNodesCount += 1;
+				nodes = (IRCodeNode**)realloc(nodes, *pNodesCount * sizeof(IRCodeNode*));
+				nodes[nodesIndex] = IRCodeNode_Create();
+				currentNode = nodes[nodesIndex];
+				currentNode->Index = nodesIndex;
+				if (!addBefore)
+				{
+					IRCodeNode_AddInstruction(currentNode, index);
+					Log_WriteLine(LOGLEVEL__Optimize_CFG, "Starting new node @ %u:0x%x for target", (unsigned int)index, (unsigned int)instruction->ILLocation);
+				}
 			}
 		}
 		else IRCodeNode_AddInstruction(currentNode, index);

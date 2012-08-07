@@ -143,7 +143,7 @@ void GC_AllocateObject(AppDomain* pDomain, uint8_t* pStackStream, IRType* pType,
 	Atomic_ReleaseLock(&gc->Busy);
 }
 
-void GC_AllocateStringFromASCII(AppDomain* pDomain, uint8_t* pStackStream, uint8_t* pString, uint32_t pLength, void** pAllocatedObject)
+void GC_AllocateStringFromASCII(AppDomain* pDomain, uint8_t* pStackStream, int8_t* pString, uint32_t pLength, void** pAllocatedObject)
 {
 	uint32_t size = pLength << 1;
 	if (size >= 0x7FFFFFFF) Panic("GC_AllocateStringFromASCII Size >= 0x7FFFFFFF");
@@ -171,14 +171,14 @@ void GC_AllocateStringFromASCII(AppDomain* pDomain, uint8_t* pStackStream, uint8
 	free(unicodeString);
 }
 
-void GC_AllocateStringFromUnicode(AppDomain* pDomain, uint8_t* pStackStream, uint8_t* pString, uint32_t pLength, void** pAllocatedObject)
+void GC_AllocateStringFromUnicode(AppDomain* pDomain, uint8_t* pStackStream, uint16_t* pString, uint32_t pLength, void** pAllocatedObject)
 {
 	uint32_t size = pLength << 1;
 	if (size >= 0x7FFFFFFF) Panic("GC_AllocateStringFromUnicode Size >= 0x7FFFFFFF");
 	GC* gc = pDomain->GarbageCollector;
 	Atomic_AquireLock(&gc->Busy);
     GCObject* object = NULL;
-	HASH_FIND(String.HashHandle, gc->StringHashTable, pString, size, object);
+	HASH_FIND(String.HashHandle, gc->StringHashTable, (uint8_t*)pString, size, object);
 	if (!object)
 	{
 		if (size <= GCHeap__SmallHeap_Size - sizeof(GCObject*))
@@ -189,7 +189,7 @@ void GC_AllocateStringFromUnicode(AppDomain* pDomain, uint8_t* pStackStream, uin
 		object->Type = gc->Domain->IRAssemblies[0]->Types[gc->Domain->CachedType___System_String->TableIndex - 1];
 		object->Flags |= GCObjectFlags_String;
 		object->String.Length = pLength;
-		memcpy(object->Data, pString, size);
+		memcpy(object->Data, (uint8_t*)pString, size);
 		HASH_ADD(String.HashHandle, gc->StringHashTable, Data, size, object);
 	}
 	*pAllocatedObject = object->Data;

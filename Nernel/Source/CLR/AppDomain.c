@@ -727,8 +727,9 @@ ElementType AppDomain_GetElementTypeFromIRType(AppDomain* pDomain, IRType* pType
 	ElementType_R4,
 	ElementType_R8,
 	*/
+	if (pType->TypeDefinition == pDomain->CachedType___System_Boolean) return ElementType_I1;
 	if (pType->TypeDefinition == pDomain->CachedType___System_SByte) return ElementType_I1;
-	if (pType->TypeDefinition == pDomain->CachedType___System_Byte) return ElementType_I1;
+	if (pType->TypeDefinition == pDomain->CachedType___System_Byte) return ElementType_U1;
 	if (pType->TypeDefinition == pDomain->CachedType___System_Int16) return ElementType_I2;
 	if (pType->TypeDefinition == pDomain->CachedType___System_UInt16) return ElementType_U2;
 	if (pType->TypeDefinition == pDomain->CachedType___System_Int32) return ElementType_I4;

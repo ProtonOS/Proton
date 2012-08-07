@@ -1142,6 +1142,11 @@ void ILDecomposition_BranchLinker(IRMethod* pMethod)
 	            Log_WriteLine(LOGLEVEL__Link_Branches, "        IRInstruction 0x%x has ILLocation 0x%x", (unsigned int)checkingIRIndex, (unsigned int)pMethod->IRCodes[checkingIRIndex]->ILLocation);
 				if (pMethod->IRCodes[checkingIRIndex]->ILLocation == targetILLocation)
 				{
+					while (checkingIRIndex > 0 && pMethod->IRCodes[checkingIRIndex - 1]->ILLocation == targetILLocation)
+					{
+						checkingIRIndex--;
+			            Log_WriteLine(LOGLEVEL__Link_Branches, "        IRInstruction 0x%x also has ILLocation 0x%x", (unsigned int)checkingIRIndex, (unsigned int)pMethod->IRCodes[checkingIRIndex]->ILLocation);
+					}
 					targetInstruction = pMethod->IRCodes[checkingIRIndex];
 					break;
 				}
@@ -1634,7 +1639,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
                     Panic("Invalid token after LdStr!");
 
 				uint32_t strLength = 0;
-				uint8_t* str = (uint8_t*)CLIFile_GetCompressedUnsigned((uint8_t*)token->Data, &strLength);
+				uint8_t* str = CLIFile_GetCompressedUnsigned((uint8_t*)token->Data, &strLength);
 				strLength -= 1; // Remove the null terminator
 				CLIFile_DestroyMetadataToken(token);
 

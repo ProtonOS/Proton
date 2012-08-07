@@ -24,7 +24,11 @@ const InternalCall InternalCallTable[] =
 	{	NULL,				NULL,				"OutUShort",			SignatureElementType_Void,		2,	{ SignatureElementType_U4, SignatureElementType_U2 }, &Proton_IO_PortIO_OutUShort },
 	{	NULL,				NULL,				"OutUInt",				SignatureElementType_Void,		2,	{ SignatureElementType_U4, SignatureElementType_U4 }, &Proton_IO_PortIO_OutUInt },
 
-	{	"System",			"String",			".ctor",				SignatureElementType_Void,		2,	{ SignatureElementType_Char, SignatureElementType_I4 }, &System_String_Ctor_CharAndCount },
+	{	"System",			"String",			".ctor",				SignatureElementType_Void,		1,	{ SignatureElementType_Pointer, SignatureElementType_Char }, &System_String_Ctor_CharPointer },
+	{	NULL,				NULL,				NULL,					SignatureElementType_Void,		1,	{ SignatureElementType_Pointer, SignatureElementType_I1 }, &System_String_Ctor_SBytePointer },
+	{	NULL,				NULL,				NULL,					SignatureElementType_Void,		1,	{ SignatureElementType_SingleDimensionArray, SignatureElementType_Char }, &System_String_Ctor_CharArray },
+	{	NULL,				NULL,				NULL,					SignatureElementType_Void,		2,	{ SignatureElementType_Char, SignatureElementType_I4 }, &System_String_Ctor_CharAndCount },
+	{	NULL,				NULL,				NULL,					SignatureElementType_Void,		3,	{ SignatureElementType_SingleDimensionArray, SignatureElementType_Char, SignatureElementType_I4, SignatureElementType_I4 }, &System_String_Ctor_CharArrayWithStartAndLength },
 
 	{	NULL,				NULL,				NULL,					SignatureElementType_End,		0,	{ }, NULL }
 };

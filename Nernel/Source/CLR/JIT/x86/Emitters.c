@@ -2222,7 +2222,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 
 void JIT_BranchLinker(BranchRegistry* pBranchRegistry)
 {
-	for (uint32_t index = 0; index < pBranchRegistry->InstructionCount; ++index)
+	for (uint32_t index = 0; index <= pBranchRegistry->InstructionCount; ++index)
 	{
 		if (pBranchRegistry->BranchLocations[index])
 		{
@@ -4720,7 +4720,7 @@ char* JIT_Emit_Initialize_Block(char* pCompiledCode, IRMethod* pMethod, IRInstru
 
 char* JIT_Emit_Branch(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
-	BranchCondition condition = *(BranchCondition*)pInstruction->Arg1;
+	BranchCondition condition = (BranchCondition)(uint32_t)pInstruction->Arg1;
 	IRInstruction* target = (IRInstruction*)pInstruction->Arg2;
 	if (condition == BranchCondition_Always)
 	{
@@ -4731,7 +4731,7 @@ char* JIT_Emit_Branch(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pIn
 	}
 	else if(condition == BranchCondition_False || condition == BranchCondition_True)
 	{
-		ElementType ArgType = (ElementType)(uint32_t)pInstruction->Arg3;
+		ElementType ArgType = (ElementType)(int32_t)pInstruction->Arg3;
 		switch(ArgType)
 		{
 			case ElementType_I1:
@@ -4757,16 +4757,20 @@ char* JIT_Emit_Branch(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pIn
 					}
 					BranchRegistry_RegisterBranch(pBranchRegistry, pInstruction->ILLocation, target->ILLocation, pCompiledCode);
 					pCompiledCode = (char*)comp;
+					break;
 				}
-				break;
 			default:
-				Panic("Invalid argument type for simple branch!");
-				break;
+				{
+					char buf[256];
+					snprintf(buf, 256, "Invalid argument type for simple branch (%d)!", (int)ArgType);
+					Panic(buf);
+					break;
+				}
 		}
 	}
 	else
 	{
-		ElementType Arg1Type = (ElementType)(uint32_t)pInstruction->Arg3;
+		ElementType Arg1Type = (ElementType)(int32_t)pInstruction->Arg3;
 		//ElementType Arg2Type = *(ElementType*)instr->Arg4;
 		//if (Arg1Type != Arg2Type)
 		//	Panic("Something went very wrong in the decomp, because this shouldn't be possible.");
