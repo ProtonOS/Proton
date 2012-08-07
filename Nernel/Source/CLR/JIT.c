@@ -59,6 +59,12 @@ void JIT_CompileMethod(IRMethod* pMethod)
 		for (uint32_t index = 0; index < pMethod->IRCodesCount; ++index)
 		{
 			branchRegistry->InstructionLocations[pMethod->IRCodes[index]->ILLocation] = (size_t)compiledCode;
+			if (pMethod->IRCodes[index]->Opcode != IROpcode_Nop)
+			{
+				char symbolBuffer[512];
+				snprintf(symbolBuffer, 512, "1:%u %u", (unsigned int)pMethod->IRCodes[index]->ILLocation, (unsigned int)compiledCode);
+				SymbolLogger_WriteLine(symbolBuffer);
+			}
 			switch (pMethod->IRCodes[index]->Opcode)
 			{
 				EMITTER(Nop);
