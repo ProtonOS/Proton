@@ -1,10 +1,22 @@
 #include <CLR/InternalCalls.h>
 #include <CLR/InternalCalls/Proton.IO.PortIO.h>
 #include <CLR/InternalCalls/System.String.h>
+#include <System/Console.h>
 
+
+void Mernel_Kernel_Write(AppDomain* pAppDomain, uint8_t* pStackStream, uint16_t* pString)
+{
+	GCObject* object = *(GCObject**)((size_t)pString - sizeof(void*));
+	for (uint32_t index = 0; index < object->String.Length; ++index)
+	{
+		Console_WriteCharacter((char)pString[index]);
+	}
+}
 
 const InternalCall InternalCallTable[] = 
 {
+	{	"Mernel",			"Kernel",			"Write",				SignatureElementType_Void,		1,	{ SignatureElementType_String }, &Mernel_Kernel_Write },
+
 	{	"Proton.IO",		"PortIO",			"InByte",				SignatureElementType_U1,		1,	{ SignatureElementType_U4 }, &Proton_IO_PortIO_InByte },
 	{	NULL,				NULL,				"InUShort",				SignatureElementType_U2,		1,	{ SignatureElementType_U4 }, &Proton_IO_PortIO_InUShort },
 	{	NULL,				NULL,				"InUInt",				SignatureElementType_U4,		1,	{ SignatureElementType_U4 }, &Proton_IO_PortIO_InUInt },

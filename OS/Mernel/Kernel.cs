@@ -1,18 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Mernel
 {
     public static class Kernel
     {
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public static extern void Write(string pString);
+
         private static void Main()
         {
-            int w = 0; // w0 = 0
-            int x = 1; // x0 = 1
-            int y = w + x; // y0 = w0 + x0
-            int z = y; // z0 = y0
-            if (z != 0) z = z + 1; // if (z0 != 0) z1 = z0 + 1;
-            z = z + 1; // z3 = (z2 = phi(z0, z1)) + 1
+            Write("Hello World!\n");
+            //int w = 0; // w0 = 0
+            //int x = 1; // x0 = 1
+            //int y = w + x; // y0 = w0 + x0
+            //int z = y; // z0 = y0
+            //if (z != 0) z = z + 1; // if (z0 != 0) z1 = z0 + 1;
+            //z = z + 1; // z3 = (z2 = phi(z0, z1)) + 1
             //switch (z) // switch (z3)
             //{
             //    case 0: y = 0; break; // y1 = 0

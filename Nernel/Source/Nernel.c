@@ -52,8 +52,8 @@ void Startup()
 	LoadedModule* mernelModule = Multiboot_GetLoadedModule("/boot/mernel.exe");
 	AppDomain_AddAssembly(gMernelDomain, ILDecomposition_CreateAssembly(gMernelDomain, CLIFile_Create((uint8_t*)mernelModule->Address, mernelModule->Size, "mernel.exe")));
 	JIT_CompileMethod(gMernelDomain->IRAssemblies[1]->EntryPoint);
-
 	Mernel_EntrypointCompiled();
+	JIT_ExecuteMethod(gMernelDomain->IRAssemblies[1]->EntryPoint, gMernelDomain);
 
 	// TODO: Mernel enters here, and there should be no return (unless Mernel is shutting down/rebooting system)
 	// At this point we would add to the bitstream for the current thread stack, based on mernel entry method

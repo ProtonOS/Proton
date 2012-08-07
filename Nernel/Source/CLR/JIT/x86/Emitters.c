@@ -121,7 +121,7 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					break;
 				default:
 				{
-					x86_adjust_stack(pCompiledCode, -((int32_t)sizeOfSource));
+					x86_adjust_stack(pCompiledCode, sizeOfSource);
 					uint32_t count = sizeOfSource >> gPointerDivideShift;
 					for (uint32_t index = 0; index < count; index++)
 					{
@@ -150,7 +150,7 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					break;
 				default:
 				{
-					x86_adjust_stack(pCompiledCode, -((int32_t)sizeOfSource));
+					x86_adjust_stack(pCompiledCode, sizeOfSource);
 					uint32_t count = sizeOfSource >> gPointerDivideShift;
 					for (uint32_t index = 0; index < count; index++)
 					{
@@ -213,7 +213,7 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					break;
 				default:
 				{
-					x86_adjust_stack(pCompiledCode, -((int32_t)JIT_StackAlign(sizeOfSource)));
+					x86_adjust_stack(pCompiledCode, JIT_StackAlign(sizeOfSource));
 					uint32_t count = sizeOfSource >> gPointerDivideShift;
 					for (uint32_t index = 0; index < count; index++)
 					{
@@ -259,7 +259,7 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					break;
 				default:
 				{
-					x86_adjust_stack(pCompiledCode, -((int32_t)JIT_StackAlign(sizeOfSource)));
+					x86_adjust_stack(pCompiledCode, JIT_StackAlign(sizeOfSource));
 					uint32_t count = sizeOfSource >> gPointerDivideShift;
 					for (uint32_t index = 0; index < count; index++)
 					{
@@ -303,7 +303,7 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					break;
 				default:
 				{
-					x86_adjust_stack(pCompiledCode, -((int32_t)JIT_StackAlign(sizeOfSource)));
+					x86_adjust_stack(pCompiledCode, JIT_StackAlign(sizeOfSource));
 					uint32_t count = sizeOfSource >> gPointerDivideShift;
 					for (uint32_t index = 0; index < count; index++)
 					{
@@ -355,7 +355,7 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					break;
 				default:
 				{
-					x86_adjust_stack(pCompiledCode, -((int32_t)JIT_StackAlign(sizeOfSource)));
+					x86_adjust_stack(pCompiledCode, JIT_StackAlign(sizeOfSource));
 					uint32_t count = sizeOfSource >> gPointerDivideShift;
 					for (uint32_t index = 0; index < count; index++)
 					{
@@ -479,7 +479,7 @@ char* JIT_Emit_Store(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pDe
 						x86_mov_reg_membase(pCompiledCode, pRegister2, X86_ESP, (index << gPointerDivideShift), gSizeOfPointerInBytes);
 						x86_mov_membase_reg(pCompiledCode, X86_EBP, -(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset - (index << gPointerDivideShift)), pRegister2, gSizeOfPointerInBytes);
 					}
-					x86_adjust_stack(pCompiledCode, ((int32_t)sizeOfDestination));
+					x86_adjust_stack(pCompiledCode, -((int32_t)sizeOfDestination));
 					break;
 				}
 			}
@@ -501,7 +501,7 @@ char* JIT_Emit_Store(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pDe
 						x86_mov_reg_membase(pCompiledCode, pRegister2, X86_ESP, (index << gPointerDivideShift), gSizeOfPointerInBytes);
 						x86_mov_membase_reg(pCompiledCode, X86_EBP, (pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset + (index << gPointerDivideShift)), pRegister2, gSizeOfPointerInBytes);
 					}
-					x86_adjust_stack(pCompiledCode, ((int32_t)sizeOfDestination));
+					x86_adjust_stack(pCompiledCode, -((int32_t)sizeOfDestination));
 					break;
 				}
 			}
@@ -552,7 +552,7 @@ char* JIT_Emit_Store(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pDe
 						x86_mov_reg_membase(pCompiledCode, pRegister2, X86_ESP, (count << gPointerDivideShift), remainder);
 						x86_mov_membase_reg(pCompiledCode, pRegister3, (count << gPointerDivideShift), pRegister2, remainder);
 					}
-					x86_adjust_stack(pCompiledCode, ((int32_t)JIT_StackAlign(sizeOfDestination)));
+					x86_adjust_stack(pCompiledCode, -((int32_t)JIT_StackAlign(sizeOfDestination)));
 					break;
 				}
 			}
@@ -588,7 +588,7 @@ char* JIT_Emit_Store(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pDe
 						x86_mov_reg_membase(pCompiledCode, pRegister2, X86_ESP, (count << gPointerDivideShift), remainder);
 						x86_mov_membase_reg(pCompiledCode, pRegister3, (count << gPointerDivideShift), pRegister2, remainder);
 					}
-					x86_adjust_stack(pCompiledCode, ((int32_t)JIT_StackAlign(sizeOfDestination)));
+					x86_adjust_stack(pCompiledCode, -((int32_t)JIT_StackAlign(sizeOfDestination)));
 					break;
 				}
 			}
@@ -636,7 +636,7 @@ char* JIT_Emit_Store(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pDe
 						x86_mov_reg_membase(pCompiledCode, pRegister2, X86_ESP, (count << gPointerDivideShift), remainder);
 						x86_mov_membase_reg(pCompiledCode, pRegister3, (count << gPointerDivideShift), pRegister2, remainder);
 					}
-					x86_adjust_stack(pCompiledCode, ((int32_t)JIT_StackAlign(sizeOfDestination)));
+					x86_adjust_stack(pCompiledCode, -((int32_t)JIT_StackAlign(sizeOfDestination)));
 					break;
 				}
 			}
@@ -714,7 +714,7 @@ char* JIT_Emit_Store(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pDe
 						x86_mov_reg_membase(pCompiledCode, pRegister2, X86_ESP, (count << gPointerDivideShift), remainder);
 						x86_mov_membase_reg(pCompiledCode, pRegister3, (count << gPointerDivideShift), pRegister2, remainder);
 					}
-					x86_adjust_stack(pCompiledCode, ((int32_t)JIT_StackAlign(sizeOfDestination)));
+					x86_adjust_stack(pCompiledCode, -((int32_t)JIT_StackAlign(sizeOfDestination)));
 					break;
 				}
 			}
@@ -2249,7 +2249,7 @@ char* JIT_Emit_Prologue(char* pCompiledCode, IRMethod* pMethod)
 	uint32_t localsSize = pMethod->LocalsSize;
 
 	// Create stack space for locals
-	x86_adjust_stack(pCompiledCode, -((int32_t)localsSize));
+	x86_adjust_stack(pCompiledCode, localsSize);
 
 	if (localsSize > 0 &&
 		pMethod->MethodDefinition->Body.Flags & MethodDefinitionBody_Fat_Flags_InitializeLocals)
@@ -3705,7 +3705,7 @@ char* JIT_Emit_And(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstr
 			x86_alu_membase_reg(pCompiledCode, X86_AND, X86_ESP, 8, SECONDARY_REG);
 			x86_mov_reg_membase(pCompiledCode, SECONDARY_REG, X86_ESP, 4, 4);
 			x86_alu_membase_reg(pCompiledCode, X86_AND, X86_ESP, 12, SECONDARY_REG);
-			x86_adjust_stack(pCompiledCode, 8);
+			x86_adjust_stack(pCompiledCode, -8);
 			break;
 	}
 	pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
@@ -3771,7 +3771,7 @@ char* JIT_Emit_Or(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstru
 			x86_alu_membase_reg(pCompiledCode, X86_OR, X86_ESP, 8, SECONDARY_REG);
 			x86_mov_reg_membase(pCompiledCode, SECONDARY_REG, X86_ESP, 4, 4);
 			x86_alu_membase_reg(pCompiledCode, X86_OR, X86_ESP, 12, SECONDARY_REG);
-			x86_adjust_stack(pCompiledCode, 8);
+			x86_adjust_stack(pCompiledCode, -8);
 			break;
 	}
 	pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
@@ -3837,7 +3837,7 @@ char* JIT_Emit_Xor(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstr
 			x86_alu_membase_reg(pCompiledCode, X86_XOR, X86_ESP, 8, SECONDARY_REG);
 			x86_mov_reg_membase(pCompiledCode, SECONDARY_REG, X86_ESP, 4, 4);
 			x86_alu_membase_reg(pCompiledCode, X86_XOR, X86_ESP, 12, SECONDARY_REG);
-			x86_adjust_stack(pCompiledCode, 8);
+			x86_adjust_stack(pCompiledCode, -8);
 			break;
 	}
 	pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
@@ -5290,7 +5290,7 @@ char* JIT_Emit_Call_Virtual(char* pCompiledCode, IRMethod* pMethod, IRInstructio
 
 
 	x86_call_code(pCompiledCode, JIT_Trampoline_CallVirtual);
-	x86_adjust_stack(pCompiledCode, -(parametersSize + gSizeOfPointerInBytes + 4));
+	x86_adjust_stack(pCompiledCode, -parametersSize);
 
 	return pCompiledCode;
 }

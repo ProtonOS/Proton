@@ -137,7 +137,7 @@ void ILDecomposition_LinkType(AppDomain* pDomain, IRAssembly* pAssembly, IRType*
 			}
 			case TypeDefRefOrSpecType_TypeSpecification:
 			{
-				printf("WARNING: Generics not yet supported\n");
+				Log_WriteLine(LOGLEVEL__Warning, "WARNING: Generics not yet supported\n");
 				continue;
 			}
 			default:

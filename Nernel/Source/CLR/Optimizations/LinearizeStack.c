@@ -115,12 +115,12 @@ uint32_t AddLocal(IRType* localType, IRMethod* pMethod, uint32_t depth, StackLoc
 		fLocal->Type = localType;
 		fLocal->LocalIndex = loc->LocalVariableIndex;
 		HASH_ADD(HashHandle, *stackLocalTable, StackDepthLocation, offsetof(StackLocal, LocalIndex), fLocal);
-		printf("Creating a local at index %i for stack depth of %i of the type (0x%x) %s.%s\n", (int)loc->LocalVariableIndex, (int)depth, (unsigned int)localType, localType->TypeDefinition->Namespace, localType->TypeDefinition->Name);
+		//printf("Creating a local at index %i for stack depth of %i of the type (0x%x) %s.%s\n", (int)loc->LocalVariableIndex, (int)depth, (unsigned int)localType, localType->TypeDefinition->Namespace, localType->TypeDefinition->Name);
 		return loc->LocalVariableIndex;
 	}
 	else
 	{
-		printf("Not creating a local at index %i for stack depth of %i of the type (0x%x) %s.%s\n", (int)fLocal->LocalIndex, (int)depth, (unsigned int)localType, localType->TypeDefinition->Namespace, localType->TypeDefinition->Name);
+		//printf("Not creating a local at index %i for stack depth of %i of the type (0x%x) %s.%s\n", (int)fLocal->LocalIndex, (int)depth, (unsigned int)localType, localType->TypeDefinition->Namespace, localType->TypeDefinition->Name);
 		return fLocal->LocalIndex;
 	}
 }
@@ -132,11 +132,11 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 	StackObjectPool_Initialize(stack);
 	StackObject* obj = NULL;
 	StackObject* obj2 = NULL;
-	printf("IRCode Count: %i\n", (int)pMethod->IRCodesCount);
+	//printf("IRCode Count: %i\n", (int)pMethod->IRCodesCount);
 	for (uint32_t i = 0; i < pMethod->IRCodesCount; i++)
 	{
 		IRInstruction* ins = pMethod->IRCodes[i];
-		printf("Instruction %i is %i at IL 0x%x\n", (int)i, (int)ins->Opcode, (unsigned int)ins->ILLocation);
+		//printf("Instruction %i is %i at IL 0x%x\n", (int)i, (int)ins->Opcode, (unsigned int)ins->ILLocation);
 		switch(ins->Opcode)
 		{
 			// These next few are all source points.
@@ -842,7 +842,7 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
             case IROpcode_Call_Absolute:
 			{
 				IRMethod* mth = (IRMethod*)ins->Arg1;
-				uint32_t paramCount = mth->ParameterCount - 1;
+				uint32_t paramCount = mth->ParameterCount;
 				ins->SourceArray = (SourceTypeData*)calloc(1, sizeof(SourceTypeData) * paramCount);
 				ins->SourceArrayLength = paramCount;
 				for (uint32_t i2 = 0; i2 < paramCount; i2++)
@@ -869,7 +869,7 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
             case IROpcode_Call_Virtual:
 			{
 				IRMethod* mth = ((IRType*)ins->Arg1)->Methods[(uint32_t)ins->Arg2];
-				uint32_t paramCount = mth->ParameterCount - 1;
+				uint32_t paramCount = mth->ParameterCount;
 				ins->SourceArray = (SourceTypeData*)calloc(1, sizeof(SourceTypeData) * paramCount);
 				ins->SourceArrayLength = paramCount;
 				for (uint32_t i2 = 0; i2 < paramCount; i2++)
