@@ -5228,13 +5228,76 @@ char* JIT_Emit_New_Object(char* pCompiledCode, IRMethod* pMethod, IRInstruction*
 	return pCompiledCode;
 }
 
+#ifndef _WIN32
+__attribute__((noreturn))
+#endif
+void JIT_Trampoline_CallVirtual(IRType* pType, uint32_t pMethodIndex, void* pObject)
+{
+	GCObject* obj = *(GCObject**)((size_t)pObject - gSizeOfPointerInBytes);
+	IRMethod* mToCall = NULL;
+	if (pType->IsInterface)
+	{
+		IRInterfaceImpl* impl = NULL;
+		HASH_FIND(HashHandle, obj->Type->InterfaceTable, pType, sizeof(void*), impl);
+		if (impl)
+		{
+			mToCall = obj->Type->Methods[impl->MethodIndexes[pMethodIndex]];
+		}
+		else
+		{
+			Panic("Normally would throw an exception here because the type of pObject doesn't implement the requested interface!");
+		}
+	}
+	else if (pType == obj->Type || pType->Methods[pMethodIndex] == obj->Type->Methods[pMethodIndex])
+	{
+		mToCall = pType->Methods[pMethodIndex];
+	}
+	else if (IRType_IsSubclassOf(obj->Type, pType))
+	{
+		mToCall = obj->Type->Methods[pMethodIndex];
+	}
+	else
+	{
+		Panic("The type of pObject doesn't inherit from pType, thus a virtual call cannot be made upon it. (supposed to throw an exception here)");
+	}
+
+	if (!mToCall->AssembledMethod) JIT_CompileMethod(mToCall);
+
+	__asm("leave;"); // cleanup locals
+	__asm("mov (%esp), %eax;");
+	__asm("mov %eax, 8(%esp);");
+	__asm("add $8, %esp;"); // cleanup parameters
+#ifndef _WIN32
+	__asm__("jmp %0;" : : "r" (mToCall->AssembledMethod));
+#endif
+	while(TRUE);
+}
+
 char* JIT_Emit_Call_Virtual(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+	uint32_t parametersSize = 0;
+	size_t sizeOfParameter = 0;
+	for (uint32_t index = 0; index < pInstruction->SourceArrayLength; ++index)
+	{
+		pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->SourceArray[index], SECONDARY_REG, THIRD_REG, FOURTH_REG, &sizeOfParameter);
+		if (sizeOfParameter <= gSizeOfPointerInBytes) x86_push_reg(pCompiledCode, SECONDARY_REG);
+		parametersSize += sizeOfParameter;
+	}
+
+	x86_adjust_stack(pCompiledCode, gSizeOfPointerInBytes + 4);
+	x86_mov_membase_imm(pCompiledCode, X86_ESP, gSizeOfPointerInBytes, (uint32_t)pInstruction->Arg2, 4);
+	x86_mov_membase_imm(pCompiledCode, X86_ESP, 0, (size_t)pInstruction->Arg1, gSizeOfPointerInBytes);
+
+
+	x86_call_code(pCompiledCode, JIT_Trampoline_CallVirtual);
+	x86_adjust_stack(pCompiledCode, -(parametersSize + gSizeOfPointerInBytes + 4));
+
 	return pCompiledCode;
 }
 
 char* JIT_Emit_Call_Constrained(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+	Panic("CallConstrained emitter not yet implemented!");
 	return pCompiledCode;
 }
 
