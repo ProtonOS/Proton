@@ -1,5 +1,6 @@
 #include <CLR/IROptimizer.h>
 #include <CLR/Optimizations/CFG.h>
+#include <CLR/Optimizations/DeadMoveElimination.h>
 #include <CLR/Optimizations/LinearizeStack.h>
 #include <CLR/Optimizations/Peephole_PreSSA.h>
 #include <CLR/Optimizations/SSA.h>
@@ -17,6 +18,8 @@ void IROptimizer_Optimize(IRMethod* pMethod)
 	IROptimizer_EnterSSA(pMethod, nodes, nodesCount);
 
 	IROptimizer_LeaveSSA(pMethod, nodes, nodesCount);
+
+	IROptimizer_DeadMoveElimination(pMethod);
 
 	for (uint32_t index = 0; index < nodesCount; ++index) IRCodeNode_Destroy(nodes[index]);
 	free(nodes);
