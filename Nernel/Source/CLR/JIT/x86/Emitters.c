@@ -5240,11 +5240,49 @@ char* JIT_Emit_Call_Constrained(char* pCompiledCode, IRMethod* pMethod, IRInstru
 
 char* JIT_Emit_Call_Absolute(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+	IRMethod* method = (IRMethod*)pInstruction->Arg1;
+
+	if (!method->AssembledMethod) JIT_CompileMethod(method);
+
+	uint32_t parametersSize = 0;
+	size_t sizeOfParameter = 0;
+	for (uint32_t index = 0; index < pInstruction->SourceArrayLength; ++index)
+	{
+		pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->SourceArray[index], SECONDARY_REG, THIRD_REG, FOURTH_REG, &sizeOfParameter);
+		if (sizeOfParameter <= gSizeOfPointerInBytes) x86_push_reg(pCompiledCode, SECONDARY_REG);
+		parametersSize += sizeOfParameter;
+	}
+
+	x86_call_code(pCompiledCode, method->AssembledMethod);
+	x86_adjust_stack(pCompiledCode, -parametersSize);
+
 	return pCompiledCode;
 }
 
 char* JIT_Emit_Call_Internal(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+	IRMethod* method = (IRMethod*)pInstruction->Arg1;
+
+	if (!method->AssembledMethod) JIT_CompileMethod(method);
+
+	uint32_t parametersSize = 0;
+	size_t sizeOfParameter = 0;
+	for (uint32_t index = 0; index < pInstruction->SourceArrayLength; ++index)
+	{
+		pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->SourceArray[index], SECONDARY_REG, THIRD_REG, FOURTH_REG, &sizeOfParameter);
+		if (sizeOfParameter <= gSizeOfPointerInBytes) x86_push_reg(pCompiledCode, SECONDARY_REG);
+		parametersSize += sizeOfParameter;
+	}
+	x86_adjust_stack(pCompiledCode, gSizeOfPointerInBytes << 1);
+	x86_mov_membase_reg(pCompiledCode, X86_ESP, gSizeOfPointerInBytes, X86_ESI, gSizeOfPointerInBytes);
+	x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, X86_EDI, gSizeOfPointerInBytes);
+	parametersSize += gSizeOfPointerInBytes << 1;
+
+	x86_call_code(pCompiledCode, method->AssembledMethod);
+	x86_mov_reg_membase(pCompiledCode, X86_ESI, X86_ESP, gSizeOfPointerInBytes, gSizeOfPointerInBytes);
+	x86_mov_reg_membase(pCompiledCode, X86_EDI, X86_ESP, 0, gSizeOfPointerInBytes);
+	x86_adjust_stack(pCompiledCode, -parametersSize);
+
 	return pCompiledCode;
 }
 
