@@ -4,6 +4,7 @@
 #include <CLR/JIT.h>
 #include <System/APIC.h>
 #include <System/Console.h>
+#include <System/ConsoleLogger.h>
 #include <System/CPUID.h>
 #include <System/GDT.h>
 #include <System/IDT.h>
@@ -12,8 +13,8 @@
 #include <System/PIC.h>
 #include <System/PIT.h>
 #include <System/RTC.h>
-#include <System/SerialLogger.h>
 #include <System/SMP.h>
+#include <System/SymbolLogger.h>
 #include <System/SystemClock.h>
 #include <System/ThreadScheduler.h>
 #include <System/x86/Registers.h>
@@ -94,7 +95,8 @@ uint32_t gEnteredUserModeAddress = (uint32_t)&EnteredUserMode;
 void Main(uint32_t pMultibootMagic, MultibootHeader* pMultibootHeader)
 {
 	Multiboot_Startup(pMultibootMagic, pMultibootHeader);
-	SerialLogger_Startup();
+	ConsoleLogger_Startup();
+	SymbolLogger_Startup();
 	Console_Startup();
 	GDT_Startup();
 	IDT_Startup();

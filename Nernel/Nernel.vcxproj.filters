@@ -51,9 +51,6 @@
     <ClCompile Include="Source\System\PIT.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\System\SerialLogger.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Source\System\Thread.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -123,6 +120,12 @@
     <ClCompile Include="Source\CLR\InternalCalls\System.String.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\System\SymbolLogger.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\System\ConsoleLogger.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\System\Multiboot.h">
@@ -171,9 +174,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\System\PIT.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\System\SerialLogger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\System\Thread.h">
@@ -270,6 +270,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\CLR\InternalCalls\System.String.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\System\SymbolLogger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\System\ConsoleLogger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

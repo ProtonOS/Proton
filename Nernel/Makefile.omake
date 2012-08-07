@@ -84,6 +84,7 @@
 	Source/CLR/Optimizations/SSA.c
 	Source/System/APIC.c
 	Source/System/Console.c
+	Source/System/ConsoleLogger.c
 	Source/System/CPUID.c
 	Source/System/GDT.c
 	Source/System/IDT.c
@@ -92,8 +93,8 @@
 	Source/System/PIT.c
 	Source/System/Process.c
 	Source/System/RTC.c
-	Source/System/SerialLogger.c
 	Source/System/SMP.c
+	Source/System/SymbolLogger.c
 	Source/System/SystemCalls.c
 	Source/System/SystemClock.c
 	Source/System/Thread.c
@@ -136,7 +137,8 @@
 
 	MKISOFS ${MKISOFS_ARGS} -o ${ISO} ${BUILD}
 
-	file TRY_DELETE(${LOGS}/ComPort2Out.txt);
+	file TRY_DELETE(${LOGS}/SymbolLog.txt);
+	file TRY_DELETE(${LOGS}/ConsoleLog.txt);
 }
 
 #define TARGET(clean)

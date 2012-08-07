@@ -1,6 +1,7 @@
 #include <CLR/ILDecomposition.h>
 #include <CLR/IROptimizer.h>
 #include <CLR/JIT.h>
+#include <System/SymbolLogger.h>
 
 
 void JIT_ExecuteMethod(IRMethod* pMethod, AppDomain* pDomain)
@@ -175,4 +176,8 @@ void JIT_CompileMethod(IRMethod* pMethod)
 		Log_WriteLine(LOGLEVEL__JIT, "Finished Compiling %s.%s.%s @ 0x%x to 0x%x, Size: 0x%x", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name, (unsigned int)startOfCompiledCode, (unsigned int)compiledCode, (unsigned int)compiledCodeLength);
 		compiled = TRUE;
 	}
+
+	char symbolBuffer[512];
+	snprintf(symbolBuffer, 512, "0:Domain_%u_%u__%s.%s.%s__%u 0x%X", (unsigned int)pMethod->ParentAssembly->ParentDomain->DomainIndex, (unsigned int)pMethod->ParentAssembly->AssemblyIndex, pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name, (unsigned int)pMethod->MethodIndex, (unsigned int)pMethod->AssembledMethod);
+	SymbolLogger_WriteLine(symbolBuffer);
 }

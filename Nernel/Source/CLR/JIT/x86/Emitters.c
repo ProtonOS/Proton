@@ -5171,7 +5171,7 @@ char* JIT_Emit_New_Object(char* pCompiledCode, IRMethod* pMethod, IRInstruction*
 		{
 			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->SourceArray[index], SECONDARY_REG, THIRD_REG, FOURTH_REG, &sizeOfParameter);
 			if (sizeOfParameter <= gSizeOfPointerInBytes) x86_push_reg(pCompiledCode, SECONDARY_REG);
-			parametersSize += JIT_StackAlign(sizeOfParameter);
+			parametersSize += sizeOfParameter;
 		}
 		x86_push_reg(pCompiledCode, PRIMARY_REG); // Push the GCObject->Data* (this reference)
 		parametersSize += gSizeOfPointerInBytes;
@@ -5208,7 +5208,7 @@ char* JIT_Emit_New_Object(char* pCompiledCode, IRMethod* pMethod, IRInstruction*
 		{
 			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->SourceArray[index], SECONDARY_REG, THIRD_REG, FOURTH_REG, &sizeOfParameter);
 			if (sizeOfParameter <= gSizeOfPointerInBytes) x86_push_reg(pCompiledCode, SECONDARY_REG);
-			parametersSize += JIT_StackAlign(sizeOfParameter);
+			parametersSize += sizeOfParameter;
 		}
 		x86_adjust_stack(pCompiledCode, gSizeOfPointerInBytes * 3);
 		x86_mov_membase_reg(pCompiledCode, X86_ESP, gSizeOfPointerInBytes << 1, PRIMARY_REG, gSizeOfPointerInBytes); // Contains GCObject->Data**, instead of GCObject->Data*

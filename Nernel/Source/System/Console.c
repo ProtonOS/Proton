@@ -6,7 +6,7 @@
 
 #include <Common.h>
 #include <System/Console.h>
-#include <System/SerialLogger.h>
+#include <System/ConsoleLogger.h>
 #include <System/x86/PortIO.h>
 #include <System/Atomics.h>
 
@@ -82,8 +82,8 @@ void Console_WriteCharacter(char pCharacter)
     if (pCharacter == '\n')
     {
         Console_MoveToNextLine();
-    	SerialLogger_WriteByte('\r');
-    	SerialLogger_WriteByte('\n');
+    	ConsoleLogger_WriteByte('\r');
+    	ConsoleLogger_WriteByte('\n');
     }
     else if (pCharacter != '\r')
     {
@@ -91,7 +91,7 @@ void Console_WriteCharacter(char pCharacter)
 	    *cursor = pCharacter;
 	    *(cursor + 1) = gConsole_Attributes;
 	    Console_Advance();
-    	SerialLogger_WriteByte(pCharacter);
+    	ConsoleLogger_WriteByte(pCharacter);
     }
 }
 

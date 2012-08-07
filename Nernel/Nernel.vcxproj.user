@@ -3,10 +3,10 @@
   <PropertyGroup>
     <ShowAllFiles>true</ShowAllFiles>
     <LocalDebuggerCommand Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\SDK\qemu\qemu.exe</LocalDebuggerCommand>
-    <LocalDebuggerCommandArguments Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">-smp 3 -s -S -L ..\SDK\qemu -cdrom ..\Proton.iso -serial vc -serial "file:..\Logs\ComPort2Out.txt"</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">-smp 3 -s -S -L ..\SDK\qemu -cdrom ..\Proton.iso -serial "file:..\Logs\ComPort1Out.txt" -serial "file:..\Logs\ComPort2Out.txt"</LocalDebuggerCommandArguments>
     <DebuggerFlavor Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerCommand Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\SDK\qemu\qemu.exe</LocalDebuggerCommand>
     <DebuggerFlavor Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">-smp 3 -L ..\SDK\qemu -cdrom ..\Proton.iso -serial vc -serial "file:..\Logs\ComPort2Out.txt"</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">-smp 3 -L ..\SDK\qemu -cdrom ..\Proton.iso -serial "file:..\Logs\SymbolLog.txt" -serial "file:..\Logs\ConsoleLog.txt"</LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>
