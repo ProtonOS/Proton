@@ -6,6 +6,12 @@
 
 void Mernel_Kernel_Write(AppDomain* pAppDomain, uint8_t* pStackStream, uint16_t* pString)
 {
+	//uint32_t val = 0;
+	//__asm("mov 0(%ebp), %eax;");
+	//__asm("mov -16(%eax), %eax;");
+	//__asm__("mov %%eax, %0;" : "=r" (val) : );
+	////__asm__("mov 16(%%ebp), %0;" : "=r" (val) : );
+	//printf("val: 0x%x\n", (unsigned int)val);
 	GCObject* object = *(GCObject**)((size_t)pString - sizeof(void*));
 	for (uint32_t index = 0; index < object->String.Length; ++index)
 	{

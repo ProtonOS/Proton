@@ -5024,7 +5024,7 @@ char* JIT_Emit_Compare(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pI
 	{
 		pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
 		pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, SECONDARY_REG, THIRD_REG, FOURTH_REG, NULL);
-		x86_alu_reg_reg(pCompiledCode, X86_CMP, PRIMARY_REG, SECONDARY_REG);
+		x86_alu_reg_reg(pCompiledCode, X86_CMP, SECONDARY_REG, PRIMARY_REG);
 	}
 	else
 	{

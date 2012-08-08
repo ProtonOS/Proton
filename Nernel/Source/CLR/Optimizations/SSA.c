@@ -68,6 +68,19 @@ void IROptimizer_RetargetLocalSources(IRMethod* pMethod, IRCodeNode* pCodeNode, 
 		{
 			instruction->Source3.Data.LocalVariableAddress.LocalVariableIndex = pNewLocalVariable->LocalVariableIndex;
 		}
+		for (uint32_t index = 0; index < instruction->SourceArrayLength; ++index)
+		{
+			if (instruction->SourceArray[index].Type == SourceType_Local &&
+				instruction->SourceArray[index].Data.LocalVariable.LocalVariableIndex == pOldLocalVariable->LocalVariableIndex)
+			{
+				instruction->SourceArray[index].Data.LocalVariable.LocalVariableIndex = pNewLocalVariable->LocalVariableIndex;
+			}
+			else if (instruction->SourceArray[index].Type == SourceType_LocalAddress &&
+					 instruction->SourceArray[index].Data.LocalVariableAddress.LocalVariableIndex == pOldLocalVariable->LocalVariableIndex)
+			{
+				instruction->SourceArray[index].Data.LocalVariableAddress.LocalVariableIndex = pNewLocalVariable->LocalVariableIndex;
+			}
+		}
 		// TODO: Also handle indirects that may go to other indirects, but eventually to locals
 	}
 	pRetargettedNodes[pCodeNode->Index] = TRUE;
