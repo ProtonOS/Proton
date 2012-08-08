@@ -14,7 +14,7 @@ namespace Mernel
             int x = 0;
             while (x < 10)
             {
-                Write(".");
+                Write("Hello\n");
                 ++x;
             }
             ++x;
