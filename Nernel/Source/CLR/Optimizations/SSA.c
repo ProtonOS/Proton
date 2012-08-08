@@ -230,6 +230,7 @@ void IROptimizer_LeaveSSA(IRMethod* pMethod, IRCodeNode** pNodes, uint32_t pNode
 					normalInsert = FALSE;
 					--insertIndex;
 				}
+				instruction->Source2.Data.SizeOf.Type = (IRType*)TRUE;
 				IRMethod_InsertInstruction(pMethod, insertIndex, instruction);
 				sourceNode->InstructionsCount++;
 				sourceNode->Instructions = (uint32_t*)realloc(sourceNode->Instructions, sourceNode->InstructionsCount * sizeof(uint32_t));

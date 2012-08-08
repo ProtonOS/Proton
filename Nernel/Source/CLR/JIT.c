@@ -61,9 +61,18 @@ void JIT_CompileMethod(IRMethod* pMethod)
 			branchRegistry->InstructionLocations[pMethod->IRCodes[index]->ILLocation] = (size_t)compiledCode;
 			if (pMethod->IRCodes[index]->Opcode != IROpcode_Nop)
 			{
-				char symbolBuffer[512];
-				snprintf(symbolBuffer, 512, "1:%u %u", (unsigned int)pMethod->IRCodes[index]->ILLocation, (unsigned int)compiledCode);
-				SymbolLogger_WriteLine(symbolBuffer);
+				if (pMethod->IRCodes[index]->Opcode == IROpcode_Move && (uint32_t)pMethod->IRCodes[index]->Source2.Data.SizeOf.Type == TRUE)
+				{
+					char symbolBuffer[512];
+					snprintf(symbolBuffer, 512, "2:%u %u", (unsigned int)pMethod->IRCodes[index]->ILLocation, (unsigned int)compiledCode);
+					SymbolLogger_WriteLine(symbolBuffer);
+				}
+				else
+				{
+					char symbolBuffer[512];
+					snprintf(symbolBuffer, 512, "1:%u %u", (unsigned int)pMethod->IRCodes[index]->ILLocation, (unsigned int)compiledCode);
+					SymbolLogger_WriteLine(symbolBuffer);
+				}
 			}
 			switch (pMethod->IRCodes[index]->Opcode)
 			{
