@@ -5053,14 +5053,26 @@ char* JIT_Emit_Compare(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pI
 	}
 	unsigned char* BranchTrue = NULL;
 	unsigned char* BranchFalse = NULL;
+	bool_t needsBranch = TRUE;
 
 	switch (cond)
 	{
 		case CompareCondition_Equal:
+			// If they are equal the ZeroFlag will be 1
+			x86_alu_reg_reg(pCompiledCode, X86_XOR, X86_EAX, X86_EAX);
+			x86_lahf(pCompiledCode);
+			x86_alu_reg_imm(pCompiledCode, X86_AND, X86_EAX, (1 << 6)); // mask out everything except the ZeroFlag
+			x86_shift_reg_imm(pCompiledCode, X86_SHR, X86_EAX, 6);
+			// The only bit in eax that is now set is the ZeroFlag,
+			// and it is now at bit index 0.
+			needsBranch = FALSE;
+
+			/*
 			BranchTrue = (unsigned char*)pCompiledCode;
 			x86_branch32(pCompiledCode, X86_CC_EQ, 0, FALSE);
 			BranchFalse = (unsigned char*)pCompiledCode;
 			x86_jump32(pCompiledCode, 0);
+			*/
 			break;
 		case CompareCondition_Greater_Than:
 			BranchTrue = (unsigned char*)pCompiledCode;
@@ -5090,15 +5102,22 @@ char* JIT_Emit_Compare(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pI
 			Panic("Unknown CompareCondition");
 			break;
 	}
-	x86_patch(BranchTrue, (unsigned char*)pCompiledCode);
-	x86_mov_reg_imm(pCompiledCode, PRIMARY_REG, 1);
-	pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
-	unsigned char* end = (unsigned char*)pCompiledCode;
-	x86_jump32(pCompiledCode, 0);
-	x86_patch(BranchFalse, (unsigned char*)pCompiledCode);
-	x86_alu_reg_reg(pCompiledCode, X86_XOR, PRIMARY_REG, PRIMARY_REG);
-	pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
-	x86_patch(end, (unsigned char*)pCompiledCode);
+	if (needsBranch)
+	{
+		x86_patch(BranchTrue, (unsigned char*)pCompiledCode);
+		x86_mov_reg_imm(pCompiledCode, PRIMARY_REG, 1);
+		pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+		unsigned char* end = (unsigned char*)pCompiledCode;
+		x86_jump32(pCompiledCode, 0);
+		x86_patch(BranchFalse, (unsigned char*)pCompiledCode);
+		x86_alu_reg_reg(pCompiledCode, X86_XOR, PRIMARY_REG, PRIMARY_REG);
+		pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+		x86_patch(end, (unsigned char*)pCompiledCode);
+	}
+	else
+	{
+		pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+	}
 	return pCompiledCode;
 }
 
