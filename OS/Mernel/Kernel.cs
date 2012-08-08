@@ -11,13 +11,14 @@ namespace Mernel
 
         private static void Main()
         {
-            int x = 0;
-            while (x < 10)
+            int x = 0xFFF;
+            int y = 10;
+            int z = 0;
+            for (int i = 0; i < 10; i++)
             {
-                Write("Hello\n");
-                ++x;
+                z = x * y;
             }
-            ++x;
+            ++z;
             //while (true) { Write("."); }
             //Write("Hello World!\n");
         }

@@ -271,41 +271,59 @@ void IROptimizer_LeaveSSA(IRMethod* pMethod, IRCodeNode** pNodes, uint32_t pNode
 	}
 
 	IRLocalVariable* localVariable = NULL;
+	bool_t lifeEndsHere = FALSE;
 	for (uint32_t localIndex = 0; localIndex < pMethod->LocalVariableCount; ++localIndex)
 	{
 		localVariable = pMethod->LocalVariables[localIndex];
 		localVariable->SSAData->LifeEnded = localVariable->SSAData->LifeStarted;
+		lifeEndsHere = FALSE;
 		for (uint32_t instructionIndex = pMethod->IRCodesCount - 1; instructionIndex > localVariable->SSAData->LifeStarted->IRLocation; --instructionIndex)
 		{
 			instruction = pMethod->IRCodes[instructionIndex];
-			if (instruction->Source1.Type == SourceType_Local && instruction->Source1.Data.LocalVariable.LocalVariableIndex == localVariable->LocalVariableIndex)
+			if ((instruction->Source1.Type == SourceType_Local && instruction->Source1.Data.LocalVariable.LocalVariableIndex == localVariable->LocalVariableIndex) ||
+				(instruction->Source1.Type == SourceType_LocalAddress && instruction->Source1.Data.LocalVariableAddress.LocalVariableIndex == localVariable->LocalVariableIndex) ||
+				(instruction->Source2.Type == SourceType_Local && instruction->Source2.Data.LocalVariable.LocalVariableIndex == localVariable->LocalVariableIndex) ||
+				(instruction->Source2.Type == SourceType_LocalAddress && instruction->Source2.Data.LocalVariableAddress.LocalVariableIndex == localVariable->LocalVariableIndex) ||
+				(instruction->Source3.Type == SourceType_Local && instruction->Source3.Data.LocalVariable.LocalVariableIndex == localVariable->LocalVariableIndex) ||
+				(instruction->Source3.Type == SourceType_LocalAddress && instruction->Source3.Data.LocalVariableAddress.LocalVariableIndex == localVariable->LocalVariableIndex))
 			{
-				localVariable->SSAData->LifeEnded = instruction;
-				break;
+				lifeEndsHere = TRUE;
 			}
-			else if (instruction->Source1.Type == SourceType_LocalAddress && instruction->Source1.Data.LocalVariableAddress.LocalVariableIndex == localVariable->LocalVariableIndex)
+			else
 			{
-				localVariable->SSAData->LifeEnded = instruction;
-				break;
+				for (uint32_t sourceIndex = 0; sourceIndex < instruction->SourceArrayLength; ++sourceIndex)
+				{
+					if ((instruction->SourceArray[sourceIndex].Type == SourceType_Local && instruction->SourceArray[sourceIndex].Data.LocalVariable.LocalVariableIndex == localVariable->LocalVariableIndex) ||
+						(instruction->SourceArray[sourceIndex].Type == SourceType_LocalAddress && instruction->SourceArray[sourceIndex].Data.LocalVariableAddress.LocalVariableIndex == localVariable->LocalVariableIndex))
+					{
+						lifeEndsHere = TRUE;
+						break;
+					}
+				}
 			}
-			else if (instruction->Source2.Type == SourceType_Local && instruction->Source2.Data.LocalVariable.LocalVariableIndex == localVariable->LocalVariableIndex)
+
+			if (lifeEndsHere)
 			{
-				localVariable->SSAData->LifeEnded = instruction;
-				break;
-			}
-			else if (instruction->Source2.Type == SourceType_LocalAddress && instruction->Source2.Data.LocalVariableAddress.LocalVariableIndex == localVariable->LocalVariableIndex)
-			{
-				localVariable->SSAData->LifeEnded = instruction;
-				break;
-			}
-			else if (instruction->Source3.Type == SourceType_Local && instruction->Source3.Data.LocalVariable.LocalVariableIndex == localVariable->LocalVariableIndex)
-			{
-				localVariable->SSAData->LifeEnded = instruction;
-				break;
-			}
-			else if (instruction->Source3.Type == SourceType_LocalAddress && instruction->Source3.Data.LocalVariableAddress.LocalVariableIndex == localVariable->LocalVariableIndex)
-			{
-				localVariable->SSAData->LifeEnded = instruction;
+				IRInstruction* endInstruction = instruction;
+				for (uint32_t nodeIndex = 0; nodeIndex < pNodesCount; ++nodeIndex)
+				{
+					codeNode = pNodes[nodeIndex];
+					if (codeNode->Instructions[0] <= instruction->IRLocation &&
+						codeNode->Instructions[codeNode->InstructionsCount - 1] >= instruction->IRLocation)
+					{
+						IRInstruction* lastNodeInstruction = pMethod->IRCodes[codeNode->Instructions[codeNode->InstructionsCount - 1]];
+						if (lastNodeInstruction->Opcode == IROpcode_Branch ||
+							lastNodeInstruction->Opcode == IROpcode_Switch)
+						{
+							if (nodeIndex < (pNodesCount - 1))
+							{
+								endInstruction = pMethod->IRCodes[pNodes[nodeIndex + 1]->Instructions[0]];
+							}
+						}
+						break;
+					}
+				}
+				localVariable->SSAData->LifeEnded = endInstruction;
 				break;
 			}
 

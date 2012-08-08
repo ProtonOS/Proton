@@ -53,7 +53,11 @@ void Startup()
 	AppDomain_AddAssembly(gMernelDomain, ILDecomposition_CreateAssembly(gMernelDomain, CLIFile_Create((uint8_t*)mernelModule->Address, mernelModule->Size, "mernel.exe")));
 	JIT_CompileMethod(gMernelDomain->IRAssemblies[1]->EntryPoint);
 	Mernel_EntrypointCompiled();
+
+	startedTicks = SystemClock_GetTicks();
 	JIT_ExecuteMethod(gMernelDomain->IRAssemblies[1]->EntryPoint, gMernelDomain);
+	stoppedTicks = SystemClock_GetTicks();
+	printf("Mernel Entry Execution took %uMS\n", (unsigned int)(stoppedTicks - startedTicks));
 
 	// TODO: Mernel enters here, and there should be no return (unless Mernel is shutting down/rebooting system)
 	// At this point we would add to the bitstream for the current thread stack, based on mernel entry method
