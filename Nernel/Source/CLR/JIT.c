@@ -36,7 +36,12 @@ void JIT_CompileMethod(IRMethod* pMethod)
 
 	if (pMethod->MethodDefinition->InternalCall)
 	{
-		pMethod->AssembledMethod = pMethod->MethodDefinition->InternalCall;
+		pMethod->AssembledMethod = (void(*)())pMethod->MethodDefinition->InternalCall;
+
+		char symbolBuffer[512];
+		snprintf(symbolBuffer, 512, "3:%s.%s.%s %u", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name,  (unsigned int)pMethod->AssembledMethod);
+		SymbolLogger_WriteLine(symbolBuffer);
+
 		return;
 	}
 
