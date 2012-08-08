@@ -62,3 +62,11 @@
 		*(inst)++ = (unsigned char)0x0b;	\
 	} while (0)
 	
+
+#define x86_lahf(inst)	\
+	do {	\
+		x86_codegen_pre(&(inst), 1); \
+		*(inst)++ = (unsigned char)0x9f;	\
+	} while (0)
+
+
