@@ -77,7 +77,6 @@ struct _IRType
 	bool_t IsAbstract;
     
 	bool_t HasStaticConstructor;
-	bool_t StaticConstructorCalled;
 	IRMethod* StaticConstructor;
 
 	uint32_t MethodCount;

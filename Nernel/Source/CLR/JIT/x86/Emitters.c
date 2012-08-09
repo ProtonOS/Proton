@@ -100,6 +100,25 @@ default: \
 	}
 
 
+#define EMIT_Static_Constructor_Call(reg1, reg2, field, code) \
+	if (field->ParentType->HasStaticConstructor) \
+	{ \
+		x86_mov_reg_membase(code, reg1, APP_DOMAIN_REG, offsetof(AppDomain, StaticConstructorsCalled), gSizeOfPointerInBytes); \
+		x86_mov_reg_membase(code, reg1, reg1, (field->ParentAssembly->AssemblyIndex << gPointerDivideShift), gSizeOfPointerInBytes); \
+		x86_mov_reg_membase(code, reg2, reg1, (field->ParentType->TypeIndex << gPointerDivideShift), sizeof(bool_t)); \
+		x86_test_reg_reg(code, reg2, reg2); \
+		unsigned char* eBranch = (unsigned char*)code; \
+		x86_branch32(code, X86_CC_NZ, 0, FALSE); \
+		x86_mov_membase_imm(code, reg1, (field->ParentType->TypeIndex << gPointerDivideShift), TRUE, sizeof(bool_t)); \
+		if (!field->ParentType->StaticConstructor->AssembledMethod) \
+			JIT_CompileMethod(field->ParentType->StaticConstructor); \
+		x86_call_code(code, field->ParentType->StaticConstructor->AssembledMethod); \
+		x86_patch(eBranch, (unsigned char*)code); \
+	}
+
+
+
+
 char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSource, X86_Reg_No pRegister1, X86_Reg_No pRegister2, X86_Reg_No pRegister3, size_t* pSize)
 {
 	uint32_t sizeOfSource = 0;
@@ -244,6 +263,9 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 		{
 			IRField* field = pSource->Data.StaticField.Field;
 			sizeOfSource = JIT_GetStackSizeOfType(field->FieldType);
+
+			EMIT_Static_Constructor_Call(pRegister3, pRegister1, field, pCompiledCode);
+
 			x86_mov_reg_membase(pCompiledCode, pRegister3, APP_DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
 			x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, (field->ParentAssembly->AssemblyIndex << gPointerDivideShift), gSizeOfPointerInBytes);
 			switch (sizeOfSource)
@@ -280,6 +302,9 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 		{
 			IRField* field = pSource->Data.StaticFieldAddress.Field;
 			sizeOfSource = gSizeOfPointerInBytes;
+
+			EMIT_Static_Constructor_Call(pRegister3, pRegister1, field, pCompiledCode);
+
 			x86_mov_reg_membase(pCompiledCode, pRegister1, APP_DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
 			x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister1, (field->ParentAssembly->AssemblyIndex << gPointerDivideShift), gSizeOfPointerInBytes);
 			x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister1, field->Offset);
