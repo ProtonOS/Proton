@@ -3,6 +3,8 @@
 #include <CLR/JIT.h>
 #include <System/SymbolLogger.h>
 
+#define Output_Symbols
+
 Thread* GetCurrentThread();
 
 void JIT_ExecuteMethod(IRMethod* pMethod, AppDomain* pDomain)
@@ -38,9 +40,11 @@ void JIT_CompileMethod(IRMethod* pMethod)
 	{
 		pMethod->AssembledMethod = (void(*)())pMethod->MethodDefinition->InternalCall;
 
+#ifdef Output_Symbols
 		char symbolBuffer[512];
 		snprintf(symbolBuffer, 512, "3:%s.%s.%s %u", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name,  (unsigned int)pMethod->AssembledMethod);
 		SymbolLogger_WriteLine(symbolBuffer);
+#endif
 
 		return;
 	}
@@ -64,6 +68,7 @@ void JIT_CompileMethod(IRMethod* pMethod)
 		for (uint32_t index = 0; index < pMethod->IRCodesCount; ++index)
 		{
 			branchRegistry->InstructionLocations[pMethod->IRCodes[index]->ILLocation] = (size_t)compiledCode;
+#ifdef Output_Symbols
 			if (pMethod->IRCodes[index]->Opcode != IROpcode_Nop)
 			{
 				if (pMethod->IRCodes[index]->Opcode == IROpcode_Move && (uint32_t)pMethod->IRCodes[index]->Source2.Data.SizeOf.Type == TRUE)
@@ -79,6 +84,7 @@ void JIT_CompileMethod(IRMethod* pMethod)
 					SymbolLogger_WriteLine(symbolBuffer);
 				}
 			}
+#endif
 			switch (pMethod->IRCodes[index]->Opcode)
 			{
 				EMITTER(Nop);
@@ -204,8 +210,11 @@ void JIT_CompileMethod(IRMethod* pMethod)
 		Log_WriteLine(LOGLEVEL__JIT, "Finished Compiling %s.%s.%s @ 0x%x to 0x%x, Size: 0x%x", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name, (unsigned int)startOfCompiledCode, (unsigned int)compiledCode, (unsigned int)compiledCodeLength);
 		compiled = TRUE;
 	}
-
+	
+#ifdef Output_Symbols
 	char symbolBuffer[512];
 	snprintf(symbolBuffer, 512, "0:Domain_%u_%u__%s.%s.%s__%u 0x%X", (unsigned int)pMethod->ParentAssembly->ParentDomain->DomainIndex, (unsigned int)pMethod->ParentAssembly->AssemblyIndex, pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name, (unsigned int)pMethod->MethodIndex, (unsigned int)pMethod->AssembledMethod);
 	SymbolLogger_WriteLine(symbolBuffer);
+#endif
+
 }
