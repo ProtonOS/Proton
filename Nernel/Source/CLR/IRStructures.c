@@ -175,7 +175,6 @@ IRType* IRType_GenericDeepCopy(IRType* pType, IRAssembly* pAssembly)
 	type->FieldsLayedOut = FALSE;
 	type->IsGenericInstantiation = TRUE;
 	if (pType->StackSizeCalculated || pType->SizeCalculated) Panic("This should not be happening");
-	type->StaticConstructorCalled = FALSE;
 
 	type->Fields = (IRField**)calloc(1, pType->FieldCount * sizeof(IRField*));
 	for (uint32_t index = 0; index < pType->FieldCount; ++index)
