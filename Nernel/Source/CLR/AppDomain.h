@@ -49,6 +49,7 @@ struct _AppDomain
 	TypeDefinition* CachedType___System_Void;
 
 	void** StaticValues;
+	bool_t** StaticConstructorsCalled;
 
 	DomainSpecificMethod* DomainSpecificMethodsTable;
 	StaticGenericField* StaticGenericFieldsTable;

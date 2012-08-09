@@ -11,14 +11,15 @@ namespace Mernel
 
         private static void Main()
         {
-            int x = 0xFFF;
-            int y = 10;
-            int z = 0;
-            for (int i = 0; i < 10; i++)
-            {
-                z = x * y;
-            }
-            ++z;
+            Console.Write("Hello!");
+            //int x = 0xFFF;
+            //int y = 10;
+            //int z = 0;
+            //for (int i = 0; i < 10; i++)
+            //{
+            //    z = x * y;
+            //}
+            //++z;
             //while (true) { Write("."); }
             //Write("Hello World!\n");
         }

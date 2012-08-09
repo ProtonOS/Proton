@@ -156,4 +156,5 @@ void JIT_CalculateStaticFieldLayout(IRAssembly* pAssembly)
 		Log_WriteLine(LOGLEVEL__JIT_Layout, "Layout Static Field %u @ 0x%x, Size: 0x%x", (unsigned int)index, (unsigned int)field->Offset, (unsigned int)field->Size);
 	}
 	pAssembly->ParentDomain->StaticValues[pAssembly->AssemblyIndex] = realloc(pAssembly->ParentDomain->StaticValues[pAssembly->AssemblyIndex], totalSize);
+	pAssembly->ParentDomain->StaticConstructorsCalled[pAssembly->AssemblyIndex] = (bool_t*)calloc(1, sizeof(bool_t) * pAssembly->TypeCount);
 }

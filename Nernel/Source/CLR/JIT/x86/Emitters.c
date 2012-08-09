@@ -244,10 +244,8 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 		{
 			IRField* field = pSource->Data.StaticField.Field;
 			sizeOfSource = JIT_GetStackSizeOfType(field->FieldType);
-			x86_mov_reg_reg(pCompiledCode, pRegister3, APP_DOMAIN_REG, gSizeOfPointerInBytes);
-			x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, offsetof(AppDomain, StaticValues) + (field->ParentAssembly->AssemblyIndex << gPointerDivideShift));
-			x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, 0, gSizeOfPointerInBytes);
-			x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
+			x86_mov_reg_membase(pCompiledCode, pRegister3, APP_DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
+			x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, (field->ParentAssembly->AssemblyIndex << gPointerDivideShift), gSizeOfPointerInBytes);
 			switch (sizeOfSource)
 			{
 				case 1:
@@ -255,7 +253,7 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				case 3:
 					x86_alu_reg_reg(pCompiledCode, X86_XOR, pRegister1, pRegister1);
 				case 4:
-					x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, 0, sizeOfSource);
+					x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, field->Offset, sizeOfSource);
 					break;
 				default:
 				{
@@ -263,14 +261,14 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					uint32_t count = sizeOfSource >> gPointerDivideShift;
 					for (uint32_t index = 0; index < count; index++)
 					{
-						x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister3, (index << gPointerDivideShift), gSizeOfPointerInBytes);
+						x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister3, field->Offset + (index << gPointerDivideShift), gSizeOfPointerInBytes);
 						x86_mov_membase_reg(pCompiledCode, X86_ESP, (index << gPointerDivideShift), pRegister2, gSizeOfPointerInBytes);
 					}
 					uint32_t remainder = sizeOfSource & (gSizeOfPointerInBytes - 1);
 					if (remainder)
 					{
 						x86_alu_reg_reg(pCompiledCode, X86_XOR, pRegister2, pRegister2);
-						x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister3, (count << gPointerDivideShift), remainder);
+						x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister3, field->Offset + (count << gPointerDivideShift), remainder);
 						x86_mov_membase_reg(pCompiledCode, X86_ESP, (count << gPointerDivideShift), pRegister2, remainder);
 					}
 					break;
@@ -282,9 +280,8 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 		{
 			IRField* field = pSource->Data.StaticFieldAddress.Field;
 			sizeOfSource = gSizeOfPointerInBytes;
-			x86_mov_reg_reg(pCompiledCode, pRegister3, APP_DOMAIN_REG, gSizeOfPointerInBytes);
-			x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, offsetof(AppDomain, StaticValues) + (field->ParentAssembly->AssemblyIndex << gPointerDivideShift));
-			x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, 0, gSizeOfPointerInBytes);
+			x86_mov_reg_membase(pCompiledCode, pRegister1, APP_DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
+			x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister1, (field->ParentAssembly->AssemblyIndex << gPointerDivideShift), gSizeOfPointerInBytes);
 			x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister1, field->Offset);
 			break;
 		}
