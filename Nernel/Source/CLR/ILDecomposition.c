@@ -1188,8 +1188,8 @@ void ILDecomposition_BranchLinker(IRMethod* pMethod)
 
 void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 {
-	if (pMethod->IRCodes) return;
 	Log_WriteLine(LOGLEVEL__ILReader, "Converting Method: %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
+	if (pMethod->IRCodes) return;
 
 	MethodDefinition* methodDefinition = pMethod->MethodDefinition;
 	MethodSignature* methodSignature = methodDefinition->SignatureCache;

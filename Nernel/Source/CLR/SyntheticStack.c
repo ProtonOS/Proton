@@ -49,7 +49,7 @@ ALWAYS_INLINE void StackObjectPool_PushSet(SyntheticStack* pStack)
 
 StackObject* StackObjectPool_Allocate(SyntheticStack* pStack)
 {
-    if (!(pStack->ObjectPool->StackDepth > 0))
+    if (pStack->ObjectPool->StackDepth <= 0)
     {
         StackObjectPool_PushSet(pStack);
     }
@@ -83,6 +83,7 @@ ALWAYS_INLINE void StackObjectPool_TrimPool(SyntheticStack* pStack)
 StackObject* StackObject_Create()
 {
     StackObject* object = (StackObject*)calloc(1, sizeof(StackObject));
+	//printf("Created stack object at 0x%x\n", (unsigned int)object);
     object->Type = STACK_OBJECT_NO_TYPE;
 	object->SourceType = (StackObjectSourceType)0xFF;
     return object;
@@ -90,6 +91,7 @@ StackObject* StackObject_Create()
 
 void StackObject_Destroy(StackObject* obj)
 {
+	//printf("Destroying stack object at 0x%x\n", (unsigned int)obj);
     free(obj);
 }
 
@@ -129,10 +131,7 @@ void SyntheticStack_Push(SyntheticStack* pStack, StackObject* pObject)
     pStack->TopObject->NextObj = pObject;
     pStack->StackDepth++;
     pStack->TopObject = pObject;
-	if (pStack->StackID != 1)
-	{
-		Log_WriteLine(LOGLEVEL__SyntheticStack, "Pushed object to stack 0x%x, TopObject Type = 0x%x, StackDepth = %i", (unsigned int)pStack->StackID, (unsigned int)pObject->Type, (int)pStack->StackDepth);
-	}
+	Log_WriteLine(LOGLEVEL__SyntheticStack, "Pushed object to stack 0x%x, TopObject Type = 0x%x, StackDepth = %i", (unsigned int)pStack->StackID, (unsigned int)pObject->Type, (int)pStack->StackDepth);
 }
 
 StackObject* SyntheticStack_Pop(SyntheticStack* pStack)
@@ -144,10 +143,7 @@ StackObject* SyntheticStack_Pop(SyntheticStack* pStack)
     pStack->StackDepth--;
     object->NextObj = NULL;
     object->PrevObj = NULL;
-	if (pStack->StackID != 1)
-	{
-		Log_WriteLine(LOGLEVEL__SyntheticStack, "Popped object from stack 0x%x, TopObject Type = 0x%x, StackDepth = %i", (unsigned int)pStack->StackID, (unsigned int)object->Type, (int)pStack->StackDepth);
-	}
+	Log_WriteLine(LOGLEVEL__SyntheticStack, "Popped object from stack 0x%x, TopObject Type = 0x%x, StackDepth = %i", (unsigned int)pStack->StackID, (unsigned int)object->Type, (int)pStack->StackDepth);
     return object;
 }
 

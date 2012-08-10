@@ -493,7 +493,6 @@ IRType* AppDomain_GetIRTypeFromSignatureType(AppDomain* pDomain, IRAssembly* pAs
 					break;
 			}
 			IRGenericType key;
-			IRGenericType* keyPtr = &key;
 			key.GenericType = type;
 			if (type->GenericParameterCount != pType->GenericInstGenericArgumentCount)
 			{
@@ -506,7 +505,7 @@ IRType* AppDomain_GetIRTypeFromSignatureType(AppDomain* pDomain, IRAssembly* pAs
 				key.Parameters[index] = AppDomain_GetIRTypeFromSignatureType(pDomain, pAssembly, pType->GenericInstGenericArguments[index]);
 			}
 			IRGenericType* lookupType = NULL;
-			HASH_FIND(HashHandle, pAssembly->GenericTypesHashTable, (void*)&keyPtr, offsetof(IRGenericType, ImplementationType), lookupType);
+			HASH_FIND(HashHandle, pAssembly->GenericTypesHashTable, (void*)&key, offsetof(IRGenericType, ImplementationType), lookupType);
 			IRType* implementationType = NULL;
 			if (!lookupType)
 			{
