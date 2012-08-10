@@ -1205,7 +1205,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 	IRType* parentType = NULL;
 	if (!(parentType = assembly->Types[methodDefinition->TypeDefinition->TableIndex - 1]))
 	{
-		printf("Creating parent type\n");
+		//printf("Creating parent type\n");
 		parentType = IRType_Create(assembly, methodDefinition->TypeDefinition);
 	}
 
@@ -1226,26 +1226,26 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 		exceptionTryStatementOffsets[index] = methodDefinition->Exceptions[index].TryLength;
 	}
 	
-	printf("Expanding locals signatures\n");
+	//printf("Expanding locals signatures\n");
 	MetadataToken* localsSignatureToken = CLIFile_ExpandMetadataToken(file, methodDefinition->Body.LocalVariableSignatureToken);
 	LocalsSignature* localsSignature = LocalsSignature_Expand(((StandAloneSignature*)localsSignatureToken->Data)->Signature, file);
-	printf("LocalsSignature expanded\n");
+	//printf("LocalsSignature expanded\n");
 	pMethod->LocalVariableCount = localsSignature->LocalVariableCount;
 	pMethod->LocalVariables = (IRLocalVariable**)calloc(1, pMethod->LocalVariableCount * sizeof(IRLocalVariable*));
 	uint32_t localVariableIndex = 0;
 	IRType* type = NULL;
 	for (uint32_t index = 0; index < localsSignature->LocalVariableCount; index++)
 	{
-		printf("Getting signature at index %i, type at 0x%x\n", (int)index, (unsigned int)localsSignature->LocalVariables[index]->Type);
+		//printf("Getting signature at index %i, type at 0x%x\n", (int)index, (unsigned int)localsSignature->LocalVariables[index]->Type);
 		type = AppDomain_GetIRTypeFromSignatureType(domain, assembly, localsSignature->LocalVariables[index]->Type);
 		IRLocalVariable* localVariable = IRLocalVariable_Create(pMethod, type);
 		localVariable->LocalVariableIndex = localVariableIndex++;
 		localVariable->Pinned = localsSignature->LocalVariables[index]->IsPinned;
 		pMethod->LocalVariables[localVariable->LocalVariableIndex] = localVariable;
 	}
-	printf("Finished creating locals\n");
+	//printf("Finished creating locals\n");
 	LocalsSignature_Destroy(localsSignature);
-	printf("Surely destroying locals signatures is successful?\n");
+	//printf("Surely destroying locals signatures is successful?\n");
 	CLIFile_DestroyMetadataToken(localsSignatureToken);
 
     SyntheticStack* stack = SyntheticStack_Create();
@@ -1267,7 +1267,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 	size_t originalDataPointer = (size_t)(*currentDataPointer);
     size_t currentILInstructionBase;
     uint8_t currentILOpcode;
-	printf("Somehow didn't get here.\n");
+	//printf("Somehow didn't get here.\n");
 
 	while ((size_t)(*currentDataPointer) - originalDataPointer < localizedDataLength)
 	{
