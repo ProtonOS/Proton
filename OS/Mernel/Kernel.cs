@@ -11,7 +11,12 @@ namespace Mernel
 
         private static void Main()
         {
-            Console.Write("Hello!");
+            int i = 0;
+            i++;
+            string s = i.ToString();
+            Kernel.Write(s);
+            Kernel.Write("\n");
+            Kernel.Write("Hello!");
             //int x = 0xFFF;
             //int y = 10;
             //int z = 0;
