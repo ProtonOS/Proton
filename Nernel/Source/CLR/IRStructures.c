@@ -150,6 +150,16 @@ IRType* IRType_Create(IRAssembly* pAssembly, TypeDefinition* pTypeDefinition)
 			if (!strcmp(pTypeDefinition->MethodDefinitionList[index].Name, ".cctor"))
 			{
 				type->HasStaticConstructor = TRUE;
+				/*if (pTypeDefinition->File->Assembly->Methods[pTypeDefinition->MethodDefinitionList[index].TableIndex - 1])
+				{
+					printf("Method Existed\n");
+					type->StaticConstructor = pTypeDefinition->File->Assembly->Methods[pTypeDefinition->MethodDefinitionList[index].TableIndex - 1];
+				}
+				else
+				{
+					printf("Method didn't exist!\n");
+					type->StaticConstructor = IRMethod_Create(pTypeDefinition->File->Assembly, &pTypeDefinition->MethodDefinitionList[index]);
+				}*/
 			}
 		}
 	}

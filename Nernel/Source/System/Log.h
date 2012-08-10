@@ -45,9 +45,10 @@ void Log_WriteLine(LogLevel pLevel, const char* pFormatString, ...);
 		| LOGLEVEL__MethodLayout \
 		| LOGLEVEL__FieldLayout \
 		| LOGLEVEL__Exceptions \
+		*/ \
 		| LOGLEVEL__ILReader \
 		| LOGLEVEL__IREmitter \
-		\
+		/* \
 		| LOGLEVEL__Link_Internals \
 		| LOGLEVEL__Link_Branches \
 		*/ \

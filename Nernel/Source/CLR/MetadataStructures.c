@@ -2444,17 +2444,17 @@ bool_t MethodSignature_Compare(AppDomain* pDomain, IRAssembly* pAssemblyA, Metho
 				{
 					if (!paramBType->IsGenericParameter)
 					{
-						free(paramAType);
+						//free(paramAType);
 					}
 					else
 					{
-						free(paramAType);
-						free(paramBType);
+						//free(paramAType);
+						//free(paramBType);
 					}
 				}
 				else
 				{
-					free(paramBType);
+					//free(paramBType);
 					return FALSE;
 				}
 			}
@@ -2574,7 +2574,14 @@ void LocalsSignature_Destroy(LocalsSignature* pLocalsSignature)
 {
     if (pLocalsSignature->LocalVariables)
     {
-        for (uint32_t index = 0; index < pLocalsSignature->LocalVariableCount; ++index) SignatureLocalVariable_Destroy(pLocalsSignature->LocalVariables[index]);
+		printf("Destroying all locals\n");
+        for (uint32_t index = 0; index < pLocalsSignature->LocalVariableCount; ++index)
+		{
+			printf("Destroying local signature at index %i\n", (int)index);
+			SignatureLocalVariable_Destroy(pLocalsSignature->LocalVariables[index]);
+			printf("Finished destroying local signature at index %i\n", (int)index);
+		}
+		printf("Finished destroying all locals.\n");
         free(pLocalsSignature->LocalVariables);
     }
     free(pLocalsSignature);
@@ -2724,27 +2731,42 @@ SignatureType* SignatureType_Create()
 
 void SignatureType_Destroy(SignatureType* pType)
 {
-    if (pType->ArrayType) SignatureType_Destroy(pType->ArrayType);
+	printf("Started destroying a SignatureType\n");
+    if (pType->ArrayType)
+	{
+		printf("SignatureType was an array type!\n");
+		SignatureType_Destroy(pType->ArrayType);
+		printf("Returned from destroying ArrayType!\n");
+	}
+	printf("Past Array\n");
     if (pType->ArrayShape) SignatureArrayShape_Destroy(pType->ArrayShape);
+	printf("Past ArrayShape\n");
     if (pType->FnPtrMethodSignature) MethodSignature_Destroy(pType->FnPtrMethodSignature);
+	printf("Past FnPtrMethodsSignature\n");
     if (pType->GenericInstGenericArguments)
     {
         for (uint32_t index = 0; index < pType->GenericInstGenericArgumentCount; ++index) SignatureType_Destroy(pType->GenericInstGenericArguments[index]);
         free(pType->GenericInstGenericArguments);
     }
+	printf("Past GenericInstGenericArguments\n");
     if (pType->PtrCustomModifiers)
     {
         for (uint32_t index = 0; index < pType->PtrCustomModifierCount; ++index) SignatureCustomModifier_Destroy(pType->PtrCustomModifiers[index]);
         free(pType->PtrCustomModifiers);
     }
+	printf("Past PtrCustomModifiers\n");
     if (pType->PtrType) SignatureType_Destroy(pType->PtrType);
+	printf("Past PtrType\n");
     if (pType->SZArrayCustomModifiers)
     {
         for (uint32_t index = 0; index < pType->SZArrayCustomModifierCount; ++index) SignatureCustomModifier_Destroy(pType->SZArrayCustomModifiers[index]);
         free(pType->SZArrayCustomModifiers);
     }
+	printf("Past SZArrayCustomModifiers\n");
     if (pType->SZArrayType) SignatureType_Destroy(pType->SZArrayType);
+	printf("Past SZArrayType\n");
     free(pType);
+	printf("Finished destroying type\n");
 }
 
 uint8_t* SignatureType_Parse(uint8_t* pCursor, SignatureType** pType, CLIFile* pCLIFile)
@@ -2908,7 +2930,9 @@ void SignatureLocalVariable_Destroy(SignatureLocalVariable* pLocalVariable)
         for (uint32_t index = 0; index < pLocalVariable->CustomModifierCount; ++index) SignatureCustomModifier_Destroy(pLocalVariable->CustomModifiers[index]);
         free(pLocalVariable->CustomModifiers);
     }
+	printf("Finished destroying custom modifiers\n");
     if (pLocalVariable->Type) SignatureType_Destroy(pLocalVariable->Type);
+	printf("Finished destroying the signature type\n");
     free(pLocalVariable);
 }
 

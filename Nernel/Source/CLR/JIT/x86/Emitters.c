@@ -110,8 +110,8 @@ default: \
 		unsigned char* eBranch = (unsigned char*)code; \
 		x86_branch32(code, X86_CC_NZ, 0, FALSE); \
 		x86_mov_membase_imm(code, reg1, (field->ParentType->TypeIndex << gPointerDivideShift), TRUE, sizeof(bool_t)); \
-		if (!field->ParentType->StaticConstructor->AssembledMethod) \
-			JIT_CompileMethod(field->ParentType->StaticConstructor); \
+		printf("Static constructor at 0x%x\n", (unsigned int)field->ParentType->StaticConstructor); \
+		JIT_CompileMethod(field->ParentType->StaticConstructor); \
 		x86_call_code(code, field->ParentType->StaticConstructor->AssembledMethod); \
 		x86_patch(eBranch, (unsigned char*)code); \
 	}
