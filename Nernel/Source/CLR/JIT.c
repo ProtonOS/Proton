@@ -26,10 +26,9 @@ case IROpcode_##pInstruction: \
 
 void JIT_CompileMethod(IRMethod* pMethod)
 {
-	Log_WriteLine(LOGLEVEL__JIT, "Started Compiling %s.%s.%s",  pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
 	if (pMethod->AssembledMethod)
 	{
-		printf("%s.%s.%s is already compiled at 0x%x\n", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name,  (unsigned int)pMethod->AssembledMethod);
+		//printf("%s.%s.%s is already compiled at 0x%x\n", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name,  (unsigned int)pMethod->AssembledMethod);
 		return;
 	}
 
@@ -43,7 +42,7 @@ void JIT_CompileMethod(IRMethod* pMethod)
 
 	if (pMethod->MethodDefinition->InternalCall)
 	{
-		printf("%s.%s.%s is an internal call and is at 0x%x\n", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name,  (unsigned int)pMethod->AssembledMethod);
+		//printf("%s.%s.%s is an internal call and is at 0x%x\n", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name,  (unsigned int)pMethod->AssembledMethod);
 		pMethod->AssembledMethod = (void(*)())pMethod->MethodDefinition->InternalCall;
 
 #ifdef Output_Symbols

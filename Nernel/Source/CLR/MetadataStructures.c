@@ -2731,42 +2731,38 @@ SignatureType* SignatureType_Create()
 
 void SignatureType_Destroy(SignatureType* pType)
 {
-	//printf("Started destroying a SignatureType\n");
-    if (pType->ArrayType)
+	switch(pType->ElementType)
 	{
-		//printf("SignatureType was an array type!\n");
-		SignatureType_Destroy(pType->ArrayType);
-		//printf("Returned from destroying ArrayType!\n");
+		case SignatureElementType_Array:
+			SignatureType_Destroy(pType->ArrayType);
+			SignatureArrayShape_Destroy(pType->ArrayShape);
+			break;
+		case SignatureElementType_FunctionPointer:
+			MethodSignature_Destroy(pType->FnPtrMethodSignature);
+			break;
+		case SignatureElementType_GenericInstantiation:
+		{
+			for (uint32_t index = 0; index < pType->GenericInstGenericArgumentCount; ++index) SignatureType_Destroy(pType->GenericInstGenericArguments[index]);
+			free(pType->GenericInstGenericArguments);
+			break;
+		}
+		case SignatureElementType_Pointer:
+		{
+			for (uint32_t index = 0; index < pType->PtrCustomModifierCount; ++index) SignatureCustomModifier_Destroy(pType->PtrCustomModifiers[index]);
+			free(pType->PtrCustomModifiers);
+			SignatureType_Destroy(pType->PtrType);
+			break;
+		}
+		case SignatureElementType_SingleDimensionArray:
+		{
+			for (uint32_t index = 0; index < pType->SZArrayCustomModifierCount; ++index) SignatureCustomModifier_Destroy(pType->SZArrayCustomModifiers[index]);
+			free(pType->SZArrayCustomModifiers);
+			SignatureType_Destroy(pType->SZArrayType);
+			break;
+		}
+
 	}
-	//printf("Past Array\n");
-    if (pType->ArrayShape) SignatureArrayShape_Destroy(pType->ArrayShape);
-	//printf("Past ArrayShape\n");
-    if (pType->FnPtrMethodSignature) MethodSignature_Destroy(pType->FnPtrMethodSignature);
-	//printf("Past FnPtrMethodsSignature\n");
-    if (pType->GenericInstGenericArguments)
-    {
-        for (uint32_t index = 0; index < pType->GenericInstGenericArgumentCount; ++index) SignatureType_Destroy(pType->GenericInstGenericArguments[index]);
-        free(pType->GenericInstGenericArguments);
-    }
-	//printf("Past GenericInstGenericArguments\n");
-    if (pType->PtrCustomModifiers)
-    {
-        for (uint32_t index = 0; index < pType->PtrCustomModifierCount; ++index) SignatureCustomModifier_Destroy(pType->PtrCustomModifiers[index]);
-        free(pType->PtrCustomModifiers);
-    }
-	//printf("Past PtrCustomModifiers\n");
-    if (pType->PtrType) SignatureType_Destroy(pType->PtrType);
-	//printf("Past PtrType\n");
-    if (pType->SZArrayCustomModifiers)
-    {
-        for (uint32_t index = 0; index < pType->SZArrayCustomModifierCount; ++index) SignatureCustomModifier_Destroy(pType->SZArrayCustomModifiers[index]);
-        free(pType->SZArrayCustomModifiers);
-    }
-	//printf("Past SZArrayCustomModifiers\n");
-    if (pType->SZArrayType) SignatureType_Destroy(pType->SZArrayType);
-	//printf("Past SZArrayType\n");
     free(pType);
-	//printf("Finished destroying type\n");
 }
 
 uint8_t* SignatureType_Parse(uint8_t* pCursor, SignatureType** pType, CLIFile* pCLIFile)

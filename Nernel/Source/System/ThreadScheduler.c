@@ -105,7 +105,7 @@ Thread* ThreadScheduler_FindThread(APIC* pAPIC)
 	while (TRUE)
 	{
 		if (gThreadScheduler_Window->Priority > 0 &&
-			!gThreadScheduler_Window->Busy &&
+			(!gThreadScheduler_Window->Busy || gThreadScheduler_Window->CurrentAPIC == pAPIC) &&
 			!gThreadScheduler_Window->Suspended &&
 			gThreadScheduler_Window->SleepRemaining == 0)
 		{
@@ -124,7 +124,7 @@ Thread* ThreadScheduler_FindThread(APIC* pAPIC)
 		while (TRUE)
 		{
 			if (gThreadScheduler_Window->Priority > 0 &&
-				!gThreadScheduler_Window->Busy &&
+				(!gThreadScheduler_Window->Busy || gThreadScheduler_Window->CurrentAPIC == pAPIC) &&
 				!gThreadScheduler_Window->Suspended &&
 				gThreadScheduler_Window->SleepRemaining == 0)
 			{
@@ -137,6 +137,26 @@ Thread* ThreadScheduler_FindThread(APIC* pAPIC)
 		}
 	}
 	if (found) gThreadScheduler_Window = found->Next;
+	/*if (!found)
+	{
+		printf("Going to sleep because no threads are available to execute.\n");
+		uint32_t i = 0;
+		while (TRUE)
+		{
+			if (gThreadScheduler_Window->Priority == 0)
+				printf("Can't use thread %i because it is priority 0.\n", (int)i);
+			else if (gThreadScheduler_Window->Busy)
+				printf("Can't use thread %i because it is busy.\n", (int)i);
+			else if (gThreadScheduler_Window->Suspended)
+				printf("Can't use thread %i because it is suspended.\n", (int)i);
+			else if (gThreadScheduler_Window->SleepRemaining != 0)
+				printf("Can't use thread %i because it is sleeping for %u.\n", (int)i, (unsigned int)gThreadScheduler_Window->SleepRemaining);
+			gThreadScheduler_Window = gThreadScheduler_Window->Next;
+			i++;
+			if (gThreadScheduler_Window == started) break;
+		}
+		ThreadScheduler_stub();
+	}*/
 	return found;
 }
 
