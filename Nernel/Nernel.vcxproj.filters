@@ -132,6 +132,9 @@
     <ClCompile Include="Source\CLR\Optimizations\DeadMoveElimination.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\AllocationWrappers.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\System\Multiboot.h">

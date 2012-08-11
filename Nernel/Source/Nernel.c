@@ -35,16 +35,6 @@ void Mernel_EntrypointCompiled()
 	printf("Compiled Mernel Entry\n");
 }
 
-#ifndef _WIN32
-void* calloc(size_t n, size_t bytes)
-{
-	void* t = _calloc_r(__getreent(), n, bytes);
-	if (!t)
-		Panic("There's an issue with calloc!");
-	return t;
-}
-#endif
-
 void Startup();
 #define LocalDef__TickCountMod 50000000
 void Startup()

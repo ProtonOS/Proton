@@ -62,6 +62,7 @@
 
 #define SOURCE(C_FILES)
 {
+	Source/AllocationWrappers.c
 	Source/Nernel.c
 	Source/CLR/AppDomain.c
 	Source/CLR/CLIFile.c
