@@ -55,6 +55,7 @@ AppDomain* AppDomain_Create(Thread* pMainThread)
 
 void AppDomain_Destroy(AppDomain* pDomain)
 {
+	if (pDomain->InstructionPointerMappingTree) free(pDomain->InstructionPointerMappingTree);
 	for (uint32_t index = 0; index < pDomain->ThreadCount; ++index)
 	{
 		if (pDomain->Threads[index])
@@ -127,9 +128,38 @@ void AppDomain_AddAssembly(AppDomain* pDomain, IRAssembly* pAssembly)
 	pAssembly->AssemblyIndex = pDomain->IRAssemblyCount;
 	pDomain->IRAssemblyCount++;
 	pDomain->IRAssemblies = (IRAssembly**)realloc(pDomain->IRAssemblies, sizeof(IRAssembly*) * pDomain->IRAssemblyCount);
-	pDomain->IRAssemblies[pDomain->IRAssemblyCount - 1] = pAssembly;
+	pDomain->IRAssemblies[pAssembly->AssemblyIndex] = pAssembly;
 	pDomain->StaticValues = (void**)realloc(pDomain->StaticValues, pDomain->IRAssemblyCount * sizeof(void*));
 	pDomain->StaticConstructorsCalled = (bool_t**)realloc(pDomain->StaticConstructorsCalled, pDomain->IRAssemblyCount * sizeof(bool_t*));
+	pDomain->InstructionPointerMappingTree = (InstructionPointerMappingNode**)realloc(pDomain->InstructionPointerMappingTree, pDomain->IRAssemblyCount * sizeof(InstructionPointerMappingNode*));
+	pDomain->InstructionPointerMappingTree[pAssembly->AssemblyIndex] = NULL;
+}
+
+void AppDomain_InsertInstructionPointerMapping(InstructionPointerMappingNode* pCurrentNode, InstructionPointerMappingNode* pNewNode)
+{
+	if (pCurrentNode->StartAddress == pNewNode->StartAddress) Panic("InsertInstructionPointerMapping Duplicate Address");
+	if (pNewNode->StartAddress < pCurrentNode->StartAddress)
+	{
+		if (pCurrentNode->Left) AppDomain_InsertInstructionPointerMapping(pCurrentNode->Left, pNewNode);
+		else pCurrentNode->Left = pNewNode;
+	}
+	else
+	{
+		if (pCurrentNode->Right) AppDomain_InsertInstructionPointerMapping(pCurrentNode->Right, pNewNode);
+		else pCurrentNode->Right = pNewNode;
+	}
+}
+
+void AppDomain_AddInstructionPointerMapping(IRMethod* pMethod, size_t pAddress, size_t pLength)
+{
+	InstructionPointerMappingNode* node = (InstructionPointerMappingNode*)calloc(1, sizeof(InstructionPointerMappingNode));
+	node->StartAddress = pAddress;
+	node->EndAddress = pAddress + pLength;
+	node->Method = pMethod;
+
+	InstructionPointerMappingNode* rootNode = pMethod->ParentAssembly->ParentDomain->InstructionPointerMappingTree[pMethod->ParentAssembly->AssemblyIndex];
+	if (!rootNode) pMethod->ParentAssembly->ParentDomain->InstructionPointerMappingTree[pMethod->ParentAssembly->AssemblyIndex] = node;
+	else AppDomain_InsertInstructionPointerMapping(rootNode, node);
 }
 
 void AppDomain_LinkCorlib(AppDomain* pDomain, CLIFile* pCorlibFile)

@@ -1,6 +1,7 @@
 #pragma once
 
 typedef struct _AppDomain AppDomain;
+typedef struct _InstructionPointerMappingNode InstructionPointerMappingNode;
 typedef struct _DomainSpecificMethod DomainSpecificMethod;
 typedef struct _StaticGenericField StaticGenericField;
 
@@ -51,10 +52,20 @@ struct _AppDomain
 	void** StaticValues;
 	bool_t** StaticConstructorsCalled;
 
+	InstructionPointerMappingNode** InstructionPointerMappingTree;
 	DomainSpecificMethod* DomainSpecificMethodsTable;
 	StaticGenericField* StaticGenericFieldsTable;
 
 	GC* GarbageCollector;
+};
+
+struct _InstructionPointerMappingNode
+{
+	size_t StartAddress;
+	size_t EndAddress;
+	IRMethod* Method;
+	InstructionPointerMappingNode* Right;
+	InstructionPointerMappingNode* Left;
 };
 
 struct _DomainSpecificMethod
@@ -76,6 +87,7 @@ void AppDomain_Destroy(AppDomain* pDomain);
 void AppDomain_AddThread(AppDomain* pDomain, Thread* pThread);
 void AppDomain_RemoveThread(AppDomain* pDomain, Thread* pThread);
 void AppDomain_AddAssembly(AppDomain* pDomain, IRAssembly* pAssembly);
+void AppDomain_AddInstructionPointerMapping(IRMethod* pMethod, size_t pAddress, size_t pLength);
 void AppDomain_LinkCorlib(AppDomain* pDomain, CLIFile* pCorlibFile);
 
 ElementType AppDomain_GetElementTypeFromIRType(AppDomain* pDomain, IRType* pType);

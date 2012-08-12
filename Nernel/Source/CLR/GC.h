@@ -13,9 +13,8 @@ typedef enum GCObjectFlags
 	GCObjectFlags_String = 1 << 0,
 	GCObjectFlags_Array = 1 << 1,
 
-	GCObjectFlags_Pinned = 1 << 4,
-	GCObjectFlags_Allocated = 1 << 5,
-	GCObjectFlags_Disposed = 1 << 6,
+	GCObjectFlags_Pinned = 1 << 5,
+	GCObjectFlags_Allocated = 1 << 6,
 	GCObjectFlags_Marked = 1 << 7,
 } GCObjectFlags;
 
@@ -32,8 +31,10 @@ struct _GCObject
 	IRType* Type;
 	GCObjectFlags Flags;
 	void* Data;
-	size_t Size;
+	size_t AllocatedSize;
+	size_t ActualSize;
 	GCHeap* Heap;
+	GCObject* NextObject;
 
 	union
 	{
@@ -52,14 +53,15 @@ struct _GCObject
 
 struct _GCHeap
 {
-    uint32_t ObjectPoolSize;
-    GCObject** ObjectPool;
+	uint32_t InitialPoolSize;
+	GCObject* AllocatedObjectList;
+	GCObject* FreeObjectList;
+	uint32_t* AllocationTree;
+	uint32_t AllocationTreeLevels;
     uint32_t Size;
     uint32_t Available;
     uint32_t Allocated;
-    uint32_t Disposed;
     uint8_t* Bottom;
-    uint8_t* Top;
 };
 
 struct _GC
@@ -82,7 +84,7 @@ struct _GC
 
 GC* GC_Create(AppDomain* pDomain);
 void GC_Destroy(GC* pGC);
-GCHeap* GCHeap_Create(uint32_t pHeapSize, uint32_t pInitialPoolSize);
+GCHeap* GCHeap_Create(uint32_t pHeapSize, uint32_t pInitialPoolSize, bool_t pUseTreeAllocation);
 void GCHeap_Destroy(GCHeap* pGCHeap);
 void GC_AllocateObject(AppDomain* pDomain, uint8_t* pStackStream, IRType* pType, uint32_t pSize, void** pAllocatedObject);
 void GC_AllocateStringFromASCII(AppDomain* pDomain, uint8_t* pStackStream, int8_t* pString, uint32_t pLength, void** pAllocatedObject);

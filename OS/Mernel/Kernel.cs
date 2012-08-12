@@ -22,7 +22,7 @@ namespace Mernel
             i++;
             TestA b = new TestA();
             b.TestMethod("Test");
-            //Kernel.Write(Test2(i));
+            Kernel.Write(Test2(i));
             //string s = i.ToString();
             //Kernel.Write(s);
             Kernel.Write("\n");
