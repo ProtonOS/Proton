@@ -13,8 +13,15 @@ namespace Mernel
     }
     public static class Kernel
     {
+        private static string StaticTest;
         [MethodImpl(MethodImplOptions.InternalCall)]
         public static extern void Write(string pString);
+
+        static Kernel()
+        {
+            StaticTest = "Test\n";
+            Kernel.Write("Static Constructor called!\n");
+        }
 
         private static void Main()
         {
@@ -25,7 +32,7 @@ namespace Mernel
             Kernel.Write(Test2(i));
             //string s = i.ToString();
             //Kernel.Write(s);
-            Kernel.Write("\n");
+            //Kernel.Write("\n");
             //Kernel.Write("Hello!");
             //int x = 0xFFF;
             //int y = 10;

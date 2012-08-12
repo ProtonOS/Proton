@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\AllocationWrappers.c" />
     <ClCompile Include="Source\CLR\AppDomain.c" />
     <ClCompile Include="Source\CLR\CLIFile.c" />
     <ClCompile Include="Source\CLR\GC.c" />
