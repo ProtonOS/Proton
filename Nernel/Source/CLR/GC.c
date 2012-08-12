@@ -165,7 +165,7 @@ GCObject* GCHeap_Allocate(GCHeap*** pGCHeaps, uint32_t* pGCHeapCount, uint32_t p
 			uint32_t allocatedSize = 0;
 			int32_t index = GCHeap_FindAvailableInTree(heap->AllocationTree, 0, heap->AllocationTreeLevels, 0, requiredSize, &allocatedSize);
 			if (index < 0) continue;
-			GCHeap_SetBitsInTree(heap->AllocationTree, heap->AllocationTreeLevels - 1, index, allocatedSize >> 3, TRUE);
+			if (heap->AllocationTree) GCHeap_SetBitsInTree(heap->AllocationTree, heap->AllocationTreeLevels - 1, index, allocatedSize >> 3, TRUE);
 			uint8_t* data = heap->Bottom + (index << 3);
 			if (heap->FreeObjectList)
 			{
@@ -198,7 +198,7 @@ GCObject* GCHeap_Allocate(GCHeap*** pGCHeaps, uint32_t* pGCHeapCount, uint32_t p
 
 		uint32_t allocatedSize = 0;
 		int32_t index = GCHeap_FindAvailableInTree(heap->AllocationTree, 0, heap->AllocationTreeLevels, 0, requiredSize, &allocatedSize);
-		GCHeap_SetBitsInTree(heap->AllocationTree, heap->AllocationTreeLevels - 1, index, allocatedSize >> 3, TRUE);
+		if (heap->AllocationTree) GCHeap_SetBitsInTree(heap->AllocationTree, heap->AllocationTreeLevels - 1, index, allocatedSize >> 3, TRUE);
 		uint8_t* data = heap->Bottom + (index << 3);
 		object = heap->FreeObjectList;
 		heap->FreeObjectList = heap->FreeObjectList->NextObject;
@@ -219,7 +219,7 @@ GCObject* GCHeap_Allocate(GCHeap*** pGCHeaps, uint32_t* pGCHeapCount, uint32_t p
     return object;
 }
 
-void GC_AllocateObject(AppDomain* pDomain, uint8_t* pStackStream, IRType* pType, uint32_t pSize, void** pAllocatedObject)
+void GC_AllocateObject(AppDomain* pDomain, IRType* pType, uint32_t pSize, void** pAllocatedObject)
 {
 	if (pSize >= 0x7FFFFFFF) Panic("GC_AllocateObject pSize >= 0x7FFFFFFF");
 	GC* gc = pDomain->GarbageCollector;
@@ -235,7 +235,7 @@ void GC_AllocateObject(AppDomain* pDomain, uint8_t* pStackStream, IRType* pType,
 	Atomic_ReleaseLock(&gc->Busy);
 }
 
-void GC_AllocateStringFromASCII(AppDomain* pDomain, uint8_t* pStackStream, int8_t* pString, uint32_t pLength, void** pAllocatedObject)
+void GC_AllocateStringFromASCII(AppDomain* pDomain, int8_t* pString, uint32_t pLength, void** pAllocatedObject)
 {
 	uint32_t size = pLength << 1;
 	if (size >= 0x7FFFFFFF) Panic("GC_AllocateStringFromASCII Size >= 0x7FFFFFFF");
@@ -263,7 +263,7 @@ void GC_AllocateStringFromASCII(AppDomain* pDomain, uint8_t* pStackStream, int8_
 	free(unicodeString);
 }
 
-void GC_AllocateStringFromUnicode(AppDomain* pDomain, uint8_t* pStackStream, uint16_t* pString, uint32_t pLength, void** pAllocatedObject)
+void GC_AllocateStringFromUnicode(AppDomain* pDomain, uint16_t* pString, uint32_t pLength, void** pAllocatedObject)
 {
 	uint32_t size = pLength << 1;
 	if (size >= 0x7FFFFFFF) Panic("GC_AllocateStringFromUnicode Size >= 0x7FFFFFFF");
@@ -288,7 +288,7 @@ void GC_AllocateStringFromUnicode(AppDomain* pDomain, uint8_t* pStackStream, uin
 	Atomic_ReleaseLock(&gc->Busy);
 }
 
-void GC_AllocateArray(AppDomain* pDomain, uint8_t* pStackStream, IRType* pArrayType, uint32_t pElementCount, void** pAllocatedObject)
+void GC_AllocateArray(AppDomain* pDomain, IRType* pArrayType, uint32_t pElementCount, void** pAllocatedObject)
 {
 	size_t elementSize = pArrayType->ArrayType->ElementType->Size;
 	size_t requiredSize = elementSize * pElementCount;
@@ -325,350 +325,275 @@ GCObject* GC_AllocatePinnedObject(GC* pGC, IRType* pType, uint32_t pSize)
 	return object;
 }
 
-//void GCHeap_Sweep(GCHeap** pGCHeaps, uint32_t pGCHeapCount, AppDomain* pDomain)
-//{
-//	for (uint32_t heapIndex = 0; heapIndex < pGCHeapCount; ++heapIndex)
-//	{
-//		GCHeap* heap = pGCHeaps[heapIndex];
-//		for (uint32_t objectIndex = 0; objectIndex < heap->ObjectPoolSize; ++objectIndex)
-//		{
-//			GCObject* object = heap->ObjectPool[objectIndex];
-//			if (!(object->Flags & GCObjectFlags_Marked) &&
-//				!(object->Flags & GCObjectFlags_Disposed) &&
-//				!(object->Flags & GCObjectFlags_Pinned))
-//			{
-//				if (object->Type->Finalizer) JIT_ExecuteMethod(object->Type->Finalizer, pDomain);
-//				object->Flags |= GCObjectFlags_Disposed;
-//			}
-//			object->Flags &= ~GCObjectFlags_Marked;
-//		}
-//	}
-//}
-//
-//void GC_MarkObjectAtAddress(void** pObject);
-//void GC_MarkStructureAtAddress(void** pStructure, IRType* pType);
-//
-//void GC_MarkObject(GCObject* pObject)
-//{
-//	pObject->Flags |= GCObjectFlags_Marked;
-//	if (pObject->Flags & GCObjectFlags_Array)
-//	{
-//		if (pObject->Array.ElementType->IsReferenceType)
-//		{
-//			for (uint32_t index = 0; index < pObject->Array.Length; index++)
-//			{
-//				void** addressPointer = (void**)((size_t)pObject->Data + (pObject->Array.ElementType->Size * index));
-//				if (*addressPointer)
-//				{
-//					GC_MarkObjectAtAddress(addressPointer);
-//				}
-//			}
-//		}
-//		else if (pObject->Array.ElementType->IsStructureType)
-//		{
-//			for (uint32_t index = 0; index < pObject->Array.Length; index++)
-//			{
-//				void** addressPointer = (void**)((size_t)pObject->Data + (pObject->Array.ElementType->Size * index));
-//				GC_MarkStructureAtAddress(addressPointer, pObject->Array.ElementType);
-//			}
-//		}
-//
-//	}
-//	else
-//	{
-//		for (uint32_t index = 0; index < pObject->Type->FieldCount; ++index)
-//		{
-//			if (pObject->Type->Fields[index]->FieldType->IsArrayType)
-//			{
-//				GCObject* object = *(GCObject**)((size_t)*(void**)((size_t)pObject->Data + pObject->Type->Fields[index]->Offset) - gSizeOfPointerInBytes);
-//				if (object->Array.ElementType->IsReferenceType)
-//				{
-//					for (uint32_t index = 0; index < object->Array.Length; index++)
-//					{
-//						void** addressPointer = (void**)((size_t)object->Data + (object->Array.ElementType->Size * index));
-//						if (*addressPointer)
-//						{
-//							GC_MarkObjectAtAddress(addressPointer);
-//						}
-//					}
-//				}
-//				else if (object->Array.ElementType->IsStructureType)
-//				{
-//					for (uint32_t index = 0; index < object->Array.Length; index++)
-//					{
-//						void** addressPointer = (void**)((size_t)object->Data + (object->Array.ElementType->Size * index));
-//						GC_MarkStructureAtAddress(addressPointer, object->Array.ElementType);
-//					}
-//				}
-//			}
-//			else if (pObject->Type->Fields[index]->FieldType->IsReferenceType)
-//			{
-//				void** addressPointer = (void**)((size_t)pObject->Data + pObject->Type->Fields[index]->Offset);
-//				if (*addressPointer)
-//				{
-//					GC_MarkObjectAtAddress(addressPointer);
-//				}
-//			}
-//			else if (pObject->Type->Fields[index]->FieldType->IsStructureType)
-//			{
-//				void** addressPointer = (void**)((size_t)pObject->Data + pObject->Type->Fields[index]->Offset);
-//				GC_MarkStructureAtAddress(addressPointer, pObject->Type->Fields[index]->FieldType);
-//			}
-//		}
-//	}
-//}
-//
-//void GC_MarkObjectAtAddress(void** pObject)
-//{
-//	GCObject* object = (GCObject*)(((size_t)*pObject) - sizeof(GCObject*));
-//	GC_MarkObject(object);
-//}
-//
-//void GC_MarkStructureAtAddress(void** pStructure, IRType* pType)
-//{
-//	for (uint32_t index = 0; index < pType->FieldCount; ++index)
-//	{
-//		if (pType->Fields[index]->FieldType->IsArrayType)
-//		{
-//			GCObject* object = *(GCObject**)((size_t)*(void**)((size_t)*pStructure + pType->Fields[index]->Offset) - gSizeOfPointerInBytes);
-//			if (object->Array.ElementType->IsReferenceType)
-//			{
-//				for (uint32_t index = 0; index < object->Array.Length; index++)
-//				{
-//					void** addressPointer = (void**)((size_t)object->Data + (object->Array.ElementType->Size * index));
-//					if (*addressPointer)
-//					{
-//						GC_MarkObjectAtAddress(addressPointer);
-//					}
-//				}
-//			}
-//			else if (object->Array.ElementType->IsStructureType)
-//			{
-//				for (uint32_t index = 0; index < object->Array.Length; index++)
-//				{
-//					void** addressPointer = (void**)((size_t)object->Data + (object->Array.ElementType->Size * index));
-//					GC_MarkStructureAtAddress(addressPointer, object->Array.ElementType);
-//				}
-//			}
-//		}
-//		else if (pType->Fields[index]->FieldType->IsReferenceType)
-//		{
-//			void** addressPointer = (void**)((size_t)*pStructure + pType->Fields[index]->Offset);
-//			if (*addressPointer)
-//			{
-//				GC_MarkObjectAtAddress(addressPointer);
-//			}
-//		}
-//		else if (pType->Fields[index]->FieldType->IsStructureType)
-//		{
-//			void** addressPointer = (void**)((size_t)*pStructure + pType->Fields[index]->Offset);
-//			GC_MarkStructureAtAddress(addressPointer, pType->Fields[index]->FieldType);
-//		}
-//	}
-//}
-//
-//void GC_MarkThreadStackObjects(Thread* pThread)
-//{
-//	uint32_t stackTop = pThread->SavedRegisterState.useresp;
-//	uint8_t* stackStream = pThread->StackStream;
-//	uint32_t stackUsed = (uint32_t)pThread->Stack - stackTop;
-//	uint32_t stackStreamSize = stackUsed >> 5;
-//	uint32_t stackStreamBlocks = stackStreamSize >> 2;
-//
-//	uint32_t* stackStreamBlockIterator = (uint32_t*)stackStream;
-//	uint32_t* stackIterator = (uint32_t*)pThread->Stack;
-//	for (uint32_t index = 0; index < stackStreamBlocks; ++index, ++stackStreamBlockIterator, stackIterator += 32)
-//	{
-//		// Something is set
-//		if (*stackStreamBlockIterator)
-//		{
-//			// Low half set
-//			if (*(uint16_t*)stackStreamBlockIterator)
-//			{
-//				// First byte set
-//				if (*(uint8_t*)stackStreamBlockIterator)
-//				{
-//					uint8_t bits = *(uint8_t*)stackStreamBlockIterator;
-//					if (bits & 0x01) GC_MarkObjectAtAddress((void**)stackIterator);
-//					if (bits & 0x02) GC_MarkObjectAtAddress((void**)(stackIterator + 1));
-//					if (bits & 0x04) GC_MarkObjectAtAddress((void**)(stackIterator + 2));
-//					if (bits & 0x08) GC_MarkObjectAtAddress((void**)(stackIterator + 3));
-//					if (bits & 0x10) GC_MarkObjectAtAddress((void**)(stackIterator + 4));
-//					if (bits & 0x20) GC_MarkObjectAtAddress((void**)(stackIterator + 5));
-//					if (bits & 0x40) GC_MarkObjectAtAddress((void**)(stackIterator + 6));
-//					if (bits & 0x80) GC_MarkObjectAtAddress((void**)(stackIterator + 7));
-//				}
-//				// Second byte set
-//				if (*(((uint8_t*)stackStreamBlockIterator) + 1))
-//				{
-//					uint8_t bits = *(((uint8_t*)stackStreamBlockIterator) + 1);
-//					if (bits & 0x01) GC_MarkObjectAtAddress((void**)(stackIterator + 8));
-//					if (bits & 0x02) GC_MarkObjectAtAddress((void**)(stackIterator + 9));
-//					if (bits & 0x04) GC_MarkObjectAtAddress((void**)(stackIterator + 10));
-//					if (bits & 0x08) GC_MarkObjectAtAddress((void**)(stackIterator + 11));
-//					if (bits & 0x10) GC_MarkObjectAtAddress((void**)(stackIterator + 12));
-//					if (bits & 0x20) GC_MarkObjectAtAddress((void**)(stackIterator + 13));
-//					if (bits & 0x40) GC_MarkObjectAtAddress((void**)(stackIterator + 14));
-//					if (bits & 0x80) GC_MarkObjectAtAddress((void**)(stackIterator + 15));
-//				}
-//			}
-//			// High half set
-//			if (*(((uint16_t*)stackStreamBlockIterator) + 1))
-//			{
-//				// Third byte set
-//				if (*(((uint8_t*)stackStreamBlockIterator) + 2))
-//				{
-//					uint8_t bits = *(((uint8_t*)stackStreamBlockIterator) + 2);
-//					if (bits & 0x01) GC_MarkObjectAtAddress((void**)(stackIterator + 16));
-//					if (bits & 0x02) GC_MarkObjectAtAddress((void**)(stackIterator + 17));
-//					if (bits & 0x04) GC_MarkObjectAtAddress((void**)(stackIterator + 18));
-//					if (bits & 0x08) GC_MarkObjectAtAddress((void**)(stackIterator + 19));
-//					if (bits & 0x10) GC_MarkObjectAtAddress((void**)(stackIterator + 20));
-//					if (bits & 0x20) GC_MarkObjectAtAddress((void**)(stackIterator + 21));
-//					if (bits & 0x40) GC_MarkObjectAtAddress((void**)(stackIterator + 22));
-//					if (bits & 0x80) GC_MarkObjectAtAddress((void**)(stackIterator + 23));
-//				}
-//				// Fourth byte set
-//				if (*(((uint8_t*)stackStreamBlockIterator) + 3))
-//				{
-//					uint8_t bits = *(((uint8_t*)stackStreamBlockIterator) + 3);
-//					if (bits & 0x01) GC_MarkObjectAtAddress((void**)(stackIterator + 24));
-//					if (bits & 0x02) GC_MarkObjectAtAddress((void**)(stackIterator + 25));
-//					if (bits & 0x04) GC_MarkObjectAtAddress((void**)(stackIterator + 26));
-//					if (bits & 0x08) GC_MarkObjectAtAddress((void**)(stackIterator + 27));
-//					if (bits & 0x10) GC_MarkObjectAtAddress((void**)(stackIterator + 28));
-//					if (bits & 0x20) GC_MarkObjectAtAddress((void**)(stackIterator + 29));
-//					if (bits & 0x40) GC_MarkObjectAtAddress((void**)(stackIterator + 30));
-//					if (bits & 0x80) GC_MarkObjectAtAddress((void**)(stackIterator + 31));
-//				}
-//			}
-//		}
-//	}
-//	uint32_t remainderBytes = stackStreamSize & 0x03;
-//	if (remainderBytes > 0)
-//	{
-//		if (*(uint8_t*)stackStreamBlockIterator)
-//		{
-//			uint8_t bits = *(uint8_t*)stackStreamBlockIterator;
-//			if (bits & 0x01) GC_MarkObjectAtAddress((void**)stackIterator);
-//			if (bits & 0x02) GC_MarkObjectAtAddress((void**)(stackIterator + 1));
-//			if (bits & 0x04) GC_MarkObjectAtAddress((void**)(stackIterator + 2));
-//			if (bits & 0x08) GC_MarkObjectAtAddress((void**)(stackIterator + 3));
-//			if (bits & 0x10) GC_MarkObjectAtAddress((void**)(stackIterator + 4));
-//			if (bits & 0x20) GC_MarkObjectAtAddress((void**)(stackIterator + 5));
-//			if (bits & 0x40) GC_MarkObjectAtAddress((void**)(stackIterator + 6));
-//			if (bits & 0x80) GC_MarkObjectAtAddress((void**)(stackIterator + 7));
-//		}
-//		if (remainderBytes > 1)
-//		{
-//			if (*(((uint8_t*)stackStreamBlockIterator) + 1))
-//			{
-//				uint8_t bits = *(((uint8_t*)stackStreamBlockIterator) + 1);
-//				if (bits & 0x01) GC_MarkObjectAtAddress((void**)(stackIterator + 8));
-//				if (bits & 0x02) GC_MarkObjectAtAddress((void**)(stackIterator + 9));
-//				if (bits & 0x04) GC_MarkObjectAtAddress((void**)(stackIterator + 10));
-//				if (bits & 0x08) GC_MarkObjectAtAddress((void**)(stackIterator + 11));
-//				if (bits & 0x10) GC_MarkObjectAtAddress((void**)(stackIterator + 12));
-//				if (bits & 0x20) GC_MarkObjectAtAddress((void**)(stackIterator + 13));
-//				if (bits & 0x40) GC_MarkObjectAtAddress((void**)(stackIterator + 14));
-//				if (bits & 0x80) GC_MarkObjectAtAddress((void**)(stackIterator + 15));
-//			}
-//
-//			if (remainderBytes > 2)
-//			{
-//				if (*(((uint8_t*)stackStreamBlockIterator) + 2))
-//				{
-//					uint8_t bits = *(((uint8_t*)stackStreamBlockIterator) + 2);
-//					if (bits & 0x01) GC_MarkObjectAtAddress((void**)(stackIterator + 16));
-//					if (bits & 0x02) GC_MarkObjectAtAddress((void**)(stackIterator + 17));
-//					if (bits & 0x04) GC_MarkObjectAtAddress((void**)(stackIterator + 18));
-//					if (bits & 0x08) GC_MarkObjectAtAddress((void**)(stackIterator + 19));
-//					if (bits & 0x10) GC_MarkObjectAtAddress((void**)(stackIterator + 20));
-//					if (bits & 0x20) GC_MarkObjectAtAddress((void**)(stackIterator + 21));
-//					if (bits & 0x40) GC_MarkObjectAtAddress((void**)(stackIterator + 22));
-//					if (bits & 0x80) GC_MarkObjectAtAddress((void**)(stackIterator + 23));
-//				}
-//			}
-//		}
-//	}
-//}
-//
-//void GC_MarkAndSweep(AppDomain* pDomain)
-//{
-//	Thread* currentThread = GetCurrentThread();
-//	Thread* thread = NULL;
-//
-//	// Suspend all threads for this appdomain, except the current thread,
-//	// and make sure the threads have stopped executing before we continue
-//	for (uint32_t index = 0; index < pDomain->ThreadCount; ++index)
-//	{
-//		thread = pDomain->Threads[index];
-//		if (thread && thread != currentThread)
-//		{
-//			ThreadScheduler_Suspend(thread);
-//			if (!thread->SleepRemaining)
-//			{
-//				while (thread->CurrentAPIC) ;
-//			}
-//		}
-//	}
-//
-//	// All threads in this app domain are now safe to work with their stacks,
-//	// including the current thread stack, so scan the stack streams and mark
-//	// the living objects, including references they contain to other objects
-//	for (uint32_t index = 0; index < pDomain->ThreadCount; ++index)
-//	{
-//		thread = pDomain->Threads[index];
-//		if (thread) GC_MarkThreadStackObjects(thread);
-//	}
-//
-//	// Now we need to mark all the static field variables that are objects,
-//	// and all the objects connected to them like the stack variables
-//	for (uint32_t assemblyIndex = 0; assemblyIndex < pDomain->IRAssemblyCount; ++assemblyIndex)
-//	{
-//		IRAssembly* assembly = pDomain->IRAssemblies[assemblyIndex];
-//		for (uint32_t fieldIndex = 0; fieldIndex < assembly->StaticFieldCount; ++fieldIndex)
-//		{
-//			IRField* field = assembly->StaticFields[fieldIndex];
-//			if (field->FieldType->IsReferenceType)
-//			{
-//				void** addressPointer = (void**)((size_t)pDomain->StaticValues[assemblyIndex] + field->Offset);
-//				if (*addressPointer)
-//				{
-//					GC_MarkObjectAtAddress(addressPointer);
-//				}
-//			}
-//			else if (field->FieldType->IsStructureType)
-//			{
-//				void** addressPointer = (void**)((size_t)pDomain->StaticValues[assemblyIndex] + field->Offset);
-//				GC_MarkStructureAtAddress(addressPointer, field->FieldType);
-//			}
-//		}
-//	}
-//
-//	// At this point we should have a complete marked object pool,
-//	// anything that is not marked is no longer alive and can have finalizers
-//	// called
-//	GCHeap_Sweep(pDomain->GarbageCollector->SmallGeneration2Heaps, pDomain->GarbageCollector->SmallGeneration2HeapCount, pDomain);
-//	GCHeap_Sweep(pDomain->GarbageCollector->SmallGeneration1Heaps, pDomain->GarbageCollector->SmallGeneration1HeapCount, pDomain);
-//	GCHeap_Sweep(pDomain->GarbageCollector->SmallGeneration0Heaps, pDomain->GarbageCollector->SmallGeneration0HeapCount, pDomain);
-//	GCHeap_Sweep(pDomain->GarbageCollector->LargeHeaps, pDomain->GarbageCollector->LargeHeapCount, pDomain);
-//
-//	// Everything that was no longer alive should have had it's finalizer called
-//	// if it had one, and is now set disposed, and all objects have been unmarked
-//}
+void GCHeap_Sweep(GCHeap** pGCHeaps, uint32_t pGCHeapCount, AppDomain* pDomain)
+{
+	for (uint32_t heapIndex = 0; heapIndex < pGCHeapCount; ++heapIndex)
+	{
+		GCHeap* heap = pGCHeaps[heapIndex];
+		for (GCObject* object = heap->AllocatedObjectList, *nextObject = NULL, *prevObject = NULL; object; object = nextObject)
+		{
+			nextObject = object;
+			if (!(object->Flags & GCObjectFlags_Marked) &&
+				!(object->Flags & GCObjectFlags_Pinned))
+			{
+				if (object->Type->Finalizer) JIT_ExecuteMethod(object->Type->Finalizer, pDomain);
+				if (heap->AllocationTree)
+				{
+					uint32_t index = (uint32_t)(((uint8_t*)object->Data - gSizeOfPointerInBytes) - heap->Bottom) >> 3;
+					GCHeap_SetBitsInTree(heap->AllocationTree, heap->AllocationTreeLevels - 1, index, object->AllocatedSize >> 3, FALSE);
+				}
+				if (object == heap->AllocatedObjectList) heap->AllocatedObjectList = object->NextObject;
+				else prevObject->NextObject = object->NextObject;
+				object->NextObject = heap->FreeObjectList;
+				heap->FreeObjectList = object;
+			}
+			else prevObject = object;
+			object->Flags &= ~GCObjectFlags_Marked;
+		}
+	}
+}
 
-//void GC_ApplyPressure(AppDomain* pDomain, uint32_t pBytes)
-//{
-//	Atomic_AquireLock(&pDomain->GarbageCollector->Busy);
-//	pDomain->GarbageCollector->Pressure += pBytes;
-//	if (pDomain->GarbageCollector->Pressure >= GC__PressureTriggerInBytes)
-//	{
-//		GC_MarkAndSweep(pDomain);
-//		pDomain->GarbageCollector->Pressure = 0;
-//	}
-//	Atomic_ReleaseLock(&pDomain->GarbageCollector->Busy);
-//}
+void GC_MarkObjectAtAddress(void** pObject);
+void GC_MarkStructureAtAddress(void** pStructure, IRType* pType);
+
+void GC_MarkObject(GCObject* pObject)
+{
+	pObject->Flags |= GCObjectFlags_Marked;
+	if (pObject->Flags & GCObjectFlags_Array)
+	{
+		if (pObject->Array.ElementType->IsReferenceType)
+		{
+			for (uint32_t index = 0; index < pObject->Array.Length; index++)
+			{
+				void** addressPointer = (void**)((size_t)pObject->Data + (pObject->Array.ElementType->Size * index));
+				if (*addressPointer)
+				{
+					GC_MarkObjectAtAddress(addressPointer);
+				}
+			}
+		}
+		else if (pObject->Array.ElementType->IsStructureType)
+		{
+			for (uint32_t index = 0; index < pObject->Array.Length; index++)
+			{
+				void** addressPointer = (void**)((size_t)pObject->Data + (pObject->Array.ElementType->Size * index));
+				GC_MarkStructureAtAddress(addressPointer, pObject->Array.ElementType);
+			}
+		}
+
+	}
+	else
+	{
+		for (uint32_t index = 0; index < pObject->Type->FieldCount; ++index)
+		{
+			if (pObject->Type->Fields[index]->FieldType->IsArrayType)
+			{
+				GCObject* object = *(GCObject**)((size_t)*(void**)((size_t)pObject->Data + pObject->Type->Fields[index]->Offset) - gSizeOfPointerInBytes);
+				if (object->Array.ElementType->IsReferenceType)
+				{
+					for (uint32_t index = 0; index < object->Array.Length; index++)
+					{
+						void** addressPointer = (void**)((size_t)object->Data + (object->Array.ElementType->Size * index));
+						if (*addressPointer)
+						{
+							GC_MarkObjectAtAddress(addressPointer);
+						}
+					}
+				}
+				else if (object->Array.ElementType->IsStructureType)
+				{
+					for (uint32_t index = 0; index < object->Array.Length; index++)
+					{
+						void** addressPointer = (void**)((size_t)object->Data + (object->Array.ElementType->Size * index));
+						GC_MarkStructureAtAddress(addressPointer, object->Array.ElementType);
+					}
+				}
+			}
+			else if (pObject->Type->Fields[index]->FieldType->IsReferenceType)
+			{
+				void** addressPointer = (void**)((size_t)pObject->Data + pObject->Type->Fields[index]->Offset);
+				if (*addressPointer)
+				{
+					GC_MarkObjectAtAddress(addressPointer);
+				}
+			}
+			else if (pObject->Type->Fields[index]->FieldType->IsStructureType)
+			{
+				void** addressPointer = (void**)((size_t)pObject->Data + pObject->Type->Fields[index]->Offset);
+				GC_MarkStructureAtAddress(addressPointer, pObject->Type->Fields[index]->FieldType);
+			}
+		}
+	}
+}
+
+void GC_MarkObjectAtAddress(void** pObject)
+{
+	if (!(*pObject)) return;
+	GCObject* object = *(GCObject**)(((size_t)*pObject) - sizeof(GCObject*));
+	if (object->Flags & GCObjectFlags_Marked) return;
+	GC_MarkObject(object);
+}
+
+void GC_MarkStructureAtAddress(void** pStructure, IRType* pType)
+{
+	for (uint32_t index = 0; index < pType->FieldCount; ++index)
+	{
+		if (pType->Fields[index]->FieldType->IsArrayType)
+		{
+			GCObject* object = *(GCObject**)((size_t)*(void**)((size_t)*pStructure + pType->Fields[index]->Offset) - gSizeOfPointerInBytes);
+			if (object->Array.ElementType->IsReferenceType)
+			{
+				for (uint32_t index = 0; index < object->Array.Length; index++)
+				{
+					void** addressPointer = (void**)((size_t)object->Data + (object->Array.ElementType->Size * index));
+					if (*addressPointer)
+					{
+						GC_MarkObjectAtAddress(addressPointer);
+					}
+				}
+			}
+			else if (object->Array.ElementType->IsStructureType)
+			{
+				for (uint32_t index = 0; index < object->Array.Length; index++)
+				{
+					void** addressPointer = (void**)((size_t)object->Data + (object->Array.ElementType->Size * index));
+					GC_MarkStructureAtAddress(addressPointer, object->Array.ElementType);
+				}
+			}
+		}
+		else if (pType->Fields[index]->FieldType->IsReferenceType)
+		{
+			void** addressPointer = (void**)((size_t)*pStructure + pType->Fields[index]->Offset);
+			if (*addressPointer)
+			{
+				GC_MarkObjectAtAddress(addressPointer);
+			}
+		}
+		else if (pType->Fields[index]->FieldType->IsStructureType)
+		{
+			void** addressPointer = (void**)((size_t)*pStructure + pType->Fields[index]->Offset);
+			GC_MarkStructureAtAddress(addressPointer, pType->Fields[index]->FieldType);
+		}
+	}
+}
+
+void GC_MarkThreadStackFrameObjects(Thread* pThread, size_t pStackFramePointer, IRMethod* pMethod)
+{
+	if (pMethod)
+	{
+		IRLocalVariable* localVariable = NULL;
+		void** addressPointer = NULL;
+		for (uint32_t index = 0; index < pMethod->LocalVariableCount; ++index)
+		{
+			localVariable = pMethod->LocalVariables[index];
+			addressPointer = (void**)(pStackFramePointer - localVariable->Offset);
+			if (localVariable->VariableType->IsStructureType)
+			{
+				GC_MarkStructureAtAddress(addressPointer, localVariable->VariableType);
+			}
+			else if (localVariable->VariableType->IsReferenceType)
+			{
+				GC_MarkObjectAtAddress(addressPointer);
+			}
+		}
+	}
+
+	if (pStackFramePointer == (size_t)(pThread->Stack + pThread->StackSize)) return;
+
+	size_t previousFramePointer = *(size_t*)pStackFramePointer;
+	size_t previousInstructionPointer = *(size_t*)(pStackFramePointer + gSizeOfPointerInBytes);
+	InstructionPointerMappingNode* node = AppDomain_FindInstructionPointerMapping(pThread->Domain, previousInstructionPointer);
+	GC_MarkThreadStackFrameObjects(pThread, previousFramePointer, node ? node->Method : NULL);
+}
+
+void GC_MarkThreadStackObjects(Thread* pThread)
+{
+	InstructionPointerMappingNode* node = AppDomain_FindInstructionPointerMapping(pThread->Domain, pThread->SavedRegisterState.eip);
+	GC_MarkThreadStackFrameObjects(pThread, pThread->SavedRegisterState.ebp, node ? node->Method : NULL);
+}
+
+void GC_MarkAndSweep(AppDomain* pDomain)
+{
+	Thread* currentThread = GetCurrentThread();
+	Thread* thread = NULL;
+
+	// Suspend all threads for this appdomain, except the current thread,
+	// and make sure the threads have stopped executing before we continue,
+	// also means no need to lock the GC
+	for (uint32_t index = 0; index < pDomain->ThreadCount; ++index)
+	{
+		thread = pDomain->Threads[index];
+		if (thread && thread != currentThread)
+		{
+			ThreadScheduler_Suspend(thread);
+			if (!thread->SleepRemaining)
+			{
+				while (thread->CurrentAPIC) ;
+			}
+		}
+	}
+
+	// All threads in this app domain are now safe to work with their stacks,
+	// except the current thread stack, so walk the stack and mark the living
+	// objects, including references they contain to other objects
+	for (uint32_t index = 0; index < pDomain->ThreadCount; ++index)
+	{
+		thread = pDomain->Threads[index];
+		if (thread && thread != currentThread) GC_MarkThreadStackObjects(thread);
+	}
+
+	// Now we need to mark all the static field variables that are objects,
+	// and all the objects connected to them like the stack variables
+	for (uint32_t assemblyIndex = 0; assemblyIndex < pDomain->IRAssemblyCount; ++assemblyIndex)
+	{
+		IRAssembly* assembly = pDomain->IRAssemblies[assemblyIndex];
+		for (uint32_t fieldIndex = 0; fieldIndex < assembly->StaticFieldCount; ++fieldIndex)
+		{
+			IRField* field = assembly->StaticFields[fieldIndex];
+			if (field->FieldType->IsReferenceType)
+			{
+				void** addressPointer = (void**)((size_t)pDomain->StaticValues[assemblyIndex] + field->Offset);
+				if (*addressPointer)
+				{
+					GC_MarkObjectAtAddress(addressPointer);
+				}
+			}
+			else if (field->FieldType->IsStructureType)
+			{
+				void** addressPointer = (void**)((size_t)pDomain->StaticValues[assemblyIndex] + field->Offset);
+				GC_MarkStructureAtAddress(addressPointer, field->FieldType);
+			}
+		}
+	}
+
+	// At this point we should have a complete marked object pool, anything
+	// that is not marked is no longer alive and can have finalizers called
+	GCHeap_Sweep(pDomain->GarbageCollector->SmallGeneration2Heaps, pDomain->GarbageCollector->SmallGeneration2HeapCount, pDomain);
+	GCHeap_Sweep(pDomain->GarbageCollector->SmallGeneration1Heaps, pDomain->GarbageCollector->SmallGeneration1HeapCount, pDomain);
+	GCHeap_Sweep(pDomain->GarbageCollector->SmallGeneration0Heaps, pDomain->GarbageCollector->SmallGeneration0HeapCount, pDomain);
+	GCHeap_Sweep(pDomain->GarbageCollector->LargeHeaps, pDomain->GarbageCollector->LargeHeapCount, pDomain);
+
+	// Everything that was no longer alive should have had it's finalizer called
+	// if it had one, and is now disposed, and all objects have been unmarked, so
+	// resume all threads for this appdomain, except the current thread
+	for (uint32_t index = 0; index < pDomain->ThreadCount; ++index)
+	{
+		thread = pDomain->Threads[index];
+		if (thread && thread != currentThread) ThreadScheduler_Resume(thread);
+	}
+}
+
+void GC_ApplyPressure(AppDomain* pDomain, uint32_t pBytes)
+{
+	Atomic_AquireLock(&pDomain->GarbageCollector->Busy);
+	pDomain->GarbageCollector->Pressure += pBytes;
+	if (pDomain->GarbageCollector->Pressure >= GC__PressureTriggerInBytes)
+	{
+		GC_MarkAndSweep(pDomain);
+		pDomain->GarbageCollector->Pressure = 0;
+	}
+	Atomic_ReleaseLock(&pDomain->GarbageCollector->Busy);
+}
 
 
 void* GCObject_Internal_IsInst(void* pObject, IRType* pType)

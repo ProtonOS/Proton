@@ -16,7 +16,6 @@ Thread* Thread_Create(Process* pProcess, size_t pEntryPoint, size_t pStackSize, 
 	Thread* thread = (Thread*)calloc(1, sizeof(Thread));
 	thread->Process = pProcess;
 	thread->EntryPoint = pEntryPoint;
-	thread->StackStream = (uint8_t*)calloc(1, (pStackSize >> 2) >> 3);
 	thread->Stack = (uint8_t*)calloc(1, pStackSize);
 	_REENT_INIT_PTR(&thread->Reentrant);
 	thread->Reentrant._stdin = stdin;
@@ -43,7 +42,6 @@ void Thread_Destroy(Thread* pThread)
 	if (pThread->Domain) AppDomain_RemoveThread(pThread->Domain, pThread);
 	Process_RemoveThread(pThread->Process, pThread);
 	Log_WriteLine(LOGLEVEL__Memory, "Memory: Thread_Destroy @ 0x%x", (unsigned int)pThread);
-	free(pThread->StackStream);
 	free(pThread->Stack);
 	free(pThread);
 }

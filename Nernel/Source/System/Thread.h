@@ -17,7 +17,6 @@ struct _Thread
 	bool_t InCriticalSection;
 	Thread* Next;
 	Thread* Prev;
-	uint8_t* StackStream;
 	uint8_t* Stack;
 	uint32_t StackSize;
 	size_t EntryPoint;

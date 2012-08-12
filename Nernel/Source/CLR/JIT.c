@@ -10,10 +10,8 @@ Thread* GetCurrentThread();
 void JIT_ExecuteMethod(IRMethod* pMethod, AppDomain* pDomain)
 {
 	if (!pMethod->AssembledMethod) JIT_CompileMethod(pMethod);
-	Thread* curThread = GetCurrentThread();
 #ifndef _WIN32
 	__asm__("mov %0, %%edi;" : : "r" (pDomain));
-	__asm__("mov %0, %%esi;" : : "r" (curThread->StackStream));
 #endif
 	((void (*)())pMethod->AssembledMethod)();
 }

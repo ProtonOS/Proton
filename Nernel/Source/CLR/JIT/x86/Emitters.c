@@ -8,8 +8,7 @@
 #define THIRD_REG X86_ECX
 #define FOURTH_REG X86_EDX
 
-#define STACK_FLAGS_REG X86_ESI
-#define APP_DOMAIN_REG X86_EDI
+#define DOMAIN_REG X86_EDI
 
 //#define MemoryCorruptionChecks
 
@@ -103,7 +102,7 @@ default: \
 #define EMIT_Static_Constructor_Call(reg1, reg2, field, code) \
 	if (field->ParentType->HasStaticConstructor) \
 	{ \
-		x86_mov_reg_membase(code, reg1, APP_DOMAIN_REG, offsetof(AppDomain, StaticConstructorsCalled), gSizeOfPointerInBytes); \
+		x86_mov_reg_membase(code, reg1, DOMAIN_REG, offsetof(AppDomain, StaticConstructorsCalled), gSizeOfPointerInBytes); \
 		x86_mov_reg_membase(code, reg1, reg1, (field->ParentAssembly->AssemblyIndex << gPointerDivideShift), gSizeOfPointerInBytes); \
 		x86_mov_reg_membase(code, reg2, reg1, (field->ParentType->TypeIndex << gPointerDivideShift), sizeof(bool_t)); \
 		x86_test_reg_reg(code, reg2, reg2); \
@@ -266,7 +265,7 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 
 			EMIT_Static_Constructor_Call(pRegister3, pRegister1, field, pCompiledCode);
 
-			x86_mov_reg_membase(pCompiledCode, pRegister3, APP_DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
+			x86_mov_reg_membase(pCompiledCode, pRegister3, DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
 			x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, (field->ParentAssembly->AssemblyIndex << gPointerDivideShift), gSizeOfPointerInBytes);
 			switch (sizeOfSource)
 			{
@@ -305,7 +304,7 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 
 			EMIT_Static_Constructor_Call(pRegister3, pRegister1, field, pCompiledCode);
 
-			x86_mov_reg_membase(pCompiledCode, pRegister1, APP_DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
+			x86_mov_reg_membase(pCompiledCode, pRegister1, DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
 			x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister1, (field->ParentAssembly->AssemblyIndex << gPointerDivideShift), gSizeOfPointerInBytes);
 			x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister1, field->Offset);
 			break;
@@ -458,7 +457,7 @@ char* JIT_Emit_LoadDestinationAddress(char* pCompiledCode, IRMethod* pMethod, So
 				IRField* field = pDestination->Data.StaticField.Field;
 				EMIT_Static_Constructor_Call(pRegister3, pRegister1, field, pCompiledCode);
 
-				x86_mov_reg_membase(pCompiledCode, pRegister1, APP_DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
+				x86_mov_reg_membase(pCompiledCode, pRegister1, DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
 				x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister1, (field->ParentAssembly->AssemblyIndex << gPointerDivideShift), gSizeOfPointerInBytes);
 				x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister1, field->Offset);
 				break;
@@ -589,7 +588,7 @@ char* JIT_Emit_Store(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pDe
 			
 			EMIT_Static_Constructor_Call(pRegister3, pRegister2, field, pCompiledCode);
 
-			x86_mov_reg_membase(pCompiledCode, pRegister3, APP_DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
+			x86_mov_reg_membase(pCompiledCode, pRegister3, DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
 			x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, (field->ParentAssembly->AssemblyIndex << gPointerDivideShift), gSizeOfPointerInBytes);
 			switch (sizeOfDestination)
 			{
@@ -791,7 +790,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					IRField* field = pDestination->Data.StaticField.Field;
 					EMIT_Static_Constructor_Call(pRegister3, pRegister2, field, pCompiledCode);
 
-					x86_mov_reg_membase(pCompiledCode, pRegister3, APP_DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
+					x86_mov_reg_membase(pCompiledCode, pRegister3, DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
 					x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, (field->ParentAssembly->AssemblyIndex << gPointerDivideShift), gSizeOfPointerInBytes);
 					x86_mov_membase_imm(pCompiledCode, pRegister3, field->Offset, 0, gSizeOfPointerInBytes);
 					break;
@@ -866,7 +865,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					IRField* field = pDestination->Data.StaticField.Field;
 					EMIT_Static_Constructor_Call(pRegister3, pRegister2, field, pCompiledCode);
 
-					x86_mov_reg_membase(pCompiledCode, pRegister3, APP_DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
+					x86_mov_reg_membase(pCompiledCode, pRegister3, DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
 					x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, (field->ParentAssembly->AssemblyIndex << gPointerDivideShift), gSizeOfPointerInBytes);
 					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset, pRegister1, gSizeOfPointerInBytes);
 					break;
@@ -948,7 +947,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					IRField* field = pDestination->Data.StaticField.Field;
 					EMIT_Static_Constructor_Call(pRegister3, pRegister2, field, pCompiledCode);
 
-					x86_mov_reg_membase(pCompiledCode, pRegister3, APP_DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
+					x86_mov_reg_membase(pCompiledCode, pRegister3, DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
 					x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, (field->ParentAssembly->AssemblyIndex << gPointerDivideShift), gSizeOfPointerInBytes);
 					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset, pRegister1, gSizeOfPointerInBytes);
 					break;
@@ -1030,7 +1029,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
 					EMIT_Static_Constructor_Call(pRegister3, pRegister2, field, pCompiledCode);
 
-					x86_mov_reg_membase(pCompiledCode, pRegister3, APP_DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
+					x86_mov_reg_membase(pCompiledCode, pRegister3, DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
 					x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, (field->ParentAssembly->AssemblyIndex << gPointerDivideShift), gSizeOfPointerInBytes);
 					x86_mov_membase_imm(pCompiledCode, pRegister3, field->Offset, sizeOfType, 4);
 					break;
@@ -1106,7 +1105,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
 					EMIT_Static_Constructor_Call(pRegister3, pRegister2, field, pCompiledCode);
 
-					x86_mov_reg_membase(pCompiledCode, pRegister3, APP_DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
+					x86_mov_reg_membase(pCompiledCode, pRegister3, DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
 					x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, (field->ParentAssembly->AssemblyIndex << gPointerDivideShift), gSizeOfPointerInBytes);
 					x86_mov_membase_imm(pCompiledCode, pRegister3, field->Offset, pSource->Data.ConstantI4.Value, 4);
 					break;
@@ -1182,7 +1181,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					IRField* field = pDestination->Data.StaticField.Field;
 					EMIT_Static_Constructor_Call(pRegister3, pRegister2, field, pCompiledCode);
 
-					x86_mov_reg_membase(pCompiledCode, pRegister3, APP_DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
+					x86_mov_reg_membase(pCompiledCode, pRegister3, DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
 					x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, (field->ParentAssembly->AssemblyIndex << gPointerDivideShift), gSizeOfPointerInBytes);
 					x86_mov_membase_imm(pCompiledCode, pRegister3, field->Offset, (pSource->Data.ConstantI8.Value & 0xFFFFFFFF), 4);
 					x86_mov_membase_imm(pCompiledCode, pRegister3, field->Offset + 4, (pSource->Data.ConstantI8.Value >> 32), 4);
@@ -1260,7 +1259,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
 					EMIT_Static_Constructor_Call(pRegister3, pRegister2, field, pCompiledCode);
 
-					x86_mov_reg_membase(pCompiledCode, pRegister3, APP_DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
+					x86_mov_reg_membase(pCompiledCode, pRegister3, DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
 					x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, (field->ParentAssembly->AssemblyIndex << gPointerDivideShift), gSizeOfPointerInBytes);
 					x86_mov_membase_imm(pCompiledCode, pRegister3, field->Offset, pSource->Data.ConstantR4.Value, 4);
 					break;
@@ -1336,7 +1335,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					IRField* field = pDestination->Data.StaticField.Field;
 					EMIT_Static_Constructor_Call(pRegister3, pRegister2, field, pCompiledCode);
 
-					x86_mov_reg_membase(pCompiledCode, pRegister3, APP_DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
+					x86_mov_reg_membase(pCompiledCode, pRegister3, DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
 					x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, (field->ParentAssembly->AssemblyIndex << gPointerDivideShift), gSizeOfPointerInBytes);
 					x86_mov_membase_imm(pCompiledCode, pRegister3, field->Offset, (pSource->Data.ConstantR8.Value & 0xFFFFFFFF), 4);
 					x86_mov_membase_imm(pCompiledCode, pRegister3, field->Offset + 4, (pSource->Data.ConstantR8.Value >> 32), 4);
@@ -1416,7 +1415,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					IRField* field = pDestination->Data.StaticField.Field;
 					EMIT_Static_Constructor_Call(pRegister3, pRegister2, field, pCompiledCode);
 
-					x86_mov_reg_membase(pCompiledCode, pRegister3, APP_DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
+					x86_mov_reg_membase(pCompiledCode, pRegister3, DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
 					x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, (field->ParentAssembly->AssemblyIndex << gPointerDivideShift), gSizeOfPointerInBytes);
 					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset, pRegister1, gSizeOfPointerInBytes);
 					break;
@@ -1466,7 +1465,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 			IRField* field = pSource->Data.StaticFieldAddress.Field;
 			sizeOfSource = gSizeOfPointerInBytes;
 			sizeOfDestination = gSizeOfPointerInBytes;
-			x86_mov_reg_membase(pCompiledCode, pRegister1, APP_DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
+			x86_mov_reg_membase(pCompiledCode, pRegister1, DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
 			x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister1, (field->ParentAssembly->AssemblyIndex << gPointerDivideShift), gSizeOfPointerInBytes);
 			x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister1, field->Offset);
 			switch (pDestination->Type)
@@ -1500,7 +1499,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					IRField* field = pDestination->Data.StaticField.Field;
 					EMIT_Static_Constructor_Call(pRegister3, pRegister2, field, pCompiledCode);
 
-					x86_mov_reg_membase(pCompiledCode, pRegister3, APP_DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
+					x86_mov_reg_membase(pCompiledCode, pRegister3, DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
 					x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, (field->ParentAssembly->AssemblyIndex << gPointerDivideShift), gSizeOfPointerInBytes);
 					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset, pRegister1, gSizeOfPointerInBytes);
 					break;
@@ -1594,7 +1593,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					IRField* field = pDestination->Data.StaticField.Field;
 					EMIT_Static_Constructor_Call(pRegister3, pRegister2, field, pCompiledCode);
 
-					x86_mov_reg_membase(pCompiledCode, pRegister3, APP_DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
+					x86_mov_reg_membase(pCompiledCode, pRegister3, DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
 					x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, (field->ParentAssembly->AssemblyIndex << gPointerDivideShift), gSizeOfPointerInBytes);
 					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset, pRegister1, gSizeOfPointerInBytes);
 					break;
@@ -1676,7 +1675,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					IRField* field = pDestination->Data.StaticField.Field;
 					EMIT_Static_Constructor_Call(pRegister3, pRegister2, field, pCompiledCode);
 
-					x86_mov_reg_membase(pCompiledCode, pRegister3, APP_DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
+					x86_mov_reg_membase(pCompiledCode, pRegister3, DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
 					x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, (field->ParentAssembly->AssemblyIndex << gPointerDivideShift), gSizeOfPointerInBytes);
 					x86_mov_membase_reg(pCompiledCode, pRegister3, field->Offset, pRegister1, 4);
 					break;
@@ -1757,7 +1756,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
 					EMIT_Static_Constructor_Call(pRegister3, pRegister2, field, pCompiledCode);
 
-					x86_mov_reg_membase(pCompiledCode, pRegister3, APP_DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
+					x86_mov_reg_membase(pCompiledCode, pRegister3, DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
 					x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, (field->ParentAssembly->AssemblyIndex << gPointerDivideShift), gSizeOfPointerInBytes);
 					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
 					Define_Move_To_Destination(X86_EBP, -pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister3, 0, pRegister2, TRUE, FALSE);
@@ -1835,7 +1834,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
 					EMIT_Static_Constructor_Call(pRegister3, pRegister2, field, pCompiledCode);
 
-					x86_mov_reg_membase(pCompiledCode, pRegister3, APP_DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
+					x86_mov_reg_membase(pCompiledCode, pRegister3, DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
 					x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, (field->ParentAssembly->AssemblyIndex << gPointerDivideShift), gSizeOfPointerInBytes);
 					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
 					Define_Move_To_Destination(X86_EBP, pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset, pRegister3, 0, pRegister2, TRUE, FALSE);
@@ -1919,7 +1918,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
 					EMIT_Static_Constructor_Call(pRegister3, pRegister2, field, pCompiledCode);
 
-					x86_mov_reg_membase(pCompiledCode, pRegister3, APP_DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
+					x86_mov_reg_membase(pCompiledCode, pRegister3, DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
 					x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, (field->ParentAssembly->AssemblyIndex << gPointerDivideShift), gSizeOfPointerInBytes);
 					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
 
@@ -1973,7 +1972,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 			sizeOfSource = JIT_GetStackSizeOfType(field->FieldType);
 			EMIT_Static_Constructor_Call(pRegister1, pRegister2, field, pCompiledCode);
 
-			x86_mov_reg_membase(pCompiledCode, pRegister1, APP_DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
+			x86_mov_reg_membase(pCompiledCode, pRegister1, DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
 			x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister1, (field->ParentAssembly->AssemblyIndex << gPointerDivideShift), gSizeOfPointerInBytes);
 			x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister1, field->Offset);
 			switch (pDestination->Type)
@@ -2012,7 +2011,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
 					EMIT_Static_Constructor_Call(pRegister3, pRegister2, field, pCompiledCode);
 
-					x86_mov_reg_membase(pCompiledCode, pRegister3, APP_DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
+					x86_mov_reg_membase(pCompiledCode, pRegister3, DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
 					x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, (field->ParentAssembly->AssemblyIndex << gPointerDivideShift), gSizeOfPointerInBytes);
 					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
 
@@ -2100,7 +2099,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
 					EMIT_Static_Constructor_Call(pRegister3, pRegister2, field, pCompiledCode);
 
-					x86_mov_reg_membase(pCompiledCode, pRegister3, APP_DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
+					x86_mov_reg_membase(pCompiledCode, pRegister3, DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
 					x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, (field->ParentAssembly->AssemblyIndex << gPointerDivideShift), gSizeOfPointerInBytes);
 					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
 
@@ -2201,7 +2200,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
 					EMIT_Static_Constructor_Call(pRegister3, pRegister2, field, pCompiledCode);
 
-					x86_mov_reg_membase(pCompiledCode, pRegister3, APP_DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
+					x86_mov_reg_membase(pCompiledCode, pRegister3, DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
 					x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, (field->ParentAssembly->AssemblyIndex << gPointerDivideShift), gSizeOfPointerInBytes);
 					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
 
@@ -2361,16 +2360,14 @@ char* JIT_Emit_Load_String(char* pCompiledCode, IRMethod* pMethod, IRInstruction
 	// long as stack streams are cleared to zero when managed calls return so that the bits
 	// are zero for these values if the GC does interrupt
 	pCompiledCode = JIT_Emit_LoadDestinationAddress(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG);
-	x86_adjust_stack(pCompiledCode, (gSizeOfPointerInBytes * 4) + 4);
-	x86_mov_membase_reg(pCompiledCode, X86_ESP, (gSizeOfPointerInBytes * 3) + 4, PRIMARY_REG, gSizeOfPointerInBytes);
-	x86_mov_membase_imm(pCompiledCode, X86_ESP, gSizeOfPointerInBytes * 3, (uint32_t)pInstruction->Arg1, 4);
-	x86_mov_membase_imm(pCompiledCode, X86_ESP, gSizeOfPointerInBytes << 1, (size_t)pInstruction->Arg2, gSizeOfPointerInBytes);
-	x86_mov_membase_reg(pCompiledCode, X86_ESP, gSizeOfPointerInBytes, X86_ESI, gSizeOfPointerInBytes);
-	x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, X86_EDI, gSizeOfPointerInBytes);
+	x86_adjust_stack(pCompiledCode, (gSizeOfPointerInBytes * 3) + 4);
+	x86_mov_membase_reg(pCompiledCode, X86_ESP, (gSizeOfPointerInBytes << 1) + 4, PRIMARY_REG, gSizeOfPointerInBytes);
+	x86_mov_membase_imm(pCompiledCode, X86_ESP, gSizeOfPointerInBytes << 1, (uint32_t)pInstruction->Arg1, 4);
+	x86_mov_membase_imm(pCompiledCode, X86_ESP, gSizeOfPointerInBytes, (size_t)pInstruction->Arg2, gSizeOfPointerInBytes);
+	x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, DOMAIN_REG, gSizeOfPointerInBytes);
 	x86_call_code(pCompiledCode, GC_AllocateStringFromUnicode);
-	x86_mov_reg_membase(pCompiledCode, X86_ESI, X86_ESP, gSizeOfPointerInBytes, gSizeOfPointerInBytes);
-	x86_mov_reg_membase(pCompiledCode, X86_EDI, X86_ESP, 0, gSizeOfPointerInBytes);
-	x86_adjust_stack(pCompiledCode, -((gSizeOfPointerInBytes * 4) + 4));
+	x86_mov_reg_membase(pCompiledCode, DOMAIN_REG, X86_ESP, 0, gSizeOfPointerInBytes);
+	x86_adjust_stack(pCompiledCode, -((gSizeOfPointerInBytes * 3) + 4));
 	
 	return pCompiledCode;
 }
@@ -3327,9 +3324,7 @@ char* JIT_Emit_Div(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstr
 				case ElementType_U4:
 				{
 					// This means that operand 2 is 64-bit.
-					x86_adjust_stack(pCompiledCode, gSizeOfPointerInBytes << 1);
-					x86_mov_membase_reg(pCompiledCode, X86_ESP, gSizeOfPointerInBytes, X86_ESI, gSizeOfPointerInBytes);
-					x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, X86_EDI, gSizeOfPointerInBytes);
+					x86_push_reg(pCompiledCode, DOMAIN_REG);
 
 					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
 					x86_adjust_stack(pCompiledCode, 8);
@@ -3343,17 +3338,13 @@ char* JIT_Emit_Div(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstr
 					x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, X86_EAX, 4);
 					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
 
-					x86_mov_reg_membase(pCompiledCode, X86_ESI, X86_ESP, gSizeOfPointerInBytes, gSizeOfPointerInBytes);
-					x86_mov_reg_membase(pCompiledCode, X86_EDI, X86_ESP, 0, gSizeOfPointerInBytes);
-					x86_adjust_stack(pCompiledCode, -(gSizeOfPointerInBytes << 1));
+					x86_pop_reg(pCompiledCode, DOMAIN_REG);
 					break;
 				}
 				case ElementType_I8:
 				case ElementType_U8:
 				{
-					x86_adjust_stack(pCompiledCode, gSizeOfPointerInBytes << 1);
-					x86_mov_membase_reg(pCompiledCode, X86_ESP, gSizeOfPointerInBytes, X86_ESI, gSizeOfPointerInBytes);
-					x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, X86_EDI, gSizeOfPointerInBytes);
+					x86_push_reg(pCompiledCode, DOMAIN_REG);
 
 					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
 					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
@@ -3363,9 +3354,7 @@ char* JIT_Emit_Div(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstr
 					x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, X86_EAX, 4);
 					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
 
-					x86_mov_reg_membase(pCompiledCode, X86_ESI, X86_ESP, gSizeOfPointerInBytes, gSizeOfPointerInBytes);
-					x86_mov_reg_membase(pCompiledCode, X86_EDI, X86_ESP, 0, gSizeOfPointerInBytes);
-					x86_adjust_stack(pCompiledCode, -(gSizeOfPointerInBytes << 1));
+					x86_pop_reg(pCompiledCode, DOMAIN_REG);
 					break;
 				}
 				case ElementType_R4:
@@ -3573,9 +3562,7 @@ char* JIT_Emit_Rem(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstr
 				case ElementType_U2:
 				case ElementType_U4:
 				{
-					x86_adjust_stack(pCompiledCode, gSizeOfPointerInBytes << 1);
-					x86_mov_membase_reg(pCompiledCode, X86_ESP, gSizeOfPointerInBytes, X86_ESI, gSizeOfPointerInBytes);
-					x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, X86_EDI, gSizeOfPointerInBytes);
+					x86_push_reg(pCompiledCode, DOMAIN_REG);
 
 					// This means that operand 2 is 64-bit.
 					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
@@ -3590,17 +3577,13 @@ char* JIT_Emit_Rem(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstr
 					x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, X86_EAX, 4);
 					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
 
-					x86_mov_reg_membase(pCompiledCode, X86_ESI, X86_ESP, gSizeOfPointerInBytes, gSizeOfPointerInBytes);
-					x86_mov_reg_membase(pCompiledCode, X86_EDI, X86_ESP, 0, gSizeOfPointerInBytes);
-					x86_adjust_stack(pCompiledCode, -(gSizeOfPointerInBytes << 1));
+					x86_pop_reg(pCompiledCode, DOMAIN_REG);
 					break;
 				}
 				case ElementType_I8:
 				case ElementType_U8:
 				{
-					x86_adjust_stack(pCompiledCode, gSizeOfPointerInBytes << 1);
-					x86_mov_membase_reg(pCompiledCode, X86_ESP, gSizeOfPointerInBytes, X86_ESI, gSizeOfPointerInBytes);
-					x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, X86_EDI, gSizeOfPointerInBytes);
+					x86_push_reg(pCompiledCode, DOMAIN_REG);
 
 					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
 					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
@@ -3610,9 +3593,7 @@ char* JIT_Emit_Rem(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstr
 					x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, X86_EAX, 4);
 					pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
 
-					x86_mov_reg_membase(pCompiledCode, X86_ESI, X86_ESP, gSizeOfPointerInBytes, gSizeOfPointerInBytes);
-					x86_mov_reg_membase(pCompiledCode, X86_EDI, X86_ESP, 0, gSizeOfPointerInBytes);
-					x86_adjust_stack(pCompiledCode, -(gSizeOfPointerInBytes << 1));
+					x86_pop_reg(pCompiledCode, DOMAIN_REG);
 					break;
 				}
 				case ElementType_R4:
@@ -4553,10 +4534,9 @@ char* JIT_Emit_CastClass(char* pCompiledCode, IRMethod* pMethod, IRInstruction* 
 
 char* JIT_Emit_IsInst(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
-	x86_adjust_stack(pCompiledCode, gSizeOfPointerInBytes << 1);
-	x86_mov_membase_reg(pCompiledCode, X86_ESP, gSizeOfPointerInBytes, X86_ESI, gSizeOfPointerInBytes);
-	x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, X86_EDI, gSizeOfPointerInBytes);
+	x86_push_reg(pCompiledCode, DOMAIN_REG);
 
+	// TODO: replace this trampoline, it's basically a tiny wrapper to call IRType_IsSubclassOf
 	x86_adjust_stack(pCompiledCode, gSizeOfPointerInBytes << 1);
 	x86_mov_membase_imm(pCompiledCode, X86_ESP, gSizeOfPointerInBytes, (size_t)pInstruction->Arg1, gSizeOfPointerInBytes);
 	pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
@@ -4565,9 +4545,7 @@ char* JIT_Emit_IsInst(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pIn
 	x86_adjust_stack(pCompiledCode, -(gSizeOfPointerInBytes << 1));
 	pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, X86_EAX, SECONDARY_REG, THIRD_REG, NULL);
 
-	x86_mov_reg_membase(pCompiledCode, X86_ESI, X86_ESP, gSizeOfPointerInBytes, gSizeOfPointerInBytes);
-	x86_mov_reg_membase(pCompiledCode, X86_EDI, X86_ESP, 0, gSizeOfPointerInBytes);
-	x86_adjust_stack(pCompiledCode, -(gSizeOfPointerInBytes << 1));
+	x86_pop_reg(pCompiledCode, DOMAIN_REG);
 	return pCompiledCode;
 }
 
@@ -4582,20 +4560,18 @@ char* JIT_Emit_Box(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstr
 	if (!type->IsValueType) Panic("Nullable<T> not yet supported");
 
 	pCompiledCode = JIT_Emit_LoadDestinationAddress(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG);
-	x86_adjust_stack(pCompiledCode, (gSizeOfPointerInBytes * 4) + 4);
-	x86_mov_membase_reg(pCompiledCode, X86_ESP, (gSizeOfPointerInBytes * 3) + 4, PRIMARY_REG, gSizeOfPointerInBytes);
-	x86_mov_membase_imm(pCompiledCode, X86_ESP, gSizeOfPointerInBytes * 3, type->Size, 4);
-	x86_mov_membase_imm(pCompiledCode, X86_ESP, gSizeOfPointerInBytes << 1, (size_t)type, gSizeOfPointerInBytes);
-	x86_mov_membase_reg(pCompiledCode, X86_ESP, gSizeOfPointerInBytes, X86_ESI, gSizeOfPointerInBytes);
-	x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, X86_EDI, gSizeOfPointerInBytes);
+	x86_adjust_stack(pCompiledCode, (gSizeOfPointerInBytes * 3) + 4);
+	x86_mov_membase_reg(pCompiledCode, X86_ESP, (gSizeOfPointerInBytes << 1) + 4, PRIMARY_REG, gSizeOfPointerInBytes);
+	x86_mov_membase_imm(pCompiledCode, X86_ESP, gSizeOfPointerInBytes << 1, type->Size, 4);
+	x86_mov_membase_imm(pCompiledCode, X86_ESP, gSizeOfPointerInBytes, (size_t)type, gSizeOfPointerInBytes);
+	x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, DOMAIN_REG, gSizeOfPointerInBytes);
 	x86_call_code(pCompiledCode, GC_AllocateObject);
-	x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, X86_ESP, (gSizeOfPointerInBytes * 3) + 4, gSizeOfPointerInBytes);
-	x86_mov_reg_membase(pCompiledCode, X86_ESI, X86_ESP, gSizeOfPointerInBytes, gSizeOfPointerInBytes);
-	x86_mov_reg_membase(pCompiledCode, X86_EDI, X86_ESP, 0, gSizeOfPointerInBytes);
-	x86_adjust_stack(pCompiledCode, -((gSizeOfPointerInBytes * 4) + 4));
+	x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, X86_ESP, (gSizeOfPointerInBytes << 1) + 4, gSizeOfPointerInBytes);
+	x86_mov_reg_membase(pCompiledCode, DOMAIN_REG, X86_ESP, 0, gSizeOfPointerInBytes);
+	x86_adjust_stack(pCompiledCode, -((gSizeOfPointerInBytes * 3) + 4));
 
 	size_t sizeOfSource = 0;
-	pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Destination, SECONDARY_REG, THIRD_REG, FOURTH_REG, &sizeOfSource);
+	pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, SECONDARY_REG, THIRD_REG, FOURTH_REG, &sizeOfSource);
 	if (sizeOfSource <= gSizeOfPointerInBytes) x86_push_reg(pCompiledCode, SECONDARY_REG);
 	size_t sizeOfDestination = type->Size;
 	Define_Move_To_Destination(X86_ESP, 0, PRIMARY_REG, 0, SECONDARY_REG, TRUE, FALSE);
@@ -4664,16 +4640,14 @@ char* JIT_Emit_New_Array(char* pCompiledCode, IRMethod* pMethod, IRInstruction* 
 	pCompiledCode = JIT_Emit_LoadDestinationAddress(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG);
 	pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, SECONDARY_REG, THIRD_REG, FOURTH_REG, NULL);
 
-	x86_adjust_stack(pCompiledCode, (gSizeOfPointerInBytes * 4) + 4);
-	x86_mov_membase_reg(pCompiledCode, X86_ESP, (gSizeOfPointerInBytes * 3) + 4, PRIMARY_REG, gSizeOfPointerInBytes);
-	x86_mov_membase_reg(pCompiledCode, X86_ESP, gSizeOfPointerInBytes * 3, SECONDARY_REG, 4);
-	x86_mov_membase_imm(pCompiledCode, X86_ESP, gSizeOfPointerInBytes << 1, (size_t)arrayType, gSizeOfPointerInBytes);
-	x86_mov_membase_reg(pCompiledCode, X86_ESP, gSizeOfPointerInBytes, X86_ESI, gSizeOfPointerInBytes);
-	x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, X86_EDI, gSizeOfPointerInBytes);
+	x86_adjust_stack(pCompiledCode, (gSizeOfPointerInBytes * 3) + 4);
+	x86_mov_membase_reg(pCompiledCode, X86_ESP, (gSizeOfPointerInBytes << 1) + 4, PRIMARY_REG, gSizeOfPointerInBytes);
+	x86_mov_membase_reg(pCompiledCode, X86_ESP, gSizeOfPointerInBytes << 1, SECONDARY_REG, 4);
+	x86_mov_membase_imm(pCompiledCode, X86_ESP, gSizeOfPointerInBytes, (size_t)arrayType, gSizeOfPointerInBytes);
+	x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, DOMAIN_REG, gSizeOfPointerInBytes);
 	x86_call_code(pCompiledCode, GC_AllocateArray);
-	x86_mov_reg_membase(pCompiledCode, X86_ESI, X86_ESP, gSizeOfPointerInBytes, gSizeOfPointerInBytes);
-	x86_mov_reg_membase(pCompiledCode, X86_EDI, X86_ESP, 0, gSizeOfPointerInBytes);
-	x86_adjust_stack(pCompiledCode, -((gSizeOfPointerInBytes * 4) + 4));
+	x86_mov_reg_membase(pCompiledCode, DOMAIN_REG, X86_ESP, 0, gSizeOfPointerInBytes);
+	x86_adjust_stack(pCompiledCode, -((gSizeOfPointerInBytes * 3) + 4));
 
 	return pCompiledCode;
 }
@@ -4711,9 +4685,7 @@ char* JIT_Emit_Initialize_Object(char* pCompiledCode, IRMethod* pMethod, IRInstr
 
 char* JIT_Emit_Copy_Block(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
-	x86_adjust_stack(pCompiledCode, gSizeOfPointerInBytes << 1);
-	x86_mov_membase_reg(pCompiledCode, X86_ESP, gSizeOfPointerInBytes, X86_ESI, gSizeOfPointerInBytes);
-	x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, X86_EDI, gSizeOfPointerInBytes);
+	x86_push_reg(pCompiledCode, DOMAIN_REG);
 
 	x86_adjust_stack(pCompiledCode, gSizeOfPointerInBytes * 3);
 	pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
@@ -4725,17 +4697,13 @@ char* JIT_Emit_Copy_Block(char* pCompiledCode, IRMethod* pMethod, IRInstruction*
 	x86_call_code(pCompiledCode, memcpy);
 	x86_adjust_stack(pCompiledCode, -(gSizeOfPointerInBytes * 3));
 
-	x86_mov_reg_membase(pCompiledCode, X86_ESI, X86_ESP, gSizeOfPointerInBytes, gSizeOfPointerInBytes);
-	x86_mov_reg_membase(pCompiledCode, X86_EDI, X86_ESP, 0, gSizeOfPointerInBytes);
-	x86_adjust_stack(pCompiledCode, -(gSizeOfPointerInBytes << 1));
+	x86_pop_reg(pCompiledCode, DOMAIN_REG);
 	return pCompiledCode;
 }
 
 char* JIT_Emit_Initialize_Block(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
-	x86_adjust_stack(pCompiledCode, gSizeOfPointerInBytes << 1);
-	x86_mov_membase_reg(pCompiledCode, X86_ESP, gSizeOfPointerInBytes, X86_ESI, gSizeOfPointerInBytes);
-	x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, X86_EDI, gSizeOfPointerInBytes);
+	x86_push_reg(pCompiledCode, DOMAIN_REG);
 
 	x86_adjust_stack(pCompiledCode, gSizeOfPointerInBytes * 3);
 	pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
@@ -4747,9 +4715,7 @@ char* JIT_Emit_Initialize_Block(char* pCompiledCode, IRMethod* pMethod, IRInstru
 	x86_call_code(pCompiledCode, memset);
 	x86_adjust_stack(pCompiledCode, -(gSizeOfPointerInBytes * 3));
 
-	x86_mov_reg_membase(pCompiledCode, X86_ESI, X86_ESP, gSizeOfPointerInBytes, gSizeOfPointerInBytes);
-	x86_mov_reg_membase(pCompiledCode, X86_EDI, X86_ESP, 0, gSizeOfPointerInBytes);
-	x86_adjust_stack(pCompiledCode, -(gSizeOfPointerInBytes << 1));
+	x86_pop_reg(pCompiledCode, DOMAIN_REG);
 	return pCompiledCode;
 }
 
@@ -4955,9 +4921,7 @@ char* JIT_Emit_Load_Function(char* pCompiledCode, IRMethod* pMethod, IRInstructi
 
 char* JIT_Emit_Load_VirtualFunction(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
-	x86_adjust_stack(pCompiledCode, gSizeOfPointerInBytes << 1);
-	x86_mov_membase_reg(pCompiledCode, X86_ESP, gSizeOfPointerInBytes, X86_ESI, gSizeOfPointerInBytes);
-	x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, X86_EDI, gSizeOfPointerInBytes);
+	x86_push_reg(pCompiledCode, DOMAIN_REG);
 
 	uint32_t functionIndex = (uint32_t)pInstruction->Arg2;
 	pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
@@ -4976,11 +4940,10 @@ char* JIT_Emit_Load_VirtualFunction(char* pCompiledCode, IRMethod* pMethod, IRIn
 	x86_pop_reg(pCompiledCode, PRIMARY_REG);
 
 	x86_alu_reg_imm(pCompiledCode, X86_ADD, PRIMARY_REG, offsetof(IRMethod, AssembledMethod));
+	x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, PRIMARY_REG, 0, gSizeOfPointerInBytes);
 	pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
 
-	x86_mov_reg_membase(pCompiledCode, X86_ESI, X86_ESP, gSizeOfPointerInBytes, gSizeOfPointerInBytes);
-	x86_mov_reg_membase(pCompiledCode, X86_EDI, X86_ESP, 0, gSizeOfPointerInBytes);
-	x86_adjust_stack(pCompiledCode, -(gSizeOfPointerInBytes << 1));
+	x86_pop_reg(pCompiledCode, DOMAIN_REG);
 	return pCompiledCode;
 }
 
@@ -5210,18 +5173,16 @@ char* JIT_Emit_New_Object(char* pCompiledCode, IRMethod* pMethod, IRInstruction*
 
 	if (type->TypeDefinition != method->ParentAssembly->ParentDomain->CachedType___System_String)
 	{
-		x86_adjust_stack(pCompiledCode, (gSizeOfPointerInBytes * 4) + 4);
-		x86_mov_membase_reg(pCompiledCode, X86_ESP, (gSizeOfPointerInBytes * 3) + 4, PRIMARY_REG, gSizeOfPointerInBytes);
-		x86_mov_membase_imm(pCompiledCode, X86_ESP, gSizeOfPointerInBytes * 3, type->Size, 4);
-		x86_mov_membase_imm(pCompiledCode, X86_ESP, gSizeOfPointerInBytes << 1, (size_t)type, gSizeOfPointerInBytes);
-		x86_mov_membase_reg(pCompiledCode, X86_ESP, gSizeOfPointerInBytes, X86_ESI, gSizeOfPointerInBytes);
-		x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, X86_EDI, gSizeOfPointerInBytes);
+		x86_adjust_stack(pCompiledCode, (gSizeOfPointerInBytes * 3) + 4);
+		x86_mov_membase_reg(pCompiledCode, X86_ESP, (gSizeOfPointerInBytes << 1) + 4, PRIMARY_REG, gSizeOfPointerInBytes);
+		x86_mov_membase_imm(pCompiledCode, X86_ESP, gSizeOfPointerInBytes << 1, type->Size, 4);
+		x86_mov_membase_imm(pCompiledCode, X86_ESP, gSizeOfPointerInBytes, (size_t)type, gSizeOfPointerInBytes);
+		x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, DOMAIN_REG, gSizeOfPointerInBytes);
 		x86_call_code(pCompiledCode, GC_AllocateObject);
-		x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, X86_ESP, (gSizeOfPointerInBytes * 3) + 4, gSizeOfPointerInBytes); // Contains GCObject->Data**
+		x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, X86_ESP, (gSizeOfPointerInBytes << 1) + 4, gSizeOfPointerInBytes); // Contains GCObject->Data**
 		x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, PRIMARY_REG, 0, gSizeOfPointerInBytes); // Contains GCObject->Data*
-		x86_mov_reg_membase(pCompiledCode, X86_ESI, X86_ESP, gSizeOfPointerInBytes, gSizeOfPointerInBytes);
-		x86_mov_reg_membase(pCompiledCode, X86_EDI, X86_ESP, 0, gSizeOfPointerInBytes);
-		x86_adjust_stack(pCompiledCode, -((gSizeOfPointerInBytes * 4) + 4));
+		x86_mov_reg_membase(pCompiledCode, DOMAIN_REG, X86_ESP, 0, gSizeOfPointerInBytes);
+		x86_adjust_stack(pCompiledCode, -((gSizeOfPointerInBytes * 3) + 4));
 
 		uint32_t parametersSize = 0;
 		size_t sizeOfParameter = 0;
@@ -5235,20 +5196,17 @@ char* JIT_Emit_New_Object(char* pCompiledCode, IRMethod* pMethod, IRInstruction*
 		parametersSize += gSizeOfPointerInBytes;
 		if (method->MethodDefinition->InternalCall)
 		{
-			// Internal calls must push domain pointer (EDI) and stream pointer (ESI) to stack as first two parameters
-			x86_adjust_stack(pCompiledCode, gSizeOfPointerInBytes << 1);
-			x86_mov_membase_reg(pCompiledCode, X86_ESP, gSizeOfPointerInBytes, X86_ESI, gSizeOfPointerInBytes);
-			x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, X86_EDI, gSizeOfPointerInBytes);
-			parametersSize += gSizeOfPointerInBytes << 1;
+			// Internal calls must push domain pointer (EDI) to stack as first parameter
+			x86_push_reg(pCompiledCode, DOMAIN_REG);
+			parametersSize += gSizeOfPointerInBytes;
 		}
 
 		x86_call_code(pCompiledCode, method->AssembledMethod);
 		if (method->MethodDefinition->InternalCall)
 		{
-			// Internal calls must restore domain pointer (EDI) and stream pointer (ESI) from first two parameters
+			// Internal calls must restore domain pointer (EDI) from first parameter
 			// when returning to managed code
-			x86_mov_reg_membase(pCompiledCode, X86_ESI, X86_ESP, gSizeOfPointerInBytes, gSizeOfPointerInBytes);
-			x86_mov_reg_membase(pCompiledCode, X86_EDI, X86_ESP, 0, gSizeOfPointerInBytes);
+			x86_mov_reg_membase(pCompiledCode, DOMAIN_REG, X86_ESP, 0, gSizeOfPointerInBytes);
 		}
 		x86_adjust_stack(pCompiledCode, -parametersSize);
 	}
@@ -5268,18 +5226,16 @@ char* JIT_Emit_New_Object(char* pCompiledCode, IRMethod* pMethod, IRInstruction*
 			if (sizeOfParameter <= gSizeOfPointerInBytes) x86_push_reg(pCompiledCode, SECONDARY_REG);
 			parametersSize += sizeOfParameter;
 		}
-		x86_adjust_stack(pCompiledCode, gSizeOfPointerInBytes * 3);
-		x86_mov_membase_reg(pCompiledCode, X86_ESP, gSizeOfPointerInBytes << 1, PRIMARY_REG, gSizeOfPointerInBytes); // Contains GCObject->Data**, instead of GCObject->Data*
-		// Internal calls must push domain pointer (EDI) and stream pointer (ESI) to stack as first two parameters
-		x86_mov_membase_reg(pCompiledCode, X86_ESP, gSizeOfPointerInBytes, X86_ESI, gSizeOfPointerInBytes);
-		x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, X86_EDI, gSizeOfPointerInBytes);
-		parametersSize += gSizeOfPointerInBytes * 3;
+		x86_adjust_stack(pCompiledCode, gSizeOfPointerInBytes << 1);
+		x86_mov_membase_reg(pCompiledCode, X86_ESP, gSizeOfPointerInBytes, PRIMARY_REG, gSizeOfPointerInBytes); // Contains GCObject->Data**, instead of GCObject->Data* for string constructor
+		// Internal calls must push domain pointer (EDI) to stack as first parameter
+		x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, DOMAIN_REG, gSizeOfPointerInBytes);
+		parametersSize += gSizeOfPointerInBytes << 1;
 
 		x86_call_code(pCompiledCode, method->AssembledMethod);
-		// Internal calls must restore domain pointer (EDI) and stream pointer (ESI) from first two parameters
+		// Internal calls must restore domain pointer (EDI) from first parameter
 		// when returning to managed code
-		x86_mov_reg_membase(pCompiledCode, X86_ESI, X86_ESP, gSizeOfPointerInBytes, gSizeOfPointerInBytes);
-		x86_mov_reg_membase(pCompiledCode, X86_EDI, X86_ESP, 0, gSizeOfPointerInBytes);
+		x86_mov_reg_membase(pCompiledCode, DOMAIN_REG, X86_ESP, 0, gSizeOfPointerInBytes);
 		x86_adjust_stack(pCompiledCode, -parametersSize);
 	}
 
@@ -5394,14 +5350,11 @@ char* JIT_Emit_Call_Internal(char* pCompiledCode, IRMethod* pMethod, IRInstructi
 		if (sizeOfParameter <= gSizeOfPointerInBytes) x86_push_reg(pCompiledCode, SECONDARY_REG);
 		parametersSize += sizeOfParameter;
 	}
-	x86_adjust_stack(pCompiledCode, gSizeOfPointerInBytes << 1);
-	x86_mov_membase_reg(pCompiledCode, X86_ESP, gSizeOfPointerInBytes, X86_ESI, gSizeOfPointerInBytes);
-	x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, X86_EDI, gSizeOfPointerInBytes);
-	parametersSize += gSizeOfPointerInBytes << 1;
+	x86_push_reg(pCompiledCode, DOMAIN_REG);
+	parametersSize += gSizeOfPointerInBytes;
 
 	x86_call_code(pCompiledCode, method->AssembledMethod);
-	x86_mov_reg_membase(pCompiledCode, X86_ESI, X86_ESP, gSizeOfPointerInBytes, gSizeOfPointerInBytes);
-	x86_mov_reg_membase(pCompiledCode, X86_EDI, X86_ESP, 0, gSizeOfPointerInBytes);
+	x86_mov_reg_membase(pCompiledCode, DOMAIN_REG, X86_ESP, 0, gSizeOfPointerInBytes);
 	x86_adjust_stack(pCompiledCode, -parametersSize);
 
 	return pCompiledCode;

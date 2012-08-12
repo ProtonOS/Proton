@@ -86,10 +86,10 @@ GC* GC_Create(AppDomain* pDomain);
 void GC_Destroy(GC* pGC);
 GCHeap* GCHeap_Create(uint32_t pHeapSize, uint32_t pInitialPoolSize, bool_t pUseTreeAllocation);
 void GCHeap_Destroy(GCHeap* pGCHeap);
-void GC_AllocateObject(AppDomain* pDomain, uint8_t* pStackStream, IRType* pType, uint32_t pSize, void** pAllocatedObject);
-void GC_AllocateStringFromASCII(AppDomain* pDomain, uint8_t* pStackStream, int8_t* pString, uint32_t pLength, void** pAllocatedObject);
-void GC_AllocateStringFromUnicode(AppDomain* pDomain, uint8_t* pStackStream, uint16_t* pString, uint32_t pLength, void** pAllocatedObject);
-void GC_AllocateArray(AppDomain* pDomain, uint8_t* pStackStream, IRType* pArrayType, uint32_t pElementCount, void** pAllocatedObject);
+void GC_AllocateObject(AppDomain* pDomain, IRType* pType, uint32_t pSize, void** pAllocatedObject);
+void GC_AllocateStringFromASCII(AppDomain* pDomain, int8_t* pString, uint32_t pLength, void** pAllocatedObject);
+void GC_AllocateStringFromUnicode(AppDomain* pDomain, uint16_t* pString, uint32_t pLength, void** pAllocatedObject);
+void GC_AllocateArray(AppDomain* pDomain, IRType* pArrayType, uint32_t pElementCount, void** pAllocatedObject);
 GCObject* GC_AllocatePinnedObject(GC* pGC, IRType* pType, uint32_t pSize);
 void GC_ApplyPressure(AppDomain* pDomain, uint32_t pBytes);
 

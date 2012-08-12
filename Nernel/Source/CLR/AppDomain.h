@@ -88,6 +88,7 @@ void AppDomain_AddThread(AppDomain* pDomain, Thread* pThread);
 void AppDomain_RemoveThread(AppDomain* pDomain, Thread* pThread);
 void AppDomain_AddAssembly(AppDomain* pDomain, IRAssembly* pAssembly);
 void AppDomain_AddInstructionPointerMapping(IRMethod* pMethod, size_t pAddress, size_t pLength);
+InstructionPointerMappingNode* AppDomain_FindInstructionPointerMapping(AppDomain* pDomain, size_t pInstructionPointer);
 void AppDomain_LinkCorlib(AppDomain* pDomain, CLIFile* pCorlibFile);
 
 ElementType AppDomain_GetElementTypeFromIRType(AppDomain* pDomain, IRType* pType);

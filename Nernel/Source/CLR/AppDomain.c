@@ -162,6 +162,25 @@ void AppDomain_AddInstructionPointerMapping(IRMethod* pMethod, size_t pAddress, 
 	else AppDomain_InsertInstructionPointerMapping(rootNode, node);
 }
 
+InstructionPointerMappingNode* AppDomain_SearchInstructionPointerMapping(InstructionPointerMappingNode* pCurrentNode, size_t pInstructionPointer)
+{
+	if (!pCurrentNode) return NULL;
+	if (pCurrentNode->StartAddress <= pInstructionPointer && pCurrentNode->EndAddress > pInstructionPointer) return pCurrentNode;
+	if (pCurrentNode->StartAddress > pInstructionPointer) return AppDomain_SearchInstructionPointerMapping(pCurrentNode->Left, pInstructionPointer);
+	return AppDomain_SearchInstructionPointerMapping(pCurrentNode->Right, pInstructionPointer);
+}
+
+InstructionPointerMappingNode* AppDomain_FindInstructionPointerMapping(AppDomain* pDomain, size_t pInstructionPointer)
+{
+	InstructionPointerMappingNode* node = NULL;
+	for (uint32_t index = 0; index < pDomain->IRAssemblyCount; ++index)
+	{
+		node = AppDomain_SearchInstructionPointerMapping(pDomain->InstructionPointerMappingTree[index], pInstructionPointer);
+		if (node) break;
+	}
+	return node;
+}
+
 void AppDomain_LinkCorlib(AppDomain* pDomain, CLIFile* pCorlibFile)
 {
 	for (uint32_t i = 1; i <= pCorlibFile->TypeDefinitionCount; i++)
