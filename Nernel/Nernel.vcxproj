@@ -19,6 +19,7 @@
     <ClCompile Include="Source\CLR\InternalCalls.c" />
     <ClCompile Include="Source\CLR\InternalCalls\Proton.IO.PortIO.c" />
     <ClCompile Include="Source\CLR\InternalCalls\System.Console.c" />
+    <ClCompile Include="Source\CLR\InternalCalls\System.Runtime.CompilerServices.RuntimeHelpers.c" />
     <ClCompile Include="Source\CLR\InternalCalls\System.String.c" />
     <ClCompile Include="Source\CLR\IROptimizer.c" />
     <ClCompile Include="Source\CLR\IRStructures.c" />
@@ -74,6 +75,7 @@
     <ClInclude Include="Source\CLR\InternalCalls.h" />
     <ClInclude Include="Source\CLR\InternalCalls\Proton.IO.PortIO.h" />
     <ClInclude Include="Source\CLR\InternalCalls\System.Console.h" />
+    <ClInclude Include="Source\CLR\InternalCalls\System.Runtime.CompilerServices.RuntimeHelpers.h" />
     <ClInclude Include="Source\CLR\InternalCalls\System.String.h" />
     <ClInclude Include="Source\CLR\IROpcode.h" />
     <ClInclude Include="Source\CLR\IROptimizer.h" />

@@ -980,7 +980,11 @@ void AppDomain_ResolveMemberReference(AppDomain* pDomain, CLIFile* pFile, Member
 						break;
 					}
 				}
-				if (!pMemberReference->Resolved.MethodDefinition) Panic("Failed to resolve member reference through type reference for method definition.");
+				if (!pMemberReference->Resolved.MethodDefinition)
+				{
+					printf("Name = %s\n", pMemberReference->Name);
+					Panic("Failed to resolve member reference through type reference for method definition.");
+				}
 			}
 			break;
 		}
@@ -1020,6 +1024,7 @@ void AppDomain_ResolveMemberReference(AppDomain* pDomain, CLIFile* pFile, Member
 						pMemberReference->MethodSignatureCache = MethodSignature_Expand(pMemberReference->Signature, pFile);
 					}
 
+					printf("Name = %s\n", typeDef->MethodDefinitionList[i2].Name);
 					if (!strcmp(typeDef->MethodDefinitionList[i2].Name, pMemberReference->Name) &&
 						MethodSignature_Compare(pDomain, typeDef->File->Assembly, typeDef->MethodDefinitionList[i2].SignatureCache, pFile->Assembly, pMemberReference->MethodSignatureCache))
 					{
@@ -1028,7 +1033,11 @@ void AppDomain_ResolveMemberReference(AppDomain* pDomain, CLIFile* pFile, Member
 						break;
 					}
 				}
-				if (!pMemberReference->Resolved.MethodDefinition) Panic("Failed to resolve member reference through type reference for method definition.");
+				if (!pMemberReference->Resolved.MethodDefinition)
+				{
+					printf("Name = %s.%s.%s\n", typeDef->Namespace, typeDef->Name, pMemberReference->Name);
+					Panic("Failed to resolve member reference through type reference for method definition.");
+				}
 			}
 			break;
 		}

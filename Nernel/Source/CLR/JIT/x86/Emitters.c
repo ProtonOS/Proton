@@ -5170,6 +5170,12 @@ char* JIT_Emit_New_Object(char* pCompiledCode, IRMethod* pMethod, IRInstruction*
 	pCompiledCode = JIT_Emit_LoadDestinationAddress(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG);
 
 	if (!method->AssembledMethod) JIT_CompileMethod(method);
+	if (!method->AssembledMethod)
+	{
+		char buf[256];
+		snprintf(buf, 256, "Missing Required Internal Call: %s.%s.%s", method->MethodDefinition->TypeDefinition->Namespace, method->MethodDefinition->TypeDefinition->Name, method->MethodDefinition->Name);
+		Panic(buf);
+	}
 
 	if (type->TypeDefinition != method->ParentAssembly->ParentDomain->CachedType___System_String)
 	{
@@ -5341,6 +5347,12 @@ char* JIT_Emit_Call_Internal(char* pCompiledCode, IRMethod* pMethod, IRInstructi
 	IRMethod* method = (IRMethod*)pInstruction->Arg1;
 
 	if (!method->AssembledMethod) JIT_CompileMethod(method);
+	if (!method->AssembledMethod)
+	{
+		char buf[256];
+		snprintf(buf, 256, "Missing Required Internal Call: %s.%s.%s", method->MethodDefinition->TypeDefinition->Namespace, method->MethodDefinition->TypeDefinition->Name, method->MethodDefinition->Name);
+		Panic(buf);
+	}
 
 	uint32_t parametersSize = 0;
 	size_t sizeOfParameter = 0;

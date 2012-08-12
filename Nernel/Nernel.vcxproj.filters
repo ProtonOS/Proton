@@ -135,6 +135,9 @@
     <ClCompile Include="Source\AllocationWrappers.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\CLR\InternalCalls\System.Runtime.CompilerServices.RuntimeHelpers.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\System\Multiboot.h">
@@ -291,6 +294,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\CLR\Optimizations\DeadMoveElimination.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\CLR\InternalCalls\System.Runtime.CompilerServices.RuntimeHelpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

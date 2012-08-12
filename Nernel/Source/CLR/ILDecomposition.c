@@ -1880,6 +1880,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 			case ILOpcode_Dup:				// 0x25
 			{
                 Log_WriteLine(LOGLEVEL__ILReader, "Read Dup");
+
 				StackObject* object = SyntheticStack_Peek(stack);
 				EMIT_IR_1ARG(IROpcode_Dup, object->Type);
 				
@@ -3138,7 +3139,6 @@ BranchCommon:
 				MetadataToken* token = CLIFile_ExpandMetadataToken(file, ReadUInt32(currentDataPointer));
 				RuntimeHandleType handleType = (RuntimeHandleType)0;
 				void* handleData = NULL;
-
 				switch (token->Table)
 				{
 					case MetadataTable_Field:
@@ -3215,6 +3215,7 @@ BranchCommon:
 				StackObject* obj = SA();
 				obj->Type = type;
 				obj->SourceType = StackObjectSourceType_Stack;
+				SyntheticStack_Push(stack, obj);
 
 				ClearFlags();
 	            break;

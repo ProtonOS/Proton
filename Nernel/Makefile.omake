@@ -77,6 +77,7 @@
 	Source/CLR/InternalCalls/Proton.IO.PortIO.c
 	Source/CLR/InternalCalls/System.Console.c
 	Source/CLR/InternalCalls/System.String.c
+	Source/CLR/InternalCalls/System.Runtime.CompilerServices.RuntimeHelpers.c
 	Source/CLR/JIT/BranchRegistry.c
 	Source/CLR/JIT/x86/Emitters.c
 	Source/CLR/JIT/x86/Layout.c
