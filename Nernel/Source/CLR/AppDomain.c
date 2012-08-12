@@ -469,9 +469,18 @@ IRType* AppDomain_GetIRTypeFromSignatureType(AppDomain* pDomain, IRAssembly* pAs
 				type = IRType_Copy(sysArrayType);
 				type->IsArrayType = TRUE;
 				type->ArrayType = IRArrayType_Create(type, elementType);
+				if (elementType->IsGenericParameter)
+				{
+					//printf("This is why.\n");
+				}
+				//printf("Couldn't find an array type already created so creating one ElementType: %s.%s @ 0x%x ArrayType at 0x%x\n", elementType->TypeDefinition->Namespace, elementType->TypeDefinition->Name, (unsigned int)elementType, (unsigned int)type);
 				HASH_ADD(HashHandle, pAssembly->ArrayTypesHashTable, ElementType, sizeof(void*), type->ArrayType);
 			}
-			else type = lookupType->ArrayType;
+			else 
+			{
+				type = lookupType->ArrayType;
+				//printf("Found an array type already created so using one with the ElementType: %s.%s @ 0x%x ArrayType at 0x%x\n", lookupType->ElementType->TypeDefinition->Namespace, lookupType->ElementType->TypeDefinition->Name, (unsigned int)lookupType->ElementType, (unsigned int)lookupType->ArrayType);
+			}
 			break;
 		}
 		case SignatureElementType_Pointer:
