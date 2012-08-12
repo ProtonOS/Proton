@@ -2743,20 +2743,20 @@ void SignatureType_Destroy(SignatureType* pType)
 		case SignatureElementType_GenericInstantiation:
 		{
 			for (uint32_t index = 0; index < pType->GenericInstGenericArgumentCount; ++index) SignatureType_Destroy(pType->GenericInstGenericArguments[index]);
-			free(pType->GenericInstGenericArguments);
+			if (pType->GenericInstGenericArguments) free(pType->GenericInstGenericArguments);
 			break;
 		}
 		case SignatureElementType_Pointer:
 		{
 			for (uint32_t index = 0; index < pType->PtrCustomModifierCount; ++index) SignatureCustomModifier_Destroy(pType->PtrCustomModifiers[index]);
-			free(pType->PtrCustomModifiers);
+			if (pType->PtrCustomModifiers) free(pType->PtrCustomModifiers);
 			SignatureType_Destroy(pType->PtrType);
 			break;
 		}
 		case SignatureElementType_SingleDimensionArray:
 		{
 			for (uint32_t index = 0; index < pType->SZArrayCustomModifierCount; ++index) SignatureCustomModifier_Destroy(pType->SZArrayCustomModifiers[index]);
-			free(pType->SZArrayCustomModifiers);
+			if (pType->SZArrayCustomModifiers) free(pType->SZArrayCustomModifiers);
 			SignatureType_Destroy(pType->SZArrayType);
 			break;
 		}
