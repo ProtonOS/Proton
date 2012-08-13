@@ -75,6 +75,7 @@
 	Source/CLR/MetadataStructures.c
 	Source/CLR/SyntheticStack.c
 	Source/CLR/InternalCalls/Proton.IO.PortIO.c
+	Source/CLR/InternalCalls/System.Buffer.c
 	Source/CLR/InternalCalls/System.Console.c
 	Source/CLR/InternalCalls/System.String.c
 	Source/CLR/InternalCalls/System.Runtime.CompilerServices.RuntimeHelpers.c

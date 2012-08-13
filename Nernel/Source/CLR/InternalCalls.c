@@ -1,7 +1,9 @@
 #include <CLR/InternalCalls.h>
 #include <CLR/InternalCalls/Proton.IO.PortIO.h>
-#include <CLR/InternalCalls/System.String.h>
+#include <CLR/InternalCalls/System.Buffer.h>
+#include <CLR/InternalCalls/System.Console.h>
 #include <CLR/InternalCalls/System.Runtime.CompilerServices.RuntimeHelpers.h>
+#include <CLR/InternalCalls/System.String.h>
 #include <System/Console.h>
 
 
@@ -25,7 +27,9 @@ const InternalCall InternalCallTable[] =
 	{	NULL,								NULL,				"OutUShort",			SignatureElementType_Void,		2,	{ SignatureElementType_U4, SignatureElementType_U2 }, &Proton_IO_PortIO_OutUShort },
 	{	NULL,								NULL,				"OutUInt",				SignatureElementType_Void,		2,	{ SignatureElementType_U4, SignatureElementType_U4 }, &Proton_IO_PortIO_OutUInt },
 
-	{	"System",							"String",			".ctor",				SignatureElementType_Void,		1,	{ SignatureElementType_Pointer, SignatureElementType_Char }, &System_String_Ctor_CharPointer },
+	{	"System",							"Buffer",			"ByteLengthInternal",	SignatureElementType_I4,		1,	{ SignatureElementType_Class }, &System_Buffer_ByteLengthInternal },
+
+	{	NULL,								"String",			".ctor",				SignatureElementType_Void,		1,	{ SignatureElementType_Pointer, SignatureElementType_Char }, &System_String_Ctor_CharPointer },
 	{	NULL,								NULL,				NULL,					SignatureElementType_Void,		1,	{ SignatureElementType_Pointer, SignatureElementType_I1 }, &System_String_Ctor_SBytePointer },
 	{	NULL,								NULL,				NULL,					SignatureElementType_Void,		1,	{ SignatureElementType_SingleDimensionArray, SignatureElementType_Char }, &System_String_Ctor_CharArray },
 	{	NULL,								NULL,				NULL,					SignatureElementType_Void,		2,	{ SignatureElementType_Char, SignatureElementType_I4 }, &System_String_Ctor_CharAndCount },
@@ -34,6 +38,7 @@ const InternalCall InternalCallTable[] =
 	{	NULL,								NULL,				NULL,					SignatureElementType_Void,		3,	{ SignatureElementType_Pointer, SignatureElementType_I1, SignatureElementType_I4, SignatureElementType_I4 }, &System_String_Ctor_SBytePointerWithStartAndLength },
 
 	{	"System.Runtime.CompilerServices",	"RuntimeHelpers",	"InitializeArray",		SignatureElementType_Void,		2,	{ SignatureElementType_Class, SignatureElementType_IPointer }, &System_Runtime_CompilerServices_RuntimeHelpers_InitializeArray },
+
 	{	NULL,								NULL,				NULL,					SignatureElementType_End,		0,	{ }, NULL }
 };
 

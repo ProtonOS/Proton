@@ -2332,19 +2332,18 @@ char* JIT_Emit_Return(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pIn
 	if (pMethod->Returns)
 	{
 		// Pop the value into EAX, as per cdecl call convention
-		pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
-		if (PRIMARY_REG != X86_EAX) Panic("You changed the expected register behaviour, fix this!");
+		pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, X86_EAX, X86_EDX, X86_ECX, NULL);
 		uint32_t sizeOfReturnType = JIT_GetStackSizeOfType(pMethod->ReturnType);
 		if (sizeOfReturnType > 4 && sizeOfReturnType <= 8)
 		{
 			// If the size of the return type is 5-8 bytes, pop the rest into EDX as per cdecl call convention
-			if (SECONDARY_REG != X86_EDX) x86_mov_reg_reg(pCompiledCode, X86_EDX, SECONDARY_REG, gSizeOfPointerInBytes);
+			x86_pop_reg(pCompiledCode, X86_EDX);
 		}
-		else
+		else if (sizeOfReturnType > 8)
 		{
 			uint32_t sizeOfDestination = JIT_StackAlign(sizeOfReturnType);
 			uint32_t sizeOfSource = sizeOfDestination;
-			Define_Move_To_Destination(X86_ESP, 0, X86_EBP, -(pMethod->Parameters[pMethod->ParameterCount - 1]->Offset + sizeOfDestination), THIRD_REG, TRUE, TRUE);
+			Define_Move_To_Destination(X86_ESP, 0, X86_EBP, (pMethod->Parameters[pMethod->ParameterCount - 1]->Offset + JIT_StackAlign(pMethod->Parameters[pMethod->ParameterCount - 1]->Size)), THIRD_REG, TRUE, TRUE);
 		}
 	}
 	// Adjust the stack for local variables, and restore the previous stack frame
@@ -4744,6 +4743,7 @@ char* JIT_Emit_Branch(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pIn
 	else if(condition == BranchCondition_False || condition == BranchCondition_True)
 	{
 		ElementType ArgType = (ElementType)(int32_t)pInstruction->Arg3;
+		bool_t validArg = FALSE;
 		switch(ArgType)
 		{
 			case ElementType_I1:
@@ -4755,29 +4755,38 @@ char* JIT_Emit_Branch(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pIn
 			case ElementType_U4:
 			case ElementType_U:
 				{
-					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
-					x86_test_reg_reg(pCompiledCode, PRIMARY_REG, PRIMARY_REG);
-
-					unsigned char* comp = (unsigned char*)pCompiledCode;
-					if (condition == BranchCondition_False)
-					{
-							x86_branch32(comp, X86_CC_Z, 0, FALSE);
-					}
-					else
-					{
-							x86_branch32(comp, X86_CC_NZ, 0, FALSE);
-					}
-					BranchRegistry_RegisterBranch(pBranchRegistry, pInstruction->ILLocation, target->ILLocation, pCompiledCode);
-					pCompiledCode = (char*)comp;
+					validArg = TRUE;
 					break;
 				}
 			default:
 				{
+					if ((int32_t)ArgType == -1)
+					{
+						validArg = TRUE;
+						break;
+					}
 					char buf[256];
 					snprintf(buf, 256, "Invalid argument type for simple branch (%d)!", (int)ArgType);
 					Panic(buf);
 					break;
 				}
+		}
+		if (validArg)
+		{
+			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+			x86_test_reg_reg(pCompiledCode, PRIMARY_REG, PRIMARY_REG);
+
+			unsigned char* comp = (unsigned char*)pCompiledCode;
+			if (condition == BranchCondition_False)
+			{
+					x86_branch32(comp, X86_CC_Z, 0, FALSE);
+			}
+			else
+			{
+					x86_branch32(comp, X86_CC_NZ, 0, FALSE);
+			}
+			BranchRegistry_RegisterBranch(pBranchRegistry, pInstruction->ILLocation, target->ILLocation, pCompiledCode);
+			pCompiledCode = (char*)comp;
 		}
 	}
 	else
@@ -5319,9 +5328,14 @@ char* JIT_Emit_Call_Virtual(char* pCompiledCode, IRMethod* pMethod, IRInstructio
 	x86_mov_membase_imm(pCompiledCode, X86_ESP, gSizeOfPointerInBytes, (uint32_t)pInstruction->Arg2, 4);
 	x86_mov_membase_imm(pCompiledCode, X86_ESP, 0, (size_t)pInstruction->Arg1, gSizeOfPointerInBytes);
 
-
 	x86_call_code(pCompiledCode, JIT_Trampoline_CallVirtual);
 	x86_adjust_stack(pCompiledCode, -parametersSize);
+
+	// TODO: Problem here, we need mToCall method from CallVirtual
+	//if (mToCall->Returns)
+	//{
+	//	pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, X86_EAX, X86_EDX, X86_ECX, NULL);
+	//}
 
 	return pCompiledCode;
 }
@@ -5349,6 +5363,11 @@ char* JIT_Emit_Call_Absolute(char* pCompiledCode, IRMethod* pMethod, IRInstructi
 
 	x86_call_code(pCompiledCode, method->AssembledMethod);
 	x86_adjust_stack(pCompiledCode, -parametersSize);
+
+	if (method->Returns)
+	{
+		pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, X86_EAX, X86_EDX, X86_ECX, NULL);
+	}
 
 	return pCompiledCode;
 }
@@ -5379,6 +5398,11 @@ char* JIT_Emit_Call_Internal(char* pCompiledCode, IRMethod* pMethod, IRInstructi
 	x86_call_code(pCompiledCode, method->AssembledMethod);
 	x86_mov_reg_membase(pCompiledCode, DOMAIN_REG, X86_ESP, 0, gSizeOfPointerInBytes);
 	x86_adjust_stack(pCompiledCode, -parametersSize);
+
+	if (method->Returns)
+	{
+		pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, X86_EAX, X86_EDX, X86_ECX, NULL);
+	}
 
 	return pCompiledCode;
 }
