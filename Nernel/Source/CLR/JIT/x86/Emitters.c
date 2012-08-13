@@ -5331,11 +5331,11 @@ char* JIT_Emit_Call_Virtual(char* pCompiledCode, IRMethod* pMethod, IRInstructio
 	x86_call_code(pCompiledCode, JIT_Trampoline_CallVirtual);
 	x86_adjust_stack(pCompiledCode, -parametersSize);
 
-	// TODO: Problem here, we need mToCall method from CallVirtual
-	//if (mToCall->Returns)
-	//{
-	//	pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, X86_EAX, X86_EDX, X86_ECX, NULL);
-	//}
+	IRMethod* method = ((IRType*)pInstruction->Arg1)->Methods[(uint32_t)pInstruction->Arg2];
+	if (method->Returns)
+	{
+		pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, X86_EAX, X86_EDX, X86_ECX, NULL);
+	}
 
 	return pCompiledCode;
 }

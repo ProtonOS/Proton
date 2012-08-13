@@ -21,9 +21,11 @@ namespace Mernel
             //test[4] = '\n';
             //Kernel.Write(new string(test));
             //Kernel.Write(new string((sbyte*)0x1cdf37));
-            byte[] buf = new byte[3];
-            int bufLen = Buffer.ByteLength(buf);
-            if (bufLen == 3) Kernel.Write("Test\n");
+            //byte[] buf = new byte[3];
+            //int bufLen = Buffer.ByteLength(buf);
+            //if (bufLen == 3) Kernel.Write(bufLen.ToString());
+            int x = 5;
+            Kernel.Write(x.ToString());
         }
     }
 }
