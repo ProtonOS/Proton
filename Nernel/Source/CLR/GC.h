@@ -92,6 +92,7 @@ void GC_AllocateObject(AppDomain* pDomain, IRType* pType, uint32_t pSize, void**
 void GC_AllocateStringFromASCII(AppDomain* pDomain, int8_t* pString, uint32_t pLength, void** pAllocatedObject);
 void GC_AllocateStringFromUnicode(AppDomain* pDomain, uint16_t* pString, uint32_t pLength, void** pAllocatedObject);
 void GC_AllocateInternedStringFromUnicode(AppDomain* pDomain, uint16_t* pString, uint32_t pLength, void** pAllocatedObject);
+void GC_AllocateEmptyStringFromLength(AppDomain* pDomain, uint32_t pLength, void** pAllocatedObject);
 void GC_AllocateArray(AppDomain* pDomain, IRType* pArrayType, uint32_t pElementCount, void** pAllocatedObject);
 GCObject* GC_AllocatePinnedObject(GC* pGC, IRType* pType, uint32_t pSize);
 void GC_ApplyPressure(AppDomain* pDomain, uint32_t pBytes);

@@ -335,6 +335,27 @@ void GC_AllocateInternedStringFromUnicode(AppDomain* pDomain, uint16_t* pString,
 	Atomic_ReleaseLock(&gc->Busy);
 }
 
+void GC_AllocateEmptyStringFromLength(AppDomain* pDomain, uint32_t pLength, void** pAllocatedObject)
+{
+	uint32_t size = pLength << 1;
+	if (size >= 0x7FFFFFFF) Panic("GC_AllocateEmptyStringFromLength Size >= 0x7FFFFFFF");
+	GC* gc = pDomain->GarbageCollector;
+	Atomic_AquireLock(&gc->Busy);
+    GCObject* object = NULL;
+
+	if (size <= GCHeap__SmallHeap_Size - sizeof(GCObject*))
+		object = GCHeap_Allocate(&gc->SmallGeneration0Heaps, &gc->SmallGeneration0HeapCount, GCHeap__SmallHeap_Size, size, TRUE);
+	else if (size <= GCHeap__LargeHeap_Size - sizeof(GCObject*))
+		object = GCHeap_Allocate(&gc->LargeHeaps, &gc->LargeHeapCount, GCHeap__LargeHeap_Size, size, TRUE);
+	else object = GCHeap_Allocate(&gc->LargeHeaps, &gc->LargeHeapCount, size + sizeof(GCObject*), size, FALSE);
+	object->Type = gc->Domain->IRAssemblies[0]->Types[gc->Domain->CachedType___System_String->TableIndex - 1];
+	object->Flags |= GCObjectFlags_String;
+	object->String.Length = pLength;
+
+	*pAllocatedObject = object->Data;
+	Atomic_ReleaseLock(&gc->Busy);
+}
+
 void GC_AllocateArray(AppDomain* pDomain, IRType* pArrayType, uint32_t pElementCount, void** pAllocatedObject)
 {
 	size_t elementSize = pArrayType->ArrayType->ElementType->Size;
