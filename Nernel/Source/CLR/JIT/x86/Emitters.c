@@ -4637,6 +4637,12 @@ char* JIT_Emit_Copy_Object(char* pCompiledCode, IRMethod* pMethod, IRInstruction
 char* JIT_Emit_New_Array(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
 	IRType* arrayType = IRAssembly_MakeArrayType(pMethod->ParentAssembly, (IRType*)pInstruction->Arg1);
+	if (!arrayType->ArrayType->ElementType->SizeCalculated)
+	{
+		printf("Calculating size of elementType: %s\n", arrayType->ArrayType->ElementType->TypeDefinition->Name);
+		JIT_GetSizeOfType(arrayType->ArrayType->ElementType);
+	}
+
 	pCompiledCode = JIT_Emit_LoadDestinationAddress(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG);
 	pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, SECONDARY_REG, THIRD_REG, FOURTH_REG, NULL);
 
@@ -5236,7 +5242,7 @@ char* JIT_Emit_New_Object(char* pCompiledCode, IRMethod* pMethod, IRInstruction*
 		x86_mov_membase_reg(pCompiledCode, X86_ESP, gSizeOfPointerInBytes, PRIMARY_REG, gSizeOfPointerInBytes); // Contains GCObject->Data**, instead of GCObject->Data* for string constructor
 		// Internal calls must push domain pointer (EDI) to stack as first parameter
 		x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, DOMAIN_REG, gSizeOfPointerInBytes);
-		parametersSize += gSizeOfPointerInBytes << 1;
+		parametersSize += (gSizeOfPointerInBytes << 1);
 
 		x86_call_code(pCompiledCode, method->AssembledMethod);
 		// Internal calls must restore domain pointer (EDI) from first parameter

@@ -57,6 +57,7 @@ struct _GCHeap
 	GCObject* AllocatedObjectList;
 	GCObject* FreeObjectList;
 	uint32_t* AllocationTree;
+	uint32_t AllocationTreeSize;
 	uint32_t AllocationTreeLevels;
     uint32_t Size;
     uint32_t Available;

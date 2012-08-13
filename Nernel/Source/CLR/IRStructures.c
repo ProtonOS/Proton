@@ -130,7 +130,23 @@ IRType* IRType_Create(IRAssembly* pAssembly, TypeDefinition* pTypeDefinition)
 	type->IsGeneric = pTypeDefinition->GenericParameterCount > 0;
 	type->GenericParameterCount = pTypeDefinition->GenericParameterCount;
 
-	if (AppDomain_IsStructure(pTypeDefinition->File->Assembly->ParentDomain, pTypeDefinition))
+	if (pTypeDefinition == pTypeDefinition->File->Assembly->ParentDomain->CachedType___System_Byte ||
+		pTypeDefinition == pTypeDefinition->File->Assembly->ParentDomain->CachedType___System_Char ||
+		pTypeDefinition == pTypeDefinition->File->Assembly->ParentDomain->CachedType___System_Double ||
+		pTypeDefinition == pTypeDefinition->File->Assembly->ParentDomain->CachedType___System_Int16 ||
+		pTypeDefinition == pTypeDefinition->File->Assembly->ParentDomain->CachedType___System_Int32 ||
+		pTypeDefinition == pTypeDefinition->File->Assembly->ParentDomain->CachedType___System_Int64 ||
+		pTypeDefinition == pTypeDefinition->File->Assembly->ParentDomain->CachedType___System_IntPtr ||
+		pTypeDefinition == pTypeDefinition->File->Assembly->ParentDomain->CachedType___System_SByte ||
+		pTypeDefinition == pTypeDefinition->File->Assembly->ParentDomain->CachedType___System_Single ||
+		pTypeDefinition == pTypeDefinition->File->Assembly->ParentDomain->CachedType___System_UInt16 ||
+		pTypeDefinition == pTypeDefinition->File->Assembly->ParentDomain->CachedType___System_UInt32 ||
+		pTypeDefinition == pTypeDefinition->File->Assembly->ParentDomain->CachedType___System_UInt64 ||
+		pTypeDefinition == pTypeDefinition->File->Assembly->ParentDomain->CachedType___System_UIntPtr)
+	{
+		type->IsValueType = TRUE;
+	}
+	else if (AppDomain_IsStructure(pTypeDefinition->File->Assembly->ParentDomain, pTypeDefinition))
 	{
 		type->IsValueType = TRUE;
 		if (AppDomain_GetElementTypeFromIRType(pTypeDefinition->File->Assembly->ParentDomain, type) == (ElementType)-1)

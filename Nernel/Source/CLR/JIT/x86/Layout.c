@@ -63,7 +63,10 @@ uint32_t JIT_GetStackSizeOfType(IRType* pType)
 uint32_t JIT_GetSizeOfType(IRType* pType)
 {
 	if (pType->SizeCalculated) return pType->Size;
-	if (pType->IsValueType) pType->Size = JIT_GetStackSizeOfType(pType);
+	if (pType->IsValueType)
+	{
+		pType->Size = JIT_GetStackSizeOfType(pType);
+	}
 	else
 	{
 		uint32_t sizeOfType = 0;

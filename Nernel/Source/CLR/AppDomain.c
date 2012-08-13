@@ -709,6 +709,7 @@ IRType* AppDomain_GetIRTypeFromMetadataToken(AppDomain* pDomain, IRAssembly* pAs
 			TypeDefinition* typeDef = ((TypeReference*)token->Data)->ResolvedType;
 			if (AppDomain_IsStructure(pDomain, typeDef))
 			{
+				printf("Yep, %s\n", typeDef->Name);
 				type = IRAssembly_MakePointerType(pAssembly, typeDef->File->Assembly->Types[typeDef->TableIndex - 1]);
 			}
 			else
@@ -804,16 +805,24 @@ ElementType AppDomain_GetElementTypeFromIRType(AppDomain* pDomain, IRType* pType
 
 bool_t AppDomain_IsStructure(AppDomain* pDomain, TypeDefinition* pTypeDefinition)
 {
+	if (pTypeDefinition == pDomain->CachedType___System_Boolean) return FALSE;
+	if (pTypeDefinition == pDomain->CachedType___System_Byte) return FALSE;
+	if (pTypeDefinition == pDomain->CachedType___System_Char) return FALSE;
+	if (pTypeDefinition == pDomain->CachedType___System_Double) return FALSE;
+	if (pTypeDefinition == pDomain->CachedType___System_Int16) return FALSE;
+	if (pTypeDefinition == pDomain->CachedType___System_Int32) return FALSE;
+	if (pTypeDefinition == pDomain->CachedType___System_Int64) return FALSE;
+	if (pTypeDefinition == pDomain->CachedType___System_IntPtr) return FALSE;
+	if (pTypeDefinition == pDomain->CachedType___System_SByte) return FALSE;
+	if (pTypeDefinition == pDomain->CachedType___System_Single) return FALSE;
+	if (pTypeDefinition == pDomain->CachedType___System_UInt16) return FALSE;
+	if (pTypeDefinition == pDomain->CachedType___System_UInt32) return FALSE;
+	if (pTypeDefinition == pDomain->CachedType___System_UInt64) return FALSE;
+	if (pTypeDefinition == pDomain->CachedType___System_UIntPtr) return FALSE;
 	if (pTypeDefinition->TypeOfExtends == TypeDefRefOrSpecType_TypeDefinition)
 	{ 
-		if (pTypeDefinition->Extends.TypeDefinition == pDomain->CachedType___System_Enum) 
-		{ 
-			return TRUE;
-		}
-		if (pTypeDefinition->Extends.TypeDefinition == pDomain->CachedType___System_ValueType)
-		{
-			return TRUE;
-		}
+		if (pTypeDefinition->Extends.TypeDefinition == pDomain->CachedType___System_Enum) return TRUE;
+		if (pTypeDefinition->Extends.TypeDefinition == pDomain->CachedType___System_ValueType) return TRUE;
 		return FALSE;
 	}
 	if (pTypeDefinition->TypeOfExtends == TypeDefRefOrSpecType_TypeReference)
@@ -822,14 +831,8 @@ bool_t AppDomain_IsStructure(AppDomain* pDomain, TypeDefinition* pTypeDefinition
 		{
 			pTypeDefinition->Extends.TypeReference->ResolvedType = AppDomain_ResolveTypeReference(pDomain, pDomain->IRAssemblies[0]->ParentFile, pTypeDefinition->Extends.TypeReference);
 		}
-		if (pTypeDefinition->Extends.TypeReference->ResolvedType == pDomain->CachedType___System_Enum) 
-		{ 
-			return TRUE;
-		}
-		if (pTypeDefinition->Extends.TypeReference->ResolvedType == pDomain->CachedType___System_ValueType)
-		{
-			return TRUE;
-		}
+		if (pTypeDefinition->Extends.TypeReference->ResolvedType == pDomain->CachedType___System_Enum) return TRUE;
+		if (pTypeDefinition->Extends.TypeReference->ResolvedType == pDomain->CachedType___System_ValueType) return TRUE;
 		return FALSE;
 	}
 	return FALSE;
@@ -1033,7 +1036,6 @@ void AppDomain_ResolveMemberReference(AppDomain* pDomain, CLIFile* pFile, Member
 						pMemberReference->MethodSignatureCache = MethodSignature_Expand(pMemberReference->Signature, pFile);
 					}
 
-					printf("Name = %s\n", typeDef->MethodDefinitionList[i2].Name);
 					if (!strcmp(typeDef->MethodDefinitionList[i2].Name, pMemberReference->Name) &&
 						MethodSignature_Compare(pDomain, typeDef->File->Assembly, typeDef->MethodDefinitionList[i2].SignatureCache, pFile->Assembly, pMemberReference->MethodSignatureCache))
 					{

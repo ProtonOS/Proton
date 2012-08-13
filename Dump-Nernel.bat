@@ -1,0 +1,1 @@
+gdb --readnow --symbols="./build/boot/nernel.bin" --directory="./Nernel/" -eval-command="set confirm off" -eval-command="target remote :1234" -eval-command="break Mernel_EntrypointCompiled" -eval-command="continue" -eval-command="dump binary memory mem.bin 0 0x2000000" -eval-command="quit"

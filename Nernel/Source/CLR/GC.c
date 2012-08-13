@@ -54,20 +54,23 @@ GCHeap* GCHeap_Create(uint32_t pHeapSize, uint32_t pInitialPoolSize, bool_t pUse
 	}
 	if (pUseTreeAllocation)
 	{
+		uint32_t blockSize = pHeapSize;
 		uint32_t bitsRequired = 1;
-		pInitialPoolSize >>= 1;
+		blockSize >>= 1;
 		heap->AllocationTreeLevels = 1;
-		while (pInitialPoolSize >= 8)
+		while (blockSize >= 8)
 		{
 			bitsRequired <<= 1;
 			bitsRequired |= 1;
-			pInitialPoolSize >>= 1;
+			blockSize >>= 1;
 			++heap->AllocationTreeLevels;
 		}
 		uint32_t bytesRequired = (bitsRequired + (8 - (bitsRequired & 0x0F))) >> 3;
 		uint32_t dwordsRequired = bytesRequired >> 2;
+		if (bytesRequired & 0x03) ++dwordsRequired;
 		if (!dwordsRequired) dwordsRequired = 1;
 		heap->AllocationTree = (uint32_t*)calloc(1, sizeof(uint32_t) * dwordsRequired);
+		heap->AllocationTreeSize = dwordsRequired;
 	}
     heap->Size = pHeapSize;
     heap->Available = heap->Size;
@@ -111,33 +114,32 @@ void GCHeap_SetBitInTree(uint32_t* pAllocationTree, uint32_t pLevel, uint32_t pI
 
 int32_t GCHeap_FindAvailableInTree(uint32_t* pAllocationTree, uint32_t pLevel, uint32_t pMaxLevels, uint32_t pIndex, uint32_t pSize, uint32_t* pAllocatedSize)
 {
-	if (pLevel >= pMaxLevels) return -1;
-	uint32_t nextBlockSize = ((pMaxLevels - (pLevel + 1)) << 3);
+	uint32_t nextBlockSize = (1 << (pMaxLevels - pLevel - 1)) << 2;
 	int32_t result = -1;
 	if (!GCHeap_IsAllocatedInTree(pAllocationTree, pLevel, pIndex))
 	{
-		if (pSize <= nextBlockSize)
+		if ((pLevel + 1) < pMaxLevels && pSize <= nextBlockSize)
 		{
-			result = GCHeap_FindAvailableInTree(pAllocationTree, pLevel + 1, pMaxLevels, pIndex, pSize, pAllocatedSize);
+			result = GCHeap_FindAvailableInTree(pAllocationTree, pLevel + 1, pMaxLevels, pIndex << 1, pSize, pAllocatedSize);
 			if (result >= 0) return result;
 		}
 		else
 		{
-			*pAllocatedSize = ((pMaxLevels - pLevel) << 3);
-			return pIndex;
+			*pAllocatedSize = (1 << (pMaxLevels - pLevel - 1)) << 3;
+			return pIndex << (pMaxLevels - pLevel - 1);
 		}
 	}
 
 	if (!GCHeap_IsAllocatedInTree(pAllocationTree, pLevel, pIndex + 1))
 	{
-		if (pSize <= nextBlockSize)
+		if ((pLevel + 1) < pMaxLevels && pSize <= nextBlockSize)
 		{
-			result = GCHeap_FindAvailableInTree(pAllocationTree, pLevel + 1, pMaxLevels, pIndex + 1, pSize, pAllocatedSize);
+			result = GCHeap_FindAvailableInTree(pAllocationTree, pLevel + 1, pMaxLevels, (pIndex << 1) + 1, pSize, pAllocatedSize);
 		}
 		else
 		{
-			*pAllocatedSize = ((pMaxLevels - pLevel) << 3);
-			return pIndex;
+			*pAllocatedSize = (1 << (pMaxLevels - pLevel - 1)) << 3;
+			return (pIndex + 1) << (pMaxLevels - pLevel - 1);
 		}
 	}
 	return result;
@@ -150,6 +152,21 @@ void GCHeap_SetBitsInTree(uint32_t* pAllocationTree, uint32_t pLevel, uint32_t p
 		GCHeap_SetBitInTree(pAllocationTree, pLevel, pIndex + index, pAllocated);
 		if (pBlockCount > 1) GCHeap_SetBitsInTree(pAllocationTree, pLevel - 1, (pIndex + index) >> 1, pBlockCount >> 1, pAllocated);
 	}
+}
+
+void GCHeap_DumpTree(uint32_t* pAllocationTree, uint32_t pLevel, uint32_t pMaxLevels)
+{
+	uint32_t totalBlocks = (1 << pLevel);
+	printf("---------- %u Blocks of %u Bytes, Level %u/%u\n", (unsigned int)totalBlocks, (unsigned int)((1 << (pMaxLevels - pLevel - 1)) << 3), (unsigned int)pLevel, (unsigned int)pMaxLevels);
+	for (uint32_t blockIndex = 0; blockIndex < totalBlocks; ++blockIndex)
+	{
+		if (blockIndex && !(blockIndex % 64)) printf("\n");
+		if (GCHeap_IsAllocatedInTree(pAllocationTree, pLevel, blockIndex)) printf("1");
+		else printf("0");
+	}
+	printf("\n");
+	++pLevel;
+	if (pLevel < pMaxLevels) GCHeap_DumpTree(pAllocationTree, pLevel, pMaxLevels);
 }
 
 GCObject* GCHeap_Allocate(GCHeap*** pGCHeaps, uint32_t* pGCHeapCount, uint32_t pHeapSize, uint32_t pSize, bool_t pUseTreeAllocation)
@@ -165,7 +182,11 @@ GCObject* GCHeap_Allocate(GCHeap*** pGCHeaps, uint32_t* pGCHeapCount, uint32_t p
 			uint32_t allocatedSize = 0;
 			int32_t index = GCHeap_FindAvailableInTree(heap->AllocationTree, 0, heap->AllocationTreeLevels, 0, requiredSize, &allocatedSize);
 			if (index < 0) continue;
-			if (heap->AllocationTree) GCHeap_SetBitsInTree(heap->AllocationTree, heap->AllocationTreeLevels - 1, index, allocatedSize >> 3, TRUE);
+			if (heap->AllocationTree)
+			{
+				GCHeap_SetBitsInTree(heap->AllocationTree, heap->AllocationTreeLevels - 1, index, allocatedSize >> 3, TRUE);
+				//GCHeap_DumpTree(heap->AllocationTree, 0, heap->AllocationTreeLevels);
+			}
 			uint8_t* data = heap->Bottom + (index << 3);
 			if (heap->FreeObjectList)
 			{
@@ -198,7 +219,11 @@ GCObject* GCHeap_Allocate(GCHeap*** pGCHeaps, uint32_t* pGCHeapCount, uint32_t p
 
 		uint32_t allocatedSize = 0;
 		int32_t index = GCHeap_FindAvailableInTree(heap->AllocationTree, 0, heap->AllocationTreeLevels, 0, requiredSize, &allocatedSize);
-		if (heap->AllocationTree) GCHeap_SetBitsInTree(heap->AllocationTree, heap->AllocationTreeLevels - 1, index, allocatedSize >> 3, TRUE);
+		if (heap->AllocationTree)
+		{
+			GCHeap_SetBitsInTree(heap->AllocationTree, heap->AllocationTreeLevels - 1, index, allocatedSize >> 3, TRUE);
+			//GCHeap_DumpTree(heap->AllocationTree, 0, heap->AllocationTreeLevels);
+		}
 		uint8_t* data = heap->Bottom + (index << 3);
 		object = heap->FreeObjectList;
 		heap->FreeObjectList = heap->FreeObjectList->NextObject;
