@@ -13,9 +13,10 @@ typedef enum GCObjectFlags
 	GCObjectFlags_String = 1 << 0,
 	GCObjectFlags_Array = 1 << 1,
 
-	GCObjectFlags_Pinned = 1 << 5,
-	GCObjectFlags_Allocated = 1 << 6,
-	GCObjectFlags_Marked = 1 << 7,
+	GCObjectFlags_Pinned = 1 << 4,
+	GCObjectFlags_Allocated = 1 << 5,
+	GCObjectFlags_Marked = 1 << 6,
+	GCObjectFlags_Interned = 1 << 7
 } GCObjectFlags;
 
 #define GCHeap__SmallHeap_Size							(128 * 1024)
@@ -90,6 +91,7 @@ void GCHeap_Destroy(GCHeap* pGCHeap);
 void GC_AllocateObject(AppDomain* pDomain, IRType* pType, uint32_t pSize, void** pAllocatedObject);
 void GC_AllocateStringFromASCII(AppDomain* pDomain, int8_t* pString, uint32_t pLength, void** pAllocatedObject);
 void GC_AllocateStringFromUnicode(AppDomain* pDomain, uint16_t* pString, uint32_t pLength, void** pAllocatedObject);
+void GC_AllocateInternedStringFromUnicode(AppDomain* pDomain, uint16_t* pString, uint32_t pLength, void** pAllocatedObject);
 void GC_AllocateArray(AppDomain* pDomain, IRType* pArrayType, uint32_t pElementCount, void** pAllocatedObject);
 GCObject* GC_AllocatePinnedObject(GC* pGC, IRType* pType, uint32_t pSize);
 void GC_ApplyPressure(AppDomain* pDomain, uint32_t pBytes);

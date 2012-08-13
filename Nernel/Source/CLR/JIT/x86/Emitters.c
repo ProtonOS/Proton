@@ -2367,7 +2367,7 @@ char* JIT_Emit_Load_String(char* pCompiledCode, IRMethod* pMethod, IRInstruction
 	x86_mov_membase_imm(pCompiledCode, X86_ESP, gSizeOfPointerInBytes << 1, (uint32_t)pInstruction->Arg1, 4);
 	x86_mov_membase_imm(pCompiledCode, X86_ESP, gSizeOfPointerInBytes, (size_t)pInstruction->Arg2, gSizeOfPointerInBytes);
 	x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, DOMAIN_REG, gSizeOfPointerInBytes);
-	x86_call_code(pCompiledCode, GC_AllocateStringFromUnicode);
+	x86_call_code(pCompiledCode, GC_AllocateInternedStringFromUnicode);
 	x86_mov_reg_membase(pCompiledCode, DOMAIN_REG, X86_ESP, 0, gSizeOfPointerInBytes);
 	x86_adjust_stack(pCompiledCode, -((gSizeOfPointerInBytes * 3) + 4));
 	

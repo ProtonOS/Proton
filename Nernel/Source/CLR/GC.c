@@ -295,6 +295,28 @@ void GC_AllocateStringFromUnicode(AppDomain* pDomain, uint16_t* pString, uint32_
 	GC* gc = pDomain->GarbageCollector;
 	Atomic_AquireLock(&gc->Busy);
     GCObject* object = NULL;
+
+	if (size <= GCHeap__SmallHeap_Size - sizeof(GCObject*))
+		object = GCHeap_Allocate(&gc->SmallGeneration0Heaps, &gc->SmallGeneration0HeapCount, GCHeap__SmallHeap_Size, size, TRUE);
+	else if (size <= GCHeap__LargeHeap_Size - sizeof(GCObject*))
+		object = GCHeap_Allocate(&gc->LargeHeaps, &gc->LargeHeapCount, GCHeap__LargeHeap_Size, size, TRUE);
+	else object = GCHeap_Allocate(&gc->LargeHeaps, &gc->LargeHeapCount, size + sizeof(GCObject*), size, FALSE);
+	object->Type = gc->Domain->IRAssemblies[0]->Types[gc->Domain->CachedType___System_String->TableIndex - 1];
+	object->Flags |= GCObjectFlags_String;
+	object->String.Length = pLength;
+	memcpy(object->Data, (uint8_t*)pString, size);
+
+	*pAllocatedObject = object->Data;
+	Atomic_ReleaseLock(&gc->Busy);
+}
+
+void GC_AllocateInternedStringFromUnicode(AppDomain* pDomain, uint16_t* pString, uint32_t pLength, void** pAllocatedObject)
+{
+	uint32_t size = pLength << 1;
+	if (size >= 0x7FFFFFFF) Panic("GC_AllocateInternedStringFromUnicode Size >= 0x7FFFFFFF");
+	GC* gc = pDomain->GarbageCollector;
+	Atomic_AquireLock(&gc->Busy);
+    GCObject* object = NULL;
 	HASH_FIND(String.HashHandle, gc->StringHashTable, (uint8_t*)pString, size, object);
 	if (!object)
 	{
@@ -304,7 +326,7 @@ void GC_AllocateStringFromUnicode(AppDomain* pDomain, uint16_t* pString, uint32_
 			object = GCHeap_Allocate(&gc->LargeHeaps, &gc->LargeHeapCount, GCHeap__LargeHeap_Size, size, TRUE);
 		else object = GCHeap_Allocate(&gc->LargeHeaps, &gc->LargeHeapCount, size + sizeof(GCObject*), size, FALSE);
 		object->Type = gc->Domain->IRAssemblies[0]->Types[gc->Domain->CachedType___System_String->TableIndex - 1];
-		object->Flags |= GCObjectFlags_String;
+		object->Flags |= (GCObjectFlags_String | GCObjectFlags_Interned);
 		object->String.Length = pLength;
 		memcpy(object->Data, (uint8_t*)pString, size);
 		HASH_ADD(String.HashHandle, gc->StringHashTable, Data, size, object);
@@ -366,6 +388,10 @@ void GCHeap_Sweep(GCHeap** pGCHeaps, uint32_t pGCHeapCount, AppDomain* pDomain)
 				{
 					uint32_t index = (uint32_t)(((uint8_t*)object->Data - gSizeOfPointerInBytes) - heap->Bottom) >> 3;
 					GCHeap_SetBitsInTree(heap->AllocationTree, heap->AllocationTreeLevels - 1, index, object->AllocatedSize >> 3, FALSE);
+				}
+				if ((object->Flags & (GCObjectFlags_String | GCObjectFlags_Interned)) == (GCObjectFlags_String | GCObjectFlags_Interned))
+				{
+					HASH_DELETE(String.HashHandle, pDomain->GarbageCollector->StringHashTable, object);
 				}
 				if (object == heap->AllocatedObjectList) heap->AllocatedObjectList = object->NextObject;
 				else prevObject->NextObject = object->NextObject;
