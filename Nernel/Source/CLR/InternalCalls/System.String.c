@@ -3,14 +3,14 @@
 void System_String_Ctor_CharPointer(AppDomain* pAppDomain, void** pAllocatedObject, uint16_t* pCharPointer)
 {
 	uint32_t length = 0;
-	for (uint16_t* iterator = 0; *iterator; ++iterator, ++length);
+	for (uint16_t* iterator = pCharPointer; *iterator; ++iterator, ++length);
 	GC_AllocateStringFromUnicode(pAppDomain, pCharPointer, length, pAllocatedObject);
 }
 
 void System_String_Ctor_SBytePointer(AppDomain* pAppDomain, void** pAllocatedObject, int8_t* pSBytePointer)
 {
 	uint32_t length = 0;
-	for (int8_t* iterator = 0; *iterator; ++iterator, ++length);
+	for (int8_t* iterator = pSBytePointer; *iterator; ++iterator, ++length);
 	GC_AllocateStringFromASCII(pAppDomain, pSBytePointer, length, pAllocatedObject);
 }
 
@@ -33,3 +33,12 @@ void System_String_Ctor_CharArrayWithStartAndLength(AppDomain* pAppDomain, void*
 	GC_AllocateStringFromUnicode(pAppDomain, ((uint16_t*)pCharArray) + pStart, pLength, pAllocatedObject);
 }
 
+void System_String_Ctor_CharPointerWithStartAndLength(AppDomain* pAppDomain, void** pAllocatedObject, uint16_t* pCharPointer, int32_t pStart, int32_t pLength)
+{
+	GC_AllocateStringFromUnicode(pAppDomain, pCharPointer + pStart, pLength, pAllocatedObject);
+}
+
+void System_String_Ctor_SBytePointerWithStartAndLength(AppDomain* pAppDomain, void** pAllocatedObject, int8_t* pSBytePointer, int32_t pStart, int32_t pLength)
+{
+	GC_AllocateStringFromASCII(pAppDomain, pSBytePointer + pStart, pLength, pAllocatedObject);
+}

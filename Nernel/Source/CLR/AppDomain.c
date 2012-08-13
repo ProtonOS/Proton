@@ -994,8 +994,8 @@ void AppDomain_ResolveMemberReference(AppDomain* pDomain, CLIFile* pFile, Member
 				}
 				if (!pMemberReference->Resolved.MethodDefinition)
 				{
-					printf("Name = %s\n", pMemberReference->Name);
-					Panic("Failed to resolve member reference through type reference for method definition.");
+					printf("Name = %s.%s.%s\n", typeDef->Namespace, typeDef->Name, pMemberReference->Name);
+					Panic("Failed to resolve member reference through type definition for method definition.");
 				}
 			}
 			break;

@@ -1728,7 +1728,10 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				case SourceType_Local:
 				{
 					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->VariableType));
-					Define_Move_To_Destination(X86_EBP, -pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister2, TRUE, TRUE);
+					if (pSource->Data.LocalVariable.LocalVariableIndex != pDestination->Data.LocalVariable.LocalVariableIndex)
+					{
+						Define_Move_To_Destination(X86_EBP, -pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister2, TRUE, TRUE);
+					}
 					break;
 				}
 				// Local to Parameter (both aligned)
@@ -4215,10 +4218,10 @@ char* JIT_Emit_Shift(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pIns
 
 char* JIT_Emit_Convert_Unchecked(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
-	ElementType fromType = *(ElementType*)pInstruction->Arg1;
-	ElementType toType = *(ElementType*)pInstruction->Arg2;
+	ElementType fromType = (ElementType)(uint32_t)pInstruction->Arg1;
+	ElementType toType = (ElementType)(uint32_t)pInstruction->Arg2;
 	//bool_t IsDouble = TRUE;
- 	switch (fromType)
+	switch (fromType)
 	{
 		case ElementType_I:
 		case ElementType_U:
@@ -4252,7 +4255,9 @@ char* JIT_Emit_Convert_Unchecked(char* pCompiledCode, IRMethod* pMethod, IRInstr
 				case ElementType_I:
 				case ElementType_I4:
 				case ElementType_U:
-				case ElementType_U4: break;
+				case ElementType_U4:
+					pCompiledCode = JIT_Emit_Move(pCompiledCode, pMethod, &pInstruction->Source1, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					break;
 				case ElementType_I8:
 					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, X86_EAX, SECONDARY_REG, THIRD_REG, NULL);
 					x86_cdq(pCompiledCode);
