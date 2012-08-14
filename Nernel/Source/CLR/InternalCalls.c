@@ -1,5 +1,7 @@
 #include <CLR/InternalCalls.h>
+#include <CLR/InternalCalls/Mono.Interop.ComInteropProxy.h>
 #include <CLR/InternalCalls/Proton.IO.PortIO.h>
+#include <CLR/InternalCalls/System.ArgIterator.h>
 #include <CLR/InternalCalls/System.Buffer.h>
 #include <CLR/InternalCalls/System.Console.h>
 #include <CLR/InternalCalls/System.Runtime.CompilerServices.RuntimeHelpers.h>
@@ -20,29 +22,40 @@ void Mernel_Kernel_Write(AppDomain* pAppDomain, void* pString)
 
 const InternalCall InternalCallTable[] = 
 {
-	{	"Mernel",								"Kernel",				"Write",					SignatureElementType_Void,		1,	{ SignatureElementType_String }, &Mernel_Kernel_Write },
+	{	"Mernel",								"Kernel",				"Write",					SignatureElementType_Void,				1,	{ SignatureElementType_String }, &Mernel_Kernel_Write },
 
-	{	"Proton.IO",							"PortIO",				"InByte",					SignatureElementType_U1,		1,	{ SignatureElementType_U4 }, &Proton_IO_PortIO_InByte },
-	{	NULL,									NULL,					"InUShort",					SignatureElementType_U2,		1,	{ SignatureElementType_U4 }, &Proton_IO_PortIO_InUShort },
-	{	NULL,									NULL,					"InUInt",					SignatureElementType_U4,		1,	{ SignatureElementType_U4 }, &Proton_IO_PortIO_InUInt },
-	{	NULL,									NULL,					"OutByte",					SignatureElementType_Void,		2,	{ SignatureElementType_U4, SignatureElementType_U1 }, &Proton_IO_PortIO_OutByte },
-	{	NULL,									NULL,					"OutUShort",				SignatureElementType_Void,		2,	{ SignatureElementType_U4, SignatureElementType_U2 }, &Proton_IO_PortIO_OutUShort },
-	{	NULL,									NULL,					"OutUInt",					SignatureElementType_Void,		2,	{ SignatureElementType_U4, SignatureElementType_U4 }, &Proton_IO_PortIO_OutUInt },
 
-	{	"System",								"Buffer",				"ByteLengthInternal",		SignatureElementType_I4,		1,	{ SignatureElementType_Class }, &System_Buffer_ByteLengthInternal },
+	{	"Mono.Interop",							"ComInteropProxy",		"AddProxy",					SignatureElementType_Void,				2,	{ SignatureElementType_IPointer, SignatureElementType_Class }, &Mono_Interop_ComInteropProxy_AddProxy },
+	{	NULL,									NULL,					"FindProxy",				SignatureElementType_Class,				1,	{ SignatureElementType_IPointer }, &Mono_Interop_ComInteropProxy_FindProxy },
 
-	{	NULL,									"String",				".ctor",					SignatureElementType_Void,		1,	{ SignatureElementType_Pointer, SignatureElementType_Char }, &System_String_Ctor_CharPointer },
-	{	NULL,									NULL,					NULL,						SignatureElementType_Void,		1,	{ SignatureElementType_Pointer, SignatureElementType_I1 }, &System_String_Ctor_SBytePointer },
-	{	NULL,									NULL,					NULL,						SignatureElementType_Void,		1,	{ SignatureElementType_SingleDimensionArray, SignatureElementType_Char }, &System_String_Ctor_CharArray },
-	{	NULL,									NULL,					NULL,						SignatureElementType_Void,		2,	{ SignatureElementType_Char, SignatureElementType_I4 }, &System_String_Ctor_CharAndCount },
-	{	NULL,									NULL,					NULL,						SignatureElementType_Void,		3,	{ SignatureElementType_SingleDimensionArray, SignatureElementType_Char, SignatureElementType_I4, SignatureElementType_I4 }, &System_String_Ctor_CharArrayWithStartAndLength },
-	{	NULL,									NULL,					NULL,						SignatureElementType_Void,		3,	{ SignatureElementType_Pointer, SignatureElementType_Char, SignatureElementType_I4, SignatureElementType_I4 }, &System_String_Ctor_CharPointerWithStartAndLength },
-	{	NULL,									NULL,					NULL,						SignatureElementType_Void,		3,	{ SignatureElementType_Pointer, SignatureElementType_I1, SignatureElementType_I4, SignatureElementType_I4 }, &System_String_Ctor_SBytePointerWithStartAndLength },
 
-	{	"System.Runtime.CompilerServices",		"RuntimeHelpers",		"InitializeArray",			SignatureElementType_Void,		2,	{ SignatureElementType_Class, SignatureElementType_IPointer }, &System_Runtime_CompilerServices_RuntimeHelpers_InitializeArray },
-	{	NULL,									NULL,					"get_OffsetToStringData",	SignatureElementType_I4,		0,	{ }, &System_Runtime_CompilerServices_RuntimeHelpers_get_OffsetToStringData },
+	{	"Proton.IO",							"PortIO",				"InByte",					SignatureElementType_U1,				1,	{ SignatureElementType_U4 }, &Proton_IO_PortIO_InByte },
+	{	NULL,									NULL,					"InUShort",					SignatureElementType_U2,				1,	{ SignatureElementType_U4 }, &Proton_IO_PortIO_InUShort },
+	{	NULL,									NULL,					"InUInt",					SignatureElementType_U4,				1,	{ SignatureElementType_U4 }, &Proton_IO_PortIO_InUInt },
+	{	NULL,									NULL,					"OutByte",					SignatureElementType_Void,				2,	{ SignatureElementType_U4, SignatureElementType_U1 }, &Proton_IO_PortIO_OutByte },
+	{	NULL,									NULL,					"OutUShort",				SignatureElementType_Void,				2,	{ SignatureElementType_U4, SignatureElementType_U2 }, &Proton_IO_PortIO_OutUShort },
+	{	NULL,									NULL,					"OutUInt",					SignatureElementType_Void,				2,	{ SignatureElementType_U4, SignatureElementType_U4 }, &Proton_IO_PortIO_OutUInt },
 
-	{	NULL,									NULL,					NULL,						SignatureElementType_End,		0,	{ }, NULL }
+
+	{	"System",								"ArgIterator",			"Setup",					SignatureElementType_Void,				2,	{ SignatureElementType_IPointer, SignatureElementType_IPointer }, &System_ArgIterator_Setup },
+	{	NULL,									NULL,					"IntGetNextArg",			SignatureElementType_TypedByReference,	0,	{ }, &System_ArgIterator_IntGetNextArg },
+	{	NULL,									NULL,					NULL,						SignatureElementType_TypedByReference,	1,	{ SignatureElementType_IPointer }, &System_ArgIterator_IntGetNextArg_RuntimeTypeHandle },
+	{	NULL,									NULL,					"IntGetNextArgType",		SignatureElementType_IPointer,			0,	{ }, &System_ArgIterator_IntGetNextArgType },
+
+	{	NULL,									"Buffer",				"ByteLengthInternal",		SignatureElementType_I4,				1,	{ SignatureElementType_Class }, &System_Buffer_ByteLengthInternal },
+
+	{	NULL,									"String",				".ctor",					SignatureElementType_Void,				1,	{ SignatureElementType_Pointer, SignatureElementType_Char }, &System_String_Ctor_CharPointer },
+	{	NULL,									NULL,					NULL,						SignatureElementType_Void,				1,	{ SignatureElementType_Pointer, SignatureElementType_I1 }, &System_String_Ctor_SBytePointer },
+	{	NULL,									NULL,					NULL,						SignatureElementType_Void,				1,	{ SignatureElementType_SingleDimensionArray, SignatureElementType_Char }, &System_String_Ctor_CharArray },
+	{	NULL,									NULL,					NULL,						SignatureElementType_Void,				2,	{ SignatureElementType_Char, SignatureElementType_I4 }, &System_String_Ctor_CharAndCount },
+	{	NULL,									NULL,					NULL,						SignatureElementType_Void,				3,	{ SignatureElementType_SingleDimensionArray, SignatureElementType_Char, SignatureElementType_I4, SignatureElementType_I4 }, &System_String_Ctor_CharArrayWithStartAndLength },
+	{	NULL,									NULL,					NULL,						SignatureElementType_Void,				3,	{ SignatureElementType_Pointer, SignatureElementType_Char, SignatureElementType_I4, SignatureElementType_I4 }, &System_String_Ctor_CharPointerWithStartAndLength },
+	{	NULL,									NULL,					NULL,						SignatureElementType_Void,				3,	{ SignatureElementType_Pointer, SignatureElementType_I1, SignatureElementType_I4, SignatureElementType_I4 }, &System_String_Ctor_SBytePointerWithStartAndLength },
+
+	{	"System.Runtime.CompilerServices",		"RuntimeHelpers",		"InitializeArray",			SignatureElementType_Void,				2,	{ SignatureElementType_Class, SignatureElementType_IPointer }, &System_Runtime_CompilerServices_RuntimeHelpers_InitializeArray },
+	{	NULL,									NULL,					"get_OffsetToStringData",	SignatureElementType_I4,				0,	{ }, &System_Runtime_CompilerServices_RuntimeHelpers_get_OffsetToStringData },
+
+	{	NULL,									NULL,					NULL,						SignatureElementType_End,				0,	{ }, NULL }
 };
 
 void* ILDecomposition_ResolveInternalCall(MethodDefinition* pMethodDefinition, CLIFile* pFile)
@@ -86,6 +99,7 @@ void* ILDecomposition_ResolveInternalCall(MethodDefinition* pMethodDefinition, C
 			}
 			bool_t sigMatch = TRUE;
 			if ((ic->ReturnType == SignatureElementType_Void && sig->ReturnType->Void) ||
+				(ic->ReturnType == SignatureElementType_TypedByReference && sig->ReturnType->TypedByReference) ||
 				sig->ReturnType->Type->ElementType == ic->ReturnType)
 			{
 				for (uint32_t arg = 0, param = 0; param < ic->ParameterCount; arg++, param++)

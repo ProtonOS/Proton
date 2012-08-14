@@ -14,6 +14,7 @@ typedef struct _IRInstruction IRInstruction;
 typedef struct _IRPointerType IRPointerType;
 typedef struct _IRGenericType IRGenericType;
 typedef struct _IRGenericMethod IRGenericMethod;
+typedef struct _TypedReference TypedReference;
 
 #include <uthash.h>
 #include <CLR/AppDomain.h>
@@ -426,3 +427,10 @@ struct _IRInstruction
 IRInstruction* IRInstruction_Create(uint32_t pILLocation, IROpcode pOpcode);
 IRInstruction* IRInstruction_Copy(IRInstruction* pInstruction);
 void IRInstruction_Destroy(IRInstruction* pInstruction);
+
+struct _TypedReference
+{
+	uint32_t Type;
+	void* Value;
+	IRType* Klass;
+};
