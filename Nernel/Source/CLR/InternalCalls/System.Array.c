@@ -34,6 +34,25 @@ int32_t System_Array_GetLength(AppDomain* pAppDomain, void* pArray, uint32_t pDi
 	return object->Array.Length;
 }
 
+int32_t System_Array_GetLowerBound(AppDomain* pAppDomain, void* pArray, uint32_t pDimension)
+{
+	if (pDimension != 0) Panic("System_Array_GetLowerBound Multidimension Arrays not yet supported");
+	// This should NOT be changed to an intrinsic, as this must support
+	// multidimensional arrays later, but is also required for single
+	// dimension arrays to work correctly
+	return 0;
+}
+
+void* System_Array_GetValueImpl(AppDomain* pAppDomain, void* pArray, uint32_t pIndex)
+{
+	GCObject* arrayObject = *(GCObject**)((size_t)pArray - sizeof(GCObject*));
+	IRType* elementType = arrayObject->Array.ElementType;
+	if (elementType->IsReferenceType) return *(size_t**)((uint8_t*)pArray + (sizeof(size_t*) * pIndex));
+	// TODO: Box value types into object, but might as well get register allocators in first
+	GCObject* object = NULL;
+	return object;
+}
+
 void System_Array_ClearInternal(AppDomain* pAppDomain, void* pArray, uint32_t pIndex, uint32_t pCount)
 {
 	GCObject* object = *(GCObject**)((size_t)pArray - sizeof(GCObject*));
