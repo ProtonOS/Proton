@@ -54,9 +54,8 @@ void System_Array_GetValueImpl(AppDomain* pAppDomain, void* pArray, uint32_t pIn
 	}
 	uint32_t sizeOfElement = elementType->Size;
 	GC_AllocateObject(pAppDomain, elementType, sizeOfElement, pReturnObjectDestination);
-	GCObject* object = *(GCObject**)((size_t)*pReturnObjectDestination - sizeof(GCObject*));
 	Thread_EnterCriticalRegion();
-	memcpy(object->Data, (uint8_t*)pArray + (sizeOfElement * pIndex), sizeOfElement);
+	memcpy(*pReturnObjectDestination, (uint8_t*)pArray + (sizeOfElement * pIndex), sizeOfElement);
 	Thread_LeaveCriticalRegion();
 }
 
@@ -85,5 +84,16 @@ void System_Array_ClearInternal(AppDomain* pAppDomain, void* pArray, uint32_t pI
 	// Same reason for this as FastCopy, see comments above
 	Thread_EnterCriticalRegion();
 	memset(start, 0x00, sizeToClear);
+	Thread_LeaveCriticalRegion();
+}
+
+void System_Array_Clone(AppDomain* pAppDomain, void* pArray, void** pReturnObjectDestination)
+{
+	GCObject* arrayObject = *(GCObject**)((size_t)pArray - sizeof(GCObject*));
+	uint32_t sizeToCopy = arrayObject->Array.ElementType->Size * arrayObject->Array.Length;
+
+	GC_AllocateArray(pAppDomain, arrayObject->Type, arrayObject->Array.Length, pReturnObjectDestination);
+	Thread_EnterCriticalRegion();
+	memcpy(*pReturnObjectDestination, pArray, sizeToCopy);
 	Thread_LeaveCriticalRegion();
 }

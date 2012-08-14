@@ -9,3 +9,4 @@ int32_t System_Array_GetLowerBound(AppDomain* pAppDomain, void* pArray, uint32_t
 void System_Array_GetValueImpl(AppDomain* pAppDomain, void* pArray, uint32_t pIndex, void** pReturnObjectDestination);
 void System_Array_SetValueImpl(AppDomain* pAppDomain, void* pArray, void* pValue, uint32_t pIndex);
 void System_Array_ClearInternal(AppDomain* pAppDomain, void* pArray, uint32_t pIndex, uint32_t pCount);
+void System_Array_Clone(AppDomain* pAppDomain, void* pArray, void** pReturnObjectDestination);
