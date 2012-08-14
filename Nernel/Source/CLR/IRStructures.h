@@ -376,12 +376,14 @@ typedef union SourceData
 		IRType* ElementType;
 		SourceTypeData* ArraySource;
 		SourceTypeData* IndexSource;
+		bool_t NoChecksRequired;
 	} ArrayElement;
 	struct ArrayElementAddress
 	{
 		IRType* ElementType;
 		SourceTypeData* ArraySource;
 		SourceTypeData* IndexSource;
+		bool_t NoChecksRequired;
 	} ArrayElementAddress;
 	struct ArrayLength
 	{
