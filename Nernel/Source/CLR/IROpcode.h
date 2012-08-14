@@ -1364,6 +1364,27 @@ typedef enum IROpcode
 
 	 */
 	IROpcode_Call_Internal,
+    /*
+        Substitutes an internal call with an intrinsic version based on
+		the architecture.
+
+		Stack:
+			..., arg0, arg1, ..., argN -> ..., value (present for return values)
+
+		Arg1: IntrinsicCallType
+			The internal call to substitute.
+
+        Arg2:
+            N/A
+
+        Arg3:
+			N/A
+
+        Arg4:
+			N/A
+
+     */
+    IROpcode_Call_Intrinsic,
 	/*
 		Description:
 			Performs a conditional branch to the specified target based on

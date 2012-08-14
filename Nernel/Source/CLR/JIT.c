@@ -128,6 +128,7 @@ void JIT_CompileMethod(IRMethod* pMethod)
 				EMITTER(Call_Constrained);
 				EMITTER(Call_Absolute);
 				EMITTER(Call_Internal);
+				EMITTER(Call_Intrinsic);
 				EMITTER(Branch);
 				EMITTER(Load_Function);
 				EMITTER(Load_VirtualFunction);

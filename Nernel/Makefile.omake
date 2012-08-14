@@ -87,6 +87,7 @@
 	Source/CLR/Optimizations/LinearizeStack.c
 	Source/CLR/Optimizations/Peephole_PreSSA.c
 	Source/CLR/Optimizations/SSA.c
+	Source/CLR/Optimizations/x86/IntrinsicSubstitution.c
 	Source/System/APIC.c
 	Source/System/Console.c
 	Source/System/ConsoleLogger.c

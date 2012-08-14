@@ -33,6 +33,7 @@
     <ClCompile Include="Source\CLR\Optimizations\Peephole_PreSSA.c" />
     <ClCompile Include="Source\CLR\Optimizations\SSA.c" />
     <ClCompile Include="Source\CLR\Optimizations\LinearizeStack.c" />
+    <ClCompile Include="Source\CLR\Optimizations\x86\IntrinsicSubstitution.c" />
     <ClCompile Include="Source\CLR\SyntheticStack.c" />
     <ClCompile Include="Source\CLR\JIT.c" />
     <ClCompile Include="Source\System\APIC.c" />
@@ -93,6 +94,7 @@
     <ClInclude Include="Source\CLR\Optimizations\Peephole_PreSSA.h" />
     <ClInclude Include="Source\CLR\Optimizations\SSA.h" />
     <ClInclude Include="Source\CLR\Optimizations\LinearizeStack.h" />
+    <ClInclude Include="Source\CLR\Optimizations\IntrinsicSubstitution.h" />
     <ClInclude Include="Source\CLR\SyntheticStack.h" />
     <ClInclude Include="Source\Inline.h" />
     <ClInclude Include="Source\System\APIC.h" />

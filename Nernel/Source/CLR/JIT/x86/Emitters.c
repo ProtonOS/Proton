@@ -2,6 +2,7 @@
 #include <CLR/JIT.h>
 #include <CLR/JIT/x86/Layout.h>
 #include <CLR/JIT/x86/x86-codegen.h>
+#include <CLR/Optimizations/IntrinsicSubstitution.h>
 
 #define PRIMARY_REG X86_EAX
 #define SECONDARY_REG X86_EBX
@@ -5407,3 +5408,17 @@ char* JIT_Emit_Call_Internal(char* pCompiledCode, IRMethod* pMethod, IRInstructi
 	return pCompiledCode;
 }
 
+char* JIT_Emit_Call_Intrinsic(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
+{
+	IntrinsicCallType callType = (IntrinsicCallType)(uint32_t)pInstruction->Arg1;
+	switch (callType)
+	{
+		default:
+		{
+			printf("Unimplemented IntrinsicCallType: %u\n", (unsigned int)callType);
+			Panic("Unimplemented IntrinsicCallType!\n");
+			break;
+		}
+	}
+	return pCompiledCode;
+}

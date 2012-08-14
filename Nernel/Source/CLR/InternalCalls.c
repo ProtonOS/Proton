@@ -20,28 +20,29 @@ void Mernel_Kernel_Write(AppDomain* pAppDomain, void* pString)
 
 const InternalCall InternalCallTable[] = 
 {
-	{	"Mernel",							"Kernel",			"Write",				SignatureElementType_Void,		1,	{ SignatureElementType_String }, &Mernel_Kernel_Write },
+	{	"Mernel",								"Kernel",				"Write",					SignatureElementType_Void,		1,	{ SignatureElementType_String }, &Mernel_Kernel_Write },
 
-	{	"Proton.IO",						"PortIO",			"InByte",				SignatureElementType_U1,		1,	{ SignatureElementType_U4 }, &Proton_IO_PortIO_InByte },
-	{	NULL,								NULL,				"InUShort",				SignatureElementType_U2,		1,	{ SignatureElementType_U4 }, &Proton_IO_PortIO_InUShort },
-	{	NULL,								NULL,				"InUInt",				SignatureElementType_U4,		1,	{ SignatureElementType_U4 }, &Proton_IO_PortIO_InUInt },
-	{	NULL,								NULL,				"OutByte",				SignatureElementType_Void,		2,	{ SignatureElementType_U4, SignatureElementType_U1 }, &Proton_IO_PortIO_OutByte },
-	{	NULL,								NULL,				"OutUShort",			SignatureElementType_Void,		2,	{ SignatureElementType_U4, SignatureElementType_U2 }, &Proton_IO_PortIO_OutUShort },
-	{	NULL,								NULL,				"OutUInt",				SignatureElementType_Void,		2,	{ SignatureElementType_U4, SignatureElementType_U4 }, &Proton_IO_PortIO_OutUInt },
+	{	"Proton.IO",							"PortIO",				"InByte",					SignatureElementType_U1,		1,	{ SignatureElementType_U4 }, &Proton_IO_PortIO_InByte },
+	{	NULL,									NULL,					"InUShort",					SignatureElementType_U2,		1,	{ SignatureElementType_U4 }, &Proton_IO_PortIO_InUShort },
+	{	NULL,									NULL,					"InUInt",					SignatureElementType_U4,		1,	{ SignatureElementType_U4 }, &Proton_IO_PortIO_InUInt },
+	{	NULL,									NULL,					"OutByte",					SignatureElementType_Void,		2,	{ SignatureElementType_U4, SignatureElementType_U1 }, &Proton_IO_PortIO_OutByte },
+	{	NULL,									NULL,					"OutUShort",				SignatureElementType_Void,		2,	{ SignatureElementType_U4, SignatureElementType_U2 }, &Proton_IO_PortIO_OutUShort },
+	{	NULL,									NULL,					"OutUInt",					SignatureElementType_Void,		2,	{ SignatureElementType_U4, SignatureElementType_U4 }, &Proton_IO_PortIO_OutUInt },
 
-	{	"System",							"Buffer",			"ByteLengthInternal",	SignatureElementType_I4,		1,	{ SignatureElementType_Class }, &System_Buffer_ByteLengthInternal },
+	{	"System",								"Buffer",				"ByteLengthInternal",		SignatureElementType_I4,		1,	{ SignatureElementType_Class }, &System_Buffer_ByteLengthInternal },
 
-	{	NULL,								"String",			".ctor",				SignatureElementType_Void,		1,	{ SignatureElementType_Pointer, SignatureElementType_Char }, &System_String_Ctor_CharPointer },
-	{	NULL,								NULL,				NULL,					SignatureElementType_Void,		1,	{ SignatureElementType_Pointer, SignatureElementType_I1 }, &System_String_Ctor_SBytePointer },
-	{	NULL,								NULL,				NULL,					SignatureElementType_Void,		1,	{ SignatureElementType_SingleDimensionArray, SignatureElementType_Char }, &System_String_Ctor_CharArray },
-	{	NULL,								NULL,				NULL,					SignatureElementType_Void,		2,	{ SignatureElementType_Char, SignatureElementType_I4 }, &System_String_Ctor_CharAndCount },
-	{	NULL,								NULL,				NULL,					SignatureElementType_Void,		3,	{ SignatureElementType_SingleDimensionArray, SignatureElementType_Char, SignatureElementType_I4, SignatureElementType_I4 }, &System_String_Ctor_CharArrayWithStartAndLength },
-	{	NULL,								NULL,				NULL,					SignatureElementType_Void,		3,	{ SignatureElementType_Pointer, SignatureElementType_Char, SignatureElementType_I4, SignatureElementType_I4 }, &System_String_Ctor_CharPointerWithStartAndLength },
-	{	NULL,								NULL,				NULL,					SignatureElementType_Void,		3,	{ SignatureElementType_Pointer, SignatureElementType_I1, SignatureElementType_I4, SignatureElementType_I4 }, &System_String_Ctor_SBytePointerWithStartAndLength },
+	{	NULL,									"String",				".ctor",					SignatureElementType_Void,		1,	{ SignatureElementType_Pointer, SignatureElementType_Char }, &System_String_Ctor_CharPointer },
+	{	NULL,									NULL,					NULL,						SignatureElementType_Void,		1,	{ SignatureElementType_Pointer, SignatureElementType_I1 }, &System_String_Ctor_SBytePointer },
+	{	NULL,									NULL,					NULL,						SignatureElementType_Void,		1,	{ SignatureElementType_SingleDimensionArray, SignatureElementType_Char }, &System_String_Ctor_CharArray },
+	{	NULL,									NULL,					NULL,						SignatureElementType_Void,		2,	{ SignatureElementType_Char, SignatureElementType_I4 }, &System_String_Ctor_CharAndCount },
+	{	NULL,									NULL,					NULL,						SignatureElementType_Void,		3,	{ SignatureElementType_SingleDimensionArray, SignatureElementType_Char, SignatureElementType_I4, SignatureElementType_I4 }, &System_String_Ctor_CharArrayWithStartAndLength },
+	{	NULL,									NULL,					NULL,						SignatureElementType_Void,		3,	{ SignatureElementType_Pointer, SignatureElementType_Char, SignatureElementType_I4, SignatureElementType_I4 }, &System_String_Ctor_CharPointerWithStartAndLength },
+	{	NULL,									NULL,					NULL,						SignatureElementType_Void,		3,	{ SignatureElementType_Pointer, SignatureElementType_I1, SignatureElementType_I4, SignatureElementType_I4 }, &System_String_Ctor_SBytePointerWithStartAndLength },
 
-	{	"System.Runtime.CompilerServices",	"RuntimeHelpers",	"InitializeArray",		SignatureElementType_Void,		2,	{ SignatureElementType_Class, SignatureElementType_IPointer }, &System_Runtime_CompilerServices_RuntimeHelpers_InitializeArray },
+	{	"System.Runtime.CompilerServices",		"RuntimeHelpers",		"InitializeArray",			SignatureElementType_Void,		2,	{ SignatureElementType_Class, SignatureElementType_IPointer }, &System_Runtime_CompilerServices_RuntimeHelpers_InitializeArray },
+	{	NULL,									NULL,					"get_OffsetToStringData",	SignatureElementType_I4,		0,	{ }, &System_Runtime_CompilerServices_RuntimeHelpers_get_OffsetToStringData },
 
-	{	NULL,								NULL,				NULL,					SignatureElementType_End,		0,	{ }, NULL }
+	{	NULL,									NULL,					NULL,						SignatureElementType_End,		0,	{ }, NULL }
 };
 
 void* ILDecomposition_ResolveInternalCall(MethodDefinition* pMethodDefinition, CLIFile* pFile)

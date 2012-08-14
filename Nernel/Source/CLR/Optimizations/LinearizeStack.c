@@ -1020,8 +1020,9 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 			// These op-codes shouldn't
 			// exist yet, because they
 			// are only created in this
-			// function.
+			// function or later.
 			case IROpcode_Move:
+            case IROpcode_Call_Intrinsic:
 				Panic("This shouldn't exist yet!");
 				break;
 
