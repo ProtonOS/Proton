@@ -269,16 +269,21 @@ void GC_AllocateStringFromASCII(AppDomain* pDomain, int8_t* pString, uint32_t pL
 	for (uint32_t index = 0; index < pLength; ++index) unicodeString[index << 1] = pString[index];
 	Atomic_AquireLock(&gc->Busy);
     GCObject* object = NULL;
-
-	if (size <= GCHeap__SmallHeap_Size - sizeof(GCObject*))
-		object = GCHeap_Allocate(&gc->SmallGeneration0Heaps, &gc->SmallGeneration0HeapCount, GCHeap__SmallHeap_Size, size, TRUE);
-	else if (size <= GCHeap__LargeHeap_Size - sizeof(GCObject*))
-		object = GCHeap_Allocate(&gc->LargeHeaps, &gc->LargeHeapCount, GCHeap__LargeHeap_Size, size, TRUE);
-	else object = GCHeap_Allocate(&gc->LargeHeaps, &gc->LargeHeapCount, size + sizeof(GCObject*), size, FALSE);
-	object->Type = gc->Domain->IRAssemblies[0]->Types[gc->Domain->CachedType___System_String->TableIndex - 1];
-	object->Flags |= GCObjectFlags_String;
-	*(uint32_t*)object->Data = pLength;
-	memcpy((uint8_t*)object->Data + 4, unicodeString, size - 4);
+	// Here we will check if there is already an interned string matching, and use it if so,
+	// but we don't add this string to the hash if it's not found
+	HASH_FIND(String.HashHandle, gc->StringHashTable, (uint8_t*)pString, size - 4, object);
+	if (!object)
+	{
+		if (size <= GCHeap__SmallHeap_Size - sizeof(GCObject*))
+			object = GCHeap_Allocate(&gc->SmallGeneration0Heaps, &gc->SmallGeneration0HeapCount, GCHeap__SmallHeap_Size, size, TRUE);
+		else if (size <= GCHeap__LargeHeap_Size - sizeof(GCObject*))
+			object = GCHeap_Allocate(&gc->LargeHeaps, &gc->LargeHeapCount, GCHeap__LargeHeap_Size, size, TRUE);
+		else object = GCHeap_Allocate(&gc->LargeHeaps, &gc->LargeHeapCount, size + sizeof(GCObject*), size, FALSE);
+		object->Type = gc->Domain->IRAssemblies[0]->Types[gc->Domain->CachedType___System_String->TableIndex - 1];
+		object->Flags |= GCObjectFlags_String;
+		*(uint32_t*)object->Data = pLength;
+		memcpy((uint8_t*)object->Data + 4, unicodeString, size - 4);
+	}
 
 	*pAllocatedObject = object->Data;
 	Atomic_ReleaseLock(&gc->Busy);
@@ -292,16 +297,21 @@ void GC_AllocateStringFromUnicode(AppDomain* pDomain, uint16_t* pString, uint32_
 	GC* gc = pDomain->GarbageCollector;
 	Atomic_AquireLock(&gc->Busy);
     GCObject* object = NULL;
-
-	if (size <= GCHeap__SmallHeap_Size - sizeof(GCObject*))
-		object = GCHeap_Allocate(&gc->SmallGeneration0Heaps, &gc->SmallGeneration0HeapCount, GCHeap__SmallHeap_Size, size, TRUE);
-	else if (size <= GCHeap__LargeHeap_Size - sizeof(GCObject*))
-		object = GCHeap_Allocate(&gc->LargeHeaps, &gc->LargeHeapCount, GCHeap__LargeHeap_Size, size, TRUE);
-	else object = GCHeap_Allocate(&gc->LargeHeaps, &gc->LargeHeapCount, size + sizeof(GCObject*), size, FALSE);
-	object->Type = gc->Domain->IRAssemblies[0]->Types[gc->Domain->CachedType___System_String->TableIndex - 1];
-	object->Flags |= GCObjectFlags_String;
-	*(uint32_t*)object->Data = pLength;
-	memcpy((uint8_t*)object->Data + 4, (uint8_t*)pString, size - 4);
+	// Here we will check if there is already an interned string matching, and use it if so,
+	// but we don't add this string to the hash if it's not found
+	HASH_FIND(String.HashHandle, gc->StringHashTable, (uint8_t*)pString, size - 4, object);
+	if (!object)
+	{
+		if (size <= GCHeap__SmallHeap_Size - sizeof(GCObject*))
+			object = GCHeap_Allocate(&gc->SmallGeneration0Heaps, &gc->SmallGeneration0HeapCount, GCHeap__SmallHeap_Size, size, TRUE);
+		else if (size <= GCHeap__LargeHeap_Size - sizeof(GCObject*))
+			object = GCHeap_Allocate(&gc->LargeHeaps, &gc->LargeHeapCount, GCHeap__LargeHeap_Size, size, TRUE);
+		else object = GCHeap_Allocate(&gc->LargeHeaps, &gc->LargeHeapCount, size + sizeof(GCObject*), size, FALSE);
+		object->Type = gc->Domain->IRAssemblies[0]->Types[gc->Domain->CachedType___System_String->TableIndex - 1];
+		object->Flags |= GCObjectFlags_String;
+		*(uint32_t*)object->Data = pLength;
+		memcpy((uint8_t*)object->Data + 4, (uint8_t*)pString, size - 4);
+	}
 
 	*pAllocatedObject = object->Data;
 	Atomic_ReleaseLock(&gc->Busy);
@@ -339,7 +349,7 @@ void GC_AllocateEmptyStringFromLength(AppDomain* pDomain, uint32_t pLength, void
 	GC* gc = pDomain->GarbageCollector;
 	Atomic_AquireLock(&gc->Busy);
     GCObject* object = NULL;
-
+	// Here we don't even check the interned strings because we have no value to check
 	if (size <= GCHeap__SmallHeap_Size - sizeof(GCObject*))
 		object = GCHeap_Allocate(&gc->SmallGeneration0Heaps, &gc->SmallGeneration0HeapCount, GCHeap__SmallHeap_Size, size, TRUE);
 	else if (size <= GCHeap__LargeHeap_Size - sizeof(GCObject*))
@@ -390,11 +400,11 @@ GCObject* GC_AllocatePinnedObject(GC* pGC, IRType* pType, uint32_t pSize)
 	return object;
 }
 
-void GCHeap_Sweep(GCHeap** pGCHeaps, uint32_t pGCHeapCount, AppDomain* pDomain)
+void GCHeap_Sweep(GCHeap*** pGCHeaps, uint32_t* pGCHeapCount, AppDomain* pDomain)
 {
-	for (uint32_t heapIndex = 0; heapIndex < pGCHeapCount; ++heapIndex)
+	for (uint32_t heapIndex = 0; heapIndex < *pGCHeapCount; ++heapIndex)
 	{
-		GCHeap* heap = pGCHeaps[heapIndex];
+		GCHeap* heap = (*pGCHeaps)[heapIndex];
 		for (GCObject* object = heap->AllocatedObjectList, *nextObject = NULL, *prevObject = NULL; object; object = nextObject)
 		{
 			nextObject = object;
@@ -419,6 +429,23 @@ void GCHeap_Sweep(GCHeap** pGCHeaps, uint32_t pGCHeapCount, AppDomain* pDomain)
 			else prevObject = object;
 			object->Flags &= ~GCObjectFlags_Marked;
 		}
+	}
+	// Now we will delete any single large object heaps that no longer have an allocated object
+	// These would be the custom large heaps that contain only one object, and no allocation tree
+	for (uint32_t heapIndex = 0; heapIndex < *pGCHeapCount; )
+	{
+		GCHeap* heap = (*pGCHeaps)[heapIndex];
+		if (!heap->AllocationTree && !heap->AllocatedObjectList)
+		{
+			GCHeap_Destroy(heap);
+			if (heapIndex + 1 < *pGCHeapCount)
+			{
+				memcpy((void*)((*pGCHeaps) + heapIndex), (void*)((*pGCHeaps) + (heapIndex + 1)), sizeof(GCHeap*) * (*pGCHeapCount - (heapIndex + 1)));
+			}
+			*pGCHeapCount = *pGCHeapCount - 1;
+			*pGCHeaps = realloc(*pGCHeaps, sizeof(GCHeap*) * (*pGCHeapCount));
+		}
+		else ++heapIndex;
 	}
 }
 
@@ -647,10 +674,10 @@ void GC_MarkAndSweep(AppDomain* pDomain)
 
 	// At this point we should have a complete marked object pool, anything
 	// that is not marked is no longer alive and can have finalizers called
-	GCHeap_Sweep(pDomain->GarbageCollector->SmallGeneration2Heaps, pDomain->GarbageCollector->SmallGeneration2HeapCount, pDomain);
-	GCHeap_Sweep(pDomain->GarbageCollector->SmallGeneration1Heaps, pDomain->GarbageCollector->SmallGeneration1HeapCount, pDomain);
-	GCHeap_Sweep(pDomain->GarbageCollector->SmallGeneration0Heaps, pDomain->GarbageCollector->SmallGeneration0HeapCount, pDomain);
-	GCHeap_Sweep(pDomain->GarbageCollector->LargeHeaps, pDomain->GarbageCollector->LargeHeapCount, pDomain);
+	GCHeap_Sweep(&pDomain->GarbageCollector->SmallGeneration2Heaps, &pDomain->GarbageCollector->SmallGeneration2HeapCount, pDomain);
+	GCHeap_Sweep(&pDomain->GarbageCollector->SmallGeneration1Heaps, &pDomain->GarbageCollector->SmallGeneration1HeapCount, pDomain);
+	GCHeap_Sweep(&pDomain->GarbageCollector->SmallGeneration0Heaps, &pDomain->GarbageCollector->SmallGeneration0HeapCount, pDomain);
+	GCHeap_Sweep(&pDomain->GarbageCollector->LargeHeaps, &pDomain->GarbageCollector->LargeHeapCount, pDomain);
 
 	// Everything that was no longer alive should have had it's finalizer called
 	// if it had one, and is now disposed, and all objects have been unmarked, so
