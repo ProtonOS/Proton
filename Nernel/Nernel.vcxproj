@@ -20,6 +20,7 @@
     <ClCompile Include="Source\CLR\InternalCalls\Mono.Interop.ComInteropProxy.c" />
     <ClCompile Include="Source\CLR\InternalCalls\Proton.IO.PortIO.c" />
     <ClCompile Include="Source\CLR\InternalCalls\System.ArgIterator.c" />
+    <ClCompile Include="Source\CLR\InternalCalls\System.Array.c" />
     <ClCompile Include="Source\CLR\InternalCalls\System.Buffer.c" />
     <ClCompile Include="Source\CLR\InternalCalls\System.Console.c" />
     <ClCompile Include="Source\CLR\InternalCalls\System.Runtime.CompilerServices.RuntimeHelpers.c" />
@@ -80,6 +81,7 @@
     <ClInclude Include="Source\CLR\InternalCalls\Mono.Interop.ComInteropProxy.h" />
     <ClInclude Include="Source\CLR\InternalCalls\Proton.IO.PortIO.h" />
     <ClInclude Include="Source\CLR\InternalCalls\System.ArgIterator.h" />
+    <ClInclude Include="Source\CLR\InternalCalls\System.Array.h" />
     <ClInclude Include="Source\CLR\InternalCalls\System.Buffer.h" />
     <ClInclude Include="Source\CLR\InternalCalls\System.Console.h" />
     <ClInclude Include="Source\CLR\InternalCalls\System.Runtime.CompilerServices.RuntimeHelpers.h" />

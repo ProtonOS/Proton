@@ -2,6 +2,7 @@
 #include <CLR/InternalCalls/Mono.Interop.ComInteropProxy.h>
 #include <CLR/InternalCalls/Proton.IO.PortIO.h>
 #include <CLR/InternalCalls/System.ArgIterator.h>
+#include <CLR/InternalCalls/System.Array.h>
 #include <CLR/InternalCalls/System.Buffer.h>
 #include <CLR/InternalCalls/System.Console.h>
 #include <CLR/InternalCalls/System.Runtime.CompilerServices.RuntimeHelpers.h>
@@ -41,6 +42,9 @@ const InternalCall InternalCallTable[] =
 	{	NULL,									NULL,					"IntGetNextArg",			SignatureElementType_TypedByReference,	0,	{ }, &System_ArgIterator_IntGetNextArg },
 	{	NULL,									NULL,					NULL,						SignatureElementType_TypedByReference,	1,	{ SignatureElementType_IPointer }, &System_ArgIterator_IntGetNextArg_RuntimeTypeHandle },
 	{	NULL,									NULL,					"IntGetNextArgType",		SignatureElementType_IPointer,			0,	{ }, &System_ArgIterator_IntGetNextArgType },
+
+	{	NULL,									"Array",				"FastCopy",					SignatureElementType_Boolean,			5,	{ SignatureElementType_Class, SignatureElementType_I4, SignatureElementType_Class, SignatureElementType_I4, SignatureElementType_I4 }, &System_Array_FastCopy },
+	{	NULL,									NULL,					"ClearInternal",			SignatureElementType_Void,				3,	{ SignatureElementType_Class, SignatureElementType_I4, SignatureElementType_I4 }, &System_Array_ClearInternal },
 
 	{	NULL,									"Buffer",				"ByteLengthInternal",		SignatureElementType_I4,				1,	{ SignatureElementType_Class }, &System_Buffer_ByteLengthInternal },
 

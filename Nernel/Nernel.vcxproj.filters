@@ -150,6 +150,9 @@
     <ClCompile Include="Source\CLR\InternalCalls\System.ArgIterator.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\CLR\InternalCalls\System.Array.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\System\Multiboot.h">
@@ -321,6 +324,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\CLR\InternalCalls\System.ArgIterator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\CLR\InternalCalls\System.Array.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

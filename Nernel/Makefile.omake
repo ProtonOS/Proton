@@ -77,6 +77,7 @@
 	Source/CLR/InternalCalls/Mono.Interop.ComInteropProxy.c
 	Source/CLR/InternalCalls/Proton.IO.PortIO.c
 	Source/CLR/InternalCalls/System.ArgIterator.c
+	Source/CLR/InternalCalls/System.Array.c
 	Source/CLR/InternalCalls/System.Buffer.c
 	Source/CLR/InternalCalls/System.Console.c
 	Source/CLR/InternalCalls/System.String.c
