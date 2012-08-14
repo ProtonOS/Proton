@@ -24,8 +24,10 @@ namespace Mernel
             //byte[] buf = new byte[3];
             //int bufLen = Buffer.ByteLength(buf);
             //if (bufLen == 3) Kernel.Write(bufLen.ToString());
-            int x = 5;
-            Kernel.Write(x.ToString());
+            //int x = 5;
+            //Kernel.Write(x.ToString());
+            string s = "Test\n";
+            if (s.Length == 5) Kernel.Write(s);
         }
     }
 }

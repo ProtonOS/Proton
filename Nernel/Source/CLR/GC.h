@@ -41,7 +41,6 @@ struct _GCObject
 	{
 		struct String
 		{
-			uint32_t Length;
 			UT_hash_handle HashHandle;
 		} String;
 		struct Array

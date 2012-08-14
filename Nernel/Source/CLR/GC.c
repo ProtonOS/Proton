@@ -262,27 +262,24 @@ void GC_AllocateObject(AppDomain* pDomain, IRType* pType, uint32_t pSize, void**
 
 void GC_AllocateStringFromASCII(AppDomain* pDomain, int8_t* pString, uint32_t pLength, void** pAllocatedObject)
 {
-	uint32_t size = pLength << 1;
+	uint32_t size = 4 + (pLength << 1);
 	if (size >= 0x7FFFFFFF) Panic("GC_AllocateStringFromASCII Size >= 0x7FFFFFFF");
 	GC* gc = pDomain->GarbageCollector;
 	uint8_t* unicodeString = (uint8_t*)calloc(1, size);
 	for (uint32_t index = 0; index < pLength; ++index) unicodeString[index << 1] = pString[index];
 	Atomic_AquireLock(&gc->Busy);
     GCObject* object = NULL;
-	HASH_FIND(String.HashHandle, gc->StringHashTable, unicodeString, size, object);
-	if (!object)
-	{
-		if (size <= GCHeap__SmallHeap_Size - sizeof(GCObject*))
-			object = GCHeap_Allocate(&gc->SmallGeneration0Heaps, &gc->SmallGeneration0HeapCount, GCHeap__SmallHeap_Size, size, TRUE);
-		else if (size <= GCHeap__LargeHeap_Size - sizeof(GCObject*))
-			object = GCHeap_Allocate(&gc->LargeHeaps, &gc->LargeHeapCount, GCHeap__LargeHeap_Size, size, TRUE);
-		else object = GCHeap_Allocate(&gc->LargeHeaps, &gc->LargeHeapCount, size + sizeof(GCObject*), size, FALSE);
-		object->Type = gc->Domain->IRAssemblies[0]->Types[gc->Domain->CachedType___System_String->TableIndex - 1];
-		object->Flags |= GCObjectFlags_String;
-		object->String.Length = pLength;
-		memcpy(object->Data, unicodeString, size);
-		HASH_ADD(String.HashHandle, gc->StringHashTable, Data, size, object);
-	}
+
+	if (size <= GCHeap__SmallHeap_Size - sizeof(GCObject*))
+		object = GCHeap_Allocate(&gc->SmallGeneration0Heaps, &gc->SmallGeneration0HeapCount, GCHeap__SmallHeap_Size, size, TRUE);
+	else if (size <= GCHeap__LargeHeap_Size - sizeof(GCObject*))
+		object = GCHeap_Allocate(&gc->LargeHeaps, &gc->LargeHeapCount, GCHeap__LargeHeap_Size, size, TRUE);
+	else object = GCHeap_Allocate(&gc->LargeHeaps, &gc->LargeHeapCount, size + sizeof(GCObject*), size, FALSE);
+	object->Type = gc->Domain->IRAssemblies[0]->Types[gc->Domain->CachedType___System_String->TableIndex - 1];
+	object->Flags |= GCObjectFlags_String;
+	*(uint32_t*)object->Data = pLength;
+	memcpy((uint8_t*)object->Data + 4, unicodeString, size - 4);
+
 	*pAllocatedObject = object->Data;
 	Atomic_ReleaseLock(&gc->Busy);
 	free(unicodeString);
@@ -290,7 +287,7 @@ void GC_AllocateStringFromASCII(AppDomain* pDomain, int8_t* pString, uint32_t pL
 
 void GC_AllocateStringFromUnicode(AppDomain* pDomain, uint16_t* pString, uint32_t pLength, void** pAllocatedObject)
 {
-	uint32_t size = pLength << 1;
+	uint32_t size = 4 + (pLength << 1);
 	if (size >= 0x7FFFFFFF) Panic("GC_AllocateStringFromUnicode Size >= 0x7FFFFFFF");
 	GC* gc = pDomain->GarbageCollector;
 	Atomic_AquireLock(&gc->Busy);
@@ -303,8 +300,8 @@ void GC_AllocateStringFromUnicode(AppDomain* pDomain, uint16_t* pString, uint32_
 	else object = GCHeap_Allocate(&gc->LargeHeaps, &gc->LargeHeapCount, size + sizeof(GCObject*), size, FALSE);
 	object->Type = gc->Domain->IRAssemblies[0]->Types[gc->Domain->CachedType___System_String->TableIndex - 1];
 	object->Flags |= GCObjectFlags_String;
-	object->String.Length = pLength;
-	memcpy(object->Data, (uint8_t*)pString, size);
+	*(uint32_t*)object->Data = pLength;
+	memcpy((uint8_t*)object->Data + 4, (uint8_t*)pString, size - 4);
 
 	*pAllocatedObject = object->Data;
 	Atomic_ReleaseLock(&gc->Busy);
@@ -312,12 +309,12 @@ void GC_AllocateStringFromUnicode(AppDomain* pDomain, uint16_t* pString, uint32_
 
 void GC_AllocateInternedStringFromUnicode(AppDomain* pDomain, uint16_t* pString, uint32_t pLength, void** pAllocatedObject)
 {
-	uint32_t size = pLength << 1;
+	uint32_t size = 4 + (pLength << 1);
 	if (size >= 0x7FFFFFFF) Panic("GC_AllocateInternedStringFromUnicode Size >= 0x7FFFFFFF");
 	GC* gc = pDomain->GarbageCollector;
 	Atomic_AquireLock(&gc->Busy);
     GCObject* object = NULL;
-	HASH_FIND(String.HashHandle, gc->StringHashTable, (uint8_t*)pString, size, object);
+	HASH_FIND(String.HashHandle, gc->StringHashTable, (uint8_t*)pString, size - 4, object);
 	if (!object)
 	{
 		if (size <= GCHeap__SmallHeap_Size - sizeof(GCObject*))
@@ -327,9 +324,9 @@ void GC_AllocateInternedStringFromUnicode(AppDomain* pDomain, uint16_t* pString,
 		else object = GCHeap_Allocate(&gc->LargeHeaps, &gc->LargeHeapCount, size + sizeof(GCObject*), size, FALSE);
 		object->Type = gc->Domain->IRAssemblies[0]->Types[gc->Domain->CachedType___System_String->TableIndex - 1];
 		object->Flags |= (GCObjectFlags_String | GCObjectFlags_Interned);
-		object->String.Length = pLength;
-		memcpy(object->Data, (uint8_t*)pString, size);
-		HASH_ADD(String.HashHandle, gc->StringHashTable, Data, size, object);
+		*(uint32_t*)object->Data = pLength;
+		memcpy((uint8_t*)object->Data + 4, (uint8_t*)pString, size - 4);
+		HASH_ADD_KEYPTR(String.HashHandle, gc->StringHashTable, ((uint8_t*)object->Data + 4), size - 4, object);
 	}
 	*pAllocatedObject = object->Data;
 	Atomic_ReleaseLock(&gc->Busy);
@@ -337,7 +334,7 @@ void GC_AllocateInternedStringFromUnicode(AppDomain* pDomain, uint16_t* pString,
 
 void GC_AllocateEmptyStringFromLength(AppDomain* pDomain, uint32_t pLength, void** pAllocatedObject)
 {
-	uint32_t size = pLength << 1;
+	uint32_t size = 4 + (pLength << 1);
 	if (size >= 0x7FFFFFFF) Panic("GC_AllocateEmptyStringFromLength Size >= 0x7FFFFFFF");
 	GC* gc = pDomain->GarbageCollector;
 	Atomic_AquireLock(&gc->Busy);
@@ -350,7 +347,7 @@ void GC_AllocateEmptyStringFromLength(AppDomain* pDomain, uint32_t pLength, void
 	else object = GCHeap_Allocate(&gc->LargeHeaps, &gc->LargeHeapCount, size + sizeof(GCObject*), size, FALSE);
 	object->Type = gc->Domain->IRAssemblies[0]->Types[gc->Domain->CachedType___System_String->TableIndex - 1];
 	object->Flags |= GCObjectFlags_String;
-	object->String.Length = pLength;
+	*(uint32_t*)object->Data = pLength;
 
 	*pAllocatedObject = object->Data;
 	Atomic_ReleaseLock(&gc->Busy);
@@ -589,6 +586,12 @@ void GC_MarkAndSweep(AppDomain* pDomain)
 	Thread* currentThread = GetCurrentThread();
 	Thread* thread = NULL;
 
+	// Need to do this to ensure no threads are currently USING the GC,
+	// before we interrupt them, this ensures objects are put to trackable
+	// locations between the point of allocation and when the allocated
+	// object pointer gets set
+	Atomic_AquireLock(&currentThread->Domain->GarbageCollector->Busy);
+
 	// Suspend all threads for this appdomain, except the current thread,
 	// and make sure the threads have stopped executing before we continue,
 	// also means no need to lock the GC
@@ -604,6 +607,10 @@ void GC_MarkAndSweep(AppDomain* pDomain)
 			}
 		}
 	}
+	// Now we can release the lock, knowing no threads are currently in the
+	// process of allocating, so we know any allocations finished, and put the
+	// reference in a trackable location for all threads before we get here
+	Atomic_ReleaseLock(&currentThread->Domain->GarbageCollector->Busy);
 
 	// All threads in this app domain are now safe to work with their stacks,
 	// except the current thread stack, so walk the stack and mark the living

@@ -7,12 +7,14 @@
 #include <System/Console.h>
 
 
-void Mernel_Kernel_Write(AppDomain* pAppDomain, uint16_t* pString)
+void Mernel_Kernel_Write(AppDomain* pAppDomain, void* pString)
 {
 	GCObject* object = *(GCObject**)((size_t)pString - sizeof(void*));
-	for (uint32_t index = 0; index < object->String.Length; ++index)
+	uint32_t length = *(uint32_t*)object->Data;
+	uint16_t* stringData = (uint16_t*)((uint8_t*)object->Data + 4);
+	for (uint32_t index = 0; index < length; ++index)
 	{
-		Console_WriteCharacter((char)pString[index]);
+		Console_WriteCharacter((char)stringData[index]);
 	}
 }
 
