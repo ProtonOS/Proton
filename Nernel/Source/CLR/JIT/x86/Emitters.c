@@ -5387,6 +5387,13 @@ char* JIT_Emit_Call_Internal(char* pCompiledCode, IRMethod* pMethod, IRInstructi
 
 	uint32_t parametersSize = 0;
 	size_t sizeOfParameter = 0;
+	bool_t returnContainsReferenceType = method->Returns && IRType_ContainsReferenceType(method->ReturnType);
+	if (returnContainsReferenceType)
+	{
+		pCompiledCode = JIT_Emit_LoadDestinationAddress(pCompiledCode, pMethod, &pInstruction->Destination, SECONDARY_REG, THIRD_REG, FOURTH_REG);
+		x86_push_reg(pCompiledCode, SECONDARY_REG);
+		parametersSize += gSizeOfPointerInBytes;
+	}
 	for (uint32_t index = 0; index < pInstruction->SourceArrayLength; ++index)
 	{
 		pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->SourceArray[index], SECONDARY_REG, THIRD_REG, FOURTH_REG, &sizeOfParameter);
@@ -5400,7 +5407,7 @@ char* JIT_Emit_Call_Internal(char* pCompiledCode, IRMethod* pMethod, IRInstructi
 	x86_mov_reg_membase(pCompiledCode, DOMAIN_REG, X86_ESP, 0, gSizeOfPointerInBytes);
 	x86_adjust_stack(pCompiledCode, -parametersSize);
 
-	if (method->Returns)
+	if (method->Returns && !returnContainsReferenceType)
 	{
 		pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, X86_EAX, X86_EDX, X86_ECX, NULL);
 	}

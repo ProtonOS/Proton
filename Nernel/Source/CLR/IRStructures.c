@@ -263,6 +263,21 @@ bool_t IRType_IsSubclassOf(IRType* pType, IRType* pParentType)
 	Panic("Invalid TypeOfExtends!");
 }
 
+bool_t IRType_ContainsReferenceType(IRType* pType)
+{
+	if (!pType) return FALSE;
+	if (pType->IsReferenceType) return TRUE;
+	if (pType->IsStructureType)
+	{
+		for (uint32_t index = 0; index < pType->FieldCount; ++index)
+		{
+			if (pType->Fields[index]->FieldType->IsReferenceType) return TRUE;
+			if (pType->Fields[index]->FieldType->IsStructureType && IRType_ContainsReferenceType(pType->Fields[index]->FieldType)) return TRUE;
+		}
+	}
+	return FALSE;
+}
+
 IRMethod* IRMethod_Create(IRAssembly* pAssembly, MethodDefinition* pMethodDefinition)
 {
     IRMethod* method = (IRMethod*)calloc(1, sizeof(IRMethod));

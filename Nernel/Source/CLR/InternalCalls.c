@@ -48,6 +48,7 @@ const InternalCall InternalCallTable[] =
 	{	NULL,									NULL,					"GetLength",				SignatureElementType_I4,				1,	{ SignatureElementType_I4 }, &System_Array_GetLength },
 	{	NULL,									NULL,					"GetLowerBound",			SignatureElementType_I4,				1,	{ SignatureElementType_I4 }, &System_Array_GetLowerBound },
 	{	NULL,									NULL,					"GetValueImpl",				SignatureElementType_Object,			1,	{ SignatureElementType_I4 }, &System_Array_GetValueImpl },
+	{	NULL,									NULL,					"SetValueImpl",				SignatureElementType_Void,				2,	{ SignatureElementType_Object, SignatureElementType_I4 }, &System_Array_SetValueImpl },
 	{	NULL,									NULL,					"ClearInternal",			SignatureElementType_Void,				3,	{ SignatureElementType_Class, SignatureElementType_I4, SignatureElementType_I4 }, &System_Array_ClearInternal },
 
 	{	NULL,									"Buffer",				"ByteLengthInternal",		SignatureElementType_I4,				1,	{ SignatureElementType_Class }, &System_Buffer_ByteLengthInternal },

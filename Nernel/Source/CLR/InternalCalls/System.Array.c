@@ -43,14 +43,36 @@ int32_t System_Array_GetLowerBound(AppDomain* pAppDomain, void* pArray, uint32_t
 	return 0;
 }
 
-void* System_Array_GetValueImpl(AppDomain* pAppDomain, void* pArray, uint32_t pIndex)
+void System_Array_GetValueImpl(AppDomain* pAppDomain, void* pArray, uint32_t pIndex, void** pReturnObjectDestination)
 {
 	GCObject* arrayObject = *(GCObject**)((size_t)pArray - sizeof(GCObject*));
 	IRType* elementType = arrayObject->Array.ElementType;
-	if (elementType->IsReferenceType) return *(size_t**)((uint8_t*)pArray + (sizeof(size_t*) * pIndex));
-	// TODO: Box value types into object, but might as well get register allocators in first
-	GCObject* object = NULL;
-	return object;
+	if (elementType->IsReferenceType)
+	{
+		*pReturnObjectDestination = *(size_t**)((uint8_t*)pArray + (sizeof(size_t*) * pIndex));
+		return;
+	}
+	uint32_t sizeOfElement = elementType->Size;
+	GC_AllocateObject(pAppDomain, elementType, sizeOfElement, pReturnObjectDestination);
+	GCObject* object = *(GCObject**)((size_t)*pReturnObjectDestination - sizeof(GCObject*));
+	Thread_EnterCriticalRegion();
+	memcpy(object->Data, (uint8_t*)pArray + (sizeOfElement * pIndex), sizeOfElement);
+	Thread_LeaveCriticalRegion();
+}
+
+void System_Array_SetValueImpl(AppDomain* pAppDomain, void* pArray, void* pValue, uint32_t pIndex)
+{
+	GCObject* arrayObject = *(GCObject**)((size_t)pArray - sizeof(GCObject*));
+	IRType* elementType = arrayObject->Array.ElementType;
+	if (elementType->IsReferenceType)
+	{
+		*(void**)((uint8_t*)pArray + (sizeof(size_t*) * pIndex)) = pValue;
+		return;
+	}
+	uint32_t sizeOfElement = elementType->Size;
+	Thread_EnterCriticalRegion();
+	memcpy((uint8_t*)pArray + (sizeOfElement * pIndex), pValue, sizeOfElement);
+	Thread_LeaveCriticalRegion();
 }
 
 void System_Array_ClearInternal(AppDomain* pAppDomain, void* pArray, uint32_t pIndex, uint32_t pCount)
