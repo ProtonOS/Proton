@@ -5,7 +5,7 @@ typedef struct _InternalCall InternalCall;
 #include <CLR/IRStructures.h>
 
 
-#define MAX_INTERNAL_ARGS 8
+#define MAX_INTERNAL_ARGS 16
 
 struct _InternalCall
 {

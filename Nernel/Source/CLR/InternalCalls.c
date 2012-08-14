@@ -53,6 +53,9 @@ const InternalCall InternalCallTable[] =
 	{	NULL,									NULL,					"Clone",					SignatureElementType_Object,			0,	{ }, &System_Array_Clone },
 
 	{	NULL,									"Buffer",				"ByteLengthInternal",		SignatureElementType_I4,				1,	{ SignatureElementType_Class }, &System_Buffer_ByteLengthInternal },
+	{	NULL,									NULL,					"GetByteInternal",			SignatureElementType_U1,				2,	{ SignatureElementType_Class, SignatureElementType_I4 }, &System_Buffer_GetByteInternal },
+	{	NULL,									NULL,					"SetByteInternal",			SignatureElementType_Void,				3,	{ SignatureElementType_Class, SignatureElementType_I4, SignatureElementType_I4 }, &System_Buffer_SetByteInternal },
+	{	NULL,									NULL,					"BlockCopyInternal",		SignatureElementType_Boolean,			5,	{ SignatureElementType_Class, SignatureElementType_I4, SignatureElementType_Class, SignatureElementType_I4, SignatureElementType_I4 }, &System_Buffer_BlockCopyInternal },
 
 	{	NULL,									"String",				".ctor",					SignatureElementType_Void,				1,	{ SignatureElementType_Pointer, SignatureElementType_Char }, &System_String_Ctor_CharPointer },
 	{	NULL,									NULL,					NULL,						SignatureElementType_Void,				1,	{ SignatureElementType_Pointer, SignatureElementType_I1 }, &System_String_Ctor_SBytePointer },
