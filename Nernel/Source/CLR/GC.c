@@ -436,20 +436,25 @@ void GCHeap_Sweep(GCHeap*** pGCHeaps, uint32_t* pGCHeapCount, AppDomain* pDomain
 			if (!(object->Flags & GCObjectFlags_Marked) &&
 				!(object->Flags & GCObjectFlags_Pinned))
 			{
-				if (object->Type->Finalizer) JIT_ExecuteMethod(object->Type->Finalizer, pDomain);
-				if (heap->AllocationTree)
+				object->Flags &= ~GCObjectFlags_PostponeDispose;
+				if (object->Type->Finalizer && (object->Flags & GCObjectFlags_SuppressFinalizer) == 0) JIT_ExecuteMethod(object->Type->Finalizer, pDomain);
+				if ((object->Flags & GCObjectFlags_PostponeDispose) == 0)
 				{
-					uint32_t index = (uint32_t)(((uint8_t*)object->Data - gSizeOfPointerInBytes) - heap->Bottom) >> 3;
-					GCHeap_SetBitsInTree(heap->AllocationTree, heap->AllocationTreeLevels - 1, index, object->AllocatedSize >> 3, FALSE);
+					if (heap->AllocationTree)
+					{
+						uint32_t index = (uint32_t)(((uint8_t*)object->Data - gSizeOfPointerInBytes) - heap->Bottom) >> 3;
+						GCHeap_SetBitsInTree(heap->AllocationTree, heap->AllocationTreeLevels - 1, index, object->AllocatedSize >> 3, FALSE);
+					}
+					if ((object->Flags & (GCObjectFlags_String | GCObjectFlags_Interned)) == (GCObjectFlags_String | GCObjectFlags_Interned))
+					{
+						HASH_DELETE(String.HashHandle, pDomain->GarbageCollector->StringHashTable, object);
+					}
+					if (object == heap->AllocatedObjectList) heap->AllocatedObjectList = object->NextObject;
+					else prevObject->NextObject = object->NextObject;
+					object->NextObject = heap->FreeObjectList;
+					heap->FreeObjectList = object;
 				}
-				if ((object->Flags & (GCObjectFlags_String | GCObjectFlags_Interned)) == (GCObjectFlags_String | GCObjectFlags_Interned))
-				{
-					HASH_DELETE(String.HashHandle, pDomain->GarbageCollector->StringHashTable, object);
-				}
-				if (object == heap->AllocatedObjectList) heap->AllocatedObjectList = object->NextObject;
-				else prevObject->NextObject = object->NextObject;
-				object->NextObject = heap->FreeObjectList;
-				heap->FreeObjectList = object;
+				else object->Flags &= ~GCObjectFlags_PostponeDispose;
 			}
 			else prevObject = object;
 			object->Flags &= ~GCObjectFlags_Marked;
@@ -704,6 +709,10 @@ void GC_MarkAndSweep(AppDomain* pDomain)
 	GCHeap_Sweep(&pDomain->GarbageCollector->SmallGeneration0Heaps, &pDomain->GarbageCollector->SmallGeneration0HeapCount, pDomain);
 	GCHeap_Sweep(&pDomain->GarbageCollector->LargeHeaps, &pDomain->GarbageCollector->LargeHeapCount, pDomain);
 
+	pDomain->GarbageCollector->ForceCollect = FALSE;
+	pDomain->GarbageCollector->Pressure = 0;
+	pDomain->GarbageCollector->CollectionCount++;
+
 	// Everything that was no longer alive should have had it's finalizer called
 	// if it had one, and is now disposed, and all objects have been unmarked, so
 	// resume all threads for this appdomain, except the current thread
@@ -719,9 +728,7 @@ void GC_ApplyPressure(AppDomain* pDomain, uint32_t pBytes)
 	if (Atomic_Add(&pDomain->GarbageCollector->Pressure, pBytes) >= GC__PressureTriggerInBytes)
 	{
 		GC_MarkAndSweep(pDomain);
-		pDomain->GarbageCollector->Pressure = 0;
 	}
-	Atomic_ReleaseLock(&pDomain->GarbageCollector->Busy);
 }
 
 uint64_t GC_TotalAllocatedMemory(AppDomain* pDomain)

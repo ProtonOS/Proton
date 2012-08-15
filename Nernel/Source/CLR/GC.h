@@ -13,6 +13,9 @@ typedef enum GCObjectFlags
 	GCObjectFlags_String = 1 << 0,
 	GCObjectFlags_Array = 1 << 1,
 
+	GCObjectFlags_SuppressFinalizer = 1 << 2,
+	GCObjectFlags_PostponeDispose = 1 << 3,
+
 	GCObjectFlags_Pinned = 1 << 4,
 	GCObjectFlags_Allocated = 1 << 5,
 	GCObjectFlags_Marked = 1 << 6,
@@ -71,6 +74,7 @@ struct _GC
 	uint8_t Busy;
 	bool_t ForceCollect;
 	volatile uint32_t Pressure;
+	uint32_t CollectionCount;
 	void* EmptyStringObject;
 	GCObject* StringHashTable;
 
