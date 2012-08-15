@@ -1,4 +1,5 @@
 #include <CLR/InternalCalls/System.GC.h>
+#include <System/Atomics.h>
 
 uint32_t System_GC_get_MaxGeneration(AppDomain* pAppDomain)
 {
@@ -51,4 +52,17 @@ void System_GC_WaitForPendingFinalizers(AppDomain* pAppDomain)
 uint32_t System_GC_CollectionCount(AppDomain* pAppDomain, uint32_t pGeneration)
 {
 	return pAppDomain->GarbageCollector->CollectionCount;
+}
+
+void System_GC_RecordPressure(AppDomain* pAppDomain, int64_t pPressureAdjustment)
+{
+	if (Atomic_Add(&pAppDomain->GarbageCollector->Pressure, (int32_t)pPressureAdjustment) >= GC__PressureTriggerInBytes)
+	{
+		// Should comment this out, or deal with runtime memory usage that is larger than trigger,
+		// so this isn't called too frequently, but this AdjustPressure relates to System.GC which
+		// uses it to assist GC in recognizing additional related UNMANAGED memory allocated and
+		// disposed by objects (a call to AddPressure is expected to have equal RemovePressure
+		// during cleanup).
+		pAppDomain->GarbageCollector->ForceCollect = TRUE;
+	}
 }

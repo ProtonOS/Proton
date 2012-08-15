@@ -100,7 +100,6 @@ void GC_AllocateInternedStringFromUnicode(AppDomain* pDomain, uint16_t* pString,
 void GC_AllocateEmptyStringFromLength(AppDomain* pDomain, uint32_t pLength, void** pAllocatedObject);
 void GC_AllocateArray(AppDomain* pDomain, IRType* pArrayType, uint32_t pElementCount, void** pAllocatedObject);
 GCObject* GC_AllocatePinnedObject(GC* pGC, IRType* pType, uint32_t pSize);
-void GC_ApplyPressure(AppDomain* pDomain, uint32_t pBytes);
 uint64_t GC_TotalAllocatedMemory(AppDomain* pDomain);
 
 void* GCObject_Internal_IsInst(void* pObject, IRType* pType);

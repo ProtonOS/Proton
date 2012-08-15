@@ -11,3 +11,4 @@ void System_GC_ReRegisterForFinalize(AppDomain* pAppDomain, void* pObject);
 void System_GC_SuppressFinalize(AppDomain* pAppDomain, void* pObject);
 void System_GC_WaitForPendingFinalizers(AppDomain* pAppDomain);
 uint32_t System_GC_CollectionCount(AppDomain* pAppDomain, uint32_t pGeneration);
+void System_GC_RecordPressure(AppDomain* pAppDomain, int64_t pPressureAdjustment);

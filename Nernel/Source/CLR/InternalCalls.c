@@ -82,6 +82,7 @@ const InternalCall InternalCallTable[] =
 	{	NULL,									NULL,					"SuppressFinalize",				SignatureElementType_Void,					1,	{ SignatureElementType_Object }, &System_GC_SuppressFinalize },
 	{	NULL,									NULL,					"WaitForPendingFinalizers",		SignatureElementType_Void,					0,	{ }, &System_GC_WaitForPendingFinalizers },
 	{	NULL,									NULL,					"CollectionCount",				SignatureElementType_I4,					1,	{ SignatureElementType_I4 }, &System_GC_CollectionCount },
+	{	NULL,									NULL,					"RecordPressure",				SignatureElementType_Void,					1,	{ SignatureElementType_I8 }, &System_GC_RecordPressure },
 
 	{	NULL,									"MonoEnumInfo",			"get_enum_info",				SignatureElementType_Void,					2,	{ SignatureElementType_Class, SignatureElementType_ValueType }, &System_MonoEnumInfo_get_enum_info },
 

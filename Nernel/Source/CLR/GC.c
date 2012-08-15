@@ -710,7 +710,6 @@ void GC_MarkAndSweep(AppDomain* pDomain)
 	GCHeap_Sweep(&pDomain->GarbageCollector->LargeHeaps, &pDomain->GarbageCollector->LargeHeapCount, pDomain);
 
 	pDomain->GarbageCollector->ForceCollect = FALSE;
-	pDomain->GarbageCollector->Pressure = 0;
 	pDomain->GarbageCollector->CollectionCount++;
 
 	// Everything that was no longer alive should have had it's finalizer called
@@ -720,14 +719,6 @@ void GC_MarkAndSweep(AppDomain* pDomain)
 	{
 		thread = pDomain->Threads[index];
 		if (thread && thread != currentThread) ThreadScheduler_Resume(thread);
-	}
-}
-
-void GC_ApplyPressure(AppDomain* pDomain, uint32_t pBytes)
-{
-	if (Atomic_Add(&pDomain->GarbageCollector->Pressure, pBytes) >= GC__PressureTriggerInBytes)
-	{
-		GC_MarkAndSweep(pDomain);
 	}
 }
 
