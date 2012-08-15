@@ -4230,6 +4230,7 @@ char* JIT_Emit_Convert_Unchecked(char* pCompiledCode, IRMethod* pMethod, IRInstr
 		case ElementType_I2:
 		case ElementType_U1:
 		case ElementType_U2:
+		case ElementType_U4:
 			switch (toType)
 			{
 				case ElementType_I1:

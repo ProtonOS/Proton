@@ -26,8 +26,13 @@ namespace Mernel
             //if (bufLen == 3) Kernel.Write(bufLen.ToString());
             //int x = 5;
             //Kernel.Write(x.ToString());
-            string s = "TWFu";
-            byte[] b = Convert.FromBase64String(s);
+            char[] c = new char[4];
+            c[0] = 'T';
+            c[1] = 'W';
+            c[2] = 'F';
+            c[3] = 'u';
+            //string s = "TWFu";
+            byte[] b = Convert.FromBase64CharArray(c, 0, 4);
             if (b[0] == 77) Kernel.Write("Yay!\n");
         }
     }

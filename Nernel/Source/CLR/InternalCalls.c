@@ -59,6 +59,7 @@ const InternalCall InternalCallTable[] =
 	{	NULL,									NULL,					"BlockCopyInternal",			SignatureElementType_Boolean,				5,	{ SignatureElementType_Class, SignatureElementType_I4, SignatureElementType_Class, SignatureElementType_I4, SignatureElementType_I4 }, &System_Buffer_BlockCopyInternal },
 
 	{	NULL,									"Convert",				"InternalFromBase64String",		SignatureElementType_SingleDimensionArray,	2,	{ SignatureElementType_String, SignatureElementType_Boolean }, &System_Convert_InternalFromBase64String },
+	{	NULL,									NULL,					"InternalFromBase64CharArray",	SignatureElementType_SingleDimensionArray,	3,	{ SignatureElementType_SingleDimensionArray, SignatureElementType_Char, SignatureElementType_I4, SignatureElementType_I4 }, &System_Convert_InternalFromBase64CharArray },
 
 	{	NULL,									"String",				".ctor",						SignatureElementType_Void,					1,	{ SignatureElementType_Pointer, SignatureElementType_Char }, &System_String_Ctor_CharPointer },
 	{	NULL,									NULL,					NULL,							SignatureElementType_Void,					1,	{ SignatureElementType_Pointer, SignatureElementType_I1 }, &System_String_Ctor_SBytePointer },

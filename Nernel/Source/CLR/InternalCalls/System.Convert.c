@@ -53,3 +53,41 @@ void System_Convert_InternalFromBase64String(AppDomain* pAppDomain, void* pStrin
 		destinationIterator[destinationIndex++] = (uint8_t)(block & 0xFF);
 	}
 }
+
+void System_Convert_InternalFromBase64CharArray(AppDomain* pAppDomain, void* pCharArray, uint32_t pOffset, uint32_t pLength, void** pReturnObjectDestination)
+{
+	GCObject* arrayObject = *(GCObject**)((size_t)pCharArray - sizeof(GCObject*));
+	uint32_t sourceLength = arrayObject->Array.Length;
+	*pReturnObjectDestination = NULL;
+	if (sourceLength & 0x03) return;
+	if (sourceLength == 0)
+	{
+		*pReturnObjectDestination = pAppDomain->GarbageCollector->EmptyStringObject;
+		return;
+	}
+
+	uint16_t* sourceIterator = (uint16_t*)pCharArray;
+	for (uint32_t index = 0; index < sourceLength; ++index)
+	{
+		if (sourceIterator[index] > 0xFF) return;
+		if (sourceIterator[index] != 'A' && gBase64DecodingTable[sourceIterator[index]] == 0) return;
+		if (sourceIterator[index] == '=' && (index == (sourceLength - 1) || index == (sourceLength - 2))) return;
+	}
+	uint32_t bufferLength = (sourceLength >> 2) * 3;
+	if (sourceIterator[sourceLength - 1] == '=') --bufferLength;
+	if (sourceIterator[sourceLength - 2] == '=') --bufferLength;
+	IRType* byteArrayType = IRAssembly_MakeArrayType(pAppDomain->IRAssemblies[0], pAppDomain->IRAssemblies[0]->Types[pAppDomain->CachedType___System_Byte->TableIndex - 1]);
+	GC_AllocateArray(pAppDomain, byteArrayType, bufferLength, pReturnObjectDestination);
+	uint8_t* destinationIterator = (uint8_t*)(*pReturnObjectDestination);
+	for (uint32_t sourceIndex = 0, destinationIndex = 0; sourceIndex < sourceLength; )
+	{
+		uint32_t sextetA = gBase64DecodingTable[sourceIterator[sourceIndex++]];
+		uint32_t sextetB = gBase64DecodingTable[sourceIterator[sourceIndex++]];
+		uint32_t sextetC = gBase64DecodingTable[sourceIterator[sourceIndex++]];
+		uint32_t sextetD = gBase64DecodingTable[sourceIterator[sourceIndex++]];
+		uint32_t block = (sextetA << 18) | (sextetB << 12) | (sextetC << 6) | sextetD;
+		destinationIterator[destinationIndex++] = (uint8_t)((block >> 16) & 0xFF);
+		destinationIterator[destinationIndex++] = (uint8_t)((block >> 8) & 0xFF);
+		destinationIterator[destinationIndex++] = (uint8_t)(block & 0xFF);
+	}
+}
