@@ -65,7 +65,6 @@ void JIT_CompileMethod(IRMethod* pMethod)
 		pMethod->AssembledMethod = ((void(*)())((unsigned int)compiledCode));
 
 		BranchRegistry* branchRegistry = BranchRegistry_Create(pMethod->IRCodes[pMethod->IRCodesCount - 1]->ILLocation);
-
 		compiledCode = JIT_Emit_Prologue(compiledCode, pMethod);
 
 		bool_t restartCompiling = FALSE;

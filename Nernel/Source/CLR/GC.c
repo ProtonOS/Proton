@@ -8,6 +8,7 @@ Thread* GetCurrentThread();
 GC* GC_Create(AppDomain* pDomain)
 {
 	GC* gc = (GC*)calloc(1, sizeof(GC));
+	pDomain->GarbageCollector = gc;
 	gc->Domain = pDomain;
 	gc->SmallGeneration0HeapCount = 1;
 	gc->SmallGeneration1HeapCount = 1;
@@ -22,6 +23,9 @@ GC* GC_Create(AppDomain* pDomain)
 	gc->SmallGeneration2Heaps[0] = GCHeap_Create(GCHeap__SmallHeap_Size, GCHeap__SmallHeap_InitialPoolSize, TRUE);
 	gc->LargeHeaps[0] = GCHeap_Create(GCHeap__LargeHeap_Size, GCHeap__LargeHeap_InitialPoolSize, TRUE);
 
+	GC_AllocateStringFromASCII(pDomain, (int8_t*)"", 0, &gc->EmptyStringObject);
+	GCObject* object = *(GCObject**)((size_t)gc->EmptyStringObject - sizeof(GCObject*));
+	object->Flags |= GCObjectFlags_Pinned;
 	return gc;
 }
 
@@ -262,6 +266,11 @@ void GC_AllocateObject(AppDomain* pDomain, IRType* pType, uint32_t pSize, void**
 
 void GC_AllocateStringFromASCII(AppDomain* pDomain, int8_t* pString, uint32_t pLength, void** pAllocatedObject)
 {
+	if (pLength == 0 && pDomain->GarbageCollector->EmptyStringObject)
+	{
+		*pAllocatedObject = pDomain->GarbageCollector->EmptyStringObject;
+		return;
+	}
 	uint32_t size = 4 + (pLength << 1);
 	if (size >= 0x7FFFFFFF) Panic("GC_AllocateStringFromASCII Size >= 0x7FFFFFFF");
 	GC* gc = pDomain->GarbageCollector;
@@ -282,7 +291,7 @@ void GC_AllocateStringFromASCII(AppDomain* pDomain, int8_t* pString, uint32_t pL
 		object->Type = gc->Domain->IRAssemblies[0]->Types[gc->Domain->CachedType___System_String->TableIndex - 1];
 		object->Flags |= GCObjectFlags_String;
 		*(uint32_t*)object->Data = pLength;
-		memcpy((uint8_t*)object->Data + 4, unicodeString, size - 4);
+		if (pLength > 0) memcpy((uint8_t*)object->Data + 4, unicodeString, size - 4);
 	}
 
 	*pAllocatedObject = object->Data;
@@ -292,6 +301,11 @@ void GC_AllocateStringFromASCII(AppDomain* pDomain, int8_t* pString, uint32_t pL
 
 void GC_AllocateStringFromUnicode(AppDomain* pDomain, uint16_t* pString, uint32_t pLength, void** pAllocatedObject)
 {
+	if (pLength == 0)
+	{
+		*pAllocatedObject = pDomain->GarbageCollector->EmptyStringObject;
+		return;
+	}
 	uint32_t size = 4 + (pLength << 1);
 	if (size >= 0x7FFFFFFF) Panic("GC_AllocateStringFromUnicode Size >= 0x7FFFFFFF");
 	GC* gc = pDomain->GarbageCollector;
@@ -319,6 +333,11 @@ void GC_AllocateStringFromUnicode(AppDomain* pDomain, uint16_t* pString, uint32_
 
 void GC_AllocateInternedStringFromUnicode(AppDomain* pDomain, uint16_t* pString, uint32_t pLength, void** pAllocatedObject)
 {
+	if (pLength == 0)
+	{
+		*pAllocatedObject = pDomain->GarbageCollector->EmptyStringObject;
+		return;
+	}
 	uint32_t size = 4 + (pLength << 1);
 	if (size >= 0x7FFFFFFF) Panic("GC_AllocateInternedStringFromUnicode Size >= 0x7FFFFFFF");
 	GC* gc = pDomain->GarbageCollector;
@@ -344,6 +363,11 @@ void GC_AllocateInternedStringFromUnicode(AppDomain* pDomain, uint16_t* pString,
 
 void GC_AllocateEmptyStringFromLength(AppDomain* pDomain, uint32_t pLength, void** pAllocatedObject)
 {
+	if (pLength == 0)
+	{
+		*pAllocatedObject = pDomain->GarbageCollector->EmptyStringObject;
+		return;
+	}
 	uint32_t size = 4 + (pLength << 1);
 	if (size >= 0x7FFFFFFF) Panic("GC_AllocateEmptyStringFromLength Size >= 0x7FFFFFFF");
 	GC* gc = pDomain->GarbageCollector;

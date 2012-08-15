@@ -26,7 +26,9 @@ namespace Mernel
             //if (bufLen == 3) Kernel.Write(bufLen.ToString());
             //int x = 5;
             //Kernel.Write(x.ToString());
-            if (System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData == 4) Kernel.Write("Test\n");
+            string s = "TWFu";
+            byte[] b = Convert.FromBase64String(s);
+            if (b[0] == 77) Kernel.Write("Yay!\n");
         }
     }
 }

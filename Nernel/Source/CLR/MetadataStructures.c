@@ -2426,7 +2426,18 @@ bool_t MethodSignature_Compare(AppDomain* pDomain, IRAssembly* pAssemblyA, Metho
 			IRType* typeA = AppDomain_GetIRTypeFromSignatureType(pDomain, pAssemblyA, pMethodSignatureA->ReturnType->Type);
 			IRType* typeB = AppDomain_GetIRTypeFromSignatureType(pDomain, pAssemblyB, pMethodSignatureB->ReturnType->Type);
 			//printf("A @ 0x%x %s, B @ 0x%x %s\n", (unsigned int)typeA, typeA->TypeDefinition->Name, (unsigned int)typeB, typeB->TypeDefinition->Name);
-			if (typeA != typeB) return FALSE;
+			if (typeA->IsArrayType)
+			{
+				if (!typeB->IsArrayType) return FALSE;
+				if (typeA->ArrayType->ElementType != typeB->ArrayType->ElementType) return FALSE;
+				//printf("Problem Here? %X and %X, %X and %X, but %X and %X!\n", (unsigned int)pMethodSignatureA->Parameters[index]->Type->ElementType, (unsigned int)pMethodSignatureB->Parameters[index]->Type->ElementType, (unsigned int)pMethodSignatureA->Parameters[index]->Type->SZArrayType->ElementType, (unsigned int)pMethodSignatureB->Parameters[index]->Type->SZArrayType->ElementType, (unsigned int)paramAType, (unsigned int)paramBType);
+			}
+			else if (typeA->IsPointerType)
+			{
+				if (!typeB->IsPointerType) return FALSE;
+				if (typeA->PointerType->TypePointedTo != typeB->PointerType->TypePointedTo) return FALSE;
+			}
+			else if (typeA != typeB) return FALSE;
 		}
 	}
 	for (uint32_t index = 0; index < pMethodSignatureA->ParameterCount; ++index)

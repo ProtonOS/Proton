@@ -428,13 +428,13 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 				ins->Source1.Data.ArrayElement.ArraySource = sADat;
 				ins->Source1.Data.ArrayElement.ElementType = (IRType*)ins->Arg2;
 				ins->Opcode = IROpcode_Move;
-				ins->Arg1 = NULL;
-				ins->Arg2 = NULL;
 				obj = PA();
 				obj->LinearData.Type = SourceType_Local;
 				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal((IRType*)ins->Arg2, pMethod, stack->StackDepth, &stackLocalTable);
 				ins->Destination = obj->LinearData;
 				Push(obj);
+				ins->Arg1 = NULL;
+				ins->Arg2 = NULL;
                 break;
 			}
             case IROpcode_Load_ElementAddress:
@@ -452,13 +452,13 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 				ins->Source1.Data.ArrayElementAddress.ArraySource = sADat;
 				ins->Source1.Data.ArrayElementAddress.ElementType = (IRType*)ins->Arg2;
 				ins->Opcode = IROpcode_Move;
-				ins->Arg1 = NULL;
-				ins->Arg2 = NULL;
 				obj = PA();
 				obj->LinearData.Type = SourceType_Local;
 				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, ElementType_I), pMethod, stack->StackDepth, &stackLocalTable);
 				ins->Destination = obj->LinearData;
 				Push(obj);
+				ins->Arg1 = NULL;
+				ins->Arg2 = NULL;
                 break;
 			}
             case IROpcode_Store_Element:

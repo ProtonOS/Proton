@@ -70,6 +70,7 @@ struct _GC
 	AppDomain* Domain;
 	uint8_t Busy;
 	uint32_t Pressure;
+	void* EmptyStringObject;
 	GCObject* StringHashTable;
 
     uint32_t SmallGeneration0HeapCount;

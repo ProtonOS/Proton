@@ -35,7 +35,7 @@ AppDomain* AppDomain_Create(Thread* pMainThread)
 			domain->Threads[0] = pMainThread;
 			pMainThread->Domain = domain;
 			Process_AddDomain(domain->Process, domain);
-			domain->GarbageCollector = GC_Create(domain);
+			GC_Create(domain);
 			Log_WriteLine(LOGLEVEL__Memory, "Memory: AppDomain_Create @ 0x%x", (unsigned int)domain);
 			AppDomainRegistry_AddDomain(domain);
 			AppDomain_LinkCorlib(domain, cliFile);
