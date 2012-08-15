@@ -25,6 +25,7 @@
     <ClCompile Include="Source\CLR\InternalCalls\System.Console.c" />
     <ClCompile Include="Source\CLR\InternalCalls\System.Convert.c" />
     <ClCompile Include="Source\CLR\InternalCalls\System.DateTime.c" />
+    <ClCompile Include="Source\CLR\InternalCalls\System.MonoEnumInfo.c" />
     <ClCompile Include="Source\CLR\InternalCalls\System.Runtime.CompilerServices.RuntimeHelpers.c" />
     <ClCompile Include="Source\CLR\InternalCalls\System.String.c" />
     <ClCompile Include="Source\CLR\IROptimizer.c" />
@@ -88,6 +89,7 @@
     <ClInclude Include="Source\CLR\InternalCalls\System.Console.h" />
     <ClInclude Include="Source\CLR\InternalCalls\System.Convert.h" />
     <ClInclude Include="Source\CLR\InternalCalls\System.DateTime.h" />
+    <ClInclude Include="Source\CLR\InternalCalls\System.MonoEnumInfo.h" />
     <ClInclude Include="Source\CLR\InternalCalls\System.Runtime.CompilerServices.RuntimeHelpers.h" />
     <ClInclude Include="Source\CLR\InternalCalls\System.String.h" />
     <ClInclude Include="Source\CLR\IROpcode.h" />

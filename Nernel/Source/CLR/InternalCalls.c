@@ -7,6 +7,7 @@
 #include <CLR/InternalCalls/System.Console.h>
 #include <CLR/InternalCalls/System.Convert.h>
 #include <CLR/InternalCalls/System.DateTime.h>
+#include <CLR/InternalCalls/System.MonoEnumInfo.h>
 #include <CLR/InternalCalls/System.Runtime.CompilerServices.RuntimeHelpers.h>
 #include <CLR/InternalCalls/System.String.h>
 #include <System/Console.h>
@@ -64,6 +65,8 @@ const InternalCall InternalCallTable[] =
 
 	{	NULL,									"DateTime",				"GetTimeMonotonic",				SignatureElementType_I8,					0,	{ }, &System_DateTime_GetTimeMonotonic },
 	{	NULL,									NULL,					"GetNow",						SignatureElementType_I8,					0,	{ }, &System_DateTime_GetNow },
+
+	{	NULL,									"MonoEnumInfo",			"get_enum_info",				SignatureElementType_Void,					2,	{ SignatureElementType_Class, SignatureElementType_ValueType }, &System_MonoEnumInfo_get_enum_info },
 
 	{	NULL,									"String",				".ctor",						SignatureElementType_Void,					1,	{ SignatureElementType_Pointer, SignatureElementType_Char }, &System_String_Ctor_CharPointer },
 	{	NULL,									NULL,					NULL,							SignatureElementType_Void,					1,	{ SignatureElementType_Pointer, SignatureElementType_I1 }, &System_String_Ctor_SBytePointer },
