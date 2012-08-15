@@ -9,3 +9,8 @@ void System_GC_InternalCollect(AppDomain* pAppDomain, uint32_t pGeneration)
 {
 	pAppDomain->GarbageCollector->ForceCollect = TRUE;
 }
+
+uint32_t System_GC_GetGeneration(AppDomain* pAppDomain, void* pObject)
+{
+	return 0;
+}

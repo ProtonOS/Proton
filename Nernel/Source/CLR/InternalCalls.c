@@ -67,7 +67,9 @@ const InternalCall InternalCallTable[] =
 	{	NULL,									"DateTime",				"GetTimeMonotonic",				SignatureElementType_I8,					0,	{ }, &System_DateTime_GetTimeMonotonic },
 	{	NULL,									NULL,					"GetNow",						SignatureElementType_I8,					0,	{ }, &System_DateTime_GetNow },
 
-	{	NULL,									"GC",					"InternalCollect",				SignatureElementType_Void,					1,	{ SignatureElementType_I4 }, &System_GC_InternalCollect },
+	{	NULL,									"GC",					"get_MaxGeneration",			SignatureElementType_I4,					0,	{ }, &System_GC_get_MaxGeneration },
+	{	NULL,									NULL,					"InternalCollect",				SignatureElementType_Void,					1,	{ SignatureElementType_I4 }, &System_GC_InternalCollect },
+	{	NULL,									NULL,					"GetGeneration",				SignatureElementType_I4,					1,	{ SignatureElementType_Object }, &System_GC_GetGeneration },
 
 	{	NULL,									"MonoEnumInfo",			"get_enum_info",				SignatureElementType_Void,					2,	{ SignatureElementType_Class, SignatureElementType_ValueType }, &System_MonoEnumInfo_get_enum_info },
 
