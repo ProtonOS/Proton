@@ -6,6 +6,7 @@
 #include <CLR/InternalCalls/System.Buffer.h>
 #include <CLR/InternalCalls/System.Console.h>
 #include <CLR/InternalCalls/System.Convert.h>
+#include <CLR/InternalCalls/System.DateTime.h>
 #include <CLR/InternalCalls/System.Runtime.CompilerServices.RuntimeHelpers.h>
 #include <CLR/InternalCalls/System.String.h>
 #include <System/Console.h>
@@ -60,6 +61,9 @@ const InternalCall InternalCallTable[] =
 
 	{	NULL,									"Convert",				"InternalFromBase64String",		SignatureElementType_SingleDimensionArray,	2,	{ SignatureElementType_String, SignatureElementType_Boolean }, &System_Convert_InternalFromBase64String },
 	{	NULL,									NULL,					"InternalFromBase64CharArray",	SignatureElementType_SingleDimensionArray,	3,	{ SignatureElementType_SingleDimensionArray, SignatureElementType_Char, SignatureElementType_I4, SignatureElementType_I4 }, &System_Convert_InternalFromBase64CharArray },
+
+	{	NULL,									"DateTime",				"GetTimeMonotonic",				SignatureElementType_I8,					0,	{ }, &System_DateTime_GetTimeMonotonic },
+	{	NULL,									NULL,					"GetNow",						SignatureElementType_I8,					0,	{ }, &System_DateTime_GetNow },
 
 	{	NULL,									"String",				".ctor",						SignatureElementType_Void,					1,	{ SignatureElementType_Pointer, SignatureElementType_Char }, &System_String_Ctor_CharPointer },
 	{	NULL,									NULL,					NULL,							SignatureElementType_Void,					1,	{ SignatureElementType_Pointer, SignatureElementType_I1 }, &System_String_Ctor_SBytePointer },

@@ -6,7 +6,7 @@
 uint32_t gPIT_MaxHertz = 1193182;
 uint16_t gPIT_CycleHertz = 100;
 uint16_t gPIT_MillisecondsPerCycle = 0;
-uint32_t gPIT_MillisecondsElapsed = 0;
+uint16_t gPIT_MillisecondsElapsed = 0;
 uint32_t gPIT_SecondsElapsed = 0;
 volatile APIC* gPIT_FrequencyTesting = NULL;
 uint32_t gPIT_FrequencyCount = 0;

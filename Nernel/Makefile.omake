@@ -81,6 +81,7 @@
 	Source/CLR/InternalCalls/System.Buffer.c
 	Source/CLR/InternalCalls/System.Console.c
 	Source/CLR/InternalCalls/System.Convert.c
+	Source/CLR/InternalCalls/System.DateTime.c
 	Source/CLR/InternalCalls/System.String.c
 	Source/CLR/InternalCalls/System.Runtime.CompilerServices.RuntimeHelpers.c
 	Source/CLR/JIT/BranchRegistry.c
