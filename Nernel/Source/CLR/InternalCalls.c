@@ -25,9 +25,15 @@ void Mernel_Kernel_Write(AppDomain* pAppDomain, void* pString)
 	}
 }
 
+void Mernel_Kernel_Write_Long(AppDomain* pAppDomain, int64_t pValue)
+{
+	printf("TotalAllocated = %llu\n", (unsigned long long)pValue);
+}
+
 const InternalCall InternalCallTable[] = 
 {
 	{	"Mernel",								"Kernel",				"Write",						SignatureElementType_Void,					1,	{ SignatureElementType_String }, &Mernel_Kernel_Write },
+	{	NULL,									NULL,					NULL,							SignatureElementType_Void,					1,	{ SignatureElementType_I8 }, &Mernel_Kernel_Write_Long },
 
 
 	{	"Mono.Interop",							"ComInteropProxy",		"AddProxy",						SignatureElementType_Void,					2,	{ SignatureElementType_IPointer, SignatureElementType_Class }, &Mono_Interop_ComInteropProxy_AddProxy },
@@ -70,6 +76,7 @@ const InternalCall InternalCallTable[] =
 	{	NULL,									"GC",					"get_MaxGeneration",			SignatureElementType_I4,					0,	{ }, &System_GC_get_MaxGeneration },
 	{	NULL,									NULL,					"InternalCollect",				SignatureElementType_Void,					1,	{ SignatureElementType_I4 }, &System_GC_InternalCollect },
 	{	NULL,									NULL,					"GetGeneration",				SignatureElementType_I4,					1,	{ SignatureElementType_Object }, &System_GC_GetGeneration },
+	{	NULL,									NULL,					"GetTotalMemory",				SignatureElementType_I8,					1,	{ SignatureElementType_Boolean }, &System_GC_GetTotalMemory },
 
 	{	NULL,									"MonoEnumInfo",			"get_enum_info",				SignatureElementType_Void,					2,	{ SignatureElementType_Class, SignatureElementType_ValueType }, &System_MonoEnumInfo_get_enum_info },
 

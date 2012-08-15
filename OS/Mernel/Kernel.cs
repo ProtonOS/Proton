@@ -9,6 +9,9 @@ namespace Mernel
         [MethodImpl(MethodImplOptions.InternalCall)]
         public static extern void Write(string pString);
 
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public static extern void Write(long pValue);
+
         private unsafe static void Main()
         {
             // TODO: Implement and test all string constructors
@@ -34,6 +37,7 @@ namespace Mernel
             //string s = "TWFu";
             byte[] b = Convert.FromBase64CharArray(c, 0, 4);
             if (b[0] == 77) Kernel.Write("Yay!\n");
+            Kernel.Write(GC.GetTotalMemory(false));
         }
     }
 }

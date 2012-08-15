@@ -241,6 +241,7 @@ GCObject* GCHeap_Allocate(GCHeap*** pGCHeaps, uint32_t* pGCHeapCount, uint32_t p
         object->Heap = heap;
         heap->Available -= allocatedSize;
         heap->Allocated += allocatedSize;
+		printf("Allocated %u, Available %u\n", (unsigned int)heap->Allocated, (unsigned int)heap->Available);
     }
 	if (!object) Panic("Whoa, how did this happen?!");
 	memset(object->Data, 0x00, pSize);
@@ -723,6 +724,19 @@ void GC_ApplyPressure(AppDomain* pDomain, uint32_t pBytes)
 	Atomic_ReleaseLock(&pDomain->GarbageCollector->Busy);
 }
 
+uint64_t GC_TotalAllocatedMemory(AppDomain* pDomain)
+{
+	uint64_t totalAllocated = 0;
+	for (uint32_t index = 0; index < pDomain->GarbageCollector->SmallGeneration0HeapCount; ++index)
+	{
+		totalAllocated += pDomain->GarbageCollector->SmallGeneration0Heaps[index]->Allocated;
+	}
+	for (uint32_t index = 0; index < pDomain->GarbageCollector->LargeHeapCount; ++index)
+	{
+		totalAllocated += pDomain->GarbageCollector->LargeHeaps[index]->Allocated;
+	}
+	return totalAllocated;
+}
 
 void* GCObject_Internal_IsInst(void* pObject, IRType* pType)
 {
