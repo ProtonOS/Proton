@@ -69,16 +69,17 @@ struct _GC
 {
 	AppDomain* Domain;
 	uint8_t Busy;
-	uint32_t Pressure;
+	bool_t ForceCollect;
+	volatile uint32_t Pressure;
 	void* EmptyStringObject;
 	GCObject* StringHashTable;
 
     uint32_t SmallGeneration0HeapCount;
     GCHeap** SmallGeneration0Heaps;
-    uint32_t SmallGeneration1HeapCount;
-    GCHeap** SmallGeneration1Heaps;
-    uint32_t SmallGeneration2HeapCount;
-    GCHeap** SmallGeneration2Heaps;
+    //uint32_t SmallGeneration1HeapCount;
+    //GCHeap** SmallGeneration1Heaps;
+    //uint32_t SmallGeneration2HeapCount;
+    //GCHeap** SmallGeneration2Heaps;
     uint32_t LargeHeapCount;
     GCHeap** LargeHeaps;
 };

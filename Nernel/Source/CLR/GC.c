@@ -11,16 +11,16 @@ GC* GC_Create(AppDomain* pDomain)
 	pDomain->GarbageCollector = gc;
 	gc->Domain = pDomain;
 	gc->SmallGeneration0HeapCount = 1;
-	gc->SmallGeneration1HeapCount = 1;
-	gc->SmallGeneration2HeapCount = 1;
+	//gc->SmallGeneration1HeapCount = 1;
+	//gc->SmallGeneration2HeapCount = 1;
 	gc->LargeHeapCount = 1;
 	gc->SmallGeneration0Heaps = (GCHeap**)calloc(1, sizeof(GCHeap*));
-	gc->SmallGeneration1Heaps = (GCHeap**)calloc(1, sizeof(GCHeap*));
-	gc->SmallGeneration2Heaps = (GCHeap**)calloc(1, sizeof(GCHeap*));
+	//gc->SmallGeneration1Heaps = (GCHeap**)calloc(1, sizeof(GCHeap*));
+	//gc->SmallGeneration2Heaps = (GCHeap**)calloc(1, sizeof(GCHeap*));
 	gc->LargeHeaps = (GCHeap**)calloc(1, sizeof(GCHeap*));
 	gc->SmallGeneration0Heaps[0] = GCHeap_Create(GCHeap__SmallHeap_Size, GCHeap__SmallHeap_InitialPoolSize, TRUE);
-	gc->SmallGeneration1Heaps[0] = GCHeap_Create(GCHeap__SmallHeap_Size, GCHeap__SmallHeap_InitialPoolSize, TRUE);
-	gc->SmallGeneration2Heaps[0] = GCHeap_Create(GCHeap__SmallHeap_Size, GCHeap__SmallHeap_InitialPoolSize, TRUE);
+	//gc->SmallGeneration1Heaps[0] = GCHeap_Create(GCHeap__SmallHeap_Size, GCHeap__SmallHeap_InitialPoolSize, TRUE);
+	//gc->SmallGeneration2Heaps[0] = GCHeap_Create(GCHeap__SmallHeap_Size, GCHeap__SmallHeap_InitialPoolSize, TRUE);
 	gc->LargeHeaps[0] = GCHeap_Create(GCHeap__LargeHeap_Size, GCHeap__LargeHeap_InitialPoolSize, TRUE);
 
 	GC_AllocateStringFromASCII(pDomain, (int8_t*)"", 0, &gc->EmptyStringObject);
@@ -33,15 +33,15 @@ void GC_Destroy(GC* pGC)
 {
     for (uint32_t index = 0; index < pGC->LargeHeapCount; ++index)
         GCHeap_Destroy(pGC->LargeHeaps[index]);
-    for (uint32_t index = 0; index < pGC->SmallGeneration2HeapCount; ++index)
-        GCHeap_Destroy(pGC->SmallGeneration2Heaps[index]);
-    for (uint32_t index = 0; index < pGC->SmallGeneration1HeapCount; ++index)
-        GCHeap_Destroy(pGC->SmallGeneration1Heaps[index]);
+    //for (uint32_t index = 0; index < pGC->SmallGeneration2HeapCount; ++index)
+    //    GCHeap_Destroy(pGC->SmallGeneration2Heaps[index]);
+    //for (uint32_t index = 0; index < pGC->SmallGeneration1HeapCount; ++index)
+    //    GCHeap_Destroy(pGC->SmallGeneration1Heaps[index]);
     for (uint32_t index = 0; index < pGC->SmallGeneration0HeapCount; ++index)
         GCHeap_Destroy(pGC->SmallGeneration0Heaps[index]);
     free (pGC->LargeHeaps);
-    free (pGC->SmallGeneration2Heaps);
-    free (pGC->SmallGeneration1Heaps);
+    //free (pGC->SmallGeneration2Heaps);
+    //free (pGC->SmallGeneration1Heaps);
     free (pGC->SmallGeneration0Heaps);
     free(pGC);
 }
@@ -698,8 +698,8 @@ void GC_MarkAndSweep(AppDomain* pDomain)
 
 	// At this point we should have a complete marked object pool, anything
 	// that is not marked is no longer alive and can have finalizers called
-	GCHeap_Sweep(&pDomain->GarbageCollector->SmallGeneration2Heaps, &pDomain->GarbageCollector->SmallGeneration2HeapCount, pDomain);
-	GCHeap_Sweep(&pDomain->GarbageCollector->SmallGeneration1Heaps, &pDomain->GarbageCollector->SmallGeneration1HeapCount, pDomain);
+	//GCHeap_Sweep(&pDomain->GarbageCollector->SmallGeneration2Heaps, &pDomain->GarbageCollector->SmallGeneration2HeapCount, pDomain);
+	//GCHeap_Sweep(&pDomain->GarbageCollector->SmallGeneration1Heaps, &pDomain->GarbageCollector->SmallGeneration1HeapCount, pDomain);
 	GCHeap_Sweep(&pDomain->GarbageCollector->SmallGeneration0Heaps, &pDomain->GarbageCollector->SmallGeneration0HeapCount, pDomain);
 	GCHeap_Sweep(&pDomain->GarbageCollector->LargeHeaps, &pDomain->GarbageCollector->LargeHeapCount, pDomain);
 
@@ -715,9 +715,7 @@ void GC_MarkAndSweep(AppDomain* pDomain)
 
 void GC_ApplyPressure(AppDomain* pDomain, uint32_t pBytes)
 {
-	Atomic_AquireLock(&pDomain->GarbageCollector->Busy);
-	pDomain->GarbageCollector->Pressure += pBytes;
-	if (pDomain->GarbageCollector->Pressure >= GC__PressureTriggerInBytes)
+	if (Atomic_Add(&pDomain->GarbageCollector->Pressure, pBytes) >= GC__PressureTriggerInBytes)
 	{
 		GC_MarkAndSweep(pDomain);
 		pDomain->GarbageCollector->Pressure = 0;
