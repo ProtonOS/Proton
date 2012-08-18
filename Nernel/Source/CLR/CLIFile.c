@@ -1200,4 +1200,14 @@ void CLIFile_Link(CLIFile* pFile)
             }
         }
     }
+
+
+	//for (uint32_t index = 1; index <= pFile->MethodDefinitionCount; ++index)
+	//{
+	//	for (uint32_t index2 = 0; index2 < pFile->MethodDefinitions[index].CustomAttributeCount; ++index2)
+	//	{
+	//		CustomAttributeSignature* sig = CustomAttributeSignature_Expand((uint8_t*)pFile->MethodDefinitions[index].CustomAttributes[index2]->Value, pFile->MethodDefinitions[index].CustomAttributes[index2]);
+	//		CustomAttributeSignature_Destroy(sig);
+	//	}
+	//}
 }

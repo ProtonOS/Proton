@@ -55,6 +55,10 @@ typedef struct _SignatureMethodSpecification SignatureMethodSpecification;
 typedef struct _SignatureArrayShape SignatureArrayShape;
 typedef struct _SignatureLocalVariable SignatureLocalVariable;
 
+typedef struct _CustomAttributeSignature CustomAttributeSignature;
+typedef struct _SignatureArg SignatureArg;
+typedef struct _SignatureElement SignatureElement;
+
 #include <CLR/CLIFile.h>
 
 typedef enum TypeDefRefOrSpecType
@@ -1220,6 +1224,7 @@ struct _Property
     const char* Name;
     uint32_t SignatureLength;
     uint8_t* Signature;
+	PropertySignature* SignatureCache;
 
     Constant* Constant;
     uint32_t CustomAttributeCount;
@@ -1532,6 +1537,12 @@ struct _SignatureType
 		};
 		uint32_t ValueTypeDefOrRefOrSpecToken;
 		uint32_t VarNumber;
+		struct
+		{
+			uint32_t EnumNameLength;
+			const char* EnumName;
+		};
+		SignatureType* ObjectBoxedType;
 	};
 };
 
@@ -1577,3 +1588,43 @@ struct _SignatureLocalVariable
 SignatureLocalVariable* SignatureLocalVariable_Create();
 void SignatureLocalVariable_Destroy(SignatureLocalVariable* pLocalVariable);
 uint8_t* SignatureLocalVariable_Parse(uint8_t* pCursor, SignatureLocalVariable** pLocalVariable, CLIFile* pCLIFile);
+
+
+
+struct _CustomAttributeSignature
+{
+	uint32_t FixedArgCount;
+	SignatureArg* FixedArgs;
+	uint32_t NamedArgCount;
+	SignatureArg* NamedArgs;
+};
+
+CustomAttributeSignature* CustomAttributeSignature_Create();
+void CustomAttributeSignature_Destroy(CustomAttributeSignature* pCustomAttributeSignature);
+uint8_t* CustomAttributeSignature_Parse(uint8_t* pCursor, CustomAttributeSignature** pCustomAttributeSignature, CustomAttribute* pCustomAttribute, CLIFile* pCLIFile);
+CustomAttributeSignature* CustomAttributeSignature_Expand(uint8_t* pSignature, CustomAttribute* pCustomAttribute, CLIFile* pCLIFile);
+
+typedef enum _SignatureArgType
+{
+	SignatureArgType_Parameter,
+	SignatureArgType_Field,
+	SignatureArgType_Property,
+} SignatureArgType;
+
+struct _SignatureArg
+{
+	SignatureArgType ArgType;
+	uint32_t NameLength;
+	const char* Name;
+	SignatureType* Type;
+	uint32_t ElementCount;
+	SignatureElement* Elements;
+};
+
+struct _SignatureElement
+{
+	uint32_t ValueSize;
+	void* Value;
+};
+
+uint8_t* SignatureElement_Parse(uint8_t* pCursor, SignatureArg* pSignatureArg, MethodDefinition* pConstructorMethod, CustomAttribute* pCustomAttribute, SignatureElement* pSignatureElement, CLIFile* pCLIFile);

@@ -5336,6 +5336,12 @@ char* JIT_Emit_Call_Virtual(char* pCompiledCode, IRMethod* pMethod, IRInstructio
 	IRMethod* method = ((IRType*)pInstruction->Arg1)->Methods[(uint32_t)pInstruction->Arg2];
 	if (method->Returns)
 	{
+		if (method->ReturnType->StackSize > 4 && method->ReturnType->StackSize <= 8)
+		{
+			x86_adjust_stack(pCompiledCode, gSizeOfPointerInBytes << 1);
+			x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, X86_EAX, gSizeOfPointerInBytes);
+			x86_mov_membase_reg(pCompiledCode, X86_ESP, gSizeOfPointerInBytes, X86_EDX, gSizeOfPointerInBytes);
+		}
 		pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, X86_EAX, X86_EDX, X86_ECX, NULL);
 	}
 
@@ -5368,6 +5374,12 @@ char* JIT_Emit_Call_Absolute(char* pCompiledCode, IRMethod* pMethod, IRInstructi
 
 	if (method->Returns)
 	{
+		if (method->ReturnType->StackSize > 4 && method->ReturnType->StackSize <= 8)
+		{
+			x86_adjust_stack(pCompiledCode, gSizeOfPointerInBytes << 1);
+			x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, X86_EAX, gSizeOfPointerInBytes);
+			x86_mov_membase_reg(pCompiledCode, X86_ESP, gSizeOfPointerInBytes, X86_EDX, gSizeOfPointerInBytes);
+		}
 		pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, X86_EAX, X86_EDX, X86_ECX, NULL);
 	}
 
