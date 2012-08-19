@@ -1,5 +1,7 @@
 #include <CLR/Optimizations/IntrinsicSubstitution.h>
 
+extern uint8_t gSMP_StartedProcessors;
+
 typedef struct _IntrinsicSubstitution
 {
 	const char* Namespace;
@@ -10,14 +12,18 @@ typedef struct _IntrinsicSubstitution
 
 const IntrinsicSubstitution IntrinsicSubstitutionTable[] = 
 {
-	{	"System",								"Buffer",				"ByteLengthInternal",			IntrinsicCallType___System___Buffer___ByteLengthInternal},
-	{	NULL,									NULL,					"GetByteInternal",				IntrinsicCallType___System___Buffer___GetByteInternal},
-	{	NULL,									NULL,					"SetByteInternal",				IntrinsicCallType___System___Buffer___SetByteInternal},
+	{	"System",								"Buffer",				"ByteLengthInternal",			IntrinsicCallType___System___Buffer___ByteLengthInternal },
+	{	NULL,									NULL,					"GetByteInternal",				IntrinsicCallType___System___Buffer___GetByteInternal },
+	{	NULL,									NULL,					"SetByteInternal",				IntrinsicCallType___System___Buffer___SetByteInternal },
 
-	{	NULL,									"GC",					"get_MaxGeneration",			IntrinsicCallType___System___GC___get_MaxGeneration},
-	{	NULL,									NULL,					"GetGeneration",				IntrinsicCallType___System___GC___GetGeneration},
+	{	NULL,									"Environment",			"get_Platform",					IntrinsicCallType___System___Environment___get_Platform },
+	{	NULL,									NULL,					"get_ProcessorCount",			IntrinsicCallType___System___Environment___get_ProcessorCount },
+	{	NULL,									NULL,					"GetPageSize",					IntrinsicCallType___System___Environment___GetPageSize },
 
-	{	"System.Runtime.CompilerServices",		"RuntimeHelpers",		"get_OffsetToStringData",		IntrinsicCallType___System_Runtime_CompilerServices___RuntimeHelpers___get_OffsetToStringData},
+	{	NULL,									"GC",					"get_MaxGeneration",			IntrinsicCallType___System___GC___get_MaxGeneration },
+	{	NULL,									NULL,					"GetGeneration",				IntrinsicCallType___System___GC___GetGeneration },
+
+	{	"System.Runtime.CompilerServices",		"RuntimeHelpers",		"get_OffsetToStringData",		IntrinsicCallType___System_Runtime_CompilerServices___RuntimeHelpers___get_OffsetToStringData },
 
 	{	NULL,									NULL,					NULL,							IntrinsicCallType___NULL }
 };
@@ -101,6 +107,30 @@ void IROptimizer_IntrinsicSubstitution(IRMethod* pMethod)
 							free(instruction->SourceArray);
 							instruction->SourceArray = NULL;
 							instruction->SourceArrayLength = 0;
+							instruction->Arg1 = NULL;
+							break;
+						}
+						case IntrinsicCallType___System___Environment___get_Platform:
+						{
+							instruction->Opcode = IROpcode_Move;
+							instruction->Source1.Type = SourceType_ConstantI4;
+							instruction->Source1.Data.ConstantI4.Value = 4;
+							instruction->Arg1 = NULL;
+							break;
+						}
+						case IntrinsicCallType___System___Environment___get_ProcessorCount:
+						{
+							instruction->Opcode = IROpcode_Move;
+							instruction->Source1.Type = SourceType_ConstantI4;
+							instruction->Source1.Data.ConstantI4.Value = gSMP_StartedProcessors;
+							instruction->Arg1 = NULL;
+							break;
+						}
+						case IntrinsicCallType___System___Environment___GetPageSize:
+						{
+							instruction->Opcode = IROpcode_Move;
+							instruction->Source1.Type = SourceType_ConstantI4;
+							instruction->Source1.Data.ConstantI4.Value = 4096;
 							instruction->Arg1 = NULL;
 							break;
 						}

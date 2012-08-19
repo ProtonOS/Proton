@@ -7,6 +7,8 @@
 #include <CLR/InternalCalls/System.Console.h>
 #include <CLR/InternalCalls/System.Convert.h>
 #include <CLR/InternalCalls/System.DateTime.h>
+#include <CLR/InternalCalls/System.Enum.h>
+#include <CLR/InternalCalls/System.Environment.h>
 #include <CLR/InternalCalls/System.GC.h>
 #include <CLR/InternalCalls/System.MonoEnumInfo.h>
 #include <CLR/InternalCalls/System.Runtime.CompilerServices.RuntimeHelpers.h>
@@ -72,6 +74,21 @@ const InternalCall InternalCallTable[] =
 
 	{	NULL,									"DateTime",				"GetTimeMonotonic",				SignatureElementType_I8,					0,	{ }, &System_DateTime_GetTimeMonotonic },
 	{	NULL,									NULL,					"GetNow",						SignatureElementType_I8,					0,	{ }, &System_DateTime_GetNow },
+
+	{	NULL,									"Enum",					"get_value",					SignatureElementType_Object,				0,	{ }, &System_Enum_get_value },
+	{	NULL,									NULL,					"get_underlying_type",			SignatureElementType_Class,					1,	{ SignatureElementType_Class }, &System_Enum_get_underlying_type },
+	{	NULL,									NULL,					"compare_value_to",				SignatureElementType_I4,					1,	{ SignatureElementType_Object }, &System_Enum_compare_value_to },
+	{	NULL,									NULL,					"ToObject",						SignatureElementType_Object,				2,	{ SignatureElementType_Class, SignatureElementType_Object }, &System_Enum_ToObject },
+	{	NULL,									NULL,					"get_hashcode",					SignatureElementType_I4,					0,	{ }, &System_Enum_get_hashcode },
+
+	{	NULL,									"Environment",			"GetNewLine",					SignatureElementType_String,				0,	{ }, &System_Environment_GetNewLine },
+	{	NULL,									NULL,					"get_Platform",					SignatureElementType_ValueType,				0,	{ }, &System_Environment_get_Platform },
+	{	NULL,									NULL,					"GetOSVersionString",			SignatureElementType_String,				0,	{ }, &System_Environment_GetOSVersionString },
+	{	NULL,									NULL,					"get_TickCount",				SignatureElementType_I4,					0,	{ }, &System_Environment_get_TickCount },
+	{	NULL,									NULL,					"GetWindowsFolderPath",			SignatureElementType_String,				1,	{ SignatureElementType_I4 }, &System_Environment_GetWindowsFolderPath },
+	{	NULL,									NULL,					"get_ProcessorCount",			SignatureElementType_I4,					0,	{ }, &System_Environment_get_ProcessorCount },
+	{	NULL,									NULL,					"internalGetGacPath",			SignatureElementType_String,				0,	{ }, &System_Environment_internalGetGacPath },
+	{	NULL,									NULL,					"GetPageSize",					SignatureElementType_I4,					0,	{ }, &System_Environment_GetPageSize },
 
 	{	NULL,									"GC",					"get_MaxGeneration",			SignatureElementType_I4,					0,	{ }, &System_GC_get_MaxGeneration },
 	{	NULL,									NULL,					"InternalCollect",				SignatureElementType_Void,					1,	{ SignatureElementType_I4 }, &System_GC_InternalCollect },

@@ -1,5 +1,5 @@
 #include <CLR/JIT.h>
-#include <CLR/JIT/x86/Layout.h>
+#include <CLR/JIT/Layout.h>
 
 const uint32_t gSizeOfPointerInBytes = 4;
 const uint32_t gPointerDivideShift = 2;

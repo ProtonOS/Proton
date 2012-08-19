@@ -10,6 +10,8 @@
 
 #include <System/Log.h>
 
+#define PROTON_VERSION_STRING "1.0.0.0"
+
 #ifdef _WIN32
 #include <IntellisenseFixes.h>
 __declspec(noreturn) extern void Halt();

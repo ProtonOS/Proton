@@ -25,6 +25,8 @@
     <ClCompile Include="Source\CLR\InternalCalls\System.Console.c" />
     <ClCompile Include="Source\CLR\InternalCalls\System.Convert.c" />
     <ClCompile Include="Source\CLR\InternalCalls\System.DateTime.c" />
+    <ClCompile Include="Source\CLR\InternalCalls\System.Enum.c" />
+    <ClCompile Include="Source\CLR\InternalCalls\System.Environment.c" />
     <ClCompile Include="Source\CLR\InternalCalls\System.GC.c" />
     <ClCompile Include="Source\CLR\InternalCalls\System.MonoEnumInfo.c" />
     <ClCompile Include="Source\CLR\InternalCalls\System.Runtime.CompilerServices.RuntimeHelpers.c" />
@@ -90,6 +92,8 @@
     <ClInclude Include="Source\CLR\InternalCalls\System.Console.h" />
     <ClInclude Include="Source\CLR\InternalCalls\System.Convert.h" />
     <ClInclude Include="Source\CLR\InternalCalls\System.DateTime.h" />
+    <ClInclude Include="Source\CLR\InternalCalls\System.Enum.h" />
+    <ClInclude Include="Source\CLR\InternalCalls\System.Environment.h" />
     <ClInclude Include="Source\CLR\InternalCalls\System.GC.h" />
     <ClInclude Include="Source\CLR\InternalCalls\System.MonoEnumInfo.h" />
     <ClInclude Include="Source\CLR\InternalCalls\System.Runtime.CompilerServices.RuntimeHelpers.h" />
@@ -99,7 +103,7 @@
     <ClInclude Include="Source\CLR\IRStructures.h" />
     <ClInclude Include="Source\CLR\JIT.h" />
     <ClInclude Include="Source\CLR\JIT\BranchRegistry.h" />
-    <ClInclude Include="Source\CLR\JIT\x86\Layout.h" />
+    <ClInclude Include="Source\CLR\JIT\Layout.h" />
     <ClInclude Include="Source\CLR\JIT\x86\x86-codegen-extra.h" />
     <ClInclude Include="Source\CLR\JIT\x86\x86-codegen.h" />
     <ClInclude Include="Source\CLR\MetadataStructures.h" />

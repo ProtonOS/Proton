@@ -11,6 +11,9 @@ typedef enum IntrinsicCallType
 	IntrinsicCallType___System___Buffer___SetByteInternal,
 	IntrinsicCallType___System___GC___get_MaxGeneration,
 	IntrinsicCallType___System___GC___GetGeneration,
+	IntrinsicCallType___System___Environment___get_Platform,
+	IntrinsicCallType___System___Environment___get_ProcessorCount,
+	IntrinsicCallType___System___Environment___GetPageSize,
 } IntrinsicCallType;
 
 void IROptimizer_IntrinsicSubstitution(IRMethod* pMethod);

@@ -82,6 +82,8 @@
 	Source/CLR/InternalCalls/System.Console.c
 	Source/CLR/InternalCalls/System.Convert.c
 	Source/CLR/InternalCalls/System.DateTime.c
+	Source/CLR/InternalCalls/System.Enum.c
+	Source/CLR/InternalCalls/System.Environment.c
 	Source/CLR/InternalCalls/System.GC.c
 	Source/CLR/InternalCalls/System.MonoEnumInfo.c
 	Source/CLR/InternalCalls/System.String.c
