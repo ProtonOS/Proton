@@ -38,6 +38,11 @@ namespace Mernel
             //byte[] b = Convert.FromBase64CharArray(c, 0, 4);
             //if (b[0] == 77) Kernel.Write("Yay!\n");
             //Kernel.Write(GC.GetTotalMemory(false));
+
+            // Can't test this yet, uses new char[] { .... }, requiring RuntimeHelpers.InitializeArray, for static Whitespace chars
+            //string x = "Test1,Test2";
+            //string[] y = x.Split(',');
+            //Kernel.Write(y[0]);
             Kernel.Write("Test\n");
         }
     }

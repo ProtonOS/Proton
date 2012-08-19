@@ -42,3 +42,99 @@ void System_String_Ctor_SBytePointerWithStartAndLength(AppDomain* pAppDomain, vo
 {
 	GC_AllocateStringFromASCII(pAppDomain, pSBytePointer + pStart, pLength, pAllocatedObject);
 }
+
+
+void System_String_InternalSplit(AppDomain* pAppDomain, void* pString, void* pSeparatorArray, int32_t pCount, int32_t pOptions, void** pReturnObjectDestination)
+{
+	uint32_t stringLength = *(uint32_t*)pString;
+	IRType* stringArrayType = IRAssembly_MakeArrayType(pAppDomain->IRAssemblies[0], pAppDomain->IRAssemblies[0]->Types[pAppDomain->CachedType___System_String->TableIndex - 1]);
+	if (pCount == 0 || (pOptions == 1 && stringLength == 0))
+	{
+		GC_AllocateArray(pAppDomain, stringArrayType, 0, pReturnObjectDestination);
+		return;
+	}
+	void** stringArrayObject = NULL;
+	if (pCount == 1)
+	{
+		GC_AllocateArray(pAppDomain, stringArrayType, 1, pReturnObjectDestination);
+		stringArrayObject = (void**)*pReturnObjectDestination;
+		stringArrayObject[0] = pString;
+		return;
+	}
+	uint16_t* stringChars = (uint16_t*)((size_t)pString + 4);
+	GCObject* separatorArrayObject = *(GCObject**)((size_t)pSeparatorArray - sizeof(GCObject*));
+	uint32_t separatorArrayLength = separatorArrayObject->Array.Length;
+	uint16_t* separatorArrayChars = (uint16_t*)pSeparatorArray;
+
+	uint16_t** tempStrings = (uint16_t**)calloc(1, sizeof(uint16_t*) * pCount);
+	uint32_t* tempStringLengths = (uint32_t*)calloc(1, sizeof(uint32_t) * pCount);
+	int32_t realCount = 0;
+	uint32_t startIndex = 0;
+	for (uint32_t index = 0; index < stringLength; ++index)
+	{
+		for (uint32_t separatorIndex = 0; separatorIndex < separatorArrayLength; ++separatorIndex)
+		{
+			if (stringChars[index] == separatorArrayChars[separatorIndex])
+			{
+				uint32_t splitLength = index - startIndex;
+				bool_t splitIncluded = (pOptions & 1) == 0 || splitLength > 0;
+				if (splitIncluded)
+				{
+					tempStringLengths[realCount] = splitLength;
+					if (tempStringLengths[realCount] > 0)
+					{
+						tempStrings[realCount] = (uint16_t*)calloc(1, sizeof(uint16_t) * splitLength);
+						memcpy(tempStrings[realCount], stringChars + startIndex, splitLength << 1);
+					}
+				}
+				startIndex = index + 1;
+				if (splitIncluded)
+				{
+					++realCount;
+					if (realCount == (pCount - 1))
+					{
+						tempStringLengths[realCount] = stringLength - startIndex;
+						if (tempStringLengths[realCount])
+						{
+							tempStrings[realCount] = (uint16_t*)calloc(1, sizeof(uint16_t) * tempStringLengths[realCount]);
+							memcpy(tempStrings[realCount], stringChars + startIndex, tempStringLengths[realCount] << 1);
+						}
+						++realCount;
+						index = stringLength - 1;
+						break;
+					}
+				}
+			}
+		}
+	}
+	if (startIndex < stringLength)
+	{
+		tempStringLengths[realCount] = stringLength - startIndex;
+		tempStrings[realCount] = (uint16_t*)calloc(1, sizeof(uint16_t) * tempStringLengths[realCount]);
+		memcpy(tempStrings[realCount], stringChars + startIndex, tempStringLengths[realCount] << 1);
+		++realCount;
+	}
+	GC_AllocateArray(pAppDomain, stringArrayType, realCount, pReturnObjectDestination);
+	stringArrayObject = (void**)*pReturnObjectDestination;
+	for (int32_t index = 0; index < realCount; ++index)
+	{
+		if (tempStrings[index])
+		{
+			GC_AllocateStringFromUnicode(pAppDomain, tempStrings[index], tempStringLengths[index], &stringArrayObject[index]);
+			free(tempStrings[index]);
+		}
+		else stringArrayObject[index] = pAppDomain->GarbageCollector->EmptyStringObject;
+	}
+	free(tempStrings);
+	free(tempStringLengths);
+}
+
+void System_String_InternalAllocateStr(AppDomain* pAppDomain, int32_t pLength, void** pReturnObjectDestination)
+{
+	GC_AllocateEmptyStringFromLength(pAppDomain, pLength, pReturnObjectDestination);
+}
+
+int32_t System_String_GetLOSLimit(AppDomain* pAppDomain)
+{
+	return 0x7FFFFFFF;
+}

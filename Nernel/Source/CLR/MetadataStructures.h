@@ -827,6 +827,7 @@ struct _Field
     uint32_t CustomAttributeCount;
     CustomAttribute** CustomAttributes;
     FieldMarshal* FieldMarshal;
+	FieldRVA* FieldRVA;
     ImplementationMap* ImplementationMap;
 	TypeDefinition* TypeDefinition;
 };

@@ -138,6 +138,9 @@ const InternalCall InternalCallTable[] =
 	{	NULL,									NULL,					NULL,								SignatureElementType_Void,					3,	{ SignatureElementType_SingleDimensionArray, SignatureElementType_Char, SignatureElementType_I4, SignatureElementType_I4 }, &System_String_Ctor_CharArrayWithStartAndLength },
 	{	NULL,									NULL,					NULL,								SignatureElementType_Void,					3,	{ SignatureElementType_Pointer, SignatureElementType_Char, SignatureElementType_I4, SignatureElementType_I4 }, &System_String_Ctor_CharPointerWithStartAndLength },
 	{	NULL,									NULL,					NULL,								SignatureElementType_Void,					3,	{ SignatureElementType_Pointer, SignatureElementType_I1, SignatureElementType_I4, SignatureElementType_I4 }, &System_String_Ctor_SBytePointerWithStartAndLength },
+	{	NULL,									NULL,					"InternalSplit",					SignatureElementType_SingleDimensionArray,	3,	{ SignatureElementType_SingleDimensionArray, SignatureElementType_Char, SignatureElementType_I4, SignatureElementType_I4 }, &System_String_InternalSplit },
+	{	NULL,									NULL,					"InternalAllocateStr",				SignatureElementType_String,				1,	{ SignatureElementType_I4 }, &System_String_InternalAllocateStr },
+	{	NULL,									NULL,					"GetLOSLimit",						SignatureElementType_I4,					0,	{ }, &System_String_GetLOSLimit },
 
 	{	"System.Runtime.CompilerServices",		"RuntimeHelpers",		"InitializeArray",					SignatureElementType_Void,					2,	{ SignatureElementType_Class, SignatureElementType_IPointer }, &System_Runtime_CompilerServices_RuntimeHelpers_InitializeArray },
 	{	NULL,									NULL,					"get_OffsetToStringData",			SignatureElementType_I4,					0,	{ }, &System_Runtime_CompilerServices_RuntimeHelpers_get_OffsetToStringData },

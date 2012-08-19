@@ -985,6 +985,7 @@ uint8_t* FieldRVA_Load(CLIFile* pFile, uint8_t* pTableData)
         else { fieldIndex = *(uint16_t*)pTableData; pTableData += 2; }
         if (fieldIndex == 0 || fieldIndex > pFile->FieldCount) Panic("FieldRVA_Load Field");
         pFile->FieldRVAs[index].Field = &pFile->Fields[fieldIndex];
+		pFile->Fields[fieldIndex].FieldRVA = &pFile->FieldRVAs[index];
     }
     return pTableData;
 }
