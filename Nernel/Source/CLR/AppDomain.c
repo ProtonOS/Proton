@@ -293,6 +293,13 @@ void AppDomain_LinkCorlib(AppDomain* pDomain, CLIFile* pCorlibFile)
 				pDomain->CachedType___System_Void = type;
 			}
 		}
+		else if (!strcmp(type->Namespace, "System.Threading"))
+		{
+			if (!strcmp(type->Name, "InternalThread"))
+			{
+				pDomain->CachedType___System_Threading_InternalThread = type;
+			}
+		}
 	}
 }
 

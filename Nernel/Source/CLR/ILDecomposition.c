@@ -521,14 +521,18 @@ ElementType ILDecomposition_GetElementTypeFromIRType(IRType* pType)
 	TypeDefinition* typeDef = pType->TypeDefinition;
 	if (typeDef == domain->CachedType___System_Byte) return ElementType_U1;
 	if (typeDef == domain->CachedType___System_UInt16) return ElementType_U2;
+	if (typeDef == domain->CachedType___System_Char) return ElementType_U2;
 	if (typeDef == domain->CachedType___System_UInt32) return ElementType_U4;
+	if (typeDef == domain->CachedType___System_UInt64) return ElementType_U8;
 	if (typeDef == domain->CachedType___System_SByte) return ElementType_I1;
 	if (typeDef == domain->CachedType___System_Int16) return ElementType_I2;
 	if (typeDef == domain->CachedType___System_Int32) return ElementType_I4;
+	if (typeDef == domain->CachedType___System_Int64) return ElementType_I8;
 	if (typeDef == domain->CachedType___System_IntPtr) return ElementType_I;
 	if (typeDef == domain->CachedType___System_UIntPtr) return ElementType_U;
 	if (typeDef == domain->CachedType___System_Single) return ElementType_R4;
 	if (typeDef == domain->CachedType___System_Double) return ElementType_R8;
+	printf("Unknown Type %s.%s\n", typeDef->Namespace, typeDef->Name);
 	Panic("ILDecomposition_GetElementTypeFromIRType: Unknown Type");
 	return (ElementType)0;
 }
@@ -542,6 +546,7 @@ ALWAYS_INLINE void ILDecomposition_CheckBinaryNumericOperandTypesAndSetResult(IR
 	//Log_WriteLine(LOGLEVEL__ILDecomposition_Convert_IREmitter, "Operand B: 0x%x", (unsigned int)pOperandB);
 	if (operandAType == domain->CachedType___System_Byte ||
 		operandAType == domain->CachedType___System_UInt16 ||
+		operandAType == domain->CachedType___System_Char ||
 		operandAType == domain->CachedType___System_UInt32 ||
 		operandAType == domain->CachedType___System_SByte ||
 		operandAType == domain->CachedType___System_Int16 ||
@@ -557,6 +562,7 @@ ALWAYS_INLINE void ILDecomposition_CheckBinaryNumericOperandTypesAndSetResult(IR
 		}
 		if (operandBType == domain->CachedType___System_Byte ||
 			operandBType == domain->CachedType___System_UInt16 ||
+			operandBType == domain->CachedType___System_Char ||
 			operandBType == domain->CachedType___System_UInt32 ||
 			operandBType == domain->CachedType___System_SByte ||
 			operandBType == domain->CachedType___System_Int16 ||
@@ -572,6 +578,7 @@ ALWAYS_INLINE void ILDecomposition_CheckBinaryNumericOperandTypesAndSetResult(IR
 		}
 		else
 		{
+			printf("operandAType = %s.%s, operandBType = %s.%s\n", operandAType->Namespace, operandAType->Name, operandBType->Namespace, operandBType->Name);
 			Panic("Invalid operands for binary numeric operation");
 		}
 	}
@@ -3148,62 +3155,73 @@ BranchCommon:
 						handleData = ((Field*)token->Data)->File->Assembly->Fields[((Field*)token->Data)->TableIndex - 1];
 						break;
 					}
-					//case MetadataTable_MethodDefinition:
-					//{
-					//	type = domain->IRAssemblies[0]->Types[domain->CachedType___System_RuntimeMethodHandle->TableIndex - 1];
-					//	handleType = RuntimeHandleType_MethodDefinition;
-					//	handleData = token->Data;
-					//	break;
-					//}
-					//case MetadataTable_MethodSpecification:
-					//{
-					//	type = domain->IRAssemblies[0]->Types[domain->CachedType___System_RuntimeMethodHandle->TableIndex - 1];
-					//	handleType = RuntimeHandleType_MethodSpecification;
-					//	handleData = token->Data;
-					//	break;
-					//}
-					//case MetadataTable_TypeDefinition:
-					//{
-					//	type = domain->IRAssemblies[0]->Types[domain->CachedType___System_RuntimeTypeHandle->TableIndex - 1];
-					//	handleType = RuntimeHandleType_TypeDefinition;
-					//	handleData = token->Data;
-					//	break;
-					//}
-					//case MetadataTable_TypeReference:
-					//{
-					//	type = domain->IRAssemblies[0]->Types[domain->CachedType___System_RuntimeTypeHandle->TableIndex - 1];
-					//	handleType = RuntimeHandleType_TypeDefinition;
-					//	handleData = ((TypeReference*)token->Data)->ResolvedType;
-					//	break;
-					//}
-					//case MetadataTable_TypeSpecification:
-					//{
-					//	type = domain->IRAssemblies[0]->Types[domain->CachedType___System_RuntimeTypeHandle->TableIndex - 1];
-					//	handleType = RuntimeHandleType_TypeSpecification;
-					//	handleData = token->Data;
-					//	break;
-					//}
-					//case MetadataTable_MemberReference:
-					//{
-					//	if (((MemberReference*)token->Data)->TypeOfResolved == FieldOrMethodDefType_Field)
-					//	{
-					//		type = domain->IRAssemblies[0]->Types[domain->CachedType___System_RuntimeFieldHandle->TableIndex - 1];
-					//		handleType = RuntimeHandleType_IRField;
-					//		handleData = ((MemberReference*)token->Data)->Resolved.Field;
-					//	}
-					//	else if (((MemberReference*)token->Data)->TypeOfResolved == FieldOrMethodDefType_MethodDefinition)
-					//	{
-					//		type = domain->IRAssemblies[0]->Types[domain->CachedType___System_RuntimeMethodHandle->TableIndex - 1];
-					//		handleType = RuntimeHandleType_MethodDefinition;
-					//		handleData = ((MemberReference*)token->Data)->Resolved.MethodDefinition;
-					//	}
-					//	else
-					//	{
-					//		Panic("Unknown MemberReference for LdToken");
-					//	}
-					//	
-					//	break;
-					//}
+					case MetadataTable_MethodDefinition:
+					{
+						type = domain->IRAssemblies[0]->Types[domain->CachedType___System_RuntimeMethodHandle->TableIndex - 1];
+						handleType = RuntimeHandleType_IRMethod;
+						handleData = ((MethodDefinition*)token->Data)->File->Assembly->Methods[((MethodDefinition*)token->Data)->TableIndex - 1];
+						break;
+					}
+					case MetadataTable_MethodSpecification:
+					{
+						type = domain->IRAssemblies[0]->Types[domain->CachedType___System_RuntimeMethodHandle->TableIndex - 1];
+						handleType = RuntimeHandleType_IRMethod;
+						switch (((MethodSpecification*)token->Data)->TypeOfMethod)
+						{
+							case MethodDefOrRefType_MethodDefinition:
+								handleData = ((MethodSpecification*)token->Data)->Method.MethodDefinition->File->Assembly->Methods[((MethodSpecification*)token->Data)->Method.MethodDefinition->TableIndex - 1];
+								break;
+							case MethodDefOrRefType_MemberReference:
+								handleData = ((MethodSpecification*)token->Data)->Method.MemberReference->Resolved.MethodDefinition->File->Assembly->Methods[((MethodSpecification*)token->Data)->Method.MemberReference->Resolved.MethodDefinition->TableIndex - 1];
+								break;
+							default:
+								Panic("Read LdToken, unable to resolve MethodSpecification");
+								break;
+						}
+						break;
+					}
+					case MetadataTable_TypeDefinition:
+					{
+						type = domain->IRAssemblies[0]->Types[domain->CachedType___System_RuntimeTypeHandle->TableIndex - 1];
+						handleType = RuntimeHandleType_IRType;
+						handleData = ((TypeDefinition*)token->Data)->File->Assembly->Types[((TypeDefinition*)token->Data)->TableIndex - 1];
+						break;
+					}
+					case MetadataTable_TypeReference:
+					{
+						type = domain->IRAssemblies[0]->Types[domain->CachedType___System_RuntimeTypeHandle->TableIndex - 1];
+						handleType = RuntimeHandleType_IRType;
+						handleData = ((TypeReference*)token->Data)->ResolvedType->File->Assembly->Types[((TypeReference*)token->Data)->ResolvedType->TableIndex - 1];
+						break;
+					}
+					case MetadataTable_TypeSpecification:
+					{
+						type = domain->IRAssemblies[0]->Types[domain->CachedType___System_RuntimeTypeHandle->TableIndex - 1];
+						handleType = RuntimeHandleType_IRType;
+						if (!((TypeSpecification*)token->Data)->SignatureCache) ((TypeSpecification*)token->Data)->SignatureCache = SignatureType_Expand(((TypeSpecification*)token->Data)->Signature, ((TypeSpecification*)token->Data)->File);
+						handleData = AppDomain_GetIRTypeFromSignatureType(domain, ((TypeSpecification*)token->Data)->File->Assembly, ((TypeSpecification*)token->Data)->SignatureCache);
+						break;
+					}
+					case MetadataTable_MemberReference:
+					{
+						switch (((MemberReference*)token->Data)->TypeOfResolved)
+						{
+							case FieldOrMethodDefType_Field:
+								type = domain->IRAssemblies[0]->Types[domain->CachedType___System_RuntimeFieldHandle->TableIndex - 1];
+								handleType = RuntimeHandleType_IRField;
+								handleData = ((MemberReference*)token->Data)->Resolved.Field->File->Assembly->Fields[((MemberReference*)token->Data)->Resolved.Field->TableIndex - 1];
+								break;
+							case FieldOrMethodDefType_MethodDefinition:
+								type = domain->IRAssemblies[0]->Types[domain->CachedType___System_RuntimeMethodHandle->TableIndex - 1];
+								handleType = RuntimeHandleType_IRMethod;
+								handleData = ((MemberReference*)token->Data)->Resolved.MethodDefinition->File->Assembly->Methods[((MemberReference*)token->Data)->Resolved.MethodDefinition->TableIndex - 1];
+								break;
+							default:
+								Panic("Unknown MemberReference for LdToken");
+								break;
+						}
+						break;
+					}
 					default:
 						Panic("Unknown Table for LdToken");
 						break;
@@ -3225,10 +3243,25 @@ BranchCommon:
 				UNSUPPORTED_OPERATION(EndFinally);
 
             case ILOpcode_Leave:			// 0xDD
-				UNSUPPORTED_OPERATION(Leave);
+			{
+                Log_WriteLine(LOGLEVEL__ILReader, "Read Leave");
 
+				ReadUInt32(currentDataPointer);
+				while (stack->StackDepth > 0) { SR(SyntheticStack_Pop(stack)); }
+
+				// TODO: Insert instruction for branch to destination
+				break;
+			}
             case ILOpcode_Leave_S:			// 0xDE
-				UNSUPPORTED_OPERATION(Leave.S);
+			{
+                Log_WriteLine(LOGLEVEL__ILReader, "Read Leave.S");
+
+				ReadUInt8(currentDataPointer);
+				while (stack->StackDepth > 0) { SR(SyntheticStack_Pop(stack)); }
+
+				// TODO: Insert instruction for branch to destination
+				break;
+			}
 
             case ILOpcode_Extended:         // 0xFE
 		        currentILOpcode = ReadUInt8(currentDataPointer);

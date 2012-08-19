@@ -48,6 +48,7 @@ struct _AppDomain
 	TypeDefinition* CachedType___System_UIntPtr;
 	TypeDefinition* CachedType___System_ValueType;
 	TypeDefinition* CachedType___System_Void;
+	TypeDefinition* CachedType___System_Threading_InternalThread;
 
 	void** StaticValues;
 	bool_t** StaticConstructorsCalled;

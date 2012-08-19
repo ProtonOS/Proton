@@ -1327,6 +1327,7 @@ struct _TypeSpecification
 	uint32_t TableIndex;
     uint32_t SignatureLength;
     uint8_t* Signature;
+	SignatureType* SignatureCache;
 
     uint32_t CustomAttributeCount;
     CustomAttribute** CustomAttributes;
