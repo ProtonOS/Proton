@@ -38,8 +38,7 @@ namespace Mernel
             //byte[] b = Convert.FromBase64CharArray(c, 0, 4);
             //if (b[0] == 77) Kernel.Write("Yay!\n");
             //Kernel.Write(GC.GetTotalMemory(false));
-            int x = 10;
-            Kernel.Write(x.ToString());
+            Kernel.Write("Test\n");
         }
     }
 }

@@ -88,6 +88,7 @@
 	Source/CLR/InternalCalls/System.Math.c
 	Source/CLR/InternalCalls/System.MonoEnumInfo.c
 	Source/CLR/InternalCalls/System.NumberFormatter.c
+	Source/CLR/InternalCalls/System.Object.c
 	Source/CLR/InternalCalls/System.String.c
 	Source/CLR/InternalCalls/System.Runtime.CompilerServices.RuntimeHelpers.c
 	Source/CLR/InternalCalls/System.Threading.Thread.c

@@ -180,6 +180,9 @@
     <ClCompile Include="Source\CLR\InternalCalls\System.Threading.Thread.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\CLR\InternalCalls\System.Object.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\System\Multiboot.h">
@@ -381,6 +384,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\CLR\InternalCalls\System.Threading.Thread.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\CLR\InternalCalls\System.Object.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

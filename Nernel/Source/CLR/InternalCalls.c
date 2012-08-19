@@ -13,6 +13,7 @@
 #include <CLR/InternalCalls/System.Math.h>
 #include <CLR/InternalCalls/System.MonoEnumInfo.h>
 #include <CLR/InternalCalls/System.NumberFormatter.h>
+#include <CLR/InternalCalls/System.Object.h>
 #include <CLR/InternalCalls/System.Runtime.CompilerServices.RuntimeHelpers.h>
 #include <CLR/InternalCalls/System.String.h>
 #include <CLR/InternalCalls/System.Threading.Thread.h>
@@ -125,6 +126,10 @@ const InternalCall InternalCallTable[] =
 	{	NULL,									"MonoEnumInfo",			"get_enum_info",					SignatureElementType_Void,					2,	{ SignatureElementType_Class, SignatureElementType_ValueType }, &System_MonoEnumInfo_get_enum_info },
 
 	{	NULL,									"NumberFormatter",		"GetFormatterTables",				SignatureElementType_Void,					6,	{ SignatureElementType_Pointer, SignatureElementType_U8, SignatureElementType_Pointer, SignatureElementType_I4, SignatureElementType_Pointer, SignatureElementType_Char, SignatureElementType_Pointer, SignatureElementType_Char, SignatureElementType_Pointer, SignatureElementType_I8, SignatureElementType_Pointer, SignatureElementType_I4 }, &System_NumberFormatter_GetFormatterTables },
+
+	{	NULL,									"Object",				"GetType",							SignatureElementType_Class,					0,	{ }, &System_Object_GetType },
+	{	NULL,									NULL,					"InternalGetHashCode",				SignatureElementType_I4,					1,	{ SignatureElementType_Object }, &System_Object_InternalGetHashCode },
+	{	NULL,									NULL,					"obj_address",						SignatureElementType_IPointer,				0,	{ }, &System_Object_obj_address },
 
 	{	NULL,									"String",				".ctor",							SignatureElementType_Void,					1,	{ SignatureElementType_Pointer, SignatureElementType_Char }, &System_String_Ctor_CharPointer },
 	{	NULL,									NULL,					NULL,								SignatureElementType_Void,					1,	{ SignatureElementType_Pointer, SignatureElementType_I1 }, &System_String_Ctor_SBytePointer },
