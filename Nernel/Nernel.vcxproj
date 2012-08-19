@@ -28,7 +28,9 @@
     <ClCompile Include="Source\CLR\InternalCalls\System.Enum.c" />
     <ClCompile Include="Source\CLR\InternalCalls\System.Environment.c" />
     <ClCompile Include="Source\CLR\InternalCalls\System.GC.c" />
+    <ClCompile Include="Source\CLR\InternalCalls\System.Math.c" />
     <ClCompile Include="Source\CLR\InternalCalls\System.MonoEnumInfo.c" />
+    <ClCompile Include="Source\CLR\InternalCalls\System.NumberFormatter.c" />
     <ClCompile Include="Source\CLR\InternalCalls\System.Runtime.CompilerServices.RuntimeHelpers.c" />
     <ClCompile Include="Source\CLR\InternalCalls\System.String.c" />
     <ClCompile Include="Source\CLR\IROptimizer.c" />
@@ -95,7 +97,9 @@
     <ClInclude Include="Source\CLR\InternalCalls\System.Enum.h" />
     <ClInclude Include="Source\CLR\InternalCalls\System.Environment.h" />
     <ClInclude Include="Source\CLR\InternalCalls\System.GC.h" />
+    <ClInclude Include="Source\CLR\InternalCalls\System.Math.h" />
     <ClInclude Include="Source\CLR\InternalCalls\System.MonoEnumInfo.h" />
+    <ClInclude Include="Source\CLR\InternalCalls\System.NumberFormatter.h" />
     <ClInclude Include="Source\CLR\InternalCalls\System.Runtime.CompilerServices.RuntimeHelpers.h" />
     <ClInclude Include="Source\CLR\InternalCalls\System.String.h" />
     <ClInclude Include="Source\CLR\IROpcode.h" />

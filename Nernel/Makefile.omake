@@ -85,7 +85,9 @@
 	Source/CLR/InternalCalls/System.Enum.c
 	Source/CLR/InternalCalls/System.Environment.c
 	Source/CLR/InternalCalls/System.GC.c
+	Source/CLR/InternalCalls/System.Math.c
 	Source/CLR/InternalCalls/System.MonoEnumInfo.c
+	Source/CLR/InternalCalls/System.NumberFormatter.c
 	Source/CLR/InternalCalls/System.String.c
 	Source/CLR/InternalCalls/System.Runtime.CompilerServices.RuntimeHelpers.c
 	Source/CLR/JIT/BranchRegistry.c

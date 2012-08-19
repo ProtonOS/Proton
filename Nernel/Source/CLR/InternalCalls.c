@@ -10,7 +10,9 @@
 #include <CLR/InternalCalls/System.Enum.h>
 #include <CLR/InternalCalls/System.Environment.h>
 #include <CLR/InternalCalls/System.GC.h>
+#include <CLR/InternalCalls/System.Math.h>
 #include <CLR/InternalCalls/System.MonoEnumInfo.h>
+#include <CLR/InternalCalls/System.NumberFormatter.h>
 #include <CLR/InternalCalls/System.Runtime.CompilerServices.RuntimeHelpers.h>
 #include <CLR/InternalCalls/System.String.h>
 #include <System/Console.h>
@@ -101,7 +103,27 @@ const InternalCall InternalCallTable[] =
 	{	NULL,									NULL,					"CollectionCount",				SignatureElementType_I4,					1,	{ SignatureElementType_I4 }, &System_GC_CollectionCount },
 	{	NULL,									NULL,					"RecordPressure",				SignatureElementType_Void,					1,	{ SignatureElementType_I8 }, &System_GC_RecordPressure },
 
+	{	NULL,									"Math",					"Floor",						SignatureElementType_R8,					1,	{ SignatureElementType_R8 }, &System_Math_Floor },
+	{	NULL,									NULL,					"Round",						SignatureElementType_R8,					1,	{ SignatureElementType_R8 }, &System_Math_Round },
+	{	NULL,									NULL,					"Sin",							SignatureElementType_R8,					1,	{ SignatureElementType_R8 }, &System_Math_Sin },
+	{	NULL,									NULL,					"Cos",							SignatureElementType_R8,					1,	{ SignatureElementType_R8 }, &System_Math_Cos },
+	{	NULL,									NULL,					"Tan",							SignatureElementType_R8,					1,	{ SignatureElementType_R8 }, &System_Math_Tan },
+	{	NULL,									NULL,					"Sinh",							SignatureElementType_R8,					1,	{ SignatureElementType_R8 }, &System_Math_Sinh },
+	{	NULL,									NULL,					"Cosh",							SignatureElementType_R8,					1,	{ SignatureElementType_R8 }, &System_Math_Cosh },
+	{	NULL,									NULL,					"Tanh",							SignatureElementType_R8,					1,	{ SignatureElementType_R8 }, &System_Math_Tanh },
+	{	NULL,									NULL,					"Acos",							SignatureElementType_R8,					1,	{ SignatureElementType_R8 }, &System_Math_Acos },
+	{	NULL,									NULL,					"Asin",							SignatureElementType_R8,					1,	{ SignatureElementType_R8 }, &System_Math_Asin },
+	{	NULL,									NULL,					"Atan",							SignatureElementType_R8,					1,	{ SignatureElementType_R8 }, &System_Math_Atan },
+	{	NULL,									NULL,					"Atan2",						SignatureElementType_R8,					2,	{ SignatureElementType_R8, SignatureElementType_R8 }, &System_Math_Atan2 },
+	{	NULL,									NULL,					"Exp",							SignatureElementType_R8,					1,	{ SignatureElementType_R8 }, &System_Math_Exp },
+	{	NULL,									NULL,					"Log",							SignatureElementType_R8,					1,	{ SignatureElementType_R8 }, &System_Math_Log },
+	{	NULL,									NULL,					"Log10",						SignatureElementType_R8,					1,	{ SignatureElementType_R8 }, &System_Math_Log10 },
+	{	NULL,									NULL,					"Pow",							SignatureElementType_R8,					2,	{ SignatureElementType_R8, SignatureElementType_R8 }, &System_Math_Pow },
+	{	NULL,									NULL,					"Sqrt",							SignatureElementType_R8,					1,	{ SignatureElementType_R8 }, &System_Math_Sqrt },
+
 	{	NULL,									"MonoEnumInfo",			"get_enum_info",				SignatureElementType_Void,					2,	{ SignatureElementType_Class, SignatureElementType_ValueType }, &System_MonoEnumInfo_get_enum_info },
+
+	{	NULL,									"NumberFormatter",		"GetFormatterTables",			SignatureElementType_Void,					6,	{ SignatureElementType_Pointer, SignatureElementType_U8, SignatureElementType_Pointer, SignatureElementType_I4, SignatureElementType_Pointer, SignatureElementType_Char, SignatureElementType_Pointer, SignatureElementType_Char, SignatureElementType_Pointer, SignatureElementType_I8, SignatureElementType_Pointer, SignatureElementType_I4 }, &System_NumberFormatter_GetFormatterTables },
 
 	{	NULL,									"String",				".ctor",						SignatureElementType_Void,					1,	{ SignatureElementType_Pointer, SignatureElementType_Char }, &System_String_Ctor_CharPointer },
 	{	NULL,									NULL,					NULL,							SignatureElementType_Void,					1,	{ SignatureElementType_Pointer, SignatureElementType_I1 }, &System_String_Ctor_SBytePointer },

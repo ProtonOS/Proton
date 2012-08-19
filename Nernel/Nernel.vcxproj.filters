@@ -171,6 +171,12 @@
     <ClCompile Include="Source\CLR\InternalCalls\System.Environment.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\CLR\InternalCalls\System.Math.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\CLR\InternalCalls\System.NumberFormatter.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\System\Multiboot.h">
@@ -363,6 +369,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\CLR\InternalCalls\System.Environment.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\CLR\InternalCalls\System.Math.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\CLR\InternalCalls\System.NumberFormatter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
