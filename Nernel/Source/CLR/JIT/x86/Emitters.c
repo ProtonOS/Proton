@@ -2289,8 +2289,8 @@ char* JIT_Emit_Prologue(char* pCompiledCode, IRMethod* pMethod)
 	// Create stack space for locals
 	x86_adjust_stack(pCompiledCode, localsSize);
 
-	if (localsSize > 0 &&
-		pMethod->MethodDefinition->Body.Flags & MethodDefinitionBody_Fat_Flags_InitializeLocals)
+	if (localsSize > 0) // &&
+//		(pMethod->MethodDefinition->Body.Flags & MethodDefinitionBody_Fat_Flags_InitializeLocals))
 	{
 		for (uint32_t offset = 0; offset < localsSize; offset += 4)
 		{
@@ -5079,20 +5079,20 @@ char* JIT_Emit_Compare(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pI
 	{
 		case CompareCondition_Equal:
 			// If they are equal the ZeroFlag will be 1
-			x86_alu_reg_reg(pCompiledCode, X86_XOR, X86_EAX, X86_EAX);
-			x86_lahf(pCompiledCode);
-			x86_alu_reg_imm(pCompiledCode, X86_AND, X86_EAX, (1 << 6)); // mask out everything except the ZeroFlag
-			x86_shift_reg_imm(pCompiledCode, X86_SHR, X86_EAX, 6);
-			// The only bit in eax that is now set is the ZeroFlag,
-			// and it is now at bit index 0.
-			needsBranch = FALSE;
+			//x86_alu_reg_reg(pCompiledCode, X86_XOR, X86_EAX, X86_EAX);
+			//x86_lahf(pCompiledCode);
+			//x86_alu_reg_imm(pCompiledCode, X86_AND, X86_EAX, (1 << 6)); // mask out everything except the ZeroFlag
+			//x86_shift_reg_imm(pCompiledCode, X86_SHR, X86_EAX, 6);
+			//// The only bit in eax that is now set is the ZeroFlag,
+			//// and it is now at bit index 0.
+			//needsBranch = FALSE;
 
-			/*
+			
 			BranchTrue = (unsigned char*)pCompiledCode;
 			x86_branch32(pCompiledCode, X86_CC_EQ, 0, FALSE);
 			BranchFalse = (unsigned char*)pCompiledCode;
 			x86_jump32(pCompiledCode, 0);
-			*/
+			
 			break;
 		case CompareCondition_Greater_Than:
 			BranchTrue = (unsigned char*)pCompiledCode;

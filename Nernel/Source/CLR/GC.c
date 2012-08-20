@@ -116,6 +116,15 @@ void GCHeap_SetBitInTree(uint32_t* pAllocationTree, uint32_t pLevel, uint32_t pI
 	else pAllocationTree[dwordIndex] &= ~(1 << bitIndex);
 }
 
+bool_t GCHeap_IsWholeBlockAvailableInTree(uint32_t* pAllocationTree, uint32_t pLevel, uint32_t pMaxLevels, uint32_t pIndex)
+{
+	if (pLevel == pMaxLevels) return TRUE;
+	if (GCHeap_IsAllocatedInTree(pAllocationTree, pLevel, pIndex)) return FALSE;
+	if (GCHeap_IsWholeBlockAvailableInTree(pAllocationTree, pLevel + 1, pMaxLevels, pIndex << 1) &&
+		GCHeap_IsWholeBlockAvailableInTree(pAllocationTree, pLevel + 1, pMaxLevels, (pIndex << 1) + 1)) return TRUE;
+	return FALSE;
+}
+
 int32_t GCHeap_FindAvailableInTree(uint32_t* pAllocationTree, uint32_t pLevel, uint32_t pMaxLevels, uint32_t pIndex, uint32_t pSize, uint32_t* pAllocatedSize)
 {
 	uint32_t nextBlockSize = (1 << (pMaxLevels - pLevel - 1)) << 2;
@@ -127,7 +136,7 @@ int32_t GCHeap_FindAvailableInTree(uint32_t* pAllocationTree, uint32_t pLevel, u
 			result = GCHeap_FindAvailableInTree(pAllocationTree, pLevel + 1, pMaxLevels, pIndex << 1, pSize, pAllocatedSize);
 			if (result >= 0) return result;
 		}
-		else
+		else if (GCHeap_IsWholeBlockAvailableInTree(pAllocationTree, pLevel, pMaxLevels, pIndex))
 		{
 			*pAllocatedSize = (1 << (pMaxLevels - pLevel - 1)) << 3;
 			return pIndex << (pMaxLevels - pLevel - 1);
@@ -140,7 +149,7 @@ int32_t GCHeap_FindAvailableInTree(uint32_t* pAllocationTree, uint32_t pLevel, u
 		{
 			result = GCHeap_FindAvailableInTree(pAllocationTree, pLevel + 1, pMaxLevels, (pIndex << 1) + 1, pSize, pAllocatedSize);
 		}
-		else
+		else if (GCHeap_IsWholeBlockAvailableInTree(pAllocationTree, pLevel, pMaxLevels, pIndex + 1))
 		{
 			*pAllocatedSize = (1 << (pMaxLevels - pLevel - 1)) << 3;
 			return (pIndex + 1) << (pMaxLevels - pLevel - 1);
@@ -241,9 +250,10 @@ GCObject* GCHeap_Allocate(GCHeap*** pGCHeaps, uint32_t* pGCHeapCount, uint32_t p
         object->Heap = heap;
         heap->Available -= allocatedSize;
         heap->Allocated += allocatedSize;
-		printf("Allocated %u, Available %u\n", (unsigned int)heap->Allocated, (unsigned int)heap->Available);
+		//printf("Allocated %u, Available %u\n", (unsigned int)heap->Allocated, (unsigned int)heap->Available);
     }
 	if (!object) Panic("Whoa, how did this happen?!");
+	//printf("AllocatedObject @ 0x%X\n", (unsigned int)object->Data);
 	memset(object->Data, 0x00, pSize);
 	*(GCObject**)((size_t)object->Data - sizeof(GCObject*)) = object;
     return object;
@@ -325,7 +335,7 @@ void GC_AllocateStringFromUnicode(AppDomain* pDomain, uint16_t* pString, uint32_
 		object->Type = gc->Domain->IRAssemblies[0]->Types[gc->Domain->CachedType___System_String->TableIndex - 1];
 		object->Flags |= GCObjectFlags_String;
 		*(uint32_t*)object->Data = pLength;
-		memcpy((uint8_t*)object->Data + 4, (uint8_t*)pString, size - 4);
+		memcpy(((uint8_t*)object->Data) + 4, (uint8_t*)pString, size - 4);
 	}
 
 	*pAllocatedObject = object->Data;
@@ -428,7 +438,7 @@ void GC_AllocateArray(AppDomain* pDomain, IRType* pArrayType, uint32_t pElementC
 {
 	size_t elementSize = pArrayType->ArrayType->ElementType->Size;
 	size_t requiredSize = elementSize * pElementCount;
-	if (requiredSize >= 0x7FFFFFFF) Panic("GC_AllocateObject pSize >= 0x7FFFFFFF");
+	if (requiredSize >= 0x7FFFFFFF) Panic("GC_AllocateArray pSize >= 0x7FFFFFFF");
 	GC* gc = pDomain->GarbageCollector;
 	Atomic_AquireLock(&gc->Busy);
     GCObject* object = NULL;

@@ -474,6 +474,7 @@ IRLocalVariable* IRLocalVariable_Copy(IRLocalVariable* pLocalVariable)
 	if (pLocalVariable->SSAData)
 	{
 		localVariable->SSAData = IRLocalSSAData_Copy(pLocalVariable->SSAData);
+		//printf("Copied SSAData, 0x%X\n", (unsigned int)localVariable->SSAData);
 	}
 	return localVariable;
 }

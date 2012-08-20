@@ -39,11 +39,16 @@ namespace Mernel
             //if (b[0] == 77) Kernel.Write("Yay!\n");
             //Kernel.Write(GC.GetTotalMemory(false));
 
+            //Kernel.Write("Test\n");
+
+            char[] test = new char[] { 'T', 'E', 'S', 'T', '\n' };
+            Kernel.Write(new string(test));
+
             // Can't test this yet, uses new char[] { .... }, requiring RuntimeHelpers.InitializeArray, for static Whitespace chars
             //string x = "Test1,Test2";
             //string[] y = x.Split(',');
             //Kernel.Write(y[0]);
-            Kernel.Write("Test\n");
+            //Kernel.Write("Test\n");
         }
     }
 }

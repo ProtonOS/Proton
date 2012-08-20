@@ -184,6 +184,7 @@ void IRLocalVariable_Destroy(IRLocalVariable* pLocalVariable);
 
 struct _IRLocalSSAData
 {
+	bool_t FirstAssignmentDone;
 	IRLocalVariable* Derived;
 	uint32_t Iteration;
 	IRInstruction* LifeStarted;

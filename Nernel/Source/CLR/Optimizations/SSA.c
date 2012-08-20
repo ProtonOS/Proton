@@ -135,6 +135,10 @@ void IROptimizer_EnterSSA(IRMethod* pMethod, IRCodeNode** pNodes, uint32_t pNode
 {
 	Log_WriteLine(LOGLEVEL__Optimize_SSA, "Started Entering SSA for %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
 
+	for (uint32_t index = 0; index < pMethod->LocalVariableCount; ++index)
+	{
+		pMethod->LocalVariables[index]->SSAData = IRLocalSSAData_Create(pMethod->LocalVariables[index]);
+	}
 	IRCodeNode* codeNode = NULL;
 	IRInstruction* instruction = NULL;
 	IRLocalVariable* oldLocalVariable = NULL;
@@ -161,11 +165,11 @@ void IROptimizer_EnterSSA(IRMethod* pMethod, IRCodeNode** pNodes, uint32_t pNode
 			if (instruction->Destination.Type == SourceType_Local)
 			{
 				oldLocalVariable = pMethod->LocalVariables[instruction->Destination.Data.LocalVariable.LocalVariableIndex];
-				if (!oldLocalVariable->SSAData)
+				if (!oldLocalVariable->SSAData->FirstAssignmentDone)
 				{
-					oldLocalVariable->SSAData = IRLocalSSAData_Create(oldLocalVariable);
+					oldLocalVariable->SSAData->FirstAssignmentDone = TRUE;
 					codeNode->FinalIterations[oldLocalVariable->LocalVariableIndex] = oldLocalVariable;
-					oldLocalVariable->SSAData->LifeStarted = pMethod->IRCodes[codeNode->Instructions[instructionIndex]];
+//					oldLocalVariable->SSAData->LifeStarted = pMethod->IRCodes[codeNode->Instructions[instructionIndex]];
 					Log_WriteLine(LOGLEVEL__Optimize_SSA, "Initial Local Assignment at instruction %u (Node %u) to %u, iteration 0 (Derived %u)", (unsigned int)codeNode->Instructions[instructionIndex], (unsigned int)codeNode->Index, (unsigned int)oldLocalVariable->LocalVariableIndex, (unsigned int)oldLocalVariable->SSAData->Derived->LocalVariableIndex);
 					continue;
 				}
@@ -173,7 +177,7 @@ void IROptimizer_EnterSSA(IRMethod* pMethod, IRCodeNode** pNodes, uint32_t pNode
 				IRMethod_AddLocal(pMethod, newLocalVariable);
 				if (oldLocalVariable->NonSSADerivable)
 				{
-					newLocalVariable->SSAData->LifeStarted = pMethod->IRCodes[codeNode->Instructions[instructionIndex]];
+//					newLocalVariable->SSAData->LifeStarted = pMethod->IRCodes[codeNode->Instructions[instructionIndex]];
 					newLocalVariable->SSAData->Iteration = 0;
 					instruction->Destination.Data.LocalVariable.LocalVariableIndex = newLocalVariable->LocalVariableIndex;
 					Log_WriteLine(LOGLEVEL__Optimize_SSA, "Expanded NonDerivable Local Assignment at instruction %u (Node %u) from %u to %u", (unsigned int)codeNode->Instructions[instructionIndex], (unsigned int)codeNode->Index, (unsigned int)oldLocalVariable->LocalVariableIndex, (unsigned int)newLocalVariable->LocalVariableIndex);
@@ -184,13 +188,46 @@ void IROptimizer_EnterSSA(IRMethod* pMethod, IRCodeNode** pNodes, uint32_t pNode
 					newLocalVariable->SSAData->Iteration = derivedIterations[newLocalVariable->SSAData->Derived->LocalVariableIndex];
 					instruction->Destination.Data.LocalVariable.LocalVariableIndex = newLocalVariable->LocalVariableIndex;
 					codeNode->FinalIterations[newLocalVariable->SSAData->Derived->LocalVariableIndex] = newLocalVariable;
-					newLocalVariable->SSAData->LifeStarted = pMethod->IRCodes[codeNode->Instructions[instructionIndex]];
+//					newLocalVariable->SSAData->LifeStarted = pMethod->IRCodes[codeNode->Instructions[instructionIndex]];
+					//printf("Hrm, 0x%X\n", (unsigned int)newLocalVariable->SSAData);
 					Log_WriteLine(LOGLEVEL__Optimize_SSA, "Expanded Local Assignment at instruction %u (Node %u) from %u to %u, iteration %u (Derived %u)", (unsigned int)codeNode->Instructions[instructionIndex], (unsigned int)codeNode->Index, (unsigned int)oldLocalVariable->LocalVariableIndex, (unsigned int)newLocalVariable->LocalVariableIndex, (unsigned int)newLocalVariable->SSAData->Iteration, (unsigned int)newLocalVariable->SSAData->Derived->LocalVariableIndex);
 				}
 				memset(retargettedNodes, 0x00, pNodesCount * sizeof(bool_t));
 				IROptimizer_RetargetLocalSources(pMethod, codeNode, instructionIndex + 1, oldLocalVariable, newLocalVariable, retargettedNodes);
 				//Log_WriteLine(LOGLEVEL__Optimize_SSA, "Retargeting LocalVariable Index %u to %u", (unsigned int)oldLocalVariable->LocalVariableIndex, (unsigned int)newLocalVariable->LocalVariableIndex);
 			}
+		}
+	}
+
+	for (uint32_t index = 0; index < pMethod->LocalVariableCount; ++index)
+	{
+		IRLocalVariable* localVariable = pMethod->LocalVariables[index];
+		bool_t used = FALSE;
+		for (uint32_t instructionIndex = 0; instructionIndex < pMethod->IRCodesCount; ++instructionIndex)
+		{
+			instruction = pMethod->IRCodes[instructionIndex];
+			if (IROptimizer_SourceDataUsesLocalVariable(&instruction->Destination, localVariable->LocalVariableIndex) ||
+				IROptimizer_SourceDataUsesLocalVariable(&instruction->Source1, localVariable->LocalVariableIndex) ||
+				IROptimizer_SourceDataUsesLocalVariable(&instruction->Source2, localVariable->LocalVariableIndex) ||
+				IROptimizer_SourceDataUsesLocalVariable(&instruction->Source3, localVariable->LocalVariableIndex))
+			{
+				localVariable->SSAData->LifeStarted = instruction;
+				used = TRUE;
+			}
+			else
+			{
+				for (uint32_t sourceIndex = 0; sourceIndex < instruction->SourceArrayLength; ++sourceIndex)
+				{
+					if (IROptimizer_SourceDataUsesLocalVariable(&instruction->SourceArray[sourceIndex], localVariable->LocalVariableIndex))
+					{
+
+						localVariable->SSAData->LifeStarted = instruction;
+						used = TRUE;
+						break;
+					}
+				}
+			}
+			if (used) break;
 		}
 	}
 
@@ -262,6 +299,34 @@ void IROptimizer_LeaveSSA(IRMethod* pMethod, IRCodeNode** pNodes, uint32_t pNode
 			for (uint32_t phiIndex = 0; phiIndex < codeNode->PhiFunctionsCount; ++phiIndex)
 			{
 				phi = codeNode->PhiFunctions[phiIndex];
+				bool_t unused = TRUE;
+				for (uint32_t instructionIndex = pMethod->IRCodesCount - 1; instructionIndex > codeNode->Instructions[0]; --instructionIndex)
+				{
+					instruction = pMethod->IRCodes[instructionIndex];
+					if (IROptimizer_SourceDataUsesLocalVariable(&instruction->Destination, phi->Result->LocalVariableIndex) ||
+						IROptimizer_SourceDataUsesLocalVariable(&instruction->Source1, phi->Result->LocalVariableIndex) ||
+						IROptimizer_SourceDataUsesLocalVariable(&instruction->Source2, phi->Result->LocalVariableIndex) ||
+						IROptimizer_SourceDataUsesLocalVariable(&instruction->Source3, phi->Result->LocalVariableIndex))
+					{
+						unused = FALSE;
+					}
+					else
+					{
+						for (uint32_t sourceIndex = 0; sourceIndex < instruction->SourceArrayLength; ++sourceIndex)
+						{
+							if (IROptimizer_SourceDataUsesLocalVariable(&instruction->SourceArray[sourceIndex], phi->Result->LocalVariableIndex))
+							{
+								unused = FALSE;
+								break;
+							}
+						}
+					}
+				}
+				if (unused)
+				{
+					Log_WriteLine(LOGLEVEL__Optimize_SSA, "Skipping Unused Phi %u, iteration %u (Derived %u)", (unsigned int)phi->Result->LocalVariableIndex, (unsigned int)phi->Result->SSAData->Iteration, (unsigned int)phi->Result->SSAData->Derived->LocalVariableIndex);
+					continue;
+				}
 				for (uint32_t sourceIndex = 0; sourceIndex  < codeNode->SourceFrontiersCount; ++sourceIndex)
 				{
 					sourceNode = codeNode->SourceFrontiers[sourceIndex];
@@ -304,6 +369,7 @@ void IROptimizer_LeaveSSA(IRMethod* pMethod, IRCodeNode** pNodes, uint32_t pNode
 				}
 			}
 		}
+
 		IRLocalVariable* localVariable = NULL;
 		bool_t lifeEndsHere = FALSE;
 		for (uint32_t localIndex = 0; localIndex < pMethod->LocalVariableCount; ++localIndex)
@@ -344,8 +410,7 @@ void IROptimizer_LeaveSSA(IRMethod* pMethod, IRCodeNode** pNodes, uint32_t pNode
 							codeNode->Instructions[codeNode->InstructionsCount - 1] >= instruction->IRLocation)
 						{
 							IRInstruction* lastNodeInstruction = pMethod->IRCodes[codeNode->Instructions[codeNode->InstructionsCount - 1]];
-							if (lastNodeInstruction->Opcode == IROpcode_Branch ||
-								lastNodeInstruction->Opcode == IROpcode_Switch)
+							if (lastNodeInstruction->Opcode == IROpcode_Branch && lastNodeInstruction->ILLocation < ((IRInstruction*)lastNodeInstruction->Arg1)->ILLocation)
 							{
 								if (nodeIndex < (pNodesCount - 1))
 								{

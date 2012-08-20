@@ -513,6 +513,7 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 
 				obj2 = Pop();
 				destType = GetIRTypeOfSourceType(obj2->LinearData.Type, obj2->LinearData.Data, pMethod);
+				ins->Source1 = obj2->LinearData;
 				PR(obj2);
 
 				obj->LinearData.Type = SourceType_Local;

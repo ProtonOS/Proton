@@ -115,10 +115,6 @@ void JIT_CalculateLocalLayout(IRMethod* pMethod)
 			local->Offset = offset;
 			Log_WriteLine(LOGLEVEL__JIT_Layout, "Layout Local %u @ 0x%x, Size: 0x%x, Aligned: 0x%x", (unsigned int)index, (unsigned int)local->Offset, (unsigned int)local->Size, (unsigned int)JIT_StackAlign(local->Size));
 		}
-		if (offset & 0x1F)
-		{
-			offset += 32 - (offset & 0x1F);
-		}
 		pMethod->LocalsSize = offset;
 		pMethod->LocalsLayedOut = TRUE;
 	}
