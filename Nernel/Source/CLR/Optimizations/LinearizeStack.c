@@ -390,6 +390,7 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 				SourceTypeData* sDat = (SourceTypeData*)calloc(1, sizeof(SourceTypeData));
 				*sDat = obj->LinearData;
 				PR(obj);
+				ins->Opcode = IROpcode_Move;
 				ins->Destination.Type = SourceType_Indirect;
 				ins->Destination.Data.Indirect.Type = (IRType*)ins->Arg1;
 				ins->Destination.Data.Indirect.AddressSource = sDat;

@@ -184,6 +184,7 @@ void JIT_CompileMethod(IRMethod* pMethod)
 				case IROpcode_Store_StaticField:
 				case IROpcode_SizeOf:
 				case IROpcode_Pop:
+					printf("Opcode: %u\n", (unsigned int)pMethod->IRCodes[index]->Opcode);
 					Panic("These Instructions shouldn't exist!");
 					break;
 				default:

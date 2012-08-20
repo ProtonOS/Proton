@@ -48,9 +48,13 @@ namespace Mernel
             //string[] y = x.Split(',');
             //Kernel.Write(y[1]);
             //Kernel.Write("Test\n");
-
             string x = "Test";
             Kernel.Write(x + "\n");
+
+            //List<string> test = new List<string>();
+            //test.Add("Hello!\n");
+            //Kernel.Write(test[0]);
+
         }
     }
 }
