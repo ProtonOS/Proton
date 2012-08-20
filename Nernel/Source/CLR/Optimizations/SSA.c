@@ -300,7 +300,7 @@ void IROptimizer_LeaveSSA(IRMethod* pMethod, IRCodeNode** pNodes, uint32_t pNode
 			{
 				phi = codeNode->PhiFunctions[phiIndex];
 				bool_t unused = TRUE;
-				for (uint32_t instructionIndex = pMethod->IRCodesCount - 1; instructionIndex > codeNode->Instructions[0]; --instructionIndex)
+				for (uint32_t instructionIndex = pMethod->IRCodesCount - 1; instructionIndex >= codeNode->Instructions[0]; --instructionIndex)
 				{
 					instruction = pMethod->IRCodes[instructionIndex];
 					if (IROptimizer_SourceDataUsesLocalVariable(&instruction->Destination, phi->Result->LocalVariableIndex) ||
@@ -319,6 +319,18 @@ void IROptimizer_LeaveSSA(IRMethod* pMethod, IRCodeNode** pNodes, uint32_t pNode
 								unused = FALSE;
 								break;
 							}
+						}
+					}
+					if (instructionIndex == 0) break;
+				}
+				for (uint32_t forwardNodeIndex = 0; unused && forwardNodeIndex < pNodesCount; ++forwardNodeIndex)
+				{
+					for (uint32_t forwardPhiIndex = 0; unused && forwardPhiIndex < pNodes[forwardNodeIndex]->PhiFunctionsCount; ++forwardPhiIndex)
+					{
+						for (uint32_t forwardArgIndex = 0; unused && forwardArgIndex < pNodes[forwardNodeIndex]->PhiFunctions[forwardPhiIndex]->ArgumentsCount; ++forwardArgIndex)
+						{
+							if (pNodes[forwardNodeIndex]->PhiFunctions[forwardPhiIndex]->Arguments[forwardArgIndex]->LocalVariableIndex == phi->Result->LocalVariableIndex)
+								unused = FALSE;
 						}
 					}
 				}

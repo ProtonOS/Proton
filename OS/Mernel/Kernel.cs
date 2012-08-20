@@ -44,11 +44,13 @@ namespace Mernel
             //char[] test = new char[] { 'T', 'E', 'S', 'T', '\n' };
             //Kernel.Write(new string(test));
 
-            // Can't test this yet, uses new char[] { .... }, requiring RuntimeHelpers.InitializeArray, for static Whitespace chars
-            string x = "Test1,Test2\n";
-            string[] y = x.Split(',');
-            Kernel.Write(y[1]);
+            //string x = "Test1,Test2\n";
+            //string[] y = x.Split(',');
+            //Kernel.Write(y[1]);
             //Kernel.Write("Test\n");
+
+            string x = "Test";
+            Kernel.Write(x + "\n");
         }
     }
 }
