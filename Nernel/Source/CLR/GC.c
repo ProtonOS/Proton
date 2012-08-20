@@ -436,7 +436,8 @@ void GC_AllocateEmptyStringFromLength(AppDomain* pDomain, uint32_t pLength, void
 
 void GC_AllocateArray(AppDomain* pDomain, IRType* pArrayType, uint32_t pElementCount, void** pAllocatedObject)
 {
-	size_t elementSize = pArrayType->ArrayType->ElementType->Size;
+	size_t elementSize = pArrayType->ArrayType->ElementType->StackSize;
+	//printf("GC_AllocateArray Element: %s, %u\n", pArrayType->ArrayType->ElementType->TypeDefinition->Name, (unsigned int)pArrayType->ArrayType->ElementType->StackSize);
 	size_t requiredSize = elementSize * pElementCount;
 	if (requiredSize >= 0x7FFFFFFF) Panic("GC_AllocateArray pSize >= 0x7FFFFFFF");
 	GC* gc = pDomain->GarbageCollector;

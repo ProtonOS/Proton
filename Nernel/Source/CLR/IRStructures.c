@@ -266,6 +266,7 @@ bool_t IRType_IsSubclassOf(IRType* pType, IRType* pParentType)
 bool_t IRType_ContainsReferenceType(IRType* pType)
 {
 	if (!pType) return FALSE;
+	if (pType->IsArrayType) return TRUE;
 	if (pType->IsReferenceType) return TRUE;
 	if (pType->IsStructureType)
 	{

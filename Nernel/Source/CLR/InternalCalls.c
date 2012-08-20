@@ -24,6 +24,7 @@ void Mernel_Kernel_Write(AppDomain* pAppDomain, void* pString)
 {
 	GCObject* object = *(GCObject**)((size_t)pString - sizeof(void*));
 	uint32_t length = *(uint32_t*)object->Data;
+	//printf("Kernel.Write Str @ 0x%X\n", (unsigned int)pString);
 	uint16_t* stringData = (uint16_t*)((uint8_t*)object->Data + 4);
 	for (uint32_t index = 0; index < length; ++index)
 	{
