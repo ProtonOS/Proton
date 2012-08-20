@@ -12,4 +12,6 @@ void System_String_Ctor_SBytePointerWithStartAndLength(AppDomain* pAppDomain, vo
 
 void System_String_InternalSplit(AppDomain* pAppDomain, void* pString, void* pSeparatorArray, int32_t pCount, int32_t pOptions, void** pReturnObjectDestination);
 void System_String_InternalAllocateStr(AppDomain* pAppDomain, int32_t pLength, void** pReturnObjectDestination);
+void System_String_InternalIntern(AppDomain* pAppDomain, void* pString, void** pReturnObjectDestination);
+void System_String_InternalIsInterned(AppDomain* pAppDomain, void* pString, void** pReturnObjectDestination);
 int32_t System_String_GetLOSLimit(AppDomain* pAppDomain);

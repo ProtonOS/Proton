@@ -141,6 +141,8 @@ const InternalCall InternalCallTable[] =
 	{	NULL,									NULL,					NULL,								SignatureElementType_Void,					3,	{ SignatureElementType_Pointer, SignatureElementType_I1, SignatureElementType_I4, SignatureElementType_I4 }, &System_String_Ctor_SBytePointerWithStartAndLength },
 	{	NULL,									NULL,					"InternalSplit",					SignatureElementType_SingleDimensionArray,	3,	{ SignatureElementType_SingleDimensionArray, SignatureElementType_Char, SignatureElementType_I4, SignatureElementType_I4 }, &System_String_InternalSplit },
 	{	NULL,									NULL,					"InternalAllocateStr",				SignatureElementType_String,				1,	{ SignatureElementType_I4 }, &System_String_InternalAllocateStr },
+	{	NULL,									NULL,					"InternalIntern",					SignatureElementType_String,				1,	{ SignatureElementType_String }, &System_String_InternalIntern },
+	{	NULL,									NULL,					"InternalIsInterned",				SignatureElementType_String,				1,	{ SignatureElementType_String }, &System_String_InternalIsInterned },
 	{	NULL,									NULL,					"GetLOSLimit",						SignatureElementType_I4,					0,	{ }, &System_String_GetLOSLimit },
 
 	{	"System.Runtime.CompilerServices",		"RuntimeHelpers",		"InitializeArray",					SignatureElementType_Void,					2,	{ SignatureElementType_Class, SignatureElementType_IPointer }, &System_Runtime_CompilerServices_RuntimeHelpers_InitializeArray },

@@ -142,6 +142,25 @@ void System_String_InternalAllocateStr(AppDomain* pAppDomain, int32_t pLength, v
 	GC_AllocateEmptyStringFromLength(pAppDomain, pLength, pReturnObjectDestination);
 }
 
+void System_String_InternalIntern(AppDomain* pAppDomain, void* pString, void** pReturnObjectDestination)
+{
+	GCObject* object = *(GCObject**)((size_t)pString - sizeof(GCObject*));
+	if (!(object->Flags & GCObjectFlags_Interned))
+	{
+		object->Flags |= GCObjectFlags_Interned;
+		uint32_t size = (*(uint32_t*)pString) << 1;
+		HASH_ADD_KEYPTR(String.HashHandle, pAppDomain->GarbageCollector->StringHashTable, ((uint8_t*)pString + 4), size, object);
+	}
+	*pReturnObjectDestination = pString;
+}
+
+void System_String_InternalIsInterned(AppDomain* pAppDomain, void* pString, void** pReturnObjectDestination)
+{
+	GCObject* object = *(GCObject**)((size_t)pString - sizeof(GCObject*));
+	*pReturnObjectDestination = NULL;
+	if (object->Flags & GCObjectFlags_Interned) *pReturnObjectDestination = pString;
+}
+
 int32_t System_String_GetLOSLimit(AppDomain* pAppDomain)
 {
 	return 0x7FFFFFFF;
