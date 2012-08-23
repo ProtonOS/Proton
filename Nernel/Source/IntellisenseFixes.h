@@ -4,6 +4,9 @@
 
 #define MAYBE (TRUE || FALSE)
 
+#undef __asm__
+#define __asm__() 
+
 #undef exit
 #define exit(exitCode)
 

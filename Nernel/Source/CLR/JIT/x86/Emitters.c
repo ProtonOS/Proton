@@ -5315,9 +5315,7 @@ void JIT_Trampoline_CallVirtual(IRType* pType, uint32_t pMethodIndex, void* pObj
 	__asm("mov (%esp), %eax;");
 	__asm("mov %eax, 8(%esp);");
 	__asm("add $8, %esp;"); // cleanup parameters
-#ifndef _WIN32
 	__asm__("jmp *%0;" : : "r" (mToCall->AssembledMethod));
-#endif
 	while(TRUE);
 }
 
