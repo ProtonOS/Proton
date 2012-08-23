@@ -5276,10 +5276,7 @@ char* JIT_Emit_New_Object(char* pCompiledCode, IRMethod* pMethod, IRInstruction*
 	return pCompiledCode;
 }
 
-#ifndef _WIN32
-__attribute__((noreturn))
-#endif
-void JIT_Trampoline_CallVirtual(IRType* pType, uint32_t pMethodIndex, void* pObject)
+__attribute__((noreturn)) void JIT_Trampoline_CallVirtual(IRType* pType, uint32_t pMethodIndex, void* pObject)
 {
 	GCObject* obj = *(GCObject**)((size_t)pObject - gSizeOfPointerInBytes);
 	IRMethod* mToCall = NULL;
