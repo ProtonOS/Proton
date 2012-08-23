@@ -1451,3 +1451,82 @@ void AppDomain_ResolveGenericMethodParameters(AppDomain* pDomain, CLIFile* pFile
 		}
 	}
 }
+
+
+TypeDefinition* AppDomain_GetTypeDefByCanonicalName(AppDomain* pDomain, IRAssembly* pAssembly, char* pCanonicalName)
+{
+	TypeDefinition* retType = NULL;
+	char* assemblyNameStart;
+	char* typeNameStart = NULL;
+	bool_t hasAssembly = FALSE;
+	uint32_t strLen = strlen(pCanonicalName);
+	for (uint32_t i = 0; i < strLen; i++)
+	{
+		if (pCanonicalName[i] == ',')
+		{
+			hasAssembly = TRUE;
+			assemblyNameStart = &pCanonicalName[i + 2];
+			break;
+		}
+		else if (pCanonicalName[i] == '.')
+		{
+			typeNameStart = &pCanonicalName[i + 1];
+		}
+	}
+	if (hasAssembly)
+	{
+		// locate the assembly and look through the types in it.
+		Panic("We don't currently support getting the type def by a canonical name if it includes the assembly name!");
+	}
+	else
+	{
+		// look first through the current assembly, then through mscorlib.
+		for (uint32_t i = 1; i <= pAssembly->ParentFile->TypeDefinitionCount; i++)
+		{
+			if (!typeNameStart) // it's in the global namespace.
+			{
+				if (!*pAssembly->ParentFile->TypeDefinitions[i].Namespace && !memcmp(pCanonicalName, pAssembly->ParentFile->TypeDefinitions[i].Name, strLen))
+				{
+					retType = &pAssembly->ParentFile->TypeDefinitions[i];
+					break;
+				}
+			}
+			else
+			{
+				if (!memcmp(pCanonicalName, pAssembly->ParentFile->TypeDefinitions[i].Namespace, typeNameStart - pCanonicalName - 1) &&
+					!memcmp(typeNameStart, pAssembly->ParentFile->TypeDefinitions[i].Name, strLen - (typeNameStart - pCanonicalName - 1)))
+				{
+					retType = &pAssembly->ParentFile->TypeDefinitions[i];
+					break;
+				}
+			}
+		}
+
+		if (pAssembly != pDomain->IRAssemblies[0]) // ensure we aren't checking corlib twice.
+		{
+			for (uint32_t i = 1; i <= pDomain->IRAssemblies[0]->ParentFile->TypeDefinitionCount; i++)
+			{
+				if (!typeNameStart) // it's in the global namespace.
+				{
+					if (!*pDomain->IRAssemblies[0]->ParentFile->TypeDefinitions[i].Namespace && !memcmp(pCanonicalName, pDomain->IRAssemblies[0]->ParentFile->TypeDefinitions[i].Name, strLen))
+					{
+						retType = &pDomain->IRAssemblies[0]->ParentFile->TypeDefinitions[i];
+						break;
+					}
+				}
+				else
+				{
+					if (!memcmp(pCanonicalName, pDomain->IRAssemblies[0]->ParentFile->TypeDefinitions[i].Namespace, typeNameStart - pCanonicalName - 1) &&
+						!memcmp(typeNameStart, pDomain->IRAssemblies[0]->ParentFile->TypeDefinitions[i].Name, strLen - (typeNameStart - pCanonicalName - 1)))
+					{
+						retType = &pDomain->IRAssemblies[0]->ParentFile->TypeDefinitions[i];
+						break;
+					}
+				}
+			}
+		}
+	}
+	if (!retType)
+		Panic("Unable to resolve a type by it's canonical name!");
+	return retType;
+}

@@ -34,6 +34,7 @@
     <ClCompile Include="Source\CLR\JIT\BranchRegistry.c" />
     <ClCompile Include="Source\CLR\JIT\x86\Emitters.c" />
     <ClCompile Include="Source\CLR\JIT\x86\Layout.c" />
+    <ClCompile Include="Source\CLR\ManagedPlugs.c" />
     <ClCompile Include="Source\CLR\MetadataStructures.c" />
     <ClCompile Include="Source\CLR\Optimizations\CFG.c" />
     <ClCompile Include="Source\CLR\Optimizations\DeadMoveElimination.c" />
@@ -102,6 +103,7 @@
     <ClInclude Include="Source\CLR\JIT\x86\Layout.h" />
     <ClInclude Include="Source\CLR\JIT\x86\x86-codegen-extra.h" />
     <ClInclude Include="Source\CLR\JIT\x86\x86-codegen.h" />
+    <ClInclude Include="Source\CLR\ManagedPlugs.h" />
     <ClInclude Include="Source\CLR\MetadataStructures.h" />
     <ClInclude Include="Source\CLR\Optimizations\CFG.h" />
     <ClInclude Include="Source\CLR\Optimizations\DeadMoveElimination.h" />

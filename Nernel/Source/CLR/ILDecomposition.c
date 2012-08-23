@@ -5,6 +5,7 @@
 #include <CLR/InternalCalls.h>
 #include <CLR/IROpcode.h>
 #include <CLR/JIT.h>
+#include <CLR/ManagedPlugs.h>
 #include <CLR/SyntheticStack.h>
 #include <System/Multiboot.h>
 
@@ -174,6 +175,7 @@ IRAssembly* ILDecomposition_CreateAssembly(AppDomain* pDomain, CLIFile* pFile)
 	}
 	if (assembly->StaticFieldIndex != assembly->StaticFieldCount) Panic("Somehow we found more statics than we previously allocated space for, means we would corrupted memory!");
 	JIT_CalculateStaticFieldLayout(assembly);
+	ManagedPlugs_LoadAssembly(pDomain, assembly);
 	return assembly;
 }
 
