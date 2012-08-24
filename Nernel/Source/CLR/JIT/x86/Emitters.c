@@ -354,18 +354,6 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 		{
 			sizeOfSource = JIT_GetStackSizeOfType(pSource->Data.ArrayElement.ElementType);
 			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pSource->Data.ArrayElement.ArraySource, pRegister3, pRegister2, pRegister1, NULL);
-			if (pSource->Data.ArrayElement.IndexSource->Type == SourceType_ConstantI4)
-			{
-				x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, sizeOfSource * pSource->Data.ArrayElement.IndexSource->Data.ConstantI4.Value);
-			}
-			else
-			{
-				x86_push_reg(pCompiledCode, pRegister3);
-				pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pSource->Data.ArrayElement.IndexSource, pRegister2, pRegister1, pRegister3, NULL);
-				x86_pop_reg(pCompiledCode, pRegister3);
-				if (sizeOfSource != 1) x86_imul_reg_reg_imm(pCompiledCode, pRegister2, pRegister2, sizeOfSource);
-				x86_alu_reg_reg(pCompiledCode, X86_ADD, pRegister3, pRegister2);
-			}
 			switch (sizeOfSource)
 			{
 				case 1:
@@ -373,10 +361,41 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				case 3:
 					x86_alu_reg_reg(pCompiledCode, X86_XOR, pRegister1, pRegister1);
 				case 4:
-					x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, 0, sizeOfSource);
+					if (pSource->Data.ArrayElement.IndexSource->Type == SourceType_ConstantI4)
+					{
+						x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, sizeOfSource * pSource->Data.ArrayElement.IndexSource->Data.ConstantI4.Value, sizeOfSource);
+					}
+					else  if (sizeOfSource == 3)
+					{
+						x86_push_reg(pCompiledCode, pRegister3);
+						pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pSource->Data.ArrayElement.IndexSource, pRegister2, pRegister1, pRegister3, NULL);
+						x86_pop_reg(pCompiledCode, pRegister3);
+						x86_imul_reg_reg_imm(pCompiledCode, pRegister2, pRegister2, sizeOfSource);
+						x86_alu_reg_reg(pCompiledCode, X86_ADD, pRegister3, pRegister2);
+						x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, 0, sizeOfSource);
+					}
+					else
+					{
+						x86_push_reg(pCompiledCode, pRegister3);
+						pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pSource->Data.ArrayElement.IndexSource, pRegister2, pRegister1, pRegister3, NULL);
+						x86_pop_reg(pCompiledCode, pRegister3);
+						x86_mov_reg_memindex(pCompiledCode, pRegister1, pRegister3, 0, pRegister2, sizeOfSource >> 1, sizeOfSource);
+					}
 					break;
 				default:
 				{
+					if (pSource->Data.ArrayElement.IndexSource->Type == SourceType_ConstantI4)
+					{
+						x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, sizeOfSource * pSource->Data.ArrayElement.IndexSource->Data.ConstantI4.Value);
+					}
+					else
+					{
+						x86_push_reg(pCompiledCode, pRegister3);
+						pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pSource->Data.ArrayElement.IndexSource, pRegister2, pRegister1, pRegister3, NULL);
+						x86_pop_reg(pCompiledCode, pRegister3);
+						x86_imul_reg_reg_imm(pCompiledCode, pRegister2, pRegister2, sizeOfSource);
+						x86_alu_reg_reg(pCompiledCode, X86_ADD, pRegister3, pRegister2);
+					}
 					x86_adjust_stack(pCompiledCode, JIT_StackAlign(sizeOfSource));
 					uint32_t count = sizeOfSource >> gPointerDivideShift;
 					for (uint32_t index = 0; index < count; index++)
