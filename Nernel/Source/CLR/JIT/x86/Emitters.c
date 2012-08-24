@@ -4907,7 +4907,7 @@ char* JIT_Emit_Branch(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pIn
 
 char* JIT_Emit_Switch(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
-	uint32_t targetCount = *(uint32_t*)pInstruction->Arg1;
+	uint32_t targetCount = (uint32_t)pInstruction->Arg1;
 	IRInstruction** targets = (IRInstruction**)pInstruction->Arg2;
 
 	pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, X86_EAX, SECONDARY_REG, THIRD_REG, NULL);
@@ -4924,15 +4924,7 @@ char* JIT_Emit_Switch(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pIn
 		x86_imm_emit32(pCompiledCode, targets[index]->ILLocation);
 	}
 	x86_patch(skipTable, (unsigned char*)pCompiledCode);
-	if (gSizeOfPointerInBytes == 4)
-	{
-		// this emits:
-		// jmp switchTableLocation[eax * 4]
-		*pCompiledCode = 0xFF;
-		*pCompiledCode = 0x24;
-		*pCompiledCode = 0x85;
-		*(uint32_t*)pCompiledCode = switchTableLocation;
-	}
+	x86_jump_memindex(pCompiledCode, X86_NOBASEREG, switchTableLocation, PRIMARY_REG, 2);
 	// After this is the default case.
 	x86_patch(jumpToDefault, (unsigned char*)pCompiledCode);
 	return pCompiledCode;

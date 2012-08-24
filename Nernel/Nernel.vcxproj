@@ -38,6 +38,7 @@
     <ClCompile Include="Source\CLR\MetadataStructures.c" />
     <ClCompile Include="Source\CLR\Optimizations\CFG.c" />
     <ClCompile Include="Source\CLR\Optimizations\DeadMoveElimination.c" />
+    <ClCompile Include="Source\CLR\Optimizations\MoveCompacting.c" />
     <ClCompile Include="Source\CLR\Optimizations\Peephole_PreSSA.c" />
     <ClCompile Include="Source\CLR\Optimizations\SSA.c" />
     <ClCompile Include="Source\CLR\Optimizations\LinearizeStack.c" />
@@ -107,6 +108,7 @@
     <ClInclude Include="Source\CLR\MetadataStructures.h" />
     <ClInclude Include="Source\CLR\Optimizations\CFG.h" />
     <ClInclude Include="Source\CLR\Optimizations\DeadMoveElimination.h" />
+    <ClInclude Include="Source\CLR\Optimizations\MoveCompacting.h" />
     <ClInclude Include="Source\CLR\Optimizations\Peephole_PreSSA.h" />
     <ClInclude Include="Source\CLR\Optimizations\SSA.h" />
     <ClInclude Include="Source\CLR\Optimizations\LinearizeStack.h" />
