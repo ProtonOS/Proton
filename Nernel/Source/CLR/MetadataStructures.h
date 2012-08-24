@@ -1539,12 +1539,6 @@ struct _SignatureType
 		};
 		uint32_t ValueTypeDefOrRefOrSpecToken;
 		uint32_t VarNumber;
-		struct
-		{
-			uint32_t EnumNameLength;
-			const char* EnumName;
-		};
-		SignatureType* ObjectBoxedType;
 	};
 };
 
@@ -1599,12 +1593,13 @@ struct _CustomAttributeSignature
 	SignatureArg* FixedArgs;
 	uint32_t NamedArgCount;
 	SignatureArg* NamedArgs;
+	MethodDefinition* ConstructorUsed;
 };
 
 CustomAttributeSignature* CustomAttributeSignature_Create();
 void CustomAttributeSignature_Destroy(CustomAttributeSignature* pCustomAttributeSignature);
-uint8_t* CustomAttributeSignature_Parse(uint8_t* pCursor, CustomAttributeSignature** pCustomAttributeSignature, CustomAttribute* pCustomAttribute, CLIFile* pCLIFile);
-CustomAttributeSignature* CustomAttributeSignature_Expand(uint8_t* pSignature, CustomAttribute* pCustomAttribute, CLIFile* pCLIFile);
+uint8_t* CustomAttributeSignature_Parse(uint8_t* pCursor, CustomAttributeSignature** pCustomAttributeSignature, CustomAttribute* pCustomAttribute, CLIFile* pCLIFile, AppDomain* pDomain);
+CustomAttributeSignature* CustomAttributeSignature_Expand(uint8_t* pSignature, CustomAttribute* pCustomAttribute, CLIFile* pCLIFile, AppDomain* pDomain);
 
 typedef enum _SignatureArgType
 {
@@ -1616,17 +1611,124 @@ typedef enum _SignatureArgType
 struct _SignatureArg
 {
 	SignatureArgType ArgType;
-	uint32_t NameLength;
 	const char* Name;
-	SignatureType* Type;
+	SignatureElementType PrimaryType;
+	SignatureElementType SecondaryType; // Only set if PrimaryType is Array
+	union
+	{
+		struct
+		{
+			TypeDefinition* EnumType; // Set if either the Primary or Secondary types are Enum.
+			SignatureElementType EnumBaseType; // Set if either the Primary or Secondary types are Enum.
+		};
+	};
 	uint32_t ElementCount;
 	SignatureElement* Elements;
 };
 
 struct _SignatureElement
 {
-	uint32_t ValueSize;
-	void* Value;
+	union
+	{
+		struct
+		{
+			bool_t Value;
+		} Bool;
+		struct
+		{
+			uint8_t Value;
+		} Byte;
+		struct
+		{
+			int8_t Value;
+		} SByte;
+		struct
+		{
+			uint16_t Value;
+		} UShort;
+		struct
+		{
+			uint16_t Value;
+		} Char;
+		struct
+		{
+			int16_t Value;
+		} Short;
+		struct
+		{
+			uint32_t Value;
+		} UInt;
+		struct
+		{
+			int32_t Value;
+		} Int;
+		struct
+		{
+			uint64_t Value;
+		} ULong;
+		struct
+		{
+			int64_t Value;
+		} Long;
+		struct
+		{
+			uint32_t Value;
+		} Single;
+		struct
+		{
+			uint64_t Value;
+		} Double;
+		struct
+		{
+			bool_t IsNull;
+			uint32_t Length;
+			uint8_t* Value;
+		} String;
+		struct
+		{
+			char* CanonicalTypeName;
+		} Type;
+		struct
+		{
+			union
+			{
+				struct
+				{
+					uint8_t Value;
+				} Byte;
+				struct
+				{
+					int8_t Value;
+				} SByte;
+				struct
+				{
+					uint16_t Value;
+				} UShort;
+				struct
+				{
+					int16_t Value;
+				} Short;
+				struct
+				{
+					uint32_t Value;
+				} UInt;
+				struct
+				{
+					int32_t Value;
+				} Int;
+				struct
+				{
+					uint64_t Value;
+				} ULong;
+				struct
+				{
+					int64_t Value;
+				} Long;
+			} Value;
+		} Enum;
+	};
+	//uint32_t ValueSize;
+	//void* Value;
 };
 
-uint8_t* SignatureElement_Parse(uint8_t* pCursor, SignatureArg* pSignatureArg, MethodDefinition* pConstructorMethod, CustomAttribute* pCustomAttribute, SignatureElement* pSignatureElement, CLIFile* pCLIFile);
+uint8_t* SignatureElement_Parse(uint8_t* pCursor, SignatureArg* pSignatureArg, MethodDefinition* pConstructorMethod, CustomAttribute* pCustomAttribute, SignatureElement* pSignatureElement, CLIFile* pCLIFile, SignatureElementType pSignatureElementType);

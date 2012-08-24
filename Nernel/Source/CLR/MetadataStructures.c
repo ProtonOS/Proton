@@ -3107,16 +3107,143 @@ void CustomAttributeSignature_Destroy(CustomAttributeSignature* pCustomAttribute
 	free(pCustomAttributeSignature);
 }
 
-uint8_t* CustomAttributeSignature_Parse(uint8_t* pCursor, CustomAttributeSignature** pCustomAttributeSignature, CustomAttribute* pCustomAttribute, CLIFile* pCLIFile)
+void CustomAttributeSignature_CheckClassElementType(AppDomain* pDomain, CLIFile* pFile, SignatureArg* sigArg, SignatureType* sigType, SignatureElementType* destElement)
+{
+	if (sigType->ElementType == SignatureElementType_Class)
+	{
+		MetadataToken* tok = CLIFile_ExpandTypeDefRefOrSpecToken(pFile, sigType->ClassTypeDefOrRefOrSpecToken);
+		TypeDefinition* tDef = NULL;
+		switch(tok->Table)
+		{
+			case MetadataTable_TypeDefinition:
+				tDef = (TypeDefinition*)tok->Data;
+				break;
+			case MetadataTable_TypeReference:
+				((TypeReference*)tok->Data)->ResolvedType = AppDomain_ResolveTypeReference(pDomain, pFile, (TypeReference*)tok->Data);
+				tDef = ((TypeReference*)tok->Data)->ResolvedType;
+				break;
+			default:
+				Panic("Unknown table for metadata token in a Class signature element type in a custom attribute!");
+				break;
+		}
+		if (!strcmp(tDef->Namespace, "System") && !strcmp(tDef->Name, "Type"))
+		{
+			*destElement = SignatureElementType_Type;
+			return;
+		}
+		else
+		{
+			Panic("Unknown type for the class signature element type!");
+			return;
+		}
+	}
+	else if (sigType->ElementType == SignatureElementType_ValueType)
+	{
+		MetadataToken* tok = CLIFile_ExpandTypeDefRefOrSpecToken(pFile, sigType->ValueTypeDefOrRefOrSpecToken);
+		TypeDefinition* tDef = NULL;
+		switch(tok->Table)
+		{
+			case MetadataTable_TypeDefinition:
+				tDef = (TypeDefinition*)tok->Data;
+				break;
+			case MetadataTable_TypeReference:
+				if (!((TypeReference*)tok->Data)->ResolvedType)
+				{
+					((TypeReference*)tok->Data)->ResolvedType = AppDomain_ResolveTypeReference(pDomain, pFile, (TypeReference*)tok->Data);
+				}
+				tDef = ((TypeReference*)tok->Data)->ResolvedType;
+				break;
+			default:
+				Panic("Unknown table for metadata token in a ValueType signature element type in a custom attribute!");
+				break;
+		}
+		TypeDefinition* baseType = NULL;
+		switch(tDef->TypeOfExtends)
+		{
+			case TypeDefRefOrSpecType_TypeDefinition:
+				baseType = tDef->Extends.TypeDefinition;
+				break;
+			case TypeDefRefOrSpecType_TypeReference:
+				if (!tDef->Extends.TypeReference->ResolvedType)
+				{
+					tDef->Extends.TypeReference->ResolvedType = AppDomain_ResolveTypeReference(pDomain, pFile, tDef->Extends.TypeReference);
+				}
+				baseType = tDef->Extends.TypeReference->ResolvedType;
+				break;
+
+			default: // TypeSpec should never be a base type here.
+				Panic("Invalid type of extends!");
+				break;
+		}
+		if (baseType == pDomain->CachedType___System_Enum)
+		{
+			*destElement = SignatureElementType_CustomAttribute_Enum;
+			sigArg->EnumType = tDef;
+			for (uint32_t i = 0; i < tDef->FieldListCount; i++)
+			{
+				if (!(tDef->FieldList[i].Flags & FieldAttributes_Static))
+				{
+					// This is the only instance field in the enum.
+					if (!tDef->FieldList[i].SignatureCache)
+					{
+						tDef->FieldList[i].SignatureCache = FieldSignature_Expand(tDef->FieldList[i].Signature, tDef->File);
+					}
+					sigArg->EnumBaseType = (SignatureElementType)tDef->FieldList[i].SignatureCache->Type->ElementType;
+					break;
+				}
+			}
+			if (!sigArg->EnumBaseType)
+			{
+				Panic("Unable to locate the instance field in the enum!");
+			}
+			switch(sigArg->EnumBaseType)
+			{
+				case SignatureElementType_U1:
+				case SignatureElementType_U2:
+				case SignatureElementType_U4:
+				case SignatureElementType_U8:
+				case SignatureElementType_I1:
+				case SignatureElementType_I2:
+				case SignatureElementType_I4:
+				case SignatureElementType_I8:
+					break;
+				default:
+					Panic("Invalid enum base type!");
+					break;
+			}
+			return;
+		}
+		else
+		{
+			Panic("Unknown type for the value type signature element type!");
+			return;
+		}
+	}
+	return;
+}
+
+uint8_t* CustomAttributeSignature_Parse(uint8_t* pCursor, CustomAttributeSignature** pCustomAttributeSignature, CustomAttribute* pCustomAttribute, CLIFile* pCLIFile, AppDomain* pDomain)
 {
 	if (*(uint16_t*)pCursor != 0x0001) Panic("Invalid CustomAttributeSignature Prolog");
 	pCursor += 2;
 	*pCustomAttributeSignature = CustomAttributeSignature_Create();
 	CustomAttributeSignature* customAttributeSignature = *pCustomAttributeSignature;
 	MethodDefinition* constructorMethod = NULL;
-	if (pCustomAttribute->TypeOfType == MethodDefOrRefType_MethodDefinition) constructorMethod = pCustomAttribute->Type.MethodDefinition;
-	else constructorMethod = pCustomAttribute->Type.MemberReference->Resolved.MethodDefinition;
-	if (!constructorMethod->SignatureCache) constructorMethod->SignatureCache = MethodSignature_Expand(constructorMethod->Signature, constructorMethod->File);
+
+	if (pCustomAttribute->TypeOfType == CustomAttributeType_MethodDefinition)
+	{
+		constructorMethod = pCustomAttribute->Type.MethodDefinition;
+	}
+	else
+	{
+		AppDomain_ResolveMemberReference(pDomain, pCLIFile, pCustomAttribute->Type.MemberReference);
+		constructorMethod = pCustomAttribute->Type.MemberReference->Resolved.MethodDefinition;
+	}
+	customAttributeSignature->ConstructorUsed = constructorMethod;
+
+	if (!constructorMethod->SignatureCache)
+		constructorMethod->SignatureCache = MethodSignature_Expand(constructorMethod->Signature, constructorMethod->File);
+	
 	customAttributeSignature->FixedArgCount = constructorMethod->SignatureCache->ParameterCount;
 	if (customAttributeSignature->FixedArgCount)
 	{
@@ -3124,32 +3251,35 @@ uint8_t* CustomAttributeSignature_Parse(uint8_t* pCursor, CustomAttributeSignatu
 		for (uint32_t index = 0; index < constructorMethod->SignatureCache->ParameterCount; ++index)
 		{
 			customAttributeSignature->FixedArgs[index].ArgType = SignatureArgType_Parameter;
-			switch (constructorMethod->SignatureCache->Parameters[index]->Type->ElementType)
+			customAttributeSignature->FixedArgs[index].PrimaryType = (SignatureElementType)constructorMethod->SignatureCache->Parameters[index]->Type->ElementType;
+			switch (customAttributeSignature->FixedArgs[index].PrimaryType)
 			{
 				case SignatureElementType_SingleDimensionArray:
 				{
-					customAttributeSignature->FixedArgs[index].Type = constructorMethod->SignatureCache->Parameters[index]->Type;
-					pCursor = CLIFile_GetCompressedUnsigned(pCursor, &customAttributeSignature->FixedArgs[index].ElementCount);
+					customAttributeSignature->FixedArgs[index].SecondaryType = (SignatureElementType)constructorMethod->SignatureCache->Parameters[index]->Type->SZArrayType->ElementType;
+					CustomAttributeSignature_CheckClassElementType(pDomain, constructorMethod->File, &customAttributeSignature->FixedArgs[index], constructorMethod->SignatureCache->Parameters[index]->Type->SZArrayType, &customAttributeSignature->FixedArgs[index].SecondaryType);
+					customAttributeSignature->FixedArgs[index].ElementCount = *(uint32_t*)pCursor;
+					pCursor += 4;
 					if (customAttributeSignature->FixedArgs[index].ElementCount)
 					{
 						customAttributeSignature->FixedArgs[index].Elements = (SignatureElement*)calloc(1, sizeof(SignatureElement) * customAttributeSignature->FixedArgs[index].ElementCount);
 						for (uint32_t elementIndex = 0; elementIndex < customAttributeSignature->FixedArgs[index].ElementCount; ++elementIndex)
 						{
-							pCursor = SignatureElement_Parse(pCursor, &customAttributeSignature->FixedArgs[index], constructorMethod, pCustomAttribute, &customAttributeSignature->FixedArgs[index].Elements[elementIndex], constructorMethod->File);
+							pCursor = SignatureElement_Parse(pCursor, &customAttributeSignature->FixedArgs[index], constructorMethod, pCustomAttribute, &customAttributeSignature->FixedArgs[index].Elements[elementIndex], constructorMethod->File, customAttributeSignature->FixedArgs[index].SecondaryType);
 						}
 					}
 					break;
 				}
 				default:
-					customAttributeSignature->FixedArgs[index].Type = constructorMethod->SignatureCache->Parameters[index]->Type;
+					CustomAttributeSignature_CheckClassElementType(pDomain, constructorMethod->File, &customAttributeSignature->FixedArgs[index], constructorMethod->SignatureCache->Parameters[index]->Type, &customAttributeSignature->FixedArgs[index].PrimaryType);
 					customAttributeSignature->FixedArgs[index].ElementCount = 1;
 					customAttributeSignature->FixedArgs[index].Elements = (SignatureElement*)calloc(1, sizeof(SignatureElement));
-					pCursor = SignatureElement_Parse(pCursor, &customAttributeSignature->FixedArgs[index], constructorMethod, pCustomAttribute, &customAttributeSignature->FixedArgs[index].Elements[0], constructorMethod->File);
+					pCursor = SignatureElement_Parse(pCursor, &customAttributeSignature->FixedArgs[index], constructorMethod, pCustomAttribute, &customAttributeSignature->FixedArgs[index].Elements[0], constructorMethod->File, customAttributeSignature->FixedArgs[index].PrimaryType);
 					break;
 			}
 		}
 	}
-	customAttributeSignature->NamedArgCount = *(uint16_t*)pCursor;
+	/*customAttributeSignature->NamedArgCount = *(uint16_t*)pCursor;
 	pCursor += 2;
 	if (customAttributeSignature->NamedArgCount)
 	{
@@ -3185,59 +3315,200 @@ uint8_t* CustomAttributeSignature_Parse(uint8_t* pCursor, CustomAttributeSignatu
 					break;
 			}
 		}
-	}
+	}*/
 	return pCursor;
 }
 
-CustomAttributeSignature* CustomAttributeSignature_Expand(uint8_t* pSignature, CustomAttribute* pCustomAttribute, CLIFile* pCLIFile)
+CustomAttributeSignature* CustomAttributeSignature_Expand(uint8_t* pSignature, CustomAttribute* pCustomAttribute, CLIFile* pCLIFile, AppDomain* pDomain)
 {
 	CustomAttributeSignature* customAttributeSignature = NULL;
-	CustomAttributeSignature_Parse(pSignature, &customAttributeSignature, pCustomAttribute, pCLIFile);
+	if ((size_t)pSignature == 0) // represents no fixed or named args.
+	{
+		customAttributeSignature = CustomAttributeSignature_Create();
+		MethodDefinition* constructorMethod = NULL;
+		if (pCustomAttribute->TypeOfType == CustomAttributeType_MethodDefinition)
+		{
+			constructorMethod = pCustomAttribute->Type.MethodDefinition;
+		}
+		else
+		{
+			AppDomain_ResolveMemberReference(pDomain, pCLIFile, pCustomAttribute->Type.MemberReference);
+			constructorMethod = pCustomAttribute->Type.MemberReference->Resolved.MethodDefinition;
+		}
+		customAttributeSignature->ConstructorUsed = constructorMethod;
+	}
+	else
+	{
+		CustomAttributeSignature_Parse(pSignature, &customAttributeSignature, pCustomAttribute, pCLIFile, pDomain);
+	}
 	return customAttributeSignature;
 }
 
-uint8_t* SignatureElement_Parse(uint8_t* pCursor, SignatureArg* pSignatureArg, MethodDefinition* pConstructorMethod, CustomAttribute* pCustomAttribute, SignatureElement* pSignatureElement, CLIFile* pCLIFile)
+uint8_t* SignatureElement_Parse(uint8_t* pCursor, SignatureArg* pSignatureArg, MethodDefinition* pConstructorMethod, CustomAttribute* pCustomAttribute, SignatureElement* pSignatureElement, CLIFile* pCLIFile, SignatureElementType pSignatureElementType)
 {
-	pSignatureElement->Value = pCursor;
-	switch (pSignatureArg->Type->ElementType)
+	switch(pSignatureElementType)
 	{
 		case SignatureElementType_Boolean:
+			pSignatureElement->Bool.Value = (bool_t)*(uint8_t*)pCursor;
+			pCursor++;
+			break;
 		case SignatureElementType_I1:
+			pSignatureElement->SByte.Value = *(int8_t*)pCursor;
+			pCursor++;
+			break;
 		case SignatureElementType_U1:
-			pSignatureElement->ValueSize = 1;
+			pSignatureElement->Byte.Value = *(uint8_t*)pCursor;
+			pCursor++;
 			break;
 		case SignatureElementType_Char:
+			pSignatureElement->Char.Value = *(uint16_t*)pCursor;
+			pCursor += 2;
+			break;
 		case SignatureElementType_I2:
+			pSignatureElement->Short.Value = *(int16_t*)pCursor;
+			pCursor += 2;
+			break;
 		case SignatureElementType_U2:
-			pSignatureElement->ValueSize = 2;
+			pSignatureElement->UShort.Value = *(uint16_t*)pCursor;
+			pCursor += 2;
 			break;
 		case SignatureElementType_I4:
+			pSignatureElement->Int.Value = *(int32_t*)pCursor;
+			pCursor += 4;
+			break;
 		case SignatureElementType_U4:
+			pSignatureElement->UInt.Value = *(uint32_t*)pCursor;
+			pCursor += 4;
+			break;
 		case SignatureElementType_R4:
-			pSignatureElement->ValueSize = 4;
+			pSignatureElement->Single.Value = *(uint32_t*)pCursor;
+			pCursor += 4;
 			break;
 		case SignatureElementType_I8:
+			pSignatureElement->Long.Value = *(int64_t*)pCursor;
+			pCursor += 8;
+			break;
 		case SignatureElementType_U8:
+			pSignatureElement->ULong.Value = *(uint64_t*)pCursor;
+			pCursor += 8;
+			break;
 		case SignatureElementType_R8:
-			pSignatureElement->ValueSize = 8;
+			pSignatureElement->Double.Value = *(uint64_t*)pCursor;
+			pCursor += 8;
 			break;
 		case SignatureElementType_String:
-		case SignatureElementType_Type:
-			pCursor = CLIFile_GetCompressedUnsigned(pCursor, &pSignatureElement->ValueSize);
-			break;
-		case SignatureElementType_Object:
 		{
-			// Hmm, get TypeDef of Boxed value type, to set pSignatureElement->ValueSize, for cursor adjustment (should be stack size of type)
-			TypeDefinition* typeDef = MetadataStructures_GetTypeDefinitionFromSignatureType(pConstructorMethod->File->Assembly->ParentDomain, pConstructorMethod->File->Assembly, pSignatureArg->Type->ObjectBoxedType);
-			for (uint32_t index = 0; index < typeDef->FieldListCount; ++index)
+			pCursor = CLIFile_GetCompressedUnsigned(pCursor, &pSignatureElement->String.Length);
+			if (pSignatureElement->String.Length == 0xFF)
 			{
+				pSignatureElement->String.Length = 0;
+				pSignatureElement->String.IsNull = TRUE;
+			}
+			pSignatureElement->String.Value = (uint8_t*)calloc(1, pSignatureElement->String.Length + 1);
+			memcpy(pSignatureElement->String.Value, pCursor, pSignatureElement->String.Length);
+			pCursor += pSignatureElement->String.Length;
+			break;
+		}
+		case SignatureElementType_Type:
+		{
+			uint32_t typeStringLength = 0;
+			pCursor = CLIFile_GetCompressedUnsigned(pCursor, &typeStringLength);
+			pSignatureElement->Type.CanonicalTypeName = (char*)calloc(1, typeStringLength + 1);
+			memcpy(pSignatureElement->Type.CanonicalTypeName, pCursor, typeStringLength);
+			// This means we now have a null-terminated string for the type name.
+			pCursor += typeStringLength;
+			break;
+		}
+		case SignatureElementType_CustomAttribute_Enum:
+		{
+			switch(pSignatureArg->EnumBaseType)
+			{
+				case SignatureElementType_I1:
+					pSignatureElement->Enum.Value.SByte.Value = *(int8_t*)pCursor;
+					pCursor++;
+					break;
+				case SignatureElementType_U1:
+					pSignatureElement->Enum.Value.Byte.Value = *(uint8_t*)pCursor;
+					pCursor++;
+					break;
+				case SignatureElementType_I2:
+					pSignatureElement->Enum.Value.Short.Value = *(int16_t*)pCursor;
+					pCursor += 2;
+					break;
+				case SignatureElementType_U2:
+					pSignatureElement->Enum.Value.UShort.Value = *(uint16_t*)pCursor;
+					pCursor += 2;
+					break;
+				case SignatureElementType_I4:
+					pSignatureElement->Enum.Value.Int.Value = *(int32_t*)pCursor;
+					pCursor += 4;
+					break;
+				case SignatureElementType_U4:
+					pSignatureElement->Enum.Value.UInt.Value = *(uint32_t*)pCursor;
+					pCursor += 4;
+					break;
+				case SignatureElementType_I8:
+					pSignatureElement->Enum.Value.Long.Value = *(int64_t*)pCursor;
+					pCursor += 8;
+					break;
+				case SignatureElementType_U8:
+					pSignatureElement->Enum.Value.ULong.Value = *(uint64_t*)pCursor;
+					pCursor += 8;
+					break;
+				default:
+					Panic("Invalid base type for an enum!");
+					break;
 			}
 			break;
 		}
+		case SignatureElementType_Object:
+			printf("Warning: SignatureElementType_Object isn't currenlty supported!\n");
+			break;
 		default:
-			Panic("SignatureElement_Parse Invalid ElementType");
+			printf("sigType: 0x%x\n", (unsigned int)pSignatureElementType);
+			Panic("Unsupported signature element type in custom attribute!");
 			break;
 	}
-	pCursor += pSignatureElement->ValueSize;
+	//pSignatureElement->Value = pCursor;
+	//switch (pSignatureArg->Type->ElementType)
+	//{
+	//	case SignatureElementType_Boolean:
+	//	case SignatureElementType_I1:
+	//	case SignatureElementType_U1:
+	//		pSignatureElement->ValueSize = 1;
+	//		break;
+	//	case SignatureElementType_Char:
+	//	case SignatureElementType_I2:
+	//	case SignatureElementType_U2:
+	//		pSignatureElement->ValueSize = 2;
+	//		break;
+	//	case SignatureElementType_I4:
+	//	case SignatureElementType_U4:
+	//	case SignatureElementType_R4:
+	//		pSignatureElement->ValueSize = 4;
+	//		break;
+	//	case SignatureElementType_I8:
+	//	case SignatureElementType_U8:
+	//	case SignatureElementType_R8:
+	//		pSignatureElement->ValueSize = 8;
+	//		break;
+	//	case SignatureElementType_String:
+	//	case SignatureElementType_Type:
+	//		pCursor = CLIFile_GetCompressedUnsigned(pCursor, &pSignatureElement->ValueSize);
+	//		break;
+	//	case SignatureElementType_Object:
+	//	{
+	//		// Hmm, get TypeDef of Boxed value type, to set pSignatureElement->ValueSize, for cursor adjustment (should be stack size of type)
+	//		TypeDefinition* typeDef = MetadataStructures_GetTypeDefinitionFromSignatureType(pConstructorMethod->File->Assembly->ParentDomain, pConstructorMethod->File->Assembly, pSignatureArg->Type->ObjectBoxedType);
+	//		for (uint32_t index = 0; index < typeDef->FieldListCount; ++index)
+	//		{
+	//		}
+	//		break;
+	//	}
+	//	default:
+	//		Panic("SignatureElement_Parse Invalid ElementType");
+	//		break;
+	//}
+	//pCursor += pSignatureElement->ValueSize;
 	return pCursor;
 }

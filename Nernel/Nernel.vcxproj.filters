@@ -165,6 +165,7 @@
     <ClCompile Include="Source\CLR\InternalCalls\System.GC.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+
     <ClCompile Include="Source\CLR\InternalCalls\System.Enum.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -311,6 +312,9 @@
     <ClInclude Include="Source\CLR\JIT\BranchRegistry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Source\CLR\JIT\x86\Layout.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="Source\CLR\GC.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -368,6 +372,7 @@
     <ClInclude Include="Source\CLR\InternalCalls\System.GC.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+
     <ClInclude Include="Source\CLR\InternalCalls\System.Enum.h">
       <Filter>Header Files</Filter>
     </ClInclude>

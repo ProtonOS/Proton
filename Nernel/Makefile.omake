@@ -72,6 +72,7 @@
 	Source/CLR/IROptimizer.c
 	Source/CLR/IRStructures.c
 	Source/CLR/JIT.c
+	Source/CLR/ManagedPlugs.c
 	Source/CLR/MetadataStructures.c
 	Source/CLR/SyntheticStack.c
 	Source/CLR/InternalCalls/Mono.Interop.ComInteropProxy.c
@@ -140,6 +141,7 @@
 		module /boot/mernel.exe
 		module /gac/corlib.dll
 		module /gac/mscorlib.dll
+		module /gac/proton.plugs.dll
 	}
 
 	common TOOL(AS -o ) : ASM_FILES

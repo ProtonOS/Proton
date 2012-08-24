@@ -4,6 +4,12 @@
 
 #define MAYBE (TRUE || FALSE)
 
+#undef __asm__
+#define __asm__() 
+
+#undef __attribute__
+#define __attribute__() 
+
 #undef exit
 #define exit(exitCode)
 

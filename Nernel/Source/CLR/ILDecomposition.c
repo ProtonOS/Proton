@@ -5,13 +5,85 @@
 #include <CLR/InternalCalls.h>
 #include <CLR/IROpcode.h>
 #include <CLR/JIT.h>
+#include <CLR/ManagedPlugs.h>
 #include <CLR/SyntheticStack.h>
 #include <System/Multiboot.h>
+
+void Print_InfoOnFixedArg(SignatureArg* sigArg, SignatureElement* sigElem, SignatureElementType pElemType)
+{
+	switch(pElemType)
+	{
+		case SignatureElementType_I1:
+			printf("SByte Val: %i\n", (int)sigElem->SByte.Value);
+			break;
+		case SignatureElementType_I2:
+			printf("Short Val: %i\n", (int)sigElem->Short.Value);
+			break;
+		case SignatureElementType_I4:
+			printf("Int Val: %i\n", (int)sigElem->Int.Value);
+			break;
+		case SignatureElementType_I8:
+			printf("Long Val: %lli\n", (long long)sigElem->Long.Value);
+			break;
+		case SignatureElementType_U1:
+			printf("Byte Val: %u\n", (unsigned int)sigElem->Byte.Value);
+			break;
+		case SignatureElementType_U2:
+			printf("UShort Val: %u\n", (unsigned int)sigElem->UShort.Value);
+			break;
+		case SignatureElementType_U4:
+			printf("UInt Val: %u\n", (unsigned int)sigElem->UInt.Value);
+			break;
+		case SignatureElementType_U8:
+			printf("ULong Val: %llu\n", (unsigned long long)sigElem->ULong.Value);
+			break;
+		case SignatureElementType_String:
+			printf("String Val: %s\n", (char*)sigElem->String.Value);
+			break;
+		case SignatureElementType_Type:
+			printf("Type Val: %s\n", (char*)sigElem->Type.CanonicalTypeName);
+			break;
+		case SignatureElementType_CustomAttribute_Enum:
+			printf("Enum Name: %s.%s\n", sigArg->EnumType->Namespace, sigArg->EnumType->Name);
+			Print_InfoOnFixedArg(sigArg, (SignatureElement*)&sigElem->Enum.Value, sigArg->EnumBaseType);
+			break;
+		case SignatureElementType_SingleDimensionArray:
+			printf("Array Length: %u\n", (unsigned int)sigArg->ElementCount);
+			for (uint32_t i = 0; i < sigArg->ElementCount; i++)
+			{
+				printf("Element: %u\n", (unsigned int)i);
+				Print_InfoOnFixedArg(sigArg, &sigArg->Elements[i], sigArg->SecondaryType);
+			}
+			break;
+		default:
+			printf("Output not currently supported for element type 0x%x\n", (unsigned int)pElemType);
+			break;
+	}
+}
 
 IRAssembly* ILDecomposition_CreateAssembly(AppDomain* pDomain, CLIFile* pFile)
 {
 	IRAssembly* assembly = IRAssembly_Create(pDomain, pFile);
 	pFile->Assembly = assembly;
+	//if (!strcmp(pFile->Filename, "mernel.exe"))
+	//{
+	//	for (uint32_t index = 1; index <= pFile->TypeDefinitionCount; ++index)
+	//	{
+	//		for (uint32_t index2 = 0; index2 < pFile->TypeDefinitions[index].CustomAttributeCount; ++index2)
+	//		{
+	//			CustomAttributeSignature* sig = CustomAttributeSignature_Expand((uint8_t*)pFile->TypeDefinitions[index].CustomAttributes[index2]->Value, pFile->TypeDefinitions[index].CustomAttributes[index2], pFile, pDomain);
+	//			for (uint32_t i = 0; i < sig->FixedArgCount; i++)
+	//			{
+	//				printf("Fixed Arg %u:\n", (unsigned int)i);
+	//				Print_InfoOnFixedArg(&sig->FixedArgs[i], &sig->FixedArgs[i].Elements[0], sig->FixedArgs[i].PrimaryType);
+	//				printf("\n");
+	//			}
+	//			//CustomAttributeSignature_Destroy(sig);
+	//			if (sig){}
+	//		}
+	//	}
+	//	//printf("Mernel loaded\n");
+	//}
 	if (!pDomain->IRAssemblies[0]->Types[pDomain->CachedType___System_Object->TableIndex - 1])
 	{
 		IRType_Create(pDomain->IRAssemblies[0], pDomain->CachedType___System_Array);
@@ -103,6 +175,7 @@ IRAssembly* ILDecomposition_CreateAssembly(AppDomain* pDomain, CLIFile* pFile)
 	}
 	if (assembly->StaticFieldIndex != assembly->StaticFieldCount) Panic("Somehow we found more statics than we previously allocated space for, means we would corrupted memory!");
 	JIT_CalculateStaticFieldLayout(assembly);
+	ManagedPlugs_LoadAssembly(pDomain, assembly);
 	return assembly;
 }
 

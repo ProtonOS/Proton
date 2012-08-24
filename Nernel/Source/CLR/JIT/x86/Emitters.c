@@ -4906,11 +4906,11 @@ char* JIT_Emit_Switch(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pIn
 	uint32_t targetCount = *(uint32_t*)pInstruction->Arg1;
 	IRInstruction** targets = (IRInstruction**)pInstruction->Arg2;
 
-	pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
-	x86_alu_reg_imm(pCompiledCode, X86_CMP, PRIMARY_REG, targetCount);
+	pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, X86_EAX, SECONDARY_REG, THIRD_REG, NULL);
+	x86_alu_reg_imm(pCompiledCode, X86_CMP, X86_EAX, targetCount);
 	unsigned char* jumpToDefault = (unsigned char*)pCompiledCode;
 	x86_branch32(pCompiledCode, X86_CC_AE, 0, FALSE);
-	x86_shift_reg_imm(pCompiledCode, X86_SHL, PRIMARY_REG, 2);
+
 	unsigned char* skipTable = (unsigned char*)pCompiledCode;
 	x86_jump32(pCompiledCode, 0);
 	uint32_t switchTableLocation = (uint32_t)pCompiledCode;
@@ -4920,9 +4920,15 @@ char* JIT_Emit_Switch(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pIn
 		x86_imm_emit32(pCompiledCode, targets[index]->ILLocation);
 	}
 	x86_patch(skipTable, (unsigned char*)pCompiledCode);
-	x86_alu_reg_imm(pCompiledCode, X86_ADD, PRIMARY_REG, switchTableLocation);
-	x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, PRIMARY_REG, 0, 4);
-	x86_jump_reg(pCompiledCode, PRIMARY_REG);
+	if (gSizeOfPointerInBytes == 4)
+	{
+		// this emits:
+		// jmp switchTableLocation[eax * 4]
+		*pCompiledCode = 0xFF;
+		*pCompiledCode = 0x24;
+		*pCompiledCode = 0x85;
+		*(uint32_t*)pCompiledCode = switchTableLocation;
+	}
 	// After this is the default case.
 	x86_patch(jumpToDefault, (unsigned char*)pCompiledCode);
 	return pCompiledCode;
@@ -5266,10 +5272,7 @@ char* JIT_Emit_New_Object(char* pCompiledCode, IRMethod* pMethod, IRInstruction*
 	return pCompiledCode;
 }
 
-#ifndef _WIN32
-__attribute__((noreturn))
-#endif
-void JIT_Trampoline_CallVirtual(IRType* pType, uint32_t pMethodIndex, void* pObject)
+__attribute__((noreturn)) void JIT_Trampoline_CallVirtual(IRType* pType, uint32_t pMethodIndex, void* pObject)
 {
 	GCObject* obj = *(GCObject**)((size_t)pObject - gSizeOfPointerInBytes);
 	IRMethod* mToCall = NULL;
@@ -5305,9 +5308,7 @@ void JIT_Trampoline_CallVirtual(IRType* pType, uint32_t pMethodIndex, void* pObj
 	__asm("mov (%esp), %eax;");
 	__asm("mov %eax, 8(%esp);");
 	__asm("add $8, %esp;"); // cleanup parameters
-#ifndef _WIN32
 	__asm__("jmp *%0;" : : "r" (mToCall->AssembledMethod));
-#endif
 	while(TRUE);
 }
 

@@ -4,8 +4,34 @@ using System.Runtime.CompilerServices;
 
 namespace Mernel
 {
+
+    public enum TestEnum
+    {
+        TestValue1,
+        TestValue2,
+    }
+
+    [Test(1, 2, 3, 4, 5, 6, 7, 8, "Hello World", typeof(Kernel), TestEnum.TestValue1, new int[] { 0, 1, 2, 3, 4 }, new Type[] { typeof(AttributeTest), typeof(Kernel) }, new TestEnum[] { TestEnum.TestValue1, TestEnum.TestValue2 })]
+    public class AttributeTest
+    {
+
+    }
+
+    [AttributeUsage(AttributeTargets.All)]
+    public sealed class TestAttribute : Attribute
+    {
+        public TestAttribute(byte pByteVal, sbyte pSByteVal, ushort pUShortVal, short pShortVal, uint pUIntVal, int pIntVal, ulong pULongVal, long pLongVal, string pStringVal, Type pTypeVal, TestEnum pEnumVal, int[] pIntArrayVal, Type[] pTypeArrayVal, TestEnum[] pEnumArrayVal)
+        {
+
+        }
+    }
     public static class Kernel
     {
+        public static readonly byte[] Values = new byte[]
+        {
+            1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19
+        };
+
         [MethodImpl(MethodImplOptions.InternalCall)]
         public static extern void Write(string pString);
 
@@ -38,7 +64,7 @@ namespace Mernel
             //byte[] b = Convert.FromBase64CharArray(c, 0, 4);
             //if (b[0] == 77) Kernel.Write("Yay!\n");
             //Kernel.Write(GC.GetTotalMemory(false));
-
+            TestPluggedType.TestMethod();
             //Kernel.Write("Test\n");
 
             //char[] test = new char[] { 'T', 'E', 'S', 'T', '\n' };
