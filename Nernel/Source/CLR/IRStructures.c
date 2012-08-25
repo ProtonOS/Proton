@@ -99,6 +99,7 @@ IRType* IRAssembly_CreateGenericParameter(IRAssembly* pAssembly, bool_t pIsFromP
 	type->IsGenericParameter = TRUE;
 	type->IsGenericParameterFromParentType = pIsFromParentType;
 	type->GenericParameterIndex = pIndex;
+	//printf("IRAssembly_CreateGenericParameter Type->TypeDefinition = 0x%X\n", (unsigned int)type->TypeDefinition);
 	return type;
 }
 
@@ -129,6 +130,14 @@ IRType* IRType_Create(IRAssembly* pAssembly, TypeDefinition* pTypeDefinition)
 
 	type->IsGeneric = pTypeDefinition->GenericParameterCount > 0;
 	type->GenericParameterCount = pTypeDefinition->GenericParameterCount;
+	if (type->IsGeneric)
+	{
+		type->GenericType = IRGenericType_Create(type, NULL);
+		for (uint32_t i = 0; i < type->GenericParameterCount; i++)
+		{
+			type->GenericType->Parameters[i] = IRAssembly_CreateGenericParameter(pAssembly, TRUE, i);
+		}
+	}
 
 	if (pTypeDefinition == pTypeDefinition->File->Assembly->ParentDomain->CachedType___System_Byte ||
 		pTypeDefinition == pTypeDefinition->File->Assembly->ParentDomain->CachedType___System_Char ||
@@ -181,6 +190,27 @@ IRType* IRType_Create(IRAssembly* pAssembly, TypeDefinition* pTypeDefinition)
 	}
 
 	ILDecomposition_LinkType(pTypeDefinition->File->Assembly->ParentDomain, pTypeDefinition->File->Assembly, type);
+
+	if (pTypeDefinition->NestedClassCount)
+	{
+		type->NestedTypeCount = pTypeDefinition->NestedClassCount;
+		printf("IRType_Create NestedTypeCount = %u\n", (unsigned int)type->NestedTypeCount);
+		type->NestedTypes = (IRType**)calloc(1, sizeof(IRType*) * type->NestedTypeCount);
+		for (uint32_t index = 0; index < pTypeDefinition->NestedClassCount; index++)
+		{
+			if (!pTypeDefinition->File->Assembly->Types[pTypeDefinition->NestedClasses[index]->Nested->TableIndex - 1])
+			{
+				IRType* nestedType = IRType_Create(pTypeDefinition->File->Assembly, pTypeDefinition->NestedClasses[index]->Nested);
+				if (nestedType->IsGeneric) printf("Trace13\n");
+			}
+			type->NestedTypes[index] = pTypeDefinition->File->Assembly->Types[pTypeDefinition->NestedClasses[index]->Nested->TableIndex - 1];
+		}
+	}
+	for (uint32_t index = 0; index < type->NestedTypeCount; ++index)
+	{
+		IRType* nestedType = type->NestedTypes[index];
+		printf("OrigNestedType[%u] = 0x%X, 0x%X\n", (unsigned int)index, (unsigned int)nestedType, (unsigned int)nestedType->GenericType);
+	}
 	return type;
 }
 
@@ -194,13 +224,24 @@ IRType* IRType_Copy(IRType* pType)
 
 IRType* IRType_GenericDeepCopy(IRType* pType, IRAssembly* pAssembly)
 {
+	printf("Trace3.1 0x%X\n", (unsigned int)pType);
+	for (uint32_t index = 0; index < pType->NestedTypeCount; ++index)
+	{
+		IRType* nestedType = pType->NestedTypes[index];
+		printf("NestedType[%u] = 0x%X, 0x%X\n", (unsigned int)index, (unsigned int)nestedType, (unsigned int)nestedType->GenericType);
+	}
+
 	IRType* type = (IRType*)calloc(1, sizeof(IRType));
 	Log_WriteLine(LOGLEVEL__Memory, "Memory: IRType_GenericDeepCopy @ 0x%x, of 0x%x", (unsigned int)type, (unsigned int)pType);
 	*type = *pType;
+	printf("IRType_GenericDeepCopy NestedTypeCount = %u\n", (unsigned int)type->NestedTypeCount);
 	type->ParentAssembly = pAssembly;
 	type->FieldsLayedOut = FALSE;
-	type->IsGenericInstantiation = TRUE;
-	if (pType->StackSizeCalculated || pType->SizeCalculated) Panic("This should not be happening");
+	if (pType->StackSizeCalculated || pType->SizeCalculated)
+	{
+		printf("Type = 0x%X\n", (unsigned int)pType);
+		Panic("This should not be happening");
+	}
 
 	type->Fields = (IRField**)calloc(1, pType->FieldCount * sizeof(IRField*));
 	for (uint32_t index = 0; index < pType->FieldCount; ++index)
@@ -225,6 +266,39 @@ IRType* IRType_GenericDeepCopy(IRType* pType, IRAssembly* pAssembly)
 		IRInterfaceImpl* newInterface = IRInterfaceImpl_Create(iterator->InterfaceType);
 		HASH_ADD(HashHandle, type->InterfaceTable, InterfaceType, sizeof(void*), newInterface);
 	}
+	if (type->NestedTypeCount)
+	{
+		printf("NestedTypeCount = %u\n", (unsigned int)type->NestedTypeCount);
+
+		IRType** newNestedTypes = (IRType**)calloc(1, sizeof(IRType*) * type->NestedTypeCount);
+		memcpy(newNestedTypes, type->NestedTypes, type->NestedTypeCount * sizeof(IRType*));
+		type->NestedTypes = newNestedTypes;
+		for (uint32_t index = 0; index < type->NestedTypeCount; ++index)
+		{
+			IRType* nestedType = type->NestedTypes[index];
+			printf("NestedType[%u] = 0x%X, 0x%X\n", (unsigned int)index, (unsigned int)nestedType, (unsigned int)nestedType->GenericType);
+			IRType* implementationType = IRType_GenericDeepCopy(nestedType, pAssembly);
+			implementationType->GenericType = IRGenericType_Create(nestedType, implementationType);
+			implementationType->GenericType->ParameterCount = nestedType->GenericType->ParameterCount;
+			for (uint32_t index = 0; index < nestedType->GenericType->ParameterCount; ++index)
+			{
+				if (nestedType->GenericType->Parameters[index]->IsGenericParameter)
+				{
+					implementationType->GenericType->Parameters[index] = pType->GenericType->Parameters[nestedType->GenericType->Parameters[index]->GenericParameterIndex];
+				}
+				else
+				{
+					implementationType->GenericType->Parameters[index] = nestedType->GenericType->Parameters[index];
+				}
+				//printf("ResolveGenericTypeParameters, GenericInstantiation Type %s.%s, Param %u Type %s.%s\n", implementationType->TypeDefinition->Namespace, implementationType->TypeDefinition->Name, (unsigned int)index, implementationType->GenericType->Parameters[index]->TypeDefinition->Namespace, implementationType->GenericType->Parameters[index]->TypeDefinition->Name);
+			}
+			printf("DeepCopied NestedType: %s.%s\n", implementationType->TypeDefinition->Namespace, implementationType->TypeDefinition->Name);
+			type->NestedTypes[index] = implementationType;
+			HASH_ADD(HashHandle, pAssembly->GenericTypesHashTable, GenericType, offsetof(IRGenericType, ImplementationType), implementationType->GenericType);
+			AppDomain_ResolveGenericTypeParameters(pAssembly->ParentDomain, pAssembly->ParentFile, implementationType);
+			implementationType->IsGenericInstantiation = TRUE;
+		}
+	}
 	return type;
 }
 
@@ -232,8 +306,12 @@ void IRType_Destroy(IRType* pType)
 {
 	Log_WriteLine(LOGLEVEL__Memory, "Memory: IRType_Destroy @ 0x%x", (unsigned int)pType);
 	// TODO: Deal with copies not freeing their fields/methods, or having their own deep copies
-	free(pType->Fields);
-	free(pType->Methods);
+	if (!pType->IsArrayType && !pType->IsPointerType)
+	{
+		if (pType->NestedTypes) free(pType->NestedTypes);
+		free(pType->Fields);
+		free(pType->Methods);
+	}
 	free(pType);
 }
 
@@ -322,6 +400,7 @@ IRMethod* IRMethod_Create(IRAssembly* pAssembly, MethodDefinition* pMethodDefini
 			if (!(type = pAssembly->Types[pMethodDefinition->TypeDefinition->TableIndex - 1]))
 			{
 				type = IRType_Create(pAssembly, pMethodDefinition->TypeDefinition);
+				if (type->IsGeneric) printf("Trace14\n");
 			}
 		}
 		IRParameter* parameter = IRParameter_Create(method, type);

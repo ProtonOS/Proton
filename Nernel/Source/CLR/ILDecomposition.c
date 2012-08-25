@@ -167,6 +167,7 @@ IRAssembly* ILDecomposition_CreateAssembly(AppDomain* pDomain, CLIFile* pFile)
 			if (!(type = assembly->Types[assembly->ParentFile->Fields[index].TypeDefinition->TableIndex - 1]))
 			{
 				type = IRType_Create(assembly, assembly->ParentFile->Fields[index].TypeDefinition);
+				if (type->IsGeneric) printf("Trace5\n");
 			}
 
 			IRField* field = IRField_Create(type, &assembly->ParentFile->Fields[index]);
@@ -193,6 +194,7 @@ void ILDecomposition_LinkType(AppDomain* pDomain, IRAssembly* pAssembly, IRType*
 				if (!(interfaceType = pAssembly->Types[interfaceImplementation->Interface.TypeDefinition->TableIndex - 1]))
 				{
 					interfaceType = IRType_Create(pAssembly, interfaceImplementation->Interface.TypeDefinition);
+					if (interfaceType->IsGeneric) printf("Trace6\n");
 				}
 				break;
 			}
@@ -205,6 +207,7 @@ void ILDecomposition_LinkType(AppDomain* pDomain, IRAssembly* pAssembly, IRType*
 				if (!(interfaceType = interfaceImplementation->Interface.TypeReference->ResolvedType->File->Assembly->Types[interfaceImplementation->Interface.TypeReference->ResolvedType->TableIndex - 1]))
 				{
 					interfaceType = IRType_Create(interfaceImplementation->Interface.TypeReference->ResolvedType->File->Assembly, interfaceImplementation->Interface.TypeReference->ResolvedType);
+					if (interfaceType->IsGeneric) printf("Trace7\n");
 				}
 				break;
 			}
@@ -361,6 +364,7 @@ IRMethod** ILDecomposition_GetMethodLayout(IRType* pType, TypeDefinition* pTypeD
 			if (!type)
 			{
 				type = IRType_Create(pType->ParentAssembly, pTypeDefinition->Extends.TypeDefinition);
+				if (type->IsGeneric) printf("Trace8\n");
 			}
 			methods = ILDecomposition_GetMethodLayout(type, pTypeDefinition->Extends.TypeDefinition);
 			methodCount = type->MethodCount;
@@ -378,6 +382,7 @@ IRMethod** ILDecomposition_GetMethodLayout(IRType* pType, TypeDefinition* pTypeD
 			if (!type)
 			{
 				type = IRType_Create(pTypeDefinition->Extends.TypeReference->ResolvedType->File->Assembly, pTypeDefinition->Extends.TypeReference->ResolvedType);
+				if (type->IsGeneric) printf("Trace9\n");
 			}
 			methods = ILDecomposition_GetMethodLayout(type, pTypeDefinition->Extends.TypeReference->ResolvedType);
 			methodCount = type->MethodCount;
@@ -523,6 +528,7 @@ IRField** ILDecomposition_GetFieldLayout(IRType* pType, TypeDefinition* pTypeDef
 			if (!type)
 			{
 				type = IRType_Create(pType->ParentAssembly, pTypeDefinition->Extends.TypeDefinition);
+				if (type->IsGeneric) printf("Trace10\n");
 			}
 			fields = ILDecomposition_GetFieldLayout(type, pTypeDefinition->Extends.TypeDefinition);
 			fieldCount = type->FieldCount;
@@ -540,6 +546,7 @@ IRField** ILDecomposition_GetFieldLayout(IRType* pType, TypeDefinition* pTypeDef
 			if (!type)
 			{
 				type = IRType_Create(pTypeDefinition->Extends.TypeReference->ResolvedType->File->Assembly, pTypeDefinition->Extends.TypeReference->ResolvedType);
+				if (type->IsGeneric) printf("Trace11\n");
 			}
 			fields = ILDecomposition_GetFieldLayout(type, pTypeDefinition->Extends.TypeReference->ResolvedType);
 			fieldCount = type->FieldCount;
@@ -1286,6 +1293,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 	if (!(parentType = assembly->Types[methodDefinition->TypeDefinition->TableIndex - 1]))
 	{
 		parentType = IRType_Create(assembly, methodDefinition->TypeDefinition);
+		if (parentType->IsGeneric) printf("Trace12\n");
 	}
 
 	uint32_t catchHandlerIndex = 0;
@@ -2015,6 +2023,9 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 						}
 						break;
 					}
+					case MetadataTable_MethodSpecification:
+						Panic("Call: MetadataTable_MethodSpecification not yet supported");
+						break;
 
 					default:
 						Panic("Unknown table for Call");

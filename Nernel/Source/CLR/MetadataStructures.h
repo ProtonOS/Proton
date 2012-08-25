@@ -1546,6 +1546,7 @@ SignatureType* SignatureType_Create();
 void SignatureType_Destroy(SignatureType* pType);
 uint8_t* SignatureType_Parse(uint8_t* pCursor, SignatureType** pType, CLIFile* pCLIFile);
 SignatureType* SignatureType_Expand(uint8_t* pSignature, CLIFile* pCLIFile);
+bool_t SignatureType_Compare(AppDomain* pDomain, IRAssembly* pAssemblyA, SignatureType* pSignatureTypeA, IRAssembly* pAssemblyB, SignatureType* pSignatureTypeB);
 
 struct _SignatureMethodSpecification
 {

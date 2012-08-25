@@ -64,7 +64,6 @@ namespace Mernel
             //byte[] b = Convert.FromBase64CharArray(c, 0, 4);
             //if (b[0] == 77) Kernel.Write("Yay!\n");
             //Kernel.Write(GC.GetTotalMemory(false));
-            TestPluggedType.TestMethod();
             //Kernel.Write("Test\n");
 
             //char[] test = new char[] { 'T', 'E', 'S', 'T', '\n' };
@@ -74,12 +73,15 @@ namespace Mernel
             //string[] y = x.Split(',');
             //Kernel.Write(y[1]);
             //Kernel.Write("Test\n");
-            string x = "Test";
-            Kernel.Write(x + "\n");
 
-            //List<string> test = new List<string>();
-            //test.Add("Hello!\n");
-            //Kernel.Write(test[0]);
+            //TestPluggedType.TestMethod();
+            
+            //string x = "Test";
+            //Kernel.Write(x + "\n");
+
+            List<string> test = new List<string>();
+            test.Add("Hello!\n");
+            Kernel.Write(test[0]);
 
         }
     }

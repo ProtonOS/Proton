@@ -7,7 +7,11 @@ const uint32_t gPointerDivideShift = 2;
 uint32_t JIT_GetStackSizeOfType(IRType* pType)
 {
 	if (pType->StackSizeCalculated) return pType->StackSize;
-
+	if (pType->IsGenericParameter)
+	{
+		printf("0x%X, 0x%X, 0x%X\n", (unsigned int)pType, (unsigned int)pType->TypeDefinition, (unsigned int)pType->GenericType);
+		Panic("Problem here, especially if value type, either way typedefinition is not set");
+	}
 	if (pType->IsValueType)
 	{
 		AppDomain* domain = pType->ParentAssembly->ParentDomain;
@@ -148,6 +152,7 @@ void JIT_CalculateStaticFieldLayout(IRAssembly* pAssembly)
 	for (uint32_t index = 0; index < pAssembly->StaticFieldCount; ++index)
 	{
 		field = pAssembly->StaticFields[index];
+		printf("Laying out static field: %s.%s.%s, %s %i\n", field->FieldType->GenericType->Parameters[0]->TypeDefinition->Namespace, field->FieldType->GenericType->Parameters[0]->TypeDefinition->Name, field->FieldDefinition->Name, field->FieldType->TypeDefinition->Name, (int)field->FieldType->IsGenericInstantiation);
 		field->Size = JIT_GetStackSizeOfType(field->FieldType);
 		field->Offset = offset;
 		offset += field->Size;

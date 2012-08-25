@@ -87,6 +87,9 @@ struct _IRType
     IRField** Fields;
 	bool_t FieldsLayedOut;
 
+	uint32_t NestedTypeCount;
+	IRType** NestedTypes;
+
 	bool_t StackSizeCalculated;
 	uint32_t StackSize;
 	bool_t SizeCalculated;
