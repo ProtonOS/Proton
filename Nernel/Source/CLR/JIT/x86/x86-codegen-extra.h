@@ -70,3 +70,26 @@
 	} while (0)
 
 
+#define x86_jump_memindex(inst,basereg,disp,indexreg,shift)	\
+	do {	\
+		x86_codegen_pre(&(inst), 1 + kMaxMemindexEmitPadding); \
+		*(inst)++ = (unsigned char)0xff;	\
+		if ((basereg) == X86_NOBASEREG) {	\
+			x86_address_byte ((inst), 0, 4, 4);	\
+			x86_address_byte ((inst), (shift), (indexreg), 5);	\
+			x86_imm_emit32 ((inst), (disp));	\
+		} else if ((disp) == 0 && (basereg) != X86_EBP) {	\
+			x86_address_byte ((inst), 0, 4, 4);	\
+			x86_address_byte ((inst), (shift), (indexreg), (basereg));	\
+		} else if (x86_is_imm8((disp))) {	\
+			x86_address_byte ((inst), 1, 4, 4);	\
+			x86_address_byte ((inst), (shift), (indexreg), (basereg));	\
+			x86_imm_emit8 ((inst), (disp));	\
+		} else {	\
+			x86_address_byte ((inst), 2, 4, 4);	\
+			x86_address_byte ((inst), (shift), (indexreg), (basereg));	\
+			x86_imm_emit32 ((inst), (disp));	\
+		}	\
+	} while (0)
+
+
