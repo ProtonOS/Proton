@@ -213,7 +213,7 @@ IRType* IRType_Create(IRAssembly* pAssembly, TypeDefinition* pTypeDefinition)
 	//	printf("OrigNestedType[%u] = 0x%X, 0x%X, %s.%s\n", (unsigned int)index, (unsigned int)nestedType, (unsigned int)nestedType->GenericType, nestedType->TypeDefinition->Namespace, nestedType->TypeDefinition->Name);
 	//}
 
-	//ILDecomposition_LinkType(pTypeDefinition->File->Assembly->ParentDomain, pTypeDefinition->File->Assembly, type);
+	ILDecomposition_LinkType(pTypeDefinition->File->Assembly->ParentDomain, pTypeDefinition->File->Assembly, type);
 	return type;
 }
 
