@@ -343,7 +343,7 @@ typedef union {
 
 #define x86_memindex_emit(inst,r,basereg,disp,indexreg,shift)	\
 	do {	\
-		if ((basereg) == X86_NOBASEREG) {	\
+		if ((int)(basereg) == X86_NOBASEREG) {	\
 			x86_address_byte ((inst), 0, (r), 4);	\
 			x86_address_byte ((inst), (shift), (indexreg), 5);	\
 			x86_imm_emit32 ((inst), (disp));	\
