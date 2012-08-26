@@ -573,6 +573,7 @@ IRType* AppDomain_GetIRTypeFromSignatureType(AppDomain* pDomain, IRAssembly* pAs
 			}
 			//printf("Yep, it's coming from here\n");
 			IRGenericType key;
+			memset(&key, 0, sizeof(IRGenericType));
 			key.GenericType = type;
 			if (type->GenericParameterCount != pType->GenericInstGenericArgumentCount)
 			{
@@ -595,10 +596,11 @@ IRType* AppDomain_GetIRTypeFromSignatureType(AppDomain* pDomain, IRAssembly* pAs
 				implementationType->GenericType->ParameterCount = pType->GenericInstGenericArgumentCount;
 				for (uint32_t index = 0; index < pType->GenericInstGenericArgumentCount; ++index)
 				{
-					implementationType->GenericType->Parameters[index] = AppDomain_GetIRTypeFromSignatureType(pDomain, pAssembly, pType->GenericInstGenericArguments[index]);
+					implementationType->GenericType->Parameters[index] = key.Parameters[index];
 					printf("GenericInstantiation Type %s.%s, Param %u Type %s.%s\n", implementationType->TypeDefinition->Namespace, implementationType->TypeDefinition->Name, (unsigned int)index, implementationType->GenericType->Parameters[index]->TypeDefinition->Namespace, implementationType->GenericType->Parameters[index]->TypeDefinition->Name);
 				}
 				HASH_ADD(HashHandle, pAssembly->GenericTypesHashTable, GenericType, offsetof(IRGenericType, ImplementationType), implementationType->GenericType);
+				IRType_GenericDeepCopy_Finalize(type, pAssembly, implementationType);
 				AppDomain_ResolveGenericTypeParameters(pDomain, pAssembly->ParentFile, implementationType);
 				implementationType->IsGenericInstantiation = TRUE;
 			}
@@ -1131,7 +1133,7 @@ void AppDomain_ResolveMemberReference(AppDomain* pDomain, CLIFile* pFile, Member
 void AppDomain_ResolveGenericTypeParameters(AppDomain* pDomain, CLIFile* pFile, IRType* pType)
 {
 	printf("Resolving the generic type parameters for a %s.%s and it has %i fields\n", pType->TypeDefinition->Namespace, pType->TypeDefinition->Name, (int)pType->FieldCount);
-	if (!pType->IsGeneric || pType->IsGenericInstantiation)
+	if (!pType->IsGeneric)
 		return;
 
 	for(uint32_t index = 0; index < pType->FieldCount; index++)
@@ -1141,7 +1143,7 @@ void AppDomain_ResolveGenericTypeParameters(AppDomain* pDomain, CLIFile* pFile, 
 		{
 			IRType* fieldType = field->FieldType;
 			IRGenericType key;
-			IRGenericType* keyPtr = &key;
+			memset(&key, 0, sizeof(IRGenericType));
 			key.GenericType = pType->GenericType->GenericType;
 			key.ParameterCount = pType->GenericType->ParameterCount;
 			for (uint32_t index = 0; index < pType->GenericType->ParameterCount; ++index)
@@ -1156,7 +1158,7 @@ void AppDomain_ResolveGenericTypeParameters(AppDomain* pDomain, CLIFile* pFile, 
 				}
 			}
 			IRGenericType* lookupType = NULL;
-			HASH_FIND(HashHandle, pFile->Assembly->GenericTypesHashTable, (void*)&keyPtr, offsetof(IRGenericType, ImplementationType), lookupType);
+			HASH_FIND(HashHandle, pFile->Assembly->GenericTypesHashTable, &key, offsetof(IRGenericType, ImplementationType), lookupType);
 			if (!lookupType)
 			{
 				IRType* implementationType = IRType_GenericDeepCopy(fieldType, pFile->Assembly);
@@ -1176,6 +1178,7 @@ void AppDomain_ResolveGenericTypeParameters(AppDomain* pDomain, CLIFile* pFile, 
 				}
 				field->FieldType = implementationType;
 				HASH_ADD(HashHandle, pFile->Assembly->GenericTypesHashTable, GenericType, offsetof(IRGenericType, ImplementationType), implementationType->GenericType);
+				IRType_GenericDeepCopy_Finalize(fieldType, pFile->Assembly, implementationType);
 				AppDomain_ResolveGenericTypeParameters(pDomain, pFile, implementationType);
 				implementationType->IsGenericInstantiation = TRUE;
 			}
@@ -1213,7 +1216,7 @@ void AppDomain_ResolveGenericTypeParameters(AppDomain* pDomain, CLIFile* pFile, 
 		
 		IRType* interfaceType = iterator->InterfaceType;
 		IRGenericType key;
-		IRGenericType* keyPtr = &key;
+		memset(&key, 0, sizeof(IRGenericType));
 		key.GenericType = pType->GenericType->GenericType;
 		key.ParameterCount = pType->GenericType->ParameterCount;
 		for (uint32_t index = 0; index < pType->GenericType->ParameterCount; ++index)
@@ -1228,7 +1231,7 @@ void AppDomain_ResolveGenericTypeParameters(AppDomain* pDomain, CLIFile* pFile, 
 			}
 		}
 		IRGenericType* lookupType = NULL;
-		HASH_FIND(HashHandle, pFile->Assembly->GenericTypesHashTable, (void*)&keyPtr, offsetof(IRGenericType, ImplementationType), lookupType);
+		HASH_FIND(HashHandle, pFile->Assembly->GenericTypesHashTable, &key, offsetof(IRGenericType, ImplementationType), lookupType);
 		if (!lookupType)
 		{
 			IRType* implementationType = IRType_GenericDeepCopy(interfaceType, pFile->Assembly);
@@ -1248,6 +1251,7 @@ void AppDomain_ResolveGenericTypeParameters(AppDomain* pDomain, CLIFile* pFile, 
 			}
 			iterator->InterfaceType = implementationType;
 			HASH_ADD(HashHandle, pFile->Assembly->GenericTypesHashTable, GenericType, offsetof(IRGenericType, ImplementationType), implementationType->GenericType);
+			IRType_GenericDeepCopy_Finalize(interfaceType, pFile->Assembly, implementationType);
 			AppDomain_ResolveGenericTypeParameters(pDomain, pFile, implementationType);
 			implementationType->IsGenericInstantiation = TRUE;
 		}
@@ -1293,34 +1297,37 @@ void AppDomain_ResolveGenericMethodParametersInternal(AppDomain* pDomain, CLIFil
 		printf("And finally this time in here\n");
 	}
 	IRGenericType key;
-	IRGenericType* keyPtr = &key;
+	memset(&key, 0, sizeof(IRGenericType));
 	key.GenericType = type;
 	key.ParameterCount = type->GenericParameterCount;
 	for (uint32_t index = 0; index < type->GenericParameterCount; ++index)
 	{
 		printf("GenericType = %X\n", (unsigned int)type->GenericType);
-		if (type->GenericType->Parameters[index]->IsGenericParameter)
+		if (!type->GenericType->Parameters[index]->IsGenericInstantiation)
 		{
-			printf("IsGenericParameter\n");
-			if (type->GenericType->Parameters[index]->IsGenericParameterFromParentType)
+			if (type->GenericType->Parameters[index]->IsGenericParameter)
 			{
-				if (!pType) Panic("This shouldn't happen!");
-				key.Parameters[index] = pType->GenericType->Parameters[type->GenericType->Parameters[index]->GenericParameterIndex];
+				printf("IsGenericParameter\n");
+				if (type->GenericType->Parameters[index]->IsGenericParameterFromParentType)
+				{
+					if (!pType) Panic("This shouldn't happen!");
+					key.Parameters[index] = pType->GenericType->Parameters[type->GenericType->Parameters[index]->GenericParameterIndex];
+				}
+				else
+				{
+					if (!pMethod->GenericMethod) Panic("This better not happen!");
+					key.Parameters[index] = pMethod->GenericMethod->Parameters[type->GenericType->Parameters[index]->GenericParameterIndex];
+				}
 			}
 			else
 			{
-				if (!pMethod->GenericMethod) Panic("This better not happen!");
-				key.Parameters[index] = pMethod->GenericMethod->Parameters[type->GenericType->Parameters[index]->GenericParameterIndex];
+				printf("NotGenericParameter\n");
+				key.Parameters[index] = type->GenericType->Parameters[index];
 			}
-		}
-		else
-		{
-			printf("NotGenericParameter\n");
-			key.Parameters[index] = type->GenericType->Parameters[index];
 		}
 	}
 	IRGenericType* lookupType = NULL;
-	HASH_FIND(HashHandle, pFile->Assembly->GenericTypesHashTable, (void*)&keyPtr, offsetof(IRGenericType, ImplementationType), lookupType);
+	HASH_FIND(HashHandle, pFile->Assembly->GenericTypesHashTable, &key, offsetof(IRGenericType, ImplementationType), lookupType);
 	if (!lookupType)
 	{
 		IRType* implementationType = IRType_GenericDeepCopy(type, pFile->Assembly);
@@ -1363,6 +1370,7 @@ void AppDomain_ResolveGenericMethodParametersInternal(AppDomain* pDomain, CLIFil
 		}
 		*pResolvingType = implementationType;
 		HASH_ADD(HashHandle, pFile->Assembly->GenericTypesHashTable, GenericType, offsetof(IRGenericType, ImplementationType), implementationType->GenericType);
+		IRType_GenericDeepCopy_Finalize(type, pFile->Assembly, implementationType);
 		AppDomain_ResolveGenericTypeParameters(pDomain, pFile, implementationType);
 		implementationType->IsGenericInstantiation = TRUE;
 	}

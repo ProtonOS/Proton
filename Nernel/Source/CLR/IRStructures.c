@@ -225,26 +225,8 @@ IRType* IRType_Copy(IRType* pType)
 	return type;
 }
 
-IRType* IRType_GenericDeepCopy(IRType* pType, IRAssembly* pAssembly)
+void IRType_GenericDeepCopy_Finalize(IRType* pType, IRAssembly* pAssembly, IRType* type)
 {
-	//printf("NestedTypeCount for %s.%s = %u\n", pType->TypeDefinition->Namespace, pType->TypeDefinition->Name, (unsigned int)pType->NestedTypeCount);
-	//for (uint32_t index = 0; index < pType->NestedTypeCount; ++index)
-	//{
-	//	IRType* nestedType = pType->NestedTypes[index];
-	//	printf("NestedType[%u] = 0x%X, 0x%X, %s.%s\n", (unsigned int)index, (unsigned int)nestedType, (unsigned int)nestedType->GenericType, nestedType->TypeDefinition->Namespace, nestedType->TypeDefinition->Name);
-	//}
-
-	IRType* type = (IRType*)calloc(1, sizeof(IRType));
-	Log_WriteLine(LOGLEVEL__Memory, "Memory: IRType_GenericDeepCopy @ 0x%x, of 0x%x", (unsigned int)type, (unsigned int)pType);
-	*type = *pType;
-	type->ParentAssembly = pAssembly;
-	type->FieldsLayedOut = FALSE;
-	if (pType->StackSizeCalculated || pType->SizeCalculated)
-	{
-		printf("Type = 0x%X\n", (unsigned int)pType);
-		Panic("This should not be happening");
-	}
-
 	type->Fields = (IRField**)calloc(1, pType->FieldCount * sizeof(IRField*));
 	for (uint32_t index = 0; index < pType->FieldCount; ++index)
 	{
@@ -299,6 +281,28 @@ IRType* IRType_GenericDeepCopy(IRType* pType, IRAssembly* pAssembly)
 	//		implementationType->IsGenericInstantiation = TRUE;
 	//	}
 	//}
+}
+
+IRType* IRType_GenericDeepCopy(IRType* pType, IRAssembly* pAssembly)
+{
+	//printf("NestedTypeCount for %s.%s = %u\n", pType->TypeDefinition->Namespace, pType->TypeDefinition->Name, (unsigned int)pType->NestedTypeCount);
+	//for (uint32_t index = 0; index < pType->NestedTypeCount; ++index)
+	//{
+	//	IRType* nestedType = pType->NestedTypes[index];
+	//	printf("NestedType[%u] = 0x%X, 0x%X, %s.%s\n", (unsigned int)index, (unsigned int)nestedType, (unsigned int)nestedType->GenericType, nestedType->TypeDefinition->Namespace, nestedType->TypeDefinition->Name);
+	//}
+
+	IRType* type = (IRType*)calloc(1, sizeof(IRType));
+	Log_WriteLine(LOGLEVEL__Memory, "Memory: IRType_GenericDeepCopy @ 0x%x, of 0x%x", (unsigned int)type, (unsigned int)pType);
+	*type = *pType;
+	type->ParentAssembly = pAssembly;
+	type->FieldsLayedOut = FALSE;
+	if (pType->StackSizeCalculated || pType->SizeCalculated)
+	{
+		printf("Type = 0x%X\n", (unsigned int)pType);
+		Panic("This should not be happening");
+	}
+
 	return type;
 }
 
