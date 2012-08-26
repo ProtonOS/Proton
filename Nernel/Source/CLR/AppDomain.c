@@ -1139,7 +1139,12 @@ void AppDomain_ResolveGenericTypeParameters(AppDomain* pDomain, CLIFile* pFile, 
 	for(uint32_t index = 0; index < pType->FieldCount; index++)
 	{
 		IRField* field = pType->Fields[index];
-		if (field->FieldType->IsGeneric && !field->FieldType->IsGenericInstantiation)
+		if (field->FieldType->IsGenericParameter)
+		{
+			printf("Well, we got here. %s\n", field->FieldDefinition->Name);
+			field->FieldType = pType->GenericType->Parameters[field->FieldType->GenericParameterIndex];
+		}
+		else if (field->FieldType->IsGeneric && !field->FieldType->IsGenericInstantiation)
 		{
 			IRType* fieldType = field->FieldType;
 			IRGenericType key;
@@ -1186,11 +1191,6 @@ void AppDomain_ResolveGenericTypeParameters(AppDomain* pDomain, CLIFile* pFile, 
 			{
 				field->FieldType = lookupType->ImplementationType;
 			}
-		}
-		else if (field->FieldType->IsGenericParameter)
-		{
-			printf("Well, we got here. %s\n", field->FieldDefinition->Name);
-			field->FieldType = pType->GenericType->Parameters[field->FieldType->GenericParameterIndex];
 		}
 	}
 
@@ -1397,7 +1397,7 @@ void AppDomain_ResolveGenericMethodParameters(AppDomain* pDomain, CLIFile* pFile
 	for (uint32_t index = 0; index < pMethod->LocalVariableCount; index++)
 	{
 		IRLocalVariable* local = pMethod->LocalVariables[index];
-		if ((local->VariableType->IsGeneric && !local->VariableType->IsGenericInstantiation) || local->VariableType->IsGenericParameter)
+		if (local->VariableType->IsGenericParameter || (local->VariableType->IsGeneric && !local->VariableType->IsGenericInstantiation))
 		{
 			AppDomain_ResolveGenericMethodParametersInternal(pDomain, pFile, pType, pMethod, &local->VariableType);
 		}
