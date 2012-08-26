@@ -87,8 +87,8 @@ struct _IRType
     IRField** Fields;
 	bool_t FieldsLayedOut;
 
-	uint32_t NestedTypeCount;
-	IRType** NestedTypes;
+	//uint32_t NestedTypeCount;
+	//IRType** NestedTypes;
 
 	bool_t StackSizeCalculated;
 	uint32_t StackSize;
@@ -286,7 +286,7 @@ struct _IRGenericMethod
 };
 
 IRGenericMethod* IRGenericMethod_Create(IRType* pParentType, IRMethod* pGenericMethod, IRMethod* pImplementationMethod);
-void IRGenericMethod_Destroy(IRGenericMethod* pGenericType);
+void IRGenericMethod_Destroy(IRGenericMethod* pGenericMethod);
 
 typedef struct _SourceTypeData SourceTypeData;
 

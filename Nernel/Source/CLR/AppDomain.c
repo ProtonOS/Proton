@@ -428,7 +428,6 @@ IRType* AppDomain_GetIRTypeFromSignatureType(AppDomain* pDomain, IRAssembly* pAs
 					if (!(type = pAssembly->Types[((TypeDefinition*)token->Data)->TableIndex - 1]))
 					{
 						type = IRType_Create(pAssembly, (TypeDefinition*)token->Data);
-						if (type->IsGeneric) printf("Trace1\n");
 					}
 					break;
 
@@ -440,7 +439,6 @@ IRType* AppDomain_GetIRTypeFromSignatureType(AppDomain* pDomain, IRAssembly* pAs
 					if (!(type = ((TypeReference*)token->Data)->ResolvedType->File->Assembly->Types[((TypeReference*)token->Data)->ResolvedType->TableIndex - 1]))
 					{
 						type = IRType_Create(((TypeReference*)token->Data)->ResolvedType->File->Assembly, ((TypeReference*)token->Data)->ResolvedType);
-						if (type->IsGeneric) printf("Trace2\n");
 					}
 					break;
 
@@ -552,13 +550,26 @@ IRType* AppDomain_GetIRTypeFromSignatureType(AppDomain* pDomain, IRAssembly* pAs
 					if (!(type = ((TypeReference*)token->Data)->ResolvedType->File->Assembly->Types[((TypeReference*)token->Data)->ResolvedType->TableIndex - 1]))
 					{
 						type = IRType_Create(((TypeReference*)token->Data)->ResolvedType->File->Assembly, ((TypeReference*)token->Data)->ResolvedType);
-						if (type->IsGeneric) printf("Trace4\n");
 					}
 					break;
 
 				default:
 					Panic("AppDomain_GetIRTypeFromSignatureType Invalid GenericInstantiation Table");
 					break;
+			}
+			bool_t isInstantiated = TRUE;
+			for(uint32_t i = 0; i < pType->GenericInstGenericArgumentCount; i++)
+			{
+				if (pType->GenericInstGenericArguments[i]->ElementType == SignatureElementType_Var)
+				{
+					isInstantiated = FALSE;
+					break;
+				}
+			}
+			if (!isInstantiated)
+			{
+				CLIFile_DestroyMetadataToken(token);
+				break;
 			}
 			//printf("Yep, it's coming from here\n");
 			IRGenericType key;
@@ -579,7 +590,6 @@ IRType* AppDomain_GetIRTypeFromSignatureType(AppDomain* pDomain, IRAssembly* pAs
 			IRType* implementationType = NULL;
 			if (!lookupType)
 			{
-				printf("Trace3 0x%X\n", (unsigned int)type);
 				implementationType = IRType_GenericDeepCopy(type, pAssembly);
 				implementationType->GenericType = IRGenericType_Create(type, implementationType);
 				implementationType->GenericType->ParameterCount = pType->GenericInstGenericArgumentCount;
@@ -589,9 +599,7 @@ IRType* AppDomain_GetIRTypeFromSignatureType(AppDomain* pDomain, IRAssembly* pAs
 					printf("GenericInstantiation Type %s.%s, Param %u Type %s.%s\n", implementationType->TypeDefinition->Namespace, implementationType->TypeDefinition->Name, (unsigned int)index, implementationType->GenericType->Parameters[index]->TypeDefinition->Namespace, implementationType->GenericType->Parameters[index]->TypeDefinition->Name);
 				}
 				HASH_ADD(HashHandle, pAssembly->GenericTypesHashTable, GenericType, offsetof(IRGenericType, ImplementationType), implementationType->GenericType);
-				printf("GotHere1\n");
 				AppDomain_ResolveGenericTypeParameters(pDomain, pAssembly->ParentFile, implementationType);
-				printf("GotHere2\n");
 				implementationType->IsGenericInstantiation = TRUE;
 			}
 			else
@@ -1268,17 +1276,21 @@ void AppDomain_ResolveGenericMethodParametersInternal(AppDomain* pDomain, CLIFil
 	{
 		if (type->IsGenericParameterFromParentType)
 		{
-			if (!pType) Panic("This shouldn't happen ever!");
+			if (!pType || !pType->GenericType) Panic("This shouldn't happen ever!");
 			printf("We're in here, %X\n", (unsigned int)pType->GenericType);
 			*pResolvingType = pType->GenericType->Parameters[type->GenericParameterIndex];
 		}
 		else
 		{
-			printf("This time we're in here\n");
-			if (!pMethod->GenericMethod) Panic("This better not happen ever!");
+			if (!pMethod || !pMethod->GenericMethod) Panic("This better not happen ever!");
+			printf("This time we're in here, %X\n", (unsigned int)pMethod->GenericMethod);
 			*pResolvingType = pMethod->GenericMethod->Parameters[type->GenericParameterIndex];
 		}
 		return;
+	}
+	else
+	{
+		printf("And finally this time in here\n");
 	}
 	IRGenericType key;
 	IRGenericType* keyPtr = &key;
@@ -1289,19 +1301,21 @@ void AppDomain_ResolveGenericMethodParametersInternal(AppDomain* pDomain, CLIFil
 		printf("GenericType = %X\n", (unsigned int)type->GenericType);
 		if (type->GenericType->Parameters[index]->IsGenericParameter)
 		{
-			if (type->IsGenericParameterFromParentType)
+			printf("IsGenericParameter\n");
+			if (type->GenericType->Parameters[index]->IsGenericParameterFromParentType)
 			{
 				if (!pType) Panic("This shouldn't happen!");
-				key.Parameters[index] = pType->GenericType->Parameters[type->GenericParameterIndex];
+				key.Parameters[index] = pType->GenericType->Parameters[type->GenericType->Parameters[index]->GenericParameterIndex];
 			}
 			else
 			{
 				if (!pMethod->GenericMethod) Panic("This better not happen!");
-				key.Parameters[index] = pMethod->GenericMethod->Parameters[type->GenericParameterIndex];
+				key.Parameters[index] = pMethod->GenericMethod->Parameters[type->GenericType->Parameters[index]->GenericParameterIndex];
 			}
 		}
 		else
 		{
+			printf("NotGenericParameter\n");
 			key.Parameters[index] = type->GenericType->Parameters[index];
 		}
 	}

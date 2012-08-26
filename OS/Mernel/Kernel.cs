@@ -75,13 +75,13 @@ namespace Mernel
             //Kernel.Write("Test\n");
 
             //TestPluggedType.TestMethod();
-            
-            //string x = "Test";
-            //Kernel.Write(x + "\n");
 
-            List<string> test = new List<string>();
-            test.Add("Hello!\n");
-            Kernel.Write(test[0]);
+            string x = "Test";
+            Kernel.Write(x + "\n");
+
+            //List<string> test = new List<string>();
+            //test.Add("Hello!\n");
+            //Kernel.Write(test[0]);
 
         }
     }
