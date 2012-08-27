@@ -1281,20 +1281,14 @@ void AppDomain_ResolveGenericMethodParametersInternal(AppDomain* pDomain, CLIFil
 		if (type->IsGenericParameterFromParentType)
 		{
 			if (!pType || !pType->GenericType) Panic("This shouldn't happen ever!");
-			printf("We're in here, %X\n", (unsigned int)pType->GenericType);
 			*pResolvingType = pType->GenericType->Parameters[type->GenericParameterIndex];
 		}
 		else
 		{
 			if (!pMethod || !pMethod->GenericMethod) Panic("This better not happen ever!");
-			printf("This time we're in here, %X\n", (unsigned int)pMethod->GenericMethod);
 			*pResolvingType = pMethod->GenericMethod->Parameters[type->GenericParameterIndex];
 		}
 		return;
-	}
-	else
-	{
-		printf("And finally this time in here\n");
 	}
 	IRGenericType key;
 	memset(&key, 0, sizeof(IRGenericType));
@@ -1302,12 +1296,10 @@ void AppDomain_ResolveGenericMethodParametersInternal(AppDomain* pDomain, CLIFil
 	key.ParameterCount = type->GenericParameterCount;
 	for (uint32_t index = 0; index < type->GenericParameterCount; ++index)
 	{
-		printf("GenericType = %X\n", (unsigned int)type->GenericType);
 		if (!type->GenericType->Parameters[index]->IsGenericInstantiation)
 		{
 			if (type->GenericType->Parameters[index]->IsGenericParameter)
 			{
-				printf("IsGenericParameter\n");
 				if (type->GenericType->Parameters[index]->IsGenericParameterFromParentType)
 				{
 					if (!pType) Panic("This shouldn't happen!");
@@ -1321,7 +1313,6 @@ void AppDomain_ResolveGenericMethodParametersInternal(AppDomain* pDomain, CLIFil
 			}
 			else
 			{
-				printf("NotGenericParameter\n");
 				key.Parameters[index] = type->GenericType->Parameters[index];
 			}
 		}
@@ -1384,7 +1375,7 @@ void AppDomain_ResolveGenericMethodParameters(AppDomain* pDomain, CLIFile* pFile
 {
 	if(pMethod->IsGeneric && !pMethod->IsGenericImplementation)
 	{
-		printf("Delaying generic parameter resolution of %s.%s.%s\n", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
+		//printf("Delaying generic parameter resolution of %s.%s.%s\n", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
 		return;
 	}
 
@@ -1414,9 +1405,7 @@ void AppDomain_ResolveGenericMethodParameters(AppDomain* pDomain, CLIFile* pFile
 		IRParameter* param = pMethod->Parameters[index];
 		if ((param->Type->IsGeneric && !param->Type->IsGenericInstantiation) || param->Type->IsGenericParameter)
 		{
-			printf("IsGenericParameter1\n");
 			AppDomain_ResolveGenericMethodParametersInternal(pDomain, pFile, pType, pMethod, &param->Type);
-			printf("IsGenericParameter2\n");
 		}
 	}
 

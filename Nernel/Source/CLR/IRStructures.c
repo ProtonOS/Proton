@@ -111,7 +111,7 @@ IRType* IRType_Create(IRAssembly* pAssembly, TypeDefinition* pTypeDefinition)
 		Panic("Ruhroh!");
 	}
 	IRType* type = (IRType*)calloc(1, sizeof(IRType));
-	printf("Creating IRType %s.%s @ 0x%X\n", pTypeDefinition->Namespace, pTypeDefinition->Name, (unsigned int)type);
+	//printf("Creating IRType %s.%s @ 0x%X\n", pTypeDefinition->Namespace, pTypeDefinition->Name, (unsigned int)type);
 	Log_WriteLine(LOGLEVEL__Memory, "Memory: IRType_Create @ 0x%x", (unsigned int)type);
 	type->ParentAssembly = pAssembly;
 	type->TypeDefinition = pTypeDefinition;
@@ -190,7 +190,6 @@ IRType* IRType_Create(IRAssembly* pAssembly, TypeDefinition* pTypeDefinition)
 		}
 	}
 
-	printf("Finished Creating IRType %s.%s @ 0x%X\n", pTypeDefinition->Namespace, pTypeDefinition->Name, (unsigned int)type);
 	//printf("Processing %u NestedTypes for %s.%s\n", (unsigned int)pTypeDefinition->NestedClassCount, type->TypeDefinition->Namespace, type->TypeDefinition->Name);
 	//if (pTypeDefinition->NestedClassCount)
 	//{
@@ -214,6 +213,8 @@ IRType* IRType_Create(IRAssembly* pAssembly, TypeDefinition* pTypeDefinition)
 	//}
 
 	ILDecomposition_LinkType(pTypeDefinition->File->Assembly->ParentDomain, pTypeDefinition->File->Assembly, type);
+
+	//printf("Finished Creating IRType %s.%s @ 0x%X\n", pTypeDefinition->Namespace, pTypeDefinition->Name, (unsigned int)type);
 	return type;
 }
 
