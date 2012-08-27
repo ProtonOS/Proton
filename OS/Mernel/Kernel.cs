@@ -85,4 +85,37 @@ namespace Mernel
 
         }
     }
+
+    internal class List<T>
+    {
+        private T[] internalArr;
+        public List() { }
+
+        public void Add(T val)
+        {
+            if (internalArr == null)
+            {
+                internalArr = new T[1];
+                internalArr[0] = val;
+            }
+            else
+            {
+                T[] tmp = new T[internalArr.Length + 1];
+                for (int i = 0; i < internalArr.Length; i++)
+                {
+                    tmp[i] = internalArr[i];
+                }
+                tmp[internalArr.Length] = val;
+                internalArr = tmp;
+            }
+        }
+
+        public T this[int idx]
+        {
+            get
+            {
+                return internalArr[idx];
+            }
+        }
+    }
 }

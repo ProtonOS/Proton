@@ -10,8 +10,8 @@ uint32_t JIT_GetStackSizeOfType(IRType* pType)
 	if (pType->IsGenericParameter)
 	{
 		printf("Probably a problem, but 0x%X, 0x%X, 0x%X\n", (unsigned int)pType, (unsigned int)pType->TypeDefinition, (unsigned int)pType->GenericType);
-		//return 4;
-		Panic("Problem here, especially if value type, either way typedefinition is not set");
+		return 4;
+		//Panic("Problem here, especially if value type, either way typedefinition is not set");
 	}
 	if (pType->IsValueType)
 	{
