@@ -30,6 +30,8 @@ void JIT_CompileMethod(IRMethod* pMethod)
 		return;
 	}
 
+	printf("Requested compile of %s.%s.%s\n", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
+
 	if (!pMethod->MethodDefinition->InternalCall)
 	{
 		ILDecomposition_ConvertInstructions(pMethod);

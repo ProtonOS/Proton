@@ -5313,6 +5313,7 @@ __attribute__((noreturn)) void JIT_Trampoline_CallVirtual(IRType* pType, uint32_
 		Panic("The type of pObject doesn't inherit from pType, thus a virtual call cannot be made upon it. (supposed to throw an exception here)");
 	}
 
+	printf("Doing a virtual call to %s.%s.%s\n", obj->Type->TypeDefinition->Namespace, obj->Type->TypeDefinition->Name, mToCall->MethodDefinition->Name);
 	if (!mToCall->AssembledMethod) JIT_CompileMethod(mToCall);
 
 	__asm("leave;"); // cleanup locals
