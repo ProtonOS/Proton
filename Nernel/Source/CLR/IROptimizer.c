@@ -3,6 +3,7 @@
 #include <CLR/Optimizations/DeadMoveElimination.h>
 #include <CLR/Optimizations/IntrinsicSubstitution.h>
 #include <CLR/Optimizations/LinearizeStack.h>
+#include <CLR/Optimizations/MoveCompacting.h>
 #include <CLR/Optimizations/Peephole_PreSSA.h>
 #include <CLR/Optimizations/SSA.h>
 
@@ -18,6 +19,8 @@ void IROptimizer_Optimize(IRMethod* pMethod)
 	IROptimizer_Peephole_PreSSA(pMethod);
 
 	IROptimizer_EnterSSA(pMethod, nodes, nodesCount);
+
+	IROptimizer_MoveCompacting(pMethod);
 
 	IROptimizer_LeaveSSA(pMethod, nodes, nodesCount);
 

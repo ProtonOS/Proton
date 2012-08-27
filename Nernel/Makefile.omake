@@ -99,6 +99,7 @@
 	Source/CLR/Optimizations/CFG.c
 	Source/CLR/Optimizations/DeadMoveElimination.c
 	Source/CLR/Optimizations/LinearizeStack.c
+	Source/CLR/Optimizations/MoveCompacting.c
 	Source/CLR/Optimizations/Peephole_PreSSA.c
 	Source/CLR/Optimizations/SSA.c
 	Source/CLR/Optimizations/x86/IntrinsicSubstitution.c

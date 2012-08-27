@@ -2110,7 +2110,7 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 				{
 					EMIT_IR_1ARG_NO_DISPOSE(IROpcode_Call_Internal, method);
 				}
-				else if(((methodDef->Flags & MethodAttributes_Virtual) == 0) || (methodDef->Flags & MethodAttributes_RTSpecialName) || (methodDef->TypeDefinition->Flags & TypeAttributes_Sealed) || AppDomain_IsStructure(domain, methodDef->TypeDefinition))
+				else if(((methodDef->Flags & MethodAttributes_Virtual) == 0) || ((methodDef->Flags & MethodAttributes_Virtual) && (methodDef->Flags & MethodAttributes_Final)) || (methodDef->Flags & MethodAttributes_RTSpecialName) || (methodDef->TypeDefinition->Flags & TypeAttributes_Sealed) || AppDomain_IsStructure(domain, methodDef->TypeDefinition))
 				{
 					ILDecomposition_ConvertInstructions(method);
 					Log_WriteLine(LOGLEVEL__ILReader, "Returning to Converting Method: %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);

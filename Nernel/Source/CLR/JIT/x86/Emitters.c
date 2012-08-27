@@ -1145,7 +1145,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.ArrayElement.ArraySource, pRegister3, pRegister2, pRegister1, NULL);
 					if (pDestination->Data.ArrayElement.IndexSource->Type == SourceType_ConstantI4)
 					{
-						x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, sizeOfDestination * pDestination->Data.ArrayElement.IndexSource->Data.ConstantI4.Value);
+						x86_mov_membase_imm(pCompiledCode, pRegister3, sizeOfDestination * pDestination->Data.ArrayElement.IndexSource->Data.ConstantI4.Value, pSource->Data.ConstantI4.Value, sizeOfDestination);
 					}
 					else
 					{
@@ -1155,8 +1155,8 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 
 						if (sizeOfDestination != 1) x86_imul_reg_reg_imm(pCompiledCode, pRegister2, pRegister2, sizeOfDestination);
 						x86_alu_reg_reg(pCompiledCode, X86_ADD, pRegister3, pRegister2);
+						x86_mov_membase_imm(pCompiledCode, pRegister3, 0, pSource->Data.ConstantI4.Value, sizeOfDestination);
 					}
-					x86_mov_membase_imm(pCompiledCode, pRegister3, 0, pSource->Data.ConstantI4.Value, 4);
 					break;
 				}
 				Define_Bad_Destinations();
@@ -5313,6 +5313,7 @@ __attribute__((noreturn)) void JIT_Trampoline_CallVirtual(IRType* pType, uint32_
 		Panic("The type of pObject doesn't inherit from pType, thus a virtual call cannot be made upon it. (supposed to throw an exception here)");
 	}
 
+	printf("Doing a virtual call to %s.%s.%s\n", obj->Type->TypeDefinition->Namespace, obj->Type->TypeDefinition->Name, mToCall->MethodDefinition->Name);
 	if (!mToCall->AssembledMethod) JIT_CompileMethod(mToCall);
 
 	__asm("leave;"); // cleanup locals
