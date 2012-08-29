@@ -111,6 +111,9 @@ void IROptimizer_MoveCompacting(IRMethod* pMethod)
 				localsAssignedAt[i]->Source1.Type == SourceType_Null ||
 				localsAssignedAt[i]->Source1.Type == SourceType_Local ||
 				localsAssignedAt[i]->Source1.Type == SourceType_LocalAddress ||
+				localsAssignedAt[i]->Source1.Type == SourceType_Parameter ||
+				localsAssignedAt[i]->Source1.Type == SourceType_ParameterAddress || 
+
 				localUseCount[i] == 1
 				)
 			{
