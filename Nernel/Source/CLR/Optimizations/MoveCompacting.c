@@ -110,7 +110,12 @@ void IROptimizer_MoveCompacting(IRMethod* pMethod)
 				localsAssignedAt[i]->Source1.Type == SourceType_ConstantR8 ||
 				localsAssignedAt[i]->Source1.Type == SourceType_Null ||
 				localsAssignedAt[i]->Source1.Type == SourceType_Local ||
-				localsAssignedAt[i]->Source1.Type == SourceType_LocalAddress)
+				localsAssignedAt[i]->Source1.Type == SourceType_LocalAddress ||
+				localsAssignedAt[i]->Source1.Type == SourceType_Parameter ||
+				localsAssignedAt[i]->Source1.Type == SourceType_ParameterAddress || 
+
+				localUseCount[i] == 1
+				)
 			{
 				// we need to retarget it's loads to be from it instead.
 				for (uint32_t i2 = 0; i2 < pMethod->IRCodesCount; i2++)
