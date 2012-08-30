@@ -165,7 +165,6 @@
     <ClCompile Include="Source\CLR\InternalCalls\System.GC.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-
     <ClCompile Include="Source\CLR\InternalCalls\System.Enum.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -185,6 +184,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\CLR\Optimizations\MoveCompacting.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\CLR\ManagedPlugs.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -315,9 +317,6 @@
     <ClInclude Include="Source\CLR\JIT\BranchRegistry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\CLR\JIT\x86\Layout.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Source\CLR\GC.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -375,7 +374,6 @@
     <ClInclude Include="Source\CLR\InternalCalls\System.GC.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-
     <ClInclude Include="Source\CLR\InternalCalls\System.Enum.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -398,6 +396,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\CLR\Optimizations\MoveCompacting.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\CLR\ManagedPlugs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
