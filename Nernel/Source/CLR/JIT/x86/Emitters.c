@@ -145,7 +145,10 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					break;
 				default:
 				{
-					x86_adjust_stack(pCompiledCode, sizeOfSource);
+					if (!loadToStack)
+					{
+						x86_adjust_stack(pCompiledCode, sizeOfSource);
+					}
 					uint32_t count = sizeOfSource >> gPointerDivideShift;
 					for (uint32_t index = 0; index < count; index++)
 					{
@@ -184,7 +187,10 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					break;
 				default:
 				{
-					x86_adjust_stack(pCompiledCode, sizeOfSource);
+					if (!loadToStack)
+					{
+						x86_adjust_stack(pCompiledCode, sizeOfSource);
+					}
 					uint32_t count = sizeOfSource >> gPointerDivideShift;
 					for (uint32_t index = 0; index < count; index++)
 					{
@@ -274,11 +280,16 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				case 4:
 					x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, sourceField->Offset, sizeOfSource);
 					if (loadToStack)
+					{
 						x86_mov_membase_reg(pCompiledCode, X86_ESP, stackOffset, pRegister1, 4);
+					}
 					break;
 				default:
 				{
-					x86_adjust_stack(pCompiledCode, JIT_StackAlign(sizeOfSource));
+					if (!loadToStack)
+					{
+						x86_adjust_stack(pCompiledCode, JIT_StackAlign(sizeOfSource));
+					}
 					uint32_t count = sizeOfSource >> gPointerDivideShift;
 					for (uint32_t index = 0; index < count; index++)
 					{
@@ -329,7 +340,10 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					break;
 				default:
 				{
-					x86_adjust_stack(pCompiledCode, JIT_StackAlign(sizeOfSource));
+					if (!loadToStack)
+					{
+						x86_adjust_stack(pCompiledCode, JIT_StackAlign(sizeOfSource));
+					}
 					uint32_t count = sizeOfSource >> gPointerDivideShift;
 					for (uint32_t index = 0; index < count; index++)
 					{
@@ -379,7 +393,10 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					break;
 				default:
 				{
-					x86_adjust_stack(pCompiledCode, JIT_StackAlign(sizeOfSource));
+					if (!loadToStack)
+					{
+						x86_adjust_stack(pCompiledCode, JIT_StackAlign(sizeOfSource));
+					}
 					uint32_t count = sizeOfSource >> gPointerDivideShift;
 					for (uint32_t index = 0; index < count; index++)
 					{
@@ -455,7 +472,10 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 						x86_imul_reg_reg_imm(pCompiledCode, pRegister2, pRegister2, sizeOfSource);
 						x86_alu_reg_reg(pCompiledCode, X86_ADD, pRegister3, pRegister2);
 					}
-					x86_adjust_stack(pCompiledCode, JIT_StackAlign(sizeOfSource));
+					if (!loadToStack)
+					{
+						x86_adjust_stack(pCompiledCode, JIT_StackAlign(sizeOfSource));
+					}
 					uint32_t count = sizeOfSource >> gPointerDivideShift;
 					for (uint32_t index = 0; index < count; index++)
 					{
@@ -2371,6 +2391,11 @@ char* JIT_Emit_Prologue(char* pCompiledCode, IRMethod* pMethod)
 		}
 	}
 
+	/*if (!strcmp(pMethod->MethodDefinition->Name, "Add"))
+	{
+		x86_push_membase(pCompiledCode, X86_EBP, 8);
+		x86_call_code(pCompiledCode, Panic);
+	}*/
 	return pCompiledCode;
 }
 
@@ -5355,6 +5380,10 @@ char* JIT_Emit_New_Object(char* pCompiledCode, IRMethod* pMethod, IRInstruction*
 
 __attribute__((noreturn)) void JIT_Trampoline_CallVirtual(IRType* pType, uint32_t pMethodIndex, void* pObject)
 {
+	if (!pObject)
+	{
+		Panic("Tried to call a virtual method on a null pointer, this should really be throwing a null-reference exception");
+	}
 	GCObject* obj = *(GCObject**)((size_t)pObject - gSizeOfPointerInBytes);
 	IRMethod* mToCall = NULL;
 	if (pType->IsInterface)
@@ -5448,16 +5477,16 @@ char* JIT_Emit_Call_Absolute(char* pCompiledCode, IRMethod* pMethod, IRInstructi
 		parametersSize += sizeOfParameter;
 	}
 	
-	//if (!(method->MethodDefinition->Flags & MethodAttributes_Static))
-	//{
-	//	x86_mov_reg_membase(pCompiledCode, X86_ECX, X86_ESP, 0, gSizeOfPointerInBytes);
-	//	x86_test_reg_reg(pCompiledCode, X86_ECX, X86_ECX);
-	//	unsigned char* tmp = (unsigned char*)pCompiledCode;
-	//	x86_branch32(pCompiledCode, X86_CC_NZ, 0, FALSE);
-	//	x86_push_imm(pCompiledCode, (size_t)"Attempted to make a call with a null 'this' pointer!");
-	//	x86_call_code(pCompiledCode, Panic);
-	//	x86_patch(tmp, (unsigned char*)pCompiledCode);
-	//}
+	if (!(method->MethodDefinition->Flags & MethodAttributes_Static))
+	{
+		x86_mov_reg_membase(pCompiledCode, X86_ECX, X86_ESP, 0, gSizeOfPointerInBytes);
+		x86_test_reg_reg(pCompiledCode, X86_ECX, X86_ECX);
+		unsigned char* tmp = (unsigned char*)pCompiledCode;
+		x86_branch32(pCompiledCode, X86_CC_NZ, 0, FALSE);
+		x86_push_imm(pCompiledCode, (size_t)"Attempted to make a call with a null 'this' pointer!");
+		x86_call_code(pCompiledCode, Panic);
+		x86_patch(tmp, (unsigned char*)pCompiledCode);
+	}
 
 	x86_call_code(pCompiledCode, method->AssembledMethod);
 	x86_adjust_stack(pCompiledCode, -parametersSize);
