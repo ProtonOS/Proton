@@ -220,7 +220,6 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 			IRField* sourceField = pSource->Data.Field.ParentType->Fields[pSource->Data.Field.FieldIndex];
 			sizeOfSource = JIT_GetStackSizeOfType(sourceField->FieldType);
 			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pSource->Data.Field.FieldSource, pRegister3, pRegister2, pRegister1, NULL);
-			x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, sourceField->Offset);
 			switch (sizeOfSource)
 			{
 				case 1:
@@ -228,7 +227,7 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				case 3:
 					x86_alu_reg_reg(pCompiledCode, X86_XOR, pRegister1, pRegister1);
 				case 4:
-					x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, 0, sizeOfSource);
+					x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister3, sourceField->Offset, sizeOfSource);
 					break;
 				default:
 				{
@@ -236,14 +235,14 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					uint32_t count = sizeOfSource >> gPointerDivideShift;
 					for (uint32_t index = 0; index < count; index++)
 					{
-						x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister3, (index << gPointerDivideShift), gSizeOfPointerInBytes);
+						x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister3, (index << gPointerDivideShift) + sourceField->Offset, gSizeOfPointerInBytes);
 						x86_mov_membase_reg(pCompiledCode, X86_ESP, (index << gPointerDivideShift), pRegister2, gSizeOfPointerInBytes);
 					}
 					uint32_t remainder = sizeOfSource & (gSizeOfPointerInBytes - 1);
 					if (remainder)
 					{
 						x86_alu_reg_reg(pCompiledCode, X86_XOR, pRegister2, pRegister2);
-						x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister3, (count << gPointerDivideShift), remainder);
+						x86_mov_reg_membase(pCompiledCode, pRegister2, pRegister3, (count << gPointerDivideShift) + sourceField->Offset, remainder);
 						x86_mov_membase_reg(pCompiledCode, X86_ESP, (count << gPointerDivideShift), pRegister2, remainder);
 					}
 					break;
@@ -1768,8 +1767,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
 					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
 					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Field.FieldSource, pRegister3, pRegister2, pRegister1, NULL);
-					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
-					Define_Move_To_Destination(X86_EBP, -pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister3, 0, pRegister2, TRUE, FALSE);
+					Define_Move_To_Destination(X86_EBP, -pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister3, field->Offset, pRegister2, TRUE, FALSE);
 					break;
 				}
 				// Local to Static Field (source aligned)
@@ -1781,8 +1779,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 
 					x86_mov_reg_membase(pCompiledCode, pRegister3, DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
 					x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, (field->ParentAssembly->AssemblyIndex << gPointerDivideShift), gSizeOfPointerInBytes);
-					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
-					Define_Move_To_Destination(X86_EBP, -pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister3, 0, pRegister2, TRUE, FALSE);
+					Define_Move_To_Destination(X86_EBP, -pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister3, field->Offset, pRegister2, TRUE, FALSE);
 					break;
 				}
 				// Local to Indirect (source aligned)
@@ -1800,7 +1797,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.ArrayElement.ArraySource, pRegister3, pRegister2, pRegister1, NULL);
 					if (pDestination->Data.ArrayElement.IndexSource->Type == SourceType_ConstantI4)
 					{
-						x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, sizeOfDestination * pDestination->Data.ArrayElement.IndexSource->Data.ConstantI4.Value);
+						Define_Move_To_Destination(X86_EBP, -pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister3, sizeOfDestination * pDestination->Data.ArrayElement.IndexSource->Data.ConstantI4.Value, pRegister2, TRUE, FALSE);
 					}
 					else
 					{
@@ -1810,8 +1807,8 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 
 						if (sizeOfDestination != 1) x86_imul_reg_reg_imm(pCompiledCode, pRegister2, pRegister2, sizeOfDestination);
 						x86_alu_reg_reg(pCompiledCode, X86_ADD, pRegister3, pRegister2);
+						Define_Move_To_Destination(X86_EBP, -pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister3, 0, pRegister2, TRUE, FALSE);
 					}
-					Define_Move_To_Destination(X86_EBP, -pMethod->LocalVariables[pSource->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister3, 0, pRegister2, TRUE, FALSE);
 					break;
 				}
 				Define_Bad_Destinations();
@@ -1846,8 +1843,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
 					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
 					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Field.FieldSource, pRegister3, pRegister2, pRegister1, NULL);
-					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
-					Define_Move_To_Destination(X86_EBP, pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset, pRegister3, 0, pRegister2, TRUE, FALSE);
+					Define_Move_To_Destination(X86_EBP, pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset, pRegister3, field->Offset, pRegister2, TRUE, FALSE);
 					break;
 				}
 				// Parameter to Static Field (source aligned)
@@ -1859,8 +1855,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 
 					x86_mov_reg_membase(pCompiledCode, pRegister3, DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
 					x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, (field->ParentAssembly->AssemblyIndex << gPointerDivideShift), gSizeOfPointerInBytes);
-					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
-					Define_Move_To_Destination(X86_EBP, pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset, pRegister3, 0, pRegister2, TRUE, FALSE);
+					Define_Move_To_Destination(X86_EBP, pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset, pRegister3, field->Offset, pRegister2, TRUE, FALSE);
 					break;
 				}
 				// Parameter to Indirect (source aligned)
@@ -1878,7 +1873,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.ArrayElement.ArraySource, pRegister3, pRegister2, pRegister1, NULL);
 					if (pDestination->Data.ArrayElement.IndexSource->Type == SourceType_ConstantI4)
 					{
-						x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, sizeOfDestination * pDestination->Data.ArrayElement.IndexSource->Data.ConstantI4.Value);
+						Define_Move_To_Destination(X86_EBP, pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset, pRegister3, sizeOfDestination * pDestination->Data.ArrayElement.IndexSource->Data.ConstantI4.Value, pRegister2, TRUE, FALSE);
 					}
 					else
 					{
@@ -1888,8 +1883,8 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 
 						if (sizeOfDestination != 1) x86_imul_reg_reg_imm(pCompiledCode, pRegister2, pRegister2, sizeOfDestination);
 						x86_alu_reg_reg(pCompiledCode, X86_ADD, pRegister3, pRegister2);
+						Define_Move_To_Destination(X86_EBP, pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset, pRegister3, 0, pRegister2, TRUE, FALSE);
 					}
-					Define_Move_To_Destination(X86_EBP, pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset, pRegister3, 0, pRegister2, TRUE, FALSE);
 					break;
 				}
 				Define_Bad_Destinations();
@@ -1904,21 +1899,20 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 			IRField* sourceField = pSource->Data.Field.ParentType->Fields[pSource->Data.Field.FieldIndex];
 			sizeOfSource = JIT_GetStackSizeOfType(sourceField->FieldType);
 			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pSource->Data.Field.FieldSource, pRegister1, pRegister2, pRegister3, NULL);
-			x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister1, sourceField->Offset);
 			switch (pDestination->Type)
 			{
 				// Field to Local (destination aligned)
 				case SourceType_Local:
 				{
 					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->VariableType));
-					Define_Move_To_Destination(pRegister1, 0, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister2, FALSE, TRUE);
+					Define_Move_To_Destination(pRegister1, sourceField->Offset, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister2, FALSE, TRUE);
 					break;
 				}
 				// Field to Parameter (destination aligned)
 				case SourceType_Parameter:
 				{
 					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Type));
-					Define_Move_To_Destination(pRegister1, 0, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister2, FALSE, TRUE);
+					Define_Move_To_Destination(pRegister1, sourceField->Offset, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister2, FALSE, TRUE);
 					break;
 				}
 				// Field to Field (neither aligned)
@@ -1930,8 +1924,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_push_reg(pCompiledCode, pRegister1);
 					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Field.FieldSource, pRegister3, pRegister2, pRegister1, NULL);
 					x86_pop_reg(pCompiledCode, pRegister1);
-					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
-					Define_Move_To_Destination(pRegister1, 0, pRegister3, 0, pRegister2, FALSE, FALSE);
+					Define_Move_To_Destination(pRegister1, sourceField->Offset, pRegister3, field->Offset, pRegister2, FALSE, FALSE);
 					break;
 				}
 				// Field to Static Field (neither aligned)
@@ -1943,9 +1936,8 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 
 					x86_mov_reg_membase(pCompiledCode, pRegister3, DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
 					x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, (field->ParentAssembly->AssemblyIndex << gPointerDivideShift), gSizeOfPointerInBytes);
-					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
 
-					Define_Move_To_Destination(pRegister1, 0, pRegister3, 0, pRegister2, FALSE, FALSE);
+					Define_Move_To_Destination(pRegister1, sourceField->Offset, pRegister3, field->Offset, pRegister2, FALSE, FALSE);
 					break;
 				}
 				// Field to Indirect (neither aligned)
@@ -1955,7 +1947,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_push_reg(pCompiledCode, pRegister1);
 					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Indirect.AddressSource, pRegister3, pRegister2, pRegister1, NULL);
 					x86_pop_reg(pCompiledCode, pRegister1);
-					Define_Move_To_Destination(pRegister1, 0, pRegister3, 0, pRegister2, FALSE, FALSE);
+					Define_Move_To_Destination(pRegister1, sourceField->Offset, pRegister3, 0, pRegister2, FALSE, FALSE);
 					break;
 				}
 				// Field to ArrayElement (neither aligned)
@@ -1967,7 +1959,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_pop_reg(pCompiledCode, pRegister1);
 					if (pDestination->Data.ArrayElement.IndexSource->Type == SourceType_ConstantI4)
 					{
-						x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, sizeOfDestination * pDestination->Data.ArrayElement.IndexSource->Data.ConstantI4.Value);
+						Define_Move_To_Destination(pRegister1, sourceField->Offset, pRegister3, sizeOfDestination * pDestination->Data.ArrayElement.IndexSource->Data.ConstantI4.Value, pRegister2, FALSE, FALSE);
 					}
 					else
 					{
@@ -1979,8 +1971,8 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 
 						if (sizeOfDestination != 1) x86_imul_reg_reg_imm(pCompiledCode, pRegister2, pRegister2, sizeOfDestination);
 						x86_alu_reg_reg(pCompiledCode, X86_ADD, pRegister3, pRegister2);
+						Define_Move_To_Destination(pRegister1, sourceField->Offset, pRegister3, 0, pRegister2, FALSE, FALSE);
 					}
-					Define_Move_To_Destination(pRegister1, 0, pRegister3, 0, pRegister2, FALSE, FALSE);
 					break;
 				}
 				Define_Bad_Destinations();
@@ -1991,27 +1983,26 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 		// From Static Field
 		case SourceType_StaticField:
 		{
-			IRField* field = pSource->Data.StaticField.Field;
-			sizeOfSource = JIT_GetStackSizeOfType(field->FieldType);
-			EMIT_Static_Constructor_Call(pRegister1, pRegister2, field, pCompiledCode);
+			IRField* staticfield = pSource->Data.StaticField.Field;
+			sizeOfSource = JIT_GetStackSizeOfType(staticfield->FieldType);
+			EMIT_Static_Constructor_Call(pRegister1, pRegister2, staticfield, pCompiledCode);
 
 			x86_mov_reg_membase(pCompiledCode, pRegister1, DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
-			x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister1, (field->ParentAssembly->AssemblyIndex << gPointerDivideShift), gSizeOfPointerInBytes);
-			x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister1, field->Offset);
+			x86_mov_reg_membase(pCompiledCode, pRegister1, pRegister1, (staticfield->ParentAssembly->AssemblyIndex << gPointerDivideShift), gSizeOfPointerInBytes);
 			switch (pDestination->Type)
 			{
 				// Static Field to Local (destination aligned)
 				case SourceType_Local:
 				{
 					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->VariableType));
-					Define_Move_To_Destination(pRegister1, 0, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister2, FALSE, TRUE);
+					Define_Move_To_Destination(pRegister1, staticfield->Offset, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister2, FALSE, TRUE);
 					break;
 				}
 				// Static Field to Parameter (destination aligned)
 				case SourceType_Parameter:
 				{
 					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Type));
-					Define_Move_To_Destination(pRegister1, 0, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister2, FALSE, TRUE);
+					Define_Move_To_Destination(pRegister1, staticfield->Offset, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister2, FALSE, TRUE);
 					break;
 				}
 				// Static Field to Field (neither aligned)
@@ -2023,8 +2014,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_push_reg(pCompiledCode, pRegister1);
 					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Field.FieldSource, pRegister3, pRegister2, pRegister1, NULL);
 					x86_pop_reg(pCompiledCode, pRegister1);
-					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
-					Define_Move_To_Destination(pRegister1, 0, pRegister3, 0, pRegister2, FALSE, FALSE);
+					Define_Move_To_Destination(pRegister1, staticfield->Offset, pRegister3, field->Offset, pRegister2, FALSE, FALSE);
 					break;
 				}
 				// Static Field to Static Field (neither aligned)
@@ -2032,13 +2022,15 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				{
 					IRField* field = pDestination->Data.StaticField.Field;
 					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
-					EMIT_Static_Constructor_Call(pRegister3, pRegister2, field, pCompiledCode);
+					if (field->FieldType != staticfield->FieldType)
+					{
+						EMIT_Static_Constructor_Call(pRegister3, pRegister2, field, pCompiledCode);
+					}
 
 					x86_mov_reg_membase(pCompiledCode, pRegister3, DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
 					x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, (field->ParentAssembly->AssemblyIndex << gPointerDivideShift), gSizeOfPointerInBytes);
-					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
 
-					Define_Move_To_Destination(pRegister1, 0, pRegister3, 0, pRegister2, FALSE, FALSE);
+					Define_Move_To_Destination(pRegister1, staticfield->Offset, pRegister3, field->Offset, pRegister2, FALSE, FALSE);
 					break;
 				}
 				// Static Field to Indirect (neither aligned)
@@ -2048,7 +2040,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_push_reg(pCompiledCode, pRegister1);
 					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Indirect.AddressSource, pRegister3, pRegister2, pRegister1, NULL);
 					x86_pop_reg(pCompiledCode, pRegister1);
-					Define_Move_To_Destination(pRegister1, 0, pRegister3, 0, pRegister2, FALSE, FALSE);
+					Define_Move_To_Destination(pRegister1, staticfield->Offset, pRegister3, 0, pRegister2, FALSE, FALSE);
 					break;
 				}
 				// Static Field to ArrayElement (neither aligned)
@@ -2060,7 +2052,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_pop_reg(pCompiledCode, pRegister1);
 					if (pDestination->Data.ArrayElement.IndexSource->Type == SourceType_ConstantI4)
 					{
-						x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, sizeOfDestination * pDestination->Data.ArrayElement.IndexSource->Data.ConstantI4.Value);
+						Define_Move_To_Destination(pRegister1, staticfield->Offset, pRegister3, sizeOfDestination * pDestination->Data.ArrayElement.IndexSource->Data.ConstantI4.Value, pRegister2, FALSE, FALSE);
 					}
 					else
 					{
@@ -2072,8 +2064,8 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 
 						if (sizeOfDestination != 1) x86_imul_reg_reg_imm(pCompiledCode, pRegister2, pRegister2, sizeOfDestination);
 						x86_alu_reg_reg(pCompiledCode, X86_ADD, pRegister3, pRegister2);
+						Define_Move_To_Destination(pRegister1, staticfield->Offset, pRegister3, 0, pRegister2, FALSE, FALSE);
 					}
-					Define_Move_To_Destination(pRegister1, 0, pRegister3, 0, pRegister2, FALSE, FALSE);
 					break;
 				}
 				Define_Bad_Destinations();
@@ -2111,8 +2103,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_push_reg(pCompiledCode, pRegister1);
 					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Field.FieldSource, pRegister3, pRegister2, pRegister1, NULL);
 					x86_pop_reg(pCompiledCode, pRegister1);
-					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
-					Define_Move_To_Destination(pRegister1, 0, pRegister3, 0, pRegister2, FALSE, FALSE);
+					Define_Move_To_Destination(pRegister1, 0, pRegister3, field->Offset, pRegister2, FALSE, FALSE);
 					break;
 				}
 				// Indirect to Static Field (neither aligned)
@@ -2124,9 +2115,8 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 
 					x86_mov_reg_membase(pCompiledCode, pRegister3, DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
 					x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, (field->ParentAssembly->AssemblyIndex << gPointerDivideShift), gSizeOfPointerInBytes);
-					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
 
-					Define_Move_To_Destination(pRegister1, 0, pRegister3, 0, pRegister2, FALSE, FALSE);
+					Define_Move_To_Destination(pRegister1, 0, pRegister3, field->Offset, pRegister2, FALSE, FALSE);
 					break;
 				}
 				// Indirect to Indirect (neither aligned)
@@ -2148,7 +2138,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_pop_reg(pCompiledCode, pRegister1);
 					if (pDestination->Data.ArrayElement.IndexSource->Type == SourceType_ConstantI4)
 					{
-						x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, sizeOfDestination * pDestination->Data.ArrayElement.IndexSource->Data.ConstantI4.Value);
+						Define_Move_To_Destination(pRegister1, 0, pRegister3, sizeOfDestination * pDestination->Data.ArrayElement.IndexSource->Data.ConstantI4.Value, pRegister2, FALSE, FALSE);
 					}
 					else
 					{
@@ -2160,8 +2150,8 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 
 						if (sizeOfDestination != 1) x86_imul_reg_reg_imm(pCompiledCode, pRegister2, pRegister2, sizeOfDestination);
 						x86_alu_reg_reg(pCompiledCode, X86_ADD, pRegister3, pRegister2);
+						Define_Move_To_Destination(pRegister1, 0, pRegister3, 0, pRegister2, FALSE, FALSE);
 					}
-					Define_Move_To_Destination(pRegister1, 0, pRegister3, 0, pRegister2, FALSE, FALSE);
 					break;
 				}
 				Define_Bad_Destinations();
@@ -2174,9 +2164,10 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 		{
 			sizeOfSource = JIT_GetStackSizeOfType(pSource->Data.ArrayElement.ElementType);
 			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pSource->Data.ArrayElement.ArraySource, pRegister1, pRegister2, pRegister3, NULL);
+			uint32_t sourceBase = 0;
 			if (pSource->Data.ArrayElement.IndexSource->Type == SourceType_ConstantI4)
 			{
-				x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister1, sizeOfSource * pSource->Data.ArrayElement.IndexSource->Data.ConstantI4.Value);
+				sourceBase = sizeOfSource * pSource->Data.ArrayElement.IndexSource->Data.ConstantI4.Value;
 			}
 			else
 			{
@@ -2193,14 +2184,14 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				case SourceType_Local:
 				{
 					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->VariableType));
-					Define_Move_To_Destination(pRegister1, 0, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister2, FALSE, TRUE);
+					Define_Move_To_Destination(pRegister1, sourceBase, X86_EBP, -pMethod->LocalVariables[pDestination->Data.LocalVariable.LocalVariableIndex]->Offset, pRegister2, FALSE, TRUE);
 					break;
 				}
 				// Array Element to Parameter (destination aligned)
 				case SourceType_Parameter:
 				{
 					sizeOfDestination = JIT_StackAlign(JIT_GetStackSizeOfType(pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Type));
-					Define_Move_To_Destination(pRegister1, 0, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister2, FALSE, TRUE);
+					Define_Move_To_Destination(pRegister1, sourceBase, X86_EBP, pMethod->Parameters[pDestination->Data.Parameter.ParameterIndex]->Offset, pRegister2, FALSE, TRUE);
 					break;
 				}
 				// Array Element to Field (neither aligned)
@@ -2212,8 +2203,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_push_reg(pCompiledCode, pRegister1);
 					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Field.FieldSource, pRegister3, pRegister2, pRegister1, NULL);
 					x86_pop_reg(pCompiledCode, pRegister1);
-					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
-					Define_Move_To_Destination(pRegister1, 0, pRegister3, 0, pRegister2, FALSE, FALSE);
+					Define_Move_To_Destination(pRegister1, sourceBase, pRegister3, field->Offset, pRegister2, FALSE, FALSE);
 					break;
 				}
 				// Array Element to Static Field (neither aligned)
@@ -2225,9 +2215,8 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 
 					x86_mov_reg_membase(pCompiledCode, pRegister3, DOMAIN_REG, offsetof(AppDomain, StaticValues), gSizeOfPointerInBytes);
 					x86_mov_reg_membase(pCompiledCode, pRegister3, pRegister3, (field->ParentAssembly->AssemblyIndex << gPointerDivideShift), gSizeOfPointerInBytes);
-					x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
 
-					Define_Move_To_Destination(pRegister1, 0, pRegister3, 0, pRegister2, FALSE, FALSE);
+					Define_Move_To_Destination(pRegister1, sourceBase, pRegister3, field->Offset, pRegister2, FALSE, FALSE);
 					break;
 				}
 				// Array Element to Indirect (neither aligned)
@@ -2237,7 +2226,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_push_reg(pCompiledCode, pRegister1);
 					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Indirect.AddressSource, pRegister3, pRegister2, pRegister1, NULL);
 					x86_pop_reg(pCompiledCode, pRegister1);
-					Define_Move_To_Destination(pRegister1, 0, pRegister3, 0, pRegister2, FALSE, FALSE);
+					Define_Move_To_Destination(pRegister1, sourceBase, pRegister3, 0, pRegister2, FALSE, FALSE);
 					break;
 				}
 				// Array Element to ArrayElement (neither aligned)
@@ -2249,7 +2238,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					x86_pop_reg(pCompiledCode, pRegister1);
 					if (pDestination->Data.ArrayElement.IndexSource->Type == SourceType_ConstantI4)
 					{
-						x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, sizeOfDestination * pDestination->Data.ArrayElement.IndexSource->Data.ConstantI4.Value);
+						Define_Move_To_Destination(pRegister1, sourceBase, pRegister3, sizeOfDestination * pDestination->Data.ArrayElement.IndexSource->Data.ConstantI4.Value, pRegister2, FALSE, FALSE);
 					}
 					else
 					{
@@ -2261,8 +2250,8 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 
 						if (sizeOfDestination != 1) x86_imul_reg_reg_imm(pCompiledCode, pRegister2, pRegister2, sizeOfDestination);
 						x86_alu_reg_reg(pCompiledCode, X86_ADD, pRegister3, pRegister2);
+						Define_Move_To_Destination(pRegister1, sourceBase, pRegister3, 0, pRegister2, FALSE, FALSE);
 					}
-					Define_Move_To_Destination(pRegister1, 0, pRegister3, 0, pRegister2, FALSE, FALSE);
 					break;
 				}
 				Define_Bad_Destinations();
@@ -2506,20 +2495,41 @@ char* JIT_Emit_Add(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstr
 			if (pInstruction->Destination.Type == SourceType_Local)
 			{
 				pCompiledCode = JIT_Emit_Move(pCompiledCode, pMethod, &pInstruction->Source2, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
-				pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
-				x86_alu_membase_reg(pCompiledCode, X86_ADD, X86_EBP, -pMethod->LocalVariables[pInstruction->Destination.Data.LocalVariable.LocalVariableIndex]->Offset, PRIMARY_REG);
+				if (pInstruction->Source1.Type == SourceType_ConstantI4)
+				{
+					x86_alu_membase_imm(pCompiledCode, X86_ADD, X86_EBP, -pMethod->LocalVariables[pInstruction->Destination.Data.LocalVariable.LocalVariableIndex]->Offset, pInstruction->Source1.Data.ConstantI4.Value);
+				}
+				else
+				{
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					x86_alu_membase_reg(pCompiledCode, X86_ADD, X86_EBP, -pMethod->LocalVariables[pInstruction->Destination.Data.LocalVariable.LocalVariableIndex]->Offset, PRIMARY_REG);
+				}
 			}
 			else if (pInstruction->Destination.Type == SourceType_Parameter)
 			{
 				pCompiledCode = JIT_Emit_Move(pCompiledCode, pMethod, &pInstruction->Source2, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
-				pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
-				x86_alu_membase_reg(pCompiledCode, X86_ADD, X86_EBP, pMethod->Parameters[pInstruction->Destination.Data.Parameter.ParameterIndex]->Offset, PRIMARY_REG);
+				if (pInstruction->Source1.Type == SourceType_ConstantI4)
+				{
+					x86_alu_membase_imm(pCompiledCode, X86_ADD, X86_EBP, pMethod->Parameters[pInstruction->Destination.Data.Parameter.ParameterIndex]->Offset, pInstruction->Source1.Data.ConstantI4.Value);
+				}
+				else
+				{
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
+					x86_alu_membase_reg(pCompiledCode, X86_ADD, X86_EBP, pMethod->Parameters[pInstruction->Destination.Data.Parameter.ParameterIndex]->Offset, PRIMARY_REG);
+				}
 			}
 			else
 			{
 				pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source2, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
-				pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, FOURTH_REG, SECONDARY_REG, THIRD_REG, NULL);
-				x86_alu_reg_reg(pCompiledCode, X86_ADD, FOURTH_REG, PRIMARY_REG);
+				if (pInstruction->Source1.Type == SourceType_ConstantI4)
+				{
+					x86_alu_reg_imm(pCompiledCode, X86_ADD, PRIMARY_REG, pInstruction->Source1.Data.ConstantI4.Value);
+				}
+				else
+				{
+					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, FOURTH_REG, SECONDARY_REG, THIRD_REG, NULL);
+					x86_alu_reg_reg(pCompiledCode, X86_ADD, FOURTH_REG, PRIMARY_REG);
+				}
 				pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, FOURTH_REG, SECONDARY_REG, THIRD_REG, NULL);
 			}
 			break;
