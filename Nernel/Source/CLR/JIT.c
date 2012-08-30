@@ -3,8 +3,6 @@
 #include <CLR/JIT.h>
 #include <System/SymbolLogger.h>
 
-#define Output_Symbols
-
 Thread* GetCurrentThread();
 
 void JIT_ExecuteMethod(IRMethod* pMethod, AppDomain* pDomain)

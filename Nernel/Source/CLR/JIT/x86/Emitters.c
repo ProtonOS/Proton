@@ -1,3 +1,6 @@
+#ifdef Output_Symbols
+#include <System/SymbolLogger.h>
+#endif
 #include <CLR/GC.h>
 #include <CLR/JIT.h>
 #include <CLR/JIT/Layout.h>
@@ -2453,6 +2456,12 @@ char* JIT_Emit_Return(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pIn
 
 char* JIT_Emit_Load_String(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+	
+#ifdef Output_Symbols
+	char symbolBuffer[512];
+	snprintf(symbolBuffer, 512, "5:%u", (unsigned int)pInstruction->Arg2);
+	SymbolLogger_WriteLine(symbolBuffer);
+#endif
 	// No need to adjust stack stream, AllocateString does not call back into managed code
 	// and maintains GC lock until it has written to the void** in ESP+8, which points to
 	// the destination local variable directly, ensuring GC won't fail to mark it as alive

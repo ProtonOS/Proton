@@ -13,8 +13,23 @@
 
 #define SYMBOLLOGGER__TransmitWait			1000
 
+#include <CLR/GC.h>
+
 void SymbolLogger_Startup()
 {
+	char symbolBuffer[512];
+	snprintf(symbolBuffer, 512, "4:Panic %u", (unsigned int)Panic);
+	SymbolLogger_WriteLine(symbolBuffer);
+	memset(&symbolBuffer, 0, 512);
+	snprintf(symbolBuffer, 512, "4:GC_AllocateInternedStringFromUnicode %u", (unsigned int)GC_AllocateInternedStringFromUnicode);
+	SymbolLogger_WriteLine(symbolBuffer);
+	memset(&symbolBuffer, 0, 512);
+	snprintf(symbolBuffer, 512, "4:GC_AllocateArray %u", (unsigned int)GC_AllocateArray);
+	SymbolLogger_WriteLine(symbolBuffer);
+	memset(&symbolBuffer, 0, 512);
+	snprintf(symbolBuffer, 512, "4:GC_AllocateObject %u", (unsigned int)GC_AllocateObject);
+	SymbolLogger_WriteLine(symbolBuffer);
+	memset(&symbolBuffer, 0, 512);
 }
 
 void SymbolLogger_Shutdown()
