@@ -80,9 +80,10 @@ namespace Mernel
             //Kernel.Write(x + "\n");
 
             List<string> test = new List<string>();
-            test.Add("Hello!\n");
-            Kernel.Write(test[0]);
-
+            test.Add("HelloA!\n");
+            test.Add("HelloB!\n");
+            test.Add("HelloC!\n");
+            for (int x = 0; x < test.Count; ++x) Kernel.Write(test[x]);
         }
     }
 

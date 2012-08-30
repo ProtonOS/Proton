@@ -73,11 +73,26 @@ void RetargetSources(SourceTypeData* searchingInType, SourceTypeData* lookingFor
 
 }
 
-void IROptimizer_MoveCompacting(IRMethod* pMethod)
+bool_t IROptimizer_SourceDataUsesLocalVariable(SourceTypeData* pSourceData, uint32_t pLocalVariableIndex);
+
+void IROptimizer_MoveCompacting(IRMethod* pMethod, IRCodeNode** pNodes, uint32_t pNodesCount)
 {
 	uint32_t* localUseCount = (uint32_t*)calloc(1, sizeof(uint32_t) * pMethod->LocalVariableCount);
 	IRInstruction** localsAssignedAt = (IRInstruction**)calloc(1, sizeof(IRInstruction*) * pMethod->LocalVariableCount);
 	bool_t* addressLoadedOf = (bool_t*)calloc(1, sizeof(bool_t) * pMethod->LocalVariableCount);
+	for(uint32_t i = 0; i < pNodesCount; i++)
+	{
+		for (uint32_t i2 = 0; i2 < pNodes[i]->PhiFunctionsCount; i2++)
+		{
+			//printf("Ignoring local %u because it's a result\n", (unsigned int)pNodes[i]->PhiFunctions[i2]->Result->LocalVariableIndex);
+			addressLoadedOf[pNodes[i]->PhiFunctions[i2]->Result->LocalVariableIndex] = TRUE;
+			for (uint32_t i3 = 0; i3 < pNodes[i]->PhiFunctions[i2]->ArgumentsCount; i3++)
+			{
+				//printf("Ignoring local %u because it's an argument\n", (unsigned int)pNodes[i]->PhiFunctions[i2]->Arguments[i3]->LocalVariableIndex);
+				addressLoadedOf[pNodes[i]->PhiFunctions[i2]->Arguments[i3]->LocalVariableIndex] = TRUE;
+			}
+		}
+	}
 	for (uint32_t i = 0; i < pMethod->IRCodesCount; i++)
 	{
 		IRInstruction* instr = pMethod->IRCodes[i];
@@ -101,9 +116,27 @@ void IROptimizer_MoveCompacting(IRMethod* pMethod)
 
 	for (uint32_t i = 0; i < pMethod->LocalVariableCount; i++)
 	{
-		if (addressLoadedOf[i]) continue;
+		if (addressLoadedOf[i])
+		{
+			//printf("Skipping %u because it had it's address loaded\n", (unsigned int)i);
+			continue;
+		}
 		if (localsAssignedAt[i])
 		{
+			if (IROptimizer_SourceDataUsesLocalVariable(&localsAssignedAt[i]->Source1, i)) continue;
+			if (IROptimizer_SourceDataUsesLocalVariable(&localsAssignedAt[i]->Source2, i)) continue;
+			if (IROptimizer_SourceDataUsesLocalVariable(&localsAssignedAt[i]->Source3, i)) continue;
+			if (IROptimizer_SourceDataUsesLocalVariable(&localsAssignedAt[i]->Destination, i)) continue;
+			bool_t found = FALSE;
+			for (uint32_t i2 = 0; i2 < localsAssignedAt[i]->SourceArrayLength; i2++)
+			{
+				if (IROptimizer_SourceDataUsesLocalVariable(&localsAssignedAt[i]->SourceArray[i2], i))
+				{
+					found = TRUE;
+					break;
+				}
+			}
+			if (found) continue;
 			if (localsAssignedAt[i]->Source1.Type == SourceType_ConstantI4 ||
 				localsAssignedAt[i]->Source1.Type == SourceType_ConstantI8 ||
 				localsAssignedAt[i]->Source1.Type == SourceType_ConstantR4 ||
