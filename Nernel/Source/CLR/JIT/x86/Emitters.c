@@ -5214,14 +5214,15 @@ char* JIT_Emit_New_Object(char* pCompiledCode, IRMethod* pMethod, IRInstruction*
 
 	if (type->TypeDefinition != method->ParentAssembly->ParentDomain->CachedType___System_String)
 	{
+		if (!type->SizeCalculated) JIT_GetSizeOfType(type);
 		x86_adjust_stack(pCompiledCode, (gSizeOfPointerInBytes * 3) + 4);
 		x86_mov_membase_reg(pCompiledCode, X86_ESP, (gSizeOfPointerInBytes << 1) + 4, PRIMARY_REG, gSizeOfPointerInBytes);
 		x86_mov_membase_imm(pCompiledCode, X86_ESP, gSizeOfPointerInBytes << 1, type->Size, 4);
 		x86_mov_membase_imm(pCompiledCode, X86_ESP, gSizeOfPointerInBytes, (size_t)type, gSizeOfPointerInBytes);
 		x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, DOMAIN_REG, gSizeOfPointerInBytes);
 		x86_call_code(pCompiledCode, GC_AllocateObject);
-		x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, X86_ESP, (gSizeOfPointerInBytes << 1) + 4, gSizeOfPointerInBytes); // Contains GCObject->Data**
-		x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, PRIMARY_REG, 0, gSizeOfPointerInBytes); // Contains GCObject->Data*
+		x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, X86_ESP, (gSizeOfPointerInBytes << 1) + 4, gSizeOfPointerInBytes); // Contains GCObject->Data*
+		//x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, PRIMARY_REG, 0, gSizeOfPointerInBytes);
 		x86_mov_reg_membase(pCompiledCode, DOMAIN_REG, X86_ESP, 0, gSizeOfPointerInBytes);
 		x86_adjust_stack(pCompiledCode, -((gSizeOfPointerInBytes * 3) + 4));
 
@@ -5377,6 +5378,17 @@ char* JIT_Emit_Call_Absolute(char* pCompiledCode, IRMethod* pMethod, IRInstructi
 		if (sizeOfParameter <= gSizeOfPointerInBytes) x86_push_reg(pCompiledCode, SECONDARY_REG);
 		parametersSize += sizeOfParameter;
 	}
+	
+	//if (!(method->MethodDefinition->Flags & MethodAttributes_Static))
+	//{
+	//	x86_mov_reg_membase(pCompiledCode, X86_ECX, X86_ESP, 0, gSizeOfPointerInBytes);
+	//	x86_test_reg_reg(pCompiledCode, X86_ECX, X86_ECX);
+	//	unsigned char* tmp = (unsigned char*)pCompiledCode;
+	//	x86_branch32(pCompiledCode, X86_CC_NZ, 0, FALSE);
+	//	x86_push_imm(pCompiledCode, (size_t)"Attempted to make a call with a null 'this' pointer!");
+	//	x86_call_code(pCompiledCode, Panic);
+	//	x86_patch(tmp, (unsigned char*)pCompiledCode);
+	//}
 
 	x86_call_code(pCompiledCode, method->AssembledMethod);
 	x86_adjust_stack(pCompiledCode, -parametersSize);

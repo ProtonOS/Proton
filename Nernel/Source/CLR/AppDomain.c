@@ -828,6 +828,44 @@ ElementType AppDomain_GetElementTypeFromIRType(AppDomain* pDomain, IRType* pType
 	return (ElementType)-1;
 }
 
+IRMethod* AppDomain_GetIRMethodFromDefinitionAndSignature(AppDomain* pDomain, IRAssembly* pAssembly, MethodDefinition* pMethodDefinition, SignatureMethodSpecification* pSignatureMethodSpecification)
+{
+	IRMethod* genericMethod = pMethodDefinition->File->Assembly->Methods[pMethodDefinition->TableIndex - 1];
+	if (!genericMethod) genericMethod = IRMethod_Create(pMethodDefinition->File->Assembly, pMethodDefinition);
+	IRGenericMethod key;
+	memset(&key, 0, sizeof(IRGenericMethod));
+	key.GenericMethod = genericMethod;
+	key.ParameterCount = pSignatureMethodSpecification->GenericInstGenericArgumentCount;
+	for (uint32_t index = 0; index < pSignatureMethodSpecification->GenericInstGenericArgumentCount; ++index)
+	{
+		if (pSignatureMethodSpecification->GenericInstGenericArguments[index]->ElementType == SignatureElementType_Var) return genericMethod;
+
+		key.Parameters[index] = AppDomain_GetIRTypeFromSignatureType(pDomain, pAssembly, pSignatureMethodSpecification->GenericInstGenericArguments[index]);
+	}
+	key.ParentType = pAssembly->Types[pMethodDefinition->TypeDefinition->TableIndex - 1];
+
+	IRGenericMethod* lookupMethod = NULL;
+	HASH_FIND(HashHandle, pAssembly->GenericMethodsHashTable, (void*)&key, offsetof(IRGenericMethod, ImplementationMethod), lookupMethod);
+	IRMethod* implementationMethod = NULL;
+	if (!lookupMethod)
+	{
+		implementationMethod = IRMethod_GenericDeepCopy(genericMethod, pAssembly);
+		implementationMethod->GenericMethod = IRGenericMethod_Create(key.ParentType, genericMethod, implementationMethod);
+		implementationMethod->GenericMethod->ParameterCount = pSignatureMethodSpecification->GenericInstGenericArgumentCount;
+		for (uint32_t index = 0; index < pSignatureMethodSpecification->GenericInstGenericArgumentCount; ++index)
+		{
+			implementationMethod->GenericMethod->Parameters[index] = key.Parameters[index];
+		}
+		HASH_ADD(HashHandle, pAssembly->GenericMethodsHashTable, GenericMethod, offsetof(IRGenericMethod, ImplementationMethod), implementationMethod->GenericMethod);
+		AppDomain_ResolveGenericMethodParameters(pDomain, pAssembly->ParentFile, key.ParentType, implementationMethod);
+		implementationMethod->IsGenericImplementation = TRUE;
+	}
+	else
+	{
+		implementationMethod = lookupMethod->ImplementationMethod;
+	}
+	return implementationMethod;
+}
 
 bool_t AppDomain_IsStructure(AppDomain* pDomain, TypeDefinition* pTypeDefinition)
 {

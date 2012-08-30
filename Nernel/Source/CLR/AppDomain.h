@@ -97,6 +97,7 @@ IRField* AppDomain_GetIRFieldFromMetadataToken(AppDomain* pDomain, IRAssembly* p
 IRType* AppDomain_GetIRTypeFromElementType(AppDomain* pDomain, ElementType pType);
 IRType* AppDomain_GetIRTypeFromSignatureType(AppDomain* pDomain, IRAssembly* pAssembly, SignatureType* pType);
 IRType* AppDomain_GetIRTypeFromMetadataToken(AppDomain* pDomain, IRAssembly* pAssembly, uint32_t pToken, bool_t pClassToken);
+IRMethod* AppDomain_GetIRMethodFromDefinitionAndSignature(AppDomain* pDomain, IRAssembly* pAssembly, MethodDefinition* pMethodDefinition, SignatureMethodSpecification* pSignatureMethodSpecification);
 
 bool_t AppDomain_IsStructure(AppDomain* pDomain, TypeDefinition* pTypeDefinition);
 TypeDefinition* AppDomain_ResolveTypeReference(AppDomain* pDomain, CLIFile* pFile, TypeReference* pTypeReference);

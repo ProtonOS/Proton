@@ -7,7 +7,7 @@ uint32_t System_Array_FastCopy(AppDomain* pAppDomain, void* pSourceArray, uint32
 	// These should throw ArgumentException, returning FALSE is used to deal with complex multidimensional arrays
 	if (pSourceIndex + pLength >= sourceObject->Array.Length) return FALSE;
 	if (pDestinationIndex + pLength >= destinationObject->Array.Length) return FALSE;
-	uint32_t sizeOfElement = sourceObject->Array.ElementType->Size;
+	uint32_t sizeOfElement = sourceObject->Array.ElementType->StackSize;
 	uint32_t sizeToCopy = sizeOfElement * pLength;
 	void* sourceStart = (uint8_t*)pSourceArray + (sizeOfElement * pSourceIndex);
 	void* destinationStart = (uint8_t*)pDestinationArray + (sizeOfElement * pDestinationIndex);
@@ -52,7 +52,7 @@ void System_Array_GetValueImpl(AppDomain* pAppDomain, void* pArray, uint32_t pIn
 		*pReturnObjectDestination = *(size_t**)((uint8_t*)pArray + (sizeof(size_t*) * pIndex));
 		return;
 	}
-	uint32_t sizeOfElement = elementType->Size;
+	uint32_t sizeOfElement = elementType->StackSize;
 	GC_AllocateObject(pAppDomain, elementType, sizeOfElement, pReturnObjectDestination);
 	Thread_EnterCriticalRegion();
 	memcpy(*pReturnObjectDestination, (uint8_t*)pArray + (sizeOfElement * pIndex), sizeOfElement);
@@ -68,7 +68,7 @@ void System_Array_SetValueImpl(AppDomain* pAppDomain, void* pArray, void* pValue
 		*(void**)((uint8_t*)pArray + (sizeof(size_t*) * pIndex)) = pValue;
 		return;
 	}
-	uint32_t sizeOfElement = elementType->Size;
+	uint32_t sizeOfElement = elementType->StackSize;
 	Thread_EnterCriticalRegion();
 	memcpy((uint8_t*)pArray + (sizeOfElement * pIndex), pValue, sizeOfElement);
 	Thread_LeaveCriticalRegion();
@@ -78,7 +78,7 @@ void System_Array_ClearInternal(AppDomain* pAppDomain, void* pArray, uint32_t pI
 {
 	GCObject* object = *(GCObject**)((size_t)pArray - sizeof(GCObject*));
 	if (pIndex + pCount >= object->Array.Length) return; // Should throw ArgumentException
-	uint32_t sizeOfElement = object->Array.ElementType->Size;
+	uint32_t sizeOfElement = object->Array.ElementType->StackSize;
 	uint32_t sizeToClear = sizeOfElement * pCount;
 	void* start = (uint8_t*)pArray + (sizeOfElement * pIndex);
 	// Same reason for this as FastCopy, see comments above
@@ -90,7 +90,7 @@ void System_Array_ClearInternal(AppDomain* pAppDomain, void* pArray, uint32_t pI
 void System_Array_Clone(AppDomain* pAppDomain, void* pArray, void** pReturnObjectDestination)
 {
 	GCObject* arrayObject = *(GCObject**)((size_t)pArray - sizeof(GCObject*));
-	uint32_t sizeToCopy = arrayObject->Array.ElementType->Size * arrayObject->Array.Length;
+	uint32_t sizeToCopy = arrayObject->Array.ElementType->StackSize * arrayObject->Array.Length;
 
 	GC_AllocateArray(pAppDomain, arrayObject->Type, arrayObject->Array.Length, pReturnObjectDestination);
 	Thread_EnterCriticalRegion();

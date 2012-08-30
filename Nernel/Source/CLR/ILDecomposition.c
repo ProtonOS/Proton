@@ -2016,9 +2016,30 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 						break;
 					}
 					case MetadataTable_MethodSpecification:
-						Panic("Call: MetadataTable_MethodSpecification not yet supported");
+					{
+						MethodSpecification* methodSpec = (MethodSpecification*)token->Data;
+						MethodDefinition* methodDef = NULL;
+						switch(methodSpec->TypeOfMethod)
+						{
+							case MethodDefOrRefType_MethodDefinition:
+							{
+								methodDef = methodSpec->Method.MethodDefinition;
+								break;
+							}
+							case MethodDefOrRefType_MemberReference:
+							{
+								methodDef = methodSpec->Method.MemberReference->Resolved.MethodDefinition;
+								break;
+							}
+							default:
+								Panic("Unknown method type for MethodSpec in Call");
+								break;
+						}
+						SignatureMethodSpecification* sigSpec = SignatureMethodSpecification_Expand((uint8_t*)methodSpec->Instantiation, methodDefinition->File);
+						method = AppDomain_GetIRMethodFromDefinitionAndSignature(domain, assembly, methodDef, sigSpec);
+						SignatureMethodSpecification_Destroy(sigSpec);
 						break;
-
+					}
 					default:
 						Panic("Unknown table for Call");
 						break;
