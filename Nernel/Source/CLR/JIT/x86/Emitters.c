@@ -4583,7 +4583,7 @@ char* JIT_Emit_Box(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstr
 		goto EmitFinished;
 	}
 	if (!type->IsValueType) Panic("Nullable<T> not yet supported");
-
+	if (!type->SizeCalculated) JIT_GetSizeOfType(type);
 	pCompiledCode = JIT_Emit_LoadDestinationAddress(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG);
 	x86_adjust_stack(pCompiledCode, (gSizeOfPointerInBytes * 3) + 4);
 	x86_mov_membase_reg(pCompiledCode, X86_ESP, (gSizeOfPointerInBytes << 1) + 4, PRIMARY_REG, gSizeOfPointerInBytes);
@@ -5221,8 +5221,8 @@ char* JIT_Emit_New_Object(char* pCompiledCode, IRMethod* pMethod, IRInstruction*
 		x86_mov_membase_imm(pCompiledCode, X86_ESP, gSizeOfPointerInBytes, (size_t)type, gSizeOfPointerInBytes);
 		x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, DOMAIN_REG, gSizeOfPointerInBytes);
 		x86_call_code(pCompiledCode, GC_AllocateObject);
-		x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, X86_ESP, (gSizeOfPointerInBytes << 1) + 4, gSizeOfPointerInBytes); // Contains GCObject->Data*
-		//x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, PRIMARY_REG, 0, gSizeOfPointerInBytes);
+		x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, X86_ESP, (gSizeOfPointerInBytes << 1) + 4, gSizeOfPointerInBytes); // Contains GCObject->Data**
+		x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, PRIMARY_REG, 0, gSizeOfPointerInBytes); // Contains GCObject->Data*
 		x86_mov_reg_membase(pCompiledCode, DOMAIN_REG, X86_ESP, 0, gSizeOfPointerInBytes);
 		x86_adjust_stack(pCompiledCode, -((gSizeOfPointerInBytes * 3) + 4));
 
