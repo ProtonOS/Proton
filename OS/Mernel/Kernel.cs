@@ -38,6 +38,15 @@ namespace Mernel
         [MethodImpl(MethodImplOptions.InternalCall)]
         public static extern void Write(long pValue);
 
+        public struct Tester
+        {
+            public int a;
+            public int b;
+            public int c;
+
+            public Tester(int pA, int pB, int pC) { a = pA; b = pB; c = pC; }
+        }
+
         private unsafe static void Main()
         {
             // TODO: Implement and test all string constructors
@@ -79,11 +88,11 @@ namespace Mernel
             //string x = "Test";
             //Kernel.Write(x + "\n");
 
-            List<string> test = new List<string>();
-            test.Add("HelloA!\n");
-            test.Add("HelloB!\n");
-            test.Add("HelloC!\n");
-            for (int x = 0; x < test.Count; ++x) Kernel.Write(test[x]);
+            List<Tester> test = new List<Tester>();
+            test.Add(new Tester(1, 2, 3));
+            test.Add(new Tester(4, 5, 6));
+            test.Add(new Tester(7, 8, 9));
+            if (test[2].c == 9) Kernel.Write("Yay\n");
         }
     }
 
