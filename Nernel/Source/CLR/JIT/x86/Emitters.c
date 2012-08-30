@@ -5034,22 +5034,17 @@ char* JIT_Emit_Load_VirtualFunction(char* pCompiledCode, IRMethod* pMethod, IRIn
 
 	uint32_t functionIndex = (uint32_t)pInstruction->Arg2;
 	pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, PRIMARY_REG, SECONDARY_REG, THIRD_REG, FALSE, 0, NULL);
-	x86_alu_reg_imm(pCompiledCode, X86_SUB, PRIMARY_REG, gSizeOfPointerInBytes);
-	x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, PRIMARY_REG, 0, gSizeOfPointerInBytes); // Contains GCObject*
-	x86_alu_reg_imm(pCompiledCode, X86_ADD, PRIMARY_REG, offsetof(GCObject, Type));
-	x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, PRIMARY_REG, 0, gSizeOfPointerInBytes); // Contains GCObject->Type*
-	x86_alu_reg_imm(pCompiledCode, X86_ADD, PRIMARY_REG, offsetof(IRType, Methods));
-	x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, PRIMARY_REG, 0, gSizeOfPointerInBytes); // Contains GCObject->Type->Methods**
+	x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, PRIMARY_REG, -gSizeOfPointerInBytes, gSizeOfPointerInBytes); // Contains GCObject*
+	x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, PRIMARY_REG, offsetof(GCObject, Type), gSizeOfPointerInBytes); // Contains GCObject->Type*
+	x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, PRIMARY_REG, offsetof(IRType, Methods), gSizeOfPointerInBytes); // Contains GCObject->Type->Methods**
 	x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, PRIMARY_REG, 0, gSizeOfPointerInBytes); // Contains GCObject->Type->Methods*
-	x86_alu_reg_imm(pCompiledCode, X86_ADD, PRIMARY_REG, functionIndex * gSizeOfPointerInBytes);
-	x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, PRIMARY_REG, 0, gSizeOfPointerInBytes); // Contains virtual IRMethod*
+	x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, PRIMARY_REG, functionIndex * gSizeOfPointerInBytes, gSizeOfPointerInBytes); // Contains virtual IRMethod*
 
 	x86_push_reg(pCompiledCode, PRIMARY_REG);
 	x86_call_code(pCompiledCode, JIT_CompileMethod);
 	x86_pop_reg(pCompiledCode, PRIMARY_REG);
 
-	x86_alu_reg_imm(pCompiledCode, X86_ADD, PRIMARY_REG, offsetof(IRMethod, AssembledMethod));
-	x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, PRIMARY_REG, 0, gSizeOfPointerInBytes);
+	x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, PRIMARY_REG, offsetof(IRMethod, AssembledMethod), gSizeOfPointerInBytes);
 	pCompiledCode = JIT_Emit_Store(pCompiledCode, pMethod, &pInstruction->Destination, PRIMARY_REG, SECONDARY_REG, THIRD_REG, NULL);
 
 	x86_pop_reg(pCompiledCode, DOMAIN_REG);
