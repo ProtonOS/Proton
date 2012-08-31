@@ -5033,6 +5033,10 @@ char* JIT_Emit_Switch(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pIn
 	uint32_t targetCount = (uint32_t)pInstruction->Arg1;
 	IRInstruction** targets = (IRInstruction**)pInstruction->Arg2;
 
+#ifdef Output_Symbols
+	unsigned int switchStartAddress = (unsigned int)pCompiledCode;
+#endif
+
 	pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, &pInstruction->Source1, X86_EAX, SECONDARY_REG, THIRD_REG, FALSE, 0, NULL);
 	x86_alu_reg_imm(pCompiledCode, X86_CMP, X86_EAX, targetCount);
 	unsigned char* jumpToDefault = (unsigned char*)pCompiledCode;
@@ -5047,9 +5051,19 @@ char* JIT_Emit_Switch(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pIn
 		x86_imm_emit32(pCompiledCode, targets[index]->ILLocation);
 	}
 	x86_patch(skipTable, (unsigned char*)pCompiledCode);
+#ifdef Output_Symbols
+	unsigned int indJumpInstruction = (unsigned int)pCompiledCode;
+#endif
 	x86_jump_memindex(pCompiledCode, X86_NOBASEREG, switchTableLocation, PRIMARY_REG, 2);
 	// After this is the default case.
 	x86_patch(jumpToDefault, (unsigned char*)pCompiledCode);
+	
+#ifdef Output_Symbols
+	char symbolBuffer[512];
+	snprintf(symbolBuffer, 512, "6:%u %u %u %u %u %u", switchStartAddress, indJumpInstruction, (unsigned int)switchTableLocation, (unsigned int)targetCount, 0, (unsigned int)pCompiledCode);
+	SymbolLogger_WriteLine(symbolBuffer);
+#endif
+
 	return pCompiledCode;
 }
 
