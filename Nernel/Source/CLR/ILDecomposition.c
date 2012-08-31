@@ -2728,7 +2728,7 @@ BranchCommon:
 
 				ILDecomposition_ConvertInstructions(method);
 				Log_WriteLine(LOGLEVEL__ILReader, "Returning to Converting Method: %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
-
+				printf("ILDecomp NewObj: 0x%x\n", (unsigned int)method->Parameters[0]->Type);
 				EMIT_IR_1ARG_NO_DISPOSE(IROpcode_New_Object, method);
 
 				StackObject* obj = SA();

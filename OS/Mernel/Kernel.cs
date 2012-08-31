@@ -25,6 +25,23 @@ namespace Mernel
 
         }
     }
+    public struct Tester
+    {
+        public uint a;
+        public uint b;
+        public uint c;
+
+        public Tester(uint pA, uint pB, uint pC)
+        {
+            Kernel.Write(pA);
+            Kernel.Write(pB);
+            Kernel.Write(pC);
+            a = pA; b = pB; c = pC;
+            Kernel.Write(a);
+            Kernel.Write(b);
+            Kernel.Write(c);
+        }
+    }
     public static class Kernel
     {
         public static readonly byte[] Values = new byte[]
@@ -36,16 +53,8 @@ namespace Mernel
         public static extern void Write(string pString);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        public static extern void Write(long pValue);
+        public static extern void Write(uint pValue);
 
-        public struct Tester
-        {
-            public int a;
-            public int b;
-            public int c;
-
-            public Tester(int pA, int pB, int pC) { a = pA; b = pB; c = pC; }
-        }
 
         private unsafe static void Main()
         {
@@ -87,45 +96,52 @@ namespace Mernel
 
             //string x = "Test";
             //Kernel.Write(x + "\n");
-
-            List<Tester> test = new List<Tester>();
-            test.Add(new Tester(1, 2, 3));
-            test.Add(new Tester(4, 5, 6));
-            test.Add(new Tester(7, 8, 9));
+            Tester[] test = new Tester[3];
+            //test[0] = new Tester(1, 2, 3);
+            //test[1] = new Tester(4, 5, 6);
+            test[2] = new Tester(7, 8, 9);
+            //List<Tester> test = new List<Tester>();
+            //test.Add(new Tester(1, 2, 3));
+            //test.Add(new Tester(4, 5, 6));
+            //test.Add(new Tester(7, 8, 9));
             if (test[2].c == 9) Kernel.Write("Yay\n");
+            Kernel.Write(test[2].a);
+            Kernel.Write(test[2].b);
+            Kernel.Write(test[2].c);
+            Kernel.Write("Hello\n");
         }
     }
 
-    //internal class List<T>
-    //{
-    //    private T[] internalArr;
-    //    public List() { }
+    internal class List<T>
+    {
+        private T[] internalArr;
+        public List() { }
 
-    //    public void Add(T val)
-    //    {
-    //        if (internalArr == null)
-    //        {
-    //            internalArr = new T[1];
-    //            internalArr[0] = val;
-    //        }
-    //        else
-    //        {
-    //            T[] tmp = new T[internalArr.Length + 1];
-    //            for (int i = 0; i < internalArr.Length; i++)
-    //            {
-    //                tmp[i] = internalArr[i];
-    //            }
-    //            tmp[internalArr.Length] = val;
-    //            internalArr = tmp;
-    //        }
-    //    }
+        public void Add(T val)
+        {
+            if (internalArr == null)
+            {
+                internalArr = new T[1];
+                internalArr[0] = val;
+            }
+            else
+            {
+                T[] tmp = new T[internalArr.Length + 1];
+                for (int i = 0; i < internalArr.Length; i++)
+                {
+                    tmp[i] = internalArr[i];
+                }
+                tmp[internalArr.Length] = val;
+                internalArr = tmp;
+            }
+        }
 
-    //    public T this[int idx]
-    //    {
-    //        get
-    //        {
-    //            return internalArr[idx];
-    //        }
-    //    }
-    //}
+        public T this[int idx]
+        {
+            get
+            {
+                return internalArr[idx];
+            }
+        }
+    }
 }

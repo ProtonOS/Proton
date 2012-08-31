@@ -98,6 +98,8 @@ typedef struct StackLocal
 
 uint32_t AddLocal(IRType* localType, IRMethod* pMethod, uint32_t depth, StackLocal** stackLocalTable)
 {
+	printf("StackLinearize AddLocal: 0x%X\n", (unsigned int)localType);
+	if (!localType) Panic("Grr");
 	StackLocal lKey;
 	StackLocal* lKeyPtr = &lKey;
 	lKey.StackDepthLocation = depth;
@@ -769,6 +771,7 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 
 				// This is a new object call, all constructors are instance
 				// methods, so the first arg will always be the parent type.
+				printf("NewObj Linearize: 0x%x, 0x%x, 0x%x, 0x%x\n", (unsigned int)ins->Arg1, (unsigned int)((IRMethod*)ins->Arg1)->Parameters, (unsigned int)((IRMethod*)ins->Arg1)->Parameters[0], (unsigned int)((IRMethod*)ins->Arg1)->Parameters[0]->Type);
 				IRType* objType = ((IRMethod*)ins->Arg1)->Parameters[0]->Type;
 				obj = PA();
 				obj->LinearData.Type = SourceType_Local;

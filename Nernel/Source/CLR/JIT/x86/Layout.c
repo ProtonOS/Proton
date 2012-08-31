@@ -115,10 +115,15 @@ void JIT_CalculateLocalLayout(IRMethod* pMethod)
 		for (uint32_t index = 0; index < pMethod->LocalVariableCount; ++index)
 		{
 			local = pMethod->LocalVariables[index];
+			if (!local->VariableType) 
+			{
+				printf("Ignoring %u\n", (unsigned int)index);
+				continue;
+			}
 			local->Size = JIT_GetStackSizeOfType(local->VariableType);
 			offset += JIT_StackAlign(local->Size);
 			local->Offset = offset;
-			Log_WriteLine(LOGLEVEL__JIT_Layout, "Layout Local %u @ 0x%x, Size: 0x%x, Aligned: 0x%x", (unsigned int)index, (unsigned int)local->Offset, (unsigned int)local->Size, (unsigned int)JIT_StackAlign(local->Size));
+			Log_WriteLine(LOGLEVEL__JIT_Layout, "Layout Local %u @ 0x%x, Size: 0x%x, Aligned: 0x%x, VarType: 0x%x, VarTypeName: %s", (unsigned int)index, (unsigned int)local->Offset, (unsigned int)local->Size, (unsigned int)JIT_StackAlign(local->Size), (unsigned int)local->VariableType, local->VariableType->TypeDefinition->Name);
 		}
 		pMethod->LocalsSize = offset;
 		pMethod->LocalsLayedOut = TRUE;

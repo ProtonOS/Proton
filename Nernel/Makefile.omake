@@ -31,7 +31,7 @@
 #define TOOL(MKISOFS, ../SDK/bin/mkisofs);
 #define TOOL_WIN32(MKISOFS, ../SDK/bin/mkisofs.exe);
 
-#define CONST(GCC_ARGS, -I../SDK/include -I./Source -include types.h -include Common.h -g -O0 -D__DYNAMIC_REENT__ -DOutput_Symbols -Wall -Wextra -Werror -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -fno-builtin -nostdlib -std=c99 -fpack-struct=1 -nostartfiles -nodefaultlibs -c);
+#define CONST(GCC_ARGS, -I../SDK/include -I./Source -include types.h -include Common.h -g -O0 -D__DYNAMIC_REENT__ -D__OUTPUT_SYMBOLS__ -Wall -Wextra -Werror -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -fno-builtin -nostdlib -std=c99 -fpack-struct=1 -nostartfiles -nodefaultlibs -c);
 #define CONST(LD_ARGS, -L../SDK/lib -T Nernel.ld -g);
 #define CONST(LD_LIBS, -lc -lm -lgcc);
 #define CONST(RM_ARGS, -rf);

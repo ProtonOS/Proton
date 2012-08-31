@@ -407,7 +407,8 @@ IRMethod* IRMethod_Create(IRAssembly* pAssembly, MethodDefinition* pMethodDefini
 	{
 		if (AppDomain_IsStructure(pAssembly->ParentDomain, pMethodDefinition->TypeDefinition))
 		{
-			type = pAssembly->Types[pAssembly->ParentDomain->CachedType___System_IntPtr->TableIndex - 1];
+			type = pAssembly->ParentDomain->IRAssemblies[0]->Types[pAssembly->ParentDomain->CachedType___System_IntPtr->TableIndex - 1];
+			if (!type) Panic("IntPtr is not created");
 		}
 		else
 		{

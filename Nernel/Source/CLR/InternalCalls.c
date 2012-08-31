@@ -32,15 +32,15 @@ void Mernel_Kernel_Write(AppDomain* pAppDomain, void* pString)
 	}
 }
 
-void Mernel_Kernel_Write_Long(AppDomain* pAppDomain, int64_t pValue)
+void Mernel_Kernel_Write_UInt(AppDomain* pAppDomain, uint32_t pValue)
 {
-	printf("TotalAllocated = %llu\n", (unsigned long long)pValue);
+	printf("%u\n", (unsigned int)pValue);
 }
 
 const InternalCall InternalCallTable[] = 
 {
 	{	"Mernel",								"Kernel",				"Write",							SignatureElementType_Void,					1,	{ SignatureElementType_String }, &Mernel_Kernel_Write },
-	{	NULL,									NULL,					NULL,								SignatureElementType_Void,					1,	{ SignatureElementType_I8 }, &Mernel_Kernel_Write_Long },
+	{	NULL,									NULL,					NULL,								SignatureElementType_Void,					1,	{ SignatureElementType_U4 }, &Mernel_Kernel_Write_UInt },
 
 
 	{	"Mono.Interop",							"ComInteropProxy",		"AddProxy",							SignatureElementType_Void,					2,	{ SignatureElementType_IPointer, SignatureElementType_Class }, &Mono_Interop_ComInteropProxy_AddProxy },

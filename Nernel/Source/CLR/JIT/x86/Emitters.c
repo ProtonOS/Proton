@@ -1,4 +1,4 @@
-#ifdef Output_Symbols
+#ifdef __OUTPUT_SYMBOLS__
 #include <System/SymbolLogger.h>
 #endif
 #include <CLR/GC.h>
@@ -641,21 +641,13 @@ char* JIT_Emit_Store(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pDe
 			JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
 			IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
 			sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
-			if (sizeOfDestination <= 8)
+			if (sizeOfDestination <= 4)
 			{
 				x86_push_reg(pCompiledCode, pRegister1);
-				if (sizeOfDestination > 4)
-				{
-					x86_push_reg(pCompiledCode, pRegister2);
-				}
 			}
 			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Field.FieldSource, pRegister3, pRegister2, pRegister1, FALSE, 0, NULL);
-			if (sizeOfDestination <= 8)
+			if (sizeOfDestination <= 4)
 			{
-				if (sizeOfDestination > 4)
-				{
-					x86_pop_reg(pCompiledCode, pRegister2);
-				}
 				x86_pop_reg(pCompiledCode, pRegister1);
 			}
 			x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister3, field->Offset);
@@ -727,21 +719,13 @@ char* JIT_Emit_Store(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pDe
 		case SourceType_Indirect:
 		{
 			sizeOfDestination = JIT_GetStackSizeOfType(pDestination->Data.Indirect.Type);
-			if (sizeOfDestination <= 8)
+			if (sizeOfDestination <= 4)
 			{
 				x86_push_reg(pCompiledCode, pRegister1);
-				if (sizeOfDestination > 4)
-				{
-					x86_push_reg(pCompiledCode, pRegister2);
-				}
 			}
 			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Indirect.AddressSource, pRegister3, pRegister2, pRegister1, FALSE, 0, NULL);
-			if (sizeOfDestination <= 8)
+			if (sizeOfDestination <= 4)
 			{
-				if (sizeOfDestination > 4)
-				{
-					x86_pop_reg(pCompiledCode, pRegister2);
-				}
 				x86_pop_reg(pCompiledCode, pRegister1);
 			}
 			switch (sizeOfDestination)
@@ -775,21 +759,13 @@ char* JIT_Emit_Store(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pDe
 		case SourceType_ArrayElement:
 		{
 			sizeOfDestination = JIT_GetStackSizeOfType(pDestination->Data.ArrayElement.ElementType);
-			if (sizeOfDestination <= 8)
+			if (sizeOfDestination <= 4)
 			{
 				x86_push_reg(pCompiledCode, pRegister1);
-				if (sizeOfDestination > 4)
-				{
-					x86_push_reg(pCompiledCode, pRegister2);
-				}
 			}
 			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.ArrayElement.ArraySource, pRegister3, pRegister2, pRegister1, FALSE, 0, NULL);
-			if (sizeOfDestination <= 8)
+			if (sizeOfDestination <= 4)
 			{
-				if (sizeOfDestination > 4)
-				{
-					x86_pop_reg(pCompiledCode, pRegister2);
-				}
 				x86_pop_reg(pCompiledCode, pRegister1);
 			}
 			if (pDestination->Data.ArrayElement.IndexSource->Type == SourceType_ConstantI4)
@@ -798,13 +774,9 @@ char* JIT_Emit_Store(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pDe
 			}
 			else
 			{
-				if (sizeOfDestination <= 8)
+				if (sizeOfDestination <= 4)
 				{
 					x86_push_reg(pCompiledCode, pRegister1);
-					if (sizeOfDestination > 4)
-					{
-						x86_push_reg(pCompiledCode, pRegister2);
-					}
 				}
 				x86_push_reg(pCompiledCode, pRegister3);
 				pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.ArrayElement.IndexSource, pRegister2, pRegister1, pRegister3, FALSE, 0, NULL);
@@ -813,12 +785,8 @@ char* JIT_Emit_Store(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pDe
 				if (sizeOfDestination != 1) x86_imul_reg_reg_imm(pCompiledCode, pRegister2, pRegister2, sizeOfDestination);
 				x86_alu_reg_reg(pCompiledCode, X86_ADD, pRegister3, pRegister2);
 
-				if (sizeOfDestination <= 8)
+				if (sizeOfDestination <= 4)
 				{
-					if (sizeOfDestination > 4)
-					{
-						x86_pop_reg(pCompiledCode, pRegister2);
-					}
 					x86_pop_reg(pCompiledCode, pRegister1);
 				}
 			}
@@ -2457,7 +2425,7 @@ char* JIT_Emit_Return(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pIn
 char* JIT_Emit_Load_String(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
 	
-#ifdef Output_Symbols
+#ifdef __OUTPUT_SYMBOLS__
 	char symbolBuffer[512];
 	snprintf(symbolBuffer, 512, "5:%u", (unsigned int)pInstruction->Arg2);
 	SymbolLogger_WriteLine(symbolBuffer);

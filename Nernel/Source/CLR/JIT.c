@@ -43,7 +43,7 @@ void JIT_CompileMethod(IRMethod* pMethod)
 		//printf("%s.%s.%s is an internal call and is at 0x%x\n", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name,  (unsigned int)pMethod->AssembledMethod);
 		pMethod->AssembledMethod = (void(*)())pMethod->MethodDefinition->InternalCall;
 
-#ifdef Output_Symbols
+#ifdef __OUTPUT_SYMBOLS__
 		char symbolBuffer[512];
 		snprintf(symbolBuffer, 512, "3:%s.%s.%s %u", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name,  (unsigned int)pMethod->AssembledMethod);
 		SymbolLogger_WriteLine(symbolBuffer);
@@ -71,7 +71,7 @@ void JIT_CompileMethod(IRMethod* pMethod)
 		for (uint32_t index = 0; index < pMethod->IRCodesCount; ++index)
 		{
 			branchRegistry->InstructionLocations[pMethod->IRCodes[index]->ILLocation] = (size_t)compiledCode;
-#ifdef Output_Symbols
+#ifdef __OUTPUT_SYMBOLS__
 			if (pMethod->IRCodes[index]->Opcode != IROpcode_Nop)
 			{
 				if (pMethod->IRCodes[index]->Opcode == IROpcode_Move && (uint32_t)pMethod->IRCodes[index]->Source2.Data.SizeOf.Type == TRUE)
@@ -218,7 +218,7 @@ void JIT_CompileMethod(IRMethod* pMethod)
 
 	AppDomain_AddInstructionPointerMapping(pMethod, (size_t)startOfCompiledCode, compiledCodeLength);
 
-#ifdef Output_Symbols
+#ifdef __OUTPUT_SYMBOLS__
 	char symbolBuffer[512];
 	snprintf(symbolBuffer, 512, "0:Domain_%u_%u__%s.%s.%s__%u 0x%X", (unsigned int)pMethod->ParentAssembly->ParentDomain->DomainIndex, (unsigned int)pMethod->ParentAssembly->AssemblyIndex, pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name, (unsigned int)pMethod->MethodIndex, (unsigned int)pMethod->AssembledMethod);
 	SymbolLogger_WriteLine(symbolBuffer);
