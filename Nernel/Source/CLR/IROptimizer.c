@@ -17,10 +17,10 @@ void IROptimizer_Optimize(IRMethod* pMethod)
 	IROptimizer_LinearizeStack(pMethod);
 	IROptimizer_IntrinsicSubstitution(pMethod);
 	IROptimizer_Peephole_PreSSA(pMethod);
-
+	
 	IROptimizer_EnterSSA(pMethod, nodes, nodesCount);
 
-	//IROptimizer_MoveCompacting(pMethod, nodes, nodesCount);
+	IROptimizer_MoveCompacting(pMethod, nodes, nodesCount);
 
 	IROptimizer_LeaveSSA(pMethod, nodes, nodesCount);
 

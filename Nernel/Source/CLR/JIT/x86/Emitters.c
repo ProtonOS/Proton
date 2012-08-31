@@ -499,7 +499,7 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 		}
 		case SourceType_ArrayElementAddress:
 		{
-			sizeOfSource = gSizeOfPointerInBytes;
+			sizeOfSource = JIT_GetStackSizeOfType(pSource->Data.ArrayElement.ElementType);
 			printf("loading array element %s.%s\n", pSource->Data.ArrayElementAddress.ElementType->TypeDefinition->Namespace, pSource->Data.ArrayElement.ElementType->TypeDefinition->Name);
 			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pSource->Data.ArrayElementAddress.ArraySource, pRegister1, pRegister2, pRegister3, FALSE, 0, NULL);
 			if (pSource->Data.ArrayElementAddress.IndexSource->Type == SourceType_ConstantI4)

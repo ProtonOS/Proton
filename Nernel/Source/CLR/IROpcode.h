@@ -890,8 +890,8 @@ typedef enum IROpcode
 		Arg1: IRMethod*
 			A pointer to the IRMethod of the constructor.
 
-		Arg2:
-			N/A
+		Arg2: IRType*
+			A pointer to the type of object to create.
 
 		Arg3:
 			N/A

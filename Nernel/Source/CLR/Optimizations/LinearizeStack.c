@@ -392,10 +392,17 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 				SourceTypeData* sDat = (SourceTypeData*)calloc(1, sizeof(SourceTypeData));
 				*sDat = obj->LinearData;
 				PR(obj);
-				ins->Opcode = IROpcode_Move;
 				ins->Destination.Type = SourceType_Indirect;
-				ins->Destination.Data.Indirect.Type = (IRType*)ins->Arg1;
+				if (ins->Opcode == IROpcode_Store_Object)
+				{
+					ins->Destination.Data.Indirect.Type = (IRType*)ins->Arg2;
+				}
+				else
+				{
+					ins->Destination.Data.Indirect.Type = (IRType*)ins->Arg1;
+				}
 				ins->Destination.Data.Indirect.AddressSource = sDat;
+				ins->Opcode = IROpcode_Move;
                 break;
 			}
             case IROpcode_Load_Object:
@@ -773,7 +780,7 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 				// This is a new object call, all constructors are instance
 				// methods, so the first arg will always be the parent type.
 				printf("NewObj Linearize: 0x%x, 0x%x, 0x%x, 0x%x\n", (unsigned int)ins->Arg1, (unsigned int)((IRMethod*)ins->Arg1)->Parameters, (unsigned int)((IRMethod*)ins->Arg1)->Parameters[0], (unsigned int)((IRMethod*)ins->Arg1)->Parameters[0]->Type);
-				IRType* objType = ((IRMethod*)ins->Arg1)->Parameters[0]->Type;
+				IRType* objType = (IRType*)ins->Arg2;
 				obj = PA();
 				obj->LinearData.Type = SourceType_Local;
 				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(objType, pMethod, stack->StackDepth, &stackLocalTable);

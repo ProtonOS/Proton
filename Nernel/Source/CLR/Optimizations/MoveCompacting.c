@@ -1,33 +1,38 @@
 #include <CLR/Optimizations/MoveCompacting.h>
 
 
-void ProcessSourceTypeData(SourceTypeData* sDat, uint32_t** localUseCount, bool_t** addressLoaded)
+
+void ProcessSourceTypeData(SourceTypeData* sDat, uint32_t** localUseCount, bool_t** addressLoaded, bool_t isAddress)
 {
 	switch(sDat->Type)
 	{
 		case SourceType_ArrayElement:
-			ProcessSourceTypeData(sDat->Data.ArrayElement.ArraySource, localUseCount, addressLoaded);
-			ProcessSourceTypeData(sDat->Data.ArrayElement.IndexSource, localUseCount, addressLoaded);
+			ProcessSourceTypeData(sDat->Data.ArrayElement.ArraySource, localUseCount, addressLoaded, FALSE);
+			ProcessSourceTypeData(sDat->Data.ArrayElement.IndexSource, localUseCount, addressLoaded, FALSE);
 			break;
 		case SourceType_ArrayElementAddress:
-			ProcessSourceTypeData(sDat->Data.ArrayElementAddress.ArraySource, localUseCount, addressLoaded);
-			ProcessSourceTypeData(sDat->Data.ArrayElementAddress.IndexSource, localUseCount, addressLoaded);
+			ProcessSourceTypeData(sDat->Data.ArrayElementAddress.ArraySource, localUseCount, addressLoaded, TRUE);
+			ProcessSourceTypeData(sDat->Data.ArrayElementAddress.IndexSource, localUseCount, addressLoaded, FALSE);
 			break;
 		case SourceType_ArrayLength:
-			ProcessSourceTypeData(sDat->Data.ArrayLength.ArraySource, localUseCount, addressLoaded);
+			ProcessSourceTypeData(sDat->Data.ArrayLength.ArraySource, localUseCount, addressLoaded, FALSE);
 			break;
 		case SourceType_Field:
-			ProcessSourceTypeData(sDat->Data.Field.FieldSource, localUseCount, addressLoaded);
+			ProcessSourceTypeData(sDat->Data.Field.FieldSource, localUseCount, addressLoaded, FALSE);
 			break;
 		case SourceType_FieldAddress:
-			ProcessSourceTypeData(sDat->Data.FieldAddress.FieldSource, localUseCount, addressLoaded);
+			ProcessSourceTypeData(sDat->Data.FieldAddress.FieldSource, localUseCount, addressLoaded, TRUE);
 			break;
 		case SourceType_Indirect:
-			ProcessSourceTypeData(sDat->Data.Indirect.AddressSource, localUseCount, addressLoaded);
+			ProcessSourceTypeData(sDat->Data.Indirect.AddressSource, localUseCount, addressLoaded, FALSE);
 			break;
 			
 		case SourceType_Local:
-			(*localUseCount)[sDat->Data.LocalVariableAddress.LocalVariableIndex]++;
+			(*localUseCount)[sDat->Data.LocalVariable.LocalVariableIndex]++;
+			if (isAddress)
+			{
+				(*addressLoaded)[sDat->Data.LocalVariable.LocalVariableIndex] = TRUE;
+			}
 			break;
 		case SourceType_LocalAddress:
 			(*localUseCount)[sDat->Data.LocalVariableAddress.LocalVariableIndex]++;
@@ -99,10 +104,10 @@ void IROptimizer_MoveCompacting(IRMethod* pMethod, IRCodeNode** pNodes, uint32_t
 	for (uint32_t i = 0; i < pMethod->IRCodesCount; i++)
 	{
 		IRInstruction* instr = pMethod->IRCodes[i];
-		ProcessSourceTypeData(&instr->Source1, &localUseCount, &addressLoadedOf);
-		ProcessSourceTypeData(&instr->Source2, &localUseCount, &addressLoadedOf);
-		ProcessSourceTypeData(&instr->Source3, &localUseCount, &addressLoadedOf);
-		ProcessSourceTypeData(&instr->Destination, &localUseCount, &addressLoadedOf);
+		ProcessSourceTypeData(&instr->Source1, &localUseCount, &addressLoadedOf, FALSE);
+		ProcessSourceTypeData(&instr->Source2, &localUseCount, &addressLoadedOf, FALSE);
+		ProcessSourceTypeData(&instr->Source3, &localUseCount, &addressLoadedOf, FALSE);
+		ProcessSourceTypeData(&instr->Destination, &localUseCount, &addressLoadedOf, FALSE);
 		if (instr->Destination.Type == SourceType_Local)
 		{
 			localUseCount[instr->Destination.Data.LocalVariable.LocalVariableIndex]--;
@@ -113,7 +118,7 @@ void IROptimizer_MoveCompacting(IRMethod* pMethod, IRCodeNode** pNodes, uint32_t
 		}
 		for (uint32_t i2 = 0; i2 < instr->SourceArrayLength; i2++)
 		{
-			ProcessSourceTypeData(&instr->SourceArray[i2], &localUseCount, &addressLoadedOf);
+			ProcessSourceTypeData(&instr->SourceArray[i2], &localUseCount, &addressLoadedOf, FALSE);
 		}
 	}
 
