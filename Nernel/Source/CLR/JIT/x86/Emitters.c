@@ -500,6 +500,7 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 		case SourceType_ArrayElementAddress:
 		{
 			sizeOfSource = gSizeOfPointerInBytes;
+			printf("loading array element %s.%s\n", pSource->Data.ArrayElementAddress.ElementType->TypeDefinition->Namespace, pSource->Data.ArrayElement.ElementType->TypeDefinition->Name);
 			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pSource->Data.ArrayElementAddress.ArraySource, pRegister1, pRegister2, pRegister3, FALSE, 0, NULL);
 			if (pSource->Data.ArrayElementAddress.IndexSource->Type == SourceType_ConstantI4)
 			{
@@ -1819,6 +1820,7 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				case SourceType_Field:
 				{
 					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
+					printf("Moving into field from local, field has a parent type of 0x%x %s.%s\n", (unsigned int)pDestination->Data.Field.ParentType, pDestination->Data.Field.ParentType->TypeDefinition->Namespace,pDestination->Data.Field.ParentType->TypeDefinition->Name);
 					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
 					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
 					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Field.FieldSource, pRegister3, pRegister2, pRegister1, FALSE, 0, NULL);
@@ -5001,7 +5003,7 @@ char* JIT_Emit_Switch(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pIn
 	uint32_t targetCount = (uint32_t)pInstruction->Arg1;
 	IRInstruction** targets = (IRInstruction**)pInstruction->Arg2;
 
-#ifdef Output_Symbols
+#ifdef __OUTPUT_SYMBOLS__
 	unsigned int switchStartAddress = (unsigned int)pCompiledCode;
 #endif
 
@@ -5019,14 +5021,14 @@ char* JIT_Emit_Switch(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pIn
 		x86_imm_emit32(pCompiledCode, targets[index]->ILLocation);
 	}
 	x86_patch(skipTable, (unsigned char*)pCompiledCode);
-#ifdef Output_Symbols
+#ifdef __OUTPUT_SYMBOLS__
 	unsigned int indJumpInstruction = (unsigned int)pCompiledCode;
 #endif
 	x86_jump_memindex(pCompiledCode, X86_NOBASEREG, switchTableLocation, PRIMARY_REG, 2);
 	// After this is the default case.
 	x86_patch(jumpToDefault, (unsigned char*)pCompiledCode);
 	
-#ifdef Output_Symbols
+#ifdef __OUTPUT_SYMBOLS__
 	char symbolBuffer[512];
 	snprintf(symbolBuffer, 512, "6:%u %u %u %u %u %u", switchStartAddress, indJumpInstruction, (unsigned int)switchTableLocation, (unsigned int)targetCount, 0, (unsigned int)pCompiledCode);
 	SymbolLogger_WriteLine(symbolBuffer);
@@ -5300,16 +5302,19 @@ char* JIT_Emit_New_Object(char* pCompiledCode, IRMethod* pMethod, IRInstruction*
 	if (type->TypeDefinition != method->ParentAssembly->ParentDomain->CachedType___System_String)
 	{
 		if (!type->SizeCalculated) JIT_GetSizeOfType(type);
-		x86_adjust_stack(pCompiledCode, (gSizeOfPointerInBytes * 3) + 4);
-		x86_mov_membase_reg(pCompiledCode, X86_ESP, (gSizeOfPointerInBytes << 1) + 4, PRIMARY_REG, gSizeOfPointerInBytes);
-		x86_mov_membase_imm(pCompiledCode, X86_ESP, gSizeOfPointerInBytes << 1, type->Size, 4);
-		x86_mov_membase_imm(pCompiledCode, X86_ESP, gSizeOfPointerInBytes, (size_t)type, gSizeOfPointerInBytes);
-		x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, DOMAIN_REG, gSizeOfPointerInBytes);
-		x86_call_code(pCompiledCode, GC_AllocateObject);
-		x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, X86_ESP, (gSizeOfPointerInBytes << 1) + 4, gSizeOfPointerInBytes); // Contains GCObject->Data**
-		x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, PRIMARY_REG, 0, gSizeOfPointerInBytes); // Contains GCObject->Data*
-		x86_mov_reg_membase(pCompiledCode, DOMAIN_REG, X86_ESP, 0, gSizeOfPointerInBytes);
-		x86_adjust_stack(pCompiledCode, -((gSizeOfPointerInBytes * 3) + 4));
+		if (!type->IsStructureType)
+		{
+			x86_adjust_stack(pCompiledCode, (gSizeOfPointerInBytes * 3) + 4);
+			x86_mov_membase_reg(pCompiledCode, X86_ESP, (gSizeOfPointerInBytes << 1) + 4, PRIMARY_REG, gSizeOfPointerInBytes);
+			x86_mov_membase_imm(pCompiledCode, X86_ESP, gSizeOfPointerInBytes << 1, type->Size, 4);
+			x86_mov_membase_imm(pCompiledCode, X86_ESP, gSizeOfPointerInBytes, (size_t)type, gSizeOfPointerInBytes);
+			x86_mov_membase_reg(pCompiledCode, X86_ESP, 0, DOMAIN_REG, gSizeOfPointerInBytes);
+			x86_call_code(pCompiledCode, GC_AllocateObject);
+			x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, X86_ESP, (gSizeOfPointerInBytes << 1) + 4, gSizeOfPointerInBytes); // Contains GCObject->Data**
+			x86_mov_reg_membase(pCompiledCode, PRIMARY_REG, PRIMARY_REG, 0, gSizeOfPointerInBytes); // Contains GCObject->Data*
+			x86_mov_reg_membase(pCompiledCode, DOMAIN_REG, X86_ESP, 0, gSizeOfPointerInBytes);
+			x86_adjust_stack(pCompiledCode, -((gSizeOfPointerInBytes * 3) + 4));
+		}
 
 		uint32_t parametersSize = 0;
 		size_t sizeOfParameter = 0;

@@ -454,6 +454,7 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 				ins->Source1.Data.ArrayElementAddress.IndexSource = sIDat;
 				ins->Source1.Data.ArrayElementAddress.ArraySource = sADat;
 				ins->Source1.Data.ArrayElementAddress.ElementType = (IRType*)ins->Arg2;
+				printf("linearize loading array element %s.%s\n", ins->Source1.Data.ArrayElement.ElementType->TypeDefinition->Namespace, ins->Source1.Data.ArrayElement.ElementType->TypeDefinition->Name);
 				ins->Opcode = IROpcode_Move;
 				obj = PA();
 				obj->LinearData.Type = SourceType_Local;

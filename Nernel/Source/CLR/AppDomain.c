@@ -716,14 +716,14 @@ IRType* AppDomain_GetIRTypeFromMetadataToken(AppDomain* pDomain, IRAssembly* pAs
 		case MetadataTable_TypeDefinition:
 		{
 			TypeDefinition* typeDef = (TypeDefinition*)token->Data;
-			if (AppDomain_IsStructure(pDomain, typeDef))
+			/*if (AppDomain_IsStructure(pDomain, typeDef))
 			{
 				type = IRAssembly_MakePointerType(pAssembly, pAssembly->Types[typeDef->TableIndex - 1]);
 			}
 			else
-			{
+			{*/
 				type = pAssembly->Types[typeDef->TableIndex - 1];
-			}
+			//}
 			break;
 		}
 		case MetadataTable_TypeReference:
@@ -733,15 +733,15 @@ IRType* AppDomain_GetIRTypeFromMetadataToken(AppDomain* pDomain, IRAssembly* pAs
 				((TypeReference*)token->Data)->ResolvedType = AppDomain_ResolveTypeReference(pDomain, pAssembly->ParentFile, (TypeReference*)token->Data);
 			}
 			TypeDefinition* typeDef = ((TypeReference*)token->Data)->ResolvedType;
-			if (AppDomain_IsStructure(pDomain, typeDef))
+			/*if (AppDomain_IsStructure(pDomain, typeDef))
 			{
 				printf("Yep, %s\n", typeDef->Name);
 				type = IRAssembly_MakePointerType(pAssembly, typeDef->File->Assembly->Types[typeDef->TableIndex - 1]);
 			}
 			else
-			{
+			{*/
 				type = typeDef->File->Assembly->Types[typeDef->TableIndex - 1];
-			}
+			//}
 			break;
 		}
 		case MetadataTable_TypeSpecification:

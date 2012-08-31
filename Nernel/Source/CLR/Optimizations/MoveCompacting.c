@@ -77,6 +77,9 @@ bool_t IROptimizer_SourceDataUsesLocalVariable(SourceTypeData* pSourceData, uint
 
 void IROptimizer_MoveCompacting(IRMethod* pMethod, IRCodeNode** pNodes, uint32_t pNodesCount)
 {
+	uint32_t localsCompacted;
+//Start:
+	localsCompacted = 0;
 	uint32_t* localUseCount = (uint32_t*)calloc(1, sizeof(uint32_t) * pMethod->LocalVariableCount);
 	IRInstruction** localsAssignedAt = (IRInstruction**)calloc(1, sizeof(IRInstruction*) * pMethod->LocalVariableCount);
 	bool_t* addressLoadedOf = (bool_t*)calloc(1, sizeof(bool_t) * pMethod->LocalVariableCount);
@@ -123,17 +126,40 @@ void IROptimizer_MoveCompacting(IRMethod* pMethod, IRCodeNode** pNodes, uint32_t
 		}
 		if (localsAssignedAt[i])
 		{
-			if (IROptimizer_SourceDataUsesLocalVariable(&localsAssignedAt[i]->Source1, i)) continue;
-			if (IROptimizer_SourceDataUsesLocalVariable(&localsAssignedAt[i]->Source2, i)) continue;
-			if (IROptimizer_SourceDataUsesLocalVariable(&localsAssignedAt[i]->Source3, i)) continue;
-			if (IROptimizer_SourceDataUsesLocalVariable(&localsAssignedAt[i]->Destination, i)) continue;
 			bool_t found = FALSE;
-			for (uint32_t i2 = 0; i2 < localsAssignedAt[i]->SourceArrayLength; i2++)
+			for (uint32_t i2 = 0; i2 < pMethod->LocalVariableCount; i2++)
 			{
-				if (IROptimizer_SourceDataUsesLocalVariable(&localsAssignedAt[i]->SourceArray[i2], i))
+				if (addressLoadedOf[i2])
 				{
-					found = TRUE;
-					break;
+					if (IROptimizer_SourceDataUsesLocalVariable(&localsAssignedAt[i]->Source1, i2))
+					{
+						found = TRUE;
+						break;
+					}
+					if (IROptimizer_SourceDataUsesLocalVariable(&localsAssignedAt[i]->Source2, i2))
+					{
+						found = TRUE;
+						break;
+					}
+					if (IROptimizer_SourceDataUsesLocalVariable(&localsAssignedAt[i]->Source3, i2))
+					{
+						found = TRUE;
+						break;
+					}
+					if (IROptimizer_SourceDataUsesLocalVariable(&localsAssignedAt[i]->Destination, i2))
+					{
+						found = TRUE;
+						break;
+					}
+					for (uint32_t i2 = 0; i2 < localsAssignedAt[i]->SourceArrayLength; i2++)
+					{
+						if (IROptimizer_SourceDataUsesLocalVariable(&localsAssignedAt[i]->SourceArray[i2], i2))
+						{
+							found = TRUE;
+							break;
+						}
+					}
+					if (found) break;
 				}
 			}
 			if (found) continue;
@@ -168,6 +194,7 @@ void IROptimizer_MoveCompacting(IRMethod* pMethod, IRCodeNode** pNodes, uint32_t
 				}
 				localsAssignedAt[i]->Opcode = IROpcode_Nop;
 				localsAssignedAt[i]->Arg1 = NULL;
+				localsCompacted++;
 			}
 		}
 	}
@@ -175,4 +202,10 @@ void IROptimizer_MoveCompacting(IRMethod* pMethod, IRCodeNode** pNodes, uint32_t
 	free(localUseCount);
 	free(localsAssignedAt);
 	free(addressLoadedOf);
+	/*if (localsCompacted)
+	{
+		printf("Repeating after compacting %u variables\n", (unsigned int)localsCompacted);
+		goto Start;
+	}
+	printf("Not-Repeating after compacting %u variables\n", (unsigned int)localsCompacted);*/
 }

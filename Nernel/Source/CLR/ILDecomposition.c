@@ -2860,7 +2860,7 @@ BranchCommon:
 
 				StackObject* obj = SyntheticStack_Peek(stack);
 
-				EMIT_IR_3ARG_NO_DISPOSE(IROpcode_Load_Field, obj->Type, type, (uint32_t*)fieldIndex);
+				EMIT_IR_3ARG_NO_DISPOSE(IROpcode_Load_Field, field->ParentType, type, (uint32_t*)fieldIndex);
 
 				obj->Type = type;
 				obj->SourceType = StackObjectSourceType_Stack;
@@ -2879,7 +2879,7 @@ BranchCommon:
 
 				StackObject* obj = SyntheticStack_Peek(stack);
 
-				EMIT_IR_3ARG_NO_DISPOSE(IROpcode_Load_FieldAddress, obj->Type, type, (uint32_t*)fieldIndex);
+				EMIT_IR_3ARG_NO_DISPOSE(IROpcode_Load_FieldAddress, field->ParentType, type, (uint32_t*)fieldIndex);
 
 				obj->Type = IRAssembly_MakePointerType(assembly, type);
 				obj->SourceType = StackObjectSourceType_Stack;
@@ -2900,7 +2900,7 @@ BranchCommon:
 				SR(SyntheticStack_Pop(stack));
 				StackObject* obj = SyntheticStack_Pop(stack);
 
-				EMIT_IR_3ARG_NO_DISPOSE(IROpcode_Store_Field, obj->Type, type, (uint32_t*)fieldIndex);
+				EMIT_IR_3ARG_NO_DISPOSE(IROpcode_Store_Field, field->ParentType, type, (uint32_t*)fieldIndex);
 				SR(obj);
 
 				ClearFlags();
@@ -3080,7 +3080,8 @@ BranchCommon:
                 Log_WriteLine(LOGLEVEL__ILReader, "Read LdElemA");
 
 				type = AppDomain_GetIRTypeFromMetadataToken(domain, assembly, ReadUInt32(currentDataPointer), FALSE);
-
+				
+				printf("decomp loading array element %s.%s\n", type->TypeDefinition->Namespace, type->TypeDefinition->Name);
 				SR(SyntheticStack_Pop(stack));
 				StackObject* obj = SyntheticStack_Peek(stack);
 

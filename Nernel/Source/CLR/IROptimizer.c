@@ -20,7 +20,7 @@ void IROptimizer_Optimize(IRMethod* pMethod)
 
 	IROptimizer_EnterSSA(pMethod, nodes, nodesCount);
 
-	IROptimizer_MoveCompacting(pMethod, nodes, nodesCount);
+	//IROptimizer_MoveCompacting(pMethod, nodes, nodesCount);
 
 	IROptimizer_LeaveSSA(pMethod, nodes, nodesCount);
 
