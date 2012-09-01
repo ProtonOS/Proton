@@ -5,6 +5,7 @@
 #include <CLR/JIT.h>
 #include <CLR/JIT/Layout.h>
 #include <CLR/JIT/x86/x86-codegen.h>
+#include <CLR/Optimizations/LinearizeStack.h>
 #include <CLR/Optimizations/IntrinsicSubstitution.h>
 
 #define PRIMARY_REG X86_EAX
@@ -120,6 +121,7 @@ default: \
 	}
 
 
+char* JIT_Emit_LoadDestinationAddress(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pDestination, X86_Reg_No pRegister1, X86_Reg_No pRegister2, X86_Reg_No pRegister3);
 
 
 char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSource, X86_Reg_No pRegister1, X86_Reg_No pRegister2, X86_Reg_No pRegister3, bool_t loadToStack, uint32_t stackOffset, size_t* pSize)
@@ -273,7 +275,14 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 			JIT_CalculateFieldLayout(pSource->Data.Field.ParentType);
 			IRField* sourceField = pSource->Data.Field.ParentType->Fields[pSource->Data.Field.FieldIndex];
 			sizeOfSource = JIT_GetStackSizeOfType(sourceField->FieldType);
-			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pSource->Data.Field.FieldSource, pRegister3, pRegister2, pRegister1, FALSE, 0, NULL);
+			if (GetIRTypeOfSourceType(pSource->Type, pSource->Data, pMethod)->IsStructureType)
+			{
+				pCompiledCode = JIT_Emit_LoadDestinationAddress(pCompiledCode, pMethod, pSource->Data.Field.FieldSource, pRegister3, pRegister2, pRegister1);
+			}
+			else
+			{
+				pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pSource->Data.Field.FieldSource, pRegister3, pRegister2, pRegister1, FALSE, 0, NULL);
+			}
 			switch (sizeOfSource)
 			{
 				case 1:
@@ -315,7 +324,14 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 		{
 			JIT_CalculateFieldLayout(pSource->Data.FieldAddress.ParentType);
 			sizeOfSource = gSizeOfPointerInBytes;
-			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pSource->Data.FieldAddress.FieldSource, pRegister1, pRegister2, pRegister3, FALSE, 0, NULL);
+			if (GetIRTypeOfSourceType(pSource->Type, pSource->Data, pMethod)->IsStructureType)
+			{
+				pCompiledCode = JIT_Emit_LoadDestinationAddress(pCompiledCode, pMethod, pSource->Data.FieldAddress.FieldSource, pRegister1, pRegister2, pRegister3);
+			}
+			else
+			{
+				pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pSource->Data.FieldAddress.FieldSource, pRegister1, pRegister2, pRegister3, FALSE, 0, NULL);
+			}
 			x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister1, pSource->Data.FieldAddress.ParentType->Fields[pSource->Data.FieldAddress.FieldIndex]->Offset);
 			if (loadToStack)
 				x86_mov_membase_reg(pCompiledCode, X86_ESP, stackOffset, pRegister1, 4);
@@ -1957,7 +1973,16 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 			JIT_CalculateFieldLayout(pSource->Data.Field.ParentType);
 			IRField* sourceField = pSource->Data.Field.ParentType->Fields[pSource->Data.Field.FieldIndex];
 			sizeOfSource = JIT_GetStackSizeOfType(sourceField->FieldType);
-			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pSource->Data.Field.FieldSource, pRegister1, pRegister2, pRegister3, FALSE, 0, NULL);
+			IRType* sourceType = GetIRTypeOfSourceType(pSource->Data.Field.FieldSource->Type, pSource->Data.Field.FieldSource->Data, pMethod);
+			printf("Move From Field: from %s of type %s to a value of type %s \n", sourceField->FieldDefinition->Name, sourceField->FieldType->TypeDefinition->Name, sourceType->TypeDefinition->Name);
+			if (sourceType->IsStructureType)
+			{
+				pCompiledCode = JIT_Emit_LoadDestinationAddress(pCompiledCode, pMethod, pSource->Data.Field.FieldSource, pRegister1, pRegister2, pRegister3);
+			}
+			else
+			{
+				pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pSource->Data.Field.FieldSource, pRegister1, pRegister2, pRegister3, FALSE, 0, NULL);
+			}
 			switch (pDestination->Type)
 			{
 				// Field to Local (destination aligned)
@@ -5423,6 +5448,16 @@ __attribute__((noreturn)) void JIT_Trampoline_CallVirtual(IRType* pType, uint32_
 
 char* JIT_Emit_Call_Virtual(char* pCompiledCode, IRMethod* pMethod, IRInstruction* pInstruction, BranchRegistry* pBranchRegistry)
 {
+	IRMethod* method = ((IRType*)pInstruction->Arg1)->Methods[(uint32_t)pInstruction->Arg2];
+	if (method->Returns)
+	{
+		if (!method->ReturnType->StackSizeCalculated) JIT_GetStackSizeOfType(method->ReturnType);
+		if (method->ReturnType->StackSize > 8)
+		{
+			x86_adjust_stack(pCompiledCode, method->ReturnType->StackSize);
+		}
+	}
+
 	uint32_t parametersSize = 0;
 	size_t sizeOfParameter = 0;
 	for (uint32_t index = 0; index < pInstruction->SourceArrayLength; ++index)
@@ -5439,7 +5474,6 @@ char* JIT_Emit_Call_Virtual(char* pCompiledCode, IRMethod* pMethod, IRInstructio
 	x86_call_code(pCompiledCode, JIT_Trampoline_CallVirtual);
 	x86_adjust_stack(pCompiledCode, -parametersSize);
 
-	IRMethod* method = ((IRType*)pInstruction->Arg1)->Methods[(uint32_t)pInstruction->Arg2];
 	if (method->Returns)
 	{
 		if (method->ReturnType->StackSize > 4 && method->ReturnType->StackSize <= 8)
@@ -5465,6 +5499,15 @@ char* JIT_Emit_Call_Absolute(char* pCompiledCode, IRMethod* pMethod, IRInstructi
 	IRMethod* method = (IRMethod*)pInstruction->Arg1;
 
 	if (!method->AssembledMethod) JIT_CompileMethod(method);
+	
+	if (method->Returns)
+	{
+		if (!method->ReturnType->StackSizeCalculated) JIT_GetStackSizeOfType(method->ReturnType);
+		if (method->ReturnType->StackSize > 8)
+		{
+			x86_adjust_stack(pCompiledCode, method->ReturnType->StackSize);
+		}
+	}
 
 	uint32_t parametersSize = 0;
 	size_t sizeOfParameter = 0;

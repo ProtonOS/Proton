@@ -104,12 +104,18 @@ namespace Mernel
             //Kernel.Write(t2.a);
             List<Tester> test = new List<Tester>();
             test.Add(new Tester(1, 2, 3));
-            //test.Add(new Tester(4, 5, 6));
-            //test.Add(new Tester(7, 8, 9));
+            test.Add(new Tester(4, 5, 6));
+            test.Add(new Tester(7, 8, 9));
             //if (test[2].c == 9) Kernel.Write("Yay\n");
             Kernel.Write(test[0].a);
             Kernel.Write(test[0].b);
             Kernel.Write(test[0].c);
+            Kernel.Write(test[1].a);
+            Kernel.Write(test[1].b);
+            Kernel.Write(test[1].c);
+            Kernel.Write(test[2].a);
+            Kernel.Write(test[2].b);
+            Kernel.Write(test[2].c);
             Kernel.Write("Hello\n");
         }
     }

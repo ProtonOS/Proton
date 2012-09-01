@@ -14,7 +14,7 @@ bool_t IROptimizer_ExistsInDominanceTree(IRCodeNode* pDominator, IRCodeNode* pBr
 
 IRCodeNode** IROptimizer_BuildControlFlowGraph(IRMethod* pMethod, uint32_t* pNodesCount)
 {
-	Log_WriteLine(LOGLEVEL__Optimize_SSA, "Started Building CFG for %s.%s.%s, %u instructions", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name, (unsigned int)pMethod->IRCodesCount);
+	Log_WriteLine(LOGLEVEL__Optimize_SSA, "Started Building CFG for %s.%s.%s, %u instructions @ 0x%X", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name, (unsigned int)pMethod->IRCodesCount, (unsigned int)pMethod);
 
 	uint32_t* branchTargets = NULL;
 	uint32_t branchTargetsCount = 0;

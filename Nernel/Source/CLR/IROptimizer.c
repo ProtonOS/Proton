@@ -21,7 +21,7 @@ void IROptimizer_Optimize(IRMethod* pMethod)
 	
 	IROptimizer_EnterSSA(pMethod, nodes, nodesCount);
 
-	IROptimizer_MoveCompacting(pMethod, nodes, nodesCount);
+	//IROptimizer_MoveCompacting(pMethod, nodes, nodesCount);
 
 	IROptimizer_LeaveSSA(pMethod, nodes, nodesCount);
 
@@ -30,7 +30,7 @@ void IROptimizer_Optimize(IRMethod* pMethod)
 	for (uint32_t index = 0; index < nodesCount; ++index) IRCodeNode_Destroy(nodes[index]);
 	free(nodes);
 
-	IROptimizer_GenericCleanup(pMethod);
+	//IROptimizer_GenericCleanup(pMethod);
 
 	Log_WriteLine(LOGLEVEL__Optimize, "Finished Optimizing %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
 }

@@ -98,7 +98,7 @@ typedef struct StackLocal
 
 uint32_t AddLocal(IRType* localType, IRMethod* pMethod, uint32_t depth, StackLocal** stackLocalTable)
 {
-	printf("StackLinearize AddLocal: 0x%X\n", (unsigned int)localType);
+	printf("StackLinearize AddLocal: 0x%X %s\n", (unsigned int)localType, localType->TypeDefinition->Name);
 	if (!localType) Panic("Grr");
 	if (!localType->TypeDefinition)
 	{
@@ -121,18 +121,19 @@ uint32_t AddLocal(IRType* localType, IRMethod* pMethod, uint32_t depth, StackLoc
 		fLocal->Type = localType;
 		fLocal->LocalIndex = loc->LocalVariableIndex;
 		HASH_ADD(HashHandle, *stackLocalTable, StackDepthLocation, offsetof(StackLocal, LocalIndex), fLocal);
-		//printf("Creating a local at index %i for stack depth of %i of the type (0x%x) %s.%s\n", (int)loc->LocalVariableIndex, (int)depth, (unsigned int)localType, localType->TypeDefinition->Namespace, localType->TypeDefinition->Name);
+		printf("Creating a local at index %i for stack depth of %i of the type (0x%x) %s.%s\n", (int)loc->LocalVariableIndex, (int)depth, (unsigned int)localType, localType->TypeDefinition->Namespace, localType->TypeDefinition->Name);
 		return loc->LocalVariableIndex;
 	}
 	else
 	{
-		//printf("Not creating a local at index %i for stack depth of %i of the type (0x%x) %s.%s\n", (int)fLocal->LocalIndex, (int)depth, (unsigned int)localType, localType->TypeDefinition->Namespace, localType->TypeDefinition->Name);
+		printf("Not creating a local at index %i for stack depth of %i of the type (0x%x) %s.%s\n", (int)fLocal->LocalIndex, (int)depth, (unsigned int)localType, localType->TypeDefinition->Namespace, localType->TypeDefinition->Name);
 		return fLocal->LocalIndex;
 	}
 }
 
 void IROptimizer_LinearizeStack(IRMethod* pMethod)
 {
+	printf("This pMethod is <b>EBIL</b> because it has %u locals, and %u opcodes.\n", (unsigned int)pMethod->LocalVariableCount, (unsigned int)pMethod->IRCodesCount);
 	StackLocal* stackLocalTable = NULL;
 	SyntheticStack* stack = SyntheticStack_Create();
 	StackObjectPool_Initialize(stack);
@@ -441,7 +442,6 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 				ins->Source1.Data.ArrayElement.IndexSource = sIDat;
 				ins->Source1.Data.ArrayElement.ArraySource = sADat;
 				ins->Source1.Data.ArrayElement.ElementType = GetIRTypeOfSourceType(sADat->Type, sADat->Data, pMethod)->ArrayType->ElementType;
-				//ins->Source1.Data.ArrayElement.ElementType = (IRType*)ins->Arg2;
 				ins->Opcode = IROpcode_Move;
 				obj = PA();
 				obj->LinearData.Type = SourceType_Local;
@@ -582,6 +582,7 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 				obj = Pop();
 				ins->Source2.Type = obj->LinearData.Type;
 				ins->Source2.Data = obj->LinearData.Data;
+				printf("Source2.Type = %u, Source2.Data = %u, Type = %s\n", (unsigned int)ins->Source2.Type, (unsigned int)ins->Source2.Data.LocalVariable.LocalVariableIndex, pMethod->LocalVariables[4]->VariableType->TypeDefinition->Name);
 				arg2 = GetElementTypeOfSourceType(ins->Source2.Type, ins->Source2.Data, pMethod);
 				PR(obj);
 
@@ -603,7 +604,7 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 								destType = AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, ElementType_I);
 								break;
 							default:
-								Panic("Invalid Element Type!");
+								Panic("Invalid Element Type 1!");
 								break;
 						}
 						break;
@@ -628,7 +629,8 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 								destType = AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, ElementType_I4);
 								break;
 							default:
-								Panic("Invalid Element Type!");
+								printf("ElementType = %i\n", (int)arg2);
+								Panic("Invalid Element Type 2!");
 								break;
 						}
 						break;
@@ -641,7 +643,7 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 								destType = AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, ElementType_I8);
 								break;
 							default:
-								Panic("Invalid Element Type!");
+								Panic("Invalid Element Type 3!");
 								break;
 						}
 						break;
@@ -654,7 +656,7 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 								destType = AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, ElementType_R8);
 								break;
 							default:
-								Panic("Invalid Element Type!");
+								Panic("Invalid Element Type 4!");
 								break;
 						}
 						break;
@@ -716,7 +718,7 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 								destType = AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, ElementType_I);
 								break;
 							default:
-								Panic("Invalid Element Type!");
+								Panic("Invalid Element Type 5!");
 								break;
 						}
 						break;
@@ -739,7 +741,7 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 								destType = AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, ElementType_I4);
 								break;
 							default:
-								Panic("Invalid Element Type!");
+								Panic("Invalid Element Type 6!");
 								break;
 						}
 						break;
@@ -752,12 +754,12 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 								destType = AppDomain_GetIRTypeFromElementType(pMethod->ParentAssembly->ParentDomain, ElementType_I8);
 								break;
 							default:
-								Panic("Invalid Element Type!");
+								Panic("Invalid Element Type 7!");
 								break;
 						}
 						break;
 					default:
-						Panic("Invalid Element Type!");
+						Panic("Invalid Element Type 8!");
 						break;
 				}
 				obj = PA();

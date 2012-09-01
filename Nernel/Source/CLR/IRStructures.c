@@ -233,13 +233,10 @@ void IRType_GenericDeepCopy_Finalize(IRType* pType, IRAssembly* pAssembly, IRTyp
 		type->Fields[index] = IRField_Copy(pType->Fields[index]);
 	}
 	type->Methods = (IRMethod**)calloc(1, pType->MethodCount * sizeof(IRMethod*));
-	printf("GenericDeepCopy_Finalize: %s.%s, %s.%s\n", type->TypeDefinition->Namespace, type->TypeDefinition->Name, type->GenericType->Parameters[0]->TypeDefinition->Namespace, type->GenericType->Parameters[0]->TypeDefinition->Name);
 	for (uint32_t index = 0; index < pType->MethodCount; ++index)
 	{
-		printf("Method: %s\n", pType->Methods[index]->MethodDefinition->Name);
 		if (ILDecomposition_MethodUsesGenerics(pType->Methods[index]))
 		{
-			printf("Here: %u, 0x%X, 0x%X\n", (unsigned int)index, (unsigned int)pType, (unsigned int)pType->Methods[index]);
 			IRGenericMethod key;
 			memset(&key, 0, sizeof(IRGenericMethod));
 			key.GenericMethod = pType->Methods[index];
@@ -250,7 +247,7 @@ void IRType_GenericDeepCopy_Finalize(IRType* pType, IRAssembly* pAssembly, IRTyp
 			if (!lookupMethod)
 			{
 				type->Methods[index] = IRMethod_GenericDeepCopy(pType->Methods[index], pAssembly);
-				type->Methods[index]->GenericMethod = IRGenericMethod_Create(pType, pType->Methods[index], type->Methods[index]);
+				type->Methods[index]->GenericMethod = IRGenericMethod_Create(type, pType->Methods[index], type->Methods[index]);
 				type->Methods[index]->GenericMethod->ParameterCount = 0;
 				HASH_ADD(HashHandle, pAssembly->GenericMethodsHashTable, GenericMethod, offsetof(IRGenericMethod, ImplementationMethod), type->Methods[index]->GenericMethod);
 				AppDomain_ResolveGenericMethodParameters(pAssembly->ParentDomain, pAssembly->ParentFile, pType, type->Methods[index]);
@@ -263,7 +260,6 @@ void IRType_GenericDeepCopy_Finalize(IRType* pType, IRAssembly* pAssembly, IRTyp
 		}
 		else
 		{
-			printf("NonGeneric\n");
 			type->Methods[index] = pType->Methods[index];
 		}
 	}
@@ -430,11 +426,18 @@ void IRMethod_GenericFinalizeCopy(IRMethod* method)
 		if (!method->GenericMethod->GenericMethod->IRCodesCount)
 			ILDecomposition_ConvertInstructions(method->GenericMethod->GenericMethod);
 	
-		method->IRCodes = (IRInstruction**)calloc(1, method->IRCodesCount * sizeof(IRInstruction*));
-		printf("IRMethod_GenericDeepCopy IRCodeCount = %u for %s\n", (unsigned int)method->GenericMethod->GenericMethod->IRCodesCount, method->GenericMethod->GenericMethod->MethodDefinition->Name);
+		method->IRCodes = (IRInstruction**)calloc(1, method->GenericMethod->GenericMethod->IRCodesCount * sizeof(IRInstruction*));
+		method->IRCodesCount = method->GenericMethod->GenericMethod->IRCodesCount;
+		printf("IRMethod_GenericDeepCopy IRCodeCount = %u for %s to 0x%X\n", (unsigned int)method->GenericMethod->GenericMethod->IRCodesCount, method->GenericMethod->GenericMethod->MethodDefinition->Name, (unsigned int)method);
 		for (uint32_t index = 0; index < method->GenericMethod->GenericMethod->IRCodesCount; ++index)
 		{
 			method->IRCodes[index] = IRInstruction_Copy(method->GenericMethod->GenericMethod->IRCodes[index]);
+		}
+		method->LocalVariables = (IRLocalVariable**)calloc(1, method->GenericMethod->GenericMethod->LocalVariableCount * sizeof(IRLocalVariable*));
+		method->LocalVariableCount = method->GenericMethod->GenericMethod->LocalVariableCount;
+		for (uint32_t index = 0; index < method->GenericMethod->GenericMethod->LocalVariableCount; ++index)
+		{
+			method->LocalVariables[index] = IRLocalVariable_Copy(method->GenericMethod->GenericMethod->LocalVariables[index]);
 		}
 	}
 }
@@ -446,11 +449,6 @@ IRMethod* IRMethod_GenericDeepCopy(IRMethod* pMethod, IRAssembly* pAssembly)
 	*method = *pMethod;
 	method->ParentAssembly = pAssembly;
 	method->IRCodes = 0;
-	method->LocalVariables = (IRLocalVariable**)calloc(1, method->LocalVariableCount * sizeof(IRLocalVariable*));
-	for (uint32_t index = 0; index < pMethod->LocalVariableCount; ++index)
-	{
-		method->LocalVariables[index] = IRLocalVariable_Copy(pMethod->LocalVariables[index]);
-	}
 	method->Parameters = (IRParameter**)calloc(1, method->ParameterCount * sizeof(IRParameter*));
 	for (uint32_t index = 0; index < pMethod->ParameterCount; ++index)
 	{

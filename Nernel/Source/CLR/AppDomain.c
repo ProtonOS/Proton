@@ -581,34 +581,43 @@ IRType* AppDomain_GetIRTypeFromSignatureType(AppDomain* pDomain, IRAssembly* pAs
 				//Panic("AppDomain_GetIRTypeFromSignatureType GenericInstantiation Parameter Count Mismatch");
 			}
 			key.ParameterCount = pType->GenericInstGenericArgumentCount;
+			bool_t returnGenericParent = FALSE;
 			for (uint32_t index = 0; index < pType->GenericInstGenericArgumentCount; ++index)
 			{
 				key.Parameters[index] = AppDomain_GetIRTypeFromSignatureType(pDomain, pAssembly, pType->GenericInstGenericArguments[index]);
+				if (key.Parameters[index]->IsGenericParameter)
+				{
+					returnGenericParent = TRUE;
+					break;
+				}
 			}
 			//printf("Yep, it's coming from here %i\n", (int)pAssembly->AssemblyIndex);
-			IRGenericType* lookupType = NULL;
-			HASH_FIND(HashHandle, pAssembly->GenericTypesHashTable, &key, offsetof(IRGenericType, ImplementationType), lookupType);
-			IRType* implementationType = NULL;
-			if (!lookupType)
+			if (!returnGenericParent)
 			{
-				implementationType = IRType_GenericDeepCopy(type, pAssembly);
-				implementationType->GenericType = IRGenericType_Create(type, implementationType);
-				implementationType->GenericType->ParameterCount = pType->GenericInstGenericArgumentCount;
-				for (uint32_t index = 0; index < pType->GenericInstGenericArgumentCount; ++index)
+				IRType* implementationType = NULL;
+				IRGenericType* lookupType = NULL;
+				HASH_FIND(HashHandle, pAssembly->GenericTypesHashTable, &key, offsetof(IRGenericType, ImplementationType), lookupType);
+				if (!lookupType)
 				{
-					implementationType->GenericType->Parameters[index] = key.Parameters[index];
-					//printf("GenericInstantiation Type %s.%s, Param %u Type %s.%s\n", implementationType->TypeDefinition->Namespace, implementationType->TypeDefinition->Name, (unsigned int)index, implementationType->GenericType->Parameters[index]->TypeDefinition->Namespace, implementationType->GenericType->Parameters[index]->TypeDefinition->Name);
+					implementationType = IRType_GenericDeepCopy(type, pAssembly);
+					implementationType->GenericType = IRGenericType_Create(type, implementationType);
+					implementationType->GenericType->ParameterCount = pType->GenericInstGenericArgumentCount;
+					for (uint32_t index = 0; index < pType->GenericInstGenericArgumentCount; ++index)
+					{
+						implementationType->GenericType->Parameters[index] = key.Parameters[index];
+						//printf("GenericInstantiation Type %s.%s, Param %u Type %s.%s\n", implementationType->TypeDefinition->Namespace, implementationType->TypeDefinition->Name, (unsigned int)index, implementationType->GenericType->Parameters[index]->TypeDefinition->Namespace, implementationType->GenericType->Parameters[index]->TypeDefinition->Name);
+					}
+					HASH_ADD(HashHandle, pAssembly->GenericTypesHashTable, GenericType, offsetof(IRGenericType, ImplementationType), implementationType->GenericType);
+					IRType_GenericDeepCopy_Finalize(type, pAssembly, implementationType);
+					AppDomain_ResolveGenericTypeParameters(pDomain, pAssembly->ParentFile, implementationType);
+					implementationType->IsGenericInstantiation = TRUE;
 				}
-				HASH_ADD(HashHandle, pAssembly->GenericTypesHashTable, GenericType, offsetof(IRGenericType, ImplementationType), implementationType->GenericType);
-				IRType_GenericDeepCopy_Finalize(type, pAssembly, implementationType);
-				AppDomain_ResolveGenericTypeParameters(pDomain, pAssembly->ParentFile, implementationType);
-				implementationType->IsGenericInstantiation = TRUE;
+				else
+				{
+					implementationType = lookupType->ImplementationType;
+				}
+				type = implementationType;
 			}
-			else
-			{
-				implementationType = lookupType->ImplementationType;
-			}
-			type = implementationType;
 			CLIFile_DestroyMetadataToken(token);
 			break;
 		}
@@ -825,6 +834,7 @@ ElementType AppDomain_GetElementTypeFromIRType(AppDomain* pDomain, IRType* pType
 	if (pType->TypeDefinition == pDomain->CachedType___System_UIntPtr) return ElementType_U;
 	if (pType->TypeDefinition == pDomain->CachedType___System_Single) return ElementType_R4;
 	if (pType->TypeDefinition == pDomain->CachedType___System_Double) return ElementType_R8;
+	printf("GetElementTypeFromIRType: Unknown %s.%s\n", pType->TypeDefinition->Namespace, pType->TypeDefinition->Name);
 	return (ElementType)-1;
 }
 
@@ -1226,6 +1236,7 @@ void AppDomain_ResolveGenericTypeParameters(AppDomain* pDomain, CLIFile* pFile, 
 				field->FieldType = implementationType;
 				HASH_ADD(HashHandle, pFile->Assembly->GenericTypesHashTable, GenericType, offsetof(IRGenericType, ImplementationType), implementationType->GenericType);
 				IRType_GenericDeepCopy_Finalize(fieldType, pFile->Assembly, implementationType);
+				printf("Repeat1\n");
 				AppDomain_ResolveGenericTypeParameters(pDomain, pFile, implementationType);
 				implementationType->IsGenericInstantiation = TRUE;
 			}
@@ -1368,6 +1379,14 @@ void AppDomain_ResolveGenericMethodParametersInternal(AppDomain* pDomain, CLIFil
 			}
 		}
 	}
+	for (uint32_t i = 0; i < type->GenericParameterCount; i++)
+	{
+		if (key.Parameters[i]->IsGenericParameter)
+		{
+			*pResolvingType = type->GenericType->GenericType;
+			return;
+		}
+	}
 	IRGenericType* lookupType = NULL;
 	HASH_FIND(HashHandle, pFile->Assembly->GenericTypesHashTable, &key, offsetof(IRGenericType, ImplementationType), lookupType);
 	if (!lookupType)
@@ -1425,7 +1444,21 @@ void AppDomain_ResolveGenericMethodParametersInternal(AppDomain* pDomain, CLIFil
 void AppDomain_ResolveGenericMethodParametersFinalize(AppDomain* pDomain, CLIFile* pFile, IRType* pType, IRMethod* pMethod)
 {
 	if (!pType || !pMethod) Panic("Weoops...");
-	printf("Hrm: %x\n", (unsigned int)pType->IsGenericInstantiation);
+	printf("tpye: %s\n", pType->GenericType->Parameters[0]->TypeDefinition->Name);
+
+	for (uint32_t index = 0; index < pMethod->LocalVariableCount; index++)
+	{
+		IRLocalVariable* local = pMethod->LocalVariables[index];
+		if (local->VariableType->ArrayType && local->VariableType->ArrayType->ElementType->IsGeneric)
+		{
+			AppDomain_ResolveGenericMethodParametersInternal(pDomain, pFile, pType, pMethod, &local->VariableType->ArrayType->ElementType);
+		}
+		else if (local->VariableType->IsGenericParameter || (local->VariableType->IsGeneric && !local->VariableType->IsGenericInstantiation))
+		{
+			AppDomain_ResolveGenericMethodParametersInternal(pDomain, pFile, pType, pMethod, &local->VariableType);
+		}
+	}
+
 	for (uint32_t index = 0; index < pMethod->IRCodesCount; index++)
 	{
 		IRInstruction* instruction = pMethod->IRCodes[index];
@@ -1440,7 +1473,6 @@ void AppDomain_ResolveGenericMethodParametersFinalize(AppDomain* pDomain, CLIFil
 			case IROpcode_Unbox:
 			case IROpcode_UnboxAny:
 			case IROpcode_Box:
-			case IROpcode_New_Array:
 			case IROpcode_Allocate_Local:
 			case IROpcode_SizeOf:
 			case IROpcode_Call_Virtual:
@@ -1452,6 +1484,16 @@ void AppDomain_ResolveGenericMethodParametersFinalize(AppDomain* pDomain, CLIFil
 					((IRType*)instruction->Arg1)->IsGenericParameter)
 				{
 					AppDomain_ResolveGenericMethodParametersInternal(pDomain, pFile, pType, pMethod, (IRType**)&instruction->Arg1);
+				}
+				break;
+			case IROpcode_New_Array:
+				if ((((IRType*)instruction->Arg1)->IsGeneric && !((IRType*)instruction->Arg1)->IsGenericInstantiation) ||
+					((IRType*)instruction->Arg1)->IsGenericParameter)
+				{
+					printf("flee before the awesome power of th enon-resolving generic!\n");
+					printf("tp>:: %X, %s, %i\n", (unsigned int)instruction->Arg1, ((IRType*)instruction->Arg1)->TypeDefinition->Name, (int)((IRType*)instruction->Arg1)->GenericParameterIndex);
+					AppDomain_ResolveGenericMethodParametersInternal(pDomain, pFile, pType, pMethod, (IRType**)&instruction->Arg1);
+					printf("tp>:: %X, %s, %i\n", (unsigned int)instruction->Arg1, ((IRType*)instruction->Arg1)->TypeDefinition->Name, (int)((IRType*)instruction->Arg1)->GenericParameterIndex);
 				}
 				break;
 			case IROpcode_New_Object:
@@ -1524,19 +1566,6 @@ void AppDomain_ResolveGenericMethodParameters(AppDomain* pDomain, CLIFile* pFile
 		((pMethod->ReturnType->IsGeneric && !pMethod->ReturnType->IsGenericInstantiation) || pMethod->ReturnType->IsGenericParameter))
 	{
 		AppDomain_ResolveGenericMethodParametersInternal(pDomain, pFile, pType, pMethod, &pMethod->ReturnType);
-	}
-
-	for (uint32_t index = 0; index < pMethod->LocalVariableCount; index++)
-	{
-		IRLocalVariable* local = pMethod->LocalVariables[index];
-		if (local->VariableType->ArrayType && local->VariableType->ArrayType->ElementType->IsGeneric)
-		{
-			AppDomain_ResolveGenericMethodParametersInternal(pDomain, pFile, pType, pMethod, &local->VariableType->ArrayType->ElementType);
-		}
-		else if (local->VariableType->IsGenericParameter || (local->VariableType->IsGeneric && !local->VariableType->IsGenericInstantiation))
-		{
-			AppDomain_ResolveGenericMethodParametersInternal(pDomain, pFile, pType, pMethod, &local->VariableType);
-		}
 	}
 
 	uint32_t startIndex = 0;
