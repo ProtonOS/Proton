@@ -9,9 +9,9 @@ uint32_t JIT_GetStackSizeOfType(IRType* pType)
 	if (pType->StackSizeCalculated) return pType->StackSize;
 	if (pType->IsGenericParameter)
 	{
-		printf("Probably a problem, but 0x%X, 0x%X, 0x%X\n", (unsigned int)pType, (unsigned int)pType->TypeDefinition, (unsigned int)pType->GenericType);
-		return 4;
-		//Panic("Problem here, especially if value type, either way typedefinition is not set");
+		//printf("Probably a problem, but 0x%X, 0x%X, 0x%X\n", (unsigned int)pType, (unsigned int)pType->TypeDefinition, (unsigned int)pType->GenericType);
+		//return 4;
+		if (!pType->TypeDefinition)	Panic("Problem here, especially if value type, either way typedefinition is not set");
 	}
 	if (pType->IsValueType)
 	{
@@ -115,11 +115,11 @@ void JIT_CalculateLocalLayout(IRMethod* pMethod)
 		for (uint32_t index = 0; index < pMethod->LocalVariableCount; ++index)
 		{
 			local = pMethod->LocalVariables[index];
-			if (!local->VariableType) 
-			{
-				printf("Ignoring %u\n", (unsigned int)index);
-				continue;
-			}
+			//if (!local->VariableType) 
+			//{
+			//	printf("Ignoring %u\n", (unsigned int)index);
+			//	continue;
+			//}
 			local->Size = JIT_GetStackSizeOfType(local->VariableType);
 			offset += JIT_StackAlign(local->Size);
 			local->Offset = offset;

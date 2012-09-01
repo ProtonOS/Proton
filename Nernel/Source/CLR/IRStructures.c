@@ -233,14 +233,37 @@ void IRType_GenericDeepCopy_Finalize(IRType* pType, IRAssembly* pAssembly, IRTyp
 		type->Fields[index] = IRField_Copy(pType->Fields[index]);
 	}
 	type->Methods = (IRMethod**)calloc(1, pType->MethodCount * sizeof(IRMethod*));
+	printf("GenericDeepCopy_Finalize: %s.%s, %s.%s\n", type->TypeDefinition->Namespace, type->TypeDefinition->Name, type->GenericType->Parameters[0]->TypeDefinition->Namespace, type->GenericType->Parameters[0]->TypeDefinition->Name);
 	for (uint32_t index = 0; index < pType->MethodCount; ++index)
 	{
+		printf("Method: %s\n", pType->Methods[index]->MethodDefinition->Name);
 		if (ILDecomposition_MethodUsesGenerics(pType->Methods[index]))
 		{
-			type->Methods[index] = IRMethod_GenericDeepCopy(pType->Methods[index], pAssembly);
+			printf("Here: %u, 0x%X, 0x%X\n", (unsigned int)index, (unsigned int)pType, (unsigned int)pType->Methods[index]);
+			IRGenericMethod key;
+			memset(&key, 0, sizeof(IRGenericMethod));
+			key.GenericMethod = pType->Methods[index];
+			key.ParameterCount = 0;
+			key.ParentType = pType;
+			IRGenericMethod* lookupMethod = NULL;
+			HASH_FIND(HashHandle, pAssembly->GenericMethodsHashTable, &key, offsetof(IRGenericMethod, ImplementationMethod), lookupMethod);
+			if (!lookupMethod)
+			{
+				type->Methods[index] = IRMethod_GenericDeepCopy(pType->Methods[index], pAssembly);
+				type->Methods[index]->GenericMethod = IRGenericMethod_Create(pType, pType->Methods[index], type->Methods[index]);
+				type->Methods[index]->GenericMethod->ParameterCount = 0;
+				HASH_ADD(HashHandle, pAssembly->GenericMethodsHashTable, GenericMethod, offsetof(IRGenericMethod, ImplementationMethod), type->Methods[index]->GenericMethod);
+				AppDomain_ResolveGenericMethodParameters(pAssembly->ParentDomain, pAssembly->ParentFile, pType, type->Methods[index]);
+				type->Methods[index]->IsGenericImplementation = TRUE;
+			}
+			else
+			{
+				type->Methods[index] = lookupMethod->ImplementationMethod;
+			}
 		}
 		else
 		{
+			printf("NonGeneric\n");
 			type->Methods[index] = pType->Methods[index];
 		}
 	}
@@ -250,48 +273,10 @@ void IRType_GenericDeepCopy_Finalize(IRType* pType, IRAssembly* pAssembly, IRTyp
 		IRInterfaceImpl* newInterface = IRInterfaceImpl_Create(iterator->InterfaceType);
 		HASH_ADD(HashHandle, type->InterfaceTable, InterfaceType, sizeof(void*), newInterface);
 	}
-
-	//if (type->NestedTypeCount)
-	//{
-	//	IRType** newNestedTypes = (IRType**)calloc(1, sizeof(IRType*) * type->NestedTypeCount);
-	//	memcpy(newNestedTypes, type->NestedTypes, type->NestedTypeCount * sizeof(IRType*));
-	//	type->NestedTypes = newNestedTypes;
-	//	for (uint32_t index = 0; index < type->NestedTypeCount; ++index)
-	//	{
-	//		IRType* nestedType = type->NestedTypes[index];
-	//		printf("GDC5\n");
-	//		IRType* implementationType = IRType_GenericDeepCopy(nestedType, pAssembly);
-	//		implementationType->GenericType = IRGenericType_Create(nestedType, implementationType);
-	//		implementationType->GenericType->ParameterCount = nestedType->GenericType->ParameterCount;
-	//		for (uint32_t index = 0; index < nestedType->GenericType->ParameterCount; ++index)
-	//		{
-	//			if (nestedType->GenericType->Parameters[index]->IsGenericParameter)
-	//			{
-	//				implementationType->GenericType->Parameters[index] = pType->GenericType->Parameters[nestedType->GenericType->Parameters[index]->GenericParameterIndex];
-	//			}
-	//			else
-	//			{
-	//				implementationType->GenericType->Parameters[index] = nestedType->GenericType->Parameters[index];
-	//			}
-	//			//printf("ResolveGenericTypeParameters, GenericInstantiation Type %s.%s, Param %u Type %s.%s\n", implementationType->TypeDefinition->Namespace, implementationType->TypeDefinition->Name, (unsigned int)index, implementationType->GenericType->Parameters[index]->TypeDefinition->Namespace, implementationType->GenericType->Parameters[index]->TypeDefinition->Name);
-	//		}
-	//		type->NestedTypes[index] = implementationType;
-	//		HASH_ADD(HashHandle, pAssembly->GenericTypesHashTable, GenericType, offsetof(IRGenericType, ImplementationType), implementationType->GenericType);
-	//		AppDomain_ResolveGenericTypeParameters(pAssembly->ParentDomain, pAssembly->ParentFile, implementationType);
-	//		implementationType->IsGenericInstantiation = TRUE;
-	//	}
-	//}
 }
 
 IRType* IRType_GenericDeepCopy(IRType* pType, IRAssembly* pAssembly)
 {
-	//printf("NestedTypeCount for %s.%s = %u\n", pType->TypeDefinition->Namespace, pType->TypeDefinition->Name, (unsigned int)pType->NestedTypeCount);
-	//for (uint32_t index = 0; index < pType->NestedTypeCount; ++index)
-	//{
-	//	IRType* nestedType = pType->NestedTypes[index];
-	//	printf("NestedType[%u] = 0x%X, 0x%X, %s.%s\n", (unsigned int)index, (unsigned int)nestedType, (unsigned int)nestedType->GenericType, nestedType->TypeDefinition->Namespace, nestedType->TypeDefinition->Name);
-	//}
-
 	IRType* type = (IRType*)calloc(1, sizeof(IRType));
 	Log_WriteLine(LOGLEVEL__Memory, "Memory: IRType_GenericDeepCopy @ 0x%x, of 0x%x", (unsigned int)type, (unsigned int)pType);
 	*type = *pType;
@@ -438,17 +423,29 @@ IRMethod* IRMethod_Create(IRAssembly* pAssembly, MethodDefinition* pMethodDefini
 	return method;
 }
 
+void IRMethod_GenericFinalizeCopy(IRMethod* method)
+{
+	if (!method->IRCodes)
+	{
+		if (!method->GenericMethod->GenericMethod->IRCodesCount)
+			ILDecomposition_ConvertInstructions(method->GenericMethod->GenericMethod);
+	
+		method->IRCodes = (IRInstruction**)calloc(1, method->IRCodesCount * sizeof(IRInstruction*));
+		printf("IRMethod_GenericDeepCopy IRCodeCount = %u for %s\n", (unsigned int)method->GenericMethod->GenericMethod->IRCodesCount, method->GenericMethod->GenericMethod->MethodDefinition->Name);
+		for (uint32_t index = 0; index < method->GenericMethod->GenericMethod->IRCodesCount; ++index)
+		{
+			method->IRCodes[index] = IRInstruction_Copy(method->GenericMethod->GenericMethod->IRCodes[index]);
+		}
+	}
+}
+
 IRMethod* IRMethod_GenericDeepCopy(IRMethod* pMethod, IRAssembly* pAssembly)
 {
     IRMethod* method = (IRMethod*)calloc(1, sizeof(IRMethod));
 	Log_WriteLine(LOGLEVEL__Memory, "Memory: IRMethod_GenericDeepCopy @ 0x%x, of 0x%x", (unsigned int)method, (unsigned int)pMethod);
 	*method = *pMethod;
 	method->ParentAssembly = pAssembly;
-	method->IRCodes = (IRInstruction**)calloc(1, method->IRCodesCount * sizeof(IRInstruction*));
-	for (uint32_t index = 0; index < pMethod->IRCodesCount; ++index)
-	{
-		method->IRCodes[index] = IRInstruction_Copy(pMethod->IRCodes[index]);
-	}
+	method->IRCodes = 0;
 	method->LocalVariables = (IRLocalVariable**)calloc(1, method->LocalVariableCount * sizeof(IRLocalVariable*));
 	for (uint32_t index = 0; index < pMethod->LocalVariableCount; ++index)
 	{

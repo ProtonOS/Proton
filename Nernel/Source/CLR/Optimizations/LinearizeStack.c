@@ -100,6 +100,10 @@ uint32_t AddLocal(IRType* localType, IRMethod* pMethod, uint32_t depth, StackLoc
 {
 	printf("StackLinearize AddLocal: 0x%X\n", (unsigned int)localType);
 	if (!localType) Panic("Grr");
+	if (!localType->TypeDefinition)
+	{
+		Panic("Well, it wasn't resolved :(");
+	}
 	StackLocal lKey;
 	StackLocal* lKeyPtr = &lKey;
 	lKey.StackDepthLocation = depth;
@@ -436,11 +440,12 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 				ins->Source1.Type = SourceType_ArrayElement;
 				ins->Source1.Data.ArrayElement.IndexSource = sIDat;
 				ins->Source1.Data.ArrayElement.ArraySource = sADat;
-				ins->Source1.Data.ArrayElement.ElementType = (IRType*)ins->Arg2;
+				ins->Source1.Data.ArrayElement.ElementType = GetIRTypeOfSourceType(sADat->Type, sADat->Data, pMethod)->ArrayType->ElementType;
+				//ins->Source1.Data.ArrayElement.ElementType = (IRType*)ins->Arg2;
 				ins->Opcode = IROpcode_Move;
 				obj = PA();
 				obj->LinearData.Type = SourceType_Local;
-				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal((IRType*)ins->Arg2, pMethod, stack->StackDepth, &stackLocalTable);
+				obj->LinearData.Data.LocalVariable.LocalVariableIndex = AddLocal(ins->Source1.Data.ArrayElement.ElementType, pMethod, stack->StackDepth, &stackLocalTable);
 				ins->Destination = obj->LinearData;
 				Push(obj);
 				ins->Arg1 = NULL;
@@ -864,6 +869,28 @@ void IROptimizer_LinearizeStack(IRMethod* pMethod)
 					ins->SourceArray[i2].Type = obj->LinearData.Type;
 					ins->SourceArray[i2].Data = obj->LinearData.Data;
 					PR(obj);
+				}
+				if (!(mth->MethodDefinition->Flags & MethodAttributes_Static) && mth->MethodDefinition->TypeDefinition->GenericParameterCount)
+				{
+					IRType* parType = GetIRTypeOfSourceType(ins->SourceArray[ins->SourceArrayLength - 1].Type, ins->SourceArray[ins->SourceArrayLength - 1].Data, pMethod);
+					if (!parType) Panic("Ooopsies");
+					if (parType->IsGeneric)
+					{
+						printf("Resolving the implementation for %s.%s\n", parType->TypeDefinition->Namespace, parType->TypeDefinition->Name);
+						bool_t found = FALSE;
+						for (uint32_t i2 = 0; i2 < parType->MethodCount; i2++)
+						{
+							if (parType->Methods[i2]->MethodDefinition == mth->MethodDefinition)
+							{
+								mth = parType->Methods[i2];
+								ins->Arg1 = mth;
+								found = TRUE;
+								break;
+							}
+						}
+						if (!found)
+							Panic("Unable to resolve the method on a generic type!");
+					}
 				}
 
 				if (mth->Returns)

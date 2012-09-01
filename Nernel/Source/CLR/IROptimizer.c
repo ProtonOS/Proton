@@ -1,6 +1,7 @@
 #include <CLR/IROptimizer.h>
 #include <CLR/Optimizations/CFG.h>
 #include <CLR/Optimizations/DeadMoveElimination.h>
+#include <CLR/Optimizations/GenericCleanup.h>
 #include <CLR/Optimizations/IntrinsicSubstitution.h>
 #include <CLR/Optimizations/LinearizeStack.h>
 #include <CLR/Optimizations/MoveCompacting.h>
@@ -28,6 +29,8 @@ void IROptimizer_Optimize(IRMethod* pMethod)
 
 	for (uint32_t index = 0; index < nodesCount; ++index) IRCodeNode_Destroy(nodes[index]);
 	free(nodes);
+
+	IROptimizer_GenericCleanup(pMethod);
 
 	Log_WriteLine(LOGLEVEL__Optimize, "Finished Optimizing %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
 }

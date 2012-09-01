@@ -1270,6 +1270,13 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 {
 	Log_WriteLine(LOGLEVEL__ILReader, "Converting Method: %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
 	if (pMethod->IRCodes) return;
+	if (pMethod->GenericMethod)
+	{
+		printf("GotHere\n");
+		IRMethod_GenericFinalizeCopy(pMethod);
+		AppDomain_ResolveGenericMethodParametersFinalize(pMethod->ParentAssembly->ParentDomain, pMethod->ParentAssembly->ParentFile, pMethod->GenericMethod->ParentType, pMethod);
+		return;
+	}
 
 	MethodDefinition* methodDefinition = pMethod->MethodDefinition;
 	MethodSignature* methodSignature = methodDefinition->SignatureCache;

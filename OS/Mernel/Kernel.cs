@@ -96,18 +96,20 @@ namespace Mernel
 
             //string x = "Test";
             //Kernel.Write(x + "\n");
-            Tester[] test = new Tester[3];
+            //Tester[] test = new Tester[3];
             //test[0] = new Tester(1, 2, 3);
             //test[1] = new Tester(4, 5, 6);
-            test[2] = new Tester(7, 8, 9);
-            //List<Tester> test = new List<Tester>();
-            //test.Add(new Tester(1, 2, 3));
+            //Tester t2 = test[0];
+            //Tester t3 = test[1];
+            //Kernel.Write(t2.a);
+            List<Tester> test = new List<Tester>();
+            test.Add(new Tester(1, 2, 3));
             //test.Add(new Tester(4, 5, 6));
             //test.Add(new Tester(7, 8, 9));
-            if (test[2].c == 9) Kernel.Write("Yay\n");
-            Kernel.Write(test[2].a);
-            Kernel.Write(test[2].b);
-            Kernel.Write(test[2].c);
+            //if (test[2].c == 9) Kernel.Write("Yay\n");
+            Kernel.Write(test[0].a);
+            Kernel.Write(test[0].b);
+            Kernel.Write(test[0].c);
             Kernel.Write("Hello\n");
         }
     }

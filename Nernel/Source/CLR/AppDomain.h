@@ -103,6 +103,7 @@ bool_t AppDomain_IsStructure(AppDomain* pDomain, TypeDefinition* pTypeDefinition
 TypeDefinition* AppDomain_ResolveTypeReference(AppDomain* pDomain, CLIFile* pFile, TypeReference* pTypeReference);
 void AppDomain_ResolveMemberReference(AppDomain* pDomain, CLIFile* pFile, MemberReference* pMemberReference);
 void AppDomain_ResolveGenericTypeParameters(AppDomain* pDomain, CLIFile* pFile, IRType* pType);
+void AppDomain_ResolveGenericMethodParametersFinalize(AppDomain* pDomain, CLIFile* pFile, IRType* pType, IRMethod* pMethod);
 void AppDomain_ResolveGenericMethodParameters(AppDomain* pDomain, CLIFile* pFile, IRType* pType, IRMethod* pMethod);
 
 TypeDefinition* AppDomain_GetTypeDefByCanonicalName(AppDomain* pDomain, IRAssembly* pAssembly, char* pCanonicalName);

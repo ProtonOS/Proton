@@ -98,6 +98,7 @@
 	Source/CLR/JIT/x86/Layout.c
 	Source/CLR/Optimizations/CFG.c
 	Source/CLR/Optimizations/DeadMoveElimination.c
+	Source/CLR/Optimizations/GenericCleanup.c
 	Source/CLR/Optimizations/LinearizeStack.c
 	Source/CLR/Optimizations/MoveCompacting.c
 	Source/CLR/Optimizations/Peephole_PreSSA.c

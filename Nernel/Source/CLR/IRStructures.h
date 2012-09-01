@@ -152,6 +152,7 @@ struct _IRMethod
 };
 
 IRMethod* IRMethod_Create(IRAssembly* pAssembly, MethodDefinition* pMethodDefinition);
+void IRMethod_GenericFinalizeCopy(IRMethod* method);
 IRMethod* IRMethod_GenericDeepCopy(IRMethod* pMethod, IRAssembly* pAssembly);
 void IRMethod_Destroy(IRMethod* pMethod);
 void IRMethod_AddInstruction(IRMethod* pMethod, IRInstruction* pInstruction);

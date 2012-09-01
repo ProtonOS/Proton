@@ -456,6 +456,8 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 						x86_push_reg(pCompiledCode, pRegister3);
 						pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pSource->Data.ArrayElement.IndexSource, pRegister2, pRegister1, pRegister3, FALSE, 0, NULL);
 						x86_pop_reg(pCompiledCode, pRegister3);
+						printf("it is 0x%x\n", (unsigned int)pSource->Data.ArrayElement.ElementType);
+						printf("Doing a fast load of element %s.%s\n", pSource->Data.ArrayElement.ElementType->TypeDefinition->Namespace, pSource->Data.ArrayElement.ElementType->TypeDefinition->Name);
 						x86_mov_reg_memindex(pCompiledCode, pRegister1, pRegister3, 0, pRegister2, sizeOfSource >> 1, sizeOfSource);
 					}
 					if (loadToStack)
@@ -5324,7 +5326,7 @@ char* JIT_Emit_New_Object(char* pCompiledCode, IRMethod* pMethod, IRInstruction*
 			if (sizeOfParameter <= gSizeOfPointerInBytes) x86_push_reg(pCompiledCode, SECONDARY_REG);
 			parametersSize += sizeOfParameter;
 		}
-		x86_push_reg(pCompiledCode, PRIMARY_REG); // Push the GCObject->Data* (this reference)
+		x86_push_reg(pCompiledCode, PRIMARY_REG); // Push the GCObject->Data* (this reference), or addressOf struct on stack (this reference)
 		parametersSize += gSizeOfPointerInBytes;
 		if (method->MethodDefinition->InternalCall)
 		{
