@@ -189,9 +189,6 @@
     <ClCompile Include="Source\CLR\ManagedPlugs.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\CLR\Optimizations\GenericCleanup.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\System\Multiboot.h">
@@ -402,9 +399,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\CLR\ManagedPlugs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\CLR\Optimizations\GenericCleanup.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

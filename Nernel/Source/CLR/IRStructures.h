@@ -191,6 +191,7 @@ struct _IRLocalSSAData
 {
 	bool_t FirstAssignmentDone;
 	IRLocalVariable* Derived;
+	uint32_t DerivedIterations;
 	uint32_t Iteration;
 	IRInstruction* LifeStarted;
 	IRInstruction* LifeEnded;
