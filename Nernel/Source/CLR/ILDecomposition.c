@@ -605,7 +605,7 @@ ElementType ILDecomposition_GetElementTypeFromIRType(IRType* pType)
 	if (typeDef == domain->CachedType___System_UIntPtr) return ElementType_U;
 	if (typeDef == domain->CachedType___System_Single) return ElementType_R4;
 	if (typeDef == domain->CachedType___System_Double) return ElementType_R8;
-	printf("Unknown Type %s.%s\n", typeDef->Namespace, typeDef->Name);
+	//printf("Unknown Type %s.%s\n", typeDef->Namespace, typeDef->Name);
 	Panic("ILDecomposition_GetElementTypeFromIRType: Unknown Type");
 	return (ElementType)0;
 }
@@ -1272,7 +1272,6 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 	if (pMethod->IRCodes) return;
 	if (pMethod->GenericMethod)
 	{
-		printf("GotHere\n");
 		IRMethod_GenericFinalizeCopy(pMethod);
 		AppDomain_ResolveGenericMethodParametersFinalize(pMethod->ParentAssembly->ParentDomain, pMethod->ParentAssembly->ParentFile, pMethod->GenericMethod->ParentType, pMethod);
 		return;
@@ -2735,7 +2734,7 @@ BranchCommon:
 
 				ILDecomposition_ConvertInstructions(method);
 				Log_WriteLine(LOGLEVEL__ILReader, "Returning to Converting Method: %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
-				printf("ILDecomp NewObj: 0x%x\n", (unsigned int)method->Parameters[0]->Type);
+				//printf("ILDecomp NewObj: 0x%x\n", (unsigned int)method->Parameters[0]->Type);
 				EMIT_IR_2ARG_NO_DISPOSE(IROpcode_New_Object, method, method->ParentAssembly->Types[method->MethodDefinition->TypeDefinition->TableIndex - 1]);
 
 				StackObject* obj = SA();

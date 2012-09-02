@@ -428,7 +428,6 @@ void IRMethod_GenericFinalizeCopy(IRMethod* method)
 	
 		method->IRCodes = (IRInstruction**)calloc(1, method->GenericMethod->GenericMethod->IRCodesCount * sizeof(IRInstruction*));
 		method->IRCodesCount = method->GenericMethod->GenericMethod->IRCodesCount;
-		printf("IRMethod_GenericDeepCopy IRCodeCount = %u for %s to 0x%X\n", (unsigned int)method->GenericMethod->GenericMethod->IRCodesCount, method->GenericMethod->GenericMethod->MethodDefinition->Name, (unsigned int)method);
 		for (uint32_t index = 0; index < method->GenericMethod->GenericMethod->IRCodesCount; ++index)
 		{
 			method->IRCodes[index] = IRInstruction_Copy(method->GenericMethod->GenericMethod->IRCodes[index]);

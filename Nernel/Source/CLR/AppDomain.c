@@ -834,7 +834,7 @@ ElementType AppDomain_GetElementTypeFromIRType(AppDomain* pDomain, IRType* pType
 	if (pType->TypeDefinition == pDomain->CachedType___System_UIntPtr) return ElementType_U;
 	if (pType->TypeDefinition == pDomain->CachedType___System_Single) return ElementType_R4;
 	if (pType->TypeDefinition == pDomain->CachedType___System_Double) return ElementType_R8;
-	printf("GetElementTypeFromIRType: Unknown %s.%s\n", pType->TypeDefinition->Namespace, pType->TypeDefinition->Name);
+	//printf("GetElementTypeFromIRType: Unknown %s.%s\n", pType->TypeDefinition->Namespace, pType->TypeDefinition->Name);
 	return (ElementType)-1;
 }
 
@@ -1236,7 +1236,6 @@ void AppDomain_ResolveGenericTypeParameters(AppDomain* pDomain, CLIFile* pFile, 
 				field->FieldType = implementationType;
 				HASH_ADD(HashHandle, pFile->Assembly->GenericTypesHashTable, GenericType, offsetof(IRGenericType, ImplementationType), implementationType->GenericType);
 				IRType_GenericDeepCopy_Finalize(fieldType, pFile->Assembly, implementationType);
-				printf("Repeat1\n");
 				AppDomain_ResolveGenericTypeParameters(pDomain, pFile, implementationType);
 				implementationType->IsGenericInstantiation = TRUE;
 			}
@@ -1444,7 +1443,6 @@ void AppDomain_ResolveGenericMethodParametersInternal(AppDomain* pDomain, CLIFil
 void AppDomain_ResolveGenericMethodParametersFinalize(AppDomain* pDomain, CLIFile* pFile, IRType* pType, IRMethod* pMethod)
 {
 	if (!pType || !pMethod) Panic("Weoops...");
-	printf("tpye: %s\n", pType->GenericType->Parameters[0]->TypeDefinition->Name);
 
 	for (uint32_t index = 0; index < pMethod->LocalVariableCount; index++)
 	{
@@ -1490,10 +1488,9 @@ void AppDomain_ResolveGenericMethodParametersFinalize(AppDomain* pDomain, CLIFil
 				if ((((IRType*)instruction->Arg1)->IsGeneric && !((IRType*)instruction->Arg1)->IsGenericInstantiation) ||
 					((IRType*)instruction->Arg1)->IsGenericParameter)
 				{
-					printf("flee before the awesome power of th enon-resolving generic!\n");
-					printf("tp>:: %X, %s, %i\n", (unsigned int)instruction->Arg1, ((IRType*)instruction->Arg1)->TypeDefinition->Name, (int)((IRType*)instruction->Arg1)->GenericParameterIndex);
+					//printf("type: %X, %s, %i\n", (unsigned int)instruction->Arg1, ((IRType*)instruction->Arg1)->TypeDefinition->Name, (int)((IRType*)instruction->Arg1)->GenericParameterIndex);
 					AppDomain_ResolveGenericMethodParametersInternal(pDomain, pFile, pType, pMethod, (IRType**)&instruction->Arg1);
-					printf("tp>:: %X, %s, %i\n", (unsigned int)instruction->Arg1, ((IRType*)instruction->Arg1)->TypeDefinition->Name, (int)((IRType*)instruction->Arg1)->GenericParameterIndex);
+					//printf("type: %X, %s, %i\n", (unsigned int)instruction->Arg1, ((IRType*)instruction->Arg1)->TypeDefinition->Name, (int)((IRType*)instruction->Arg1)->GenericParameterIndex);
 				}
 				break;
 			case IROpcode_New_Object:
@@ -1558,7 +1555,7 @@ void AppDomain_ResolveGenericMethodParameters(AppDomain* pDomain, CLIFile* pFile
 {
 	if(pMethod->IsGeneric && !pMethod->IsGenericImplementation)
 	{
-		printf("Delaying generic parameter resolution of %s.%s.%s\n", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
+		//printf("Delaying generic parameter resolution of %s.%s.%s\n", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
 		return;
 	}
 

@@ -1838,7 +1838,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 				case SourceType_Field:
 				{
 					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
-					printf("Moving into field from local, field has a parent type of 0x%x %s.%s\n", (unsigned int)pDestination->Data.Field.ParentType, pDestination->Data.Field.ParentType->TypeDefinition->Namespace,pDestination->Data.Field.ParentType->TypeDefinition->Name);
 					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
 					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
 					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Field.FieldSource, pRegister3, pRegister2, pRegister1, FALSE, 0, NULL);
@@ -1974,7 +1973,6 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 			IRField* sourceField = pSource->Data.Field.ParentType->Fields[pSource->Data.Field.FieldIndex];
 			sizeOfSource = JIT_GetStackSizeOfType(sourceField->FieldType);
 			IRType* sourceType = GetIRTypeOfSourceType(pSource->Data.Field.FieldSource->Type, pSource->Data.Field.FieldSource->Data, pMethod);
-			printf("Move From Field: from %s of type %s to a value of type %s \n", sourceField->FieldDefinition->Name, sourceField->FieldType->TypeDefinition->Name, sourceType->TypeDefinition->Name);
 			if (sourceType->IsStructureType)
 			{
 				pCompiledCode = JIT_Emit_LoadDestinationAddress(pCompiledCode, pMethod, pSource->Data.Field.FieldSource, pRegister1, pRegister2, pRegister3);
