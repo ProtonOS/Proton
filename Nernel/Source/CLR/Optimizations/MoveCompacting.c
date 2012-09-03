@@ -1,5 +1,5 @@
 #include <CLR/Optimizations/MoveCompacting.h>
-
+#include <CLR/IRMethodDumper.h>
 
 
 void ProcessSourceTypeData(SourceTypeData* sDat, uint32_t** localUseCount, bool_t** addressLoaded, bool_t isAddress)
@@ -82,6 +82,11 @@ bool_t IROptimizer_SourceDataUsesLocalVariable(SourceTypeData* pSourceData, uint
 
 void IROptimizer_MoveCompacting(IRMethod* pMethod, IRCodeNode** pNodes, uint32_t pNodesCount)
 {
+
+	printf("\n\n\nBEFORE MOVE COMPACTING:\n\n\n");
+	IRMethodDumper_Dump(pMethod);
+
+
 	uint32_t localsCompacted;
 //Start:
 	localsCompacted = 0;
@@ -207,6 +212,10 @@ void IROptimizer_MoveCompacting(IRMethod* pMethod, IRCodeNode** pNodes, uint32_t
 	free(localUseCount);
 	free(localsAssignedAt);
 	free(addressLoadedOf);
+
+	printf("\n\n\nAFTER MOVE COMPACTING:\n\n\n");
+	IRMethodDumper_Dump(pMethod);
+
 	/*if (localsCompacted)
 	{
 		printf("Repeating after compacting %u variables\n", (unsigned int)localsCompacted);

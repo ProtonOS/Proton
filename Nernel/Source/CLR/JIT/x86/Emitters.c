@@ -275,7 +275,7 @@ char* JIT_Emit_Load(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 			JIT_CalculateFieldLayout(pSource->Data.Field.ParentType);
 			IRField* sourceField = pSource->Data.Field.ParentType->Fields[pSource->Data.Field.FieldIndex];
 			sizeOfSource = JIT_GetStackSizeOfType(sourceField->FieldType);
-			if (GetIRTypeOfSourceType(pSource->Type, pSource->Data, pMethod)->IsStructureType)
+			if (GetIRTypeOfSourceType(pSource->Data.Field.FieldSource->Type, pSource->Data.Field.FieldSource->Data, pMethod)->IsStructureType)
 			{
 				pCompiledCode = JIT_Emit_LoadDestinationAddress(pCompiledCode, pMethod, pSource->Data.Field.FieldSource, pRegister3, pRegister2, pRegister1);
 			}

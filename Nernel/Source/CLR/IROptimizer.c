@@ -21,7 +21,7 @@ void IROptimizer_Optimize(IRMethod* pMethod)
 	uint32_t originalLocalCount = pMethod->LocalVariableCount;
 	IROptimizer_EnterSSA(pMethod, nodes, nodesCount);
 
-	//IROptimizer_MoveCompacting(pMethod, nodes, nodesCount);
+	IROptimizer_MoveCompacting(pMethod, nodes, nodesCount);
 
 	IROptimizer_LeaveSSA(pMethod, nodes, nodesCount, originalLocalCount);
 

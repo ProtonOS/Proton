@@ -69,6 +69,7 @@
 	Source/CLR/GC.c
 	Source/CLR/ILDecomposition.c
 	Source/CLR/InternalCalls.c
+	Source/CLR/IRMethodDumper.c
 	Source/CLR/IROptimizer.c
 	Source/CLR/IRStructures.c
 	Source/CLR/JIT.c
