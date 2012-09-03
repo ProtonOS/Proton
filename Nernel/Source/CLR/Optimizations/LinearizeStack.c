@@ -102,7 +102,7 @@ uint32_t AddLocal(IRType* localType, IRMethod* pMethod, uint32_t depth, StackLoc
 	if (!localType) Panic("Grr");
 	if (!localType->TypeDefinition)
 	{
-		Panic("Well, it wasn't resolved :(");
+		Panic("Attempted to add local with no type (aka. a generic parameter that is not resolved) :(");
 	}
 	StackLocal lKey;
 	StackLocal* lKeyPtr = &lKey;

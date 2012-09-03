@@ -479,8 +479,7 @@ MonoHack1:
 		}
 		else
 		{
-			if (!(pTypeDefinition->MethodDefinitionList[index].Flags & MethodAttributes_Static) && 
-				!(pTypeDefinition->MethodDefinitionList[index].Flags & MethodAttributes_RTSpecialName)
+			if (!(pTypeDefinition->MethodDefinitionList[index].Flags & MethodAttributes_Static) 
 				)
 			{
 				IRMethod* method = pTypeDefinition->File->Assembly->Methods[pTypeDefinition->MethodDefinitionList[index].TableIndex - 1];
@@ -2000,10 +1999,12 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 
 				MetadataToken* token = CLIFile_ExpandMetadataToken(file, ReadUInt32(currentDataPointer));
 				IRMethod* method = NULL;
+				printf("Call!\n");
 				switch(token->Table)
 				{
 					case MetadataTable_MethodDefinition:
 					{
+						printf("MethodDef!\n");
 						if (!(method = assembly->Methods[((MethodDefinition*)token->Data)->TableIndex - 1]))
 						{
 							method = IRMethod_Create(assembly, (MethodDefinition*)token->Data);
@@ -2012,17 +2013,26 @@ void ILDecomposition_ConvertInstructions(IRMethod* pMethod)
 					}
 					case MetadataTable_MemberReference:
 					{
+						printf("MemberRef\n");
 						MemberReference* memberRef = (MemberReference*)token->Data;
 						AppDomain_ResolveMemberReference(domain, assembly->ParentFile, memberRef);
-						MethodDefinition* methodDef = memberRef->Resolved.MethodDefinition;
-						if (!(method = methodDef->File->Assembly->Methods[methodDef->TableIndex - 1]))
+						if (memberRef->ParentGenericType)
 						{
-							method = IRMethod_Create(methodDef->File->Assembly, methodDef);
+							method = memberRef->Resolved.ResolvedGenericMethodImplementation;
+						}
+						else
+						{
+							MethodDefinition* methodDef = memberRef->Resolved.MethodDefinition;
+							if (!(method = methodDef->File->Assembly->Methods[methodDef->TableIndex - 1]))
+							{
+								method = IRMethod_Create(methodDef->File->Assembly, methodDef);
+							}
 						}
 						break;
 					}
 					case MetadataTable_MethodSpecification:
 					{
+						printf("It was a method spec\n");
 						MethodSpecification* methodSpec = (MethodSpecification*)token->Data;
 						MethodDefinition* methodDef = NULL;
 						switch(methodSpec->TypeOfMethod)

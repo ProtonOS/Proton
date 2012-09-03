@@ -674,13 +674,29 @@ IRField* AppDomain_GetIRFieldFromMetadataToken(AppDomain* pDomain, IRAssembly* p
 		{
 			AppDomain_ResolveMemberReference(pDomain, pAssembly->ParentFile, ((MemberReference*)token->Data));
 			Field* fieldDef = ((MemberReference*)token->Data)->Resolved.Field;
+			if (!fieldDef->SignatureCache) fieldDef->SignatureCache = FieldSignature_Expand(fieldDef->Signature, fieldDef->File);
+			
 			if (fieldDef->Flags & FieldAttributes_Static)
 			{
+				if (fieldDef->SignatureCache->Type->ElementType == SignatureElementType_Var)
+				{
+					Panic("Not currently supported! -W-");
+				}
 				field = fieldDef->File->Assembly->Fields[fieldDef->TableIndex - 1];
 			}
 			else
 			{
-				IRType* type = fieldDef->TypeDefinition->File->Assembly->Types[fieldDef->TypeDefinition->TableIndex - 1];
+				IRType* type;
+				if (fieldDef->SignatureCache->Type->ElementType == SignatureElementType_Var)
+				{
+					//printf("Resolving a generic member reference!\n");
+					type = ((MemberReference*)token->Data)->ParentGenericType;
+				}
+				else
+				{
+					//printf("WAS???? ES WAR NICHT GENERIC????\n");
+					type = fieldDef->TypeDefinition->File->Assembly->Types[fieldDef->TypeDefinition->TableIndex - 1];
+				}
 				for (uint32_t index = 0; index < type->FieldCount; index++)
 				{
 					if (!strcmp(fieldDef->Name, type->Fields[index]->FieldDefinition->Name))
@@ -697,7 +713,9 @@ IRField* AppDomain_GetIRFieldFromMetadataToken(AppDomain* pDomain, IRAssembly* p
 				{
 					Panic("AppDomain_GetIRFieldFromMetadataToken: Unable to resolve Field");
 				}
+				//printf("Resolved field to %s of type %s\n", field->FieldDefinition->Name, field->FieldType->TypeDefinition->Name);
 			}
+			
 			break;
 		}
 		default:
@@ -1141,6 +1159,19 @@ void AppDomain_ResolveMemberReference(AppDomain* pDomain, CLIFile* pFile, Member
 					{
 						pMemberReference->TypeOfResolved = FieldOrMethodDefType_Field;
 						pMemberReference->Resolved.Field = &typeDef->FieldList[i2];
+
+						if (!typeDef->FieldList[i2].SignatureCache) typeDef->FieldList[i2].SignatureCache = FieldSignature_Expand(typeDef->FieldList[i2].Signature, typeDef->File);
+						if (typeDef->FieldList[i2].SignatureCache->Type->ElementType == SignatureElementType_Var)
+						{
+							if (!(typeDef->FieldList[i2].Flags & FieldAttributes_Static))
+							{
+								pMemberReference->ParentGenericType = tp;
+							}
+							else
+							{
+								Panic("Not currently supported (Pwetty please support me?)");
+							}
+						}
 						break;
 					}
 				}
@@ -1166,6 +1197,20 @@ void AppDomain_ResolveMemberReference(AppDomain* pDomain, CLIFile* pFile, Member
 					{
 						pMemberReference->TypeOfResolved = FieldOrMethodDefType_MethodDefinition;
 						pMemberReference->Resolved.MethodDefinition = &typeDef->MethodDefinitionList[i2];
+						if (typeDef->GenericParameterCount)
+						{
+							for (uint32_t i42 = 0; i42 < tp->MethodCount; i42++)
+							{
+								if (!strcmp(pMemberReference->Name, tp->Methods[i42]->MethodDefinition->Name) &&
+									MethodSignature_Compare(pDomain, typeDef->File->Assembly, tp->Methods[i42]->MethodDefinition->SignatureCache, pFile->Assembly, pMemberReference->MethodSignatureCache))
+								{
+									pMemberReference->Resolved.ResolvedGenericMethodImplementation = tp->Methods[i42];
+									break;
+								}
+							}
+							if (!pMemberReference->Resolved.ResolvedGenericMethodImplementation) Panic("Resolution failed here!!!");
+							pMemberReference->ParentGenericType = tp;
+						}
 						break;
 					}
 				}
@@ -1187,10 +1232,11 @@ void AppDomain_ResolveGenericTypeParameters(AppDomain* pDomain, CLIFile* pFile, 
 	for(uint32_t index = 0; index < pType->FieldCount; index++)
 	{
 		IRField* field = pType->Fields[index];
+		field->ParentType = pType;
 		if (field->FieldType->IsGenericParameter)
 		{
-			//printf("Well, we got here. %s\n", field->FieldDefinition->Name);
 			field->FieldType = pType->GenericType->Parameters[field->FieldType->GenericParameterIndex];
+			//printf("Well, we got here. 0x%X, %s of type 0x%X %s, 0x%X\n", (unsigned int)field, field->FieldDefinition->Name, (unsigned int)field->FieldType, field->FieldType->TypeDefinition->Name, (unsigned int)pType);
 		}
 		else if (field->FieldType->ArrayType && field->FieldType->ArrayType->ElementType->IsGenericParameter)
 		{

@@ -989,9 +989,14 @@ struct _MemberReference
 	uint8_t TypeOfResolved;
 	union
 	{
-		MethodDefinition* MethodDefinition;
+		struct
+		{
+			MethodDefinition* MethodDefinition;
+			IRMethod* ResolvedGenericMethodImplementation;
+		};
 		Field* Field;
 	} Resolved;
+	IRType* ParentGenericType;
 };
 
 uint8_t* MemberReference_Initialize(CLIFile* pFile, uint8_t* pTableData);

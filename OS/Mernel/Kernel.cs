@@ -25,21 +25,26 @@ namespace Mernel
 
         }
     }
-    public struct Tester
+    public struct Tester<T>
+    {
+        public T a;
+        public T b;
+        public T c;
+
+        public Tester(T pA, T pB, T pC)
+        {
+            a = pA; b = pB; c = pC;
+        }
+    }
+    public struct Tester2
     {
         public uint a;
         public uint b;
         public uint c;
 
-        public Tester(uint pA, uint pB, uint pC)
+        public Tester2(uint pA, uint pB, uint pC)
         {
-            Kernel.Write(pA);
-            Kernel.Write(pB);
-            Kernel.Write(pC);
             a = pA; b = pB; c = pC;
-            Kernel.Write(a);
-            Kernel.Write(b);
-            Kernel.Write(c);
         }
     }
     public static class Kernel
@@ -55,7 +60,10 @@ namespace Mernel
         [MethodImpl(MethodImplOptions.InternalCall)]
         public static extern void Write(uint pValue);
 
-
+        private static void Testing(ref uint a)
+        {
+            Kernel.Write(a);
+        }
         private unsafe static void Main()
         {
             // TODO: Implement and test all string constructors
@@ -101,22 +109,28 @@ namespace Mernel
             //test[1] = new Tester(4, 5, 6);
             //Tester t2 = test[0];
             //Tester t3 = test[1];
-            //Kernel.Write(t2.a);
-            List<Tester> test = new List<Tester>();
-            test.Add(new Tester(1, 2, 3));
-            test.Add(new Tester(4, 5, 6));
-            test.Add(new Tester(7, 8, 9));
+            //Testing(ref test[1].a);
+            //Kernel.Write(test[1].a);
+            //List<Tester> test = new List<Tester>();
+            //test.Add(new Tester(1, 2, 3));
+            //test.Add(new Tester(4, 5, 6));
+            //test.Add(new Tester(7, 8, 9));
             //if (test[2].c == 9) Kernel.Write("Yay\n");
-            Kernel.Write(test[0].a);
-            Kernel.Write(test[0].b);
-            Kernel.Write(test[0].c);
-            Kernel.Write(test[1].a);
-            Kernel.Write(test[1].b);
-            Kernel.Write(test[1].c);
-            Kernel.Write(test[2].a);
-            Kernel.Write(test[2].b);
-            Kernel.Write(test[2].c);
-            Kernel.Write("Hello\n");
+            //Kernel.Write(test[0].a);
+            //Kernel.Write(test[0].b);
+            //Kernel.Write(test[0].c);
+            //Kernel.Write(test[1].a);
+            //Kernel.Write(test[1].b);
+            //Kernel.Write(test[1].c);
+            //Kernel.Write(test[2].a);
+            //Kernel.Write(test[2].b);
+            //Kernel.Write(test[2].c);
+            //Kernel.Write("Hello\n");
+
+            Tester<uint> x = new Tester<uint>(1, 2, 3);
+            Kernel.Write(x.a);
+            //Tester2 x = new Tester2(1, 2, 3);
+            //Testing(ref x.a);
         }
     }
 
