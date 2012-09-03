@@ -184,7 +184,7 @@ void IROptimizer_MoveCompacting(IRMethod* pMethod, IRCodeNode** pNodes, uint32_t
 					}
 				}
 				if (found) continue;
-				if (localsAssignedAt[i]->Source1.Type == SourceType_ConstantI4 ||
+				if (((localsAssignedAt[i]->Source1.Type == SourceType_ConstantI4 ||
 					localsAssignedAt[i]->Source1.Type == SourceType_ConstantI8 ||
 					localsAssignedAt[i]->Source1.Type == SourceType_ConstantR4 ||
 					localsAssignedAt[i]->Source1.Type == SourceType_ConstantR8 ||
@@ -192,7 +192,7 @@ void IROptimizer_MoveCompacting(IRMethod* pMethod, IRCodeNode** pNodes, uint32_t
 					localsAssignedAt[i]->Source1.Type == SourceType_Local ||
 					localsAssignedAt[i]->Source1.Type == SourceType_LocalAddress ||
 					localsAssignedAt[i]->Source1.Type == SourceType_Parameter ||
-					localsAssignedAt[i]->Source1.Type == SourceType_ParameterAddress || 
+					localsAssignedAt[i]->Source1.Type == SourceType_ParameterAddress) && localUseCount[i] >= 1) || 
 
 					localUseCount[i] == 1
 					)
