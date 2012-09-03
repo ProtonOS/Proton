@@ -404,8 +404,7 @@ IRMethod** ILDecomposition_GetMethodLayout(IRType* pType, TypeDefinition* pTypeD
 		}
 		else
 		{
-			if (!(pTypeDefinition->MethodDefinitionList[index].Flags & MethodAttributes_Static) && 
-				!(pTypeDefinition->MethodDefinitionList[index].Flags & MethodAttributes_RTSpecialName)
+			if (!(pTypeDefinition->MethodDefinitionList[index].Flags & MethodAttributes_Static)
 				)
 			{
 				newMethodsCount++;

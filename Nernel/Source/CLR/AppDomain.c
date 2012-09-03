@@ -1614,7 +1614,10 @@ void AppDomain_ResolveGenericMethodParameters(AppDomain* pDomain, CLIFile* pFile
 	uint32_t startIndex = 0;
 	if (pType->IsGeneric && !(pMethod->MethodDefinition->Flags & MethodAttributes_Static))
 	{
-		pMethod->Parameters[0]->Type = pType;
+		if (pMethod->Parameters[0]->Type->IsGeneric)
+		{
+			pMethod->Parameters[0]->Type = pType;
+		}
 		startIndex = 1;
 	}
 	for (uint32_t index = startIndex; index < pMethod->ParameterCount; index++)

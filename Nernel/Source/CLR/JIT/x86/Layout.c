@@ -92,6 +92,10 @@ void JIT_CalculateParameterLayout(IRMethod* pMethod)
 		IRParameter* parameter = NULL;
 		uint32_t offset = 2 * gSizeOfPointerInBytes;
 		Log_WriteLine(LOGLEVEL__JIT_Layout, "Laying Out Parameters of %s.%s.%s", pMethod->MethodDefinition->TypeDefinition->Namespace, pMethod->MethodDefinition->TypeDefinition->Name, pMethod->MethodDefinition->Name);
+		/*if (pMethod->MethodDefinition->SignatureCache->HasThis && !pMethod->MethodDefinition->SignatureCache->ExplicitThis)
+		{
+			printf("It has a this param.\n");
+		}*/
 		for (uint32_t index = 0; index < pMethod->ParameterCount; ++index)
 		{
 			parameter = pMethod->Parameters[index];

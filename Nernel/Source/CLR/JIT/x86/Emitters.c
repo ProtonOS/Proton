@@ -571,7 +571,14 @@ char* JIT_Emit_LoadDestinationAddress(char* pCompiledCode, IRMethod* pMethod, So
 			}
 			break;
 		case SourceType_Field:
-			pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Field.FieldSource, pRegister1, pRegister2, pRegister3, FALSE, 0, NULL);
+			if (GetIRTypeOfSourceType(pDestination->Data.Field.FieldSource->Type, pDestination->Data.Field.FieldSource->Data, pMethod)->IsStructureType)
+			{
+				pCompiledCode = JIT_Emit_LoadDestinationAddress(pCompiledCode, pMethod, pDestination->Data.Field.FieldSource, pRegister1, pRegister2, pRegister3);
+			}
+			else
+			{
+				pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Field.FieldSource, pRegister1, pRegister2, pRegister3, FALSE, 0, NULL);
+			}
 			if (pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex]->Offset)
 			{
 				x86_alu_reg_imm(pCompiledCode, X86_ADD, pRegister1, pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex]->Offset);
@@ -1916,7 +1923,15 @@ char* JIT_Emit_Move(char* pCompiledCode, IRMethod* pMethod, SourceTypeData* pSou
 					JIT_CalculateFieldLayout(pDestination->Data.Field.ParentType);
 					IRField* field = pDestination->Data.Field.ParentType->Fields[pDestination->Data.Field.FieldIndex];
 					sizeOfDestination = JIT_GetStackSizeOfType(field->FieldType);
-					pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Field.FieldSource, pRegister3, pRegister2, pRegister1, FALSE, 0, NULL);
+
+					if (GetIRTypeOfSourceType(pDestination->Data.Field.FieldSource->Type, pDestination->Data.Field.FieldSource->Data, pMethod)->IsStructureType)
+					{
+						pCompiledCode = JIT_Emit_LoadDestinationAddress(pCompiledCode, pMethod, pDestination->Data.Field.FieldSource, pRegister3, pRegister2, pRegister1);
+					}
+					else
+					{
+						pCompiledCode = JIT_Emit_Load(pCompiledCode, pMethod, pDestination->Data.Field.FieldSource, pRegister3, pRegister2, pRegister1, FALSE, 0, NULL);
+					}
 					Define_Move_To_Destination(X86_EBP, pMethod->Parameters[pSource->Data.Parameter.ParameterIndex]->Offset, pRegister3, field->Offset, pRegister2, TRUE, FALSE);
 					break;
 				}
