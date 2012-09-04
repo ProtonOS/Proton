@@ -25,6 +25,9 @@ const IntrinsicSubstitution IntrinsicSubstitutionTable[] =
 
 	{	"System.Runtime.CompilerServices",		"RuntimeHelpers",		"get_OffsetToStringData",		IntrinsicCallType___System_Runtime_CompilerServices___RuntimeHelpers___get_OffsetToStringData },
 
+	{	"Proton.Core",							"Interop",				"AddressAsObject",				IntrinsicCallType___Proton___Core___Interop___AddressAsObject },
+	{	NULL,									NULL,					"ObjectAsAddress",				IntrinsicCallType___Proton___Core___Interop___ObjectAsAddress },
+
 	{	NULL,									NULL,					NULL,							IntrinsicCallType___NULL }
 };
 
@@ -147,6 +150,18 @@ void IROptimizer_IntrinsicSubstitution(IRMethod* pMethod)
 							instruction->Opcode = IROpcode_Move;
 							instruction->Source1.Type = SourceType_ConstantI4;
 							instruction->Source1.Data.ConstantI4.Value = 0;
+							instruction->Arg1 = NULL;
+							break;
+						}
+						case IntrinsicCallType___Proton___Core___Interop___AddressAsObject:
+						case IntrinsicCallType___Proton___Core___Interop___ObjectAsAddress:
+						{
+							instruction->Opcode = IROpcode_Move;
+							instruction->Source1 = instruction->SourceArray[0];
+
+							free(instruction->SourceArray);
+							instruction->SourceArray = NULL;
+							instruction->SourceArrayLength = 0;
 							instruction->Arg1 = NULL;
 							break;
 						}

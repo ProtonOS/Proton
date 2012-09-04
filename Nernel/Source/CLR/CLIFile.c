@@ -745,14 +745,11 @@ void CLIFile_Link(CLIFile* pFile)
                 }
             }
         }
-        if (pFile->TypeDefinitions[index].MethodDefinitionListCount > 0)
+        //printf("TypeDefinition[%u]: %s.%s, %u methods\n", (unsigned int)index, pFile->TypeDefinitions[index].Namespace, pFile->TypeDefinitions[index].Name, (unsigned int)pFile->TypeDefinitions[index].MethodDefinitionListCount);
+        for (uint32_t searchIndex = 0; searchIndex < pFile->TypeDefinitions[index].MethodDefinitionListCount; ++searchIndex)
         {
-            //printf("TypeDefinition[%u]: %s.%s, %u methods\n", (unsigned int)index, pFile->TypeDefinitions[index].Namespace, pFile->TypeDefinitions[index].Name, (unsigned int)pFile->TypeDefinitions[index].MethodDefinitionListCount);
-            for (uint32_t searchIndex = 0; searchIndex < pFile->TypeDefinitions[index].MethodDefinitionListCount; ++searchIndex)
-            {
-                //printf("    %s\n", pFile->TypeDefinitions[index].MethodDefinitionList[searchIndex].Name);
-                pFile->TypeDefinitions[index].MethodDefinitionList[searchIndex].TypeDefinition = &pFile->TypeDefinitions[index];
-            }
+            //printf("    %s\n", pFile->TypeDefinitions[index].MethodDefinitionList[searchIndex].Name);
+            pFile->TypeDefinitions[index].MethodDefinitionList[searchIndex].TypeDefinition = &pFile->TypeDefinitions[index];
         }
 		//printf("Linking Fields for %s.%s, %u\n", pFile->TypeDefinitions[index].Namespace, pFile->TypeDefinitions[index].Name, pFile->TypeDefinitions[index].FieldListCount);
 		for (uint32_t index2 = 0; index2 < pFile->TypeDefinitions[index].FieldListCount; ++index2)

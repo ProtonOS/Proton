@@ -14,6 +14,8 @@ typedef enum IntrinsicCallType
 	IntrinsicCallType___System___Environment___get_Platform,
 	IntrinsicCallType___System___Environment___get_ProcessorCount,
 	IntrinsicCallType___System___Environment___GetPageSize,
+	IntrinsicCallType___Proton___Core___Interop___AddressAsObject,
+	IntrinsicCallType___Proton___Core___Interop___ObjectAsAddress,
 } IntrinsicCallType;
 
 void IROptimizer_IntrinsicSubstitution(IRMethod* pMethod);

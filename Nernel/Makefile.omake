@@ -77,6 +77,7 @@
 	Source/CLR/MetadataStructures.c
 	Source/CLR/SyntheticStack.c
 	Source/CLR/InternalCalls/Mono.Interop.ComInteropProxy.c
+	Source/CLR/InternalCalls/Proton.Core.Interop.c
 	Source/CLR/InternalCalls/Proton.IO.PortIO.c
 	Source/CLR/InternalCalls/System.ArgIterator.c
 	Source/CLR/InternalCalls/System.Array.c
@@ -144,6 +145,7 @@
 		module /gac/corlib.dll
 		module /gac/mscorlib.dll
 		module /gac/proton.plugs.dll
+		module /gac/proton.core.dll
 	}
 
 	common TOOL(AS -o ) : ASM_FILES

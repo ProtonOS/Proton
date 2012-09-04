@@ -1,5 +1,6 @@
 #include <CLR/InternalCalls.h>
 #include <CLR/InternalCalls/Mono.Interop.ComInteropProxy.h>
+#include <CLR/InternalCalls/Proton.Core.Interop.h>
 #include <CLR/InternalCalls/Proton.IO.PortIO.h>
 #include <CLR/InternalCalls/System.ArgIterator.h>
 #include <CLR/InternalCalls/System.Array.h>
@@ -46,6 +47,8 @@ const InternalCall InternalCallTable[] =
 	{	"Mono.Interop",							"ComInteropProxy",		"AddProxy",							SignatureElementType_Void,					2,	{ SignatureElementType_IPointer, SignatureElementType_Class }, &Mono_Interop_ComInteropProxy_AddProxy },
 	{	NULL,									NULL,					"FindProxy",						SignatureElementType_Class,					1,	{ SignatureElementType_IPointer }, &Mono_Interop_ComInteropProxy_FindProxy },
 
+	{	"Proton.Core",							"Interop",				"AddressAsObject",					SignatureElementType_Object,				1,	{ SignatureElementType_IPointer }, &Proton_Core_Interop_AddressAsObject },
+	{	NULL,									NULL,					"ObjectAsAddress",					SignatureElementType_IPointer,				1,	{ SignatureElementType_Object }, &Proton_Core_Interop_ObjectAsAddress },
 
 	{	"Proton.IO",							"PortIO",				"InByte",							SignatureElementType_U1,					1,	{ SignatureElementType_U4 }, &Proton_IO_PortIO_InByte },
 	{	NULL,									NULL,					"InUShort",							SignatureElementType_U2,					1,	{ SignatureElementType_U4 }, &Proton_IO_PortIO_InUShort },

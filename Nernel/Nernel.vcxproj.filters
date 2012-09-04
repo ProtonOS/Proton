@@ -192,6 +192,9 @@
     <ClCompile Include="Source\CLR\IRMethodDumper.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\CLR\InternalCalls\Proton.Core.Interop.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\System\Multiboot.h">
@@ -405,6 +408,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\CLR\IRMethodDumper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\CLR\InternalCalls\Proton.Core.Interop.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
