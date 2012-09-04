@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Proton.Core;
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
@@ -40,11 +41,18 @@ namespace Mernel
 
         private unsafe static void Main()
         {
-            Startup();
+
+            Dictionary<string, string> test = new Dictionary<string, string>();
+            test.Add("A", "valA");
+            test.Add("B", "valB");
+            test.Add("C", "valC");
+            Kernel.Write(test["C"]);
+            //Startup();
         }
 
         private static void Startup()
         {
+            VirtualFileSystem.Startup();
         }
     }
 

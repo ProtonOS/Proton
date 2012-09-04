@@ -38,6 +38,8 @@ namespace Proton.Core
 
         public string Root { get { return mRoot; } internal set { mRoot = value; } }
 
+        internal abstract string DriveFormat { get; }
+        internal abstract DriveType DriveType { get; }
         internal abstract bool CreateDirectory(string pPath, out IOError pError);
         internal abstract bool RemoveDirectory(string pPath, out IOError pError);
     }
