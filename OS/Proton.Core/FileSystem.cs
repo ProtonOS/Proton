@@ -40,7 +40,11 @@ namespace Proton.Core
 
         internal abstract string DriveFormat { get; }
         internal abstract DriveType DriveType { get; }
+        internal abstract ulong TotalSpace { get; }
+        internal abstract ulong FreeSpace { get; }
         internal abstract bool CreateDirectory(string pPath, out IOError pError);
         internal abstract bool RemoveDirectory(string pPath, out IOError pError);
+        internal abstract string[] GetEntries(string pPath, string pPathWithPattern, FileAttributes pAttributes, FileAttributes pMask, out IOError pError);
+        internal abstract bool MoveFile(string pSourcePath, FileSystem pDestinationFS, string pDestinationPath, out IOError pError);
     }
 }
