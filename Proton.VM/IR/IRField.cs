@@ -47,7 +47,7 @@ namespace Proton.VM.IR
         /// <param name="typeParams">The type parameters to use to resolve with.</param>
         public void Substitute()
         {
-            Type.Resolve(ref mType, ParentType.GenericParameters, GenericParameterCollection.Empty);
+            Type.Resolve(ref mType, ParentType.GenericParameters, IRGenericParameterCollection.Empty);
         }
 
         /// <summary>

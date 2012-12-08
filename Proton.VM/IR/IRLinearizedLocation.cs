@@ -115,7 +115,7 @@ namespace Proton.VM.IR
 
         public IRLinearizedLocation Clone() { return new IRLinearizedLocation(this); }
 
-        public void Resolve(GenericParameterCollection typeParams, GenericParameterCollection methodParams)
+        public void Resolve(IRGenericParameterCollection typeParams, IRGenericParameterCollection methodParams)
         {
         }
     }

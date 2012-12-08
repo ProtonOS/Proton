@@ -7,12 +7,12 @@ namespace Proton.VM.IR
     /// <summary>
     /// Represents a collection of type parameters to a generic type.
     /// </summary>
-    public sealed class GenericParameterCollection : IEnumerable<IRType>
+    public sealed class IRGenericParameterCollection : IEnumerable<IRType>
     {
         /// <summary>
         /// Represents an empty generic parameter collection.
         /// </summary>
-        public static readonly GenericParameterCollection Empty = new GenericParameterCollection();
+        public static readonly IRGenericParameterCollection Empty = new IRGenericParameterCollection();
 
         private const int InnerListInitialCapacity = 32;
 
@@ -44,10 +44,10 @@ namespace Proton.VM.IR
         }
 
 
-        public GenericParameterCollection() { }
-        public GenericParameterCollection(params IRType[] existingParams) : this((IEnumerable<IRType>)existingParams) { }
+        public IRGenericParameterCollection() { }
+        public IRGenericParameterCollection(params IRType[] existingParams) : this((IEnumerable<IRType>)existingParams) { }
 
-        public GenericParameterCollection(IEnumerable<IRType> existingParams)
+        public IRGenericParameterCollection(IEnumerable<IRType> existingParams)
         {
             foreach (IRType t in existingParams)
             {
@@ -59,9 +59,9 @@ namespace Proton.VM.IR
         /// Create a shallow copy of this collection.
         /// </summary>
         /// <returns>The new collection.</returns>
-        public GenericParameterCollection Clone()
+        public IRGenericParameterCollection Clone()
         {
-            return new GenericParameterCollection(this);
+            return new IRGenericParameterCollection(this);
         }
 
         /// <summary>
@@ -147,7 +147,7 @@ namespace Proton.VM.IR
 			return new List<IRType>(mParams);
 		}
 
-        public void Substitute(GenericParameterCollection typeParams, GenericParameterCollection methodParams)
+        public void Substitute(IRGenericParameterCollection typeParams, IRGenericParameterCollection methodParams)
         {
             for (int i = 0; i < mParams.Count; i++)
             {
@@ -189,17 +189,17 @@ namespace Proton.VM.IR
 
         public override bool Equals(object obj)
         {
-            if (!(obj is GenericParameterCollection))
+            if (!(obj is IRGenericParameterCollection))
                 return false;
-            return ((GenericParameterCollection)obj).GetHashCode() == this.GetHashCode();
+            return ((IRGenericParameterCollection)obj).GetHashCode() == this.GetHashCode();
         }
 
-        public static bool operator ==(GenericParameterCollection a, GenericParameterCollection b)
+        public static bool operator ==(IRGenericParameterCollection a, IRGenericParameterCollection b)
         {
             return a.GetHashCode() == b.GetHashCode();
         }
 
-        public static bool operator !=(GenericParameterCollection a, GenericParameterCollection b)
+        public static bool operator !=(IRGenericParameterCollection a, IRGenericParameterCollection b)
         {
             return a.GetHashCode() != b.GetHashCode();
         }
