@@ -1,0 +1,115 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{8708283B-D74F-49C4-B9AF-948F4AC73FBA}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Proton.Metadata</RootNamespace>
+    <AssemblyName>Proton.Metadata</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CLIFile.cs" />
+    <Compile Include="HeapOffsetSizes.cs" />
+    <Compile Include="MetadataTables.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="CallingConvention.cs" />
+    <Compile Include="Signatures\CustomAttribSig.cs" />
+    <Compile Include="Signatures\FieldSig.cs" />
+    <Compile Include="Signatures\LocalVarSig.cs" />
+    <Compile Include="Signatures\MethodSig.cs" />
+    <Compile Include="Signatures\MethodSpecSig.cs" />
+    <Compile Include="Signatures\PropertySig.cs" />
+    <Compile Include="Signatures\SigArg.cs" />
+    <Compile Include="Signatures\SigArgType.cs" />
+    <Compile Include="Signatures\SigArrayShape.cs" />
+    <Compile Include="Signatures\SigCustomMod.cs" />
+    <Compile Include="Signatures\SigElem.cs" />
+    <Compile Include="Signatures\SigElementType.cs" />
+    <Compile Include="Signatures\SigLocalVar.cs" />
+    <Compile Include="Signatures\SigParam.cs" />
+    <Compile Include="Signatures\SigRetType.cs" />
+    <Compile Include="Signatures\SigType.cs" />
+    <Compile Include="Tables\AssemblyData.cs" />
+    <Compile Include="Tables\AssemblyOSData.cs" />
+    <Compile Include="Tables\AssemblyProcessorData.cs" />
+    <Compile Include="Tables\AssemblyRefData.cs" />
+    <Compile Include="Tables\AssemblyRefOSData.cs" />
+    <Compile Include="Tables\AssemblyRefProcessorData.cs" />
+    <Compile Include="TableAttributes.cs" />
+    <Compile Include="Tables\ClassLayoutData.cs" />
+    <Compile Include="Tables\ConstantData.cs" />
+    <Compile Include="Tables\CustomAttributeData.cs" />
+    <Compile Include="Tables\DeclSecurityData.cs" />
+    <Compile Include="Tables\EventData.cs" />
+    <Compile Include="Tables\EventMapData.cs" />
+    <Compile Include="Tables\ExportedTypeData.cs" />
+    <Compile Include="Tables\FieldData.cs" />
+    <Compile Include="Tables\FieldLayoutData.cs" />
+    <Compile Include="Tables\FieldMarshalData.cs" />
+    <Compile Include="Tables\FieldRVAData.cs" />
+    <Compile Include="Tables\FileData.cs" />
+    <Compile Include="Tables\GenericParamConstraintData.cs" />
+    <Compile Include="Tables\GenericParamData.cs" />
+    <Compile Include="Tables\ImplMapData.cs" />
+    <Compile Include="Tables\InterfaceImplData.cs" />
+    <Compile Include="Tables\ManifestResourceData.cs" />
+    <Compile Include="Tables\MemberRefData.cs" />
+    <Compile Include="MetadataToken.cs" />
+    <Compile Include="Tables\MethodDefData.cs" />
+    <Compile Include="Tables\MethodImplData.cs" />
+    <Compile Include="Tables\MethodSemanticsData.cs" />
+    <Compile Include="Tables\MethodSpecData.cs" />
+    <Compile Include="Tables\ModuleData.cs" />
+    <Compile Include="Tables\ModuleRefData.cs" />
+    <Compile Include="Tables\NestedClassData.cs" />
+    <Compile Include="Tables\ParamData.cs" />
+    <Compile Include="Tables\PropertyData.cs" />
+    <Compile Include="Tables\PropertyMapData.cs" />
+    <Compile Include="Tables\StandAloneSigData.cs" />
+    <Compile Include="TableIndexes.cs" />
+    <Compile Include="Tables\TypeDefData.cs" />
+    <Compile Include="Tables\TypeRefData.cs" />
+    <Compile Include="Tables\TypeSpecData.cs" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
