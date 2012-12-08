@@ -121,7 +121,7 @@ namespace Proton.VM.IR
             }
         }
         public IRType GenericType = null;
-        public readonly IRGenericParameterCollection GenericParameters = new IRGenericParameterCollection();
+        public readonly IRGenericParameterList GenericParameters = new IRGenericParameterList();
         public IRType PointerType = null;
         public bool IsPointerType { get { return PointerType != null; } }
 
@@ -165,7 +165,7 @@ namespace Proton.VM.IR
         /// <param name="selfReference"></param>
         /// <param name="typeParams"></param>
         /// <param name="methodParams"></param>
-        public void Resolve(ref IRType selfReference, IRGenericParameterCollection typeParams, IRGenericParameterCollection methodParams)
+        public void Resolve(ref IRType selfReference, IRGenericParameterList typeParams, IRGenericParameterList methodParams)
         {
             if (!Resolved)
             {
@@ -214,7 +214,7 @@ namespace Proton.VM.IR
 				}
 				else
 				{
-					Substitute(IRGenericParameterCollection.Empty, IRGenericParameterCollection.Empty);
+					Substitute(IRGenericParameterList.Empty, IRGenericParameterList.Empty);
 				}
             }
         }
@@ -224,7 +224,7 @@ namespace Proton.VM.IR
         /// </summary>
         /// <param name="typeParams"></param>
         /// <param name="methodParams"></param>
-        public void Substitute(IRGenericParameterCollection typeParams, IRGenericParameterCollection methodParams)
+        public void Substitute(IRGenericParameterList typeParams, IRGenericParameterList methodParams)
         {
             this.GenericParameters.Substitute(typeParams, methodParams);
 
@@ -232,10 +232,10 @@ namespace Proton.VM.IR
 				return;
 
 			if (this.BaseType != null)
-				this.BaseType.Resolve(ref this.BaseType, this.GenericParameters, IRGenericParameterCollection.Empty);
+				this.BaseType.Resolve(ref this.BaseType, this.GenericParameters, IRGenericParameterList.Empty);
 
             this.Fields.ForEach(f => f.Substitute());
-			this.Methods.ForEach(m => m.Substitute(IRGenericParameterCollection.Empty));
+			this.Methods.ForEach(m => m.Substitute(IRGenericParameterList.Empty));
         }
 
 

@@ -55,12 +55,12 @@ namespace Proton.VM.IR
 				}
 				else
 				{
-					Substitute(IRGenericParameterCollection.Empty);
+					Substitute(IRGenericParameterList.Empty);
 				}
 			}
 		}
 
-        public void Substitute(IRGenericParameterCollection methodParams)
+        public void Substitute(IRGenericParameterList methodParams)
         {
 			if (ReturnType != null)
 				ReturnType.Resolve(ref ReturnType, ParentType.GenericParameters, methodParams);
@@ -99,7 +99,7 @@ namespace Proton.VM.IR
             get { return GenericParameters.Count > 0; }
         }
         public IRMethod GenericMethod = null;
-        public readonly IRGenericParameterCollection GenericParameters = new IRGenericParameterCollection();
+        public readonly IRGenericParameterList GenericParameters = new IRGenericParameterList();
 
         // Temporary
         public ushort MaximumStackDepth = 0;

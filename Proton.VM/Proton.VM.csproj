@@ -35,7 +35,7 @@
     <Compile Include="IL\ILExtendedOpcode.cs" />
     <Compile Include="IL\ILOpcode.cs" />
     <Compile Include="IL\ILReader.cs" />
-    <Compile Include="IR\IRGenericParameterCollection.cs" />
+    <Compile Include="IR\IRGenericParameterList.cs" />
     <Compile Include="IR\Instructions\IRAddInstruction.cs" />
     <Compile Include="IR\Instructions\IRAndInstruction.cs" />
     <Compile Include="IR\Instructions\IRBoxInstruction.cs" />

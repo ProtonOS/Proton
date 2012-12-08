@@ -5,21 +5,21 @@ using System.Text;
 namespace Proton.VM.IR
 {
     /// <summary>
-    /// Represents a collection of type parameters to a generic type.
+    /// Represents a list of type parameters to a generic type.
     /// </summary>
-    public sealed class IRGenericParameterCollection : IEnumerable<IRType>
+    public sealed class IRGenericParameterList : IEnumerable<IRType>
     {
         /// <summary>
-        /// Represents an empty generic parameter collection.
+        /// Represents an empty generic parameter list.
         /// </summary>
-        public static readonly IRGenericParameterCollection Empty = new IRGenericParameterCollection();
+        public static readonly IRGenericParameterList Empty = new IRGenericParameterList();
 
         private const int InnerListInitialCapacity = 32;
 
         private readonly List<IRType> mParams = new List<IRType>(InnerListInitialCapacity);
 
         /// <summary>
-        /// The number of parameters in this collection.
+        /// The number of parameters in this list.
         /// </summary>
         public int Count
         {
@@ -29,7 +29,7 @@ namespace Proton.VM.IR
         private bool? mResolvedCache;
         /// <summary>
         /// True if all the generic parameters
-        /// in this collection are resolved.
+        /// in this list are resolved.
         /// </summary>
         public bool Resolved
         {
@@ -44,10 +44,10 @@ namespace Proton.VM.IR
         }
 
 
-        public IRGenericParameterCollection() { }
-        public IRGenericParameterCollection(params IRType[] existingParams) : this((IEnumerable<IRType>)existingParams) { }
+        public IRGenericParameterList() { }
+        public IRGenericParameterList(params IRType[] existingParams) : this((IEnumerable<IRType>)existingParams) { }
 
-        public IRGenericParameterCollection(IEnumerable<IRType> existingParams)
+        public IRGenericParameterList(IEnumerable<IRType> existingParams)
         {
             foreach (IRType t in existingParams)
             {
@@ -56,16 +56,16 @@ namespace Proton.VM.IR
         }
 
         /// <summary>
-        /// Create a shallow copy of this collection.
+        /// Create a shallow copy of this list.
         /// </summary>
-        /// <returns>The new collection.</returns>
-        public IRGenericParameterCollection Clone()
+        /// <returns>The new list.</returns>
+        public IRGenericParameterList Clone()
         {
-            return new IRGenericParameterCollection(this);
+            return new IRGenericParameterList(this);
         }
 
         /// <summary>
-        /// Add a Type to this collection of generic parameters.
+        /// Add a Type to this list of generic parameters.
         /// </summary>
         /// <param name="param">The type to add.</param>
         public void Add(IRType param)
@@ -80,7 +80,7 @@ namespace Proton.VM.IR
         }
 
         /// <summary>
-        /// Add a set of Types to this collection of generic parameters.
+        /// Add a set of Types to this list of generic parameters.
         /// </summary>
         /// <param name="paramsToAdd">The types to add.</param>
         public void AddRange(IEnumerable<IRType> paramsToAdd)
@@ -104,7 +104,7 @@ namespace Proton.VM.IR
         }
 
         /// <summary>
-        /// Add a set of Types to this collection of generic parameters.
+        /// Add a set of Types to this list of generic parameters.
         /// </summary>
         /// <param name="paramsToAdd">The types to add.</param>
         public void AddRange(params IRType[] paramsToAdd)
@@ -147,7 +147,7 @@ namespace Proton.VM.IR
 			return new List<IRType>(mParams);
 		}
 
-        public void Substitute(IRGenericParameterCollection typeParams, IRGenericParameterCollection methodParams)
+        public void Substitute(IRGenericParameterList typeParams, IRGenericParameterList methodParams)
         {
             for (int i = 0; i < mParams.Count; i++)
             {
@@ -189,17 +189,17 @@ namespace Proton.VM.IR
 
         public override bool Equals(object obj)
         {
-            if (!(obj is IRGenericParameterCollection))
+            if (!(obj is IRGenericParameterList))
                 return false;
-            return ((IRGenericParameterCollection)obj).GetHashCode() == this.GetHashCode();
+            return ((IRGenericParameterList)obj).GetHashCode() == this.GetHashCode();
         }
 
-        public static bool operator ==(IRGenericParameterCollection a, IRGenericParameterCollection b)
+        public static bool operator ==(IRGenericParameterList a, IRGenericParameterList b)
         {
             return a.GetHashCode() == b.GetHashCode();
         }
 
-        public static bool operator !=(IRGenericParameterCollection a, IRGenericParameterCollection b)
+        public static bool operator !=(IRGenericParameterList a, IRGenericParameterList b)
         {
             return a.GetHashCode() != b.GetHashCode();
         }

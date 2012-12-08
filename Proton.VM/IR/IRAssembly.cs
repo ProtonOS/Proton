@@ -160,7 +160,7 @@ namespace Proton.VM.IR
 		{
 			Console.WriteLine("================================================== Stage 4: {0} ==================================================", File.ReferenceName);
             // Generic resolution and type updating
-            Types.ForEach(t => t.Substitute(t.GenericParameters, IRGenericParameterCollection.Empty));
+            Types.ForEach(t => t.Substitute(t.GenericParameters, IRGenericParameterList.Empty));
         }
 
         internal void LoadStage5()
