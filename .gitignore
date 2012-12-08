@@ -1,6 +1,10 @@
+/Proton.Compiler/bin
+/Proton.Compiler/obj
 /Proton.KOR/bin
 /Proton.KOR/obj
 /Proton.Metadata/bin
 /Proton.Metadata/obj
+/Proton.Nernel/bin
+/Proton.Nernel/obj
 /Proton.suo
 /SDK
