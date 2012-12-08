@@ -115,6 +115,7 @@ namespace Proton.Metadata
 
 		public CLIFile(string pReferenceName, byte[] pData)
 		{
+			ReferenceName = pReferenceName;
 			mData = pData;
 
 			DOS.Read(this);

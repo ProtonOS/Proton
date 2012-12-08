@@ -55,6 +55,10 @@
       <Project>{8708283B-D74F-49C4-B9AF-948F4AC73FBA}</Project>
       <Name>Proton.Metadata</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Proton.VM\Proton.VM.csproj">
+      <Project>{7F91CE6C-1499-4DB3-85ED-0BE1BB03F616}</Project>
+      <Name>Proton.VM</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

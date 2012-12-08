@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Proton.Compiler", "Proton.C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Proton.Nernel", "Proton.Nernel\Proton.Nernel.csproj", "{F5F0D401-8550-461A-B341-2EE11F82D9D5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Proton.VM", "Proton.VM\Proton.VM.csproj", "{7F91CE6C-1499-4DB3-85ED-0BE1BB03F616}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,6 +65,16 @@ Global
 		{F5F0D401-8550-461A-B341-2EE11F82D9D5}.Release|Mixed Platforms.Build.0 = Release|x86
 		{F5F0D401-8550-461A-B341-2EE11F82D9D5}.Release|x86.ActiveCfg = Release|x86
 		{F5F0D401-8550-461A-B341-2EE11F82D9D5}.Release|x86.Build.0 = Release|x86
+		{7F91CE6C-1499-4DB3-85ED-0BE1BB03F616}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F91CE6C-1499-4DB3-85ED-0BE1BB03F616}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F91CE6C-1499-4DB3-85ED-0BE1BB03F616}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{7F91CE6C-1499-4DB3-85ED-0BE1BB03F616}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{7F91CE6C-1499-4DB3-85ED-0BE1BB03F616}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{7F91CE6C-1499-4DB3-85ED-0BE1BB03F616}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7F91CE6C-1499-4DB3-85ED-0BE1BB03F616}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7F91CE6C-1499-4DB3-85ED-0BE1BB03F616}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{7F91CE6C-1499-4DB3-85ED-0BE1BB03F616}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{7F91CE6C-1499-4DB3-85ED-0BE1BB03F616}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
