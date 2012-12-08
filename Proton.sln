@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Proton.Nernel", "Proton.Ner
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Proton.VM", "Proton.VM\Proton.VM.csproj", "{7F91CE6C-1499-4DB3-85ED-0BE1BB03F616}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Proton.SDKInstaller", "Proton.SDKInstaller\Proton.SDKInstaller.csproj", "{FF95B823-49CA-40F0-A2E0-90E9B01D422D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -75,6 +77,16 @@ Global
 		{7F91CE6C-1499-4DB3-85ED-0BE1BB03F616}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{7F91CE6C-1499-4DB3-85ED-0BE1BB03F616}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{7F91CE6C-1499-4DB3-85ED-0BE1BB03F616}.Release|x86.ActiveCfg = Release|Any CPU
+		{FF95B823-49CA-40F0-A2E0-90E9B01D422D}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{FF95B823-49CA-40F0-A2E0-90E9B01D422D}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{FF95B823-49CA-40F0-A2E0-90E9B01D422D}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{FF95B823-49CA-40F0-A2E0-90E9B01D422D}.Debug|x86.ActiveCfg = Debug|x86
+		{FF95B823-49CA-40F0-A2E0-90E9B01D422D}.Debug|x86.Build.0 = Debug|x86
+		{FF95B823-49CA-40F0-A2E0-90E9B01D422D}.Release|Any CPU.ActiveCfg = Release|x86
+		{FF95B823-49CA-40F0-A2E0-90E9B01D422D}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{FF95B823-49CA-40F0-A2E0-90E9B01D422D}.Release|Mixed Platforms.Build.0 = Release|x86
+		{FF95B823-49CA-40F0-A2E0-90E9B01D422D}.Release|x86.ActiveCfg = Release|x86
+		{FF95B823-49CA-40F0-A2E0-90E9B01D422D}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

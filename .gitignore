@@ -6,6 +6,8 @@
 /Proton.Metadata/obj
 /Proton.Nernel/bin
 /Proton.Nernel/obj
+/Proton.SDKInstaller/bin
+/Proton.SDKInstaller/obj
 /Proton.VM/bin
 /Proton.VM/obj
 /SDK
