@@ -1,11 +1,9 @@
 ﻿using Proton.Metadata.Tables;
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 
 namespace Proton.Metadata
 {
-    [StructLayout(LayoutKind.Explicit)]
     public struct HasConstantIndex
     {
         public enum HasConstantType : int
@@ -18,13 +16,9 @@ namespace Proton.Metadata
         public const byte HasConstantTypeMask = ((1 << HasConstantTypeBits) - 1);
         public const ushort HasConstantTypeMax16BitRows = (0xFFFF >> HasConstantTypeBits);
 
-        [FieldOffset(0)]
         public HasConstantType Type;
-        [FieldOffset(4)]
         public ParamData Param;
-        [FieldOffset(4)]
         public FieldData Field;
-        [FieldOffset(4)]
         public PropertyData Property;
 
         public void LoadData(CLIFile pFile)
@@ -50,7 +44,6 @@ namespace Proton.Metadata
     }
 
 
-    [StructLayout(LayoutKind.Explicit)]
     public struct HasCustomAttributeIndex
     {
         public enum HasCustomAttributeType : int
@@ -82,51 +75,28 @@ namespace Proton.Metadata
         public const byte HasCustomAttributeTypeMask = ((1 << HasCustomAttributeTypeBits) - 1);
         public const ushort HasCustomAttributeTypeMax16BitRows = (0xFFFF >> HasCustomAttributeTypeBits);
 
-        [FieldOffset(0)]
         public HasCustomAttributeType Type;
-        [FieldOffset(4)]
         public MethodDefData MethodDef;
-        [FieldOffset(4)]
         public FieldData Field;
-        [FieldOffset(4)]
         public TypeRefData TypeRef;
-        [FieldOffset(4)]
         public TypeDefData TypeDef;
-        [FieldOffset(4)]
         public ParamData Param;
-        [FieldOffset(4)]
         public InterfaceImplData InterfaceImpl;
-        [FieldOffset(4)]
         public MemberRefData MemberRef;
-        [FieldOffset(4)]
         public ModuleData Module;
-        [FieldOffset(4)]
         public DeclSecurityData DeclSecurity;
-        [FieldOffset(4)]
         public PropertyData Property;
-        [FieldOffset(4)]
         public EventData Event;
-        [FieldOffset(4)]
         public StandAloneSigData StandAloneSig;
-        [FieldOffset(4)]
         public ModuleRefData ModuleRef;
-        [FieldOffset(4)]
         public TypeSpecData TypeSpec;
-        [FieldOffset(4)]
         public AssemblyData Assembly;
-        [FieldOffset(4)]
         public AssemblyRefData AssemblyRef;
-        [FieldOffset(4)]
         public FileData File;
-        [FieldOffset(4)]
         public ExportedTypeData ExportedType;
-        [FieldOffset(4)]
         public ManifestResourceData ManifestResource;
-        [FieldOffset(4)]
         public GenericParamData GenericParam;
-        [FieldOffset(4)]
         public GenericParamConstraintData GenericParamConstraint;
-        [FieldOffset(4)]
         public MethodSpecData MethodSpec;
 
         public void LoadData(CLIFile pFile)
@@ -190,7 +160,6 @@ namespace Proton.Metadata
     }
 
 
-    [StructLayout(LayoutKind.Explicit)]
     public struct CustomAttributeTypeIndex
     {
         public enum CustomAttributeTypeType : int
@@ -202,11 +171,8 @@ namespace Proton.Metadata
         public const byte CustomAttributeTypeTypeMask = ((1 << CustomAttributeTypeTypeBits) - 1);
         public const ushort CustomAttributeTypeTypeMax16BitRows = (0xFFFF >> CustomAttributeTypeTypeBits);
 
-        [FieldOffset(0)]
         public CustomAttributeTypeType Type;
-        [FieldOffset(4)]
         public MethodDefData MethodDef;
-        [FieldOffset(4)]
         public MemberRefData MemberRef;
 
         public void LoadData(CLIFile pFile)
@@ -230,7 +196,6 @@ namespace Proton.Metadata
     }
 
 
-    [StructLayout(LayoutKind.Explicit)]
     public struct HasDeclSecurityIndex
     {
         public enum HasDeclSecurityType : int
@@ -243,13 +208,9 @@ namespace Proton.Metadata
         public const byte HasDeclSecurityTypeMask = ((1 << HasDeclSecurityTypeBits) - 1);
         public const ushort HasDeclSecurityTypeMax16BitRows = (0xFFFF >> HasDeclSecurityTypeBits);
 
-        [FieldOffset(0)]
         public HasDeclSecurityType Type;
-        [FieldOffset(4)]
         public TypeDefData TypeDef;
-        [FieldOffset(4)]
         public MethodDefData MethodDef;
-        [FieldOffset(4)]
         public AssemblyData Assembly;
 
         public void LoadData(CLIFile pFile)
@@ -274,8 +235,8 @@ namespace Proton.Metadata
         }
     }
 
-    [StructLayout(LayoutKind.Explicit)]
-    public struct TypeDefRefOrSpecIndex
+
+	public struct TypeDefRefOrSpecIndex
     {
         public enum TypeDefRefOrSpecType : int
         {
@@ -287,13 +248,9 @@ namespace Proton.Metadata
         public const byte TypeDefRefOrSpecTypeMask = ((1 << TypeDefRefOrSpecTypeBits) - 1);
         public const ushort TypeDefRefOrSpecTypeMax16BitRows = (0xFFFF >> TypeDefRefOrSpecTypeBits);
 
-        [FieldOffset(0)]
         public TypeDefRefOrSpecType Type;
-        [FieldOffset(4)]
         public TypeDefData TypeDef;
-        [FieldOffset(4)]
         public TypeRefData TypeRef;
-        [FieldOffset(4)]
         public TypeSpecData TypeSpec;
 
         public void LoadData(CLIFile pFile)
@@ -319,7 +276,6 @@ namespace Proton.Metadata
     }
 
 
-    [StructLayout(LayoutKind.Explicit)]
     public struct ImplementationIndex
     {
         public enum ImplementationType : int
@@ -332,13 +288,9 @@ namespace Proton.Metadata
         public const byte ImplementationTypeMask = ((1 << ImplementationTypeBits) - 1);
         public const ushort ImplementationTypeMax16BitRows = (0xFFFF >> ImplementationTypeBits);
 
-        [FieldOffset(0)]
         public ImplementationType Type;
-        [FieldOffset(4)]
         public FileData File;
-        [FieldOffset(4)]
         public AssemblyRefData AssemblyRef;
-        [FieldOffset(4)]
         public ExportedTypeData ExportedType;
 
         public void LoadData(CLIFile pFile)
@@ -364,7 +316,6 @@ namespace Proton.Metadata
     }
 
 
-    [StructLayout(LayoutKind.Explicit)]
     public struct HasFieldMarshalIndex
     {
         public enum HasFieldMarshalType : int
@@ -376,11 +327,8 @@ namespace Proton.Metadata
         public const byte HasFieldMarshalTypeMask = ((1 << HasFieldMarshalTypeBits) - 1);
         public const ushort HasFieldMarshalTypeMax16BitRows = (0xFFFF >> HasFieldMarshalTypeBits);
 
-        [FieldOffset(0)]
         public HasFieldMarshalType Type;
-        [FieldOffset(4)]
         public FieldData Field;
-        [FieldOffset(4)]
         public ParamData Param;
 
         public void LoadData(CLIFile pFile)
@@ -404,7 +352,6 @@ namespace Proton.Metadata
     }
 
 
-    [StructLayout(LayoutKind.Explicit)]
     public struct TypeOrMethodDefIndex
     {
         public enum TypeOrMethodDefType : int
@@ -416,11 +363,8 @@ namespace Proton.Metadata
         public const byte TypeOrMethodDefTypeMask = ((1 << TypeOrMethodDefTypeBits) - 1);
         public const ushort TypeOrMethodDefTypeMax16BitRows = (0xFFFF >> TypeOrMethodDefTypeBits);
 
-        [FieldOffset(0)]
         public TypeOrMethodDefType Type;
-        [FieldOffset(4)]
         public TypeDefData TypeDef;
-        [FieldOffset(4)]
         public MethodDefData MethodDef;
 
         public void LoadData(CLIFile pFile)
@@ -444,7 +388,6 @@ namespace Proton.Metadata
     }
 
 
-    [StructLayout(LayoutKind.Explicit)]
     public struct MemberForwardedIndex
     {
         public enum MemberForwardedType : int
@@ -456,11 +399,8 @@ namespace Proton.Metadata
         public const byte MemberForwardedTypeMask = ((1 << MemberForwardedTypeBits) - 1);
         public const ushort MemberForwardedTypeMax16BitRows = (0xFFFF >> MemberForwardedTypeBits);
 
-        [FieldOffset(0)]
         public MemberForwardedType Type;
-        [FieldOffset(4)]
         public FieldData Field;
-        [FieldOffset(4)]
         public MethodDefData MethodDef;
 
         public void LoadData(CLIFile pFile)
@@ -484,7 +424,6 @@ namespace Proton.Metadata
     }
 
 
-    [StructLayout(LayoutKind.Explicit)]
     public struct MemberRefParentIndex
     {
         public enum MemberRefParentType : int
@@ -499,17 +438,11 @@ namespace Proton.Metadata
         public const byte MemberRefParentTypeMask = ((1 << MemberRefParentTypeBits) - 1);
         public const ushort MemberRefParentTypeMax16BitRows = (0xFFFF >> MemberRefParentTypeBits);
 
-        [FieldOffset(0)]
         public MemberRefParentType Type;
-        [FieldOffset(4)]
         public TypeDefData TypeDef;
-        [FieldOffset(4)]
         public TypeRefData TypeRef;
-        [FieldOffset(4)]
         public ModuleRefData ModuleRef;
-        [FieldOffset(4)]
         public MethodDefData MethodDef;
-        [FieldOffset(4)]
         public TypeSpecData TypeSpec;
 
         public void LoadData(CLIFile pFile)
@@ -539,7 +472,6 @@ namespace Proton.Metadata
     }
 
 
-    [StructLayout(LayoutKind.Explicit)]
     public struct MethodDefOrRefIndex
     {
         public enum MethodDefOrRefType : int
@@ -551,11 +483,8 @@ namespace Proton.Metadata
         public const byte MethodDefOrRefTypeMask = ((1 << MethodDefOrRefTypeBits) - 1);
         public const ushort MethodDefOrRefTypeMax16BitRows = (0xFFFF >> MethodDefOrRefTypeBits);
 
-        [FieldOffset(0)]
         public MethodDefOrRefType Type;
-        [FieldOffset(4)]
         public MethodDefData MethodDef;
-        [FieldOffset(4)]
         public MemberRefData MemberRef;
 
         public void LoadData(CLIFile pFile)
@@ -579,7 +508,6 @@ namespace Proton.Metadata
     }
 
 
-    [StructLayout(LayoutKind.Explicit)]
     public struct HasSemanticsIndex
     {
         public enum HasSemanticsType : int
@@ -591,11 +519,8 @@ namespace Proton.Metadata
         public const byte HasSemanticsTypeMask = ((1 << HasSemanticsTypeBits) - 1);
         public const ushort HasSemanticsTypeMax16BitRows = (0xFFFF >> HasSemanticsTypeBits);
 
-        [FieldOffset(0)]
         public HasSemanticsType Type;
-        [FieldOffset(4)]
         public EventData Event;
-        [FieldOffset(4)]
         public PropertyData Property;
 
         public void LoadData(CLIFile pFile)
@@ -619,7 +544,6 @@ namespace Proton.Metadata
     }
 
 
-    [StructLayout(LayoutKind.Explicit)]
     public struct ResolutionScopeIndex
     {
         public enum ResolutionScopeType : int
@@ -633,15 +557,10 @@ namespace Proton.Metadata
         public const byte ResolutionScopeTypeMask = ((1 << ResolutionScopeTypeBits) - 1);
         public const ushort ResolutionScopeTypeMax16BitRows = (0xFFFF >> ResolutionScopeTypeBits);
 
-        [FieldOffset(0)]
         public ResolutionScopeType Type;
-        [FieldOffset(4)]
         public ModuleData Module;
-        [FieldOffset(4)]
         public ModuleRefData ModuleRef;
-        [FieldOffset(4)]
         public AssemblyRefData AssemblyRef;
-        [FieldOffset(4)]
         public TypeRefData TypeRef;
 
         public bool IsNull
