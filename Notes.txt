@@ -1,0 +1,62 @@
+- Started, = Incomplete, * Completed
+
+* Create IRType table, no type linking
+* Create IRFields, link to owner IRType
+* Create IRInterfaceImplementations, link to owner IRType
+* Create IRMethods, link to owner IRType
+* Create IRParameters, link to owner IRMethod
+* Create IRLocals, link to owner IRMethod
+* Link nested IRTypes to enclosing IRType
+* Cache CORLibrary common IRTypes
+
+* Create Pointer dynamic IRTypes
+* Create Array dynamic IRTypes
+* Create Generic dynamic IRTypes, using generic placeholders
+* Resolver for TypeDef to IRType
+* Resolver for TypeRef to IRType
+* Resolver for TypeSpec to IRType, using generic placeholders
+* Resolver for TypeDefRefOrSpecIndex to IRType, using generic placeholders
+* Resolver for MetadataToken to IRType, using generic placeholders
+* Resolver for SigType to IRType, using generic placeholders
+* Resolver for SigRetType to IRType, using generic placeholders
+* Resolver for SigParam to IRType, using generic placeholders
+* Link IRType to base IRType
+* Link IRField type
+* Link IRInterfaceImplementation type
+* Link IRMethod return type
+* Link IRMethod parameter types
+* Link IRLocal types
+
+* Decomposition of ILInstructions into IRInstructions
+
+Create IRGenericInstantiations for IRTypes
+Create IRGenericInstantiations for IRField types
+Create IRGenericInstantiations for IRMethod return and parameter types
+Create IRGenericInstantiations for IRLocal types
+
+* Build control flow graph
+* Fix linearization of values remaining from inside branches, IE ternary operations, and if (x == null || y == null) scenario (source coming from 2 branches)
+* Linearization of IRInstructions
+Linearization of Exception Handlers, and Finally Handlers
+* Transform Load/Store to Move IRInstructions
+Transform instructions that behave like other instructions under certain conditions, IE unbox.any to castclass when dealing with a reference type
+
+* Complete instruction cloning
+Complete instruction resolving of types, methods, and fields held by the instruction
+Complete linearized source/destination cloning and resolving
+
+Generate mandatory internal calls, IE object conversion to and from pointer for GC
+Resolve internal calls, limiting internal calls for mandatory calls only means resolution on name without signatures might be enough for AOT side only
+
+Layout IRField type sizes for IRTypes, including Array types, and resolved generic instantiated types
+Layout IRLocal type sizes for IRMethods, including resolved generic instantiated methods
+Resolve interface implementation methods, including resolved generic instantiated methods
+Create virtual tree for IRType methods, for virtual method lookups, including resolved generic instantiated methods
+
+Optimizations
+SSA Enter, with pruned phi reductions
+SSA Leave, with variable reductions
+
+Assemble IRInstructions
+
+Build Binary ELF Kernel
