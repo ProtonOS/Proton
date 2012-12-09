@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{D8E80171-C76E-4B92-8254-1B1C2F4C8F15}</ProjectGuid>
+    <ProjectGuid>{2096D031-B0F8-41F0-94F3-FFDCE5E8B51D}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Proton.Compiler</RootNamespace>
-    <AssemblyName>Proton.Compiler</AssemblyName>
+    <RootNamespace>Proton.Launcher</RootNamespace>
+    <AssemblyName>Proton.Launcher</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
@@ -35,10 +35,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>Proton.Compiler.Program</StartupObject>
-  </PropertyGroup>
-  <PropertyGroup>
-    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+    <StartupObject>Proton.Launcher.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -50,24 +47,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Arguments.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Proton.Metadata\Proton.Metadata.csproj">
-      <Project>{8708283B-D74F-49C4-B9AF-948F4AC73FBA}</Project>
-      <Name>Proton.Metadata</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Proton.VM\Proton.VM.csproj">
-      <Project>{7F91CE6C-1499-4DB3-85ED-0BE1BB03F616}</Project>
-      <Name>Proton.VM</Name>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>$(SolutionDir)SDK\bin\cp --force $(SolutionDir)Proton.KOR\$(OutDir)mscorlib.dll $(TargetDir)
-$(SolutionDir)SDK\bin\cp --force $(SolutionDir)Proton.Nernel\$(OutDir)Proton.Nernel.exe $(TargetDir)</PostBuildEvent>
+    <PostBuildEvent>$(SolutionDir)SDK\bin\mkdir -p $(SolutionDir)Build\boot\grub
+$(SolutionDir)SDK\bin\cp -f -R $(SolutionDir)SDK\gac $(SolutionDir)Build
+$(SolutionDir)SDK\bin\cp -f $(SolutionDir)SDK\grub\menu.lst $(SolutionDir)Build\boot\grub
+$(SolutionDir)SDK\bin\cp -f $(SolutionDir)SDK\grub\stage2_eltorito $(SolutionDir)Build\boot\grub
+$(SolutionDir)Proton.Compiler\$(OutDir)Proton.Compiler -target=x86 -cwd=$(SolutionDir)Proton.Compiler\$(OutDir) -input=Proton.Nernel.exe -output=$(SolutionDir)Build\boot\Proton.Nernel.bin</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
