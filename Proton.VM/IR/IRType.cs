@@ -70,16 +70,14 @@ namespace Proton.VM.IR
             {
 				if (mResolvedCache != null)
 					return mResolvedCache.Value;
-
-				if (IsTemporaryVar) return false;
-				if (IsTemporaryMVar) return false;
-
 				if (mResolving)
 					return true;
 
 				mResolving = true;
 				if (!GenericParameters.Resolved) return false;
-				if (GenericType != null && (Fields.Count != GenericType.Fields.Count || Methods.Count != GenericType.Methods.Count)) return false;
+				if (IsTemporaryVar) return false;
+				if (IsTemporaryMVar) return false;
+				//if (GenericType != null && (Fields.Count != GenericType.Fields.Count || Methods.Count != GenericType.Methods.Count)) return false;
                 if (PointerType != null && !PointerType.Resolved) return false;
                 if (ArrayType != null && !ArrayType.Resolved) return false;
                 if (BaseType != null && !BaseType.Resolved) return false;
