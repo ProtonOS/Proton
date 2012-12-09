@@ -32,7 +32,7 @@ namespace Proton.VM.IR
                 if (mResolvedCache != null)
                     return mResolvedCache.Value;
 
-				if (ReturnType != ParentType && ReturnType != null)
+				if (ReturnType != null && ReturnType != ParentType)
 				{
 					if (!ReturnType.Resolved) return false;
 				}

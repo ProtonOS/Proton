@@ -48,14 +48,15 @@ Complete linearized source/destination cloning and resolving
 Generate mandatory internal calls, IE object conversion to and from pointer for GC
 Resolve internal calls, limiting internal calls for mandatory calls only means resolution on name without signatures might be enough for AOT side only
 
-Layout IRField type sizes for IRTypes, including Array types, and resolved generic instantiated types
-Layout IRLocal type sizes for IRMethods, including resolved generic instantiated methods
 Resolve interface implementation methods, including resolved generic instantiated methods
 Create virtual tree for IRType methods, for virtual method lookups, including resolved generic instantiated methods
 
 Optimizations
 SSA Enter, with pruned phi reductions
 SSA Leave, with variable reductions
+
+Calculate all IRType sizes
+Layout IRFields, IRLocals, and IRParameter offsets
 
 Assemble IRInstructions
 
