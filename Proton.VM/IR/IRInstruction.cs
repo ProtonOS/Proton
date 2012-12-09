@@ -38,7 +38,10 @@ namespace Proton.VM.IR
             i.IRIndex = this.IRIndex;
             i.Opcode = this.Opcode;
             i.ParentMethod = newMethod;
-            i.Destination = this.Destination.Clone();
+			if (Destination != null)
+			{
+				i.Destination = this.Destination.Clone();
+			}
             foreach (IRLinearizedLocation t in this.Sources)
             {
                 i.Sources.Add(t.Clone());

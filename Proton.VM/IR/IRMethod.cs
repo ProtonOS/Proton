@@ -62,8 +62,9 @@ namespace Proton.VM.IR
 
         public void Substitute(IRGenericParameterList methodParams)
         {
+			GenericParameters.Substitute(IRGenericParameterList.Empty, methodParams);
 			if (ReturnType != null)
-				ReturnType.Resolve(ref ReturnType, ParentType.GenericParameters, methodParams);
+				ReturnType.Resolve(ref ReturnType, ParentType.GenericParameters, GenericParameters);
 			Parameters.ForEach(p => p.Substitute());
 			Locals.ForEach(l => l.Substitute());
 			Instructions.ForEach(i => i.Substitute());
