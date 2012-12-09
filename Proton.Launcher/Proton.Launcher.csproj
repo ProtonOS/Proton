@@ -52,12 +52,14 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>$(SolutionDir)SDK\bin\mkdir -p $(SolutionDir)Build\boot\grub
+    <PostBuildEvent>$(SolutionDir)SDK\bin\mkdir -p $(SolutionDir)Logs
+$(SolutionDir)SDK\bin\mkdir -p $(SolutionDir)Build\boot\grub
 $(SolutionDir)SDK\bin\cp -f -R $(SolutionDir)SDK\gac $(SolutionDir)Build
 $(SolutionDir)SDK\bin\cp -f $(SolutionDir)SDK\grub\menu.lst $(SolutionDir)Build\boot\grub
 $(SolutionDir)SDK\bin\cp -f $(SolutionDir)SDK\grub\stage2_eltorito $(SolutionDir)Build\boot\grub
+$(SolutionDir)SDK\bin\cp -f $(SolutionDir)Proton.Mernel\$(OutDir)\Proton.Mernel.exe $(SolutionDir)Build\boot\Proton.Mernel.exe
 $(SolutionDir)Proton.Compiler\$(OutDir)Proton.Compiler -target=x86 -cwd=$(SolutionDir)Proton.Compiler\$(OutDir) -input=Proton.Nernel.exe -output=$(SolutionDir)Build\boot\Proton.Nernel.bin
-$(SolutionDir)SDK\bin\cp -f $(SolutionDir)Proton.Mernel\$(OutDir)\Proton.Mernel.exe $(SolutionDir)Build\boot\Proton.Mernel.exe</PostBuildEvent>
+$(SolutionDir)SDK\bin\mkisofs -quiet -rational-rock -b boot/grub/stage2_eltorito -no-emul-boot -boot-load-size 4 -boot-info-table -o $(SolutionDir)Proton.iso $(SolutionDir)Build</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

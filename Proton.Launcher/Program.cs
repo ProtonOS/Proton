@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Diagnostics;
 
 namespace Proton.Launcher
 {
@@ -9,6 +7,9 @@ namespace Proton.Launcher
 	{
 		private static void Main()
 		{
+			ProcessStartInfo psi = new ProcessStartInfo(@".\SDK\qemu\qemu", @"-L .\SDK\qemu -smp 3 -cdrom .\Proton.iso -serial file:.\Logs\SymbolLog.txt -serial file:.\Logs\ConsoleLog.txt");
+			psi.WorkingDirectory = @"..\..\..\";
+			Process.Start(psi);
 		}
 	}
 }

@@ -1,4 +1,5 @@
 /Build
+/Logs
 /Proton.Compiler/bin
 /Proton.Compiler/obj
 /Proton.KOR/bin
@@ -17,4 +18,5 @@
 /Proton.VM/obj
 /SDK
 /SDKTemp
+/Proton.iso
 /Proton.suo

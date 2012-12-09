@@ -1,6 +1,7 @@
 ﻿using Proton.Metadata;
 using Proton.VM.IR;
 using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace Proton.Compiler
@@ -14,6 +15,8 @@ namespace Proton.Compiler
 		private static void Main(string[] pCommandLine)
 		{
 			bool pauseBeforeExit = false;
+
+			if (Process.GetCurrentProcess().MainWindowHandle != IntPtr.Zero) Console.BufferHeight = 4000;
 
 			Arguments args = new Arguments(pCommandLine);
 			if (args.Contains("target")) Target = args["target"];

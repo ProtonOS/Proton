@@ -25,8 +25,8 @@ namespace Proton.VM.IR
 
         internal void LoadStage1()
         {
-            Console.WriteLine("================================================== Stage 1: {0} ==================================================", File.ReferenceName);
-            foreach (TypeDefData typeDefData in File.TypeDefTable) Types.Add(new IRType(this));
+			Console.WriteLine("========== Stage 1: {0,-45} ==========", File.ReferenceName);
+			foreach (TypeDefData typeDefData in File.TypeDefTable) Types.Add(new IRType(this));
             foreach (FieldData fieldData in File.FieldTable) Fields.Add(new IRField(this));
             foreach (MethodDefData methodDefData in File.MethodDefTable) Methods.Add(new IRMethod(this));
 
@@ -95,7 +95,7 @@ namespace Proton.VM.IR
 
         internal void LoadStage2()
         {
-            Console.WriteLine("================================================== Stage 2: {0} ==================================================", File.ReferenceName);
+			Console.WriteLine("========== Stage 2: {0,-45} ==========", File.ReferenceName);
 
             for (int typeIndex = 0; typeIndex < Types.Count; ++typeIndex)
             {
@@ -146,8 +146,8 @@ namespace Proton.VM.IR
 
         internal void LoadStage3()
         {
-            Console.WriteLine("================================================== Stage 3: {0} ==================================================", File.ReferenceName);
-            for (int methodIndex = 0; methodIndex < Methods.Count; ++methodIndex)
+			Console.WriteLine("========== Stage 3: {0,-45} ==========", File.ReferenceName);
+			for (int methodIndex = 0; methodIndex < Methods.Count; ++methodIndex)
             {
                 Methods[methodIndex].ConvertInstructions(File.MethodDefTable[methodIndex]);
                 Methods[methodIndex].ControlFlowGraph = IRControlFlowGraph.Build(Methods[methodIndex]);
@@ -158,7 +158,7 @@ namespace Proton.VM.IR
 
         internal void LoadStage4()
 		{
-			Console.WriteLine("================================================== Stage 4: {0} ==================================================", File.ReferenceName);
+			Console.WriteLine("========== Stage 4: {0,-45} ==========", File.ReferenceName);
             // Generic resolution and type updating
             Types.ForEach(t => t.Substitute(t.GenericParameters, IRGenericParameterList.Empty));
         }
