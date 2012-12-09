@@ -150,7 +150,6 @@ namespace Proton.VM.IR
 			for (int methodIndex = 0; methodIndex < Methods.Count; ++methodIndex)
             {
                 Methods[methodIndex].ConvertInstructions(File.MethodDefTable[methodIndex]);
-                Methods[methodIndex].ControlFlowGraph = IRControlFlowGraph.Build(Methods[methodIndex]);
                 Methods[methodIndex].LinearizeInstructions(File.MethodDefTable[methodIndex]);
                 Methods[methodIndex].TransformInstructions(File.MethodDefTable[methodIndex]);
             }

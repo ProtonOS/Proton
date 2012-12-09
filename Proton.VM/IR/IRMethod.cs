@@ -103,7 +103,6 @@ namespace Proton.VM.IR
 
         // Temporary
         public ushort MaximumStackDepth = 0;
-        public IRControlFlowGraph ControlFlowGraph = null;
 
         public IRMethod(IRAssembly pAssembly)
         {
