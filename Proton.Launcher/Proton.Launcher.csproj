@@ -56,7 +56,8 @@
 $(SolutionDir)SDK\bin\cp -f -R $(SolutionDir)SDK\gac $(SolutionDir)Build
 $(SolutionDir)SDK\bin\cp -f $(SolutionDir)SDK\grub\menu.lst $(SolutionDir)Build\boot\grub
 $(SolutionDir)SDK\bin\cp -f $(SolutionDir)SDK\grub\stage2_eltorito $(SolutionDir)Build\boot\grub
-$(SolutionDir)Proton.Compiler\$(OutDir)Proton.Compiler -target=x86 -cwd=$(SolutionDir)Proton.Compiler\$(OutDir) -input=Proton.Nernel.exe -output=$(SolutionDir)Build\boot\Proton.Nernel.bin</PostBuildEvent>
+$(SolutionDir)Proton.Compiler\$(OutDir)Proton.Compiler -target=x86 -cwd=$(SolutionDir)Proton.Compiler\$(OutDir) -input=Proton.Nernel.exe -output=$(SolutionDir)Build\boot\Proton.Nernel.bin
+$(SolutionDir)SDK\bin\cp -f $(SolutionDir)Proton.Mernel\$(OutDir)\Proton.Mernel.exe $(SolutionDir)Build\boot\Proton.Mernel.exe</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

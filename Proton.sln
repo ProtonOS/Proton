@@ -19,6 +19,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Proton.SDKInstaller", "Prot
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Proton.Launcher", "Proton.Launcher\Proton.Launcher.csproj", "{2096D031-B0F8-41F0-94F3-FFDCE5E8B51D}"
 	ProjectSection(ProjectDependencies) = postProject
+		{43F12452-9967-4675-9D07-B06015793265} = {43F12452-9967-4675-9D07-B06015793265}
 		{D8E80171-C76E-4B92-8254-1B1C2F4C8F15} = {D8E80171-C76E-4B92-8254-1B1C2F4C8F15}
 	EndProjectSection
 EndProject
