@@ -17,12 +17,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Proton.VM", "Proton.VM\Prot
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Proton.SDKInstaller", "Proton.SDKInstaller\Proton.SDKInstaller.csproj", "{FF95B823-49CA-40F0-A2E0-90E9B01D422D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Proton.Launcher", "Proton.Launcher\Proton.Launcher.csproj", "{2096D031-B0F8-41F0-94F3-FFDCE5E8B51D}"
-	ProjectSection(ProjectDependencies) = postProject
-		{43F12452-9967-4675-9D07-B06015793265} = {43F12452-9967-4675-9D07-B06015793265}
-		{D8E80171-C76E-4B92-8254-1B1C2F4C8F15} = {D8E80171-C76E-4B92-8254-1B1C2F4C8F15}
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Proton.Mernel", "Proton.Mernel\Proton.Mernel.csproj", "{43F12452-9967-4675-9D07-B06015793265}"
 EndProject
 Global
@@ -95,16 +89,6 @@ Global
 		{FF95B823-49CA-40F0-A2E0-90E9B01D422D}.Release|Mixed Platforms.Build.0 = Release|x86
 		{FF95B823-49CA-40F0-A2E0-90E9B01D422D}.Release|x86.ActiveCfg = Release|x86
 		{FF95B823-49CA-40F0-A2E0-90E9B01D422D}.Release|x86.Build.0 = Release|x86
-		{2096D031-B0F8-41F0-94F3-FFDCE5E8B51D}.Debug|Any CPU.ActiveCfg = Debug|x86
-		{2096D031-B0F8-41F0-94F3-FFDCE5E8B51D}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
-		{2096D031-B0F8-41F0-94F3-FFDCE5E8B51D}.Debug|Mixed Platforms.Build.0 = Debug|x86
-		{2096D031-B0F8-41F0-94F3-FFDCE5E8B51D}.Debug|x86.ActiveCfg = Debug|x86
-		{2096D031-B0F8-41F0-94F3-FFDCE5E8B51D}.Debug|x86.Build.0 = Debug|x86
-		{2096D031-B0F8-41F0-94F3-FFDCE5E8B51D}.Release|Any CPU.ActiveCfg = Release|x86
-		{2096D031-B0F8-41F0-94F3-FFDCE5E8B51D}.Release|Mixed Platforms.ActiveCfg = Release|x86
-		{2096D031-B0F8-41F0-94F3-FFDCE5E8B51D}.Release|Mixed Platforms.Build.0 = Release|x86
-		{2096D031-B0F8-41F0-94F3-FFDCE5E8B51D}.Release|x86.ActiveCfg = Release|x86
-		{2096D031-B0F8-41F0-94F3-FFDCE5E8B51D}.Release|x86.Build.0 = Release|x86
 		{43F12452-9967-4675-9D07-B06015793265}.Debug|Any CPU.ActiveCfg = Debug|x86
 		{43F12452-9967-4675-9D07-B06015793265}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
 		{43F12452-9967-4675-9D07-B06015793265}.Debug|Mixed Platforms.Build.0 = Debug|x86
