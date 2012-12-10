@@ -104,10 +104,12 @@ namespace Proton.VM.IR
 
         // Temporary
         public ushort MaximumStackDepth = 0;
+		public IRControlFlowGraph ControlFlowGraph = null;
 
         public IRMethod(IRAssembly pAssembly)
         {
             Assembly = pAssembly;
+			Assembly.AppDomain.Methods.Add(this);
         }
 
 		public override string ToString()
@@ -548,5 +550,13 @@ namespace Proton.VM.IR
         {
             for (int index = 0; index < Instructions.Count; ++index) Instructions[index] = Instructions[index].Transform();
         }
+
+		public void EnterSSA()
+		{
+		}
+
+		public void LeaveSSA()
+		{
+		}
     }
 }

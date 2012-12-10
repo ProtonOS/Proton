@@ -164,6 +164,16 @@ namespace Proton.VM.IR
 
         internal void LoadStage5()
         {
-        }
+			Console.WriteLine("========== Stage 5: {0,-45} ==========", File.ReferenceName);
+		}
+
+		internal void LoadStage6()
+		{
+			Console.WriteLine("========== Stage 6: {0,-45} ==========", File.ReferenceName);
+			// Optimizations
+			AppDomain.Methods.ForEach(m => m.ControlFlowGraph = IRControlFlowGraph.Build(m));
+			AppDomain.Methods.ForEach(m => m.EnterSSA());
+			AppDomain.Methods.ForEach(m => m.LeaveSSA());
+		}
     }
 }

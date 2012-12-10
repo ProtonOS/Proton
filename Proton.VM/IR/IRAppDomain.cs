@@ -39,6 +39,7 @@ namespace Proton.VM.IR
             }
         }
         public readonly IRTypeCollection Types = new IRTypeCollection();
+		public readonly List<IRMethod> Methods = new List<IRMethod>();
 
 
 
@@ -144,7 +145,9 @@ namespace Proton.VM.IR
             Assemblies.ForEach(a => a.LoadStage2());
             Assemblies.ForEach(a => a.LoadStage3());
             Assemblies.ForEach(a => a.LoadStage4());
-            return assembly;
+			Assemblies.ForEach(a => a.LoadStage5());
+			Assemblies.ForEach(a => a.LoadStage6());
+			return assembly;
         }
 
         // Dynamic Types

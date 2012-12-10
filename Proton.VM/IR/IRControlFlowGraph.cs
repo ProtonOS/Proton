@@ -1,6 +1,7 @@
 ﻿using Proton.VM.IR.Instructions;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Proton.VM.IR
@@ -9,12 +10,13 @@ namespace Proton.VM.IR
     {
         public sealed class Node
         {
-            public uint Index = 0;
+            public int Index = 0;
             public List<IRInstruction> Instructions = new List<IRInstruction>();
             public List<Node> ChildNodes = new List<Node>();
             public List<Node> ParentNodes = new List<Node>();
+			public Node Dominator = null;
 
-            public Node(uint pIndex) { Index = pIndex; }
+            public Node(int pIndex) { Index = pIndex; }
 
             public void LinkTo(Node pChildNode)
             {
@@ -78,24 +80,24 @@ namespace Proton.VM.IR
                 {
                     if (currentNode.Instructions.Count > 0)
                     {
-                        currentNode = new Node((uint)cfg.Nodes.Count);
+                        currentNode = new Node(cfg.Nodes.Count);
                         cfg.Nodes.Add(currentNode);
                     }
                     currentNode.Instructions.Add(instruction);
-                    currentNode = new Node((uint)cfg.Nodes.Count);
+                    currentNode = new Node(cfg.Nodes.Count);
                     cfg.Nodes.Add(currentNode);
                 }
                 else if (startFromSource)
                 {
                     currentNode.Instructions.Add(instruction);
-                    currentNode = new Node((uint)cfg.Nodes.Count);
+                    currentNode = new Node(cfg.Nodes.Count);
                     cfg.Nodes.Add(currentNode);
                 }
                 else if (startFromDestination)
                 {
                     if (currentNode.Instructions.Count > 0)
                     {
-                        currentNode = new Node((uint)cfg.Nodes.Count);
+                        currentNode = new Node(cfg.Nodes.Count);
                         cfg.Nodes.Add(currentNode);
                     }
                     currentNode.Instructions.Add(instruction);
@@ -143,6 +145,52 @@ namespace Proton.VM.IR
                     default: node.LinkTo(cfg.Nodes[nodeIndex + 1]); break;
                 }
             }
+
+			List<Node> allDeadNodes = new List<Node>();
+			List<Node> deadNodes = null;
+			while ((deadNodes = cfg.Nodes.FindAll(n => n.Index > 0 && n.ParentNodes.Count == 0)).Count > 0)
+			{
+				allDeadNodes.AddRange(deadNodes);
+				foreach (Node deadNode in deadNodes)
+				{
+					foreach (Node childNode in deadNode.ChildNodes) childNode.ParentNodes.Remove(deadNode);
+					cfg.Nodes.RemoveAt(deadNode.Index);
+					for (int nodeIndex = deadNode.Index; nodeIndex < cfg.Nodes.Count; ++nodeIndex)
+					{
+						Node node = cfg.Nodes[nodeIndex];
+						node.Index -= 1;
+					}
+				}
+			}
+
+			for (int nodeIndex = 0; nodeIndex < cfg.Nodes.Count; ++nodeIndex)
+			{
+				Node node = cfg.Nodes[nodeIndex];
+				switch (node.ParentNodes.Count)
+				{
+					case 0: node.Dominator = node; break;
+					case 1: node.Dominator = node.ParentNodes[0]; break;
+					default:
+						{
+							node.Dominator = node.ParentNodes.Find(n => n.Index == 0);
+							if (node.Dominator == null)
+							{
+								List<Node> commonParentNodes = new List<Node>(cfg.Nodes.Count);
+								cfg.PopulateParents(node.ParentNodes[0], commonParentNodes);
+								for (int index = 1; index < node.ParentNodes.Count; ++index)
+								{
+									List<Node> parentNodes = new List<Node>(cfg.Nodes.Count);
+									cfg.PopulateParents(node.ParentNodes[index], parentNodes);
+									commonParentNodes = commonParentNodes.Intersect(parentNodes).ToList();
+								}
+								if (commonParentNodes.Count == 0) throw new Exception();
+								node.Dominator = commonParentNodes[0];
+							}
+							break;
+						}
+				}
+			}
+
             return cfg;
         }
 
