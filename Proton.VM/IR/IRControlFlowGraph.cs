@@ -1,5 +1,6 @@
 ﻿using Proton.VM.IR.Instructions;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,7 +15,11 @@ namespace Proton.VM.IR
             public List<IRInstruction> Instructions = new List<IRInstruction>();
             public List<Node> ChildNodes = new List<Node>();
             public List<Node> ParentNodes = new List<Node>();
+			public BitArray Dominators = null;
+			public int DominatorsCount = 0;
 			public Node Dominator = null;
+			public List<Node> SourceFrontiers = new List<Node>();
+			public List<Node> DestinationFrontiers = new List<Node>();
 
             public Node(int pIndex) { Index = pIndex; }
 
@@ -23,7 +28,7 @@ namespace Proton.VM.IR
                 ChildNodes.Add(pChildNode);
                 pChildNode.ParentNodes.Add(this);
             }
-        }
+		}
 
         public List<Node> Nodes = new List<Node>();
 
@@ -105,9 +110,8 @@ namespace Proton.VM.IR
                 else currentNode.Instructions.Add(instruction);
             }
 
-            for (int nodeIndex = 0; nodeIndex < cfg.Nodes.Count; ++nodeIndex)
+			foreach (Node node in cfg.Nodes)
             {
-                Node node = cfg.Nodes[nodeIndex];
                 IRInstruction instruction = node.Instructions[node.Instructions.Count - 1];
                 switch (instruction.Opcode)
                 {
@@ -116,14 +120,14 @@ namespace Proton.VM.IR
                             IRBranchInstruction branchInstruction = (IRBranchInstruction)instruction;
                             Node childNode = cfg.Nodes.Find(n => n.Instructions[0] == branchInstruction.TargetIRInstruction);
                             if (childNode == null) throw new NullReferenceException();
-                            if (branchInstruction.BranchCondition != IRBranchCondition.Always) node.LinkTo(cfg.Nodes[nodeIndex + 1]);
+                            if (branchInstruction.BranchCondition != IRBranchCondition.Always) node.LinkTo(cfg.Nodes[node.Index + 1]);
                             node.LinkTo(childNode);
                             break;
                         }
                     case IROpcode.Switch:
                         {
                             IRSwitchInstruction switchInstruction = (IRSwitchInstruction)instruction;
-                            node.LinkTo(cfg.Nodes[nodeIndex + 1]);
+                            node.LinkTo(cfg.Nodes[node.Index + 1]);
                             foreach (IRInstruction targetInstruction in switchInstruction.TargetIRInstructions)
                             {
                                 Node childNode = cfg.Nodes.Find(n => n.Instructions[0] == targetInstruction);
@@ -142,11 +146,11 @@ namespace Proton.VM.IR
                         }
                     case IROpcode.Throw:
                     case IROpcode.Return: continue;
-                    default: node.LinkTo(cfg.Nodes[nodeIndex + 1]); break;
+                    default: node.LinkTo(cfg.Nodes[node.Index + 1]); break;
                 }
             }
 
-			List<Node> allDeadNodes = new List<Node>();
+			List<Node> allDeadNodes = new List<Node>(32);
 			List<Node> deadNodes = null;
 			while ((deadNodes = cfg.Nodes.FindAll(n => n.Index > 0 && n.ParentNodes.Count == 0)).Count > 0)
 			{
@@ -163,31 +167,64 @@ namespace Proton.VM.IR
 				}
 			}
 
-			for (int nodeIndex = 0; nodeIndex < cfg.Nodes.Count; ++nodeIndex)
+			cfg.Nodes.ForEach(n => n.Dominators = new BitArray(cfg.Nodes.Count, true));
+			cfg.Nodes[0].Dominators.SetAll(false);
+			cfg.Nodes[0].Dominators.Set(0, true);
+			HashSet<Node> todoSet = new HashSet<Node>();
+			todoSet.Add(cfg.Nodes[0]);
+			while (todoSet.Count > 0)
 			{
-				Node node = cfg.Nodes[nodeIndex];
-				switch (node.ParentNodes.Count)
+				Node node = todoSet.ElementAt(0);
+				todoSet.Remove(node);
+				BitArray intersectedParentDominators = new BitArray(cfg.Nodes.Count, true);
+				node.ParentNodes.ForEach(n => intersectedParentDominators = intersectedParentDominators.And(n.Dominators));
+				intersectedParentDominators.Set(node.Index, true);
+				bool dominatorsEqual = true;
+				for (int index = 0; dominatorsEqual && index < intersectedParentDominators.Length; ++index) dominatorsEqual = intersectedParentDominators[index] == node.Dominators[index];
+				if (!dominatorsEqual)
 				{
-					case 0: node.Dominator = node; break;
-					case 1: node.Dominator = node.ParentNodes[0]; break;
-					default:
-						{
-							node.Dominator = node.ParentNodes.Find(n => n.Index == 0);
-							if (node.Dominator == null)
-							{
-								List<Node> commonParentNodes = new List<Node>(cfg.Nodes.Count);
-								cfg.PopulateParents(node.ParentNodes[0], commonParentNodes);
-								for (int index = 1; index < node.ParentNodes.Count; ++index)
-								{
-									List<Node> parentNodes = new List<Node>(cfg.Nodes.Count);
-									cfg.PopulateParents(node.ParentNodes[index], parentNodes);
-									commonParentNodes = commonParentNodes.Intersect(parentNodes).ToList();
-								}
-								if (commonParentNodes.Count == 0) throw new Exception();
-								node.Dominator = commonParentNodes[0];
-							}
-							break;
-						}
+					node.Dominators = intersectedParentDominators;
+					node.ChildNodes.ForEach(n => todoSet.Add(n));
+				}
+			}
+			foreach (Node node in cfg.Nodes)
+			{
+				for (int index = 0; index < node.Dominators.Length; ++index)
+				{
+					if (node.Dominators[index])
+						node.DominatorsCount++;
+				}
+			}
+			foreach (Node node in cfg.Nodes)
+			{
+				int max = -1;
+				foreach (Node innerNode in cfg.Nodes)
+				{
+					if (node.Dominators[innerNode.Index] && node != innerNode && innerNode.DominatorsCount > max)
+					{
+						max = innerNode.DominatorsCount;
+						node.Dominator = innerNode;
+					}
+				}
+			}
+
+			foreach (Node node in cfg.Nodes)
+			{
+				if (node.ParentNodes.Count < 2) continue;
+				foreach (Node parentNode in node.ParentNodes)
+				{
+					if (parentNode == node.Dominator)
+					{
+						parentNode.DestinationFrontiers.Add(node);
+						node.SourceFrontiers.Add(parentNode);
+					}
+					Node treeNode = parentNode;
+					while (treeNode != node.Dominator)
+					{
+						treeNode.DestinationFrontiers.Add(node);
+						node.SourceFrontiers.Add(treeNode);
+						treeNode = treeNode.Dominator;
+					}
 				}
 			}
 
@@ -204,13 +241,6 @@ namespace Proton.VM.IR
                 }
             }
             throw new NullReferenceException();
-        }
-
-        public void PopulateParents(Node pNode, List<Node> pParents)
-        {
-            if (pParents.Contains(pNode)) return;
-            pParents.Add(pNode);
-            pNode.ParentNodes.ForEach(n => PopulateParents(n, pParents));
         }
 
         public override string ToString()
