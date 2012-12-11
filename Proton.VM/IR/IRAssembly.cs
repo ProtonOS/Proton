@@ -72,7 +72,7 @@ namespace Proton.VM.IR
                         {
                             IRLocal local = new IRLocal(this);
                             local.ParentMethod = method;
-                            local.Index = (uint)method.Locals.Count;
+                            local.Index = method.Locals.Count;
                             method.Locals.Add(local);
                         }
                     }

@@ -5,8 +5,8 @@ namespace Proton.VM.IR
 {
     public class IRLinearizedLocation
     {
-        public struct LocalLocationData { public uint LocalIndex; }
-        public struct LocalAddressLocationData { public uint LocalIndex; }
+        public struct LocalLocationData { public int LocalIndex; }
+        public struct LocalAddressLocationData { public int LocalIndex; }
         public struct ParameterLocationData { public uint ParameterIndex; }
         public struct ParameterAddressLocationData { public uint ParameterIndex; }
         public struct ConstantI4LocationData { public int Value; }
@@ -118,5 +118,27 @@ namespace Proton.VM.IR
         public void Resolve(IRGenericParameterList typeParams, IRGenericParameterList methodParams)
         {
         }
+
+		public void RetargetLocal(int pOldLocalIndex, int pNewLocalIndex)
+		{
+			switch (Type)
+			{
+				case IRLinearizedLocationType.Local: if (Local.LocalIndex == pOldLocalIndex) Local.LocalIndex = pNewLocalIndex; break;
+				case IRLinearizedLocationType.LocalAddress: if (LocalAddress.LocalIndex == pOldLocalIndex) LocalAddress.LocalIndex = pNewLocalIndex; break;
+				case IRLinearizedLocationType.ArrayElement:
+					ArrayElement.ArrayLocation.RetargetLocal(pOldLocalIndex, pNewLocalIndex);
+					ArrayElement.IndexLocation.RetargetLocal(pOldLocalIndex, pNewLocalIndex);
+					break;
+				case IRLinearizedLocationType.ArrayElementAddress:
+					ArrayElementAddress.ArrayLocation.RetargetLocal(pOldLocalIndex, pNewLocalIndex);
+					ArrayElementAddress.IndexLocation.RetargetLocal(pOldLocalIndex, pNewLocalIndex);
+					break;
+				case IRLinearizedLocationType.ArrayLength: ArrayLength.ArrayLocation.RetargetLocal(pOldLocalIndex, pNewLocalIndex); break;
+				case IRLinearizedLocationType.Field: Field.FieldLocation.RetargetLocal(pOldLocalIndex, pNewLocalIndex); break;
+				case IRLinearizedLocationType.FieldAddress: FieldAddress.FieldLocation.RetargetLocal(pOldLocalIndex, pNewLocalIndex); break;
+				case IRLinearizedLocationType.Indirect: Indirect.AddressLocation.RetargetLocal(pOldLocalIndex, pNewLocalIndex); break;
+				default: break;
+			}
+		}
     }
 }

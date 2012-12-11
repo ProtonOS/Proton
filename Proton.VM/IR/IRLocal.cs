@@ -31,7 +31,7 @@ namespace Proton.VM.IR
 			}
 		}
 
-        public uint Index = 0;
+        public int Index = 0;
 
         public bool Resolved { get { return Type.Resolved; } }
 
@@ -41,6 +41,25 @@ namespace Proton.VM.IR
         {
 			Type.Resolve(ref mType, ParentMethod.ParentType.GenericParameters, ParentMethod.GenericParameters);
         }
+
+		public sealed class IRLocalSSAData
+		{
+			public IRLocal Original = null;
+			public int Iteration = 0;
+			public IRInstruction LifeBegins = null;
+			public IRInstruction LifeEnds = null;
+
+			public IRLocalSSAData(IRLocal pOriginal) { Original = pOriginal; }
+			public IRLocalSSAData Clone()
+			{
+				IRLocalSSAData clone = new IRLocalSSAData(Original);
+				clone.Iteration = Iteration;
+				clone.LifeBegins = LifeBegins;
+				clone.LifeEnds = LifeEnds;
+				return clone;
+			}
+		}
+		public IRLocalSSAData SSAData = null;
 
         public IRLocal(IRAssembly pAssembly)
         {
@@ -54,7 +73,8 @@ namespace Proton.VM.IR
 			local.mParentLocal = this.Type == null ? this : null;
 			if (this.Type != null)
 				local.mType = this.Type;
-            local.Index = (uint)newMethod.Locals.Count;
+            local.Index = newMethod.Locals.Count;
+			if (SSAData != null) local.SSAData = SSAData.Clone();
             return local;
         }
 

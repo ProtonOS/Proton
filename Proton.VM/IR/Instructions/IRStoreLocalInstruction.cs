@@ -5,9 +5,9 @@ namespace Proton.VM.IR.Instructions
 {
     public sealed class IRStoreLocalInstruction : IRInstruction
     {
-        public uint LocalIndex { get; private set; }
+        public int LocalIndex { get; private set; }
 
-        public IRStoreLocalInstruction(uint pLocalIndex) : base(IROpcode.StoreLocal) { LocalIndex = pLocalIndex; }
+        public IRStoreLocalInstruction(int pLocalIndex) : base(IROpcode.StoreLocal) { LocalIndex = pLocalIndex; }
 
         public override void Linearize(Stack<IRStackObject> pStack)
         {

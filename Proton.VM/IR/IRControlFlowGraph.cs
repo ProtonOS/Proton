@@ -9,28 +9,7 @@ namespace Proton.VM.IR
 {
     public sealed class IRControlFlowGraph
     {
-        public sealed class Node
-        {
-            public int Index = 0;
-            public List<IRInstruction> Instructions = new List<IRInstruction>();
-            public List<Node> ChildNodes = new List<Node>();
-            public List<Node> ParentNodes = new List<Node>();
-			public BitArray Dominators = null;
-			public int DominatorsCount = 0;
-			public Node Dominator = null;
-			public List<Node> SourceFrontiers = new List<Node>();
-			public List<Node> DestinationFrontiers = new List<Node>();
-
-            public Node(int pIndex) { Index = pIndex; }
-
-            public void LinkTo(Node pChildNode)
-            {
-                ChildNodes.Add(pChildNode);
-                pChildNode.ParentNodes.Add(this);
-            }
-		}
-
-        public List<Node> Nodes = new List<Node>();
+		public List<IRControlFlowGraphNode> Nodes = new List<IRControlFlowGraphNode>();
 
         public static IRControlFlowGraph Build(IRMethod pMethod)
         {
@@ -74,7 +53,7 @@ namespace Proton.VM.IR
             }
 
             IRControlFlowGraph cfg = new IRControlFlowGraph();
-            Node currentNode = new Node(0);
+			IRControlFlowGraphNode currentNode = new IRControlFlowGraphNode(0);
             cfg.Nodes.Add(currentNode);
             foreach (IRInstruction instruction in pMethod.Instructions)
             {
@@ -85,24 +64,24 @@ namespace Proton.VM.IR
                 {
                     if (currentNode.Instructions.Count > 0)
                     {
-                        currentNode = new Node(cfg.Nodes.Count);
+						currentNode = new IRControlFlowGraphNode(cfg.Nodes.Count);
                         cfg.Nodes.Add(currentNode);
                     }
                     currentNode.Instructions.Add(instruction);
-                    currentNode = new Node(cfg.Nodes.Count);
+					currentNode = new IRControlFlowGraphNode(cfg.Nodes.Count);
                     cfg.Nodes.Add(currentNode);
                 }
                 else if (startFromSource)
                 {
                     currentNode.Instructions.Add(instruction);
-                    currentNode = new Node(cfg.Nodes.Count);
+					currentNode = new IRControlFlowGraphNode(cfg.Nodes.Count);
                     cfg.Nodes.Add(currentNode);
                 }
                 else if (startFromDestination)
                 {
                     if (currentNode.Instructions.Count > 0)
                     {
-                        currentNode = new Node(cfg.Nodes.Count);
+						currentNode = new IRControlFlowGraphNode(cfg.Nodes.Count);
                         cfg.Nodes.Add(currentNode);
                     }
                     currentNode.Instructions.Add(instruction);
@@ -110,7 +89,7 @@ namespace Proton.VM.IR
                 else currentNode.Instructions.Add(instruction);
             }
 
-			foreach (Node node in cfg.Nodes)
+			foreach (IRControlFlowGraphNode node in cfg.Nodes)
             {
                 IRInstruction instruction = node.Instructions[node.Instructions.Count - 1];
                 switch (instruction.Opcode)
@@ -118,7 +97,7 @@ namespace Proton.VM.IR
                     case IROpcode.Branch:
                         {
                             IRBranchInstruction branchInstruction = (IRBranchInstruction)instruction;
-                            Node childNode = cfg.Nodes.Find(n => n.Instructions[0] == branchInstruction.TargetIRInstruction);
+							IRControlFlowGraphNode childNode = cfg.Nodes.Find(n => n.Instructions[0] == branchInstruction.TargetIRInstruction);
                             if (childNode == null) throw new NullReferenceException();
                             if (branchInstruction.BranchCondition != IRBranchCondition.Always) node.LinkTo(cfg.Nodes[node.Index + 1]);
                             node.LinkTo(childNode);
@@ -130,7 +109,7 @@ namespace Proton.VM.IR
                             node.LinkTo(cfg.Nodes[node.Index + 1]);
                             foreach (IRInstruction targetInstruction in switchInstruction.TargetIRInstructions)
                             {
-                                Node childNode = cfg.Nodes.Find(n => n.Instructions[0] == targetInstruction);
+								IRControlFlowGraphNode childNode = cfg.Nodes.Find(n => n.Instructions[0] == targetInstruction);
                                 if (childNode == null) throw new NullReferenceException();
                                 node.LinkTo(childNode);
                             }
@@ -139,7 +118,7 @@ namespace Proton.VM.IR
                     case IROpcode.Leave:
                         {
                             IRLeaveInstruction leaveInstruction = (IRLeaveInstruction)instruction;
-                            Node childNode = cfg.Nodes.Find(n => n.Instructions[0] == leaveInstruction.TargetIRInstruction);
+							IRControlFlowGraphNode childNode = cfg.Nodes.Find(n => n.Instructions[0] == leaveInstruction.TargetIRInstruction);
                             if (childNode == null) throw new NullReferenceException();
                             node.LinkTo(childNode);
                             break;
@@ -150,18 +129,18 @@ namespace Proton.VM.IR
                 }
             }
 
-			List<Node> allDeadNodes = new List<Node>(32);
-			List<Node> deadNodes = null;
+			List<IRControlFlowGraphNode> allDeadNodes = new List<IRControlFlowGraphNode>(32);
+			List<IRControlFlowGraphNode> deadNodes = null;
 			while ((deadNodes = cfg.Nodes.FindAll(n => n.Index > 0 && n.ParentNodes.Count == 0)).Count > 0)
 			{
 				allDeadNodes.AddRange(deadNodes);
-				foreach (Node deadNode in deadNodes)
+				foreach (IRControlFlowGraphNode deadNode in deadNodes)
 				{
-					foreach (Node childNode in deadNode.ChildNodes) childNode.ParentNodes.Remove(deadNode);
+					foreach (IRControlFlowGraphNode childNode in deadNode.ChildNodes) childNode.ParentNodes.Remove(deadNode);
 					cfg.Nodes.RemoveAt(deadNode.Index);
 					for (int nodeIndex = deadNode.Index; nodeIndex < cfg.Nodes.Count; ++nodeIndex)
 					{
-						Node node = cfg.Nodes[nodeIndex];
+						IRControlFlowGraphNode node = cfg.Nodes[nodeIndex];
 						node.Index -= 1;
 					}
 				}
@@ -170,11 +149,11 @@ namespace Proton.VM.IR
 			cfg.Nodes.ForEach(n => n.Dominators = new BitArray(cfg.Nodes.Count, true));
 			cfg.Nodes[0].Dominators.SetAll(false);
 			cfg.Nodes[0].Dominators.Set(0, true);
-			HashSet<Node> todoSet = new HashSet<Node>();
+			HashSet<IRControlFlowGraphNode> todoSet = new HashSet<IRControlFlowGraphNode>();
 			todoSet.Add(cfg.Nodes[0]);
 			while (todoSet.Count > 0)
 			{
-				Node node = todoSet.ElementAt(0);
+				IRControlFlowGraphNode node = todoSet.ElementAt(0);
 				todoSet.Remove(node);
 				BitArray intersectedParentDominators = new BitArray(cfg.Nodes.Count, true);
 				node.ParentNodes.ForEach(n => intersectedParentDominators = intersectedParentDominators.And(n.Dominators));
@@ -184,10 +163,10 @@ namespace Proton.VM.IR
 				if (!dominatorsEqual)
 				{
 					node.Dominators = intersectedParentDominators;
-					node.ChildNodes.ForEach(n => todoSet.Add(n));
+					node.ChildNodes.ForEach(n => { if (!todoSet.Contains(n)) todoSet.Add(n); });
 				}
 			}
-			foreach (Node node in cfg.Nodes)
+			foreach (IRControlFlowGraphNode node in cfg.Nodes)
 			{
 				for (int index = 0; index < node.Dominators.Length; ++index)
 				{
@@ -195,10 +174,10 @@ namespace Proton.VM.IR
 						node.DominatorsCount++;
 				}
 			}
-			foreach (Node node in cfg.Nodes)
+			foreach (IRControlFlowGraphNode node in cfg.Nodes)
 			{
 				int max = -1;
-				foreach (Node innerNode in cfg.Nodes)
+				foreach (IRControlFlowGraphNode innerNode in cfg.Nodes)
 				{
 					if (node.Dominators[innerNode.Index] && node != innerNode && innerNode.DominatorsCount > max)
 					{
@@ -208,32 +187,32 @@ namespace Proton.VM.IR
 				}
 			}
 
-			foreach (Node node in cfg.Nodes)
-			{
-				if (node.ParentNodes.Count < 2) continue;
-				foreach (Node parentNode in node.ParentNodes)
-				{
-					if (parentNode == node.Dominator)
-					{
-						parentNode.DestinationFrontiers.Add(node);
-						node.SourceFrontiers.Add(parentNode);
-					}
-					Node treeNode = parentNode;
-					while (treeNode != node.Dominator)
-					{
-						treeNode.DestinationFrontiers.Add(node);
-						node.SourceFrontiers.Add(treeNode);
-						treeNode = treeNode.Dominator;
-					}
-				}
-			}
+			//foreach (Node node in cfg.Nodes)
+			//{
+			//    if (node.ParentNodes.Count < 2) continue;
+			//    foreach (Node parentNode in node.ParentNodes)
+			//    {
+			//        if (parentNode == node.Dominator)
+			//        {
+			//            parentNode.DestinationFrontiers.Add(node);
+			//            node.SourceFrontiers.Add(parentNode);
+			//        }
+			//        Node treeNode = parentNode;
+			//        while (treeNode != node.Dominator)
+			//        {
+			//            treeNode.DestinationFrontiers.Add(node);
+			//            node.SourceFrontiers.Add(treeNode);
+			//            treeNode = treeNode.Dominator;
+			//        }
+			//    }
+			//}
 
             return cfg;
         }
 
-        public Node FindInstructionNode(IRInstruction pInstruction)
+		public IRControlFlowGraphNode FindInstructionNode(IRInstruction pInstruction)
         {
-            foreach (Node node in Nodes)
+			foreach (IRControlFlowGraphNode node in Nodes)
             {
                 foreach (IRInstruction instruction in node.Instructions)
                 {

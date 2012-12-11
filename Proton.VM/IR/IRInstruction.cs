@@ -20,7 +20,7 @@ namespace Proton.VM.IR
             Opcode = pOpcode;
         }
 
-        public uint AddLinearizedLocal(Stack<IRStackObject> pStack, IRType pType) { return ParentMethod.AddLinearizedLocal(pStack, pType); }
+        public int AddLinearizedLocal(Stack<IRStackObject> pStack, IRType pType) { return ParentMethod.AddLinearizedLocal(pStack, pType); }
 
         public abstract void Linearize(Stack<IRStackObject> pStack);
 
