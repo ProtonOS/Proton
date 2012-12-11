@@ -16,7 +16,6 @@ namespace Proton.VM.IR
 		//public List<Node> SourceFrontiers = new List<Node>();
 		//public List<Node> DestinationFrontiers = new List<Node>();
 		public IRLocal[] SSAFinalIterations = null;
-		public HashSet<IRLocal>[] SSAPhiSources = null;
 
 		public IRControlFlowGraphNode(int pIndex) { Index = pIndex; }
 

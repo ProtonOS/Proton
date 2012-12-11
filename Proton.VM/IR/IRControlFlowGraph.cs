@@ -24,28 +24,22 @@ namespace Proton.VM.IR
                     case IROpcode.Branch:
                         {
                             IRBranchInstruction branchInstruction = (IRBranchInstruction)instruction;
-                            if (!sourceNodeBreaks.Contains(instruction)) sourceNodeBreaks.Add(instruction);
-                            if (!destinationNodeBreaks.Contains(branchInstruction.TargetIRInstruction)) destinationNodeBreaks.Add(branchInstruction.TargetIRInstruction);
+                            sourceNodeBreaks.Add(instruction);
+                            destinationNodeBreaks.Add(branchInstruction.TargetIRInstruction);
                             break;
                         }
                     case IROpcode.Switch:
                         {
                             IRSwitchInstruction switchInstruction = (IRSwitchInstruction)instruction;
-                            if (!sourceNodeBreaks.Contains(instruction)) sourceNodeBreaks.Add(instruction);
-                            foreach (IRInstruction targetIRInstruction in switchInstruction.TargetIRInstructions)
-                            {
-                                if (!destinationNodeBreaks.Contains(targetIRInstruction))
-                                {
-                                    destinationNodeBreaks.Add(targetIRInstruction);
-                                }
-                            }
+                            sourceNodeBreaks.Add(instruction);
+							switchInstruction.TargetIRInstructions.ForEach(i => destinationNodeBreaks.Add(i));
                             break;
                         }
                     case IROpcode.Leave:
                         {
                             IRLeaveInstruction leaveInstruction = (IRLeaveInstruction)instruction;
-                            if (!sourceNodeBreaks.Contains(instruction)) sourceNodeBreaks.Add(instruction);
-                            if (!destinationNodeBreaks.Contains(leaveInstruction.TargetIRInstruction)) destinationNodeBreaks.Add(leaveInstruction.TargetIRInstruction);
+                            sourceNodeBreaks.Add(instruction);
+                            destinationNodeBreaks.Add(leaveInstruction.TargetIRInstruction);
                             break;
                         }
                     default: break;
@@ -163,7 +157,7 @@ namespace Proton.VM.IR
 				if (!dominatorsEqual)
 				{
 					node.Dominators = intersectedParentDominators;
-					node.ChildNodes.ForEach(n => { if (!todoSet.Contains(n)) todoSet.Add(n); });
+					node.ChildNodes.ForEach(n => todoSet.Add(n));
 				}
 			}
 			foreach (IRControlFlowGraphNode node in cfg.Nodes)

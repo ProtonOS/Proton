@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 namespace Proton.VM.IR
@@ -59,6 +60,7 @@ namespace Proton.VM.IR
             public IRField TargetField;
         }
         public struct StringLocationData { public string Value; }
+		public struct PhiLocationData { public List<IRLinearizedLocation> Sources; }
 
         public IRLinearizedLocationType Type;
         public LocalLocationData Local;
@@ -81,6 +83,7 @@ namespace Proton.VM.IR
         public FunctionAddressLocationData FunctionAddress;
         public RuntimeHandleLocationData RuntimeHandle;
         public StringLocationData String;
+		public PhiLocationData Phi;
 
         public IRLinearizedLocation(IRLinearizedLocationType pType) { Type = pType; }
         public IRLinearizedLocation(IRLinearizedLocation pLinearizedTarget)
@@ -109,6 +112,7 @@ namespace Proton.VM.IR
                 case IRLinearizedLocationType.FunctionAddress: FunctionAddress = pLinearizedTarget.FunctionAddress; break;
                 case IRLinearizedLocationType.RuntimeHandle: RuntimeHandle = pLinearizedTarget.RuntimeHandle; break;
                 case IRLinearizedLocationType.String: String = pLinearizedTarget.String; break;
+				case IRLinearizedLocationType.Phi: Phi.Sources = new List<IRLinearizedLocation>(pLinearizedTarget.Phi.Sources); break;
                 default: throw new ArgumentException("Type");
             }
         }
@@ -137,6 +141,53 @@ namespace Proton.VM.IR
 				case IRLinearizedLocationType.Field: Field.FieldLocation.RetargetLocal(pOldLocalIndex, pNewLocalIndex); break;
 				case IRLinearizedLocationType.FieldAddress: FieldAddress.FieldLocation.RetargetLocal(pOldLocalIndex, pNewLocalIndex); break;
 				case IRLinearizedLocationType.Indirect: Indirect.AddressLocation.RetargetLocal(pOldLocalIndex, pNewLocalIndex); break;
+				default: break;
+			}
+		}
+
+		public void RetargetToPhi(HashSet<int> pPhi)
+		{
+			switch (Type)
+			{
+				case IRLinearizedLocationType.Local:
+					if (pPhi.Contains(Local.LocalIndex))
+					{
+						Type = IRLinearizedLocationType.Phi;
+						Phi.Sources = new List<IRLinearizedLocation>(pPhi.Count);
+						foreach (int phiSource in pPhi)
+						{
+							IRLinearizedLocation phiSourceLocation = new IRLinearizedLocation(IRLinearizedLocationType.Local);
+							phiSourceLocation.Local.LocalIndex = phiSource;
+							Phi.Sources.Add(phiSourceLocation);
+						}
+					}
+					break;
+				case IRLinearizedLocationType.LocalAddress:
+					if (pPhi.Contains(LocalAddress.LocalIndex))
+					{
+						Type = IRLinearizedLocationType.Phi;
+						Phi.Sources = new List<IRLinearizedLocation>(pPhi.Count);
+						foreach (int phiSource in pPhi)
+						{
+							IRLinearizedLocation phiSourceLocation = new IRLinearizedLocation(IRLinearizedLocationType.Local);
+							phiSourceLocation.Local.LocalIndex = phiSource;
+							Phi.Sources.Add(phiSourceLocation);
+						}
+					}
+					break;
+				case IRLinearizedLocationType.ArrayElement:
+					ArrayElement.ArrayLocation.RetargetToPhi(pPhi);
+					ArrayElement.IndexLocation.RetargetToPhi(pPhi);
+					break;
+				case IRLinearizedLocationType.ArrayElementAddress:
+					ArrayElementAddress.ArrayLocation.RetargetToPhi(pPhi);
+					ArrayElementAddress.IndexLocation.RetargetToPhi(pPhi);
+					break;
+				case IRLinearizedLocationType.ArrayLength: ArrayLength.ArrayLocation.RetargetToPhi(pPhi); break;
+				case IRLinearizedLocationType.Field: Field.FieldLocation.RetargetToPhi(pPhi); break;
+				case IRLinearizedLocationType.FieldAddress: FieldAddress.FieldLocation.RetargetToPhi(pPhi); break;
+				case IRLinearizedLocationType.Indirect: Indirect.AddressLocation.RetargetToPhi(pPhi); break;
+				case IRLinearizedLocationType.Phi: Phi.Sources.ForEach(l => l.RetargetToPhi(pPhi)); break;
 				default: break;
 			}
 		}

@@ -568,6 +568,15 @@ namespace Proton.VM.IR
 			}
 		}
 
+		private void RetargetToPhi(HashSet<int> pPhi)
+		{
+			foreach (IRInstruction instruction in Instructions)
+			{
+				if (instruction.Destination != null) instruction.Destination.RetargetToPhi(pPhi);
+				instruction.Sources.ForEach(l => l.RetargetToPhi(pPhi));
+			}
+		}
+
 		public void EnterSSA()
 		{
 			if (ControlFlowGraph == null) return;
@@ -629,10 +638,10 @@ namespace Proton.VM.IR
 			// iterations for an original local, only need to store sources to represent a phi
 			BitArray requiredPhis = new BitArray(originalCount, false);
 			IRLocal[] baseLocals = new IRLocal[originalCount];
+			HashSet<int> phiSources = new HashSet<int>();
 			foreach (IRControlFlowGraphNode node in ControlFlowGraph.Nodes)
 			{
 				if (node.ParentNodes.Count < 2) continue;
-				node.SSAPhiSources = new HashSet<IRLocal>[originalCount];
 				requiredPhis.SetAll(false);
 				node.ParentNodes[0].SSAFinalIterations.CopyTo(baseLocals, 0);
 				for (int parentIndex = 1; parentIndex < node.ParentNodes.Count; ++parentIndex)
@@ -648,12 +657,10 @@ namespace Proton.VM.IR
 				{
 					if (requiredPhis[index])
 					{
-						node.SSAPhiSources[index] = new HashSet<IRLocal>();
-						foreach (IRControlFlowGraphNode parentNode in node.ParentNodes)
-						{
-							if (!node.SSAPhiSources[index].Contains(parentNode.SSAFinalIterations[index]))
-								node.SSAPhiSources[index].Add(parentNode.SSAFinalIterations[index]);
-						}
+						phiSources.Clear();
+						node.ParentNodes.ForEach(n => phiSources.Add(n.SSAFinalIterations[index].Index));
+						retargettedNodes.SetAll(false);
+						RetargetToPhi(phiSources);
 					}
 				}
 			}

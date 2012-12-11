@@ -32,5 +32,11 @@ namespace Proton.VM
 			Array.Reverse(elements);
 			return new Stack<T>(elements);
 		}
+
+		public static bool Exists<T>(this IEnumerable<T> pThis, Func<T, bool> fc)
+		{
+			foreach (T t in pThis) if (fc(t)) return true;
+			return false;
+		}
 	}
 }
