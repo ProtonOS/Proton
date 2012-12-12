@@ -23,6 +23,5 @@
         FunctionAddress,
         RuntimeHandle,
         String,
-		Phi,
     }
 }

@@ -181,25 +181,19 @@ namespace Proton.VM.IR
 				}
 			}
 
-			//foreach (Node node in cfg.Nodes)
-			//{
-			//    if (node.ParentNodes.Count < 2) continue;
-			//    foreach (Node parentNode in node.ParentNodes)
-			//    {
-			//        if (parentNode == node.Dominator)
-			//        {
-			//            parentNode.DestinationFrontiers.Add(node);
-			//            node.SourceFrontiers.Add(parentNode);
-			//        }
-			//        Node treeNode = parentNode;
-			//        while (treeNode != node.Dominator)
-			//        {
-			//            treeNode.DestinationFrontiers.Add(node);
-			//            node.SourceFrontiers.Add(treeNode);
-			//            treeNode = treeNode.Dominator;
-			//        }
-			//    }
-			//}
+			foreach (IRControlFlowGraphNode node in cfg.Nodes)
+			{
+				if (node.ParentNodes.Count < 2) continue;
+				foreach (IRControlFlowGraphNode parentNode in node.ParentNodes)
+				{
+					IRControlFlowGraphNode treeNode = parentNode;
+					while (treeNode != node.Dominator)
+					{
+						treeNode.Frontiers.Add(node);
+						treeNode = treeNode.Dominator;
+					}
+				}
+			}
 
             return cfg;
         }

@@ -552,74 +552,51 @@ namespace Proton.VM.IR
             for (int index = 0; index < Instructions.Count; ++index) Instructions[index] = Instructions[index].Transform();
         }
 
-		private void RetargetLocal(IRControlFlowGraphNode pNode, int pStartInstructionIndex, IRLocal pOldLocal, IRLocal pNewLocal, BitArray pRetargettedNodes)
-		{
-			for (int index = pStartInstructionIndex; index < pNode.Instructions.Count; ++index)
-			{
-				IRInstruction instruction = pNode.Instructions[index];
-				if (instruction.Destination != null) instruction.Destination.RetargetLocal(pOldLocal.Index, pNewLocal.Index);
-				instruction.Sources.ForEach(l => l.RetargetLocal(pOldLocal.Index, pNewLocal.Index));
-			}
-			pRetargettedNodes.Set(pNode.Index, true);
-			foreach (IRControlFlowGraphNode childNode in pNode.ChildNodes)
-			{
-				if (pRetargettedNodes[childNode.Index]) continue;
-				RetargetLocal(childNode, 0, pOldLocal, pNewLocal, pRetargettedNodes);
-			}
-		}
-
-		private void RetargetToPhi(HashSet<int> pPhi)
-		{
-			foreach (IRInstruction instruction in Instructions)
-			{
-				if (instruction.Destination != null) instruction.Destination.RetargetToPhi(pPhi);
-				instruction.Sources.ForEach(l => l.RetargetToPhi(pPhi));
-			}
-		}
-
 		public void EnterSSA()
 		{
 			if (ControlFlowGraph == null) return;
 			int originalCount = Locals.Count;
-			bool[] originalsAssigned = new bool[originalCount];
-			int[] originalsIterations = new int[originalCount];
-			BitArray retargettedNodes = new BitArray(ControlFlowGraph.Nodes.Count, false);
-			IRLocal oldLocal = null;
-			IRLocal newLocal = null;
+			bool[] originalAssignments = new bool[originalCount];
+			int[] originalIterations = new int[originalCount];
+			IRLocal tempLocal = null;
 
 			Locals.ForEach(l => l.SSAData = new IRLocal.IRLocalSSAData(l));
-			// Expand local assignments, and retarget forward uses to new locals
+			// Add new local iterations for each assignment to an original local, and keep
+			// track of final iterations for each node, assigning true to indicate it was
+			// assigned, false means propagated (used later)
 			foreach (IRControlFlowGraphNode node in ControlFlowGraph.Nodes)
 			{
-				node.SSAFinalIterations = new IRLocal[originalCount];
+				node.SSAFinalIterations = new Tuple<IRLocal, bool>[originalCount];
+				node.SSAPhis = new IRLocal[originalCount];
 				foreach (IRInstruction instruction in node.Instructions)
 				{
 					if (instruction.Destination == null || instruction.Destination.Type != IRLinearizedLocationType.Local) continue;
-					oldLocal = Locals[instruction.Destination.Local.LocalIndex];
-					if (!originalsAssigned[oldLocal.SSAData.Original.Index])
+					tempLocal = Locals[instruction.Destination.Local.LocalIndex];
+					if (!originalAssignments[tempLocal.Index])
 					{
-						originalsAssigned[oldLocal.SSAData.Original.Index] = true;
-						node.SSAFinalIterations[oldLocal.SSAData.Original.Index] = oldLocal;
+						originalAssignments[tempLocal.Index] = true;
+						node.SSAFinalIterations[tempLocal.Index] = new Tuple<IRLocal, bool>(tempLocal, true);
 						continue;
 					}
-					newLocal = oldLocal.SSAData.Original.Clone(this);
-					Locals.Add(newLocal);
-					newLocal.SSAData.Iteration = ++originalsIterations[newLocal.SSAData.Original.Index];
-					instruction.Destination.Local.LocalIndex = newLocal.Index;
-					node.SSAFinalIterations[newLocal.SSAData.Original.Index] = newLocal;
-					retargettedNodes.SetAll(false);
-					RetargetLocal(node, (int)(instruction.IRIndex + 1), oldLocal, newLocal, retargettedNodes);
+					tempLocal = tempLocal.Clone(this);
+					Locals.Add(tempLocal);
+					tempLocal.SSAData.Iteration = ++originalIterations[tempLocal.SSAData.Original.Index];
+					instruction.Destination.Local.LocalIndex = tempLocal.Index;
+					node.SSAFinalIterations[tempLocal.SSAData.Original.Index] = new Tuple<IRLocal, bool>(tempLocal, true);
 				}
 			}
 
-			// Any SSAFinalIterations missing from the entry node means entry node did not assign to them,
-			// so they can be filled in with the original locals
+			// Any SSAFinalIterations missing from the entry node means the entry node
+			// did not assign to the original local, so they can be filled in with
+			// propagated original locals by, assigning false to indicate propagated
 			for (int index = 0; index < originalCount; ++index)
 			{
 				if (ControlFlowGraph.Nodes[0].SSAFinalIterations[index] == null)
-					ControlFlowGraph.Nodes[0].SSAFinalIterations[index] = Locals[index];
+					ControlFlowGraph.Nodes[0].SSAFinalIterations[index] = new Tuple<IRLocal, bool>(Locals[index], false);
 			}
-			// Propagate missing SSAFinalIterations for each node from dominance tree
+			// Any SSAFinalIterations missing from any node means the node did not
+			// assign to the original local, so they can be filled in with propagated
+			// locals using the dominance tree, assigning false to indicate propagated
 			foreach (IRControlFlowGraphNode node in ControlFlowGraph.Nodes)
 			{
 				for (int index = 0; index < originalCount; ++index)
@@ -628,42 +605,90 @@ namespace Proton.VM.IR
 					{
 						IRControlFlowGraphNode treeNode = node.Dominator;
 						while (treeNode.SSAFinalIterations[index] == null) treeNode = treeNode.Dominator;
-						node.SSAFinalIterations[index] = treeNode.SSAFinalIterations[index];
+						node.SSAFinalIterations[index] = new Tuple<IRLocal, bool>(treeNode.SSAFinalIterations[index].Item1, false);
 					}
 				}
 			}
 
-			// Use parent SSAFinalIterations to find original local iterations that differ
-			// Create representation of SSA Phi function where there is 2 or more more different
-			// iterations for an original local, only need to store sources to represent a phi
-			BitArray requiredPhis = new BitArray(originalCount, false);
-			IRLocal[] baseLocals = new IRLocal[originalCount];
-			HashSet<int> phiSources = new HashSet<int>();
-			foreach (IRControlFlowGraphNode node in ControlFlowGraph.Nodes)
+			// Now that all final iterations are known, we also know if the final
+			// iteration for a node was assigned or propagated
+			// So now we can create a phi, in the dominance frontiers of nodes which
+			// have assignments to original locals
+			// If the phi is the only assignment in a dominance frontier node, then
+			// the phi destination becomes the final iteration for that node
+			int localsBeforePhis = Locals.Count;
+			BitArray phiInserted = new BitArray(ControlFlowGraph.Nodes.Count, false);
+			BitArray localAssigned = new BitArray(ControlFlowGraph.Nodes.Count, false);
+			HashSet<IRControlFlowGraphNode> unprocessedNodes = new HashSet<IRControlFlowGraphNode>();
+			IRControlFlowGraphNode processingNode = null;
+			for (int originalIndex = 0; originalIndex < originalCount; ++originalIndex)
 			{
-				if (node.ParentNodes.Count < 2) continue;
-				requiredPhis.SetAll(false);
-				node.ParentNodes[0].SSAFinalIterations.CopyTo(baseLocals, 0);
-				for (int parentIndex = 1; parentIndex < node.ParentNodes.Count; ++parentIndex)
+				phiInserted.SetAll(false);
+				localAssigned.SetAll(false);
+				foreach (IRControlFlowGraphNode node in ControlFlowGraph.Nodes)
 				{
-					IRControlFlowGraphNode parentNode = node.ParentNodes[parentIndex];
-					for (int index = 0; index < originalCount; ++index)
+					if (node.SSAFinalIterations[originalIndex].Item2)
 					{
-						if (baseLocals[index] != parentNode.SSAFinalIterations[index])
-							requiredPhis.Set(index, true);
+						localAssigned.Set(node.Index, true);
+						unprocessedNodes.Add(node);
 					}
 				}
-				for (int index = 0; index < originalCount; ++index)
+				while (unprocessedNodes.Count > 0)
 				{
-					if (requiredPhis[index])
+					processingNode = unprocessedNodes.ElementAt(0);
+					unprocessedNodes.Remove(processingNode);
+					foreach (IRControlFlowGraphNode frontierNode in processingNode.Frontiers)
 					{
-						phiSources.Clear();
-						node.ParentNodes.ForEach(n => phiSources.Add(n.SSAFinalIterations[index].Index));
-						retargettedNodes.SetAll(false);
-						RetargetToPhi(phiSources);
+						if (!phiInserted[frontierNode.Index])
+						{
+							tempLocal = Locals[originalIndex].Clone(this);
+							Locals.Add(tempLocal);
+							tempLocal.SSAData.Iteration = ++originalIterations[originalIndex];
+							frontierNode.SSAPhis[originalIndex] = tempLocal;
+							if (!frontierNode.SSAFinalIterations[originalIndex].Item2) frontierNode.SSAFinalIterations[originalIndex] = new Tuple<IRLocal, bool>(tempLocal, true);
+							phiInserted.Set(frontierNode.Index, true);
+							if (!localAssigned[frontierNode.Index])
+							{
+								localAssigned.Set(frontierNode.Index, true);
+								unprocessedNodes.Add(frontierNode);
+							}
+						}
 					}
 				}
 			}
+
+			// Now we have assignments expanded, phi's created, and we can
+			// determine phi sources from a nodes parents final iterations,
+			// which we will use for leaving SSA later
+			// Initial iterations for each original local in a node can now
+			// be found through using the SSAPhi's if available, otherwise
+			// using immediate dominator final iterations, the entry node
+			// cannot have phis, and has no immediate dominator, so we just
+			// copy the original locals (iteration 0) as the currentIterations
+			// So finally, now we can retarget uses of original locals by
+			// keeping track of the current iterations, replacing source uses
+			// with current iterations, and updating the current iterations
+			// when there is local assignments
+			IRLocal[] currentIterations = new IRLocal[originalCount];
+			foreach (IRControlFlowGraphNode node in ControlFlowGraph.Nodes)
+			{
+				if (node.Index == 0) Locals.CopyTo(0, currentIterations, 0, originalCount);
+				else
+				{
+					for (int index = 0; index < originalCount; ++index)
+						currentIterations[index] = node.SSAPhis[index] ?? node.Dominator.SSAFinalIterations[index].Item1;
+				}
+				foreach (IRInstruction instruction in node.Instructions)
+				{
+					instruction.Sources.ForEach(l => l.RetargetLocals(currentIterations));
+					if (instruction.Destination != null && instruction.Destination.Type == IRLinearizedLocationType.Local)
+					{
+						tempLocal = Locals[instruction.Destination.Local.LocalIndex];
+						currentIterations[tempLocal.SSAData.Original.Index] = tempLocal;
+					}
+				}
+			}
+
 		}
 
 		public void LeaveSSA()

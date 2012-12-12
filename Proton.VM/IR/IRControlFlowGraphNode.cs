@@ -13,9 +13,9 @@ namespace Proton.VM.IR
 		public BitArray Dominators = null;
 		public int DominatorsCount = 0;
 		public IRControlFlowGraphNode Dominator = null;
-		//public List<Node> SourceFrontiers = new List<Node>();
-		//public List<Node> DestinationFrontiers = new List<Node>();
-		public IRLocal[] SSAFinalIterations = null;
+		public List<IRControlFlowGraphNode> Frontiers = new List<IRControlFlowGraphNode>();
+		public Tuple<IRLocal, bool>[] SSAFinalIterations = null;
+		public IRLocal[] SSAPhis = null;
 
 		public IRControlFlowGraphNode(int pIndex) { Index = pIndex; }
 
