@@ -69,6 +69,34 @@ namespace Proton.VM.IR
 			pWriter.WriteLine("{");
 			pWriter.Indent++;
 			DumpDetails(pWriter);
+
+			if (Destination != null)
+			{
+				pWriter.WriteLine("Destination {0}", Destination.Type);
+				pWriter.WriteLine("{");
+				pWriter.Indent++;
+				Destination.Dump(pWriter);
+				pWriter.Indent--;
+				pWriter.WriteLine("}");
+			}
+			if (Sources.Count > 0)
+			{
+				pWriter.WriteLine("Sources");
+				pWriter.WriteLine("{");
+				pWriter.Indent++;
+				for (int index = 0; index < Sources.Count; ++index)
+				{
+					pWriter.WriteLine("Source {0}", Sources[index].Type);
+					pWriter.WriteLine("{");
+					pWriter.Indent++;
+					Sources[index].Dump(pWriter);
+					pWriter.Indent--;
+					pWriter.WriteLine("}");
+				}
+				pWriter.Indent--;
+				pWriter.WriteLine("}");
+			}
+
 			pWriter.Indent--;
 			pWriter.WriteLine("}");
 		}

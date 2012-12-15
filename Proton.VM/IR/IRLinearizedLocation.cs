@@ -141,5 +141,129 @@ namespace Proton.VM.IR
 				default: break;
 			}
 		}
+
+		public void Dump(IndentableStreamWriter pWriter)
+		{
+			switch (Type)
+			{
+				case IRLinearizedLocationType.Null: break;
+				case IRLinearizedLocationType.Local:
+					pWriter.WriteLine("LocalIndex {0}", Local.LocalIndex);
+					break;
+				case IRLinearizedLocationType.LocalAddress:
+					pWriter.WriteLine("LocalIndex {0}", LocalAddress.LocalIndex);
+					break;
+				case IRLinearizedLocationType.Parameter:
+					pWriter.WriteLine("ParameterIndex {0}", Parameter.ParameterIndex);
+					break;
+				case IRLinearizedLocationType.ParameterAddress:
+					pWriter.WriteLine("ParameterIndex {0}", ParameterAddress.ParameterIndex);
+					break;
+				case IRLinearizedLocationType.ConstantI4:
+					pWriter.WriteLine("Value {0}", ConstantI4.Value);
+					break;
+				case IRLinearizedLocationType.ConstantI8:
+					pWriter.WriteLine("Value {0}", ConstantI8.Value);
+					break;
+				case IRLinearizedLocationType.ConstantR4:
+					pWriter.WriteLine("Value {0}", ConstantR4.Value);
+					break;
+				case IRLinearizedLocationType.ConstantR8:
+					pWriter.WriteLine("Value {0}", ConstantR8.Value);
+					break;
+				case IRLinearizedLocationType.Field:
+					pWriter.WriteLine("Field {0}", Field.Field.ToString());
+					pWriter.WriteLine("FieldLocation {0}", Field.FieldLocation.Type);
+					pWriter.WriteLine("{");
+					pWriter.Indent++;
+					Field.FieldLocation.Dump(pWriter);
+					pWriter.Indent--;
+					pWriter.WriteLine("}");
+					break;
+				case IRLinearizedLocationType.FieldAddress:
+					pWriter.WriteLine("Field {0}", FieldAddress.Field.ToString());
+					pWriter.WriteLine("FieldLocation {0}", FieldAddress.FieldLocation.Type);
+					pWriter.WriteLine("{");
+					pWriter.Indent++;
+					Field.FieldLocation.Dump(pWriter);
+					pWriter.Indent--;
+					pWriter.WriteLine("}");
+					break;
+				case IRLinearizedLocationType.StaticField:
+					pWriter.WriteLine("Field {0}", StaticField.Field.ToString());
+					break;
+				case IRLinearizedLocationType.StaticFieldAddress:
+					pWriter.WriteLine("Field {0}", StaticFieldAddress.Field.ToString());
+					break;
+				case IRLinearizedLocationType.Indirect:
+					pWriter.WriteLine("Type {0}", Indirect.Type.ToString());
+					pWriter.WriteLine("AddressLocation {0}", Indirect.AddressLocation.Type);
+					pWriter.WriteLine("{");
+					pWriter.Indent++;
+					Indirect.AddressLocation.Dump(pWriter);
+					pWriter.Indent--;
+					pWriter.WriteLine("}");
+					break;
+				case IRLinearizedLocationType.SizeOf:
+					pWriter.WriteLine("Type {0}", SizeOf.Type.ToString());
+					break;
+				case IRLinearizedLocationType.ArrayElement:
+					pWriter.WriteLine("ElementType {0}", ArrayElement.ElementType.ToString());
+					pWriter.WriteLine("NoChecksRequired {0}", ArrayElement.NoChecksRequired);
+					pWriter.WriteLine("ArrayLocation {0}", ArrayElement.ArrayLocation.Type);
+					pWriter.WriteLine("{");
+					pWriter.Indent++;
+					ArrayElement.ArrayLocation.Dump(pWriter);
+					pWriter.Indent--;
+					pWriter.WriteLine("}");
+					pWriter.WriteLine("IndexLocation {0}", ArrayElement.IndexLocation.Type);
+					pWriter.WriteLine("{");
+					pWriter.Indent++;
+					ArrayElement.IndexLocation.Dump(pWriter);
+					pWriter.Indent--;
+					pWriter.WriteLine("}");
+					break;
+				case IRLinearizedLocationType.ArrayElementAddress:
+					pWriter.WriteLine("ElementType {0}", ArrayElementAddress.ElementType.ToString());
+					pWriter.WriteLine("NoChecksRequired {0}", ArrayElementAddress.NoChecksRequired);
+					pWriter.WriteLine("ArrayLocation {0}", ArrayElementAddress.ArrayLocation.Type);
+					pWriter.WriteLine("{");
+					pWriter.Indent++;
+					ArrayElementAddress.ArrayLocation.Dump(pWriter);
+					pWriter.Indent--;
+					pWriter.WriteLine("}");
+					pWriter.WriteLine("IndexLocation {0}", ArrayElementAddress.IndexLocation.Type);
+					pWriter.WriteLine("{");
+					pWriter.Indent++;
+					ArrayElementAddress.IndexLocation.Dump(pWriter);
+					pWriter.Indent--;
+					pWriter.WriteLine("}");
+					break;
+				case IRLinearizedLocationType.ArrayLength:
+					pWriter.WriteLine("ArrayLocation {0}", ArrayLength.ArrayLocation.Type);
+					pWriter.WriteLine("{");
+					pWriter.Indent++;
+					ArrayLength.ArrayLocation.Dump(pWriter);
+					pWriter.Indent--;
+					pWriter.WriteLine("}");
+					break;
+				case IRLinearizedLocationType.FunctionAddress:
+					pWriter.WriteLine("Method {0}", FunctionAddress.Method.ToString());
+					pWriter.WriteLine("Virtual {0}", FunctionAddress.Virtual);
+					break;
+				case IRLinearizedLocationType.RuntimeHandle:
+					pWriter.WriteLine("HandleType {0}", RuntimeHandle.HandleType.ToString());
+					if (RuntimeHandle.TargetType != null)
+						pWriter.WriteLine("TargetType {0}", RuntimeHandle.TargetType.ToString());
+					if (RuntimeHandle.TargetMethod != null)
+						pWriter.WriteLine("TargetMethod {0}", RuntimeHandle.TargetMethod.ToString());
+					if (RuntimeHandle.TargetField != null)
+						pWriter.WriteLine("TargetField {0}", RuntimeHandle.TargetField.ToString());
+					break;
+				case IRLinearizedLocationType.String:
+					pWriter.WriteLine("Value {0}", String.Value);
+					break;
+			}
+		}
 	}
 }
