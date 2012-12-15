@@ -32,5 +32,10 @@ namespace Proton.VM.IR.Instructions
         }
 
         public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRMultiplyInstruction(OverflowType), pNewMethod); }
-    }
+
+		protected override void DumpDetails(IndentableStreamWriter pWriter)
+		{
+			pWriter.WriteLine("OverflowType {0}", OverflowType.ToString());
+		}
+	}
 }

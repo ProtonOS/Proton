@@ -7,7 +7,8 @@ namespace Proton.VM.IR
     public sealed class IRParameter
     {
         public IRAssembly Assembly = null;
-        public IRMethod ParentMethod = null;
+		private IRMethod mParentMethod = null;
+		public IRMethod ParentMethod { get { return mParentMethod; } set { if (value == null) throw new Exception(); mParentMethod = value; } }
 
 		private IRParameter mParentParameter = null;
 		private IRType mType;
@@ -20,10 +21,12 @@ namespace Proton.VM.IR
 					mType = mParentParameter.Type;
 					mParentParameter = null;
 				}
+				if (mType == null) throw new Exception();
 				return mType;
 			}
 			set
 			{
+				if (value == null && mParentParameter == null) throw new Exception();
 				mType = value;
 			}
 		}
@@ -45,9 +48,9 @@ namespace Proton.VM.IR
         public IRParameter Clone(IRMethod newMethod)
         {
             IRParameter p = new IRParameter(this.Assembly);
-            p.ParentMethod = newMethod;
-			p.Type = this.Type;
-			p.mParentParameter = this.Type == null ? this : null;
+			p.ParentMethod = newMethod;
+			p.mParentParameter = this.mType == null ? this : null;
+			p.Type = this.mType;
             return p;
         }
 

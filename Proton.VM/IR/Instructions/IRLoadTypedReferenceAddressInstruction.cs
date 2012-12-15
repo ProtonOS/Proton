@@ -5,7 +5,8 @@ namespace Proton.VM.IR.Instructions
 {
     public sealed class IRLoadTypedReferenceAddressInstruction : IRInstruction
     {
-        public IRType Type { get; private set; }
+		private IRType mType = null;
+		public IRType Type { get { return mType; } private set { mType = value; } }
 
         public IRLoadTypedReferenceAddressInstruction(IRType pType) : base(IROpcode.LoadTypedReferenceAddress) { Type = pType; }
 
@@ -23,5 +24,17 @@ namespace Proton.VM.IR.Instructions
         }
 
         public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRLoadTypedReferenceAddressInstruction(Type), pNewMethod); }
-    }
+
+		public override bool Resolved { get { return Type.Resolved; } }
+		public override void Resolve()
+		{
+			base.Resolve();
+			Type.Resolve(ref mType, ParentMethod.ParentType.GenericParameters, ParentMethod.GenericParameters);
+		}
+
+		protected override void DumpDetails(IndentableStreamWriter pWriter)
+		{
+			pWriter.WriteLine("Type {0}", Type.ToString());
+		}
+	}
 }

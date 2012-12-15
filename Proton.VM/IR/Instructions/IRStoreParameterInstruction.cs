@@ -20,5 +20,10 @@ namespace Proton.VM.IR.Instructions
         public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRStoreParameterInstruction(ParameterIndex), pNewMethod); }
 
         public override IRInstruction Transform() { return new IRMoveInstruction(this); }
-    }
+
+		protected override void DumpDetails(IndentableStreamWriter pWriter)
+		{
+			pWriter.WriteLine("Parameter {0}", ParameterIndex);
+		}
+	}
 }

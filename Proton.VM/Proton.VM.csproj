@@ -35,6 +35,7 @@
     <Compile Include="IL\ILExtendedOpcode.cs" />
     <Compile Include="IL\ILOpcode.cs" />
     <Compile Include="IL\ILReader.cs" />
+    <Compile Include="IndentableStreamWriter.cs" />
     <Compile Include="IR\IRControlFlowGraphNode.cs" />
     <Compile Include="IR\IRGenericParameterList.cs" />
     <Compile Include="IR\Instructions\IRAddInstruction.cs" />

@@ -147,6 +147,7 @@ namespace Proton.VM.IR
             Assemblies.ForEach(a => a.LoadStage4());
 			Assemblies.ForEach(a => a.LoadStage5());
 			Assemblies.ForEach(a => a.LoadStage6());
+			Dump();
 			return assembly;
         }
 
@@ -202,8 +203,15 @@ namespace Proton.VM.IR
 			{
 				method.ParentType = PresolveGenericType(pGenericMethod.ParentType, pParentTypeGenericParameters);
 			}
-            pGenericMethod.Parameters.ForEach(p => method.Parameters.Add(new IRParameter(pGenericMethod.Assembly)));
-            method.GenericParameters.AddRange(pGenericParameterTypes);
+			method.GenericParameters.AddRange(pGenericParameterTypes);
+			for (int index = 0; index < pGenericMethod.Parameters.Count; ++index)
+			{
+				IRParameter parameter = pGenericMethod.Parameters[index];
+				IRParameter newParameter = new IRParameter(pGenericMethod.Assembly);
+				newParameter.ParentMethod = method;
+				newParameter.Type = parameter.Type;
+				method.Parameters.Add(newParameter);
+			}
             return method;
         }
 
@@ -690,5 +698,17 @@ namespace Proton.VM.IR
             else throw new ArgumentException();
             return resultType;
         }
+
+		public void Dump()
+		{
+			IndentableStreamWriter writer = new IndentableStreamWriter("AppDomainDump.txt");
+			writer.WriteLine("IRAppDomain 1");
+			writer.WriteLine("{");
+			writer.Indent++;
+			Assemblies.ForEach(a => a.Dump(writer));
+			writer.Indent--;
+			writer.WriteLine("}");
+			writer.Close();
+		}
     }
 }

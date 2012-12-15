@@ -5,7 +5,8 @@ namespace Proton.VM.IR.Instructions
 {
     public sealed class IRNewObjectInstruction : IRInstruction
     {
-        public IRMethod Constructor { get; private set; }
+		private IRMethod mConstructor = null;
+		public IRMethod Constructor { get { return mConstructor; } private set { mConstructor = value; } }
 
         public IRNewObjectInstruction(IRMethod pConstructor) : base(IROpcode.NewObject) { Constructor = pConstructor; }
 
@@ -23,5 +24,17 @@ namespace Proton.VM.IR.Instructions
         }
 
         public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRNewObjectInstruction(Constructor), pNewMethod); }
-    }
+
+		public override bool Resolved { get { return Constructor.Resolved; } }
+		public override void Resolve()
+		{
+			base.Resolve();
+			Constructor.Resolve(ref mConstructor, ParentMethod.ParentType.GenericParameters, ParentMethod.GenericParameters);
+		}
+
+		protected override void DumpDetails(IndentableStreamWriter pWriter)
+		{
+			pWriter.WriteLine("Constructor {0}", Constructor.ToString());
+		}
+	}
 }

@@ -5,8 +5,10 @@ namespace Proton.VM.IR.Instructions
 {
     public sealed class IRLoadRuntimeHandleInstruction : IRInstruction
     {
-        public IRType TargetType { get; private set; }
-        public IRMethod TargetMethod { get; private set; }
+		private IRType mTargetType = null;
+		public IRType TargetType { get { return mTargetType; } private set { mTargetType = value; } }
+		private IRMethod mTargetMethod = null;
+		public IRMethod TargetMethod { get { return mTargetMethod; } private set { mTargetMethod = value; } }
         public IRField TargetField { get; private set; }
 
         public IRLoadRuntimeHandleInstruction(IRType pTargetType, IRMethod pTargetMethod, IRField pTargetField) : base(IROpcode.LoadRuntimeHandle)
@@ -42,5 +44,21 @@ namespace Proton.VM.IR.Instructions
         public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRLoadRuntimeHandleInstruction(TargetType, TargetMethod, TargetField), pNewMethod); }
 
         public override IRInstruction Transform() { return new IRMoveInstruction(this); }
-    }
+
+		public override bool Resolved { get { return (TargetType != null && TargetType.Resolved) || (TargetMethod != null && TargetMethod.Resolved) || (TargetField != null && TargetField.Resolved); } }
+		public override void Resolve()
+		{
+			base.Resolve();
+			if (TargetType != null) TargetType.Resolve(ref mTargetType, ParentMethod.ParentType.GenericParameters, ParentMethod.GenericParameters);
+			if (TargetMethod != null) TargetMethod.Resolve(ref mTargetMethod, ParentMethod.ParentType.GenericParameters, ParentMethod.GenericParameters);
+			if (TargetField != null) TargetField.Resolve();
+		}
+
+		protected override void DumpDetails(IndentableStreamWriter pWriter)
+		{
+			if (TargetType != null) pWriter.WriteLine("TargetType {0}", TargetType.ToString());
+			if (TargetMethod != null) pWriter.WriteLine("TargetMethod {0}", TargetMethod.ToString());
+			if (TargetField != null) pWriter.WriteLine("TargetField {0}", TargetField.ToString());
+		}
+	}
 }

@@ -57,5 +57,10 @@ namespace Proton.VM.IR.Instructions
         }
 
         public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRBranchInstruction(BranchCondition, TargetILOffset) { TargetIRInstruction = this.TargetIRInstruction }, pNewMethod); }
-    }
+
+		protected override void DumpDetails(IndentableStreamWriter pWriter)
+		{
+			pWriter.WriteLine("BranchCondition {0}", BranchCondition);
+		}
+	}
 }

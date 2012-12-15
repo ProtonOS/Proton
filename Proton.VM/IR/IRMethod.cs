@@ -26,13 +26,16 @@ namespace Proton.VM.IR
         public readonly IRInstructionList Instructions = new IRInstructionList();
 
         private bool? mResolvedCache;
+		private bool mResolving = false;
         public bool Resolved
         {
             get
             {
                 if (mResolvedCache != null)
                     return mResolvedCache.Value;
-
+				if (mResolving)
+					return true;
+				mResolving = true;
 				if (ReturnType != null && ReturnType != ParentType)
 				{
 					if (!ReturnType.Resolved) return false;
@@ -42,11 +45,12 @@ namespace Proton.VM.IR
 				if (!Instructions.TrueForAll(i => i.Resolved)) return false;
 
 				mResolvedCache = true;
+				mResolving = false;
                 return true;
             }
         }
 
-		public void Resolve(ref IRMethod selfReference)
+		public void Resolve(ref IRMethod selfReference, IRGenericParameterList typeParams, IRGenericParameterList methodParams)
 		{
 			if (!Resolved)
 			{
@@ -63,12 +67,15 @@ namespace Proton.VM.IR
 
         public void Substitute(IRGenericParameterList methodParams)
         {
-			GenericParameters.Substitute(IRGenericParameterList.Empty, methodParams);
-			if (ReturnType != null)
-				ReturnType.Resolve(ref ReturnType, ParentType.GenericParameters, GenericParameters);
-			Parameters.ForEach(p => p.Substitute());
-			Locals.ForEach(l => l.Substitute());
-			Instructions.ForEach(i => i.Substitute());
+			if (!mResolving)
+			{
+				GenericParameters.Substitute(IRGenericParameterList.Empty, methodParams);
+				if (ReturnType != null)
+					ReturnType.Resolve(ref ReturnType, ParentType.GenericParameters, GenericParameters);
+				Parameters.ForEach(p => p.Substitute());
+				Locals.ForEach(l => l.Substitute());
+				Instructions.ForEach(i => i.Substitute());
+			}
         }
 
 		/// <summary>
@@ -107,16 +114,21 @@ namespace Proton.VM.IR
         public ushort MaximumStackDepth = 0;
 		public IRControlFlowGraph ControlFlowGraph = null;
 
+		private static int sTempID = 0;
+		private int mTempID = 0;
+
         public IRMethod(IRAssembly pAssembly)
         {
             Assembly = pAssembly;
 			Assembly.AppDomain.Methods.Add(this);
+			mTempID = sTempID++;
         }
 
 		public override string ToString()
 		{
 			StringBuilder sb = new StringBuilder();
 
+			//if (GenericMethod != null) return GenericMethod.ToString();
 			sb.Append(ReturnType == null ? "(null)" : ReturnType.ToString());
 			sb.Append(" ");
 			sb.Append(ParentType.ToString());
@@ -693,6 +705,24 @@ namespace Proton.VM.IR
 
 		public void LeaveSSA()
 		{
+		}
+
+
+
+		public void Dump(IndentableStreamWriter pWriter)
+		{
+			pWriter.WriteLine("IRMethod {0}", ToString());
+			pWriter.WriteLine("{");
+			pWriter.Indent++;
+			Locals.ForEach(l => l.Dump(pWriter));
+			pWriter.WriteLine("IRInstructions");
+			pWriter.WriteLine("{");
+			pWriter.Indent++;
+			Instructions.ForEach(i => i.Dump(pWriter));
+			pWriter.Indent--;
+			pWriter.WriteLine("}");
+			pWriter.Indent--;
+			pWriter.WriteLine("}");
 		}
     }
 }

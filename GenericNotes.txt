@@ -1,0 +1,98 @@
+Resolutions
+
+// SomeBase<string> is completely resolved
+class SomeClass : SomeBase<string>
+
+// SomeClass<T> is unresolved
+// SomeBase<T> is unresolved
+class SomeClass<T> : SomeBase<T>
+
+// SomeClass<T> is unresolved
+// SomeBase<string, T> is partly resolved
+class SomeClass<T> : SomeBase<string, T>
+
+// SomeClass<T> is unresolved
+// T SomeField is unresolved
+// T SomeMethod() is unresolved
+class SomeClass<T>
+{
+    T SomeField;
+
+    T SomeMethod();
+}
+
+// M SomeMethod<M>() is unresolved
+class SomeClass
+{
+    M SomeMethod<M>();
+}
+
+
+// SomeClass<T> is unresolved
+// void SomeMethod<M>(T someParameter1, M someParameter2) is unresolved
+class SomeClass<T>
+{
+    void SomeMethod<M>(T someParameter1, M someParameter2);
+}
+
+// SomeClass<T> is unresolved
+// void SomeMethod<M>(T someParameter1, M someParameter2) is unresolved
+// T someLocal1 is unresolved
+// M someLocal2 is unresolved
+class SomeClass<T>
+{
+    void SomeMethod<M>(T someParameter1, M someParameter2)
+    {
+        T someLocal1;
+        M someLocal2;
+    }
+}
+
+
+// SomeBase<T> is unresolved
+// SomeOtherBase<T> is unresolved (recursion)
+class SomeBase<T> : SomeOtherBase<T> { }
+
+// SomeClass<T> is unresolved
+// SomeBase<T> is unresolved (recursion)
+// T SomeField is unresolved
+// Dictionary<T, M> SomeMethod<M>(T someParameter1, M someParameter2) is unresolved
+// T someLocal1 is unresolved
+// M someLocal2 is unresolved
+// T[] someArray1 = new T[] is unresolved (array types)
+// M[] someArray2 = new M[] is unresolved (array types)
+// Dictionary<T, M> someDictionary = new Dictionary<T, M>() is unresolved (recursive, newarr and other instruction targets)
+class SomeClass<T> : SomeBase<T>
+{
+    T SomeField;
+
+    Dictionary<T, M> SomeMethod<M>(T someParameter1, M someParameter2)
+    {
+        T someLocal1;
+        M someLocal2;
+        T[] someArray1 = new T[];
+        M[] someArray2 = new M[];
+        Dictionary<T, M> someDictionary = new Dictionary<T, M>();
+    }
+}
+
+
+Cloning (Temporary Generic versions to be Substituted after Resolutions)
+
+Types
+Fields
+Parameters
+Locals
+Instructions
+Linearized Locations
+
+
+Substitutions
+
+Types
+Base Types (From Parent Types)
+Fields (From Parent Types)
+Parameters (From Parent Types and Parent Method Types)
+Locals (From Parent Types and Parent Method Types)
+Instruction Arguments (From Parent Types and Parent Method Types)
+Instruction Linearized Locations (From Parent Types and Parent Method Types)

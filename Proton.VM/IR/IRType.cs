@@ -70,14 +70,15 @@ namespace Proton.VM.IR
             {
 				if (mResolvedCache != null)
 					return mResolvedCache.Value;
+				
+				if (IsTemporaryVar) return false;
+				if (IsTemporaryMVar) return false;
 				if (mResolving)
 					return true;
 
 				mResolving = true;
 				if (!GenericParameters.Resolved) return false;
-				if (IsTemporaryVar) return false;
-				if (IsTemporaryMVar) return false;
-				//if (GenericType != null && (Fields.Count != GenericType.Fields.Count || Methods.Count != GenericType.Methods.Count)) return false;
+				if (GenericType != null && (Fields.Count != GenericType.Fields.Count || Methods.Count != GenericType.Methods.Count)) return false;
                 if (PointerType != null && !PointerType.Resolved) return false;
                 if (ArrayType != null && !ArrayType.Resolved) return false;
                 if (BaseType != null && !BaseType.Resolved) return false;
@@ -192,7 +193,7 @@ namespace Proton.VM.IR
 						if (!GenericTypes.TryGetValue(this, out tp))
 						{
 							tp = this.GenericType.Clone();
-							tp.GenericParameters.Substitute(typeParams, methodParams);
+							tp.GenericParameters.Substitute(this.GenericParameters, methodParams);
 							GenericTypes[tp] = tp;
 
 							for (int i = 0; i < tp.GenericParameters.Count; i++)
@@ -236,7 +237,7 @@ namespace Proton.VM.IR
 				this.BaseType.Resolve(ref this.BaseType, this.GenericParameters, IRGenericParameterList.Empty);
 
             this.Fields.ForEach(f => f.Substitute());
-			this.Methods.ForEach(m => m.Substitute(IRGenericParameterList.Empty));
+			this.Methods.ForEach(m => m.Substitute(m.GenericParameters));
         }
 
 
@@ -358,6 +359,17 @@ namespace Proton.VM.IR
 				nn += GenericParameters.ToString();
 			}
 			return nn;
+		}
+
+		public void Dump(IndentableStreamWriter pWriter)
+		{
+			pWriter.WriteLine("IRType {0}", ToString());
+			pWriter.WriteLine("{");
+			pWriter.Indent++;
+			Fields.ForEach(f => f.Dump(pWriter));
+			Methods.ForEach(m => m.Dump(pWriter));
+			pWriter.Indent--;
+			pWriter.WriteLine("}");
 		}
     }
 }

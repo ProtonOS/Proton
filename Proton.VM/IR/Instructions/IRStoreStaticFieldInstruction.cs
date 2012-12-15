@@ -20,5 +20,17 @@ namespace Proton.VM.IR.Instructions
         public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRStoreStaticFieldInstruction(Field), pNewMethod); }
 
         public override IRInstruction Transform() { return new IRMoveInstruction(this); }
-    }
+
+		public override bool Resolved { get { return Field.Resolved; } }
+		public override void Resolve()
+		{
+			base.Resolve();
+			Field.Resolve();
+		}
+
+		protected override void DumpDetails(IndentableStreamWriter pWriter)
+		{
+			pWriter.WriteLine("Field {0}", Field.ToString());
+		}
+	}
 }

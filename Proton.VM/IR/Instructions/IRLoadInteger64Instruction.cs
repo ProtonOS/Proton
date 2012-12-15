@@ -26,5 +26,10 @@ namespace Proton.VM.IR.Instructions
         public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRLoadInteger64Instruction(Value), pNewMethod); }
 
         public override IRInstruction Transform() { return new IRMoveInstruction(this); }
-    }
+
+		protected override void DumpDetails(IndentableStreamWriter pWriter)
+		{
+			pWriter.WriteLine("Value {0}", Value);
+		}
+	}
 }

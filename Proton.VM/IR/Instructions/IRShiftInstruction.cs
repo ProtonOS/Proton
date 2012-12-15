@@ -32,5 +32,10 @@ namespace Proton.VM.IR.Instructions
         }
 
         public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRShiftInstruction(ShiftType), pNewMethod); }
-    }
+
+		protected override void DumpDetails(IndentableStreamWriter pWriter)
+		{
+			pWriter.WriteLine("ShiftType {0}", ShiftType.ToString());
+		}
+	}
 }

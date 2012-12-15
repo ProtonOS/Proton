@@ -62,5 +62,17 @@ namespace Proton.VM.IR
         }
 
         public virtual IRInstruction Transform() { return this; }
+
+		public void Dump(IndentableStreamWriter pWriter)
+		{
+			pWriter.WriteLine("IRInstruction {0}", Opcode.ToString());
+			pWriter.WriteLine("{");
+			pWriter.Indent++;
+			DumpDetails(pWriter);
+			pWriter.Indent--;
+			pWriter.WriteLine("}");
+		}
+
+		protected virtual void DumpDetails(IndentableStreamWriter pWriter) { }
     }
 }

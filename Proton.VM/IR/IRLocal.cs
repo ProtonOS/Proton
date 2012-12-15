@@ -82,5 +82,10 @@ namespace Proton.VM.IR
 		{
 			return Type.ToString() + ": " + Index.ToString();
 		}
+
+		public void Dump(IndentableStreamWriter pWriter)
+		{
+			pWriter.WriteLine("IRLocal {0}", ToString());
+		}
     }
 }

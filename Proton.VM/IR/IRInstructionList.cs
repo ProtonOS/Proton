@@ -36,7 +36,7 @@ namespace Proton.VM.IR
         public void Add(IRInstruction pInstruction)
         {
             mInstructions.Add(pInstruction);
-            if (!pInstruction.Resolved) mResolvedCache = false;
+            mResolvedCache = null;
             mILOffsetLookup.Add(pInstruction.ILOffset, pInstruction);
         }
 

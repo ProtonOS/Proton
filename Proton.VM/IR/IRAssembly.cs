@@ -28,7 +28,16 @@ namespace Proton.VM.IR
 			Console.WriteLine("========== Stage 1: {0,-45} ==========", File.ReferenceName);
 			foreach (TypeDefData typeDefData in File.TypeDefTable) Types.Add(new IRType(this));
             foreach (FieldData fieldData in File.FieldTable) Fields.Add(new IRField(this));
-            foreach (MethodDefData methodDefData in File.MethodDefTable) Methods.Add(new IRMethod(this));
+			foreach (MethodDefData methodDefData in File.MethodDefTable)
+			{
+				IRMethod method = new IRMethod(this);
+				Methods.Add(method);
+				var mGenParams = File.GenericParamTable.Where(gp => gp.Owner.Type == TypeOrMethodDefIndex.TypeOrMethodDefType.MethodDef && gp.Owner.MethodDef == methodDefData).ToList();
+				for (int i = 0; i < mGenParams.Count; i++)
+				{
+					method.GenericParameters.Add(IRType.GetMVarPlaceholder(mGenParams[i].Number));
+				}
+			}
 
             for (int typeIndex = 0; typeIndex < Types.Count; ++typeIndex)
             {
@@ -113,12 +122,8 @@ namespace Proton.VM.IR
             {
                 IRMethod method = Methods[methodIndex];
 				MethodDefData methodDefData = File.MethodDefTable[methodIndex];
-				var mGenParams = File.GenericParamTable.Where(gp => gp.Owner.Type == TypeOrMethodDefIndex.TypeOrMethodDefType.MethodDef && gp.Owner.MethodDef == methodDefData).ToList();
-				for (int i = 0; i < mGenParams.Count; i++)
-				{
-					method.GenericParameters.Add(IRType.GetMVarPlaceholder(mGenParams[i].Number));
-				}
-                method.ReturnType = AppDomain.PresolveType(methodDefData.ExpandedSignature.RetType);
+
+				method.ReturnType = AppDomain.PresolveType(methodDefData.ExpandedSignature.RetType);
                 for (int parameterIndex = 0; parameterIndex < method.Parameters.Count; ++parameterIndex)
                 {
                     IRParameter parameter = method.Parameters[parameterIndex];
@@ -171,9 +176,21 @@ namespace Proton.VM.IR
 		{
 			Console.WriteLine("========== Stage 6: {0,-45} ==========", File.ReferenceName);
 			// Optimizations
-			AppDomain.Methods.ForEach(m => m.ControlFlowGraph = IRControlFlowGraph.Build(m));
-			AppDomain.Methods.ForEach(m => m.EnterSSA());
-			AppDomain.Methods.ForEach(m => m.LeaveSSA());
+			//AppDomain.Methods.ForEach(m => m.ControlFlowGraph = IRControlFlowGraph.Build(m));
+			//AppDomain.Methods.ForEach(m => m.EnterSSA());
+			//AppDomain.Methods.ForEach(m => m.LeaveSSA());
+		}
+
+
+
+		public void Dump(IndentableStreamWriter pWriter)
+		{
+			pWriter.WriteLine("IRAssembly {0}", File.ReferenceName);
+			pWriter.WriteLine("{");
+			pWriter.Indent++;
+			Types.ForEach(t => t.Dump(pWriter));
+			pWriter.Indent--;
+			pWriter.WriteLine("}");
 		}
     }
 }

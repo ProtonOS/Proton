@@ -9,12 +9,12 @@ namespace Proton.VM.IR.Instructions
     public sealed class IRUnboxInstruction : IRInstruction
     {
         public IRType Type = null;
-        public bool Value = false;
+        public bool GetValue = false;
 
         public IRUnboxInstruction(IRType pType, bool pValue) : base(IROpcode.Unbox)
         {
             Type = pType;
-            Value = pValue;
+            GetValue = pValue;
         }
 
         public override void Linearize(Stack<IRStackObject> pStack)
@@ -22,7 +22,7 @@ namespace Proton.VM.IR.Instructions
             Sources.Add(new IRLinearizedLocation(pStack.Pop().LinearizedTarget));
 
             IRType resultType = Type;
-            if (!Value) resultType = ParentMethod.Assembly.AppDomain.GetPointerType(Type);
+            if (!GetValue) resultType = ParentMethod.Assembly.AppDomain.GetPointerType(Type);
             IRStackObject result = new IRStackObject();
             result.Type = resultType;
             result.LinearizedTarget = new IRLinearizedLocation(IRLinearizedLocationType.Local);
@@ -31,6 +31,19 @@ namespace Proton.VM.IR.Instructions
             pStack.Push(result);
         }
 
-        public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRUnboxInstruction(Type, Value), pNewMethod); }
+        public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRUnboxInstruction(Type, GetValue), pNewMethod); }
+
+		public override bool Resolved { get { return Type.Resolved; } }
+		public override void Resolve()
+		{
+			base.Resolve();
+			Type.Resolve(ref Type, ParentMethod.ParentType.GenericParameters, ParentMethod.GenericParameters);
+		}
+
+		protected override void DumpDetails(IndentableStreamWriter pWriter)
+		{
+			pWriter.WriteLine("Type {0}", Type.ToString());
+			pWriter.WriteLine("GetValue {0}", GetValue);
+		}
     }
 }

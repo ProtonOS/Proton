@@ -26,5 +26,10 @@ namespace Proton.VM.IR.Instructions
         public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRLoadLocalAddressInstruction(LocalIndex), pNewMethod); }
 
         public override IRInstruction Transform() { return new IRMoveInstruction(this); }
-    }
+
+		protected override void DumpDetails(IndentableStreamWriter pWriter)
+		{
+			pWriter.WriteLine("LocalIndex {0}", LocalIndex);
+		}
+	}
 }

@@ -5,7 +5,8 @@ namespace Proton.VM.IR.Instructions
 {
     public sealed class IRJumpInstruction : IRInstruction
     {
-        public IRMethod Target { get; private set; }
+		private IRMethod mTarget = null;
+		public IRMethod Target { get { return mTarget; } private set { mTarget = value; } }
 
         public IRJumpInstruction(IRMethod pTarget) : base(IROpcode.Jump) { Target = pTarget; }
 
@@ -15,5 +16,17 @@ namespace Proton.VM.IR.Instructions
         }
 
         public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRJumpInstruction(Target), pNewMethod); }
-    }
+
+		public override bool Resolved { get { return Target.Resolved; } }
+		public override void Resolve()
+		{
+			base.Resolve();
+			Target.Resolve(ref mTarget, ParentMethod.ParentType.GenericParameters, ParentMethod.GenericParameters);
+		}
+
+		protected override void DumpDetails(IndentableStreamWriter pWriter)
+		{
+			pWriter.WriteLine("Target {0}", Target.ToString());
+		}
+	}
 }

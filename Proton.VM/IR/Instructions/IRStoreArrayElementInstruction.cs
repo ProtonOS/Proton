@@ -5,7 +5,8 @@ namespace Proton.VM.IR.Instructions
 {
     public sealed class IRStoreArrayElementInstruction : IRInstruction
     {
-        public IRType Type { get; private set; }
+		private IRType mType = null;
+		public IRType Type { get { return mType; } private set { mType = value; } }
 
         public IRStoreArrayElementInstruction(IRType pType) : base(IROpcode.StoreArrayElement) { Type = pType; }
 
@@ -27,5 +28,17 @@ namespace Proton.VM.IR.Instructions
         public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRStoreArrayElementInstruction(Type), pNewMethod); }
 
         public override IRInstruction Transform() { return new IRMoveInstruction(this); }
-    }
+
+		public override bool Resolved { get { return Type.Resolved; } }
+		public override void Resolve()
+		{
+			base.Resolve();
+			Type.Resolve(ref mType, ParentMethod.ParentType.GenericParameters, ParentMethod.GenericParameters);
+		}
+
+		protected override void DumpDetails(IndentableStreamWriter pWriter)
+		{
+			pWriter.WriteLine("Type {0}", Type.ToString());
+		}
+	}
 }

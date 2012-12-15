@@ -31,5 +31,10 @@ namespace Proton.VM.IR.Instructions
         }
 
         public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRCompareInstruction(CompareCondition), pNewMethod); }
-    }
+
+		protected override void DumpDetails(IndentableStreamWriter pWriter)
+		{
+			pWriter.WriteLine("CompareCondition {0}", CompareCondition.ToString());
+		}
+	}
 }

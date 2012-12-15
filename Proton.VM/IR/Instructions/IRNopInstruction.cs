@@ -12,5 +12,10 @@ namespace Proton.VM.IR.Instructions
         public override void Linearize(Stack<IRStackObject> pStack) { }
 
         public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRNopInstruction(ForceEmit), pNewMethod); }
-    }
+
+		protected override void DumpDetails(IndentableStreamWriter pWriter)
+		{
+			pWriter.WriteLine("ForceEmit {0}", ForceEmit);
+		}
+	}
 }

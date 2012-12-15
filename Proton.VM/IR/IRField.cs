@@ -87,5 +87,10 @@ namespace Proton.VM.IR
             if (Name != pMemberRefData.Name) return false;
             return CompareSignature(pMemberRefData.ExpandedFieldSignature);
         }
-    }
+
+		public void Dump(IndentableStreamWriter pWriter)
+		{
+			pWriter.WriteLine("IRField {0}", ToString());
+		}
+	}
 }
