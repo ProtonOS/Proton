@@ -13,8 +13,14 @@ namespace Proton.VM.IR.Instructions
         public override void Linearize(Stack<IRStackObject> pStack)
         {
             IRLinearizedLocation source = new IRLinearizedLocation(IRLinearizedLocationType.ArrayElementAddress);
-            source.ArrayElementAddress.IndexLocation = new IRLinearizedLocation(pStack.Pop().LinearizedTarget);
-            source.ArrayElementAddress.ArrayLocation = new IRLinearizedLocation(pStack.Pop().LinearizedTarget);
+			source.ArrayElementAddress.IndexLocation = new IRLinearizedLocation(pStack.Pop().LinearizedTarget);
+			var arraySource = pStack.Pop();
+			source.ArrayElementAddress.ArrayLocation = new IRLinearizedLocation(arraySource.LinearizedTarget);
+			if (Type == null)
+			{
+				Type = arraySource.Type.ArrayElementType;
+			}
+			if (Type == null) throw new Exception();
             source.ArrayElementAddress.ElementType = Type;
             Sources.Add(source);
 

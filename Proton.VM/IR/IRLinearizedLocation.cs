@@ -37,14 +37,12 @@ namespace Proton.VM.IR
             public IRType ElementType;
             public IRLinearizedLocation ArrayLocation;
             public IRLinearizedLocation IndexLocation;
-            public bool NoChecksRequired;
         }
         public struct ArrayElementAddressLocationData
         {
             public IRType ElementType;
             public IRLinearizedLocation ArrayLocation;
             public IRLinearizedLocation IndexLocation;
-            public bool NoChecksRequired;
         }
         public struct ArrayLengthLocationData { public IRLinearizedLocation ArrayLocation; }
         public struct FunctionAddressLocationData
@@ -185,7 +183,7 @@ namespace Proton.VM.IR
 					pWriter.WriteLine("FieldLocation {0}", FieldAddress.FieldLocation.Type);
 					pWriter.WriteLine("{");
 					pWriter.Indent++;
-					Field.FieldLocation.Dump(pWriter);
+					FieldAddress.FieldLocation.Dump(pWriter);
 					pWriter.Indent--;
 					pWriter.WriteLine("}");
 					break;
@@ -209,7 +207,6 @@ namespace Proton.VM.IR
 					break;
 				case IRLinearizedLocationType.ArrayElement:
 					pWriter.WriteLine("ElementType {0}", ArrayElement.ElementType.ToString());
-					pWriter.WriteLine("NoChecksRequired {0}", ArrayElement.NoChecksRequired);
 					pWriter.WriteLine("ArrayLocation {0}", ArrayElement.ArrayLocation.Type);
 					pWriter.WriteLine("{");
 					pWriter.Indent++;
@@ -225,7 +222,6 @@ namespace Proton.VM.IR
 					break;
 				case IRLinearizedLocationType.ArrayElementAddress:
 					pWriter.WriteLine("ElementType {0}", ArrayElementAddress.ElementType.ToString());
-					pWriter.WriteLine("NoChecksRequired {0}", ArrayElementAddress.NoChecksRequired);
 					pWriter.WriteLine("ArrayLocation {0}", ArrayElementAddress.ArrayLocation.Type);
 					pWriter.WriteLine("{");
 					pWriter.Indent++;

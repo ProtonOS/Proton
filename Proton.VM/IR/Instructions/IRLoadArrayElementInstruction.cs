@@ -21,8 +21,9 @@ namespace Proton.VM.IR.Instructions
             source.ArrayElement.ArrayLocation = new IRLinearizedLocation(arraySource.LinearizedTarget);
 			if (Type == null)
 			{
-				Type = arraySource.Type.ArrayType;
+				Type = arraySource.Type.ArrayElementType;
 			}
+			if (Type == null) throw new Exception();
             source.ArrayElement.ElementType = Type;
             Sources.Add(source);
 

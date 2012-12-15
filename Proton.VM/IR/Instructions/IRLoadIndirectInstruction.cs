@@ -13,8 +13,17 @@ namespace Proton.VM.IR.Instructions
         public override void Linearize(Stack<IRStackObject> pStack)
         {
             IRLinearizedLocation source = new IRLinearizedLocation(IRLinearizedLocationType.Indirect);
-            source.Indirect.Type = Type;
-            source.Indirect.AddressLocation = new IRLinearizedLocation(pStack.Pop().LinearizedTarget);
+			var addressLocation = pStack.Pop();
+			source.Indirect.AddressLocation = new IRLinearizedLocation(addressLocation.LinearizedTarget);
+			if (Type == null)
+			{
+				if (addressLocation.Type.IsManagedPointerType)
+					Type = addressLocation.Type.ManagedPointerType;
+				else
+					Type = addressLocation.Type.UnmanagedPointerType;
+			}
+			if (Type == null) throw new Exception();
+			source.Indirect.Type = Type;
             Sources.Add(source);
 
             IRStackObject result = new IRStackObject();

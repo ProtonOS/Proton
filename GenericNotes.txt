@@ -1,3 +1,8 @@
+Presolving Base Class with Generic from Parent class
+
+
+
+
 Resolutions
 
 // SomeBase<string> is completely resolved
@@ -96,3 +101,9 @@ Parameters (From Parent Types and Parent Method Types)
 Locals (From Parent Types and Parent Method Types)
 Instruction Arguments (From Parent Types and Parent Method Types)
 Instruction Linearized Locations (From Parent Types and Parent Method Types)
+
+
+
+
+
+System.Array.Internal_GetGenericEnumerator

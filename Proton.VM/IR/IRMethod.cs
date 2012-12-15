@@ -19,7 +19,16 @@ namespace Proton.VM.IR
 
 		public bool IsStatic { get; set; }
 
-        public IRType ParentType = null;
+        private IRType mParentType = null;
+		public IRType ParentType 
+		{
+			get { return mParentType; }
+			set
+			{
+				if (value == null) throw new Exception();
+				mParentType = value;
+			}
+		}
         public IRType ReturnType = null;
         public readonly List<IRParameter> Parameters = new List<IRParameter>();
         public readonly List<IRLocal> Locals = new List<IRLocal>();
@@ -69,9 +78,10 @@ namespace Proton.VM.IR
         {
 			if (!mResolving)
 			{
-				GenericParameters.Substitute(IRGenericParameterList.Empty, methodParams);
+				GenericParameters.Substitute(ParentType.GenericParameters, methodParams);
 				if (ReturnType != null)
 					ReturnType.Resolve(ref ReturnType, ParentType.GenericParameters, GenericParameters);
+				Parameters.ForEach(p => p.ParentMethod = this); 
 				Parameters.ForEach(p => p.Substitute());
 				Locals.ForEach(l => l.Substitute());
 				Instructions.ForEach(i => i.Substitute());
@@ -86,6 +96,7 @@ namespace Proton.VM.IR
 		/// <returns>The clone of this method.</returns>
 		public IRMethod Clone(IRType newParent)
 		{
+			if (newParent == null) throw new Exception();
 			IRMethod m = new IRMethod(this.Assembly);
 
 			m.GenericMethod = this.GenericMethod;
@@ -277,8 +288,8 @@ namespace Proton.VM.IR
                     case ILOpcode.LdInd_I: AddInstruction(startOfInstruction, new IRLoadIndirectInstruction(Assembly.AppDomain.System_IntPtr)); break;
                     case ILOpcode.LdInd_R4: AddInstruction(startOfInstruction, new IRLoadIndirectInstruction(Assembly.AppDomain.System_Single)); break;
                     case ILOpcode.LdInd_R8: AddInstruction(startOfInstruction, new IRLoadIndirectInstruction(Assembly.AppDomain.System_Double)); break;
-                    case ILOpcode.LdInd_Ref: AddInstruction(startOfInstruction, new IRLoadIndirectInstruction(Assembly.AppDomain.System_Object)); break;
-                    case ILOpcode.StInd_Ref: AddInstruction(startOfInstruction, new IRStoreIndirectInstruction(Assembly.AppDomain.System_Object)); break;
+                    case ILOpcode.LdInd_Ref: AddInstruction(startOfInstruction, new IRLoadIndirectInstruction(null)); break;
+                    case ILOpcode.StInd_Ref: AddInstruction(startOfInstruction, new IRStoreIndirectInstruction(null)); break;
                     case ILOpcode.StInd_I1: AddInstruction(startOfInstruction, new IRStoreIndirectInstruction(Assembly.AppDomain.System_SByte)); break;
                     case ILOpcode.StInd_I2: AddInstruction(startOfInstruction, new IRStoreIndirectInstruction(Assembly.AppDomain.System_Int16)); break;
                     case ILOpcode.StInd_I4: AddInstruction(startOfInstruction, new IRStoreIndirectInstruction(Assembly.AppDomain.System_Int32)); break;

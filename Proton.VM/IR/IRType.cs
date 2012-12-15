@@ -73,14 +73,15 @@ namespace Proton.VM.IR
 				
 				if (IsTemporaryVar) return false;
 				if (IsTemporaryMVar) return false;
+				if (UnmanagedPointerType != null && !UnmanagedPointerType.Resolved) return false;
+				if (ManagedPointerType != null && !ManagedPointerType.Resolved) return false;
+				if (ArrayElementType != null && !ArrayElementType.Resolved) return false;
 				if (mResolving)
 					return true;
 
 				mResolving = true;
 				if (!GenericParameters.Resolved) return false;
 				if (GenericType != null && (Fields.Count != GenericType.Fields.Count || Methods.Count != GenericType.Methods.Count)) return false;
-                if (PointerType != null && !PointerType.Resolved) return false;
-                if (ArrayType != null && !ArrayType.Resolved) return false;
                 if (BaseType != null && !BaseType.Resolved) return false;
                 if (!Fields.Where(f => f.Type != this).TrueForAll(f => f.Resolved)) return false;
                 if (!Methods.TrueForAll(m => m.Resolved)) return false;
@@ -108,27 +109,40 @@ namespace Proton.VM.IR
             {
                 if (mIsGenericCache != null)
                     return mIsGenericCache.Value;
-                
-                mIsGenericCache =
-                    GenericParameters.Count > 0 ||
-                    IsTemporaryVar ||
-                    IsTemporaryMVar ||
-                    (
-                        ArrayType != null &&
-                        ArrayType.IsGeneric
-                    )
-                ;
+				bool isGenericParameter = GenericParameters.Count > 0 || IsTemporaryVar || IsTemporaryMVar;
+				bool isGenericArray = ArrayElementType != null && ArrayElementType.IsGeneric;
+				bool isGenericPointer = ManagedPointerType != null && ManagedPointerType.IsGeneric;
+				mIsGenericCache = isGenericParameter || isGenericArray || isGenericPointer;
+				if (isGenericArray) { }
+
+				//mIsGenericCache =
+				//    GenericParameters.Count > 0 ||
+				//    IsTemporaryVar ||
+				//    IsTemporaryMVar ||
+				//    (
+				//        ArrayElementType != null &&
+				//        ArrayElementType.IsGeneric
+				//    ) ||
+				//    (
+				//        ManagedPointerType != null &&
+				//        ManagedPointerType.IsGeneric
+				//    )
+				//;
 
                 return mIsGenericCache.Value; 
             }
         }
         public IRType GenericType = null;
         public readonly IRGenericParameterList GenericParameters = new IRGenericParameterList();
-        public IRType PointerType = null;
-        public bool IsPointerType { get { return PointerType != null; } }
 
-        public IRType ArrayType = null;
-        public bool IsArrayType { get { return ArrayType != null; } }
+		public IRType UnmanagedPointerType = null;
+        public bool IsUnmanagedPointerType { get { return UnmanagedPointerType != null; } }
+
+		public IRType ManagedPointerType = null;
+		public bool IsManagedPointerType { get { return ManagedPointerType != null; } }
+
+        public IRType ArrayElementType = null;
+        public bool IsArrayType { get { return ArrayElementType != null; } }
 
         private IRType() { }
 
@@ -147,20 +161,21 @@ namespace Proton.VM.IR
             t.NestedTypes.AddRange(this.NestedTypes);
             t.GenericParameters.AddRange(this.GenericParameters);
 
-            t.ArrayType = this.ArrayType;
+            t.ArrayElementType = this.ArrayElementType;
             t.BaseType = this.BaseType;
             t.GenericType = this.GenericType;
             t.IsTemporaryMVar = this.IsTemporaryMVar;
             t.IsTemporaryVar = this.IsTemporaryVar;
             t.Name = this.Name;
             t.Namespace = this.Namespace;
-            t.PointerType = this.PointerType;
+			t.ManagedPointerType = this.ManagedPointerType;
+            t.UnmanagedPointerType = this.UnmanagedPointerType;
             t.TemporaryVarOrMVarIndex = this.TemporaryVarOrMVarIndex;
 
             return t;
         }
 
-        private static readonly Dictionary<IRType, IRType> GenericTypes = new Dictionary<IRType, IRType>();
+        public static readonly Dictionary<IRType, IRType> GenericTypes = new Dictionary<IRType, IRType>();
         /// <summary>
         /// Resolve any generic types used in this type.
         /// </summary>
@@ -183,35 +198,54 @@ namespace Proton.VM.IR
 					}
 					else if (IsArrayType)
 					{
-						IRType elemType = ArrayType;
+						IRType elemType = ArrayElementType;
 						elemType.Resolve(ref elemType, typeParams, methodParams);
 						selfReference = Assembly.AppDomain.GetArrayType(elemType);
 					}
-					else if (this.GenericParameters.Resolved)
+					else if (IsManagedPointerType)
 					{
-						IRType tp = null;
-						if (!GenericTypes.TryGetValue(this, out tp))
-						{
-							tp = this.GenericType.Clone();
-							tp.GenericParameters.Substitute(this.GenericParameters, methodParams);
-							GenericTypes[tp] = tp;
-
-							for (int i = 0; i < tp.GenericParameters.Count; i++)
-							{
-								tp.GenericParameters[i] = this.GenericParameters[i];
-							}
-							for (int i = 0; i < tp.Methods.Count; i++)
-							{
-								tp.Methods[i] = tp.Methods[i].Resolved ? tp.Methods[i] : tp.Methods[i].Clone(tp);
-							}
-
-							tp.Substitute(typeParams, methodParams);
-						}
-						selfReference = tp;
+						IRType typePointedTo = ManagedPointerType;
+						typePointedTo.Resolve(ref typePointedTo, typeParams, methodParams);
+						selfReference = Assembly.AppDomain.GetManagedPointerType(typePointedTo);
 					}
 					else
 					{
-#warning Need to do the rest of this resolution.
+						if (!this.GenericParameters.Resolved)
+							this.GenericParameters.TrySubstitute(typeParams, methodParams);
+						if (this.GenericParameters.Resolved)
+						{
+							IRType tp = null;
+							if (!GenericTypes.TryGetValue(this, out tp))
+							{
+								IRType tp2 = null;
+								tp = this.GenericType.Clone();
+								tp.GenericParameters.Substitute(this.GenericParameters, methodParams);
+								if (!GenericTypes.TryGetValue(tp, out tp2))
+								{
+									GenericTypes.Add(tp, tp);
+
+									for (int i = 0; i < tp.GenericParameters.Count; i++)
+									{
+										tp.GenericParameters[i] = this.GenericParameters[i];
+									}
+									for (int i = 0; i < tp.Methods.Count; i++)
+									{
+										tp.Methods[i] = tp.Methods[i].Resolved ? tp.Methods[i] : tp.Methods[i].Clone(tp);
+									}
+
+									tp.Substitute(typeParams, methodParams);
+								}
+								else
+								{
+									tp = tp2;
+								}
+							}
+							selfReference = tp;
+						}
+						else
+						{
+	#warning Need to do the rest of this resolution.
+						}
 					}
 				}
 				else
@@ -258,16 +292,21 @@ namespace Proton.VM.IR
                 // Allow support for up to 256 generic type parameters before
                 // hash collisions occur.
 				res = (int)((this.TemporaryVarOrMVarIndex + 1) << 8);
-            }
-            else if (IsPointerType)
-            {
-                // 3rd bit from the top set
-                res = PointerType.GetHashCode() | unchecked((int)0x20000000);
-            }
+			}
+			else if (IsManagedPointerType)
+			{
+				// 4rd bit from the top set
+				res = ManagedPointerType.GetHashCode() | unchecked((int)0x10000000);
+			}
+			else if (IsUnmanagedPointerType)
+			{
+				// 3rd bit from the top set
+				res = UnmanagedPointerType.GetHashCode() | unchecked((int)0x20000000);
+			}
             else if (IsArrayType)
             {
                 // 2nd bit from the top set
-                res = ArrayType.GetHashCode() | unchecked((int)0x40000000);
+                res = ArrayElementType.GetHashCode() | unchecked((int)0x40000000);
             }
             else
             {
@@ -304,10 +343,12 @@ namespace Proton.VM.IR
 				return "T(" + TemporaryVarOrMVarIndex.ToString() + ")";
 			if (IsTemporaryMVar)
 				return "M(" + TemporaryVarOrMVarIndex.ToString() + ")";
-			if (IsPointerType)
-				return PointerType.ToString() + "*";
+			if (IsUnmanagedPointerType)
+				return UnmanagedPointerType.ToString() + "*";
+			if (IsManagedPointerType)
+				return ManagedPointerType.ToString() + "&";
 			if (IsArrayType)
-				return ArrayType.ToString() + "[]";
+				return ArrayElementType.ToString() + "[]";
 
 			switch (Namespace)
 			{
@@ -363,7 +404,7 @@ namespace Proton.VM.IR
 
 		public void Dump(IndentableStreamWriter pWriter)
 		{
-			pWriter.WriteLine("IRType {0}", ToString());
+			pWriter.WriteLine("IRType {0} : {1}", ToString(), BaseType);
 			pWriter.WriteLine("{");
 			pWriter.Indent++;
 			Fields.ForEach(f => f.Dump(pWriter));

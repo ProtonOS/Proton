@@ -159,6 +159,22 @@ namespace Proton.VM.IR
 			mResolvedCache = null;
         }
 
+		public void TrySubstitute(IRGenericParameterList typeParams, IRGenericParameterList methodParams)
+		{
+			for (int i = 0; i < mParams.Count; i++)
+			{
+				IRType t = mParams[i];
+				try
+				{
+					t.Resolve(ref t, typeParams, methodParams);
+				}
+				catch { }
+				mParams[i] = t;
+			}
+			mHashCodeCache = null;
+			mResolvedCache = null;
+		}
+
         public IEnumerator<IRType> GetEnumerator()
         {
             foreach (IRType t in mParams)

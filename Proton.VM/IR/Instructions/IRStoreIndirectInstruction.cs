@@ -15,8 +15,17 @@ namespace Proton.VM.IR.Instructions
             Sources.Add(new IRLinearizedLocation(pStack.Pop().LinearizedTarget));
 
             Destination = new IRLinearizedLocation(IRLinearizedLocationType.Indirect);
-            Destination.Indirect.Type = Type;
-            Destination.Indirect.AddressLocation = new IRLinearizedLocation(pStack.Pop().LinearizedTarget);
+			var addressLocation = pStack.Pop();
+			Destination.Indirect.AddressLocation = new IRLinearizedLocation(addressLocation.LinearizedTarget);
+			if (Type == null)
+			{
+				if (addressLocation.Type.IsManagedPointerType)
+					Type = addressLocation.Type.ManagedPointerType;
+				else
+					Type = addressLocation.Type.UnmanagedPointerType;
+			}
+			if (Type == null) throw new Exception();
+			Destination.Indirect.Type = Type;
         }
 
         public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRStoreIndirectInstruction(Type), pNewMethod); }

@@ -152,20 +152,33 @@ namespace Proton.VM.IR
         }
 
         // Dynamic Types
-        private readonly Dictionary<IRType, IRType> PointerTypes = new Dictionary<IRType, IRType>();
-        private readonly Dictionary<IRType, IRType> ArrayTypes = new Dictionary<IRType, IRType>();
+        private readonly Dictionary<IRType, IRType> UnmanagedPointerTypes = new Dictionary<IRType, IRType>();
+		private readonly Dictionary<IRType, IRType> ManagedPointerTypes = new Dictionary<IRType, IRType>();
+		private readonly Dictionary<IRType, IRType> ArrayTypes = new Dictionary<IRType, IRType>();
 
-        public IRType GetPointerType(IRType pValueAtPointerType)
+        public IRType GetUnmanagedPointerType(IRType pValueAtPointerType)
         {
             IRType type = null;
-            if (!PointerTypes.TryGetValue(pValueAtPointerType, out type))
+            if (!UnmanagedPointerTypes.TryGetValue(pValueAtPointerType, out type))
             {
                 type = System_IntPtr.Clone();
-                type.PointerType = pValueAtPointerType;
-                PointerTypes.Add(pValueAtPointerType, type);
+                type.UnmanagedPointerType = pValueAtPointerType;
+                UnmanagedPointerTypes.Add(pValueAtPointerType, type);
             }
             return type;
         }
+
+		public IRType GetManagedPointerType(IRType pValueAtPointerType)
+		{
+			IRType type = null;
+			if (!ManagedPointerTypes.TryGetValue(pValueAtPointerType, out type))
+			{
+				type = System_IntPtr.Clone();
+				type.ManagedPointerType = pValueAtPointerType;
+				ManagedPointerTypes.Add(pValueAtPointerType, type);
+			}
+			return type;
+		}
 
         public IRType GetArrayType(IRType pElementType)
         {
@@ -173,10 +186,10 @@ namespace Proton.VM.IR
             if (!ArrayTypes.TryGetValue(pElementType, out type))
             {
                 type = System_Array.Clone();
-                type.ArrayType = pElementType;
+                type.ArrayElementType = pElementType;
                 ArrayTypes.Add(pElementType, type);
             }
-			if (pElementType.IsTemporaryVar != type.ArrayType.IsTemporaryVar || pElementType.IsTemporaryMVar != type.ArrayType.IsTemporaryMVar)
+			if (pElementType.IsTemporaryVar != type.ArrayElementType.IsTemporaryVar || pElementType.IsTemporaryMVar != type.ArrayElementType.IsTemporaryMVar)
 			{
 				throw new Exception();
 			}
@@ -199,9 +212,17 @@ namespace Proton.VM.IR
             method.Name = pGenericMethod.Name;
             method.GenericMethod = pGenericMethod;
             method.ReturnType = pGenericMethod.ReturnType;
+			//if (method.ReturnType != null && method.ReturnType.IsGeneric)
+			//{
+			//    method.ReturnType.Resolve(ref method.ReturnType, new IRGenericParameterList(pParentTypeGenericParameters ?? (IEnumerable<IRType>)IRGenericParameterList.Empty), new IRGenericParameterList(pGenericParameterTypes));
+			//}
 			if (pParentTypeGenericParameters != null)
 			{
 				method.ParentType = PresolveGenericType(pGenericMethod.ParentType, pParentTypeGenericParameters);
+			}
+			else
+			{
+				method.ParentType = pGenericMethod.ParentType;
 			}
 			method.GenericParameters.AddRange(pGenericParameterTypes);
 			for (int index = 0; index < pGenericMethod.Parameters.Count; ++index)
@@ -219,15 +240,15 @@ namespace Proton.VM.IR
         {
             IRType typeA = PresolveType(pSigTypeA);
             IRType typeB = PresolveType(pSigTypeB);
-            if (typeA.ArrayType != null)
+            if (typeA.ArrayElementType != null)
             {
-                if (typeB.ArrayType == null) return false;
-                return typeA.ArrayType == typeB.ArrayType;
+                if (typeB.ArrayElementType == null) return false;
+                return typeA.ArrayElementType == typeB.ArrayElementType;
             }
-            if (typeA.PointerType != null)
+            if (typeA.UnmanagedPointerType != null)
             {
-                if (typeB.PointerType == null) return false;
-                return typeA.PointerType == typeB.PointerType;
+                if (typeB.UnmanagedPointerType == null) return false;
+                return typeA.UnmanagedPointerType == typeB.UnmanagedPointerType;
             }
             if (typeA.IsTemporaryVar || typeB.IsTemporaryVar)
             {
@@ -373,8 +394,8 @@ namespace Proton.VM.IR
                 case SigElementType.String: type = System_String; break;
                 case SigElementType.Pointer:
                     {
-                        if (pSigType.PtrVoid) type = GetPointerType(System_Void);
-                        else type = GetPointerType(PresolveType(pSigType.PtrType));
+                        if (pSigType.PtrVoid) type = GetUnmanagedPointerType(System_Void);
+                        else type = GetUnmanagedPointerType(PresolveType(pSigType.PtrType));
                         break;
                     }
                 case SigElementType.ValueType: type = PresolveType(pSigType.CLIFile.ExpandTypeDefRefOrSpecToken(pSigType.ValueTypeDefOrRefOrSpecToken)); break;
@@ -405,7 +426,13 @@ namespace Proton.VM.IR
 
         public IRType PresolveType(SigRetType pSigRetType) { return pSigRetType.Void ? null : PresolveType(pSigRetType.Type); }
 
-        public IRType PresolveType(SigParam pSigParam) { return PresolveType(pSigParam.Type); }
+        public IRType PresolveType(SigParam pSigParam)
+		{
+			IRType type = PresolveType(pSigParam.Type);
+			if (pSigParam.ByRef)
+				type = GetManagedPointerType(type);
+			return type;
+		}
 
         public IRType PresolveType(SigLocalVar pSigLocalVar) { return PresolveType(pSigLocalVar.Type); }
 
@@ -593,7 +620,7 @@ namespace Proton.VM.IR
                 }
                 else throw new ArgumentException();
             }
-            else if (pValue1Type.IsPointerType)
+            else if (pValue1Type.IsUnmanagedPointerType)
             {
                 if (pValue2Type == System_SByte ||
                     pValue2Type == System_Byte ||
@@ -604,7 +631,7 @@ namespace Proton.VM.IR
                     pValue2Type == System_UInt32 ||
                     pValue2Type == System_IntPtr ||
                     pValue2Type == System_UIntPtr ||
-                    pValue2Type.IsPointerType)
+                    pValue2Type.IsUnmanagedPointerType)
                 {
                     resultType = System_IntPtr;
                 }
@@ -706,6 +733,18 @@ namespace Proton.VM.IR
 			writer.WriteLine("{");
 			writer.Indent++;
 			Assemblies.ForEach(a => a.Dump(writer));
+			writer.WriteLine("ResolvedTypes {0}", Types.Count);
+			writer.WriteLine("{");
+			writer.Indent++;
+			Types.ForEach(t => t.Dump(writer));
+			writer.Indent--;
+			writer.WriteLine("}");
+			writer.WriteLine("GenericTypes {0}", IRType.GenericTypes.Count);
+			writer.WriteLine("{");
+			writer.Indent++;
+			IRType.GenericTypes.ForEach(t => t.Value.Dump(writer));
+			writer.Indent--;
+			writer.WriteLine("}");
 			writer.Indent--;
 			writer.WriteLine("}");
 			writer.Close();

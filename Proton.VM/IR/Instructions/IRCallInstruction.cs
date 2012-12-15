@@ -15,6 +15,18 @@ namespace Proton.VM.IR.Instructions
             Virtual = pVirtual;
         }
 
+		private static IRType ResolveSimpleReturn(IRType tp, IRMethod target)
+		{
+			if (tp.IsTemporaryVar)
+				return target.ParentType.GenericParameters[tp.TemporaryVarOrMVarIndex];
+			else if (tp.IsTemporaryMVar)
+				return target.GenericParameters[tp.TemporaryVarOrMVarIndex];
+			else if (tp.IsArrayType)
+				return target.Assembly.AppDomain.GetArrayType(ResolveSimpleReturn(tp.ArrayElementType, target));
+			else
+				return tp;
+		}
+
         public override void Linearize(Stack<IRStackObject> pStack)
         {
             for (int count = 0; count < Target.Parameters.Count; ++count) Sources.Add(new IRLinearizedLocation(pStack.Pop().LinearizedTarget));
@@ -22,12 +34,7 @@ namespace Proton.VM.IR.Instructions
             if (Target.ReturnType != null)
             {
                 IRStackObject returned = new IRStackObject();
-				IRType retType = Target.ReturnType;
-
-				if (retType.IsTemporaryVar)
-					retType = Target.ParentType.GenericParameters[retType.TemporaryVarOrMVarIndex];
-				else if (retType.IsTemporaryMVar)
-					retType = Target.GenericParameters[retType.TemporaryVarOrMVarIndex];
+				IRType retType = ResolveSimpleReturn(Target.ReturnType, Target);
 
 				returned.Type = retType;
                 returned.LinearizedTarget = new IRLinearizedLocation(IRLinearizedLocationType.Local);

@@ -14,7 +14,7 @@ namespace Proton.VM.IR.Instructions
         {
             Sources.Add(new IRLinearizedLocation(pStack.Pop().LinearizedTarget));
 
-            IRType pointerType = ParentMethod.Assembly.AppDomain.GetPointerType(Type);
+            IRType pointerType = ParentMethod.Assembly.AppDomain.GetUnmanagedPointerType(Type);
             IRStackObject result = new IRStackObject();
             result.Type = pointerType;
             result.LinearizedTarget = new IRLinearizedLocation(IRLinearizedLocationType.Local);
