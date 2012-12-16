@@ -153,9 +153,15 @@ namespace Proton.VM.IR
         public IRType ArrayElementType = null;
         public bool IsArrayType { get { return ArrayElementType != null; } }
 
-        private IRType() { }
+		private static int GLOBALTYPEITEDSTES = 0;
+		private readonly int mTrueGlobalTypeID;
+		private IRType()
+		{
+			mTrueGlobalTypeID = GLOBALTYPEITEDSTES++;
 
-        public IRType(IRAssembly pAssembly) { Assembly = pAssembly; }
+		}
+
+        public IRType(IRAssembly pAssembly) : this() { Assembly = pAssembly; }
 
         /// <summary>
         /// This creates a shallow copy of this <see cref="IRType"/>.
@@ -221,7 +227,7 @@ namespace Proton.VM.IR
 					}
 					else
 					{
-						if (!this.GenericParameters.Resolved)
+						if (!this.GenericParameters.Resolved && this.GenericType != null)
 							this.GenericParameters.TrySubstitute(typeParams, methodParams);
 						if (this.GenericParameters.Resolved)
 						{
@@ -415,7 +421,7 @@ namespace Proton.VM.IR
 
 		public void Dump(IndentableStreamWriter pWriter)
 		{
-			pWriter.WriteLine("IRType {0} : {1}", ToString(), BaseType);
+			pWriter.WriteLine("IRType #{0} {1} : {2}", mTrueGlobalTypeID, ToString(), BaseType);
 			pWriter.WriteLine("{");
 			pWriter.Indent++;
 			Fields.ForEach(f => f.Dump(pWriter));

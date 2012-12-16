@@ -738,7 +738,7 @@ namespace Proton.VM.IR
 
 		public void Dump(IndentableStreamWriter pWriter)
 		{
-			pWriter.WriteLine("IRMethod {0} : {1}", ToString(), mTempID);
+			pWriter.WriteLine("IRMethod #{0} {1}", mTempID, ToString());
 			pWriter.WriteLine("{");
 			pWriter.Indent++;
 			Locals.ForEach(l => l.Dump(pWriter));
