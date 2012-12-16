@@ -76,11 +76,11 @@ namespace Proton.VM.IR
 				if (UnmanagedPointerType != null && !UnmanagedPointerType.Resolved) return false;
 				if (ManagedPointerType != null && !ManagedPointerType.Resolved) return false;
 				if (ArrayElementType != null && !ArrayElementType.Resolved) return false;
+				if (!GenericParameters.Resolved) return false;
 				if (mResolving)
 					return true;
 
 				mResolving = true;
-				if (!GenericParameters.Resolved) return false;
 				if (GenericType != null && (Fields.Count != GenericType.Fields.Count || Methods.Count != GenericType.Methods.Count)) return false;
                 if (BaseType != null && !BaseType.Resolved) return false;
                 if (!Fields.Where(f => f.Type != this).TrueForAll(f => f.Resolved)) return false;
@@ -132,7 +132,16 @@ namespace Proton.VM.IR
                 return mIsGenericCache.Value; 
             }
         }
-        public IRType GenericType = null;
+		private IRType mGenericType = null;
+		public IRType GenericType
+		{
+			get { return mGenericType; }
+			set
+			{
+				if (value == null) throw new Exception();
+				mGenericType = value;
+			}
+		}
         public readonly IRGenericParameterList GenericParameters = new IRGenericParameterList();
 
 		public IRType UnmanagedPointerType = null;
@@ -163,7 +172,9 @@ namespace Proton.VM.IR
 
             t.ArrayElementType = this.ArrayElementType;
             t.BaseType = this.BaseType;
-            t.GenericType = this.GenericType;
+			if (this.GenericType != null)
+				t.GenericType = this.GenericType;
+
             t.IsTemporaryMVar = this.IsTemporaryMVar;
             t.IsTemporaryVar = this.IsTemporaryVar;
             t.Name = this.Name;

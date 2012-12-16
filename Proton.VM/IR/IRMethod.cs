@@ -30,7 +30,20 @@ namespace Proton.VM.IR
 			}
 		}
         public IRType ReturnType = null;
-        public readonly List<IRParameter> Parameters = new List<IRParameter>();
+
+		private IRMethod mParentMethod;
+		private readonly List<IRParameter> mParameters = new List<IRParameter>();
+		public List<IRParameter> Parameters
+		{
+			get
+			{
+				if (mParentMethod != null && mParentMethod.Parameters.Count != mParameters.Count)
+				{
+					mParameters.Insert(0, mParentMethod.Parameters[0].Clone(this));
+				}
+				return mParameters;
+			}
+		}
         public readonly List<IRLocal> Locals = new List<IRLocal>();
         public readonly IRInstructionList Instructions = new IRInstructionList();
 
@@ -81,7 +94,9 @@ namespace Proton.VM.IR
 				GenericParameters.Substitute(ParentType.GenericParameters, methodParams);
 				if (ReturnType != null)
 					ReturnType.Resolve(ref ReturnType, ParentType.GenericParameters, GenericParameters);
-				Parameters.ForEach(p => p.ParentMethod = this); 
+				if (!this.IsStatic)
+					Parameters[0].Type = this.ParentType;
+				//Parameters.ForEach(p => p.ParentMethod = this); 
 				Parameters.ForEach(p => p.Substitute());
 				Locals.ForEach(l => l.Substitute());
 				Instructions.ForEach(i => i.Substitute());
@@ -109,6 +124,7 @@ namespace Proton.VM.IR
 			m.ParentType = newParent;
 			m.ReturnType = this.ReturnType;
 			m.IsStatic = this.IsStatic;
+			m.mParentMethod = this;
 			// TODO: Fix Branch/Switch/Leave IRInstruction's to new method instructions based on IRIndex's
 			return m;
 		}
@@ -722,7 +738,7 @@ namespace Proton.VM.IR
 
 		public void Dump(IndentableStreamWriter pWriter)
 		{
-			pWriter.WriteLine("IRMethod {0}", ToString());
+			pWriter.WriteLine("IRMethod {0} : {1}", ToString(), mTempID);
 			pWriter.WriteLine("{");
 			pWriter.Indent++;
 			Locals.ForEach(l => l.Dump(pWriter));
