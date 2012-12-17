@@ -10,8 +10,9 @@ namespace System.Collections.Generic
 		public BitVector(BitVector pBitVector)
 		{
 			mBitCount = pBitVector.mBitCount;
-			mData = new int[pBitVector.mData.Length];
-			Array.Copy(pBitVector.mData, mData, pBitVector.mData.Length);
+			int dataLength = pBitVector.mData.Length;
+			mData = new int[dataLength];
+			Array.Copy(pBitVector.mData, mData, dataLength);
 		}
 
 		public BitVector(bool[] pBits)
@@ -21,14 +22,9 @@ namespace System.Collections.Generic
 			int bitsOverflowed = mBitCount & 0x1F;
 			if (bitsOverflowed != 0) ++dataLength;
 			mData = new int[dataLength];
-			for (int index = 0, dataIndex = 0, bitIndex = 0; index < mBitCount; ++index)
+			for (int index = 0; index < mBitCount; ++index)
 			{
-				if (pBits[index])
-				{
-					dataIndex = index >> 5;
-					bitIndex = index & 0x1F;
-					mData[(index >> 5)] |= (1 << bitIndex);
-				}
+				if (pBits[index]) mData[(index >> 5)] |= (1 << (index & 0x1F));
 			}
 		}
 
@@ -43,12 +39,7 @@ namespace System.Collections.Generic
 			if (pInitialValue)
 			{
 				for (int index = 0; index < dataFullBlocks; ++index) mData[index] = -1;
-				if (bitsOverflowed != 0)
-				{
-					int lastBits = 0;
-					for (int index = 0; index < bitsOverflowed; ++index) lastBits = (lastBits << 1) | 1;
-					mData[dataLength - 1] = lastBits;
-				}
+				if (bitsOverflowed != 0) mData[dataLength - 1] = (1 << bitsOverflowed) - 1;
 			}
 		}
 
@@ -57,18 +48,14 @@ namespace System.Collections.Generic
 		public bool Get(int pIndex)
 		{
 			if (pIndex < 0 || pIndex >= mBitCount) throw new ArgumentOutOfRangeException("pIndex");
-			int dataIndex = pIndex >> 5;
-			int bitIndex = pIndex & 0x1F;
-			return (mData[dataIndex] & (1 << bitIndex)) != 0;
+			return (mData[(pIndex >> 5)] & (1 << (pIndex & 0x1F))) != 0;
 		}
 
 		public void Set(int pIndex, bool pValue)
 		{
 			if (pIndex < 0 || pIndex >= mBitCount) throw new ArgumentOutOfRangeException("pIndex");
-			int dataIndex = pIndex >> 5;
-			int bitIndex = pIndex & 0x1F;
-			if (pValue) mData[dataIndex] |= (1 << bitIndex);
-			else mData[dataIndex] &= ~(1 << bitIndex);
+			if (pValue) mData[(pIndex >> 5)] |= (1 << (pIndex & 0x1F));
+			else mData[(pIndex >> 5)] &= ~(1 << (pIndex & 0x1F));
 		}
 
 		public void SetAll(bool pValue)
@@ -80,12 +67,7 @@ namespace System.Collections.Generic
 				int bitsOverflowed = mBitCount & 0x1F;
 				if (bitsOverflowed != 0) --dataFullBlocks;
 				for (int index = 0; index < dataFullBlocks; ++index) mData[index] = -1;
-				if (bitsOverflowed != 0)
-				{
-					int lastBits = 0;
-					for (int index = 0; index < bitsOverflowed; ++index) lastBits = (lastBits << 1) | 1;
-					mData[dataLength - 1] = lastBits;
-				}
+				if (bitsOverflowed != 0) mData[dataLength - 1] = (1 << bitsOverflowed) - 1;
 			}
 			else Array.Clear(mData, 0, mData.Length);
 		}
