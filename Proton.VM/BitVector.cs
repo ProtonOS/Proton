@@ -43,6 +43,8 @@ namespace System.Collections.Generic
 			}
 		}
 
+		public BitVector(int pBits) : this(pBits, false) { }
+
 		public int Count { get { return mBitCount; } }
 
 		public bool Get(int pIndex)

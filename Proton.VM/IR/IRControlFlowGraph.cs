@@ -152,31 +152,30 @@ namespace Proton.VM.IR
 				}
 			}
 
-			cfg.Nodes.ForEach(n => n.Dominators = new BitArray(cfg.Nodes.Count, true));
+			cfg.Nodes.ForEach(n => n.Dominators = new BitVector(cfg.Nodes.Count, true));
 			cfg.Nodes[0].Dominators.SetAll(false);
 			cfg.Nodes[0].Dominators.Set(0, true);
+			BitVector intersectedParentDominators = new BitVector(cfg.Nodes.Count);
 			HashSet<IRControlFlowGraphNode> todoSet = new HashSet<IRControlFlowGraphNode>();
 			todoSet.Add(cfg.Nodes[0]);
 			while (todoSet.Count > 0)
 			{
 				IRControlFlowGraphNode node = todoSet.ElementAt(0);
 				todoSet.Remove(node);
-				BitArray intersectedParentDominators = new BitArray(cfg.Nodes.Count, true);
-				node.ParentNodes.ForEach(n => intersectedParentDominators = intersectedParentDominators.And(n.Dominators));
+				intersectedParentDominators.SetAll(true);
+				node.ParentNodes.ForEach(n => intersectedParentDominators.AndEquals(n.Dominators));
 				intersectedParentDominators.Set(node.Index, true);
-				bool dominatorsEqual = true;
-				for (int index = 0; dominatorsEqual && index < intersectedParentDominators.Length; ++index) dominatorsEqual = intersectedParentDominators[index] == node.Dominators[index];
-				if (!dominatorsEqual)
+				if (!intersectedParentDominators.Equals(node.Dominators))
 				{
-					node.Dominators = intersectedParentDominators;
+					node.Dominators = new BitVector(intersectedParentDominators);
 					node.ChildNodes.ForEach(n => todoSet.Add(n));
 				}
 			}
 			foreach (IRControlFlowGraphNode node in cfg.Nodes)
 			{
-				for (int index = 0; index < node.Dominators.Length; ++index)
+				for (int index = 0; index < node.Dominators.Count; ++index)
 				{
-					if (node.Dominators[index])
+					if (node.Dominators.Get(index))
 						node.DominatorsCount++;
 				}
 			}
@@ -185,7 +184,7 @@ namespace Proton.VM.IR
 				int max = -1;
 				foreach (IRControlFlowGraphNode innerNode in cfg.Nodes)
 				{
-					if (node.Dominators[innerNode.Index] && node != innerNode && innerNode.DominatorsCount > max)
+					if (node.Dominators.Get(innerNode.Index) && node != innerNode && innerNode.DominatorsCount > max)
 					{
 						max = innerNode.DominatorsCount;
 						node.Dominator = innerNode;

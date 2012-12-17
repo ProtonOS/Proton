@@ -10,7 +10,7 @@ namespace Proton.VM.IR
 		public List<IRInstruction> Instructions = new List<IRInstruction>();
 		public List<IRControlFlowGraphNode> ChildNodes = new List<IRControlFlowGraphNode>();
 		public List<IRControlFlowGraphNode> ParentNodes = new List<IRControlFlowGraphNode>();
-		public BitArray Dominators = null;
+		public BitVector Dominators = null;
 		public int DominatorsCount = 0;
 		public IRControlFlowGraphNode Dominator = null;
 		public List<IRControlFlowGraphNode> Frontiers = new List<IRControlFlowGraphNode>();
