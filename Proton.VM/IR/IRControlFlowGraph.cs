@@ -42,6 +42,11 @@ namespace Proton.VM.IR
                             destinationNodeBreaks.Add(leaveInstruction.TargetIRInstruction);
                             break;
                         }
+					case IROpcode.Throw:
+					case IROpcode.Return:
+					case IROpcode.EndFinally:
+						sourceNodeBreaks.Add(instruction);
+						break;
                     default: break;
                 }
             }
@@ -62,14 +67,20 @@ namespace Proton.VM.IR
                         cfg.Nodes.Add(currentNode);
                     }
                     currentNode.Instructions.Add(instruction);
-					currentNode = new IRControlFlowGraphNode(cfg.Nodes.Count);
-                    cfg.Nodes.Add(currentNode);
+					if (!lastInstruction)
+					{
+						currentNode = new IRControlFlowGraphNode(cfg.Nodes.Count);
+						cfg.Nodes.Add(currentNode);
+					}
                 }
                 else if (startFromSource)
                 {
                     currentNode.Instructions.Add(instruction);
-					currentNode = new IRControlFlowGraphNode(cfg.Nodes.Count);
-                    cfg.Nodes.Add(currentNode);
+					if (!lastInstruction)
+					{
+						currentNode = new IRControlFlowGraphNode(cfg.Nodes.Count);
+						cfg.Nodes.Add(currentNode);
+					}
                 }
                 else if (startFromDestination)
                 {
@@ -118,7 +129,8 @@ namespace Proton.VM.IR
                             break;
                         }
                     case IROpcode.Throw:
-                    case IROpcode.Return: continue;
+                    case IROpcode.Return:
+					case IROpcode.EndFinally: continue;
                     default: node.LinkTo(cfg.Nodes[node.Index + 1]); break;
                 }
             }

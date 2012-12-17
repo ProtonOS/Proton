@@ -102,6 +102,7 @@ namespace Proton.VM.IR
 			m.GenericMethod = this.GenericMethod;
 			m.GenericParameters.AddRange(this.GenericParameters);
 			this.Instructions.ForEach(i => m.Instructions.Add(i.Clone(m)));
+			m.Instructions.FixClonedTargetInstructions();
 			this.Locals.ForEach(l => m.Locals.Add(l.Clone(m)));
 			this.Parameters.ForEach(p => m.Parameters.Add(p.Clone(m)));
 			m.MaximumStackDepth = this.MaximumStackDepth;
@@ -473,7 +474,7 @@ namespace Proton.VM.IR
                 }
             }
 
-            Instructions.FixTargetInstructions();
+            Instructions.LoadTargetInstructions();
         }
 
         private Dictionary<Tuple<int, IRType>, IRLocal> LinearizedStackLocalLookup = new Dictionary<Tuple<int, IRType>, IRLocal>();

@@ -120,7 +120,7 @@ namespace Proton.VM.IR
             return targetInstruction;
         }
 
-        public void FixTargetInstructions()
+        public void LoadTargetInstructions()
         {
             foreach (IRInstruction instruction in mInstructions)
             {
@@ -155,5 +155,37 @@ namespace Proton.VM.IR
                 }
             }
         }
+
+		public void FixClonedTargetInstructions()
+		{
+			foreach (IRInstruction instruction in mInstructions)
+			{
+				switch (instruction.Opcode)
+				{
+					case IROpcode.Branch:
+						{
+							IRBranchInstruction branchInstruction = (IRBranchInstruction)instruction;
+							branchInstruction.TargetIRInstruction = mInstructions[(int)branchInstruction.TargetIRInstruction.IRIndex];
+							break;
+						}
+					case IROpcode.Switch:
+						{
+							IRSwitchInstruction switchInstruction = (IRSwitchInstruction)instruction;
+							for (int index = 0; index < switchInstruction.TargetILOffsets.Length; ++index)
+							{
+								switchInstruction.TargetIRInstructions[index] = mInstructions[(int)switchInstruction.TargetIRInstructions[index].IRIndex];
+							}
+							break;
+						}
+					case IROpcode.Leave:
+						{
+							IRLeaveInstruction leaveInstruction = (IRLeaveInstruction)instruction;
+							leaveInstruction.TargetIRInstruction = mInstructions[(int)leaveInstruction.TargetIRInstruction.IRIndex];
+							break;
+						}
+					default: break;
+				}
+			}
+		}
     }
 }
