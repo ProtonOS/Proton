@@ -198,6 +198,7 @@ namespace Proton.VM.IR
 
         public IRType PresolveGenericType(IRType pGenericType, List<IRType> pGenericParameterTypes)
         {
+			if (pGenericType == null) throw new Exception();
             IRType type = new IRType(pGenericType.Assembly);
             type.Name = pGenericType.Name;
             type.Namespace = pGenericType.Namespace;

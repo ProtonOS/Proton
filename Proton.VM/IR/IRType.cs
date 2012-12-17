@@ -76,11 +76,11 @@ namespace Proton.VM.IR
 				if (UnmanagedPointerType != null && !UnmanagedPointerType.Resolved) return false;
 				if (ManagedPointerType != null && !ManagedPointerType.Resolved) return false;
 				if (ArrayElementType != null && !ArrayElementType.Resolved) return false;
+				if (!GenericParameters.Resolved) return false;
 				if (mResolving)
 					return true;
 
 				mResolving = true;
-				if (!GenericParameters.Resolved) return false;
 				if (GenericType != null && (Fields.Count != GenericType.Fields.Count || Methods.Count != GenericType.Methods.Count)) return false;
                 if (BaseType != null && !BaseType.Resolved) return false;
                 if (!Fields.Where(f => f.Type != this).TrueForAll(f => f.Resolved)) return false;
@@ -132,7 +132,16 @@ namespace Proton.VM.IR
                 return mIsGenericCache.Value; 
             }
         }
-        public IRType GenericType = null;
+		private IRType mGenericType = null;
+		public IRType GenericType
+		{
+			get { return mGenericType; }
+			set
+			{
+				if (value == null) throw new Exception();
+				mGenericType = value;
+			}
+		}
         public readonly IRGenericParameterList GenericParameters = new IRGenericParameterList();
 
 		public IRType UnmanagedPointerType = null;
@@ -144,9 +153,15 @@ namespace Proton.VM.IR
         public IRType ArrayElementType = null;
         public bool IsArrayType { get { return ArrayElementType != null; } }
 
-        private IRType() { }
+		private static int GLOBALTYPEITEDSTES = 0;
+		private readonly int mTrueGlobalTypeID;
+		private IRType()
+		{
+			mTrueGlobalTypeID = GLOBALTYPEITEDSTES++;
 
-        public IRType(IRAssembly pAssembly) { Assembly = pAssembly; }
+		}
+
+        public IRType(IRAssembly pAssembly) : this() { Assembly = pAssembly; }
 
         /// <summary>
         /// This creates a shallow copy of this <see cref="IRType"/>.
@@ -163,7 +178,9 @@ namespace Proton.VM.IR
 
             t.ArrayElementType = this.ArrayElementType;
             t.BaseType = this.BaseType;
-            t.GenericType = this.GenericType;
+			if (this.GenericType != null)
+				t.GenericType = this.GenericType;
+
             t.IsTemporaryMVar = this.IsTemporaryMVar;
             t.IsTemporaryVar = this.IsTemporaryVar;
             t.Name = this.Name;
@@ -210,7 +227,7 @@ namespace Proton.VM.IR
 					}
 					else
 					{
-						if (!this.GenericParameters.Resolved)
+						if (!this.GenericParameters.Resolved && this.GenericType != null)
 							this.GenericParameters.TrySubstitute(typeParams, methodParams);
 						if (this.GenericParameters.Resolved)
 						{
@@ -404,7 +421,7 @@ namespace Proton.VM.IR
 
 		public void Dump(IndentableStreamWriter pWriter)
 		{
-			pWriter.WriteLine("IRType {0} : {1}", ToString(), BaseType);
+			pWriter.WriteLine("IRType #{0} {1} : {2}", mTrueGlobalTypeID, ToString(), BaseType);
 			pWriter.WriteLine("{");
 			pWriter.Indent++;
 			Fields.ForEach(f => f.Dump(pWriter));
