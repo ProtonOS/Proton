@@ -61,10 +61,14 @@ namespace Proton.VM.IR
 		}
 		public IRLocalSSAData SSAData = null;
 
+		private static int sTempID = 0;
+		private int mTempID = 0;
+		
         public IRLocal(IRAssembly pAssembly)
         {
             Assembly = pAssembly;
-        }
+			mTempID = sTempID++;
+		}
 
         public IRLocal Clone(IRMethod newMethod)
         {
