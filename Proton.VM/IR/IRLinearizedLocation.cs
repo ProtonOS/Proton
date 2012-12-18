@@ -96,15 +96,35 @@ namespace Proton.VM.IR
                 case IRLinearizedLocationType.ConstantI8: ConstantI8 = pLinearizedTarget.ConstantI8; break;
                 case IRLinearizedLocationType.ConstantR4: ConstantR4 = pLinearizedTarget.ConstantR4; break;
                 case IRLinearizedLocationType.ConstantR8: ConstantR8 = pLinearizedTarget.ConstantR8; break;
-                case IRLinearizedLocationType.Field: Field = pLinearizedTarget.Field; break;
-                case IRLinearizedLocationType.FieldAddress: FieldAddress = pLinearizedTarget.FieldAddress; break;
+                case IRLinearizedLocationType.Field:
+					Field = pLinearizedTarget.Field;
+					Field.FieldLocation = pLinearizedTarget.Field.FieldLocation.Clone();
+					break;
+                case IRLinearizedLocationType.FieldAddress:
+					FieldAddress = pLinearizedTarget.FieldAddress;
+					FieldAddress.FieldLocation = pLinearizedTarget.FieldAddress.FieldLocation.Clone();
+					break;
                 case IRLinearizedLocationType.StaticField: StaticField = pLinearizedTarget.StaticField; break;
                 case IRLinearizedLocationType.StaticFieldAddress: StaticFieldAddress = pLinearizedTarget.StaticFieldAddress; break;
-                case IRLinearizedLocationType.Indirect: Indirect = pLinearizedTarget.Indirect; break;
+                case IRLinearizedLocationType.Indirect:
+					Indirect = pLinearizedTarget.Indirect;
+					Indirect.AddressLocation = pLinearizedTarget.Indirect.AddressLocation.Clone();
+					break;
                 case IRLinearizedLocationType.SizeOf: SizeOf = pLinearizedTarget.SizeOf; break;
-                case IRLinearizedLocationType.ArrayElement: ArrayElement = pLinearizedTarget.ArrayElement; break;
-                case IRLinearizedLocationType.ArrayElementAddress: ArrayElementAddress = pLinearizedTarget.ArrayElementAddress; break;
-                case IRLinearizedLocationType.ArrayLength: ArrayLength = pLinearizedTarget.ArrayLength; break;
+                case IRLinearizedLocationType.ArrayElement:
+					ArrayElement = pLinearizedTarget.ArrayElement;
+					ArrayElement.ArrayLocation = pLinearizedTarget.ArrayElement.ArrayLocation.Clone();
+					ArrayElement.IndexLocation = pLinearizedTarget.ArrayElement.IndexLocation.Clone();
+					break;
+                case IRLinearizedLocationType.ArrayElementAddress:
+					ArrayElementAddress = pLinearizedTarget.ArrayElementAddress;
+					ArrayElementAddress.ArrayLocation = pLinearizedTarget.ArrayElementAddress.ArrayLocation.Clone();
+					ArrayElementAddress.IndexLocation = pLinearizedTarget.ArrayElementAddress.IndexLocation.Clone();
+					break;
+                case IRLinearizedLocationType.ArrayLength:
+					ArrayLength = pLinearizedTarget.ArrayLength;
+					ArrayLength.ArrayLocation = pLinearizedTarget.ArrayLength.ArrayLocation.Clone();
+					break;
                 case IRLinearizedLocationType.FunctionAddress: FunctionAddress = pLinearizedTarget.FunctionAddress; break;
                 case IRLinearizedLocationType.RuntimeHandle: RuntimeHandle = pLinearizedTarget.RuntimeHandle; break;
                 case IRLinearizedLocationType.String: String = pLinearizedTarget.String; break;
