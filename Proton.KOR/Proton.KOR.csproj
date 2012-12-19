@@ -97,6 +97,7 @@
     <Compile Include="IntPtr.cs" />
     <Compile Include="InvalidCastException.cs" />
     <Compile Include="InvalidOperationException.cs" />
+    <Compile Include="Kernel\PageAllocator.cs" />
     <Compile Include="Kernel\Multiboot.cs" />
     <Compile Include="Kernel\Test.cs" />
     <Compile Include="Math.cs" />
