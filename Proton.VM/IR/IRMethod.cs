@@ -114,6 +114,7 @@ namespace Proton.VM.IR
 			if (newParent == null) throw new Exception();
 			IRMethod m = new IRMethod(this.Assembly);
 
+			m.ParentType = newParent;
 			m.GenericMethod = this.GenericMethod;
 			m.GenericParameters.AddRange(this.GenericParameters);
 			this.Instructions.ForEach(i => m.Instructions.Add(i.Clone(m)));
@@ -122,7 +123,6 @@ namespace Proton.VM.IR
 			this.Parameters.ForEach(p => m.Parameters.Add(p.Clone(m)));
 			m.MaximumStackDepth = this.MaximumStackDepth;
 			m.Name = this.Name;
-			m.ParentType = newParent;
 			m.ReturnType = this.ReturnType;
 			m.IsStatic = this.IsStatic;
 			m.mParentMethod = this;

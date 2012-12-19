@@ -180,6 +180,8 @@ namespace Proton.VM.IR
             t.BaseType = this.BaseType;
 			if (this.GenericType != null)
 				t.GenericType = this.GenericType;
+			else if (this.GenericParameters.Count > 0)
+				t.GenericType = this;
 
             t.IsTemporaryMVar = this.IsTemporaryMVar;
             t.IsTemporaryVar = this.IsTemporaryVar;

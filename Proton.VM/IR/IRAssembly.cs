@@ -178,7 +178,7 @@ namespace Proton.VM.IR
 			// Optimizations
 			AppDomain.Methods.ForEach(m => m.ControlFlowGraph = IRControlFlowGraph.Build(m));
 			AppDomain.Methods.ForEach(m => m.EnterSSA());
-			//AppDomain.Methods.ForEach(m => m.LeaveSSA());
+			AppDomain.Methods.ForEach(m => m.LeaveSSA());
 		}
 
 

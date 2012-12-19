@@ -39,7 +39,10 @@ namespace Proton.VM.IR
 
         public void Resolve()
         {
-			Type.Resolve(ref mType, ParentMethod.ParentType.GenericParameters, ParentMethod.GenericParameters);
+			if (Type == ParentMethod.ParentType.GenericType)
+				Type = ParentMethod.ParentType;
+			else
+				Type.Resolve(ref mType, ParentMethod.ParentType.GenericParameters, ParentMethod.GenericParameters);
         }
 
 		public sealed class IRLocalSSAData
