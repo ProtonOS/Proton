@@ -12,10 +12,10 @@ namespace Proton.VM.IR.Instructions
 
         public override void Linearize(Stack<IRStackObject> pStack)
         {
-            IRLinearizedLocation source = new IRLinearizedLocation(IRLinearizedLocationType.ArrayElementAddress);
-			source.ArrayElementAddress.IndexLocation = new IRLinearizedLocation(pStack.Pop().LinearizedTarget);
+			IRLinearizedLocation source = new IRLinearizedLocation(this, IRLinearizedLocationType.ArrayElementAddress);
+			source.ArrayElementAddress.IndexLocation = new IRLinearizedLocation(this, pStack.Pop().LinearizedTarget);
 			var arraySource = pStack.Pop();
-			source.ArrayElementAddress.ArrayLocation = new IRLinearizedLocation(arraySource.LinearizedTarget);
+			source.ArrayElementAddress.ArrayLocation = new IRLinearizedLocation(this, arraySource.LinearizedTarget);
 			if (Type == null)
 			{
 				Type = arraySource.Type.ArrayElementType;
@@ -26,9 +26,9 @@ namespace Proton.VM.IR.Instructions
 
             IRStackObject result = new IRStackObject();
             result.Type = ParentMethod.Assembly.AppDomain.System_IntPtr;
-            result.LinearizedTarget = new IRLinearizedLocation(IRLinearizedLocationType.Local);
+			result.LinearizedTarget = new IRLinearizedLocation(this, IRLinearizedLocationType.Local);
             result.LinearizedTarget.Local.LocalIndex = AddLinearizedLocal(pStack, ParentMethod.Assembly.AppDomain.System_IntPtr);
-            Destination = new IRLinearizedLocation(result.LinearizedTarget);
+			Destination = new IRLinearizedLocation(this, result.LinearizedTarget);
             pStack.Push(result);
         }
 

@@ -39,7 +39,13 @@ namespace Proton.VM.IR
         /// </summary>
         public bool Resolved { get { return Type.Resolved; } }
 
-		public void Resolve() { Substitute(); }
+		public void Resolve(ref IRField selfReference, IRGenericParameterList typeParams, IRGenericParameterList methodParams)
+		{
+			IRType t = ParentType;
+			ParentType.Resolve(ref t, typeParams, methodParams);
+			IRField f2 = selfReference;
+			selfReference = t.Fields[ParentType.Fields.FindIndex(f => f == f2)];
+		}
 
         /// <summary>
         /// Resolve any generic types in this field.

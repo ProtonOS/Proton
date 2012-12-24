@@ -5,17 +5,18 @@ namespace Proton.VM.IR.Instructions
 {
     public sealed class IRStoreFieldInstruction : IRInstruction
     {
-        public IRField Field { get; private set; }
+		private IRField mField = null;
+		public IRField Field { get { return mField; } private set { mField = value; } }
 
         public IRStoreFieldInstruction(IRField pField) : base(IROpcode.StoreField) { Field = pField; }
 
         public override void Linearize(Stack<IRStackObject> pStack)
         {
-            Sources.Add(new IRLinearizedLocation(pStack.Pop().LinearizedTarget));
+			Sources.Add(new IRLinearizedLocation(this, pStack.Pop().LinearizedTarget));
 
-            Destination = new IRLinearizedLocation(IRLinearizedLocationType.Field);
+			Destination = new IRLinearizedLocation(this, IRLinearizedLocationType.Field);
             Destination.Field.Field = Field;
-            Destination.Field.FieldLocation = new IRLinearizedLocation(pStack.Pop().LinearizedTarget);
+			Destination.Field.FieldLocation = new IRLinearizedLocation(this, pStack.Pop().LinearizedTarget);
         }
 
         public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRStoreFieldInstruction(Field), pNewMethod); }
@@ -26,7 +27,7 @@ namespace Proton.VM.IR.Instructions
 		public override void Resolve()
 		{
 			base.Resolve();
-			Field.Resolve();
+			Field.Resolve(ref mField, ParentMethod.ParentType.GenericParameters, ParentMethod.GenericParameters);
 		}
 
 		protected override void DumpDetails(IndentableStreamWriter pWriter)

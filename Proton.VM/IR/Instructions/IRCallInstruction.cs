@@ -29,7 +29,7 @@ namespace Proton.VM.IR.Instructions
 
         public override void Linearize(Stack<IRStackObject> pStack)
         {
-            for (int count = 0; count < Target.Parameters.Count; ++count) Sources.Add(new IRLinearizedLocation(pStack.Pop().LinearizedTarget));
+			for (int count = 0; count < Target.Parameters.Count; ++count) Sources.Add(new IRLinearizedLocation(this, pStack.Pop().LinearizedTarget));
 
             if (Target.ReturnType != null)
             {
@@ -37,9 +37,9 @@ namespace Proton.VM.IR.Instructions
 				IRType retType = ResolveSimpleReturn(Target.ReturnType, Target);
 
 				returned.Type = retType;
-                returned.LinearizedTarget = new IRLinearizedLocation(IRLinearizedLocationType.Local);
+				returned.LinearizedTarget = new IRLinearizedLocation(this, IRLinearizedLocationType.Local);
                 returned.LinearizedTarget.Local.LocalIndex = AddLinearizedLocal(pStack, retType);
-                Destination = new IRLinearizedLocation(returned.LinearizedTarget);
+				Destination = new IRLinearizedLocation(this, returned.LinearizedTarget);
                 pStack.Push(returned);
             }
         }

@@ -25,6 +25,7 @@ namespace Proton.VM.IR
 
         public string Namespace = null;
         public string Name = null;
+		public bool PresolvedType = false;
 
         public readonly List<IRField> Fields = new List<IRField>();
         public readonly List<IRMethod> Methods = new List<IRMethod>();
@@ -77,6 +78,10 @@ namespace Proton.VM.IR
 				if (ManagedPointerType != null && !ManagedPointerType.Resolved) return false;
 				if (ArrayElementType != null && !ArrayElementType.Resolved) return false;
 				if (!GenericParameters.Resolved) return false;
+
+				if (mResolvedCache != null)
+					return mResolvedCache.Value;
+
 				if (mResolving)
 					return true;
 
@@ -154,7 +159,7 @@ namespace Proton.VM.IR
         public bool IsArrayType { get { return ArrayElementType != null; } }
 
 		private static int GLOBALTYPEITEDSTES = 0;
-		private readonly int mTrueGlobalTypeID;
+		internal readonly int mTrueGlobalTypeID;
 		private IRType()
 		{
 			mTrueGlobalTypeID = GLOBALTYPEITEDSTES++;
@@ -229,8 +234,19 @@ namespace Proton.VM.IR
 					}
 					else
 					{
-						if (!this.GenericParameters.Resolved && this.GenericType != null)
-							this.GenericParameters.TrySubstitute(typeParams, methodParams);
+						if (!this.GenericParameters.Resolved)
+						{
+							if (this.GenericType != null)
+							{
+								this.GenericParameters.TrySubstitute(typeParams, methodParams);
+							}
+							else
+							{
+								selfReference = Assembly.AppDomain.PresolveGenericType(this, typeParams.ToList());
+								selfReference.Resolve(ref selfReference, typeParams, methodParams);
+								return;
+							}
+						}
 						if (this.GenericParameters.Resolved)
 						{
 							IRType tp = null;
@@ -260,11 +276,11 @@ namespace Proton.VM.IR
 								}
 							}
 							selfReference = tp;
-						}
-						else
-						{
-	#warning Need to do the rest of this resolution.
-						}
+                        }
+                        else
+                        {
+#warning Need to do the rest of this resolution.
+                        }
 					}
 				}
 				else

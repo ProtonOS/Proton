@@ -59,6 +59,10 @@ namespace Proton.VM.IR
         }
         public struct StringLocationData { public string Value; }
 
+		private static int sTempID = 0;
+		internal int mTempID = 0;
+
+		public IRInstruction ParentInstruction;
         public IRLinearizedLocationType Type;
         public LocalLocationData Local;
         public LocalAddressLocationData LocalAddress;
@@ -81,9 +85,16 @@ namespace Proton.VM.IR
         public RuntimeHandleLocationData RuntimeHandle;
         public StringLocationData String;
 
-        public IRLinearizedLocation(IRLinearizedLocationType pType) { Type = pType; }
-        public IRLinearizedLocation(IRLinearizedLocation pLinearizedTarget)
+        public IRLinearizedLocation(IRInstruction pParentInstruction, IRLinearizedLocationType pType)
+		{
+			mTempID = sTempID++;
+			ParentInstruction = pParentInstruction;
+			Type = pType;
+		}
+        public IRLinearizedLocation(IRInstruction pParentInstruction, IRLinearizedLocation pLinearizedTarget)
         {
+			mTempID = sTempID++;
+			ParentInstruction = pParentInstruction;
             Type = pLinearizedTarget.Type;
             switch (Type)
             {
@@ -98,32 +109,32 @@ namespace Proton.VM.IR
                 case IRLinearizedLocationType.ConstantR8: ConstantR8 = pLinearizedTarget.ConstantR8; break;
                 case IRLinearizedLocationType.Field:
 					Field = pLinearizedTarget.Field;
-					Field.FieldLocation = pLinearizedTarget.Field.FieldLocation.Clone();
+					Field.FieldLocation = pLinearizedTarget.Field.FieldLocation.Clone(pParentInstruction);
 					break;
                 case IRLinearizedLocationType.FieldAddress:
 					FieldAddress = pLinearizedTarget.FieldAddress;
-					FieldAddress.FieldLocation = pLinearizedTarget.FieldAddress.FieldLocation.Clone();
+					FieldAddress.FieldLocation = pLinearizedTarget.FieldAddress.FieldLocation.Clone(pParentInstruction);
 					break;
                 case IRLinearizedLocationType.StaticField: StaticField = pLinearizedTarget.StaticField; break;
                 case IRLinearizedLocationType.StaticFieldAddress: StaticFieldAddress = pLinearizedTarget.StaticFieldAddress; break;
                 case IRLinearizedLocationType.Indirect:
 					Indirect = pLinearizedTarget.Indirect;
-					Indirect.AddressLocation = pLinearizedTarget.Indirect.AddressLocation.Clone();
+					Indirect.AddressLocation = pLinearizedTarget.Indirect.AddressLocation.Clone(pParentInstruction);
 					break;
                 case IRLinearizedLocationType.SizeOf: SizeOf = pLinearizedTarget.SizeOf; break;
                 case IRLinearizedLocationType.ArrayElement:
 					ArrayElement = pLinearizedTarget.ArrayElement;
-					ArrayElement.ArrayLocation = pLinearizedTarget.ArrayElement.ArrayLocation.Clone();
-					ArrayElement.IndexLocation = pLinearizedTarget.ArrayElement.IndexLocation.Clone();
+					ArrayElement.ArrayLocation = pLinearizedTarget.ArrayElement.ArrayLocation.Clone(pParentInstruction);
+					ArrayElement.IndexLocation = pLinearizedTarget.ArrayElement.IndexLocation.Clone(pParentInstruction);
 					break;
                 case IRLinearizedLocationType.ArrayElementAddress:
 					ArrayElementAddress = pLinearizedTarget.ArrayElementAddress;
-					ArrayElementAddress.ArrayLocation = pLinearizedTarget.ArrayElementAddress.ArrayLocation.Clone();
-					ArrayElementAddress.IndexLocation = pLinearizedTarget.ArrayElementAddress.IndexLocation.Clone();
+					ArrayElementAddress.ArrayLocation = pLinearizedTarget.ArrayElementAddress.ArrayLocation.Clone(pParentInstruction);
+					ArrayElementAddress.IndexLocation = pLinearizedTarget.ArrayElementAddress.IndexLocation.Clone(pParentInstruction);
 					break;
                 case IRLinearizedLocationType.ArrayLength:
 					ArrayLength = pLinearizedTarget.ArrayLength;
-					ArrayLength.ArrayLocation = pLinearizedTarget.ArrayLength.ArrayLocation.Clone();
+					ArrayLength.ArrayLocation = pLinearizedTarget.ArrayLength.ArrayLocation.Clone(pParentInstruction);
 					break;
                 case IRLinearizedLocationType.FunctionAddress: FunctionAddress = pLinearizedTarget.FunctionAddress; break;
                 case IRLinearizedLocationType.RuntimeHandle: RuntimeHandle = pLinearizedTarget.RuntimeHandle; break;
@@ -132,10 +143,91 @@ namespace Proton.VM.IR
             }
         }
 
-        public IRLinearizedLocation Clone() { return new IRLinearizedLocation(this); }
+        public IRLinearizedLocation Clone(IRInstruction pNewInstruction) { return new IRLinearizedLocation(pNewInstruction, this); }
 
-        public void Resolve(IRGenericParameterList typeParams, IRGenericParameterList methodParams)
+        public void Resolve()
         {
+			switch (Type)
+			{
+				case IRLinearizedLocationType.Null:
+				case IRLinearizedLocationType.Local:
+				case IRLinearizedLocationType.LocalAddress:
+				case IRLinearizedLocationType.Parameter:
+				case IRLinearizedLocationType.ParameterAddress:
+				case IRLinearizedLocationType.ConstantI4:
+				case IRLinearizedLocationType.ConstantI8:
+				case IRLinearizedLocationType.ConstantR4:
+				case IRLinearizedLocationType.ConstantR8:
+				case IRLinearizedLocationType.String:
+					break;
+
+				case IRLinearizedLocationType.Field:
+					{
+						Field.Field.Resolve(ref Field.Field, ParentInstruction.ParentMethod.ParentType.GenericParameters, ParentInstruction.ParentMethod.GenericParameters);
+						Field.FieldLocation.Resolve();
+						break;
+					}
+				case IRLinearizedLocationType.FieldAddress:
+					{
+						FieldAddress.Field.Resolve(ref FieldAddress.Field, ParentInstruction.ParentMethod.ParentType.GenericParameters, ParentInstruction.ParentMethod.GenericParameters);
+						FieldAddress.FieldLocation.Resolve();
+						break;
+					}
+				case IRLinearizedLocationType.StaticField:
+					{
+						StaticField.Field.Resolve(ref StaticField.Field, ParentInstruction.ParentMethod.ParentType.GenericParameters, ParentInstruction.ParentMethod.GenericParameters);
+						break;
+					}
+				case IRLinearizedLocationType.StaticFieldAddress:
+					{
+						StaticFieldAddress.Field.Resolve(ref StaticFieldAddress.Field, ParentInstruction.ParentMethod.ParentType.GenericParameters, ParentInstruction.ParentMethod.GenericParameters);
+						break;
+					}
+				case IRLinearizedLocationType.Indirect:
+					{
+						Indirect.Type.Resolve(ref Indirect.Type, ParentInstruction.ParentMethod.ParentType.GenericParameters, ParentInstruction.ParentMethod.GenericParameters);
+						Indirect.AddressLocation.Resolve();
+						break;
+					}
+				case IRLinearizedLocationType.SizeOf:
+					{
+						SizeOf.Type.Resolve(ref SizeOf.Type, ParentInstruction.ParentMethod.ParentType.GenericParameters, ParentInstruction.ParentMethod.GenericParameters);
+						break;
+					}
+				case IRLinearizedLocationType.ArrayElement:
+					{
+						ArrayElement.ElementType.Resolve(ref ArrayElement.ElementType, ParentInstruction.ParentMethod.ParentType.GenericParameters, ParentInstruction.ParentMethod.GenericParameters);
+						ArrayElement.ArrayLocation.Resolve();
+						ArrayElement.IndexLocation.Resolve();
+						break;
+					}
+				case IRLinearizedLocationType.ArrayElementAddress:
+					{
+						ArrayElementAddress.ElementType.Resolve(ref ArrayElementAddress.ElementType, ParentInstruction.ParentMethod.ParentType.GenericParameters, ParentInstruction.ParentMethod.GenericParameters);
+						ArrayElementAddress.ArrayLocation.Resolve();
+						ArrayElementAddress.IndexLocation.Resolve();
+						break;
+					}
+				case IRLinearizedLocationType.ArrayLength:
+					{
+						ArrayLength.ArrayLocation.Resolve();
+						break;
+					}
+				case IRLinearizedLocationType.FunctionAddress:
+					{
+						FunctionAddress.Method.Resolve(ref FunctionAddress.Method, ParentInstruction.ParentMethod.ParentType.GenericParameters, ParentInstruction.ParentMethod.GenericParameters);
+						break;
+					}
+				case IRLinearizedLocationType.RuntimeHandle:
+					{
+						if (RuntimeHandle.TargetType != null) RuntimeHandle.TargetType.Resolve(ref RuntimeHandle.TargetType, ParentInstruction.ParentMethod.ParentType.GenericParameters, ParentInstruction.ParentMethod.GenericParameters);
+						else if (RuntimeHandle.TargetMethod != null) RuntimeHandle.TargetMethod.Resolve(ref RuntimeHandle.TargetMethod, ParentInstruction.ParentMethod.ParentType.GenericParameters, ParentInstruction.ParentMethod.GenericParameters);
+						else if (RuntimeHandle.TargetField != null) RuntimeHandle.TargetField.Resolve(ref RuntimeHandle.TargetField, ParentInstruction.ParentMethod.ParentType.GenericParameters, ParentInstruction.ParentMethod.GenericParameters);
+						break;
+					}
+
+				default: throw new Exception();
+			}
         }
 
 		public void RetargetLocals(IRLocal[] pCurrentIterations)
@@ -162,6 +254,7 @@ namespace Proton.VM.IR
 
 		public void Dump(IndentableStreamWriter pWriter)
 		{
+			pWriter.WriteLine("#" + mTempID);
 			switch (Type)
 			{
 				case IRLinearizedLocationType.Null: break;

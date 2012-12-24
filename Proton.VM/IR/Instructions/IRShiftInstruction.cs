@@ -19,15 +19,15 @@ namespace Proton.VM.IR.Instructions
             IRStackObject shiftAmount = pStack.Pop();
             IRStackObject value = pStack.Pop();
 
-            Sources.Add(new IRLinearizedLocation(value.LinearizedTarget));
-            Sources.Add(new IRLinearizedLocation(shiftAmount.LinearizedTarget));
+			Sources.Add(new IRLinearizedLocation(this, value.LinearizedTarget));
+			Sources.Add(new IRLinearizedLocation(this, shiftAmount.LinearizedTarget));
 
             IRType resultType = ParentMethod.Assembly.AppDomain.ShiftNumericResult(value.Type, shiftAmount.Type);
             IRStackObject result = new IRStackObject();
             result.Type = resultType;
-            result.LinearizedTarget = new IRLinearizedLocation(IRLinearizedLocationType.Local);
+			result.LinearizedTarget = new IRLinearizedLocation(this, IRLinearizedLocationType.Local);
             result.LinearizedTarget.Local.LocalIndex = AddLinearizedLocal(pStack, resultType);
-            Destination = new IRLinearizedLocation(result.LinearizedTarget);
+			Destination = new IRLinearizedLocation(this, result.LinearizedTarget);
             pStack.Push(result);
         }
 

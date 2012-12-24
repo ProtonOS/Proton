@@ -78,18 +78,23 @@ namespace Proton.VM.IR
 			{
 				if (IsGeneric)
 				{
+					// Dia a painful death.
 					// This will eventually need to get the instantiation of this method.
 				}
 				else
 				{
-					Substitute(IRGenericParameterList.Empty);
+					IRType t = ParentType;
+					t.Resolve(ref t, typeParams, methodParams);
+					var m2 = selfReference;
+					var v = ParentType.Methods.FindIndex(m => m == m2);
+					selfReference = t.Methods[v];
 				}
 			}
 		}
 
         public void Substitute(IRGenericParameterList methodParams)
         {
-			if (!mResolving)
+			if (!mResolving && !IsGeneric)
 			{
 				GenericParameters.Substitute(ParentType.GenericParameters, methodParams);
 				if (ReturnType != null)
@@ -524,7 +529,7 @@ namespace Proton.VM.IR
                     IRType exceptionType = Assembly.AppDomain.PresolveType(Assembly.File.ExpandMetadataToken(exceptionData.ClassTokenOrFilterOffset));
                     IRStackObject exceptionObj = new IRStackObject();
                     exceptionObj.Type = exceptionType;
-                    exceptionObj.LinearizedTarget = new IRLinearizedLocation(IRLinearizedLocationType.Local);
+                    exceptionObj.LinearizedTarget = new IRLinearizedLocation(currentInstruction, IRLinearizedLocationType.Local);
                     exceptionObj.LinearizedTarget.Local.LocalIndex = currentInstruction.AddLinearizedLocal(pStack, exceptionType);
                     pStack.Push(exceptionObj);
                 }

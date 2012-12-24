@@ -40,11 +40,11 @@ namespace Proton.VM.IR
             i.ParentMethod = newMethod;
 			if (Destination != null)
 			{
-				i.Destination = this.Destination.Clone();
+				i.Destination = this.Destination.Clone(i);
 			}
             foreach (IRLinearizedLocation t in this.Sources)
             {
-                i.Sources.Add(t.Clone());
+                i.Sources.Add(t.Clone(i));
             }
             return i;
         }
@@ -57,8 +57,8 @@ namespace Proton.VM.IR
         public virtual void Resolve()
         {
             if (Destination != null)
-				Destination.Resolve(ParentMethod.ParentType.GenericParameters, ParentMethod.GenericParameters);
-			Sources.ForEach(s => s.Resolve(ParentMethod.ParentType.GenericParameters, ParentMethod.GenericParameters));
+				Destination.Resolve();
+			Sources.ForEach(s => s.Resolve());
         }
 
         public virtual IRInstruction Transform() { return this; }

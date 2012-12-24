@@ -12,9 +12,9 @@ namespace Proton.VM.IR.Instructions
             IRStackObject size = pStack.Pop();
             IRStackObject srcAddr = pStack.Pop();
             IRStackObject destAddr = pStack.Pop();
-            Sources.Add(new IRLinearizedLocation(destAddr.LinearizedTarget));
-            Sources.Add(new IRLinearizedLocation(srcAddr.LinearizedTarget));
-            Sources.Add(new IRLinearizedLocation(size.LinearizedTarget));
+			Sources.Add(new IRLinearizedLocation(this, destAddr.LinearizedTarget));
+			Sources.Add(new IRLinearizedLocation(this, srcAddr.LinearizedTarget));
+			Sources.Add(new IRLinearizedLocation(this, size.LinearizedTarget));
         }
 
         public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRCopyBlockInstruction(), pNewMethod); }

@@ -11,9 +11,9 @@ namespace Proton.VM.IR.Instructions
 
         public override void Linearize(Stack<IRStackObject> pStack)
         {
-            Sources.Add(new IRLinearizedLocation(pStack.Pop().LinearizedTarget));
+			Sources.Add(new IRLinearizedLocation(this, pStack.Pop().LinearizedTarget));
 
-            Destination = new IRLinearizedLocation(IRLinearizedLocationType.Parameter);
+			Destination = new IRLinearizedLocation(this, IRLinearizedLocationType.Parameter);
             Destination.Parameter.ParameterIndex = ParameterIndex;
         }
 

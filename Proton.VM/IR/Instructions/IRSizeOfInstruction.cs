@@ -12,15 +12,15 @@ namespace Proton.VM.IR.Instructions
 
         public override void Linearize(Stack<IRStackObject> pStack)
         {
-            IRLinearizedLocation value = new IRLinearizedLocation(IRLinearizedLocationType.SizeOf);
+			IRLinearizedLocation value = new IRLinearizedLocation(this, IRLinearizedLocationType.SizeOf);
             value.SizeOf.Type = Type;
             Sources.Add(value);
 
             IRStackObject result = new IRStackObject();
             result.Type = ParentMethod.Assembly.AppDomain.System_UInt32;
-            result.LinearizedTarget = new IRLinearizedLocation(IRLinearizedLocationType.Local);
+			result.LinearizedTarget = new IRLinearizedLocation(this, IRLinearizedLocationType.Local);
             result.LinearizedTarget.Local.LocalIndex = AddLinearizedLocal(pStack, ParentMethod.Assembly.AppDomain.System_UInt32);
-            Destination = new IRLinearizedLocation(result.LinearizedTarget);
+			Destination = new IRLinearizedLocation(this, result.LinearizedTarget);
             pStack.Push(result);
         }
 

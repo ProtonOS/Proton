@@ -11,9 +11,9 @@ namespace Proton.VM.IR.Instructions
 
         public override void Linearize(Stack<IRStackObject> pStack)
         {
-            Sources.Add(new IRLinearizedLocation(pStack.Pop().LinearizedTarget));
+			Sources.Add(new IRLinearizedLocation(this, pStack.Pop().LinearizedTarget));
 
-            Destination = new IRLinearizedLocation(IRLinearizedLocationType.StaticField);
+			Destination = new IRLinearizedLocation(this, IRLinearizedLocationType.StaticField);
             Destination.StaticField.Field = Field;
         }
 
@@ -25,7 +25,7 @@ namespace Proton.VM.IR.Instructions
 		public override void Resolve()
 		{
 			base.Resolve();
-			Field.Resolve();
+			Field.Resolve(ref Field, ParentMethod.ParentType.GenericParameters, ParentMethod.GenericParameters);
 		}
 
 		protected override void DumpDetails(IndentableStreamWriter pWriter)

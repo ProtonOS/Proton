@@ -9,7 +9,8 @@ namespace Proton.VM.IR.Instructions
 		public IRType TargetType { get { return mTargetType; } private set { mTargetType = value; } }
 		private IRMethod mTargetMethod = null;
 		public IRMethod TargetMethod { get { return mTargetMethod; } private set { mTargetMethod = value; } }
-        public IRField TargetField { get; private set; }
+		private IRField mTargetField = null;
+		public IRField TargetField { get { return mTargetField; } private set { mTargetField = value; } }
 
         public IRLoadRuntimeHandleInstruction(IRType pTargetType, IRMethod pTargetMethod, IRField pTargetField) : base(IROpcode.LoadRuntimeHandle)
         {
@@ -26,7 +27,7 @@ namespace Proton.VM.IR.Instructions
             else if (TargetField != null) handleType = ParentMethod.Assembly.AppDomain.System_RuntimeFieldHandle;
             else throw new NullReferenceException();
 
-            IRLinearizedLocation value = new IRLinearizedLocation(IRLinearizedLocationType.RuntimeHandle);
+			IRLinearizedLocation value = new IRLinearizedLocation(this, IRLinearizedLocationType.RuntimeHandle);
             value.RuntimeHandle.HandleType = handleType;
             value.RuntimeHandle.TargetType = TargetType;
             value.RuntimeHandle.TargetMethod = TargetMethod;
@@ -35,9 +36,9 @@ namespace Proton.VM.IR.Instructions
 
             IRStackObject result = new IRStackObject();
             result.Type = handleType;
-            result.LinearizedTarget = new IRLinearizedLocation(IRLinearizedLocationType.Local);
+			result.LinearizedTarget = new IRLinearizedLocation(this, IRLinearizedLocationType.Local);
             result.LinearizedTarget.Local.LocalIndex = AddLinearizedLocal(pStack, handleType);
-            Destination = new IRLinearizedLocation(result.LinearizedTarget);
+			Destination = new IRLinearizedLocation(this, result.LinearizedTarget);
             pStack.Push(result);
         }
 
@@ -51,7 +52,7 @@ namespace Proton.VM.IR.Instructions
 			base.Resolve();
 			if (TargetType != null) TargetType.Resolve(ref mTargetType, ParentMethod.ParentType.GenericParameters, ParentMethod.GenericParameters);
 			if (TargetMethod != null) TargetMethod.Resolve(ref mTargetMethod, ParentMethod.ParentType.GenericParameters, ParentMethod.GenericParameters);
-			if (TargetField != null) TargetField.Resolve();
+			if (TargetField != null) TargetField.Resolve(ref mTargetField, ParentMethod.ParentType.GenericParameters, ParentMethod.GenericParameters);
 		}
 
 		protected override void DumpDetails(IndentableStreamWriter pWriter)

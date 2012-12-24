@@ -202,7 +202,8 @@ namespace Proton.VM.IR
             IRType type = new IRType(pGenericType.Assembly);
             type.Name = pGenericType.Name;
             type.Namespace = pGenericType.Namespace;
-            type.GenericType = pGenericType;
+			type.PresolvedType = true;
+			type.GenericType = pGenericType;
             type.GenericParameters.AddRange(pGenericParameterTypes);
             return type;
         }

@@ -5,22 +5,23 @@ namespace Proton.VM.IR.Instructions
 {
     public sealed class IRLoadFieldAddressInstruction : IRInstruction
     {
-        public IRField Field { get; private set; }
+		private IRField mField = null;
+		public IRField Field { get { return mField; } private set { mField = value; } }
 
         public IRLoadFieldAddressInstruction(IRField pField) : base(IROpcode.LoadFieldAddress) { Field = pField; }
 
         public override void Linearize(Stack<IRStackObject> pStack)
         {
-            IRLinearizedLocation source = new IRLinearizedLocation(IRLinearizedLocationType.FieldAddress);
+			IRLinearizedLocation source = new IRLinearizedLocation(this, IRLinearizedLocationType.FieldAddress);
             source.FieldAddress.Field = Field;
-            source.FieldAddress.FieldLocation = new IRLinearizedLocation(pStack.Pop().LinearizedTarget);
+			source.FieldAddress.FieldLocation = new IRLinearizedLocation(this, pStack.Pop().LinearizedTarget);
             Sources.Add(source);
 
             IRStackObject result = new IRStackObject();
             result.Type = ParentMethod.Assembly.AppDomain.System_IntPtr;
-            result.LinearizedTarget = new IRLinearizedLocation(IRLinearizedLocationType.Local);
+			result.LinearizedTarget = new IRLinearizedLocation(this, IRLinearizedLocationType.Local);
             result.LinearizedTarget.Local.LocalIndex = AddLinearizedLocal(pStack, ParentMethod.Assembly.AppDomain.System_IntPtr);
-            Destination = new IRLinearizedLocation(result.LinearizedTarget);
+			Destination = new IRLinearizedLocation(this, result.LinearizedTarget);
             pStack.Push(result);
         }
 
@@ -32,7 +33,7 @@ namespace Proton.VM.IR.Instructions
 		public override void Resolve()
 		{
 			base.Resolve();
-			Field.Resolve();
+			Field.Resolve(ref mField, ParentMethod.ParentType.GenericParameters, ParentMethod.GenericParameters);
 		}
 
 		protected override void DumpDetails(IndentableStreamWriter pWriter)
