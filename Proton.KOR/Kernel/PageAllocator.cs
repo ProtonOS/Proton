@@ -5,44 +5,22 @@ namespace System.Kernel
 {
 	internal unsafe static class PageAllocator
 	{
-		private struct UsableBlock
-        {
-            public ulong Address;
-            public ulong Size;
-        }
-		internal struct AllocatedBlock
-		{
-			public ulong Address;
-			public ulong Size;
-		}
-
-		private const ulong MinimumTotalMemory = 0x4000000;
-		private const uint MinimumPageSize = 0x1000;
-		private const int ShiftsForMinimumPageSize = 12;
+		internal const ulong MinimumTotalMemory = 0x4000000;
+		internal const uint MinimumPageSize = 0x1000;
+		internal const int ShiftsForMinimumPageSize = 12;
 
 		private static uint* Tree = null;
-		private static ulong TreeSize = 0;
 		private static byte TreeLevels = 0;
-
-		//private const uint Reserved1KBForUsableBlocks = 0x100000;
-		//private const uint MaximumUsableBlocks = 0x40;
-		//private static UsableBlock* UsableBlocks = (UsableBlock*)Reserved1KBForUsableBlocks;
-		//private static uint UsableBlockCount = 0;
-
-		//private const uint Reserved512KBForAllocatedBlocks = 0x180000;
-		//private const uint MinimumAllocatedBlockSize = 0x1000;
-		//private static uint MaximumAllocatedBlocks = 0;
-		//private static AllocatedBlock* AllocatedBlocks = (AllocatedBlock*)Reserved512KBForAllocatedBlocks;
-		//private static uint AllocatedBlockCount = 0;
 
 		private static void Panic() { while (true) ; }
 
-		internal static void Initialize(uint pMultibootMagic, MultibootHeader* pMultibootHeader)
+		internal static void Initialize(MultibootHeader* pMultibootHeader)
 		{
 			int memoryMapCount = (int)(pMultibootHeader->MemoryMapsSize / sizeof(MultibootMemoryMap));
 			ulong lastMemoryMapAddress = pMultibootHeader->MemoryMaps[memoryMapCount - 1].AddressLower | ((ulong)pMultibootHeader->MemoryMaps[memoryMapCount - 1].AddressUpper << 32);
 			ulong lastMemoryMapLength = pMultibootHeader->MemoryMaps[memoryMapCount - 1].LengthLower | ((ulong)pMultibootHeader->MemoryMaps[memoryMapCount - 1].LengthUpper << 32);
 			ulong totalMemory = lastMemoryMapAddress + lastMemoryMapLength;
+			if (totalMemory < MinimumTotalMemory) Panic();
 			ulong totalMemoryHighestBit = 0;
 			int totalMemoryHighestBitShiftOff = 0;
 			for (int bit = 63; bit >= 0; --bit)
@@ -57,15 +35,14 @@ namespace System.Kernel
 			if ((totalMemory << totalMemoryHighestBitShiftOff) != 0) totalMemoryHighestBit <<= 1;
 			int shiftsForTotalMemory = 64 - totalMemoryHighestBitShiftOff;
 			TreeLevels = (byte)((shiftsForTotalMemory - ShiftsForMinimumPageSize) + 1);
-			ulong bitsRequiredForTree = ((ulong)1 << TreeLevels) - 1;
-			ulong bytesRequiredForTree = (bitsRequiredForTree + 1) >> 3;
+			ulong bytesRequiredForTree = ((ulong)1 << TreeLevels) >> 3;
 			ulong treeStartAddress = pMultibootHeader->Modules[pMultibootHeader->ModulesCount - 1].End;
 			if ((treeStartAddress & 0x03) != 0) treeStartAddress += 4 - (treeStartAddress & 0x03);
 			Tree = (uint*)treeStartAddress;
-			TreeSize = bytesRequiredForTree >> 2;
-			for (ulong index = 0; index < TreeSize; ++index) Tree[index] = 0;
+			ulong treeElementCount = bytesRequiredForTree >> 2;
+			for (ulong index = 0; index < treeElementCount; ++index) Tree[index] = 0;
 
-			SetBitsInTree((byte)(TreeLevels - 1), 0, (treeStartAddress + TreeSize) >> ShiftsForMinimumPageSize, true);
+			SetBitsInTree((byte)(TreeLevels - 1), 0, (treeStartAddress + (treeElementCount << 2)) >> ShiftsForMinimumPageSize, true);
 
 			MultibootMemoryMap* memoryMap = null;
 			ulong memoryMapAddress = 0;
