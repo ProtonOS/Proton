@@ -16,6 +16,7 @@ namespace Proton.VM.IR
         public IRAssembly Assembly = null;
 
         public string Name = null;
+		public bool PresolvedMethod = false;
 
 		public bool IsStatic { get; set; }
 
@@ -65,6 +66,7 @@ namespace Proton.VM.IR
 				if (!Parameters.Where(p => p.Type != ParentType).TrueForAll(p => p.Resolved)) return false;
 				if (!Locals.Where(p => p.Type != ParentType).TrueForAll(l => l.Resolved)) return false;
 				if (!Instructions.TrueForAll(i => i.Resolved)) return false;
+				if (!ParentType.Resolved) return false;
 
 				mResolvedCache = true;
 				mResolving = false;
@@ -74,7 +76,7 @@ namespace Proton.VM.IR
 
 		public void Resolve(ref IRMethod selfReference, IRGenericParameterList typeParams, IRGenericParameterList methodParams)
 		{
-			if (!Resolved)
+			if (!Resolved || PresolvedMethod)
 			{
 				if (IsGeneric)
 				{
@@ -85,9 +87,8 @@ namespace Proton.VM.IR
 				{
 					IRType t = ParentType;
 					t.Resolve(ref t, typeParams, methodParams);
-					var m2 = selfReference;
-					var v = ParentType.Methods.FindIndex(m => m == m2);
-					selfReference = t.Methods[v];
+					selfReference = t.Methods[selfReference.ParentTypeMethodIndex];
+					selfReference.Resolve(ref selfReference, t.GenericParameters, methodParams);
 				}
 			}
 		}
@@ -101,7 +102,7 @@ namespace Proton.VM.IR
 					ReturnType.Resolve(ref ReturnType, ParentType.GenericParameters, GenericParameters);
 				if (!this.IsStatic)
 					Parameters[0].Type = this.ParentType;
-				//Parameters.ForEach(p => p.ParentMethod = this); 
+
 				Parameters.ForEach(p => p.Substitute());
 				Locals.ForEach(l => l.Substitute());
 				Instructions.ForEach(i => i.Substitute());
@@ -143,7 +144,24 @@ namespace Proton.VM.IR
         public IRMethod GenericMethod = null;
         public readonly IRGenericParameterList GenericParameters = new IRGenericParameterList();
 
-        // Temporary
+		private int mParentTypeMethodIndex = -1;
+		public int ParentTypeMethodIndex
+		{
+			get
+			{
+				if (mParentTypeMethodIndex >= 0)
+					return mParentTypeMethodIndex;
+				else if (GenericMethod != null)
+					return GenericMethod.ParentTypeMethodIndex;
+				return -1;
+			}
+			set
+			{
+				mParentTypeMethodIndex = value;
+			}
+		}
+
+		// Temporary
         public ushort MaximumStackDepth = 0;
 		public IRControlFlowGraph ControlFlowGraph = null;
 

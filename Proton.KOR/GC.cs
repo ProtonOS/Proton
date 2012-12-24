@@ -169,7 +169,7 @@ namespace System
 			HeapAllocator.DeallocateHeap(pHeap);
 		}
 
-		internal static object AllocateObject(uint pDataSize)
+		private static GCObject* Allocate(uint pDataSize)
 		{
 			// TODO: Thread-safety
 			ulong heapSize = (ulong)sizeof(GCObject) + pDataSize;
@@ -199,12 +199,26 @@ namespace System
 			obj = (GCObject*)address;
 			obj->Heap = heap;
 			heap->LinkObjectToAllocated(obj);
-			obj->TypeData = typeof(object).GetTypeDataPointer();
+			obj->TypeData = null;
 			obj->Flags = GCObjectFlags.None;
 			obj->HeapSize = (uint)heapSize;
 			obj->DataSize = pDataSize;
-			return object.Internal_PointerToReference((void*)(address + (ulong)sizeof(GCObject)));
+			return obj;
 		}
+
+		internal static object AllocateObject(Type.TypeData* pType)
+		{
+			GCObject* obj = Allocate(pType->Size);
+			obj->TypeData = pType;
+			return object.Internal_PointerToReference((void*)((ulong)obj + (ulong)sizeof(GCObject)));
+		}
+
+		//internal static string AllocateStringFromASCII(sbyte* pString, uint pLength)
+		//{
+		//    GCObject* obj = Allocate(sizeof(int) + (pLength << 1));
+			
+		//}
+
 
 		//internal static object Allocate(uint objectSize)
 		//{

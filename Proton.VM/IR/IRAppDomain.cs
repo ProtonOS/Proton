@@ -212,7 +212,8 @@ namespace Proton.VM.IR
         {
             IRMethod method = new IRMethod(pGenericMethod.Assembly);
             method.Name = pGenericMethod.Name;
-            method.GenericMethod = pGenericMethod;
+			method.PresolvedMethod = true;
+			method.GenericMethod = pGenericMethod;
             method.ReturnType = pGenericMethod.ReturnType;
 			//if (method.ReturnType != null && method.ReturnType.IsGeneric)
 			//{

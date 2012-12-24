@@ -28,7 +28,46 @@ namespace Proton.VM.IR
 		public bool PresolvedType = false;
 
         public readonly List<IRField> Fields = new List<IRField>();
-        public readonly List<IRMethod> Methods = new List<IRMethod>();
+		public sealed class IRMethodList : IEnumerable<IRMethod>
+		{
+			private readonly List<IRMethod> vals = new List<IRMethod>(64);
+
+			public int Count { get { return vals.Count; } }
+			public IRMethod this[int idx] 
+			{
+				get { return vals[idx]; }
+				set 
+				{
+					vals[idx].ParentTypeMethodIndex = -1;
+					vals[idx] = value;
+					value.ParentTypeMethodIndex = idx;
+				}
+			}
+
+			public void Add(IRMethod m)
+			{
+				m.ParentTypeMethodIndex = vals.Count;
+				vals.Add(m);
+			}
+
+			public IEnumerator<IRMethod> GetEnumerator()
+			{
+				foreach (IRMethod m in vals)
+					yield return m;
+			}
+
+			System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+			{
+				foreach (IRMethod m in vals)
+					yield return m;
+			}
+
+			public override string ToString()
+			{
+				return "Count: " + Count.ToString();
+			}
+		}
+		public readonly IRMethodList Methods = new IRMethodList();
         public readonly List<IRType> NestedTypes = new List<IRType>();
         public IRType BaseType = null;
 
@@ -61,6 +100,7 @@ namespace Proton.VM.IR
         // derived type.
         private bool? mResolvedCache;
 		private bool mResolving = false;
+		public bool Resolving { get { return mResolving; } }
         /// <summary>
         /// True if this type and it's members are fully
         /// resolved, aka. this type has been fully instantiated.
@@ -208,7 +248,7 @@ namespace Proton.VM.IR
         /// <param name="methodParams"></param>
         public void Resolve(ref IRType selfReference, IRGenericParameterList typeParams, IRGenericParameterList methodParams)
         {
-            if (!Resolved)
+            if (!Resolved || PresolvedType)
             {
 				if (IsGeneric)
 				{

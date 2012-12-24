@@ -13,7 +13,7 @@ namespace System
 
         public static bool IsNullOrEmpty(string value) { return (value == null) || (value.mLength == 0); }
 
-        // This field must be the only field, to tie up with C code
+        // This field must be the only field, to tie up with GC code, and must be 32bits
         private int mLength;
 
         [MethodImpl(MethodImplOptions.InternalCall)]
