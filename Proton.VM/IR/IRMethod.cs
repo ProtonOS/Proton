@@ -78,24 +78,69 @@ namespace Proton.VM.IR
 		{
 			if (!Resolved || PresolvedMethod)
 			{
+				IRType t = ParentType;
+				t.Resolve(ref t, typeParams, methodParams);
 				if (IsGeneric)
 				{
-					// Dia a painful death.
-					// This will eventually need to get the instantiation of this method.
+					if (!this.GenericParameters.Resolved)
+					{
+						if (this.GenericMethod != null)
+						{
+							this.GenericParameters.TrySubstitute(typeParams, methodParams);
+						}
+						else
+						{
+							selfReference = Assembly.AppDomain.PresolveGenericMethod(this, typeParams.ToList());
+							selfReference.Resolve(ref selfReference, typeParams, methodParams);
+							return;
+						}
+					}
+					if (this.GenericParameters.Resolved)
+					{
+						IRMethod mth = null;
+						if (!t.GenericMethods.TryGetValue(this, out mth))
+						{
+							IRMethod mth2 = null;
+							mth = this.GenericMethod.Clone(t);
+							mth.GenericParameters.Substitute(t.GenericParameters, this.GenericParameters);
+							if (!t.GenericMethods.TryGetValue(mth, out mth2))
+							{
+								t.GenericMethods.Add(mth, mth);
+
+								for (int i = 0; i < mth.GenericParameters.Count; i++)
+								{
+									mth.GenericParameters[i] = this.GenericParameters[i];
+								}
+
+								mth.Substitute(this.GenericParameters);
+							}
+							else
+							{
+								mth = mth2;
+							}
+						}
+						selfReference = mth;
+					}
+					else
+					{
+						// Dia a painful death.
+						// This will eventually need to get the instantiation of this method.
+					}
 				}
 				else
 				{
-					IRType t = ParentType;
-					t.Resolve(ref t, typeParams, methodParams);
-					selfReference = t.Methods[selfReference.ParentTypeMethodIndex];
-					selfReference.Resolve(ref selfReference, t.GenericParameters, methodParams);
+					if (t.GenericParameters.Resolved)
+					{
+						selfReference = t.Methods[selfReference.ParentTypeMethodIndex];
+						selfReference.Resolve(ref selfReference, t.GenericParameters, methodParams);
+					}
 				}
 			}
 		}
 
         public void Substitute(IRGenericParameterList methodParams)
         {
-			if (!mResolving && !IsGeneric)
+			if (!Resolved || Resolved)
 			{
 				GenericParameters.Substitute(ParentType.GenericParameters, methodParams);
 				if (ReturnType != null)
@@ -166,7 +211,7 @@ namespace Proton.VM.IR
 		public IRControlFlowGraph ControlFlowGraph = null;
 
 		private static int sTempID = 0;
-		private int mTempID = 0;
+		internal int mTempID = 0;
 
         public IRMethod(IRAssembly pAssembly)
         {

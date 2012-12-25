@@ -147,7 +147,15 @@ namespace Proton.VM.IR
 			return new List<IRType>(mParams);
 		}
 
-        public void Substitute(IRGenericParameterList typeParams, IRGenericParameterList methodParams)
+		public void Merge(IRGenericParameterList other)
+		{
+			for (int i = 0; i < other.Count; i++)
+			{
+				mParams[i] = other[i];
+			}
+		}
+
+		public void Substitute(IRGenericParameterList typeParams, IRGenericParameterList methodParams)
         {
             for (int i = 0; i < mParams.Count; i++)
             {

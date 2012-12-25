@@ -239,6 +239,10 @@ namespace Proton.VM.IR
             return t;
         }
 
+		public readonly Dictionary<IRMethod, IRMethod> GenericMethods = new Dictionary<IRMethod, IRMethod>();
+
+
+
         public static readonly Dictionary<IRType, IRType> GenericTypes = new Dictionary<IRType, IRType>();
         /// <summary>
         /// Resolve any generic types used in this type.
@@ -484,6 +488,15 @@ namespace Proton.VM.IR
 			pWriter.Indent++;
 			Fields.ForEach(f => f.Dump(pWriter));
 			Methods.ForEach(m => m.Dump(pWriter));
+			if (GenericMethods.Count > 0)
+			{
+				pWriter.WriteLine("GenericMethods");
+				pWriter.WriteLine("{");
+				pWriter.Indent++;
+				GenericMethods.ForEach(m => m.Value.Dump(pWriter));
+				pWriter.Indent--;
+				pWriter.WriteLine("}");
+			}
 			pWriter.Indent--;
 			pWriter.WriteLine("}");
 		}

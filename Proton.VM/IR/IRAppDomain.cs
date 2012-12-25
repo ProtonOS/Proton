@@ -227,7 +227,8 @@ namespace Proton.VM.IR
 			{
 				method.ParentType = pGenericMethod.ParentType;
 			}
-			method.GenericParameters.AddRange(pGenericParameterTypes);
+			method.GenericParameters.AddRange(pGenericMethod.GenericParameters);
+			method.GenericParameters.Merge(new IRGenericParameterList(pGenericParameterTypes));
 			for (int index = 0; index < pGenericMethod.Parameters.Count; ++index)
 			{
 				IRParameter parameter = pGenericMethod.Parameters[index];
