@@ -46,6 +46,7 @@ namespace Proton.VM.IR
 
                 type.Namespace = typeDefData.TypeNamespace;
                 type.Name = typeDefData.TypeName;
+				type.Flags = typeDefData.Flags;
 				var genParams = File.GenericParamTable.Where(gp => gp.Owner.Type == TypeOrMethodDefIndex.TypeOrMethodDefType.TypeDef && gp.Owner.TypeDef == typeDefData).ToList();
 				for (int i = 0; i < genParams.Count; i++)
 				{
@@ -56,6 +57,7 @@ namespace Proton.VM.IR
                 {
                     IRField field = Fields[fieldData.TableIndex];
                     field.Name = fieldData.Name;
+					field.Flags = fieldData.Flags;
                     field.ParentType = type;
                     type.Fields.Add(field);
                 }
@@ -63,8 +65,9 @@ namespace Proton.VM.IR
                 {
                     IRMethod method = Methods[methodDefData.TableIndex];
                     method.Name = methodDefData.Name;
+					method.Flags = methodDefData.Flags;
+					method.ImplFlags = methodDefData.ImplFlags;
                     method.ParentType = type;
-					method.IsStatic = (methodDefData.Flags & MethodAttributes.Static) == MethodAttributes.Static;
                     type.Methods.Add(method);
 
                     foreach (ParamData paramData in methodDefData.ParamList)
@@ -95,7 +98,8 @@ namespace Proton.VM.IR
                 foreach (TypeDefData nestedTypeDefData in typeDefData.NestedClassList)
                 {
                     IRType nestedType = Types[nestedTypeDefData.TableIndex];
-                    nestedType.Namespace = type.Namespace + "." + type.Name;
+                    //nestedType.Namespace = type.Namespace + "." + type.Name;
+					nestedType.NestedInsideOfType = type;
                     type.NestedTypes.Add(nestedType);
                 }
             }

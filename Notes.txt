@@ -29,34 +29,33 @@
 
 * Decomposition of ILInstructions into IRInstructions
 
-Create IRGenericInstantiations for IRTypes
-Create IRGenericInstantiations for IRField types
-Create IRGenericInstantiations for IRMethod return and parameter types
-Create IRGenericInstantiations for IRLocal types
+* Create generic instantiations for IRTypes
+* Create generic instantiations for IRField types
+* Create generic instantiations for IRMethod return and parameter types
+* Create generic instantiations for IRLocal types
 
 * Build control flow graph
 * Fix linearization of values remaining from inside branches, IE ternary operations, and if (x == null || y == null) scenario (source coming from 2 branches)
 * Linearization of IRInstructions
-Linearization of Exception Handlers, and Finally Handlers
+- Linearization of Exception Handlers, and Finally Handlers
 * Transform Load/Store to Move IRInstructions
-Transform instructions that behave like other instructions under certain conditions, IE unbox.any to castclass when dealing with a reference type
+- Transform instructions that behave like other instructions under certain conditions, IE unbox.any to castclass when dealing with a reference type
 
 * Complete instruction cloning
-Complete instruction resolving of types, methods, and fields held by the instruction
-Complete linearized source/destination cloning and resolving
+* Complete instruction resolving of types, methods, and fields held by the instruction
+* Complete linearized source/destination cloning and resolving
+
+Calculate all IRType sizes
+Layout IRFields, IRLocals, and IRParameter offsets
 
 Generate mandatory internal calls, IE object conversion to and from pointer for GC
 Resolve internal calls, limiting internal calls for mandatory calls only means resolution on name without signatures might be enough for AOT side only
 
 Resolve interface implementation methods, including resolved generic instantiated methods
-Create virtual tree for IRType methods, for virtual method lookups, including resolved generic instantiated methods
 
 Optimizations
-SSA Enter, with pruned phi reductions
+* SSA Enter, with pruned phi reductions
 SSA Leave, with variable reductions
-
-Calculate all IRType sizes
-Layout IRFields, IRLocals, and IRParameter offsets
 
 Assemble IRInstructions
 

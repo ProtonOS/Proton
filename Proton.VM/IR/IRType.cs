@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using Proton.Metadata;
 
 namespace Proton.VM.IR
 {
@@ -25,6 +26,7 @@ namespace Proton.VM.IR
 
         public string Namespace = null;
         public string Name = null;
+		public TypeAttributes Flags = TypeAttributes.None;
 		public bool PresolvedType = false;
 
         public readonly List<IRField> Fields = new List<IRField>();
@@ -69,7 +71,58 @@ namespace Proton.VM.IR
 		}
 		public readonly IRMethodList Methods = new IRMethodList();
         public readonly List<IRType> NestedTypes = new List<IRType>();
-        public IRType BaseType = null;
+		public IRType NestedInsideOfType = null;
+		private IRType mParentType = null;
+		private IRType mBaseType = null;
+		public IRType BaseType
+		{
+			get
+			{
+				if (mParentType != null)
+				{
+					mBaseType = mParentType.mBaseType;
+					mParentType = null;
+				}
+				return mBaseType;
+			}
+			set
+			{
+				mBaseType = value;
+			}
+		}
+
+		public readonly List<IRMethod> VirtualMethodTree = new List<IRMethod>();
+		internal void CreateVirtualMethodTree()
+		{
+			if (VirtualMethodTree.Count == 0)
+			{
+				if (BaseType != null)
+				{
+					BaseType.CreateVirtualMethodTree();
+					VirtualMethodTree.AddRange(BaseType.VirtualMethodTree);
+				}
+				foreach (IRMethod method in Methods)
+				{
+					if (!method.IsStatic && method.IsVirtual)
+					{
+						if (method.IsNewSlot)
+						{
+							VirtualMethodTree.Add(method);
+						}
+						else if (method.IsHideBySig)
+						{
+							var v = VirtualMethodTree.FindIndex(m2 => m2 == method);
+							VirtualMethodTree[v] = method;
+						}
+						else
+						{
+							var v = VirtualMethodTree.FindIndex(m2 => m2.Name == method.Name);
+							VirtualMethodTree[v] = method;
+						}
+					}
+				}
+			}
+		}
 
         private bool mGlobalTypeIDSet = false;
         private int mGlobalTypeID;
@@ -126,10 +179,26 @@ namespace Proton.VM.IR
 					return true;
 
 				mResolving = true;
-				if (GenericType != null && (Fields.Count != GenericType.Fields.Count || Methods.Count != GenericType.Methods.Count)) return false;
-                if (BaseType != null && !BaseType.Resolved) return false;
-                if (!Fields.Where(f => f.Type != this).TrueForAll(f => f.Resolved)) return false;
-                if (!Methods.TrueForAll(m => m.Resolved)) return false;
+				if (GenericType != null && (Fields.Count != GenericType.Fields.Count || Methods.Count != GenericType.Methods.Count))
+				{
+					mResolving = false;
+					return false;
+				}
+				if (BaseType != null && !BaseType.Resolved)
+				{
+					mResolving = false;
+					return false;
+				}
+				if (!Fields.Where(f => f.Type != this).TrueForAll(f => f.Resolved))
+				{
+					mResolving = false;
+					return false;
+				}
+				if (!Methods.TrueForAll(m => m.Resolved))
+				{
+					mResolving = false;
+					return false;
+				}
 				mResolving = false;
 
                 mResolvedCache = true;
@@ -218,10 +287,18 @@ namespace Proton.VM.IR
             this.Fields.ForEach(f => t.Fields.Add(f.Clone(t)));
             this.Methods.ForEach(m => t.Methods.Add(m.Clone(t)));
             t.NestedTypes.AddRange(this.NestedTypes);
+			t.NestedInsideOfType = this.NestedInsideOfType;
             t.GenericParameters.AddRange(this.GenericParameters);
 
             t.ArrayElementType = this.ArrayElementType;
-            t.BaseType = this.BaseType;
+			if (this.mBaseType == null)
+			{
+				t.mParentType = this;
+			}
+			else
+			{
+				t.BaseType = this.BaseType;
+			}
 			if (this.GenericType != null)
 				t.GenericType = this.GenericType;
 			else if (this.GenericParameters.Count > 0)
@@ -231,6 +308,7 @@ namespace Proton.VM.IR
             t.IsTemporaryVar = this.IsTemporaryVar;
             t.Name = this.Name;
             t.Namespace = this.Namespace;
+			t.Flags = this.Flags;
 			t.ManagedPointerType = this.ManagedPointerType;
             t.UnmanagedPointerType = this.UnmanagedPointerType;
             t.TemporaryVarOrMVarIndex = this.TemporaryVarOrMVarIndex;
@@ -346,7 +424,7 @@ namespace Proton.VM.IR
 				return;
 
 			if (this.BaseType != null)
-				this.BaseType.Resolve(ref this.BaseType, this.GenericParameters, IRGenericParameterList.Empty);
+				this.BaseType.Resolve(ref this.mBaseType, this.GenericParameters, IRGenericParameterList.Empty);
 
             this.Fields.ForEach(f => f.Substitute());
 			this.Methods.ForEach(m => m.Substitute(m.GenericParameters));
@@ -472,7 +550,18 @@ namespace Proton.VM.IR
 				default:
 					break;
 			}
-			string nn = Namespace + "." + Name;
+			string n = Namespace;
+			if (NestedInsideOfType != null)
+			{
+				if (n != "")
+					n += "::";
+				else
+					n = "";
+				n += NestedInsideOfType.ToString() + "/";
+			}
+			else
+				n += ".";
+			string nn = n + Name;
 			if (IsGeneric)
 			{
 				nn += GenericParameters.ToString();
@@ -489,13 +578,22 @@ namespace Proton.VM.IR
 			Methods.ForEach(m => m.Dump(pWriter));
 			if (GenericMethods.Count > 0)
 			{
-				pWriter.WriteLine("GenericMethods");
+				pWriter.WriteLine("GenericMethods {0}", GenericMethods.Count);
 				pWriter.WriteLine("{");
 				pWriter.Indent++;
 				GenericMethods.ForEach(m => m.Value.Dump(pWriter));
 				pWriter.Indent--;
 				pWriter.WriteLine("}");
 			}
+			pWriter.WriteLine("VirtualMethodTree {0}", VirtualMethodTree.Count);
+			pWriter.WriteLine("{");
+			pWriter.Indent++;
+			for (int i = 0; i < VirtualMethodTree.Count; i++)
+			{
+				pWriter.WriteLine("[{0}] = {1}", i, VirtualMethodTree[i].ToString());
+			}
+			pWriter.Indent--;
+			pWriter.WriteLine("}");
 			pWriter.Indent--;
 			pWriter.WriteLine("}");
 		}

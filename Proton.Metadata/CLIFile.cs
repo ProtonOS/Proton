@@ -187,7 +187,7 @@ namespace Proton.Metadata
 			switch (token.Table)
 			{
 				case MetadataTables.Module: token.Data = ModuleTable[index]; break;
-				case MetadataTables.TypeRef: token.Data = TypeDefTable[index]; break;
+				case MetadataTables.TypeRef: token.Data = TypeRefTable[index]; break;
 				case MetadataTables.TypeDef: token.Data = TypeDefTable[index]; break;
 				case MetadataTables.Field: token.Data = FieldTable[index]; break;
 				case MetadataTables.MethodDef: token.Data = MethodDefTable[index]; break;

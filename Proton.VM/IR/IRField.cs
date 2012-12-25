@@ -2,6 +2,7 @@
 using Proton.Metadata.Signatures;
 using System;
 using System.Collections.Generic;
+using Proton.Metadata;
 
 namespace Proton.VM.IR
 {
@@ -10,6 +11,7 @@ namespace Proton.VM.IR
         public IRAssembly Assembly = null;
 
         public string Name = null;
+		public FieldAttributes Flags = FieldAttributes.None;
 
 		public IRType ParentType = null;
 
@@ -65,6 +67,7 @@ namespace Proton.VM.IR
             IRField f = new IRField(this.Assembly);
 
             f.Name = this.Name;
+			f.Flags = this.Flags;
             f.ParentType = newParent;
             f.Type = this.Type;
 			f.mParentField = this.Type == null ? this : null;

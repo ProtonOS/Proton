@@ -33,8 +33,14 @@ namespace System
             return info.GetNames();
         }
 
-        private struct EnumInfo
+        public struct EnumInfo
         {
+			public struct SomethingElse
+			{
+				public int i;
+				public int b;
+			}
+
             private string[] names;
             private int[] values;
 

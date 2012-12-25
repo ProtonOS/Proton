@@ -4,6 +4,8 @@ namespace Proton.Metadata
 {
     public enum TypeAttributes : uint
     {
+		None = 0,
+
         VisibilityMask = 0x00000007,
         NotPublic = 0x00000000,
         Public = 0x00000001,

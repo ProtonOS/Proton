@@ -174,6 +174,7 @@ namespace Proton.VM.IR
             Assemblies.ForEach(a => a.LoadStage3());
             Assemblies.ForEach(a => a.LoadStage4());
 			Assemblies.ForEach(a => a.LoadStage5());
+			Types.ForEach(t => t.CreateVirtualMethodTree());
 			Assemblies.ForEach(a => a.LoadStage6());
 			Dump();
 			return assembly;

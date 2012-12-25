@@ -16,9 +16,14 @@ namespace Proton.VM.IR
         public IRAssembly Assembly = null;
 
         public string Name = null;
+		public MethodAttributes Flags = MethodAttributes.None;
+		public MethodImplAttributes ImplFlags = MethodImplAttributes.None;
 		public bool PresolvedMethod = false;
 
-		public bool IsStatic { get; set; }
+		public bool IsStatic { get { return (Flags & MethodAttributes.Static) == MethodAttributes.Static; } }
+		public bool IsVirtual { get { return (Flags & MethodAttributes.Virtual) == MethodAttributes.Virtual; } }
+		public bool IsNewSlot { get { return (Flags & MethodAttributes.NewSlot) == MethodAttributes.NewSlot; } }
+		public bool IsHideBySig { get { return (Flags & MethodAttributes.HideBySig) == MethodAttributes.HideBySig; } }
 
         private IRType mParentType = null;
 		public IRType ParentType 
@@ -31,8 +36,6 @@ namespace Proton.VM.IR
 			}
 		}
         public IRType ReturnType = null;
-
-
 
 		private IRMethod mParentMethod;
 		private readonly List<IRParameter> mParameters = new List<IRParameter>();
@@ -82,13 +85,32 @@ namespace Proton.VM.IR
 				mResolving = true;
 				if (ReturnType != null && ReturnType != ParentType)
 				{
-					if (!ReturnType.Resolved) return false;
+					if (!ReturnType.Resolved)
+					{
+						mResolving = false;
+						return false;
+					}
 				}
-				if (!Parameters.Where(p => p.Type != ParentType).TrueForAll(p => p.Resolved)) return false;
-				if (!Locals.Where(p => p.Type != ParentType).TrueForAll(l => l.Resolved)) return false;
-				if (!Instructions.TrueForAll(i => i.Resolved)) return false;
-				if (ParentType != null && !ParentType.Resolved) return false;
-
+				if (!Parameters.Where(p => p.Type != ParentType).TrueForAll(p => p.Resolved))
+				{
+					mResolving = false;
+					return false;
+				}
+				if (!Locals.Where(p => p.Type != ParentType).TrueForAll(l => l.Resolved))
+				{
+					mResolving = false;
+					return false;
+				}
+				if (!Instructions.TrueForAll(i => i.Resolved))
+				{
+					mResolving = false;
+					return false;
+				}
+				if (ParentType != null && !ParentType.Resolved)
+				{
+					mResolving = false;
+					return false;
+				}
 				mResolvedCache = true;
 				mResolving = false; 
 				Assembly.AppDomain.Methods.Add(this);
@@ -196,8 +218,9 @@ namespace Proton.VM.IR
 			this.Parameters.ForEach(p => m.Parameters.Add(p.Clone(m)));
 			m.MaximumStackDepth = this.MaximumStackDepth;
 			m.Name = this.Name;
+			m.Flags = this.Flags;
+			m.ImplFlags = this.ImplFlags;
 			m.ReturnType = this.ReturnType;
-			m.IsStatic = this.IsStatic;
 			m.mParentMethod = this;
 			// TODO: Fix Branch/Switch/Leave IRInstruction's to new method instructions based on IRIndex's
 			return m;
@@ -497,7 +520,8 @@ namespace Proton.VM.IR
                             IRType type = null;
                             IRMethod method = null;
                             IRField field = null;
-                            MetadataToken token = Assembly.File.ExpandMetadataToken(reader.ReadUInt32());
+							uint tmptoken = reader.ReadUInt32();
+                            MetadataToken token = Assembly.File.ExpandMetadataToken(tmptoken);
                             switch (token.Table)
                             {
                                 case MetadataTables.TypeDef: type = Assembly.AppDomain.PresolveType((TypeDefData)token.Data); break;
@@ -824,6 +848,45 @@ namespace Proton.VM.IR
 		{
 		}
 
+
+		private int? mHashCodeCache;
+		public override int GetHashCode()
+		{
+			if (mHashCodeCache != null)
+				return mHashCodeCache.Value;
+
+			int val = Name.GetHashCode();
+			if (IsGeneric)
+			{
+				val ^= GenericParameters.GetHashCode();
+			}
+			int i = 0;
+			if (!IsStatic)
+				i++;
+			for (; i < Parameters.Count; i++)
+			{
+				val ^= Parameters[i].Type.GetHashCode();
+			}
+			mHashCodeCache = val;
+			return mHashCodeCache.Value;
+		}
+
+		public override bool Equals(object obj)
+		{
+			if (ReferenceEquals(this, obj)) return true;
+			if (obj == null) return false;
+			if (!(obj is IRMethod)) return false;
+			return ((IRMethod)obj).GetHashCode() == this.GetHashCode();
+		}
+
+		public static bool operator ==(IRMethod a, IRMethod b)
+		{
+			if (ReferenceEquals(a, b)) return true;
+			if (((object)a == null) || ((object)b == null)) return false;
+			return a.GetHashCode() == b.GetHashCode();
+		}
+
+		public static bool operator !=(IRMethod a, IRMethod b) { return !(a == b); }
 
 
 		public void Dump(IndentableStreamWriter pWriter)
