@@ -32,6 +32,8 @@ namespace Proton.VM.IR
 		}
         public IRType ReturnType = null;
 
+
+
 		private IRMethod mParentMethod;
 		private readonly List<IRParameter> mParameters = new List<IRParameter>();
 		public List<IRParameter> Parameters
@@ -47,6 +49,25 @@ namespace Proton.VM.IR
 		}
         public readonly List<IRLocal> Locals = new List<IRLocal>();
         public readonly IRInstructionList Instructions = new IRInstructionList();
+
+		private bool mGlobalMethodIDSet = false;
+		private int mGlobalMethodID;
+		public int GlobalMethodID
+		{
+			get
+			{
+				if (!mGlobalMethodIDSet)
+					throw new Exception("This type doesn't have a global method id!");
+				return mGlobalMethodID;
+			}
+			set
+			{
+				if (mGlobalMethodIDSet)
+					throw new Exception("Cannot set the global method id more than once!");
+				mGlobalMethodID = value;
+				mGlobalMethodIDSet = true;
+			}
+		}
 
         private bool? mResolvedCache;
 		private bool mResolving = false;
@@ -66,10 +87,11 @@ namespace Proton.VM.IR
 				if (!Parameters.Where(p => p.Type != ParentType).TrueForAll(p => p.Resolved)) return false;
 				if (!Locals.Where(p => p.Type != ParentType).TrueForAll(l => l.Resolved)) return false;
 				if (!Instructions.TrueForAll(i => i.Resolved)) return false;
-				if (!ParentType.Resolved) return false;
+				if (ParentType != null && !ParentType.Resolved) return false;
 
 				mResolvedCache = true;
-				mResolving = false;
+				mResolving = false; 
+				Assembly.AppDomain.Methods.Add(this);
                 return true;
             }
         }
@@ -216,7 +238,6 @@ namespace Proton.VM.IR
         public IRMethod(IRAssembly pAssembly)
         {
             Assembly = pAssembly;
-			Assembly.AppDomain.Methods.Add(this);
 			mTempID = sTempID++;
         }
 
@@ -807,7 +828,7 @@ namespace Proton.VM.IR
 
 		public void Dump(IndentableStreamWriter pWriter)
 		{
-			pWriter.WriteLine("IRMethod #{0} {1}", mTempID, ToString());
+			pWriter.WriteLine("IRMethod({0}) #{1} {2}", mGlobalMethodID, mTempID, ToString());
 			pWriter.WriteLine("{");
 			pWriter.Indent++;
 			Locals.ForEach(l => l.Dump(pWriter));

@@ -39,7 +39,35 @@ namespace Proton.VM.IR
             }
         }
         public readonly IRTypeCollection Types = new IRTypeCollection();
-		public readonly List<IRMethod> Methods = new List<IRMethod>();
+
+		public sealed class IRMethodCollection : IEnumerable<IRMethod>
+		{
+			private readonly List<IRMethod> vals = new List<IRMethod>(8182);
+
+			public int Count { get { return vals.Count; } }
+			public IRMethod this[int idx] { get { return vals[idx]; } }
+
+			public void Add(IRMethod m)
+			{
+				if (!m.Resolved)
+					throw new Exception("You cannot add a method which isn't fully resolved to the global method collection!");
+				vals.Add(m);
+				m.GlobalMethodID = vals.Count - 1;
+			}
+
+			public IEnumerator<IRMethod> GetEnumerator()
+			{
+				foreach (IRMethod m in vals)
+					yield return m;
+			}
+
+			System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+			{
+				foreach (IRMethod m in vals)
+					yield return m;
+			}
+		}
+		public readonly IRMethodCollection Methods = new IRMethodCollection();
 
 
 
@@ -215,10 +243,6 @@ namespace Proton.VM.IR
 			method.PresolvedMethod = true;
 			method.GenericMethod = pGenericMethod;
             method.ReturnType = pGenericMethod.ReturnType;
-			//if (method.ReturnType != null && method.ReturnType.IsGeneric)
-			//{
-			//    method.ReturnType.Resolve(ref method.ReturnType, new IRGenericParameterList(pParentTypeGenericParameters ?? (IEnumerable<IRType>)IRGenericParameterList.Empty), new IRGenericParameterList(pGenericParameterTypes));
-			//}
 			if (pParentTypeGenericParameters != null)
 			{
 				method.ParentType = PresolveGenericType(pGenericMethod.ParentType, pParentTypeGenericParameters);
@@ -741,6 +765,12 @@ namespace Proton.VM.IR
 			writer.WriteLine("{");
 			writer.Indent++;
 			Types.ForEach(t => t.Dump(writer));
+			writer.Indent--;
+			writer.WriteLine("}");
+			writer.WriteLine("ResolvedMethods {0}", Methods.Count);
+			writer.WriteLine("{");
+			writer.Indent++;
+			Methods.ForEach(m => m.Dump(writer));
 			writer.Indent--;
 			writer.WriteLine("}");
 			writer.WriteLine("GenericTypes {0}", IRType.GenericTypes.Count);
