@@ -46,6 +46,10 @@ namespace Proton.VM.IR
 		{
 			get
 			{
+				if (mParentMethod != null && mReturnType == null)
+				{
+					mReturnType = mParentMethod.ReturnType;
+				}
 				return mReturnType;
 			}
 			set
@@ -124,6 +128,7 @@ namespace Proton.VM.IR
                 if (mResolvedCache != null)
                     return mResolvedCache.Value;
 				if (!GenericParameters.Resolved) return false;
+				if (ParentType != null && !ParentType.Resolved) return false;
 
  				mResolvedCache = true;
 				if (!PresolvedMethod && !PostsolvedMethod)
@@ -886,7 +891,6 @@ namespace Proton.VM.IR
 		{
 		}
 
-
 		private int? mHashCodeCache;
 		public override int GetHashCode()
 		{
@@ -905,6 +909,8 @@ namespace Proton.VM.IR
 			{
 				val ^= Parameters[i].Type.GetHashCode();
 			}
+			if (ReturnType != null) val ^= ReturnType.GetHashCode();
+			else val |= unchecked((int)0x80000000);
 			mHashCodeCache = val;
 			return mHashCodeCache.Value;
 		}

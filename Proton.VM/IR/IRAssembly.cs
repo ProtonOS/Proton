@@ -163,7 +163,7 @@ namespace Proton.VM.IR
 				{
 					if (File.MethodImplTable[methodImplIndex].Class == typeDefData)
 					{
-						type.ExplicitOverrides.Add(new Tuple<IRMethod, IRMethod>(AppDomain.PresolveMethod(File.MethodImplTable[methodImplIndex].MethodDeclaration), AppDomain.PresolveMethod(File.MethodImplTable[methodImplIndex].MethodBody)));
+						type.ExplicitOverrides.Add(new IRType.OverrideDescriptor(AppDomain.PresolveMethod(File.MethodImplTable[methodImplIndex].MethodDeclaration), AppDomain.PresolveMethod(File.MethodImplTable[methodImplIndex].MethodBody)));
 					}
 				}
 			}

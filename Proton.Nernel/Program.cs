@@ -5,7 +5,12 @@ namespace Proton.Nernel
 {
 	public class SomeOtherBase<T> { }
 
-	public class SomeBase<T> : SomeOtherBase<T>, IEquatable<SomeBase<T>> { public bool Equals(SomeBase<T> x) { return true; } }
+	public class SomeBase<T> : SomeOtherBase<T>, IEquatable<SomeBase<T>>, IComparable<SomeBase<T>>
+	{
+		public bool Equals(SomeBase<T> x) { return true; }
+
+		int IComparable<SomeBase<T>>.CompareTo(SomeBase<T> x) { return 0; }
+	}
 
 	public class SomeBase<T, T2> : SomeOtherBase<T> { }
 

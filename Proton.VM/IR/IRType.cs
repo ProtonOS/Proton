@@ -51,8 +51,52 @@ namespace Proton.VM.IR
 		public bool IsArrayType { get { return ArrayElementType != null; } }
         
         public readonly List<IRField> Fields = new List<IRField>();
-		public readonly List<IRType> ImplementedInterfaces = new List<IRType>();
-		public readonly List<Tuple<IRMethod, IRMethod>> ExplicitOverrides = new List<Tuple<IRMethod, IRMethod>>();
+		private readonly List<IRType> mImplementedInterfaces = new List<IRType>();
+		public List<IRType> ImplementedInterfaces
+		{
+			get
+			{
+				if (mParentType != null && mImplementedInterfaces.Count != mParentType.ImplementedInterfaces.Count)
+				{
+					mImplementedInterfaces.AddRange(mParentType.ImplementedInterfaces);
+				}
+				return mImplementedInterfaces;
+			}
+		}
+		public sealed class OverrideDescriptor
+		{
+			public IRMethod Overridden;
+			public IRMethod Overridder;
+
+			private static int sTempID = 0;
+			internal int mTempID = 0;
+
+			public OverrideDescriptor(IRMethod pOverridden, IRMethod pOverridder)
+			{
+				Overridden = pOverridden;
+				Overridder = pOverridder;
+				mTempID = sTempID++;
+			}
+
+			public OverrideDescriptor Clone() { return new OverrideDescriptor(Overridden, Overridder); }
+
+			public void Dump(IndentableStreamWriter pWriter)
+			{
+				pWriter.WriteLine("#{0} | {1} -> {2}", mTempID, Overridden.ToString(), Overridder.ToString());
+			}
+		}
+		private readonly List<OverrideDescriptor> mExplicitOverrides = new List<OverrideDescriptor>();
+		public List<OverrideDescriptor> ExplicitOverrides
+		{
+			get
+			{
+				if (mParentType != null && mExplicitOverrides.Count != mParentType.mExplicitOverrides.Count)
+				{
+					mParentType.mExplicitOverrides.ForEach(od => mExplicitOverrides.Add(od.Clone()));
+				}
+				return mExplicitOverrides;
+			}
+		}
 
 		public sealed class IRMethodList : IEnumerable<IRMethod>
 		{
@@ -102,10 +146,9 @@ namespace Proton.VM.IR
 		{
 			get
 			{
-				if (mParentType != null)
+				if (mParentType != null && mBaseType == null)
 				{
 					mBaseType = mParentType.mBaseType;
-					mParentType = null;
 				}
 				return mBaseType;
 			}
@@ -143,6 +186,35 @@ namespace Proton.VM.IR
 							var v = VirtualMethodTree.FindIndex(m2 => m2.Name == method.Name);
 							VirtualMethodTree[v] = method;
 						}
+					}
+				}
+			}
+		}
+
+		public readonly Dictionary<IRType, List<IRMethod>> InterfaceImplementationMap = new Dictionary<IRType, List<IRMethod>>();
+		internal void CreateInterfaceImplementationMap()
+		{
+			if (InterfaceImplementationMap.Count == 0 && !IsInterface && !IsAbstract)
+			{
+				if (BaseType != null)
+				{
+					BaseType.CreateInterfaceImplementationMap();
+					BaseType.InterfaceImplementationMap.ForEach(kv => InterfaceImplementationMap.Add(kv.Key, kv.Value));
+				}
+				foreach (var ii in ImplementedInterfaces)
+				{
+					InterfaceImplementationMap[ii] = new List<IRMethod>(ii.VirtualMethodTree.Count);
+					for (int i = 0; i < ii.VirtualMethodTree.Count; i++) 
+						InterfaceImplementationMap[ii].Add(null);
+					int i3 = 0;
+					foreach (var im in ii.VirtualMethodTree)
+					{
+						var m = VirtualMethodTree.Where(m2 => m2 == im).FirstOrDefault();
+						var emd = ExplicitOverrides.Where(m2 => m2.Overridden == im).FirstOrDefault();
+						if (m == null && emd == null)
+							throw new Exception("This class doesn't implement '" + im + "'!");
+						InterfaceImplementationMap[ii][i3] = emd == null ? m : emd.Overridder;
+						i3++;
 					}
 				}
 			}
@@ -271,25 +343,17 @@ namespace Proton.VM.IR
 
             this.Fields.ForEach(f => t.Fields.Add(f.Clone(t)));
 			t.ImplementedInterfaces.AddRange(this.ImplementedInterfaces);
-			t.ExplicitOverrides.AddRange(this.ExplicitOverrides);
+			this.ExplicitOverrides.ForEach(od => t.ExplicitOverrides.Add(od.Clone()));
             this.Methods.ForEach(m => t.Methods.Add(m.Clone(t)));
             t.NestedTypes.AddRange(this.NestedTypes);
 			t.NestedInsideOfType = this.NestedInsideOfType;
             t.GenericParameters.AddRange(this.GenericParameters);
 
             t.ArrayElementType = this.ArrayElementType;
-			if (this.mBaseType == null)
-			{
-				t.mParentType = this;
-			}
-			else
-			{
-				t.BaseType = this.BaseType;
-			}
-			if (this.GenericType != null)
-				t.GenericType = this.GenericType;
-			else if (this.GenericParameters.Count > 0)
-				t.GenericType = this;
+			t.mParentType = this;
+			if (this.mBaseType != null) t.BaseType = this.BaseType;
+			if (this.GenericType != null) t.GenericType = this.GenericType;
+			else if (this.GenericParameters.Count > 0) t.GenericType = this;
 
             t.IsTemporaryMVar = this.IsTemporaryMVar;
             t.IsTemporaryVar = this.IsTemporaryVar;
@@ -427,6 +491,16 @@ namespace Proton.VM.IR
 
             this.Fields.ForEach(f => f.Substitute());
 			this.Methods.ForEach(m => m.Substitute(m.GenericParameters));
+
+			for (int i = 0; i < ExplicitOverrides.Count; i++)
+			{
+				IRMethod m = ExplicitOverrides[i].Overridden;
+				m.Resolve(ref m, this.GenericParameters, IRGenericParameterList.Empty);
+				ExplicitOverrides[i].Overridden = m;
+				m = ExplicitOverrides[i].Overridder;
+				m.Resolve(ref m, this.GenericParameters, IRGenericParameterList.Empty);
+				ExplicitOverrides[i].Overridder = m;
+			}
         }
 
 
@@ -601,6 +675,15 @@ namespace Proton.VM.IR
 				pWriter.Indent--;
 				pWriter.WriteLine("}");
 			}
+			if (ExplicitOverrides.Count > 0)
+			{
+				pWriter.WriteLine("ExplicitOverrides {0}", ExplicitOverrides.Count);
+				pWriter.WriteLine("{");
+				pWriter.Indent++;
+				ExplicitOverrides.ForEach(od => od.Dump(pWriter));
+				pWriter.Indent--;
+				pWriter.WriteLine("}");
+			}
 			pWriter.WriteLine("VirtualMethodTree {0}", VirtualMethodTree.Count);
 			pWriter.WriteLine("{");
 			pWriter.Indent++;
@@ -610,6 +693,26 @@ namespace Proton.VM.IR
 			}
 			pWriter.Indent--;
 			pWriter.WriteLine("}");
+			if (InterfaceImplementationMap.Count > 0)
+			{
+				pWriter.WriteLine("InterfaceImplementationMap {0}", InterfaceImplementationMap.Count);
+				pWriter.WriteLine("{");
+				pWriter.Indent++;
+				foreach (var kv in InterfaceImplementationMap)
+				{
+					pWriter.WriteLine(kv.Key.ToString());
+					pWriter.WriteLine("{");
+					pWriter.Indent++;
+					for (int i = 0; i < kv.Value.Count; ++i)
+					{
+						pWriter.WriteLine("[{0}] = {1}", i, kv.Value[i].ToString());
+					}
+					pWriter.Indent--;
+					pWriter.WriteLine("}");
+				}
+				pWriter.Indent--;
+				pWriter.WriteLine("}");
+			}
 			pWriter.Indent--;
 			pWriter.WriteLine("}");
 		}
