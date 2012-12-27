@@ -174,6 +174,7 @@ namespace Proton.VM.IR
 				IRType t = mParams[i];
 				try
 				{
+#warning At some point, make this not use exceptions.
 					t.Resolve(ref t, typeParams, methodParams);
 				}
 				catch { }

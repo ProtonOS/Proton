@@ -39,5 +39,7 @@ namespace System
         public int CompareTo(uint value) { return mValue > value ? 1 : (mValue < value ? -1 : 0); }
 
         public bool Equals(uint obj) { return mValue == obj; }
+
+		internal static uint RotateLeft(uint val, byte bits) { return (val << bits | val >> (32 - (bits & 31))); }
     }
 }

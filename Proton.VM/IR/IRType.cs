@@ -28,6 +28,7 @@ namespace Proton.VM.IR
         public string Name = null;
 		public TypeAttributes Flags = TypeAttributes.None;
 		public bool PresolvedType = false;
+		public bool PostsolvedType = false;
 
         public readonly List<IRField> Fields = new List<IRField>();
 		public sealed class IRMethodList : IEnumerable<IRMethod>
@@ -179,26 +180,26 @@ namespace Proton.VM.IR
 					return true;
 
 				mResolving = true;
-				if (GenericType != null && (Fields.Count != GenericType.Fields.Count || Methods.Count != GenericType.Methods.Count))
-				{
-					mResolving = false;
-					return false;
-				}
-				if (BaseType != null && !BaseType.Resolved)
-				{
-					mResolving = false;
-					return false;
-				}
-				if (!Fields.Where(f => f.Type != this).TrueForAll(f => f.Resolved))
-				{
-					mResolving = false;
-					return false;
-				}
-				if (!Methods.TrueForAll(m => m.Resolved))
-				{
-					mResolving = false;
-					return false;
-				}
+				//if (GenericType != null && (Fields.Count != GenericType.Fields.Count || Methods.Count != GenericType.Methods.Count))
+				//{
+				//    mResolving = false;
+				//    return false;
+				//}
+				//if (BaseType != null && !BaseType.Resolved)
+				//{
+				//    mResolving = false;
+				//    return false;
+				//}
+				//if (!Fields.Where(f => f.Type != this).TrueForAll(f => f.Resolved))
+				//{
+				//    mResolving = false;
+				//    return false;
+				//}
+				//if (!Methods.Where(m => !m.IsGeneric).TrueForAll(m => m.Resolved))
+				//{
+				//    mResolving = false;
+				//    return false;
+				//}
 				mResolving = false;
 
                 mResolvedCache = true;
@@ -329,7 +330,7 @@ namespace Proton.VM.IR
         /// <param name="methodParams"></param>
         public void Resolve(ref IRType selfReference, IRGenericParameterList typeParams, IRGenericParameterList methodParams)
         {
-            if (!Resolved || PresolvedType)
+            if (!Resolved || PresolvedType || PostsolvedType)
             {
 				if (IsGeneric)
 				{
@@ -357,13 +358,22 @@ namespace Proton.VM.IR
 					{
 						if (!this.GenericParameters.Resolved)
 						{
-							if (this.GenericType != null)
+							if (this.PostsolvedType)
 							{
 								this.GenericParameters.TrySubstitute(typeParams, methodParams);
 							}
 							else
 							{
-								selfReference = Assembly.AppDomain.PresolveGenericType(this, typeParams.ToList());
+								if (this.PresolvedType)
+								{
+									selfReference = Assembly.AppDomain.PresolveGenericType(this.GenericType, this.GenericParameters.ToList());
+								}
+								else
+								{
+									selfReference = Assembly.AppDomain.PresolveGenericType(this, this.GenericParameters.ToList());
+								}
+								selfReference.PresolvedType = false;
+								selfReference.PostsolvedType = true;
 								selfReference.Resolve(ref selfReference, typeParams, methodParams);
 								return;
 							}
@@ -380,13 +390,13 @@ namespace Proton.VM.IR
 								{
 									GenericTypes.Add(tp, tp);
 
-									for (int i = 0; i < tp.GenericParameters.Count; i++)
-									{
-										tp.GenericParameters[i] = this.GenericParameters[i];
-									}
+									//for (int i = 0; i < tp.GenericParameters.Count; i++)
+									//{
+									//    tp.GenericParameters[i] = this.GenericParameters[i];
+									//}
 									for (int i = 0; i < tp.Methods.Count; i++)
 									{
-										tp.Methods[i] = tp.Methods[i].Resolved ? tp.Methods[i] : tp.Methods[i].Clone(tp);
+										tp.Methods[i] = tp.Methods[i].Clone(tp);
 									}
 
 									tp.Substitute(typeParams, methodParams);
@@ -403,10 +413,6 @@ namespace Proton.VM.IR
 #warning Need to do the rest of this resolution.
                         }
 					}
-				}
-				else
-				{
-					Substitute(IRGenericParameterList.Empty, IRGenericParameterList.Empty);
 				}
             }
         }
@@ -574,6 +580,7 @@ namespace Proton.VM.IR
 			pWriter.WriteLine("IRType({0}) #{1} {2} : {3}", mGlobalTypeID, mTempID, ToString(), BaseType);
 			pWriter.WriteLine("{");
 			pWriter.Indent++;
+			pWriter.WriteLine("Resolution State: {0}", (PresolvedType ? "Presolved" : (PostsolvedType ? "Postsolved" : (IsGeneric ? (Resolved ? "Instantiated" : "Unresolved") : "Original"))));
 			Fields.ForEach(f => f.Dump(pWriter));
 			Methods.ForEach(m => m.Dump(pWriter));
 			if (GenericMethods.Count > 0)

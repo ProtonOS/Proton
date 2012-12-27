@@ -19,6 +19,7 @@ namespace Proton.VM.IR
 		public MethodAttributes Flags = MethodAttributes.None;
 		public MethodImplAttributes ImplFlags = MethodImplAttributes.None;
 		public bool PresolvedMethod = false;
+		public bool PostsolvedMethod = false;
 
 		public bool IsStatic { get { return (Flags & MethodAttributes.Static) == MethodAttributes.Static; } }
 		public bool IsVirtual { get { return (Flags & MethodAttributes.Virtual) == MethodAttributes.Virtual; } }
@@ -35,7 +36,18 @@ namespace Proton.VM.IR
 				mParentType = value;
 			}
 		}
-        public IRType ReturnType = null;
+		private IRType mReturnType = null;
+		public IRType ReturnType
+		{
+			get
+			{
+				return mReturnType;
+			}
+			set
+			{
+				mReturnType = value; 
+			}
+		}
 
 		private IRMethod mParentMethod;
 		private readonly List<IRParameter> mParameters = new List<IRParameter>();
@@ -50,8 +62,35 @@ namespace Proton.VM.IR
 				return mParameters;
 			}
 		}
-        public readonly List<IRLocal> Locals = new List<IRLocal>();
-        public readonly IRInstructionList Instructions = new IRInstructionList();
+		private bool mBoundLocals = false;
+        private readonly List<IRLocal> mLocals = new List<IRLocal>();
+		public List<IRLocal> Locals
+		{
+			get
+			{
+				if (mParentMethod != null && !mBoundLocals && mParentMethod.Locals.Count != mLocals.Count)
+				{
+					mBoundLocals = true;
+					mParentMethod.Locals.ForEach(l => mLocals.Add(l.Clone(this)));
+				}
+				return mLocals;
+			}
+		}
+		private bool mBoundInstructions = false;
+		private readonly IRInstructionList mInstructions = new IRInstructionList();
+		public IRInstructionList Instructions
+		{
+			get
+			{
+				if (mParentMethod != null && !mBoundInstructions && mParentMethod.Instructions.Count != mInstructions.Count)
+				{
+					mBoundInstructions = true;
+					mParentMethod.Instructions.ForEach(i => mInstructions.Add(i.Clone(this)));
+					mInstructions.FixClonedTargetInstructions();
+				}
+				return mInstructions;
+			}
+		}
 
 		private bool mGlobalMethodIDSet = false;
 		private int mGlobalMethodID;
@@ -80,37 +119,38 @@ namespace Proton.VM.IR
             {
                 if (mResolvedCache != null)
                     return mResolvedCache.Value;
+				if (!GenericParameters.Resolved) return false;
 				if (mResolving)
 					return true;
 				mResolving = true;
-				if (ReturnType != null && ReturnType != ParentType)
-				{
-					if (!ReturnType.Resolved)
-					{
-						mResolving = false;
-						return false;
-					}
-				}
-				if (!Parameters.Where(p => p.Type != ParentType).TrueForAll(p => p.Resolved))
-				{
-					mResolving = false;
-					return false;
-				}
-				if (!Locals.Where(p => p.Type != ParentType).TrueForAll(l => l.Resolved))
-				{
-					mResolving = false;
-					return false;
-				}
-				if (!Instructions.TrueForAll(i => i.Resolved))
-				{
-					mResolving = false;
-					return false;
-				}
-				if (ParentType != null && !ParentType.Resolved)
-				{
-					mResolving = false;
-					return false;
-				}
+				//if (ReturnType != null && ReturnType != ParentType)
+				//{
+				//    if (!ReturnType.Resolved)
+				//    {
+				//        mResolving = false;
+				//        return false;
+				//    }
+				//}
+				//if (!Parameters.Where(p => p.Type != ParentType).TrueForAll(p => p.Resolved))
+				//{
+				//    mResolving = false;
+				//    return false;
+				//}
+				//if (!Locals.Where(p => p.Type != ParentType).TrueForAll(l => l.Resolved))
+				//{
+				//    mResolving = false;
+				//    return false;
+				//}
+				//if (!Instructions.TrueForAll(i => i.Resolved))
+				//{
+				//    mResolving = false;
+				//    return false;
+				//}
+				//if (ParentType != null && !ParentType.Resolved)
+				//{
+				//    mResolving = false;
+				//    return false;
+				//}
 				mResolvedCache = true;
 				mResolving = false; 
 				Assembly.AppDomain.Methods.Add(this);
@@ -120,7 +160,7 @@ namespace Proton.VM.IR
 
 		public void Resolve(ref IRMethod selfReference, IRGenericParameterList typeParams, IRGenericParameterList methodParams)
 		{
-			if (!Resolved || PresolvedMethod)
+			if (!Resolved || PresolvedMethod || PostsolvedMethod)
 			{
 				IRType t = ParentType;
 				t.Resolve(ref t, typeParams, methodParams);
@@ -128,13 +168,22 @@ namespace Proton.VM.IR
 				{
 					if (!this.GenericParameters.Resolved)
 					{
-						if (this.GenericMethod != null)
+						if (this.PostsolvedMethod)
 						{
 							this.GenericParameters.TrySubstitute(typeParams, methodParams);
 						}
 						else
 						{
-							selfReference = Assembly.AppDomain.PresolveGenericMethod(this, typeParams.ToList());
+							if (this.PresolvedMethod)
+							{
+								selfReference = Assembly.AppDomain.PresolveGenericMethod(this.GenericMethod, methodParams.ToList(), typeParams.ToList());
+							}
+							else
+							{
+								selfReference = Assembly.AppDomain.PresolveGenericMethod(this, methodParams.ToList(), typeParams.ToList());
+							}
+							selfReference.PresolvedMethod = false;
+							selfReference.PostsolvedMethod = true;
 							selfReference.Resolve(ref selfReference, typeParams, methodParams);
 							return;
 						}
@@ -151,10 +200,10 @@ namespace Proton.VM.IR
 							{
 								t.GenericMethods.Add(mth, mth);
 
-								for (int i = 0; i < mth.GenericParameters.Count; i++)
-								{
-									mth.GenericParameters[i] = this.GenericParameters[i];
-								}
+								//for (int i = 0; i < mth.GenericParameters.Count; i++)
+								//{
+								//    mth.GenericParameters[i] = this.GenericParameters[i];
+								//}
 
 								mth.Substitute(this.GenericParameters);
 							}
@@ -182,13 +231,15 @@ namespace Proton.VM.IR
 			}
 		}
 
+		private bool mSubstituted = false;
         public void Substitute(IRGenericParameterList methodParams)
         {
-			if (!Resolved || Resolved)
+			GenericParameters.Substitute(ParentType.GenericParameters, methodParams);
+			if (Resolved && !mSubstituted)
 			{
-				GenericParameters.Substitute(ParentType.GenericParameters, methodParams);
+				mSubstituted = true;
 				if (ReturnType != null)
-					ReturnType.Resolve(ref ReturnType, ParentType.GenericParameters, GenericParameters);
+					ReturnType.Resolve(ref mReturnType, ParentType.GenericParameters, GenericParameters);
 				if (!this.IsStatic)
 					Parameters[0].Type = this.ParentType;
 
@@ -212,16 +263,27 @@ namespace Proton.VM.IR
 			m.ParentType = newParent;
 			m.GenericMethod = this.GenericMethod;
 			m.GenericParameters.AddRange(this.GenericParameters);
-			this.Instructions.ForEach(i => m.Instructions.Add(i.Clone(m)));
+			if (this.Instructions.Count != 0)
+			{
+				m.mBoundInstructions = true;
+				this.Instructions.ForEach(i => m.Instructions.Add(i.Clone(m)));
+			}
 			m.Instructions.FixClonedTargetInstructions();
-			this.Locals.ForEach(l => m.Locals.Add(l.Clone(m)));
+			if (this.Locals.Count != 0)
+			{
+				m.mBoundLocals = true;
+				this.Locals.ForEach(l => m.Locals.Add(l.Clone(m)));
+			}
 			this.Parameters.ForEach(p => m.Parameters.Add(p.Clone(m)));
 			m.MaximumStackDepth = this.MaximumStackDepth;
 			m.Name = this.Name;
 			m.Flags = this.Flags;
 			m.ImplFlags = this.ImplFlags;
 			m.ReturnType = this.ReturnType;
-			m.mParentMethod = this;
+			if (this.PresolvedMethod)
+				m.mParentMethod = this.GenericMethod;
+			else
+				m.mParentMethod = this;
 			// TODO: Fix Branch/Switch/Leave IRInstruction's to new method instructions based on IRIndex's
 			return m;
 		}
@@ -894,6 +956,7 @@ namespace Proton.VM.IR
 			pWriter.WriteLine("IRMethod({0}) #{1} {2}", mGlobalMethodID, mTempID, ToString());
 			pWriter.WriteLine("{");
 			pWriter.Indent++;
+			pWriter.WriteLine("Resolution State: {0}", (PresolvedMethod ? "Presolved" : (PostsolvedMethod ? "Postsolved" : (IsGeneric ? (Resolved ? "Instantiated" : "Unresolved") : "Original"))));
 			Locals.ForEach(l => l.Dump(pWriter));
 			pWriter.WriteLine("IRInstructions");
 			pWriter.WriteLine("{");

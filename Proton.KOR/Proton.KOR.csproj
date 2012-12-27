@@ -100,6 +100,7 @@
     <Compile Include="Kernel\PageAllocator.cs" />
     <Compile Include="Kernel\Multiboot.cs" />
     <Compile Include="Kernel\HeapAllocator.cs" />
+    <Compile Include="Kernel\StringInternHash.cs" />
     <Compile Include="Kernel\Test.cs" />
     <Compile Include="Math.cs" />
     <Compile Include="MulticastDelegate.cs" />
@@ -140,9 +141,6 @@
     <Compile Include="ValueType.cs" />
     <Compile Include="Version.cs" />
     <Compile Include="Void.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="System" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
