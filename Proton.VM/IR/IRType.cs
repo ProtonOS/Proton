@@ -51,6 +51,9 @@ namespace Proton.VM.IR
 		public bool IsArrayType { get { return ArrayElementType != null; } }
         
         public readonly List<IRField> Fields = new List<IRField>();
+		public readonly List<IRType> ImplementedInterfaces = new List<IRType>();
+		public readonly List<Tuple<IRMethod, IRMethod>> ExplicitOverrides = new List<Tuple<IRMethod, IRMethod>>();
+
 		public sealed class IRMethodList : IEnumerable<IRMethod>
 		{
 			private readonly List<IRMethod> vals = new List<IRMethod>(64);
@@ -267,6 +270,8 @@ namespace Proton.VM.IR
             IRType t = new IRType(this.Assembly);
 
             this.Fields.ForEach(f => t.Fields.Add(f.Clone(t)));
+			t.ImplementedInterfaces.AddRange(this.ImplementedInterfaces);
+			t.ExplicitOverrides.AddRange(this.ExplicitOverrides);
             this.Methods.ForEach(m => t.Methods.Add(m.Clone(t)));
             t.NestedTypes.AddRange(this.NestedTypes);
 			t.NestedInsideOfType = this.NestedInsideOfType;
@@ -412,6 +417,13 @@ namespace Proton.VM.IR
 
 			if (this.BaseType != null)
 				this.BaseType.Resolve(ref this.mBaseType, this.GenericParameters, IRGenericParameterList.Empty);
+
+			for (int i = 0; i < ImplementedInterfaces.Count; i++)
+			{
+				IRType t = ImplementedInterfaces[i];
+				t.Resolve(ref t, this.GenericParameters, IRGenericParameterList.Empty);
+				ImplementedInterfaces[i] = t;
+			}
 
             this.Fields.ForEach(f => f.Substitute());
 			this.Methods.ForEach(m => m.Substitute(m.GenericParameters));
@@ -574,7 +586,7 @@ namespace Proton.VM.IR
 				sb.Append('|');
 			}
 
-			pWriter.WriteLine("IRType({0}) #{1}{2} {3} : {4}", mGlobalTypeID, mTempID, sb.ToString(), ToString(), BaseType);
+			pWriter.WriteLine("IRType({0}) #{1}{2} {3} : {4}{5}{6}", mGlobalTypeID, mTempID, sb.ToString(), ToString(), BaseType, BaseType != null && ImplementedInterfaces.Count > 0 ? ", " : "", String.Join(", ", ImplementedInterfaces.Select(i => i.ToString()).ToArray()));
 			pWriter.WriteLine("{");
 			pWriter.Indent++;
 			pWriter.WriteLine("Resolution State: {0}", (PresolvedType ? "Presolved" : (PostsolvedType ? "Postsolved" : (IsGeneric ? (Resolved ? "Instantiated" : "Unresolved") : "Original"))));

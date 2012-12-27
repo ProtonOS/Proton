@@ -121,6 +121,10 @@ namespace Proton.VM.IR
                     field.Type = AppDomain.PresolveType(typeDefData.FieldList[fieldIndex].ExpandedSignature);
                     if (field.Type == null) throw new Exception();
                 }
+				for (int interfaceIndex = 0; interfaceIndex < typeDefData.InterfaceList.Count; ++interfaceIndex)
+				{
+					type.ImplementedInterfaces.Add(AppDomain.PresolveType(typeDefData.InterfaceList[interfaceIndex]));
+				}
             }
             for (int methodIndex = 0; methodIndex < Methods.Count; ++methodIndex)
             {
@@ -151,6 +155,18 @@ namespace Proton.VM.IR
                     method.Parameters.Insert(0, implicitThis);
                 }
             }
+			for (int typeIndex = 0; typeIndex < Types.Count; ++typeIndex)
+			{
+				IRType type = Types[typeIndex];
+				TypeDefData typeDefData = File.TypeDefTable[typeIndex];
+				for (int methodImplIndex = 0; methodImplIndex < File.MethodImplTable.Length; ++methodImplIndex)
+				{
+					if (File.MethodImplTable[methodImplIndex].Class == typeDefData)
+					{
+						type.ExplicitOverrides.Add(new Tuple<IRMethod, IRMethod>(AppDomain.PresolveMethod(File.MethodImplTable[methodImplIndex].MethodDeclaration), AppDomain.PresolveMethod(File.MethodImplTable[methodImplIndex].MethodBody)));
+					}
+				}
+			}
         }
 
         internal void LoadStage3()
