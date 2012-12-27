@@ -1,5 +1,6 @@
 - Started, = Incomplete, * Completed
 
+===== Stage 1 =====
 * Create IRType table, no type linking
 * Create IRFields, link to owner IRType
 * Create IRInterfaceImplementations, link to owner IRType
@@ -9,17 +10,18 @@
 * Link nested IRTypes to enclosing IRType
 * Cache CORLibrary common IRTypes
 
+===== Stage 2 =====
 * Create Pointer dynamic IRTypes
 * Create Array dynamic IRTypes
 * Create Generic dynamic IRTypes, using generic placeholders
-* Resolver for TypeDef to IRType
-* Resolver for TypeRef to IRType
-* Resolver for TypeSpec to IRType, using generic placeholders
-* Resolver for TypeDefRefOrSpecIndex to IRType, using generic placeholders
-* Resolver for MetadataToken to IRType, using generic placeholders
-* Resolver for SigType to IRType, using generic placeholders
-* Resolver for SigRetType to IRType, using generic placeholders
-* Resolver for SigParam to IRType, using generic placeholders
+* Presolver for TypeDef to IRType
+* Presolver for TypeRef to IRType
+* Presolver for TypeSpec to IRType, using generic placeholders
+* Presolver for TypeDefRefOrSpecIndex to IRType, using generic placeholders
+* Presolver for MetadataToken to IRType, using generic placeholders
+* Presolver for SigType to IRType, using generic placeholders
+* Presolver for SigRetType to IRType, using generic placeholders
+* Presolver for SigParam to IRType, using generic placeholders
 * Link IRType to base IRType
 * Link IRField type
 * Link IRInterfaceImplementation type
@@ -27,37 +29,43 @@
 * Link IRMethod parameter types
 * Link IRLocal types
 
+===== Stage 3 =====
 * Decomposition of ILInstructions into IRInstructions
-
-* Create generic instantiations for IRTypes
-* Create generic instantiations for IRField types
-* Create generic instantiations for IRMethod return and parameter types
-* Create generic instantiations for IRLocal types
-
-* Build control flow graph
 * Fix linearization of values remaining from inside branches, IE ternary operations, and if (x == null || y == null) scenario (source coming from 2 branches)
 * Linearization of IRInstructions
 - Linearization of Exception Handlers, and Finally Handlers
 * Transform Load/Store to Move IRInstructions
 - Transform instructions that behave like other instructions under certain conditions, IE unbox.any to castclass when dealing with a reference type
 
+===== Stage 4 =====
+* Create generic instantiations for IRTypes
+* Create generic instantiations for IRField types
+* Create generic instantiations for IRMethod return and parameter types
+* Create generic instantiations for IRLocal types
 * Complete instruction cloning
 * Complete instruction resolving of types, methods, and fields held by the instruction
 * Complete linearized source/destination cloning and resolving
 
-Calculate all IRType sizes
-Layout IRFields, IRLocals, and IRParameter offsets
+===== Stage 5 =====
 
+===== Stage 5.5 =====
+* Calculate fully resolved IRType sizes
+* Layout IRField offsets, considering explicit layouts
+Layout IRLocal offsets
+Layout IRParameter offsets
 Generate mandatory internal calls, IE object conversion to and from pointer for GC
 Resolve internal calls, limiting internal calls for mandatory calls only means resolution on name without signatures might be enough for AOT side only
-
 * Implement virtual call tree for IRTypes
 * Resolve interface implementation methods, including resolved generic instantiated methods
 
+===== Stage 6 =====
 Optimizations
+* Build control flow graph
 * SSA Enter, with pruned phi reductions
 SSA Leave, with variable reductions
 
+===== Stage 7 =====
 Assemble IRInstructions
 
+===== Stage 8 =====
 Build Binary ELF Kernel

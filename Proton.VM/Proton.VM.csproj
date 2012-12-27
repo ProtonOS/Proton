@@ -132,6 +132,7 @@
     <Compile Include="IR\IRStackObject.cs" />
     <Compile Include="IR\IRStackObjectSourceType.cs" />
     <Compile Include="IR\IRType.cs" />
+    <Compile Include="VMConfig.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />

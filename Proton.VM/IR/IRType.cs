@@ -159,6 +159,67 @@ namespace Proton.VM.IR
 			}
 		}
 
+		private bool mSizesCalculated = false;
+		public int ClassSize = -1;
+		public int PackingSize = -1;
+		public int DataSize = -1;
+		private int mStackSize = -1;
+		public int StackSize
+		{
+			get
+			{
+				if (mSizesCalculated) return mStackSize;
+				if (IsClass || IsInterface) mStackSize = VMConfig.PointerSizeForTarget;
+				else if (this == Assembly.AppDomain.System_Boolean) mStackSize = 1;
+ 				else if (this == Assembly.AppDomain.System_Byte) mStackSize = 1;
+				else if (this == Assembly.AppDomain.System_Char) mStackSize = 2;
+				else if (this == Assembly.AppDomain.System_Double) mStackSize = 8;
+				else if (this == Assembly.AppDomain.System_Int16) mStackSize = 2;
+				else if (this == Assembly.AppDomain.System_Int32) mStackSize = 4;
+				else if (this == Assembly.AppDomain.System_Int64) mStackSize = 8;
+				else if (this == Assembly.AppDomain.System_IntPtr) mStackSize = VMConfig.PointerSizeForTarget;
+				else if (this == Assembly.AppDomain.System_Object) mStackSize = VMConfig.PointerSizeForTarget;
+				else if (this == Assembly.AppDomain.System_SByte) mStackSize = 1;
+				else if (this == Assembly.AppDomain.System_Single) mStackSize = 4;
+				else if (this == Assembly.AppDomain.System_UInt16) mStackSize = 2;
+				else if (this == Assembly.AppDomain.System_UInt32) mStackSize = 4;
+				else if (this == Assembly.AppDomain.System_UInt64) mStackSize = 8;
+				else if (this == Assembly.AppDomain.System_UIntPtr) mStackSize = VMConfig.PointerSizeForTarget;
+				else if (this.IsManagedPointerType || this.IsUnmanagedPointerType) mStackSize = VMConfig.PointerSizeForTarget;
+				else CalculateSize();
+				return mStackSize;
+			}
+		}
+		public void CalculateSize()
+		{
+			int dataSize = 0;
+			if (mBaseType != null)
+			{
+				mBaseType.CalculateSize();
+				dataSize = mBaseType.DataSize;
+			}
+			if (IsExplicitLayout && ClassSize > 0)
+			{
+				dataSize += ClassSize;
+			}
+			else
+			{
+				foreach (IRField field in Fields)
+				{
+					if (!field.IsStatic)
+					{
+						field.Offset = dataSize;
+						dataSize += field.Type.StackSize;
+					}
+				}
+			}
+			if (PackingSize > 1 && (dataSize % PackingSize) != 0) dataSize += PackingSize - (dataSize % PackingSize);
+			DataSize = dataSize;
+			if (IsClass || IsInterface) mStackSize = VMConfig.PointerSizeForTarget;
+			else mStackSize = DataSize;
+			mSizesCalculated = true;
+		}
+
 		public readonly List<IRMethod> VirtualMethodTree = new List<IRMethod>();
 		internal void CreateVirtualMethodTree()
 		{
@@ -664,6 +725,7 @@ namespace Proton.VM.IR
 			pWriter.WriteLine("IRType({0}) #{1}{2} {3} : {4}{5}{6}", mGlobalTypeID, mTempID, sb.ToString(), ToString(), BaseType, BaseType != null && ImplementedInterfaces.Count > 0 ? ", " : "", String.Join(", ", ImplementedInterfaces.Select(i => i.ToString()).ToArray()));
 			pWriter.WriteLine("{");
 			pWriter.Indent++;
+			pWriter.WriteLine("DataSize = {0}, StackSize = {1}", DataSize, mStackSize);
 			pWriter.WriteLine("Resolution State: {0}", (PresolvedType ? "Presolved" : (PostsolvedType ? "Postsolved" : (IsGeneric ? (Resolved ? "Instantiated" : "Unresolved") : "Original"))));
 			Fields.ForEach(f => f.Dump(pWriter));
 			Methods.ForEach(m => m.Dump(pWriter));

@@ -126,6 +126,19 @@ namespace Proton.VM.IR
 					type.ImplementedInterfaces.Add(AppDomain.PresolveType(typeDefData.InterfaceList[interfaceIndex]));
 				}
             }
+			for (int layoutIndex = 0; layoutIndex < File.ClassLayoutTable.Length; ++layoutIndex)
+			{
+				ClassLayoutData classLayoutData = File.ClassLayoutTable[layoutIndex];
+				IRType type = Types[classLayoutData.Parent.TableIndex];
+				type.ClassSize = (int)classLayoutData.ClassSize;
+				type.PackingSize = (int)classLayoutData.PackingSize;
+			}
+			for (int i = 0; i < File.FieldLayoutTable.Length; i++)
+			{
+				FieldLayoutData fieldLayoutData = File.FieldLayoutTable[i];
+				IRField field = Fields[fieldLayoutData.Field.TableIndex];
+				field.Offset = (int)fieldLayoutData.Offset;
+			}
             for (int methodIndex = 0; methodIndex < Methods.Count; ++methodIndex)
             {
                 IRMethod method = Methods[methodIndex];

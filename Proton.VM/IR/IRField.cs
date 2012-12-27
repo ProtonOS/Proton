@@ -13,6 +13,8 @@ namespace Proton.VM.IR
         public string Name = null;
 		public FieldAttributes Flags = FieldAttributes.None;
 
+		public bool IsStatic { get { return (Flags & FieldAttributes.Static) == FieldAttributes.Static; } }
+
 		public IRType ParentType = null;
 
 		private IRField mParentField = null;
@@ -33,6 +35,8 @@ namespace Proton.VM.IR
 				mType = value;
 			}
 		}
+
+		public int Offset = -1;
 
         /// <summary>
         /// True if all the types that this field
@@ -82,7 +86,7 @@ namespace Proton.VM.IR
 
 		public override string ToString()
 		{
-			return Type.ToString() + " " + Name;
+			return (IsStatic ? "static " : "") + Type.ToString() + " " + Name;
 		}
 
         public bool CompareSignature(FieldSig pFieldSig)
@@ -99,7 +103,7 @@ namespace Proton.VM.IR
 
 		public void Dump(IndentableStreamWriter pWriter)
 		{
-			pWriter.WriteLine("IRField {0}", ToString());
+			pWriter.WriteLine("IRField {0} @ {1}", ToString(), Offset);
 		}
 	}
 }

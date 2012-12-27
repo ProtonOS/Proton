@@ -116,7 +116,9 @@
     <Compile Include="PlatformID.cs" />
     <Compile Include="Reflection\DefaultMemberAttribute.cs" />
     <Compile Include="Reflection\MemberInfo.cs" />
+    <Compile Include="RuntimeArgumentHandle.cs" />
     <Compile Include="RuntimeFieldHandle.cs" />
+    <Compile Include="RuntimeMethodHandle.cs" />
     <Compile Include="RuntimeType.cs" />
     <Compile Include="RuntimeTypeHandle.cs" />
     <Compile Include="Runtime\CompilerServices\IndexerNameAttribute.cs" />
@@ -141,6 +143,9 @@
     <Compile Include="ValueType.cs" />
     <Compile Include="Version.cs" />
     <Compile Include="Void.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
