@@ -364,12 +364,11 @@ namespace Proton.VM.IR
             MethodSig methodSignature = pMethodDefData.ExpandedSignature;
             IRPrefixFlags prefixFlags = IRPrefixFlags.None;
             uint prefixConstrainedToken = 0;
-
-            Console.WriteLine("Converting {0}.{1}.{2}", ParentType.Namespace, ParentType.Name, Name);
+			uint startOfInstruction = reader.Offset;
+			Console.WriteLine("Converting {0}.{1}.{2}", ParentType.Namespace, ParentType.Name, Name);
             while (!reader.EndOfCode)
             {
                 bool clearFlags = true;
-                uint startOfInstruction = reader.Offset;
                 opcode = reader.ReadOpcode();
                 switch (opcode)
                 {
@@ -487,8 +486,8 @@ namespace Proton.VM.IR
                     case ILOpcode.Conv_I2: AddInstruction(startOfInstruction, new IRConvertUncheckedInstruction(Assembly.AppDomain.System_Int16)); break;
                     case ILOpcode.Conv_I4: AddInstruction(startOfInstruction, new IRConvertUncheckedInstruction(Assembly.AppDomain.System_Int32)); break;
                     case ILOpcode.Conv_I8: AddInstruction(startOfInstruction, new IRConvertUncheckedInstruction(Assembly.AppDomain.System_Int64)); break;
-                    case ILOpcode.Conv_R4: AddInstruction(startOfInstruction, new IRConvertUncheckedInstruction(Assembly.AppDomain.System_Single)); break;
-                    case ILOpcode.Conv_R8: AddInstruction(startOfInstruction, new IRConvertUncheckedInstruction(Assembly.AppDomain.System_Double)); break;
+                    case ILOpcode.Conv_R4: AddInstruction(startOfInstruction, new IRConvertCheckedInstruction(Assembly.AppDomain.System_Single, IROverflowType.Signed)); break;
+					case ILOpcode.Conv_R8: AddInstruction(startOfInstruction, new IRConvertCheckedInstruction(Assembly.AppDomain.System_Double, IROverflowType.Signed)); break;
                     case ILOpcode.Conv_U4: AddInstruction(startOfInstruction, new IRConvertUncheckedInstruction(Assembly.AppDomain.System_UInt32)); break;
                     case ILOpcode.Conv_U8: AddInstruction(startOfInstruction, new IRConvertUncheckedInstruction(Assembly.AppDomain.System_UInt64)); break;
                     case ILOpcode.CallVirt: AddInstruction(startOfInstruction, new IRCallInstruction(Assembly.AppDomain.PresolveMethod(Assembly.File.ExpandMetadataToken(reader.ReadUInt32())), true)); break;
@@ -500,7 +499,7 @@ namespace Proton.VM.IR
                     case ILOpcode.CastClass: AddInstruction(startOfInstruction, new IRCastInstruction(Assembly.AppDomain.PresolveType(Assembly.File.ExpandMetadataToken(reader.ReadUInt32())), true)); break;
                     case ILOpcode.IsInst: AddInstruction(startOfInstruction, new IRCastInstruction(Assembly.AppDomain.PresolveType(Assembly.File.ExpandMetadataToken(reader.ReadUInt32())), false)); break;
 
-                    case ILOpcode.Conv_R_Un: throw new NotImplementedException("Conv_R_Un");
+					case ILOpcode.Conv_R_Un: AddInstruction(startOfInstruction, new IRConvertUncheckedInstruction(Assembly.AppDomain.System_Double)); break;
                     case ILOpcode.Unbox: AddInstruction(startOfInstruction, new IRUnboxInstruction(Assembly.AppDomain.PresolveType(Assembly.File.ExpandMetadataToken(reader.ReadUInt32())), false)); break;
                     case ILOpcode.Throw: AddInstruction(startOfInstruction, new IRThrowInstruction()); break;
                     case ILOpcode.LdFld: AddInstruction(startOfInstruction, new IRLoadFieldInstruction(Assembly.AppDomain.PresolveField(Assembly.File.ExpandMetadataToken(reader.ReadUInt32())))); break;
@@ -606,7 +605,7 @@ namespace Proton.VM.IR
                             extendedOpcode = (ILExtendedOpcode)reader.ReadByte();
                             switch (extendedOpcode)
                             {
-                                case ILExtendedOpcode.ArgList: throw new NotImplementedException("ArgList");
+								case ILExtendedOpcode.ArgList: AddInstruction(startOfInstruction, new IRArgListInstruction()); break;
                                 case ILExtendedOpcode.Ceq: AddInstruction(startOfInstruction, new IRCompareInstruction(IRCompareCondition.Equal)); break;
                                 case ILExtendedOpcode.Cgt: AddInstruction(startOfInstruction, new IRCompareInstruction(IRCompareCondition.GreaterThan)); break;
                                 case ILExtendedOpcode.Cgt_Un: AddInstruction(startOfInstruction, new IRCompareInstruction(IRCompareCondition.GreaterThanUnsigned)); break;
@@ -630,7 +629,7 @@ namespace Proton.VM.IR
                                 case ILExtendedOpcode.CpBlk: AddInstruction(startOfInstruction, new IRCopyBlockInstruction()); break;
                                 case ILExtendedOpcode.InitBlk: AddInstruction(startOfInstruction, new IRInitializeBlockInstruction()); break;
                                 case ILExtendedOpcode.No__: prefixFlags |= IRPrefixFlags.No; clearFlags = false; break;
-                                case ILExtendedOpcode.ReThrow: throw new NotImplementedException("ReThrow");
+								case ILExtendedOpcode.ReThrow: AddInstruction(startOfInstruction, new IRRethrowInstruction()); break;
                                 case ILExtendedOpcode.SizeOf: AddInstruction(startOfInstruction, new IRSizeOfInstruction(Assembly.AppDomain.PresolveType(Assembly.File.ExpandMetadataToken(reader.ReadUInt32())))); break;
                                 case ILExtendedOpcode.RefAnyType: AddInstruction(startOfInstruction, new IRLoadTypedReferenceTypeInstruction()); break;
                                 case ILExtendedOpcode.ReadOnly__: prefixFlags |= IRPrefixFlags.ReadOnly; clearFlags = false; break;
@@ -643,6 +642,7 @@ namespace Proton.VM.IR
                 {
                     prefixFlags = IRPrefixFlags.None;
                     prefixConstrainedToken = 0;
+					startOfInstruction = reader.Offset;
                 }
             }
 
@@ -737,7 +737,7 @@ namespace Proton.VM.IR
                     Tuple<IRInstruction, Stack<IRStackObject>> branch = branches.Dequeue();
                     int expectedOnStack = branch.Item2.Count;
                     LinearizePath(pMethodDefData, branch.Item1, branch.Item2, branches);
-                    if (branch.Item2.Count != expectedOnStack) throw new Exception();
+                    if (branch.Item2.Count != 0 && branch.Item2.Count != expectedOnStack) throw new Exception();
                 }
                 //if (!Instructions.TrueForAll(i => i.Linearized)) throw new Exception();
             }

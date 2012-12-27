@@ -31,6 +31,7 @@ namespace Proton.VM.IR
 		public bool PresolvedType = false;
 		public bool PostsolvedType = false;
 
+		public IRType UnderlyingEnumType { get { return Fields[0].Type; } }
 		public bool IsEnumType { get { return BaseType == Assembly.AppDomain.System_Enum; } }
 		public bool IsValueType { get { return BaseType == Assembly.AppDomain.System_ValueType || IsEnumType; } }
 
@@ -525,24 +526,24 @@ namespace Proton.VM.IR
 			else if (IsManagedPointerType)
 			{
 				// 4rd bit from the top set
-				res = ManagedPointerType.GetHashCode() | unchecked((int)0x10000000);
+				res = ManagedPointerType.GetHashCode() ^ unchecked((int)0x10000000);
 			}
 			else if (IsUnmanagedPointerType)
 			{
 				// 3rd bit from the top set
-				res = UnmanagedPointerType.GetHashCode() | unchecked((int)0x20000000);
+				res = UnmanagedPointerType.GetHashCode() ^ unchecked((int)0x20000000);
 			}
             else if (IsArrayType)
             {
                 // 2nd bit from the top set
-                res = ArrayElementType.GetHashCode() | unchecked((int)0x40000000);
+                res = ArrayElementType.GetHashCode() ^ unchecked((int)0x40000000);
             }
             else
             {
                 // The OR at the end is to ensure that this hash code can never conflict with
                 // any of the above.
                 // Top bit set
-                res = Namespace.GetHashCode() ^ Name.GetHashCode() ^ GenericParameters.GetHashCode() | unchecked((int)0x80000000);
+                res = Namespace.GetHashCode() ^ Name.GetHashCode() ^ GenericParameters.GetHashCode() ^ unchecked((int)0x80000000);
             }
 
             mHashCodeCache = res;

@@ -132,10 +132,17 @@ namespace Proton.VM.IR
 				MethodDefData methodDefData = File.MethodDefTable[methodIndex];
 
 				method.ReturnType = AppDomain.PresolveType(methodDefData.ExpandedSignature.RetType);
+				int missingFromSig = 0;
                 for (int parameterIndex = 0; parameterIndex < method.Parameters.Count; ++parameterIndex)
                 {
                     IRParameter parameter = method.Parameters[parameterIndex];
-                    parameter.Type = AppDomain.PresolveType(methodDefData.ExpandedSignature.Params[parameterIndex]);
+					if ((methodDefData.ParamList[parameterIndex].Flags & 8192) != 0) // FIX ME, add attributes flags
+					{
+						++missingFromSig;
+						parameter.Type = AppDomain.System_IntPtr;
+					}
+					else
+						parameter.Type = AppDomain.PresolveType(methodDefData.ExpandedSignature.Params[parameterIndex - missingFromSig]);
                 }
                 for (int localIndex = 0; localIndex < method.Locals.Count; ++localIndex)
                 {

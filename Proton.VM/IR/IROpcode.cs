@@ -703,6 +703,17 @@
         */
         Throw,
 
+		/*
+			Description:
+				Rethrow an exception.
+
+			Stack:
+				... -> ...
+
+			Arguments:
+		*/
+		Rethrow,
+
         /*
             Description:
                 Jump execution immediately to the start of the specified method.
@@ -852,6 +863,17 @@
             Arguments:
         */
         EndFinally,
+
+		/*
+			Description:
+				Load the RuntimeArgumentHandle, some crazy stuff here to do later.
+
+			Stack:
+				... -> ..., handle
+
+			Arguments:
+		*/
+		ArgList,
 
         // Instruction Linearization
         /*

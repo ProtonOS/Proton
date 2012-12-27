@@ -47,6 +47,7 @@ namespace Proton.VM.IR
         public struct ArrayLengthLocationData { public IRLinearizedLocation ArrayLocation; }
         public struct FunctionAddressLocationData
         {
+			public IRLinearizedLocation InstanceLocation;
             public IRMethod Method;
             public bool Virtual;
         }
@@ -136,7 +137,10 @@ namespace Proton.VM.IR
 					ArrayLength = pLinearizedTarget.ArrayLength;
 					ArrayLength.ArrayLocation = pLinearizedTarget.ArrayLength.ArrayLocation.Clone(pParentInstruction);
 					break;
-                case IRLinearizedLocationType.FunctionAddress: FunctionAddress = pLinearizedTarget.FunctionAddress; break;
+                case IRLinearizedLocationType.FunctionAddress:
+					FunctionAddress = pLinearizedTarget.FunctionAddress;
+					if (FunctionAddress.InstanceLocation != null) FunctionAddress.InstanceLocation = pLinearizedTarget.FunctionAddress.InstanceLocation.Clone(pParentInstruction);
+					break;
                 case IRLinearizedLocationType.RuntimeHandle: RuntimeHandle = pLinearizedTarget.RuntimeHandle; break;
                 case IRLinearizedLocationType.String: String = pLinearizedTarget.String; break;
                 default: throw new ArgumentException("Type");
@@ -215,6 +219,7 @@ namespace Proton.VM.IR
 					}
 				case IRLinearizedLocationType.FunctionAddress:
 					{
+						if (FunctionAddress.InstanceLocation != null) FunctionAddress.InstanceLocation.Resolve();
 						FunctionAddress.Method.Resolve(ref FunctionAddress.Method, ParentInstruction.ParentMethod.ParentType.GenericParameters, ParentInstruction.ParentMethod.GenericParameters);
 						break;
 					}
@@ -248,6 +253,7 @@ namespace Proton.VM.IR
 				case IRLinearizedLocationType.Field: Field.FieldLocation.RetargetLocals(pCurrentIterations); break;
 				case IRLinearizedLocationType.FieldAddress: FieldAddress.FieldLocation.RetargetLocals(pCurrentIterations); break;
 				case IRLinearizedLocationType.Indirect: Indirect.AddressLocation.RetargetLocals(pCurrentIterations); break;
+				case IRLinearizedLocationType.FunctionAddress: if (FunctionAddress.InstanceLocation != null) FunctionAddress.InstanceLocation.RetargetLocals(pCurrentIterations); break;
 				default: break;
 			}
 		}
@@ -357,6 +363,15 @@ namespace Proton.VM.IR
 					pWriter.WriteLine("}");
 					break;
 				case IRLinearizedLocationType.FunctionAddress:
+					if (FunctionAddress.InstanceLocation != null)
+					{
+						pWriter.WriteLine("InstanceLocation {0}", FunctionAddress.InstanceLocation.Type);
+						pWriter.WriteLine("{");
+						pWriter.Indent++;
+						FunctionAddress.InstanceLocation.Dump(pWriter);
+						pWriter.Indent--;
+						pWriter.WriteLine("}");
+					}
 					pWriter.WriteLine("Method {0}", FunctionAddress.Method.ToString());
 					pWriter.WriteLine("Virtual {0}", FunctionAddress.Virtual);
 					break;

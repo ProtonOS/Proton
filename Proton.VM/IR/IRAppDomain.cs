@@ -88,7 +88,8 @@ namespace Proton.VM.IR
         public IRType System_Int64 = null;
         public IRType System_IntPtr = null;
         public IRType System_Object = null;
-        public IRType System_RuntimeFieldHandle = null;
+		public IRType System_RuntimeArgumentHandle = null;
+		public IRType System_RuntimeFieldHandle = null;
         public IRType System_RuntimeMethodHandle = null;
         public IRType System_RuntimeTypeHandle = null;
         public IRType System_SByte = null;
@@ -145,7 +146,8 @@ namespace Proton.VM.IR
                         case "Int64": System_Int64 = type; break;
                         case "IntPtr": System_IntPtr = type; break;
                         case "Object": System_Object = type; break;
-                        case "RuntimeFieldHandle": System_RuntimeFieldHandle = type; break;
+						case "RuntimeArgumentHandle": System_RuntimeArgumentHandle = type; break;
+						case "RuntimeFieldHandle": System_RuntimeFieldHandle = type; break;
                         case "RuntimeMethodHandle": System_RuntimeMethodHandle = type; break;
                         case "RuntimeTypeHandle": System_RuntimeTypeHandle = type; break;
                         case "SByte": System_SByte = type; break;
@@ -369,9 +371,9 @@ namespace Proton.VM.IR
                     {
                         IRType type = PresolveType(pTypeRefData.ResolutionScope.TypeRef);
                         if (type == null) throw new NullReferenceException();
-                        type = type.NestedTypes.Find(t => t.Namespace == pTypeRefData.TypeNamespace && t.Name == pTypeRefData.TypeName);
-                        if (type == null) throw new NullReferenceException();
-                        return type;
+                        IRType nestedType = type.NestedTypes.Find(t => t.Namespace == pTypeRefData.TypeNamespace && t.Name == pTypeRefData.TypeName);
+                        if (nestedType == null) throw new NullReferenceException();
+                        return nestedType;
                     }
             }
             throw new NullReferenceException();
@@ -454,17 +456,44 @@ namespace Proton.VM.IR
 
         public IRType PresolveType(FieldSig pFieldSig) { return PresolveType(pFieldSig.Type); }
 
-        public IRType PresolveType(SigRetType pSigRetType) { return pSigRetType.Void ? null : PresolveType(pSigRetType.Type); }
-
-        public IRType PresolveType(SigParam pSigParam)
+        public IRType PresolveType(SigRetType pSigRetType)
 		{
-			IRType type = PresolveType(pSigParam.Type);
-			if (pSigParam.ByRef)
-				type = GetManagedPointerType(type);
+			IRType type = null;
+			if (!pSigRetType.Void)
+			{
+				if (pSigRetType.TypedByRef) type = System_TypedReference;
+				else
+				{
+					type = PresolveType(pSigRetType.Type);
+					if (pSigRetType.ByRef) type = GetManagedPointerType(type);
+				}
+			}
 			return type;
 		}
 
-        public IRType PresolveType(SigLocalVar pSigLocalVar) { return PresolveType(pSigLocalVar.Type); }
+        public IRType PresolveType(SigParam pSigParam)
+		{
+			IRType type = null;
+			if (pSigParam.TypedByRef) type = System_TypedReference;
+			else
+			{
+				type = PresolveType(pSigParam.Type);
+				if (pSigParam.ByRef) type = GetManagedPointerType(type);
+			}
+			return type;
+		}
+
+        public IRType PresolveType(SigLocalVar pSigLocalVar)
+		{
+			IRType type = null;
+			if (pSigLocalVar.TypedByRef) type = System_TypedReference;
+			else
+			{
+				type = PresolveType(pSigLocalVar.Type);
+				if (pSigLocalVar.ByRef) type = GetManagedPointerType(type);
+			}
+			return type;
+		}
 
         public IRMethod PresolveMethod(MethodDefData pMethodDefData)
         {
@@ -623,7 +652,15 @@ namespace Proton.VM.IR
                 }
                 else throw new ArgumentException();
             }
-            else if (pValue1Type == System_Int64 ||
+			else if (pValue1Type == System_Boolean)
+			{
+				if (pValue2Type == System_Boolean)
+				{
+					resultType = System_Boolean;
+				}
+				else throw new ArgumentException();
+			}
+			else if (pValue1Type == System_Int64 ||
                      pValue1Type == System_UInt64)
             {
                 if (pValue2Type == System_Int64 ||
@@ -708,15 +745,17 @@ namespace Proton.VM.IR
             if (pValueType == System_SByte ||
                 pValueType == System_Byte ||
                 pValueType == System_Int16 ||
-                pValueType == System_UInt16 ||
-                pValueType == System_Int32 ||
+				pValueType == System_UInt16 ||
+				pValueType == System_Char ||
+				pValueType == System_Int32 ||
                 pValueType == System_UInt32)
             {
                 if (pShiftAmountType == System_SByte ||
                     pShiftAmountType == System_Byte ||
                     pShiftAmountType == System_Int16 ||
                     pShiftAmountType == System_UInt16 ||
-                    pShiftAmountType == System_Int32 ||
+					pShiftAmountType == System_Char ||
+					pShiftAmountType == System_Int32 ||
                     pShiftAmountType == System_UInt32 ||
                     pShiftAmountType == System_IntPtr ||
                     pShiftAmountType == System_UIntPtr)
@@ -743,7 +782,8 @@ namespace Proton.VM.IR
                     pShiftAmountType == System_Byte ||
                     pShiftAmountType == System_Int16 ||
                     pShiftAmountType == System_UInt16 ||
-                    pShiftAmountType == System_Int32 ||
+					pShiftAmountType == System_Char ||
+					pShiftAmountType == System_Int32 ||
                     pShiftAmountType == System_UInt32 ||
                     pShiftAmountType == System_IntPtr ||
                     pShiftAmountType == System_UIntPtr)
@@ -752,7 +792,11 @@ namespace Proton.VM.IR
                 }
                 else throw new ArgumentException();
             }
-            else throw new ArgumentException();
+			else if (pValueType.IsEnumType)
+			{
+				return ShiftNumericResult(pValueType.UnderlyingEnumType, pShiftAmountType);
+			}
+			else throw new ArgumentException();
             return resultType;
         }
 

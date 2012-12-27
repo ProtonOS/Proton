@@ -19,6 +19,7 @@ namespace Proton.VM.IR
             HashSet<IRInstruction> destinationNodeBreaks = new HashSet<IRInstruction>();
             foreach (IRInstruction instruction in pMethod.Instructions)
             {
+				bool lastInstruction = instruction == pMethod.Instructions[pMethod.Instructions.Count - 1];
                 switch (instruction.Opcode)
                 {
                     case IROpcode.Branch:
@@ -42,9 +43,16 @@ namespace Proton.VM.IR
                             destinationNodeBreaks.Add(leaveInstruction.TargetIRInstruction);
                             break;
                         }
-					case IROpcode.Throw:
-					case IROpcode.Return:
 					case IROpcode.EndFinally:
+						{
+							IREndFinallyInstruction endFinallyInstruction = (IREndFinallyInstruction)instruction;
+							sourceNodeBreaks.Add(instruction);
+							if (!lastInstruction) destinationNodeBreaks.Add(pMethod.Instructions[instruction.IRIndex + 1]);
+							break;
+						}
+					case IROpcode.Throw:
+					case IROpcode.Rethrow:
+					case IROpcode.Return:
 						sourceNodeBreaks.Add(instruction);
 						break;
                     default: break;
@@ -129,8 +137,8 @@ namespace Proton.VM.IR
                             break;
                         }
                     case IROpcode.Throw:
-                    case IROpcode.Return:
-					case IROpcode.EndFinally: continue;
+					case IROpcode.Rethrow:
+					case IROpcode.Return: continue;
                     default: node.LinkTo(cfg.Nodes[node.Index + 1]); break;
                 }
             }

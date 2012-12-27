@@ -18,6 +18,7 @@ namespace Proton.VM.IR.Instructions
         public override void Linearize(Stack<IRStackObject> pStack)
         {
 			IRLinearizedLocation value = new IRLinearizedLocation(this, IRLinearizedLocationType.FunctionAddress);
+			if (Virtual) value.FunctionAddress.InstanceLocation = pStack.Pop().LinearizedTarget;
             value.FunctionAddress.Method = Target;
             value.FunctionAddress.Virtual = Virtual;
             Sources.Add(value);
