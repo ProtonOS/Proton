@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using Proton.Metadata;
+using System.Text;
 
 namespace Proton.VM.IR
 {
@@ -30,6 +31,25 @@ namespace Proton.VM.IR
 		public bool PresolvedType = false;
 		public bool PostsolvedType = false;
 
+		public bool IsEnumType { get { return BaseType == Assembly.AppDomain.System_Enum; } }
+		public bool IsValueType { get { return BaseType == Assembly.AppDomain.System_ValueType || IsEnumType; } }
+
+		public bool IsAbstract { get { return (Flags & TypeAttributes.Abstract) == TypeAttributes.Abstract; } }
+		public bool IsInterface { get { return (Flags & TypeAttributes.Interface) == TypeAttributes.Interface; } }
+		public bool IsStructure { get { return IsValueType && !IsEnumType; } }
+		public bool IsClass { get { return !IsStructure && !IsInterface; } }
+		public bool IsSealed { get { return (Flags & TypeAttributes.Sealed) == TypeAttributes.Sealed; } }
+		public bool IsExplicitLayout { get { return (Flags & TypeAttributes.ExplicitLayout) == TypeAttributes.ExplicitLayout; } }
+
+		public IRType UnmanagedPointerType = null;
+		public bool IsUnmanagedPointerType { get { return UnmanagedPointerType != null; } }
+
+		public IRType ManagedPointerType = null;
+		public bool IsManagedPointerType { get { return ManagedPointerType != null; } }
+
+		public IRType ArrayElementType = null;
+		public bool IsArrayType { get { return ArrayElementType != null; } }
+        
         public readonly List<IRField> Fields = new List<IRField>();
 		public sealed class IRMethodList : IEnumerable<IRMethod>
 		{
@@ -144,17 +164,10 @@ namespace Proton.VM.IR
             }
         }
 
-        private bool mIsValueType = false;
-        public bool IsValueType { get { return mIsValueType; } }
-
-        public bool IsEnumType { get { return BaseType == Assembly.AppDomain.System_Enum; } }
-        
         // We can cache this because the state
         // of the cache doesn't extend to any
         // derived type.
         private bool? mResolvedCache;
-		private bool mResolving = false;
-		public bool Resolving { get { return mResolving; } }
         /// <summary>
         /// True if this type and it's members are fully
         /// resolved, aka. this type has been fully instantiated.
@@ -176,34 +189,11 @@ namespace Proton.VM.IR
 				if (mResolvedCache != null)
 					return mResolvedCache.Value;
 
-				if (mResolving)
-					return true;
-
-				mResolving = true;
-				//if (GenericType != null && (Fields.Count != GenericType.Fields.Count || Methods.Count != GenericType.Methods.Count))
-				//{
-				//    mResolving = false;
-				//    return false;
-				//}
-				//if (BaseType != null && !BaseType.Resolved)
-				//{
-				//    mResolving = false;
-				//    return false;
-				//}
-				//if (!Fields.Where(f => f.Type != this).TrueForAll(f => f.Resolved))
-				//{
-				//    mResolving = false;
-				//    return false;
-				//}
-				//if (!Methods.Where(m => !m.IsGeneric).TrueForAll(m => m.Resolved))
-				//{
-				//    mResolving = false;
-				//    return false;
-				//}
-				mResolving = false;
-
                 mResolvedCache = true;
-				Assembly.AppDomain.Types.Add(this);
+				if (!PresolvedType && !PostsolvedType)
+				{
+					Assembly.AppDomain.Types.Add(this);
+				}
                 return true;
             }
         }
@@ -258,15 +248,6 @@ namespace Proton.VM.IR
 			}
 		}
         public readonly IRGenericParameterList GenericParameters = new IRGenericParameterList();
-
-		public IRType UnmanagedPointerType = null;
-        public bool IsUnmanagedPointerType { get { return UnmanagedPointerType != null; } }
-
-		public IRType ManagedPointerType = null;
-		public bool IsManagedPointerType { get { return ManagedPointerType != null; } }
-
-        public IRType ArrayElementType = null;
-        public bool IsArrayType { get { return ArrayElementType != null; } }
 
 		private static int sTempID = 0;
 		internal readonly int mTempID;
@@ -577,7 +558,23 @@ namespace Proton.VM.IR
 
 		public void Dump(IndentableStreamWriter pWriter)
 		{
-			pWriter.WriteLine("IRType({0}) #{1} {2} : {3}", mGlobalTypeID, mTempID, ToString(), BaseType);
+			StringBuilder sb = new StringBuilder(256);
+			if (IsStructure) sb.Append(" struct");
+			else if (IsEnumType) sb.Append(" enum");
+			else if (IsInterface) sb.Append(" interface");
+			else sb.Append(" class");
+
+			if (IsSealed) sb.Append(" sealed");
+			if (IsAbstract) sb.Append(" abstract");
+			if (IsExplicitLayout) sb.Append(" explicit");
+
+			if (sb.Length > 0)
+			{
+				sb.Insert(1, '|');
+				sb.Append('|');
+			}
+
+			pWriter.WriteLine("IRType({0}) #{1}{2} {3} : {4}", mGlobalTypeID, mTempID, sb.ToString(), ToString(), BaseType);
 			pWriter.WriteLine("{");
 			pWriter.Indent++;
 			pWriter.WriteLine("Resolution State: {0}", (PresolvedType ? "Presolved" : (PostsolvedType ? "Postsolved" : (IsGeneric ? (Resolved ? "Instantiated" : "Unresolved") : "Original"))));

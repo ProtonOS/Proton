@@ -25,6 +25,11 @@ namespace Proton.VM.IR
 		public bool IsVirtual { get { return (Flags & MethodAttributes.Virtual) == MethodAttributes.Virtual; } }
 		public bool IsNewSlot { get { return (Flags & MethodAttributes.NewSlot) == MethodAttributes.NewSlot; } }
 		public bool IsHideBySig { get { return (Flags & MethodAttributes.HideBySig) == MethodAttributes.HideBySig; } }
+		public bool IsFinal { get { return (Flags & MethodAttributes.Final) == MethodAttributes.Final; } }
+		public bool IsAbstract { get { return (Flags & MethodAttributes.Abstract) == MethodAttributes.Abstract; } }
+		public bool IsInternalCall { get { return (ImplFlags & MethodImplAttributes.InternalCall) == MethodImplAttributes.InternalCall; } }
+		public bool IsSynchronized { get { return (ImplFlags & MethodImplAttributes.Synchronized) == MethodImplAttributes.Synchronized; } }
+		public bool IsRuntime { get { return (ImplFlags & MethodImplAttributes.Runtime) == MethodImplAttributes.Runtime; } }
 
         private IRType mParentType = null;
 		public IRType ParentType 
@@ -112,7 +117,6 @@ namespace Proton.VM.IR
 		}
 
         private bool? mResolvedCache;
-		private bool mResolving = false;
         public bool Resolved
         {
             get
@@ -120,40 +124,12 @@ namespace Proton.VM.IR
                 if (mResolvedCache != null)
                     return mResolvedCache.Value;
 				if (!GenericParameters.Resolved) return false;
-				if (mResolving)
-					return true;
-				mResolving = true;
-				//if (ReturnType != null && ReturnType != ParentType)
-				//{
-				//    if (!ReturnType.Resolved)
-				//    {
-				//        mResolving = false;
-				//        return false;
-				//    }
-				//}
-				//if (!Parameters.Where(p => p.Type != ParentType).TrueForAll(p => p.Resolved))
-				//{
-				//    mResolving = false;
-				//    return false;
-				//}
-				//if (!Locals.Where(p => p.Type != ParentType).TrueForAll(l => l.Resolved))
-				//{
-				//    mResolving = false;
-				//    return false;
-				//}
-				//if (!Instructions.TrueForAll(i => i.Resolved))
-				//{
-				//    mResolving = false;
-				//    return false;
-				//}
-				//if (ParentType != null && !ParentType.Resolved)
-				//{
-				//    mResolving = false;
-				//    return false;
-				//}
-				mResolvedCache = true;
-				mResolving = false; 
-				Assembly.AppDomain.Methods.Add(this);
+
+ 				mResolvedCache = true;
+				if (!PresolvedMethod && !PostsolvedMethod)
+				{
+					Assembly.AppDomain.Methods.Add(this);
+				}
                 return true;
             }
         }
@@ -953,17 +929,32 @@ namespace Proton.VM.IR
 
 		public void Dump(IndentableStreamWriter pWriter)
 		{
-			pWriter.WriteLine("IRMethod({0}) #{1} {2}", mGlobalMethodID, mTempID, ToString());
+			StringBuilder sb = new StringBuilder(256);
+			if (IsAbstract) sb.Append(" abstract");
+			if (IsFinal) sb.Append(" final");
+			if (IsInternalCall) sb.Append(" internalCall");
+			if (IsRuntime) sb.Append(" runtime");
+			if (IsSynchronized) sb.Append(" synchronized");
+			if (IsVirtual) sb.Append(" virtual");
+			if (sb.Length > 0)
+			{
+				sb.Insert(1, '|');
+				sb.Append('|');
+			}
+			pWriter.WriteLine("IRMethod({0}) #{1}{2} {3}", mGlobalMethodID, mTempID, sb.ToString(), ToString());
 			pWriter.WriteLine("{");
 			pWriter.Indent++;
 			pWriter.WriteLine("Resolution State: {0}", (PresolvedMethod ? "Presolved" : (PostsolvedMethod ? "Postsolved" : (IsGeneric ? (Resolved ? "Instantiated" : "Unresolved") : "Original"))));
-			Locals.ForEach(l => l.Dump(pWriter));
-			pWriter.WriteLine("IRInstructions");
-			pWriter.WriteLine("{");
-			pWriter.Indent++;
-			Instructions.ForEach(i => i.Dump(pWriter));
-			pWriter.Indent--;
-			pWriter.WriteLine("}");
+			if (!IsAbstract && !IsInternalCall && !IsRuntime)
+			{
+				Locals.ForEach(l => l.Dump(pWriter));
+				pWriter.WriteLine("IRInstructions");
+				pWriter.WriteLine("{");
+				pWriter.Indent++;
+				Instructions.ForEach(i => i.Dump(pWriter));
+				pWriter.Indent--;
+				pWriter.WriteLine("}");
+			}
 			pWriter.Indent--;
 			pWriter.WriteLine("}");
 		}
