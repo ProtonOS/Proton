@@ -3,6 +3,7 @@ using Proton.Metadata.Signatures;
 using System;
 using System.Collections.Generic;
 using Proton.Metadata;
+using System.Text;
 
 namespace Proton.VM.IR
 {
@@ -14,6 +15,9 @@ namespace Proton.VM.IR
 		public FieldAttributes Flags = FieldAttributes.None;
 
 		public bool IsStatic { get { return (Flags & FieldAttributes.Static) == FieldAttributes.Static; } }
+		public bool IsLiteral { get { return (Flags & FieldAttributes.Literal) == FieldAttributes.Literal; } }
+		internal SigElementType LiteralType = SigElementType.End;
+		internal byte[] LiteralValue = null;
 
 		public IRType ParentType = null;
 
@@ -103,7 +107,9 @@ namespace Proton.VM.IR
 
 		public void Dump(IndentableStreamWriter pWriter)
 		{
-			pWriter.WriteLine("IRField {0} @ {1}", ToString(), Offset);
+			StringBuilder sb = new StringBuilder();
+			if (IsLiteral) sb.AppendFormat(", LiteralType {0}", LiteralType.ToString());
+			pWriter.WriteLine("IRField {0} @ {1}{2}", ToString(), Offset, sb.ToString());
 		}
 	}
 }

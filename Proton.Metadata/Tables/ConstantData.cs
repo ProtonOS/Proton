@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Proton.Metadata.Signatures;
 
 namespace Proton.Metadata.Tables
 {
@@ -29,13 +30,14 @@ namespace Proton.Metadata.Tables
         public CLIFile CLIFile = null;
 
         public int TableIndex = 0;
-        public byte Type = 0;
+        public SigElementType Type = SigElementType.End;
         public HasConstantIndex Parent = new HasConstantIndex();
         public byte[] Value = null;
 
         private void LoadData(CLIFile pFile)
         {
-            Type = (byte)pFile.ReadUInt16();
+            Type = (SigElementType)pFile.ReadByte();
+			pFile.ReadByte();
             Parent.LoadData(pFile);
             Value = pFile.ReadBlobHeap(pFile.ReadHeapIndex(HeapOffsetSizes.Blob32Bit));
         }

@@ -69,7 +69,7 @@ namespace Proton.VM.IR
 		}
 		public readonly IRMethodCollection Methods = new IRMethodCollection();
 
-
+		public readonly List<IRField> StaticFields = new List<IRField>();
 
 
         public readonly List<IRAssembly> Assemblies = new List<IRAssembly>();
@@ -177,6 +177,7 @@ namespace Proton.VM.IR
             Assemblies.ForEach(a => a.LoadStage4());
 			Assemblies.ForEach(a => a.LoadStage5());
 			Types.ForEach(t => t.CalculateSize());
+			LayoutStaticFields();
 			Methods.ForEach(m => m.LayoutParameters());
 			Methods.ForEach(m => m.LayoutLocals());
 			Types.ForEach(t => t.CreateVirtualMethodTree());
@@ -186,8 +187,19 @@ namespace Proton.VM.IR
 			return assembly;
         }
 
-        // Dynamic Types
-        private readonly Dictionary<IRType, IRType> UnmanagedPointerTypes = new Dictionary<IRType, IRType>();
+		private void LayoutStaticFields()
+		{
+			Types.ForEach(t => StaticFields.AddRange(t.Fields.FindAll(f => f.IsStatic && !f.IsLiteral)));
+			int offset = 0;
+			for (int i = 0; i < StaticFields.Count; i++)
+			{
+				StaticFields[i].Offset = offset;
+				offset += StaticFields[i].Type.StackSize;
+			}
+		}
+
+		// Dynamic Types
+		private readonly Dictionary<IRType, IRType> UnmanagedPointerTypes = new Dictionary<IRType, IRType>();
 		private readonly Dictionary<IRType, IRType> ManagedPointerTypes = new Dictionary<IRType, IRType>();
 		private readonly Dictionary<IRType, IRType> ArrayTypes = new Dictionary<IRType, IRType>();
 
@@ -822,12 +834,12 @@ namespace Proton.VM.IR
 			Methods.ForEach(m => m.Dump(writer));
 			writer.Indent--;
 			writer.WriteLine("}");
-			writer.WriteLine("GenericTypes {0}", IRType.GenericTypes.Count);
-			writer.WriteLine("{");
-			writer.Indent++;
-			IRType.GenericTypes.ForEach(t => t.Value.Dump(writer));
-			writer.Indent--;
-			writer.WriteLine("}");
+			//writer.WriteLine("GenericTypes {0}", IRType.GenericTypes.Count);
+			//writer.WriteLine("{");
+			//writer.Indent++;
+			//IRType.GenericTypes.ForEach(t => t.Value.Dump(writer));
+			//writer.Indent--;
+			//writer.WriteLine("}");
 			writer.Indent--;
 			writer.WriteLine("}");
 			writer.Close();

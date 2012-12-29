@@ -126,6 +126,17 @@ namespace Proton.VM.IR
 					type.ImplementedInterfaces.Add(AppDomain.PresolveType(typeDefData.InterfaceList[interfaceIndex]));
 				}
             }
+			for (int fieldIndex = 0; fieldIndex < Fields.Count; ++fieldIndex)
+			{
+				IRField field = Fields[fieldIndex];
+				if (field.IsLiteral)
+				{
+					ConstantData constantData = Array.Find(File.ConstantTable, c => c.Parent.Type == HasConstantIndex.HasConstantType.Field && c.Parent.Field.TableIndex == fieldIndex);
+					if (constantData == null) throw new Exception();
+					field.LiteralType = constantData.Type;
+					field.LiteralValue = constantData.Value;
+				}
+			}
 			for (int layoutIndex = 0; layoutIndex < File.ClassLayoutTable.Length; ++layoutIndex)
 			{
 				ClassLayoutData classLayoutData = File.ClassLayoutTable[layoutIndex];
