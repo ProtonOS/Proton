@@ -87,7 +87,8 @@ namespace System
         }
 
 #pragma warning disable 0649
-        private int mLength;
+		// This field must be the only field, to tie up with GC code, and must be 32bits
+		private int mLength;
 #pragma warning restore 0649
 
         private Array() { }
@@ -121,7 +122,7 @@ namespace System
         internal static unsafe object GetValue(Array array, int index)
         {
             Type.TypeData* typeData = array.GetType().GetTypeDataPointer()->ArrayElementType;
-            void* startOfArrayElement = (void*)((byte*)array.Internal_ReferenceToPointer() + sizeof(int) + (typeData->Size * index));
+            void* startOfArrayElement = (void*)((byte*)array.Internal_ReferenceToPointer() + sizeof(int) + (typeData->StackSize * index));
             Type type = Type.GetTypeFromHandle(new RuntimeTypeHandle(new IntPtr(typeData)));
             if (!type.IsValueType)
             {
@@ -136,7 +137,7 @@ namespace System
         {
             Type.TypeData* typeData = array.GetType().GetTypeDataPointer()->ArrayElementType;
             if (value.GetType().GetTypeDataPointer() != typeData) return false;
-            void* startOfArrayElement = (void*)((byte*)array.Internal_ReferenceToPointer() + sizeof(int) + (typeData->Size * index));
+            void* startOfArrayElement = (void*)((byte*)array.Internal_ReferenceToPointer() + sizeof(int) + (typeData->StackSize * index));
             void* startOfValue = value.Internal_ReferenceToPointer();
             Type type = Type.GetTypeFromHandle(new RuntimeTypeHandle(new IntPtr(typeData)));
             if (!type.IsValueType)
@@ -144,7 +145,7 @@ namespace System
                 *((void**)startOfArrayElement) = value.Internal_ReferenceToPointer();
                 return true;
             }
-            Internal_FastCopy(startOfValue, startOfArrayElement, (int)typeData->Size);
+            Internal_FastCopy(startOfValue, startOfArrayElement, (int)typeData->StackSize);
             return true;
         }
 
@@ -160,7 +161,7 @@ namespace System
             }
             void* startOfArrayData = (void*)((byte*)array.Internal_ReferenceToPointer() + sizeof(int));
             Type.TypeData* typeData = array.GetType().GetTypeDataPointer()->ArrayElementType;
-            Internal_FastZero((void*)((byte*)startOfArrayData + (index * typeData->Size)), (int)(length * typeData->Size));
+            Internal_FastZero((void*)((byte*)startOfArrayData + (index * typeData->StackSize)), (int)(length * typeData->StackSize));
         }
 
         public static void Resize<T>(ref T[] array, int newSize)

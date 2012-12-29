@@ -20,7 +20,7 @@ namespace System
         private char mValue;
 #pragma warning restore 0649
 
-        public override string ToString() { return new string(mValue, 1); }
+        public override string ToString() { return GC.AllocateStringOfChar(mValue, 1); }
 
         public override bool Equals(object obj) { return (obj is char && ((char)obj).mValue == mValue); }
 

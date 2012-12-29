@@ -16,12 +16,12 @@
 
         public override string Namespace
         {
-            get { return new string(GetTypeDataPointer()->Namespace, 0, GetTypeDataPointer()->NamespaceLength); }
+            get { return GC.AllocateStringFromASCII(GetTypeDataPointer()->Namespace, (uint)GetTypeDataPointer()->NamespaceLength); }
         }
 
         public override string Name
         {
-            get { return new string(GetTypeDataPointer()->Name, 0, GetTypeDataPointer()->NameLength); }
+			get { return GC.AllocateStringFromASCII(GetTypeDataPointer()->Name, (uint)GetTypeDataPointer()->NameLength); }
         }
 
         public override string FullName

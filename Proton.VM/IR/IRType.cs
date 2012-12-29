@@ -186,16 +186,16 @@ namespace Proton.VM.IR
 				else if (this == Assembly.AppDomain.System_UInt64) mStackSize = 8;
 				else if (this == Assembly.AppDomain.System_UIntPtr) mStackSize = VMConfig.PointerSizeForTarget;
 				else if (this.IsManagedPointerType || this.IsUnmanagedPointerType) mStackSize = VMConfig.PointerSizeForTarget;
-				else CalculateSize();
+				else LayoutFields();
 				return mStackSize;
 			}
 		}
-		public void CalculateSize()
+		public void LayoutFields()
 		{
 			int dataSize = 0;
 			if (mBaseType != null)
 			{
-				mBaseType.CalculateSize();
+				mBaseType.LayoutFields();
 				dataSize = mBaseType.DataSize;
 			}
 			if (IsExplicitLayout && ClassSize > 0)

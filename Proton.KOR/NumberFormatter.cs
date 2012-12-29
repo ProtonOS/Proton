@@ -751,7 +751,7 @@ namespace System
             {
                 buffer[--idx] = '0';
             }
-            return new string(buffer, idx, size - idx);
+            return GC.AllocateStringFromCharArray(buffer, (uint)idx, (uint)(size - idx));
         }
         internal static string FormatExponential(NumberStore ns, int precision, NumberFormatInfo nfi, bool upper)
         {
@@ -2491,7 +2491,7 @@ namespace System
             public string GetDecimalString(int precision)
             {
                 if (!HasDecimal)
-                    return new string('0', precision);
+                    return GC.AllocateStringOfChar('0', (uint)precision);
 
                 StringBuilder sb = new StringBuilder(precision);
                 for (int i = _decPointPos; i < _digits.Length && i < precision + _decPointPos; i++)

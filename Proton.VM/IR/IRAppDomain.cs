@@ -185,7 +185,7 @@ namespace Proton.VM.IR
 
 		private void Layout()
 		{
-			Types.ForEach(t => t.CalculateSize());
+			Types.ForEach(t => t.LayoutFields());
 			LayoutStaticFields();
 			Methods.ForEach(m => m.LayoutParameters());
 			Methods.ForEach(m => m.LayoutLocals());

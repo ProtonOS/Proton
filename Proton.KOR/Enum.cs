@@ -14,7 +14,7 @@ namespace System
             values = new int[typeData->EnumerationCount];
             for (int i = 0; i < typeData->EnumerationCount; ++i)
             {
-                names[i] = new string(typeData->Enumerations[i].Name, 0, typeData->Enumerations[i].NameLength);
+                names[i] = GC.AllocateStringFromASCII(typeData->Enumerations[i].Name, (uint)typeData->Enumerations[i].NameLength);
                 values[i] = typeData->Enumerations[i].Value;
             }
         }

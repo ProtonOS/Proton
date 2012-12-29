@@ -137,10 +137,12 @@ namespace System
 
 		private static GCHeap* HeapFirst = null;
 		private static GCHeap* HeapLast = null;
+		private static Type.TypeData* StringTypeData = null;
 
 		private static GCHeap* AllocateHeap(ulong pHeapSize, bool pSingleObject)
 		{
 			// TODO: Thread-safety
+			if (StringTypeData == null) StringTypeData = typeof(string).GetTypeDataPointer();
 			GCHeap* heap = HeapAllocator.AllocateHeap(pHeapSize, pSingleObject);
 			if (HeapLast == null)
 			{
@@ -203,81 +205,76 @@ namespace System
 			obj->Flags = GCObjectFlags.None;
 			obj->HeapSize = (uint)heapSize;
 			obj->DataSize = pDataSize;
+			Internal_FastZero((void*)((ulong)obj + (ulong)sizeof(GCObject)), (int)pDataSize);
 			return obj;
 		}
 
 		internal static object AllocateObject(Type.TypeData* pType)
 		{
-			GCObject* obj = Allocate(pType->Size);
+			GCObject* obj = Allocate(pType->DataSize);
 			obj->TypeData = pType;
 			return object.Internal_PointerToReference((void*)((ulong)obj + (ulong)sizeof(GCObject)));
 		}
 
-		//internal static string AllocateStringFromASCII(sbyte* pString, uint pLength)
-		//{
-		//    GCObject* obj = Allocate(sizeof(int) + (pLength << 1));
-			
-		//}
+		internal static string AllocateEmptyStringOfLength(uint pLength)
+		{
+			GCObject* obj = Allocate(sizeof(int) + (pLength << 1));
+			obj->TypeData = StringTypeData;
+			int* lengthPointer = (int*)((ulong)obj + (ulong)sizeof(GCObject));
+			*lengthPointer = (int)pLength;
+			return (string)object.Internal_PointerToReference((void*)((ulong)obj + (ulong)sizeof(GCObject)));
+		}
 
+		internal static string AllocateStringOfChar(char pChar, uint pLength)
+		{
+			string str = AllocateEmptyStringOfLength(pLength);
+			char* data = str.InternalCharDataPointer;
+			for (uint index = 0; index < pLength; ++index) data[index] = pChar;
+			return str;
+		}
 
-		//internal static object Allocate(uint objectSize)
-		//{
-		//    GCObject* gco = null;
-		//    uint requiredSize = (uint)(sizeof(GCObject) + objectSize);
-		//    if (!sHeapsReady)
-		//    {
-		//        if (requiredSize <= SmallHeapSize)
-		//        {
-		//            if (requiredSize > (SmallHeapSize - sReservedSmallHeapUsed)) while (true) ;
-		//            gco = (GCObject*)(ReservedSmallHeapPointer + sReservedSmallHeapUsed);
-		//            sReservedSmallHeapUsed += requiredSize;
-		//        }
-		//        else if (requiredSize <= LargeHeapSize)
-		//        {
-		//            if (requiredSize > (LargeHeapSize - sReservedLargeHeapUsed)) while (true) ;
-		//            gco = (GCObject*)(ReservedLargeHeapPointer + sReservedLargeHeapUsed);
-		//            sReservedLargeHeapUsed += requiredSize;
-		//        }
-		//        else while (true) ;
-		//    }
-		//    gco->TypeData = typeof(object).GetTypeDataPointer();
-		//    gco->Flags = GCObjectFlags.Allocated;
-		//    gco->AllocatedSize = requiredSize;
-		//    gco->ActualSize = objectSize;
-		//    sReservedObjectPointers[sReservedObjectCount++] = new IntPtr((void*)((byte*)gco + sizeof(GCObject)));
-		//    return object.Internal_PointerToReference((void*)((byte*)gco + sizeof(GCObject)));
-		//}
+		internal static string AllocateStringFromASCII(sbyte* pString, uint pLength)
+		{
+			string str = AllocateEmptyStringOfLength(pLength);
+			char* data = str.InternalCharDataPointer;
+			for (uint index = 0; index < pLength; ++index) data[index] = (char)pString[index];
+			return str;
+		}
 
-		//internal static object AllocateObject(Type.TypeData* typeData)
-		//{
-		//    // TODO: Atomic_AquireLock(&sBusy)
-		//    object obj = Allocate(typeData->Size);
-		//    GCObject* gco = (GCObject*)((byte*)obj.Internal_ReferenceToPointer() - sizeof(GCObject));
-		//    gco->TypeData = typeData;
-		//    // TODO: Atomic_ReleaseLock(&sBusy)
-		//    return obj;
-		//}
+		internal static string AllocateStringFromUTF16(char* pString, uint pLength)
+		{
+			string str = AllocateEmptyStringOfLength(pLength);
+			char* data = str.InternalCharDataPointer;
+			for (uint index = 0; index < pLength; ++index) data[index] = pString[index];
+			return str;
+		}
 
-		//internal static string AllocateString(uint pLength)
-		//{
-		//    // TODO: Atomic_AquireLock(&sBusy)
-		//    object obj = Allocate((uint)(sizeof(int) + pLength));
-		//    GCObject* gco = (GCObject*)((byte*)obj.Internal_ReferenceToPointer() - sizeof(GCObject));
-		//    gco->TypeData = typeof(string).GetTypeDataPointer();
-		//    // TODO: Atomic_ReleaseLock(&sBusy)
-		//    return (string)obj;
-		//}
+		internal static string AllocateStringFromCharArray(char[] pCharArray, uint pStartIndex, uint pLength)
+		{
+			if (pStartIndex + pLength > pCharArray.Length) return null;
+			string str = AllocateEmptyStringOfLength(pLength);
+			char* strData = str.InternalCharDataPointer;
+			for (uint index = 0; index < pLength; ++index) strData[index] = pCharArray[pStartIndex + index];
+			return str;
+		}
 
-		//internal static Array AllocateArray(Type.TypeData* typeData, uint count)
-		//{
-		//    uint elementSize = typeData->ArrayElementType->Size;
-		//    if (!(new RuntimeType(new RuntimeTypeHandle(new IntPtr((void*)typeData->ArrayElementType))).IsValueType)) elementSize = (uint)sizeof(IntPtr);
-		//    // TODO: Atomic_AquireLock(&sBusy)
-		//    object obj = Allocate((uint)(sizeof(int) + (elementSize * count)));
-		//    GCObject* gco = (GCObject*)((byte*)obj.Internal_ReferenceToPointer() - sizeof(GCObject));
-		//    gco->TypeData = typeData;
-		//    // TODO: Atomic_ReleaseLock(&sBusy)
-		//    return (Array)obj;
-		//}
+		internal static string AllocateStringFromString(string pString, uint pStartIndex, uint pLength)
+		{
+			if (pStartIndex + pLength > pString.Length) return null;
+			string str = AllocateEmptyStringOfLength(pLength);
+			char* strData = str.InternalCharDataPointer;
+			char* sourceData = pString.InternalCharDataPointer;
+			for (uint index = 0; index < pLength; ++index) strData[index] = sourceData[pStartIndex + index];
+			return str;
+		}
+
+		internal static Array AllocateArrayOfType(Type.TypeData* pArrayType, uint pElementCount)
+		{
+			GCObject* obj = Allocate(sizeof(int) + (pArrayType->ArrayElementType->StackSize * pElementCount));
+			obj->TypeData = pArrayType;
+			int* lengthPointer = (int*)((ulong)obj + (ulong)sizeof(GCObject));
+			*lengthPointer = (int)pElementCount;
+			return (Array)object.Internal_PointerToReference((void*)((ulong)obj + (ulong)sizeof(GCObject)));
+		}
     }
 }

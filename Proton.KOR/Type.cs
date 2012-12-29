@@ -15,8 +15,9 @@ namespace System
             public int NameLength;
             public void** VirtualMethodTable;
             //public MemberAttributes Attributes;
-            public uint Size;
-            public FieldData* Fields;
+            public uint StackSize;
+			public uint DataSize;
+			public FieldData* Fields;
             public int FieldCount;
             public StaticFieldData* StaticFields;
             public int StaticFieldCount;

@@ -144,9 +144,6 @@
     <Compile Include="Version.cs" />
     <Compile Include="Void.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Reference Include="System" />
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>

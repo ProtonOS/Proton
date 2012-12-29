@@ -16,48 +16,163 @@ namespace System
         // This field must be the only field, to tie up with GC code, and must be 32bits
         private int mLength;
 
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        extern public String(char c, int count);
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        extern public String(char[] chars);
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        extern public String(char[] chars, int startIndex, int length);
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        public extern unsafe String(sbyte* value, int startIndex, int length);
+		internal unsafe char* InternalCharDataPointer { get { return (char*)((ulong)Internal_ReferenceToPointer() + sizeof(int)); } }
 
         #region Private Internal Calls
+		private String() { }
 
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        extern private String(string str, int startIndex, int length);
+		private static unsafe string InternalConcat(string str0, string str1)
+		{
+			int str0Length = str0.mLength;
+			int str1Length = str1.mLength;
+			int strLength = str0Length + str1Length;
+			string str = GC.AllocateEmptyStringOfLength((uint)strLength);
+			char* strData = str.InternalCharDataPointer;
+			char* str0Data = str0.InternalCharDataPointer;
+			char* str1Data = str1.InternalCharDataPointer;
+			for (int index = 0; index < str0Length; ++index) strData[index] = str0Data[index];
+			for (int index = 0; index < str1Length; ++index) strData[str0Length + index] = str1Data[index];
+			return str;
+		}
 
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        extern private static string InternalConcat(string str0, string str1);
+		private unsafe string InternalReplace(string oldValue, string newValue)
+		{
+			int oldLength = oldValue.Length;
+			if (oldLength > mLength) return this;
+			int newLength = newValue.Length;
+			int thisLength = mLength;
+			char* oldData = oldValue.InternalCharDataPointer;
+			char* newData = newValue.InternalCharDataPointer;
+			char* thisData = InternalCharDataPointer;
+			List<int> foundIndexes = new List<int>();
+			for (int index = 0; index < thisLength; ++index)
+			{
+				bool found = false;
+				for (int oldIndex = 0; oldIndex < oldLength && (found = (thisData[index + oldIndex] == oldValue[oldIndex])); ++index) ;
+				if (found)
+				{
+					foundIndexes.Add(index);
+					index += (oldLength - 1);
+				}
+			}
+			if (foundIndexes.Count == 0) return this;
+			int strLength = thisLength - (oldLength * foundIndexes.Count) + (newLength * foundIndexes.Count);
+			string str = GC.AllocateEmptyStringOfLength((uint)strLength);
+			char* strData = str.InternalCharDataPointer;
+			int strIndex = 0;
+			for (int index = 0; index < thisLength; ++index)
+			{
+				if (foundIndexes.Count > 0 && foundIndexes[0] == index)
+				{
+					for (int newIndex = 0; newIndex < newLength; ++newIndex, ++strIndex) strData[strIndex] = newData[newIndex];
+					index += (oldLength - 1);
+					foundIndexes.RemoveAt(0);
+				}
+				else
+				{
+					strData[strIndex] = thisData[index];
+					++strIndex;
+				}
+			}
+			return str;
+		}
 
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        extern private string InternalReplace(string oldValue, string newValue);
+		// trimType: 1 = start; 2 = end; 3 = both
+		private unsafe string InternalTrim(char[] trimChars, int trimType)
+		{
+			int removedFromStart = 0;
+			int removedFromEnd = 0;
+			char* thisData = InternalCharDataPointer;
+			int thisLength = mLength;
+			int trimLength = trimChars.Length;
+			if (trimType == 1 || trimType == 3)
+			{
+				for (int thisIndex = 0; thisIndex < thisLength; ++thisIndex)
+				{
+					bool found = false;
+					for (int trimIndex = 0; trimIndex < trimLength; ++trimIndex)
+					{
+						if (trimChars[trimIndex] == thisData[thisIndex])
+						{
+							++removedFromStart;
+							found = true;
+							break;
+						}
+					}
+					if (!found) break;
+				}
+			}
+			if (trimType == 2 || trimType == 3)
+			{
+				for (int thisIndex = thisLength - 1; thisIndex >= 0; --thisIndex)
+				{
+					bool found = false;
+					for (int trimIndex = 0; trimIndex < trimLength; ++trimIndex)
+					{
+						if (trimChars[trimIndex] == thisData[thisIndex])
+						{
+							++removedFromEnd;
+							found = true;
+							break;
+						}
+					}
+					if (!found) break;
+				}
+			}
+			if (removedFromStart == 0 && removedFromEnd == 0) return this;
+			int strLength = thisLength - (removedFromStart + removedFromEnd);
+			return GC.AllocateStringFromString(this, (uint)removedFromStart, (uint)strLength);
+		}
 
-        // trimType: bit 0 = start; bit 1 = end
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        extern private string InternalTrim(char[] trimChars, int trimType);
+		private unsafe int InternalIndexOf(char value, int startIndex, int count, bool forward)
+		{
+			if (count == 0) return -1;
+			char* thisData = InternalCharDataPointer;
+			int thisLength = mLength;
+			int index = startIndex;
+			while (count > 0)
+			{
+				if (index < 0 || index >= thisLength) break;
+				if (thisData[index] == value) return index;
+				index += forward ? 1 : -1;
+				--count;
+			}
+			return -1;
+		}
 
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        extern private int InternalIndexOf(char value, int startIndex, int count, bool forwards);
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        extern private int InternalIndexOfAny(char[] anyOf, int startIndex, int count, bool forward);
+		private unsafe int InternalIndexOfAny(char[] anyOf, int startIndex, int count, bool forward)
+		{
+			if (count == 0) return -1;
+			char* thisData = InternalCharDataPointer;
+			int thisLength = mLength;
+			int index = startIndex;
+			int anyOfLength = anyOf.Length;
+			while (count > 0)
+			{
+				if (index < 0 || index >= thisLength) break;
+				for (int anyIndex = 0; anyIndex < anyOfLength; ++anyIndex)
+				{
+					if (thisData[index] == anyOf[anyIndex]) return index;
+				}
+				index += forward ? 1 : -1;
+				--count;
+			}
+			return -1;
+		}
 
         #endregion
 
         public virtual int Length { get { return mLength; } }
 
         [IndexerName("Chars")]
-        extern virtual public char this[int index]
+		public unsafe virtual char this[int index]
         {
-            [MethodImpl(MethodImplOptions.InternalCall)]
-            get;
+			get
+			{
+				if (index < 0 || index >= mLength) throw new ArgumentOutOfRangeException();
+				char* thisData = InternalCharDataPointer;
+				return thisData[index];
+			}
         }
 
         #region Misc Methods
@@ -106,10 +221,10 @@ namespace System
                 int sepPos = this.IndexOfAny(separator, pos);
                 if (sepPos < 0)
                 {
-                    ret.Add(new string(this, pos, this.mLength - pos));
+                    ret.Add(GC.AllocateStringFromString(this, (uint)pos, (uint)(mLength - pos)));
                     break;
                 }
-                ret.Add(new string(this, pos, sepPos - pos));
+                ret.Add(GC.AllocateStringFromString(this, (uint)pos, (uint)(sepPos - pos)));
                 pos = sepPos + 1;
             }
 
@@ -258,7 +373,7 @@ namespace System
                 throw new ArgumentOutOfRangeException();
             }
 
-            return new string(this, startIndex, this.mLength - startIndex);
+            return GC.AllocateStringFromString(this, (uint)startIndex, (uint)(mLength - startIndex));
         }
 
         public string Substring(int startIndex, int length)
@@ -268,7 +383,7 @@ namespace System
                 throw new ArgumentOutOfRangeException();
             }
 
-            return new string(this, startIndex, length);
+            return GC.AllocateStringFromString(this, (uint)startIndex, (uint)length);
         }
 
         #endregion
@@ -339,7 +454,7 @@ namespace System
             {
                 throw new ArgumentOutOfRangeException("startIndex");
             }
-            return new string(this, 0, startIndex);
+            return GC.AllocateStringFromString(this, 0, (uint)startIndex);
         }
 
         public string Remove(int startIndex, int count)
@@ -349,7 +464,7 @@ namespace System
                 throw new ArgumentOutOfRangeException();
             }
             int pos2 = startIndex + count;
-            return (new string(this, 0, startIndex)) + (new string(this, pos2, this.mLength - pos2));
+            return (GC.AllocateStringFromString(this, 0, (uint)startIndex)) + (GC.AllocateStringFromString(this, (uint)pos2, (uint)(mLength - pos2)));
         }
 
         #endregion
@@ -620,17 +735,32 @@ namespace System
             return !Equals(a, b);
         }
 
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        extern public static bool Equals(string a, string b);
+		public unsafe static bool Equals(string a, string b)
+		{
+			if (object.ReferenceEquals(a, b)) return true;
+			if (a == null || b == null) return false;
+			if (a.mLength != b.mLength) return false;
+			int length = a.mLength;
+			char* aData = a.InternalCharDataPointer;
+			char* bData = b.InternalCharDataPointer;
+			for (int index = 0; index < length; ++index) if (aData[index] != bData[index]) return false;
+			return true;
+		}
 
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        extern public override int GetHashCode();
+		public unsafe override int GetHashCode()
+		{
+			char* thisData = InternalCharDataPointer;
+			int thisLength = mLength;
+			int hash = 0;
+			for (int index = 0; index < thisLength; ++index) hash = (hash << 5) - hash + thisData[index];
+			return hash;
+		}
 
-        #endregion
+		#endregion
 
-        #region IClonable Members
+		#region IClonable Members
 
-        public object Clone()
+		public object Clone()
         {
             return this;
         }

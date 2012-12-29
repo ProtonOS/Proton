@@ -61,7 +61,7 @@ namespace System.Text
 
         public override string ToString()
         {
-            return new string(this.mData, 0, this.mLength);
+            return GC.AllocateStringFromCharArray(mData, 0, (uint)mLength);
         }
 
         public string ToString(int startIndex, int length)
@@ -70,7 +70,7 @@ namespace System.Text
             {
                 throw new ArgumentOutOfRangeException();
             }
-            return new string(this.mData, startIndex, length);
+            return GC.AllocateStringFromCharArray(mData, (uint)startIndex, (uint)length);
         }
 
         private void EnsureSpace(int space)
@@ -414,7 +414,7 @@ namespace System.Text
 
         public StringBuilder Insert(int index, char[] value)
         {
-            return this.Insert(index, new string(value));
+            return this.Insert(index, GC.AllocateStringFromCharArray(value, 0, (uint)value.Length));
         }
 
         public StringBuilder Insert(int index, decimal value)
@@ -500,7 +500,7 @@ namespace System.Text
             {
                 throw new ArgumentOutOfRangeException();
             }
-            return this.Insert(index, new string(value, startIndex, charCount));
+            return this.Insert(index, GC.AllocateStringFromCharArray(value, (uint)startIndex, (uint)charCount));
         }
 
         #endregion

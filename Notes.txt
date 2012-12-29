@@ -56,10 +56,10 @@ Generate mandatory internal calls, IE object conversion to and from pointer for 
 Resolve internal calls, limiting internal calls for mandatory calls only means resolution on name without signatures might be enough for AOT side only
 * Implement virtual call tree for IRTypes
 * Resolve interface implementation methods, including resolved generic instantiated methods
+* Static Field Literal Inlining
 
 ===== Stage 5 =====
-Required Optimizations
-Static Field Constant Folding
+
 
 ===== Stage 6 =====
 Optional Optimizations
