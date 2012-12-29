@@ -73,15 +73,11 @@ namespace Proton.VM.IR
 		}
 		public void LayoutParameters()
 		{
-			//if (mResolvedCache.HasValue && mResolvedCache.Value)
-			if (Resolved)
+			int offset = 0;
+			foreach (IRParameter parameter in Parameters)
 			{
-				int offset = 0;
-				foreach (IRParameter parameter in Parameters)
-				{
-					parameter.Offset = offset; // Align to VMConfig.PointerSize or 4 bytes for smaller?
-					offset += parameter.Type.StackSize;
-				}
+				parameter.Offset = offset; // Align if there is problems
+				offset += parameter.Type.StackSize;
 			}
 		}
 
@@ -99,6 +95,16 @@ namespace Proton.VM.IR
 				return mLocals;
 			}
 		}
+		public void LayoutLocals()
+		{
+			int offset = 0;
+			foreach (IRLocal local in Locals)
+			{
+				local.Offset = offset;
+				offset += local.Type.StackSize.WordAlign();
+			}
+		}
+
 		private bool mBoundInstructions = false;
 		private readonly IRInstructionList mInstructions = new IRInstructionList();
 		public IRInstructionList Instructions

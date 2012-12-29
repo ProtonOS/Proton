@@ -32,6 +32,7 @@ namespace Proton.VM.IR
 		}
 
         public int Index = 0;
+		public int Offset = -1;
 
         public bool Resolved { get { return Type.Resolved; } }
 
@@ -92,7 +93,7 @@ namespace Proton.VM.IR
 
 		public void Dump(IndentableStreamWriter pWriter)
 		{
-			pWriter.WriteLine("IRLocal {0}", ToString());
+			pWriter.WriteLine("IRLocal {0} @ {1}", ToString(), Offset);
 		}
     }
 }

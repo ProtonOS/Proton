@@ -8,5 +8,6 @@ namespace Proton.VM
 	public static class VMConfig
 	{
 		public static int PointerSizeForTarget = 4;
+		public static int WordSizeForTarget = 4;
 	}
 }

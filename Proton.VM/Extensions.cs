@@ -38,5 +38,19 @@ namespace Proton.VM
 			foreach (T t in pThis) if (fc(t)) return true;
 			return false;
 		}
+
+		public static int PointerAlign(this int pThis)
+		{
+			int remainder = pThis & ((VMConfig.PointerSizeForTarget << 3) - 1);
+			if (remainder > 0) remainder = VMConfig.PointerSizeForTarget - remainder;
+			return pThis + remainder;
+		}
+
+		public static int WordAlign(this int pThis)
+		{
+			int remainder = pThis & ((VMConfig.WordSizeForTarget << 3) - 1);
+			if (remainder > 0) remainder = VMConfig.WordSizeForTarget - remainder;
+			return pThis + remainder;
+		}
 	}
 }

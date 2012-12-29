@@ -51,8 +51,8 @@
 ===== Stage 5.5 =====
 * Calculate fully resolved IRType sizes
 * Layout IRField offsets, considering explicit layouts
-Layout IRLocal offsets
-Layout IRParameter offsets
+* Layout IRLocal offsets
+* Layout IRParameter offsets
 Generate mandatory internal calls, IE object conversion to and from pointer for GC
 Resolve internal calls, limiting internal calls for mandatory calls only means resolution on name without signatures might be enough for AOT side only
 * Implement virtual call tree for IRTypes
