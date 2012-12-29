@@ -29,13 +29,13 @@ namespace Proton.Metadata.Tables
         public CLIFile CLIFile = null;
 
         public int TableIndex = 0;
-        public ushort Semantics = 0;
+		public MethodSemanticsAttributes Semantics = MethodSemanticsAttributes.None;
         public MethodDefData Method = null;
         public HasSemanticsIndex Association = new HasSemanticsIndex();
 
         private void LoadData(CLIFile pFile)
         {
-            Semantics = pFile.ReadUInt16();
+            Semantics = (MethodSemanticsAttributes)pFile.ReadUInt16();
             int methodDefIndex = 0;
             if (pFile.MethodDefTable.Length >= 0xFFFF) methodDefIndex = pFile.ReadInt32() - 1;
             else methodDefIndex = pFile.ReadUInt16() - 1;

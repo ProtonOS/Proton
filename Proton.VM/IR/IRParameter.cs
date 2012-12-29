@@ -31,6 +31,8 @@ namespace Proton.VM.IR
 			}
 		}
 
+		public int Offset = -1;
+
         public bool Resolved { get { return Type.Resolved; } }
 
 		public void Substitute() { Resolve(); }
@@ -58,5 +60,10 @@ namespace Proton.VM.IR
 		{
 			return Type.ToString();
 		}
-    }
+
+		public void Dump(IndentableStreamWriter pWriter)
+		{
+			pWriter.WriteLine("IRParameter {0} @ {1}", ToString(), Offset);
+		}
+	}
 }

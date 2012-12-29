@@ -30,14 +30,14 @@ namespace Proton.Metadata.Tables
 
         public int TableIndex = 0;
         public ushort Number = 0;
-        public ushort Flags = 0;
+		public GenericParamAttributes Flags = GenericParamAttributes.None;
         public TypeOrMethodDefIndex Owner = new TypeOrMethodDefIndex();
         public string Name = null;
 
         private void LoadData(CLIFile pFile)
         {
             Number = pFile.ReadUInt16();
-            Flags = pFile.ReadUInt16();
+            Flags = (GenericParamAttributes)pFile.ReadUInt16();
             Owner.LoadData(pFile);
             Name = pFile.ReadStringHeap(pFile.ReadHeapIndex(HeapOffsetSizes.Strings32Bit));
         }

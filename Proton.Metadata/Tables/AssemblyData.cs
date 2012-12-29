@@ -29,24 +29,24 @@ namespace Proton.Metadata.Tables
         public CLIFile CLIFile = null;
 
         public int TableIndex = 0;
-        public uint HashAlgId = 0;
+		public AssemblyHashAlgorithm HashAlgId = AssemblyHashAlgorithm.None;
         public ushort MajorVersion = 0;
         public ushort MinorVersion = 0;
         public ushort BuildNumber = 0;
         public ushort RevisionNumber = 0;
-        public uint Flags = 0;
+		public AssemblyFlags Flags = AssemblyFlags.None;
         public byte[] PublicKey = null;
         public string Name = null;
         public string Culture = null;
 
         private void LoadData(CLIFile pFile)
         {
-            HashAlgId = pFile.ReadUInt32();
+            HashAlgId = (AssemblyHashAlgorithm)pFile.ReadUInt32();
             MajorVersion = pFile.ReadUInt16();
             MinorVersion = pFile.ReadUInt16();
             BuildNumber = pFile.ReadUInt16();
             RevisionNumber = pFile.ReadUInt16();
-            Flags = pFile.ReadUInt32();
+            Flags = (AssemblyFlags)pFile.ReadUInt32();
             PublicKey = pFile.ReadBlobHeap(pFile.ReadHeapIndex(HeapOffsetSizes.Blob32Bit));
             Name = pFile.ReadStringHeap(pFile.ReadHeapIndex(HeapOffsetSizes.Strings32Bit));
             Culture = pFile.ReadStringHeap(pFile.ReadHeapIndex(HeapOffsetSizes.Strings32Bit));

@@ -29,13 +29,13 @@ namespace Proton.Metadata.Tables
         public CLIFile CLIFile = null;
 
         public int TableIndex = 0;
-        public uint Flags = 0;
+        public FileAttributes Flags = FileAttributes.None;
         public string Name = null;
         public byte[] HashValue = null;
 
         private void LoadData(CLIFile pFile)
         {
-            Flags = pFile.ReadUInt32();
+            Flags = (FileAttributes)pFile.ReadUInt32();
             Name = pFile.ReadStringHeap(pFile.ReadHeapIndex(HeapOffsetSizes.Strings32Bit));
             HashValue = pFile.ReadBlobHeap(pFile.ReadHeapIndex(HeapOffsetSizes.Blob32Bit));
         }

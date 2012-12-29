@@ -71,6 +71,20 @@ namespace Proton.VM.IR
 				return mParameters;
 			}
 		}
+		public void LayoutParameters()
+		{
+			//if (mResolvedCache.HasValue && mResolvedCache.Value)
+			if (Resolved)
+			{
+				int offset = 0;
+				foreach (IRParameter parameter in Parameters)
+				{
+					parameter.Offset = offset; // Align to VMConfig.PointerSize or 4 bytes for smaller?
+					offset += parameter.Type.StackSize;
+				}
+			}
+		}
+
 		private bool mBoundLocals = false;
         private readonly List<IRLocal> mLocals = new List<IRLocal>();
 		public List<IRLocal> Locals
@@ -950,6 +964,7 @@ namespace Proton.VM.IR
 			pWriter.WriteLine("IRMethod({0}) #{1}{2} {3}", mGlobalMethodID, mTempID, sb.ToString(), ToString());
 			pWriter.WriteLine("{");
 			pWriter.Indent++;
+			Parameters.ForEach(p => p.Dump(pWriter));
 			pWriter.WriteLine("Resolution State: {0}", (PresolvedMethod ? "Presolved" : (PostsolvedMethod ? "Postsolved" : (IsGeneric ? (Resolved ? "Instantiated" : "Unresolved") : "Original"))));
 			if (!IsAbstract && !IsInternalCall && !IsRuntime)
 			{

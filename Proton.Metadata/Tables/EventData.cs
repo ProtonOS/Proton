@@ -29,7 +29,7 @@ namespace Proton.Metadata.Tables
         public CLIFile CLIFile = null;
 
         public int TableIndex = 0;
-        public ushort Flags = 0;
+		public EventAttributes Flags = EventAttributes.None;
         public string Name = null;
         public TypeDefRefOrSpecIndex EventType = new TypeDefRefOrSpecIndex();
 
@@ -37,7 +37,7 @@ namespace Proton.Metadata.Tables
 
         private void LoadData(CLIFile pFile)
         {
-            Flags = pFile.ReadUInt16();
+            Flags = (EventAttributes)pFile.ReadUInt16();
             Name = pFile.ReadStringHeap(pFile.ReadHeapIndex(HeapOffsetSizes.Strings32Bit));
             EventType.LoadData(pFile);
         }

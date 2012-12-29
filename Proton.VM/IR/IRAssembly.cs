@@ -149,7 +149,7 @@ namespace Proton.VM.IR
                 for (int parameterIndex = 0; parameterIndex < method.Parameters.Count; ++parameterIndex)
                 {
                     IRParameter parameter = method.Parameters[parameterIndex];
-					if ((methodDefData.ParamList[parameterIndex].Flags & 8192) != 0) // FIX ME, add attributes flags
+					if ((methodDefData.ParamList[parameterIndex].Flags & ParamAttributes.HasFieldMarshal) == ParamAttributes.HasFieldMarshal)
 					{
 						++missingFromSig;
 						parameter.Type = AppDomain.System_IntPtr;

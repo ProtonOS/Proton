@@ -30,14 +30,14 @@ namespace Proton.Metadata.Tables
 
         public int TableIndex = 0;
         public uint Offset = 0;
-        public uint Flags = 0;
+		public ManifestResourceAttributes Flags = ManifestResourceAttributes.None;
         public string Name = null;
         public ImplementationIndex Implementation = new ImplementationIndex();
 
         private void LoadData(CLIFile pFile)
         {
             Offset = pFile.ReadUInt32();
-            Flags = pFile.ReadUInt32();
+            Flags = (ManifestResourceAttributes)pFile.ReadUInt32();
             Name = pFile.ReadStringHeap(pFile.ReadHeapIndex(HeapOffsetSizes.Strings32Bit));
             Implementation.LoadData(pFile);
         }

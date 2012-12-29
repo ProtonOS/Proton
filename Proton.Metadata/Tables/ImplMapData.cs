@@ -29,14 +29,14 @@ namespace Proton.Metadata.Tables
         public CLIFile CLIFile = null;
 
         public int TableIndex = 0;
-        public ushort MappingFlags = 0;
+		public PInvokeAttributes MappingFlags = PInvokeAttributes.None;
         public MemberForwardedIndex MemberForwarded = new MemberForwardedIndex();
         public string ImportName = null;
         public ModuleRefData ImportScope = null;
 
         private void LoadData(CLIFile pFile)
         {
-            MappingFlags = pFile.ReadUInt16();
+            MappingFlags = (PInvokeAttributes)pFile.ReadUInt16();
             MemberForwarded.LoadData(pFile);
             ImportName = pFile.ReadStringHeap(pFile.ReadHeapIndex(HeapOffsetSizes.Strings32Bit));
             int moduleRefIndex = 0;

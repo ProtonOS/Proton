@@ -30,7 +30,7 @@ namespace Proton.Metadata.Tables
         public CLIFile CLIFile = null;
 
         public int TableIndex = 0;
-        public ushort Flags = 0;
+		public PropertyAttributes Flags = PropertyAttributes.None;
         public string Name = null;
         public byte[] Type = null;
 
@@ -39,7 +39,7 @@ namespace Proton.Metadata.Tables
 
         private void LoadData(CLIFile pFile)
         {
-            Flags = pFile.ReadUInt16();
+            Flags = (PropertyAttributes)pFile.ReadUInt16();
             Name = pFile.ReadStringHeap(pFile.ReadHeapIndex(HeapOffsetSizes.Strings32Bit));
             Type = pFile.ReadBlobHeap(pFile.ReadHeapIndex(HeapOffsetSizes.Blob32Bit));
         }
