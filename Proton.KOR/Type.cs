@@ -17,6 +17,9 @@ namespace System
             //public MemberAttributes Attributes;
             public uint StackSize;
 			public uint DataSize;
+			public bool Unsigned;
+			public bool IsValueType;
+			public bool IsGenericType;
 			public FieldData* Fields;
             public int FieldCount;
             public StaticFieldData* StaticFields;
@@ -82,11 +85,7 @@ namespace System
 
         public abstract Type[] GetGenericArguments();
 
-        public extern bool IsValueType
-        {
-            [MethodImpl(MethodImplOptions.InternalCall)]
-            get;
-        }
+        public unsafe bool IsValueType { get { return GetTypeDataPointer()->IsValueType; } }
 
         public bool Equals(Type o) { return mHandle.Value == o.mHandle.Value; }
 

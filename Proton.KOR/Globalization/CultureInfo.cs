@@ -34,7 +34,7 @@
         private bool mIsNeutralCulture;
         private NumberFormatInfo mNumberFormatInfo;
         private TextInfo mTextInfo;
-        private DateTimeFormatInfo mDateTimeFormat;
+        //private DateTimeFormatInfo mDateTimeFormat;
 
         internal CultureInfo()
         {
@@ -49,14 +49,14 @@
             mIsNeutralCulture = true;
             mNumberFormatInfo = NumberFormatInfo.InvariantInfo;
             mTextInfo = TextInfo.InvariantInfo;
-            mDateTimeFormat = DateTimeFormatInfo.InvariantInfo;
+            //mDateTimeFormat = DateTimeFormatInfo.InvariantInfo;
         }
 
         public bool IsReadOnly { get { return true; } }
 
         public virtual NumberFormatInfo NumberFormat { get { return mNumberFormatInfo; } }
 
-        public virtual DateTimeFormatInfo DateTimeFormat { get { return mDateTimeFormat; } }
+        //public virtual DateTimeFormatInfo DateTimeFormat { get { return mDateTimeFormat; } }
 
         public virtual int LCID { get { return mLCID; } }
 

@@ -94,8 +94,29 @@ namespace System
 
         protected Enum() { }
 
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private extern int Internal_GetValue();
+
+		private unsafe object Internal_GetValue()
+		{
+			void* data = Internal_ReferenceToPointer();
+			GC.GCObject* obj = (GC.GCObject*)((ulong)data - (ulong)sizeof(GC.GCObject));
+			Type.TypeData* enumBaseType = obj->TypeData->EnumerationBaseType;
+			switch (enumBaseType->StackSize)
+			{
+				case 1:
+					if (enumBaseType->Unsigned) return *(byte*)data;
+					return *(sbyte*)data;
+				case 2:
+					if (enumBaseType->Unsigned) return *(ushort*)data;
+					return *(short*)data;
+				case 4:
+					if (enumBaseType->Unsigned) return *(uint*)data;
+					return *(int*)data;
+				case 8:
+					if (enumBaseType->Unsigned) return *(ulong*)data;
+					return *(long*)data;
+				default: throw new InvalidOperationException();
+			}
+		}
 
         public static string GetName(Type enumType, object value)
         {

@@ -29,10 +29,7 @@
             get { return Namespace + "." + Name; }
         }
 
-        public override bool IsGenericType
-        {
-            get { throw new NotImplementedException(); }
-        }
+        public override bool IsGenericType { get { return GetTypeDataPointer()->IsGenericType; } }
 
         public override Type GetGenericTypeDefinition() { throw new NotImplementedException(); }
 
