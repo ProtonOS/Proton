@@ -46,9 +46,7 @@
 * Complete instruction resolving of types, methods, and fields held by the instruction
 * Complete linearized source/destination cloning and resolving
 
-===== Stage 5 =====
-
-===== Stage 5.5 =====
+===== Stage 4.5 =====
 * Calculate fully resolved IRType sizes
 * Layout IRField offsets, considering explicit layouts
 * Layout IRLocal offsets
@@ -59,8 +57,12 @@ Resolve internal calls, limiting internal calls for mandatory calls only means r
 * Implement virtual call tree for IRTypes
 * Resolve interface implementation methods, including resolved generic instantiated methods
 
+===== Stage 5 =====
+Required Optimizations
+Static Field Constant Folding
+
 ===== Stage 6 =====
-Optimizations
+Optional Optimizations
 * Build control flow graph
 * SSA Enter, with pruned phi reductions
 SSA Leave, with variable reductions
