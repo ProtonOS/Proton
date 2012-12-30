@@ -130,6 +130,7 @@ namespace System
 			public GCObject* AllocatedPrev;
 			public GCObject* AllocatedNext;
 			public Type.TypeData* TypeData;
+			public Type.TypeData* BoxedTypeData;
             public GCObjectFlags Flags;
             public uint HeapSize;
             public uint DataSize;
@@ -202,6 +203,7 @@ namespace System
 			obj->Heap = heap;
 			heap->LinkObjectToAllocated(obj);
 			obj->TypeData = null;
+			obj->BoxedTypeData = null;
 			obj->Flags = GCObjectFlags.None;
 			obj->HeapSize = (uint)heapSize;
 			obj->DataSize = pDataSize;
@@ -212,7 +214,12 @@ namespace System
 		internal static object AllocateObject(Type.TypeData* pType)
 		{
 			GCObject* obj = Allocate(pType->DataSize);
-			obj->TypeData = pType;
+			if (pType->IsValueType)
+			{
+				obj->TypeData = typeof(object).GetTypeDataPointer();
+				obj->BoxedTypeData = pType;
+			}
+			else obj->TypeData = pType;
 			return object.Internal_PointerToReference((void*)((ulong)obj + (ulong)sizeof(GCObject)));
 		}
 

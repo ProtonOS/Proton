@@ -9,6 +9,7 @@ namespace System
     {
         internal unsafe struct TypeData
         {
+			public int Index;
             public sbyte* Namespace;
             public int NamespaceLength;
             public sbyte* Name;

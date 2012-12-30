@@ -12,7 +12,7 @@ namespace Proton.SDKInstaller
 {
 	internal static class Program
 	{
-		private static string sURL = "https://github.com/downloads/ProtonOS/Proton/";
+		private static string sURL = "http://dl.dropbox.com/u/35394461/Proton/";
 		private static string sPackageList = "SDKPackages.xml";
 		private static string sHost = "x86";
 		private static string sTarget = "x86";

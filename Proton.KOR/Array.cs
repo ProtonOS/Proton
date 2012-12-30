@@ -123,14 +123,10 @@ namespace System
         {
             Type.TypeData* typeData = array.GetType().GetTypeDataPointer()->ArrayElementType;
             void* startOfArrayElement = (void*)((byte*)array.Internal_ReferenceToPointer() + sizeof(int) + (typeData->StackSize * index));
-            Type type = Type.GetTypeFromHandle(new RuntimeTypeHandle(new IntPtr(typeData)));
-            if (!type.IsValueType)
-            {
-                // TODO: GC support for getting an object, from an existing pointer to an object
-                return null;
-            }
-            // TODO: GC support to Allocate boxed value type based on typeData
-            return null;
+            if (!typeData->IsValueType) return Internal_PointerToReference(*((void**)startOfArrayElement));
+			object obj = GC.AllocateObject(typeData);
+			Internal_FastCopy(startOfArrayElement, obj.Internal_ReferenceToPointer(), (int)typeData->DataSize);
+            return obj;
         }
 
         internal static unsafe bool SetValue(Array array, object value, int index)
