@@ -708,6 +708,72 @@ namespace Proton.VM.IR
 			return nn;
 		}
 
+		private bool? mIsUnsafeTypeCache;
+		public bool IsUnsafeType
+		{
+			get
+			{
+				if (mIsUnsafeTypeCache != null)
+					return mIsUnsafeTypeCache.Value;
+				bool isUnsafe = true;
+				if (this.IsClass || this.IsInterface || (this.IsManagedPointerType && !this.ManagedPointerType.IsUnsafeType))
+					isUnsafe = false;
+				else if (!Fields.TrueForAll(f => f.Type.IsUnsafeType))
+					isUnsafe = false;
+				mIsUnsafeTypeCache = isUnsafe;
+				return mIsUnsafeTypeCache.Value;
+			}
+		}
+
+		public LIRType ToLIRType()
+		{
+			bool obj = this.IsClass || this.IsInterface;
+			if (obj)
+				return new LIRType((uint)StackSize, false) { Allocatable = false };
+
+			if (!IsUnsafeType)
+			{
+				if (this.IsManagedPointerType)
+					return new LIRType((uint)StackSize, false) { Allocatable = false };
+				else
+					return new LIRType((uint)StackSize) { Allocatable = false };
+			}
+			else
+			{
+				if (
+					this == Assembly.AppDomain.System_Boolean ||
+					this == Assembly.AppDomain.System_Byte ||
+					this == Assembly.AppDomain.System_UInt16 ||
+					this == Assembly.AppDomain.System_UInt32 ||
+					this == Assembly.AppDomain.System_UInt64 ||
+					this == Assembly.AppDomain.System_UIntPtr ||
+					this.IsUnmanagedPointerType
+				)
+				{
+					return new LIRType((uint)StackSize, false);
+				}
+				else if (
+					this == Assembly.AppDomain.System_Char ||
+					this == Assembly.AppDomain.System_Int16 ||
+					this == Assembly.AppDomain.System_Int32 ||
+					this == Assembly.AppDomain.System_Int64 ||
+					this == Assembly.AppDomain.System_IntPtr ||
+					this == Assembly.AppDomain.System_SByte
+				)
+				{
+					return new LIRType((uint)StackSize, true);
+				}
+				else if (
+					this == Assembly.AppDomain.System_Double ||
+					this == Assembly.AppDomain.System_Single
+				)
+				{
+					return new LIRType((uint)StackSize, true, true);
+				}
+				return new LIRType((uint)this.StackSize);
+			}
+		}
+
 		public void Dump(IndentableStreamWriter pWriter)
 		{
 			StringBuilder sb = new StringBuilder(256);

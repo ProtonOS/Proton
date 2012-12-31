@@ -22,6 +22,8 @@ namespace Proton.LIR
 		public uint Size { get; private set; }
 		public bool Signed { get; private set; }
 		public LIRValueType Type { get; private set; }
+#warning Eventually need to create constructors which take allocatable as part of their parameters and make the set on this private.
+		public bool Allocatable { get; set; }
 
 		public LIRType(uint size)
 		{
