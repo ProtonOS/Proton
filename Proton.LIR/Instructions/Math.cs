@@ -15,13 +15,15 @@ namespace Proton.LIR.Instructions
 		public ISource SourceB { get; private set; }
 		public IDestination Destination { get; private set; }
 		public MathOperation Operation { get; private set; }
+		public LIRType ArgumentType { get; private set; }
 
-		public Math(LIRMethod parent, ISource srcA, ISource srcB, IDestination dest, MathOperation op) : base(parent)
+		public Math(LIRMethod parent, ISource srcA, ISource srcB, IDestination dest, MathOperation op, LIRType argType) : base(parent)
 		{
 			SourceA = srcA;
 			SourceB = srcB;
 			Destination = dest;
 			Operation = op;
+			ArgumentType = argType;
 		}
 
 		private static string GetOperationSymbol(MathOperation op)
@@ -39,7 +41,7 @@ namespace Proton.LIR.Instructions
 
 		internal override void Dump(IndentedStreamWriter wtr)
 		{
-			wtr.WriteLine("Math {0} {1} {2} -> {3}", SourceA, GetOperationSymbol(Operation), SourceB, Destination);
+			wtr.WriteLine("Math {0} {1} {2} {3} -> {4}", ArgumentType, SourceA, GetOperationSymbol(Operation), SourceB, Destination);
 		}
 
 	}

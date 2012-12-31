@@ -35,9 +35,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IDestination.cs" />
-    <Compile Include="ILabel.cs" />
     <Compile Include="IndentedStreamWriter.cs" />
     <Compile Include="Indirect.cs" />
+    <Compile Include="Instructions\Math.cs" />
     <Compile Include="Instructions\Move.cs" />
     <Compile Include="LIRImm.cs" />
     <Compile Include="LIRInstruction.cs" />
