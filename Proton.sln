@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Proton.SDKInstaller", "Prot
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Proton.Mernel", "Proton.Mernel\Proton.Mernel.csproj", "{43F12452-9967-4675-9D07-B06015793265}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Proton.LIR", "Proton.LIR\Proton.LIR.csproj", "{C7F60BF2-D70C-4933-A559-E6030C004C04}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -53,6 +55,10 @@ Global
 		{43F12452-9967-4675-9D07-B06015793265}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{43F12452-9967-4675-9D07-B06015793265}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{43F12452-9967-4675-9D07-B06015793265}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C7F60BF2-D70C-4933-A559-E6030C004C04}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C7F60BF2-D70C-4933-A559-E6030C004C04}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C7F60BF2-D70C-4933-A559-E6030C004C04}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C7F60BF2-D70C-4933-A559-E6030C004C04}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

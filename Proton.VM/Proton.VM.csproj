@@ -139,6 +139,10 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Proton.LIR\Proton.LIR.csproj">
+      <Project>{C7F60BF2-D70C-4933-A559-E6030C004C04}</Project>
+      <Name>Proton.LIR</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Proton.Metadata\Proton.Metadata.csproj">
       <Project>{8708283B-D74F-49C4-B9AF-948F4AC73FBA}</Project>
       <Name>Proton.Metadata</Name>
