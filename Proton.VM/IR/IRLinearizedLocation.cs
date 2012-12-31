@@ -59,6 +59,10 @@ namespace Proton.VM.IR
             public IRField TargetField;
         }
         public struct StringLocationData { public string Value; }
+		public struct PhiLocationData
+		{
+			public List<IRLinearizedLocation> SourceLocations;
+		}
 
 		private static int sTempID = 0;
 		internal int mTempID = 0;
@@ -85,6 +89,7 @@ namespace Proton.VM.IR
         public FunctionAddressLocationData FunctionAddress;
         public RuntimeHandleLocationData RuntimeHandle;
         public StringLocationData String;
+		public PhiLocationData Phi;
 
         public IRLinearizedLocation(IRInstruction pParentInstruction, IRLinearizedLocationType pType)
 		{
@@ -143,6 +148,11 @@ namespace Proton.VM.IR
 					break;
                 case IRLinearizedLocationType.RuntimeHandle: RuntimeHandle = pLinearizedTarget.RuntimeHandle; break;
                 case IRLinearizedLocationType.String: String = pLinearizedTarget.String; break;
+				case IRLinearizedLocationType.Phi:
+					Phi = pLinearizedTarget.Phi;
+					Phi.SourceLocations = new List<IRLinearizedLocation>(pLinearizedTarget.Phi.SourceLocations.Count);
+					pLinearizedTarget.Phi.SourceLocations.ForEach(l => Phi.SourceLocations.Add(l.Clone(pParentInstruction)));
+					break;
                 default: throw new ArgumentException("Type");
             }
         }
@@ -230,6 +240,11 @@ namespace Proton.VM.IR
 						else if (RuntimeHandle.TargetField != null) RuntimeHandle.TargetField.Resolve(ref RuntimeHandle.TargetField, ParentInstruction.ParentMethod.ParentType.GenericParameters, ParentInstruction.ParentMethod.GenericParameters);
 						break;
 					}
+				case IRLinearizedLocationType.Phi:
+					{
+						Phi.SourceLocations.ForEach(l => l.Resolve());
+						break;
+					}
 
 				default: throw new Exception();
 			}
@@ -254,8 +269,49 @@ namespace Proton.VM.IR
 				case IRLinearizedLocationType.FieldAddress: FieldAddress.FieldLocation.RetargetLocals(pCurrentIterations); break;
 				case IRLinearizedLocationType.Indirect: Indirect.AddressLocation.RetargetLocals(pCurrentIterations); break;
 				case IRLinearizedLocationType.FunctionAddress: if (FunctionAddress.InstanceLocation != null) FunctionAddress.InstanceLocation.RetargetLocals(pCurrentIterations); break;
+				case IRLinearizedLocationType.Phi: Phi.SourceLocations.ForEach(l => l.RetargetLocals(pCurrentIterations)); break;
 				default: break;
 			}
+		}
+
+		public bool UsesLocal(int pLocalIndex)
+		{
+			switch (Type)
+			{
+				case IRLinearizedLocationType.Local:
+					if (Local.LocalIndex == pLocalIndex) return true;
+					break;
+				case IRLinearizedLocationType.LocalAddress:
+					if (LocalAddress.LocalIndex == pLocalIndex) return true;
+					break;
+				case IRLinearizedLocationType.Field:
+					if (Field.FieldLocation.UsesLocal(pLocalIndex)) return true;
+					break;
+				case IRLinearizedLocationType.FieldAddress:
+					if (FieldAddress.FieldLocation.UsesLocal(pLocalIndex)) return true;
+					break;
+		        case IRLinearizedLocationType.Indirect:
+					if (Indirect.AddressLocation.UsesLocal(pLocalIndex)) return true;
+					break;
+				case IRLinearizedLocationType.ArrayElement:
+					if (ArrayElement.ArrayLocation.UsesLocal(pLocalIndex) ||
+						ArrayElement.IndexLocation.UsesLocal(pLocalIndex)) return true;
+					break;
+				case IRLinearizedLocationType.ArrayElementAddress:
+					if (ArrayElementAddress.ArrayLocation.UsesLocal(pLocalIndex) ||
+						ArrayElementAddress.IndexLocation.UsesLocal(pLocalIndex)) return true;
+					break;
+				case IRLinearizedLocationType.ArrayLength:
+					if (ArrayLength.ArrayLocation.UsesLocal(pLocalIndex)) return true;
+					break;
+				case IRLinearizedLocationType.FunctionAddress:
+					if (FunctionAddress.InstanceLocation.UsesLocal(pLocalIndex)) return true;
+					break;
+				case IRLinearizedLocationType.Phi:
+					if (Phi.SourceLocations.Exists(l => l.UsesLocal(pLocalIndex))) return true;
+					break;
+			}
+			return false;
 		}
 
 		public void Dump(IndentableStreamWriter pWriter)
@@ -386,6 +442,14 @@ namespace Proton.VM.IR
 					break;
 				case IRLinearizedLocationType.String:
 					pWriter.WriteLine("Value {0}", String.Value);
+					break;
+				case IRLinearizedLocationType.Phi:
+					pWriter.WriteLine("Phi");
+					pWriter.WriteLine("{");
+					pWriter.Indent++;
+					Phi.SourceLocations.ForEach(l => l.Dump(pWriter));
+					pWriter.Indent--;
+					pWriter.WriteLine("}");
 					break;
 			}
 		}

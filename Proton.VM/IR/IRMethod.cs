@@ -316,7 +316,7 @@ namespace Proton.VM.IR
 
 		// Temporary
         public ushort MaximumStackDepth = 0;
-		public IRControlFlowGraph ControlFlowGraph = null;
+		//public IRControlFlowGraph ControlFlowGraph = null;
 
 		private static int sTempID = 0;
 		internal int mTempID = 0;
@@ -770,7 +770,8 @@ namespace Proton.VM.IR
 
 		public void EnterSSA()
 		{
-			if (ControlFlowGraph == null) return;
+			IRControlFlowGraph cfg = IRControlFlowGraph.Build(this);
+			if (cfg == null) return;
 			int originalCount = Locals.Count;
 			bool[] originalAssignments = new bool[originalCount];
 			int[] originalIterations = new int[originalCount];
@@ -780,7 +781,7 @@ namespace Proton.VM.IR
 			// Add new local iterations for each assignment to an original local, and keep
 			// track of final iterations for each node, assigning true to indicate it was
 			// assigned, false means propagated (used later)
-			foreach (IRControlFlowGraphNode node in ControlFlowGraph.Nodes)
+			foreach (IRControlFlowGraphNode node in cfg.Nodes)
 			{
 				node.SSAFinalIterations = new Tuple<IRLocal, bool>[originalCount];
 				node.SSAPhis = new IRLocal[originalCount];
@@ -807,13 +808,13 @@ namespace Proton.VM.IR
 			// propagated original locals by, assigning false to indicate propagated
 			for (int index = 0; index < originalCount; ++index)
 			{
-				if (ControlFlowGraph.Nodes[0].SSAFinalIterations[index] == null)
-					ControlFlowGraph.Nodes[0].SSAFinalIterations[index] = new Tuple<IRLocal, bool>(Locals[index], false);
+				if (cfg.Nodes[0].SSAFinalIterations[index] == null)
+					cfg.Nodes[0].SSAFinalIterations[index] = new Tuple<IRLocal, bool>(Locals[index], false);
 			}
 			// Any SSAFinalIterations missing from any node means the node did not
 			// assign to the original local, so they can be filled in with propagated
 			// locals using the dominance tree, assigning false to indicate propagated
-			foreach (IRControlFlowGraphNode node in ControlFlowGraph.Nodes)
+			foreach (IRControlFlowGraphNode node in cfg.Nodes)
 			{
 				for (int index = 0; index < originalCount; ++index)
 				{
@@ -833,15 +834,15 @@ namespace Proton.VM.IR
 			// If the phi is the only assignment in a dominance frontier node, then
 			// the phi destination becomes the final iteration for that node
 			int localsBeforePhis = Locals.Count;
-			BitArray phiInserted = new BitArray(ControlFlowGraph.Nodes.Count, false);
-			BitArray localAssigned = new BitArray(ControlFlowGraph.Nodes.Count, false);
+			BitArray phiInserted = new BitArray(cfg.Nodes.Count, false);
+			BitArray localAssigned = new BitArray(cfg.Nodes.Count, false);
 			HashSet<IRControlFlowGraphNode> unprocessedNodes = new HashSet<IRControlFlowGraphNode>();
 			IRControlFlowGraphNode processingNode = null;
 			for (int originalIndex = 0; originalIndex < originalCount; ++originalIndex)
 			{
 				phiInserted.SetAll(false);
 				localAssigned.SetAll(false);
-				foreach (IRControlFlowGraphNode node in ControlFlowGraph.Nodes)
+				foreach (IRControlFlowGraphNode node in cfg.Nodes)
 				{
 					if (node.SSAFinalIterations[originalIndex].Item2)
 					{
@@ -875,7 +876,7 @@ namespace Proton.VM.IR
 
 			// Now we have assignments expanded, phi's created, and we can
 			// determine phi sources from a nodes parents final iterations,
-			// which we will use for leaving SSA later
+			// which we will use later
 			// Initial iterations for each original local in a node can now
 			// be found through using the SSAPhi's if available, otherwise
 			// using immediate dominator final iterations, the entry node
@@ -886,7 +887,7 @@ namespace Proton.VM.IR
 			// with current iterations, and updating the current iterations
 			// when there is local assignments
 			IRLocal[] currentIterations = new IRLocal[originalCount];
-			foreach (IRControlFlowGraphNode node in ControlFlowGraph.Nodes)
+			foreach (IRControlFlowGraphNode node in cfg.Nodes)
 			{
 				if (node.Index == 0) Locals.CopyTo(0, currentIterations, 0, originalCount);
 				else
@@ -905,10 +906,22 @@ namespace Proton.VM.IR
 				}
 			}
 
+			// At this point, most of the requirements set by SSA have been
+			// fulfilled, all we want to do now is insert a move instruction
+			// with a linearized phi source for each phi in the frontiers using
+			// the parent final iterations created earlier, so that various
+			// optimizations occuring before leaving SSA can be done much more
+			// effectively
+			//for (int originalIndex = 0; originalIndex < originalCount; ++originalIndex)
+			//{
+			//    if (node.SSAPhis[phiIndex] != null)
+			//}
 		}
 
 		public void LeaveSSA()
 		{
+			IRControlFlowGraph cfg = IRControlFlowGraph.Build(this);
+			if (cfg == null) return;
 		}
 
 		private int? mHashCodeCache;

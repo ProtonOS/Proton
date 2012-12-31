@@ -42,7 +42,14 @@ namespace Proton.VM.IR
 
         public void AddRange(IEnumerable<IRInstruction> pInstructions) { foreach (IRInstruction instruction in pInstructions) Add(instruction); }
 
-        public IRInstruction this[uint pIndex] { get { return this[(int)pIndex]; } set { this[(int)pIndex] = value; } }
+		public void Insert(IRInstruction pInstruction, uint pIndex)
+		{
+			pInstruction.IRIndex = pIndex;
+			mInstructions.Insert((int)pIndex, pInstruction);
+			for (int index = (int)(pIndex + 1); index < mInstructions.Count; ++index) ++mInstructions[index].IRIndex;
+		}
+
+		public IRInstruction this[uint pIndex] { get { return this[(int)pIndex]; } set { this[(int)pIndex] = value; } }
 
         public IRInstruction this[int pIndex]
         {
