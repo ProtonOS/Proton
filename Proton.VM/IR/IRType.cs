@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Linq;
-using System.Collections.Generic;
-using Proton.Metadata;
 using System.Text;
+using System.Collections.Generic;
+using Proton.LIR;
+using Proton.Metadata;
 
 namespace Proton.VM.IR
 {
@@ -190,12 +191,14 @@ namespace Proton.VM.IR
 				return mStackSize;
 			}
 		}
+		public readonly List<IRField> FieldTree = new List<IRField>();
 		public void LayoutFields()
 		{
 			int dataSize = 0;
 			if (mBaseType != null)
 			{
 				mBaseType.LayoutFields();
+				FieldTree.AddRange(mBaseType.FieldTree);
 				dataSize = mBaseType.DataSize;
 			}
 			if (IsExplicitLayout && ClassSize > 0)
@@ -210,6 +213,7 @@ namespace Proton.VM.IR
 					{
 						field.Offset = dataSize;
 						dataSize += field.Type.StackSize;
+						FieldTree.Add(field);
 					}
 				}
 			}
