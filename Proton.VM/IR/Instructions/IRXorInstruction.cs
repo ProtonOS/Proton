@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Proton.LIR;
+using LIRInstructions = Proton.LIR.Instructions;
+using System;
 using System.Collections.Generic;
 
 namespace Proton.VM.IR.Instructions
@@ -25,5 +27,9 @@ namespace Proton.VM.IR.Instructions
         }
 
         public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRXorInstruction(), pNewMethod); }
-    }
+
+		public override void ConvertToLIR(LIRMethod pLIRMethod)
+		{
+		}
+	}
 }

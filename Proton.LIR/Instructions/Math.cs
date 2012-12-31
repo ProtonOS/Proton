@@ -7,6 +7,7 @@ namespace Proton.LIR.Instructions
 	{
 		Add,
 		Subtract,
+		Multiply,
 	}
 
 	public class Math : LIRInstruction
@@ -34,6 +35,8 @@ namespace Proton.LIR.Instructions
 					return "+";
 				case MathOperation.Subtract:
 					return "-";
+				case MathOperation.Multiply:
+					return "*";
 				default:
 					throw new NotSupportedException();
 			}

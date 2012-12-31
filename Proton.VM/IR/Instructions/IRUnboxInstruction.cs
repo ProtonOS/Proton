@@ -1,4 +1,6 @@
-﻿using Proton.Metadata.Tables;
+﻿using Proton.LIR;
+using LIRInstructions = Proton.LIR.Instructions;
+using Proton.Metadata.Tables;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,6 +40,10 @@ namespace Proton.VM.IR.Instructions
 		{
 			base.Resolve();
 			Type.Resolve(ref Type, ParentMethod.ParentType.GenericParameters, ParentMethod.GenericParameters);
+		}
+
+		public override void ConvertToLIR(LIRMethod pLIRMethod)
+		{
 		}
 
 		protected override void DumpDetails(IndentableStreamWriter pWriter)

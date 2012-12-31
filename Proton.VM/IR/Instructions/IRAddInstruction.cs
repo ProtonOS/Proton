@@ -1,3 +1,5 @@
+using Proton.LIR;
+using LIRInstructions = Proton.LIR.Instructions;
 using System;
 using System.Collections.Generic;
 
@@ -32,6 +34,20 @@ namespace Proton.VM.IR.Instructions
         }
 
         public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRAddInstruction(OverflowType), pNewMethod); }
+
+		public override void ConvertToLIR(LIRMethod pLIRMethod)
+		{
+			var sA = pLIRMethod.RequestLocal(Sources[0].GetTypeOfLocation().ToLIRType());
+			Sources[0].LoadTo(pLIRMethod, sA);
+			var sB = pLIRMethod.RequestLocal(Sources[1].GetTypeOfLocation().ToLIRType());
+			Sources[1].LoadTo(pLIRMethod, sB);
+			var dest = pLIRMethod.RequestLocal(Destination.GetTypeOfLocation().ToLIRType());
+			new LIRInstructions.Math(pLIRMethod, sA, sB, dest, LIRInstructions.MathOperation.Add, dest.Type);
+			pLIRMethod.ReleaseLocal(sA);
+			pLIRMethod.ReleaseLocal(sB);
+			Destination.StoreTo(pLIRMethod, dest);
+			pLIRMethod.ReleaseLocal(dest);
+		}
 
 		protected override void DumpDetails(IndentableStreamWriter pWriter)
 		{

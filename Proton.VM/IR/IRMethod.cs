@@ -1,4 +1,5 @@
-﻿using Proton.Metadata;
+﻿using Proton.LIR;
+using Proton.Metadata;
 using Proton.Metadata.Tables;
 using Proton.Metadata.Signatures;
 using Proton.VM.IL;
@@ -965,6 +966,16 @@ namespace Proton.VM.IR
 
 		public static bool operator !=(IRMethod a, IRMethod b) { return !(a == b); }
 
+
+		public LIRMethod LIRMethod = null;
+
+		public void CreateLIRMethod()
+		{
+			LIRMethod = new LIRMethod();
+			mParameters.ForEach(p => new LIRParameter(LIRMethod, p.Type.ToLIRType()));
+			mLocals.ForEach(l => new LIRLocal(LIRMethod, l.Type.ToLIRType()));
+			mInstructions.ForEach(i => i.ConvertToLIR(LIRMethod));
+		}
 
 		public void Dump(IndentableStreamWriter pWriter)
 		{

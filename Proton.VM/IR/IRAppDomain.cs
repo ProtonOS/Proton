@@ -179,6 +179,7 @@ namespace Proton.VM.IR
 			StaticFieldLiteralInlining();
 			Assemblies.ForEach(a => a.LoadStage5());
 			Assemblies.ForEach(a => a.LoadStage6());
+			//Methods.ForEach(m => m.CreateLIRMethod());
 			Dump();
 			return assembly;
         }

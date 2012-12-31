@@ -1,3 +1,5 @@
+using Proton.LIR;
+using LIRInstructions = Proton.LIR.Instructions;
 using System;
 using System.Collections.Generic;
 
@@ -32,6 +34,10 @@ namespace Proton.VM.IR.Instructions
         }
 
         public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRMultiplyInstruction(OverflowType), pNewMethod); }
+
+		public override void ConvertToLIR(LIRMethod pLIRMethod)
+		{
+		}
 
 		protected override void DumpDetails(IndentableStreamWriter pWriter)
 		{

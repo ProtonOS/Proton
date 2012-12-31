@@ -9,9 +9,19 @@ namespace Proton.LIR
 		public IEnumerable<LIRInstruction> Instructions { get { return mInstructions; } }
 
 		internal List<LIRLocal> mLocals = new List<LIRLocal>();
-		public IEnumerable<LIRLocal> Locals { get { return mLocals; } }
+		public List<LIRLocal> Locals { get { return mLocals; } }
 
 		internal List<LIRParameter> mParameters = new List<LIRParameter>();
-		public IEnumerable<LIRParameter> Parameters { get { return mParameters; } }
+		public List<LIRParameter> Parameters { get { return mParameters; } }
+
+		public LIRLocal RequestLocal(LIRType tp)
+		{
+			return new LIRLocal(this, tp);
+		}
+
+		public void ReleaseLocal(LIRLocal l)
+		{
+
+		}
 	}
 }

@@ -48,6 +48,7 @@ namespace Proton.VM.IR
 
 		public IRType ManagedPointerType = null;
 		public bool IsManagedPointerType { get { return ManagedPointerType != null; } }
+		public IRType GetManagedPointerType() { return Assembly.AppDomain.GetManagedPointerType(this); }
 
 		public IRType ArrayElementType = null;
 		public bool IsArrayType { get { return ArrayElementType != null; } }
@@ -773,6 +774,7 @@ namespace Proton.VM.IR
 				return new LIRType((uint)this.StackSize);
 			}
 		}
+		public static implicit operator LIRType(IRType tp) { return tp.ToLIRType(); }
 
 		public void Dump(IndentableStreamWriter pWriter)
 		{

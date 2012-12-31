@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Proton.LIR;
+using LIRInstructions = Proton.LIR.Instructions;
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
@@ -312,6 +314,142 @@ namespace Proton.VM.IR
 					break;
 			}
 			return false;
+		}
+
+		public IRType GetTypeOfLocation()
+		{
+			switch (Type)
+			{
+				case IRLinearizedLocationType.Null: return ParentInstruction.ParentMethod.Assembly.AppDomain.System_Object;
+				case IRLinearizedLocationType.Local: return ParentInstruction.ParentMethod.Locals[Local.LocalIndex].Type;
+				case IRLinearizedLocationType.LocalAddress: return ParentInstruction.ParentMethod.Locals[LocalAddress.LocalIndex].Type.GetManagedPointerType();
+				case IRLinearizedLocationType.Parameter: return ParentInstruction.ParentMethod.Parameters[(int)Parameter.ParameterIndex].Type;
+				case IRLinearizedLocationType.ParameterAddress: return ParentInstruction.ParentMethod.Parameters[(int)ParameterAddress.ParameterIndex].Type.GetManagedPointerType();
+				case IRLinearizedLocationType.ConstantI4: return ParentInstruction.ParentMethod.Assembly.AppDomain.System_Int32;
+				case IRLinearizedLocationType.ConstantI8: return ParentInstruction.ParentMethod.Assembly.AppDomain.System_Int64;
+				case IRLinearizedLocationType.ConstantR4: return ParentInstruction.ParentMethod.Assembly.AppDomain.System_Single;
+				case IRLinearizedLocationType.ConstantR8: return ParentInstruction.ParentMethod.Assembly.AppDomain.System_Double;
+				case IRLinearizedLocationType.Field: return Field.Field.Type;
+				case IRLinearizedLocationType.FieldAddress: return FieldAddress.Field.Type.GetManagedPointerType();
+				case IRLinearizedLocationType.StaticField: return StaticField.Field.Type;
+				case IRLinearizedLocationType.StaticFieldAddress: return StaticFieldAddress.Field.Type.GetManagedPointerType();
+				case IRLinearizedLocationType.Indirect: return Indirect.Type;
+				case IRLinearizedLocationType.SizeOf: return ParentInstruction.ParentMethod.Assembly.AppDomain.System_Int32;
+				case IRLinearizedLocationType.ArrayElement: return ArrayElement.ElementType;
+				case IRLinearizedLocationType.ArrayElementAddress: return ArrayElementAddress.ElementType.GetManagedPointerType();
+				case IRLinearizedLocationType.ArrayLength: return ParentInstruction.ParentMethod.Assembly.AppDomain.System_Int32;
+				case IRLinearizedLocationType.FunctionAddress: return ParentInstruction.ParentMethod.Assembly.AppDomain.System_UIntPtr;
+				case IRLinearizedLocationType.RuntimeHandle: return RuntimeHandle.HandleType;
+				case IRLinearizedLocationType.String: return ParentInstruction.ParentMethod.Assembly.AppDomain.System_String;
+				default: throw new InvalidOperationException();
+			}
+		}
+
+		public void LoadTo(LIRMethod pParent, IDestination pDestination)
+		{
+			switch (Type)
+			{
+				case IRLinearizedLocationType.Null:
+					new LIRInstructions.Move(pParent, (LIRImm)0, pDestination, ParentInstruction.ParentMethod.Assembly.AppDomain.System_UIntPtr);
+					break;
+				case IRLinearizedLocationType.Local:
+					new LIRInstructions.Move(pParent, pParent.Locals[Local.LocalIndex], pDestination, pParent.Locals[Local.LocalIndex].Type);
+					break;
+				case IRLinearizedLocationType.Parameter:
+					new LIRInstructions.Move(pParent, pParent.Parameters[(int)Parameter.ParameterIndex], pDestination, pParent.Parameters[(int)Parameter.ParameterIndex].Type);
+					break;
+				case IRLinearizedLocationType.ConstantI4:
+					new LIRInstructions.Move(pParent, (LIRImm)ConstantI4.Value, pDestination, ParentInstruction.ParentMethod.Assembly.AppDomain.System_Int32);
+					break;
+				case IRLinearizedLocationType.ConstantI8:
+					new LIRInstructions.Move(pParent, (LIRImm)ConstantI8.Value, pDestination, ParentInstruction.ParentMethod.Assembly.AppDomain.System_Int64);
+					break;
+				case IRLinearizedLocationType.ConstantR4:
+					new LIRInstructions.Move(pParent, (LIRImm)ConstantR4.Value, pDestination, ParentInstruction.ParentMethod.Assembly.AppDomain.System_Single);
+					break;
+				case IRLinearizedLocationType.ConstantR8:
+					new LIRInstructions.Move(pParent, (LIRImm)ConstantR8.Value, pDestination, ParentInstruction.ParentMethod.Assembly.AppDomain.System_Double);
+					break;
+				case IRLinearizedLocationType.Field:
+				{
+					var obj = pParent.RequestLocal(Field.FieldLocation.GetTypeOfLocation());
+					Field.FieldLocation.LoadTo(pParent, obj);
+					var foff = pParent.RequestLocal(ParentInstruction.ParentMethod.Assembly.AppDomain.System_UIntPtr);
+					new LIRInstructions.Math(pParent, obj, (LIRImm)Field.Field.Offset, foff, LIRInstructions.MathOperation.Add, ParentInstruction.ParentMethod.Assembly.AppDomain.System_UIntPtr);
+					pParent.ReleaseLocal(obj);
+					new LIRInstructions.Move(pParent, new Indirect(foff), pDestination, Field.Field.Type);
+					pParent.ReleaseLocal(foff);
+					break;
+				}
+				case IRLinearizedLocationType.FieldAddress:
+				{
+					var obj = pParent.RequestLocal(FieldAddress.FieldLocation.GetTypeOfLocation());
+					FieldAddress.FieldLocation.LoadTo(pParent, obj);
+					var foff = pParent.RequestLocal(ParentInstruction.ParentMethod.Assembly.AppDomain.System_UIntPtr);
+					new LIRInstructions.Math(pParent, obj, (LIRImm)FieldAddress.Field.Offset, foff, LIRInstructions.MathOperation.Add, ParentInstruction.ParentMethod.Assembly.AppDomain.System_UIntPtr);
+					pParent.ReleaseLocal(obj);
+					new LIRInstructions.Move(pParent, foff, pDestination, FieldAddress.Field.Type.GetManagedPointerType());
+					pParent.ReleaseLocal(foff);
+					break;
+				}
+				case IRLinearizedLocationType.Indirect:
+				{
+					var obj = pParent.RequestLocal(Indirect.AddressLocation.GetTypeOfLocation());
+					Indirect.AddressLocation.LoadTo(pParent, obj);
+					new LIRInstructions.Move(pParent, new Indirect(obj), pDestination, Indirect.Type);
+					pParent.ReleaseLocal(obj);
+					break;
+				}
+				case IRLinearizedLocationType.SizeOf:
+					new LIRInstructions.Move(pParent, (LIRImm)SizeOf.Type.StackSize, pDestination, ParentInstruction.ParentMethod.Assembly.AppDomain.System_Int32);
+					break;
+				case IRLinearizedLocationType.ArrayElement:
+				{
+					var arr = pParent.RequestLocal(ArrayElement.ArrayLocation.GetTypeOfLocation());
+					var idx = pParent.RequestLocal(ArrayElement.IndexLocation.GetTypeOfLocation());
+					ArrayElement.ArrayLocation.LoadTo(pParent, arr);
+					ArrayElement.IndexLocation.LoadTo(pParent, idx);
+					var off = pParent.RequestLocal(ParentInstruction.ParentMethod.Assembly.AppDomain.System_UIntPtr);
+					new LIRInstructions.Math(pParent, idx, (LIRImm)ArrayElement.ElementType.StackSize, off, LIRInstructions.MathOperation.Multiply, ParentInstruction.ParentMethod.Assembly.AppDomain.System_UIntPtr);
+					pParent.ReleaseLocal(idx);
+					new LIRInstructions.Math(pParent, off, (LIRImm)0x04, off, LIRInstructions.MathOperation.Add, ParentInstruction.ParentMethod.Assembly.AppDomain.System_UIntPtr);
+					new LIRInstructions.Math(pParent, off, arr, off, LIRInstructions.MathOperation.Add, ParentInstruction.ParentMethod.Assembly.AppDomain.System_UIntPtr);
+					pParent.ReleaseLocal(arr);
+					new LIRInstructions.Move(pParent, new Indirect(off), pDestination, ArrayElement.ElementType);
+					pParent.ReleaseLocal(off);
+					break;
+				}
+				case IRLinearizedLocationType.ArrayElementAddress:
+				{
+					var arr = pParent.RequestLocal(ArrayElementAddress.ArrayLocation.GetTypeOfLocation());
+					var idx = pParent.RequestLocal(ArrayElementAddress.IndexLocation.GetTypeOfLocation());
+					ArrayElementAddress.ArrayLocation.LoadTo(pParent, arr);
+					ArrayElementAddress.IndexLocation.LoadTo(pParent, idx);
+					var off = pParent.RequestLocal(ParentInstruction.ParentMethod.Assembly.AppDomain.System_UIntPtr);
+					new LIRInstructions.Math(pParent, idx, (LIRImm)ArrayElementAddress.ElementType.StackSize, off, LIRInstructions.MathOperation.Multiply, ParentInstruction.ParentMethod.Assembly.AppDomain.System_UIntPtr);
+					pParent.ReleaseLocal(idx);
+					new LIRInstructions.Math(pParent, off, (LIRImm)0x04, off, LIRInstructions.MathOperation.Add, ParentInstruction.ParentMethod.Assembly.AppDomain.System_UIntPtr);
+					new LIRInstructions.Math(pParent, off, arr, off, LIRInstructions.MathOperation.Add, ParentInstruction.ParentMethod.Assembly.AppDomain.System_UIntPtr);
+					pParent.ReleaseLocal(arr);
+					new LIRInstructions.Move(pParent, off, pDestination, ArrayElementAddress.ElementType.GetManagedPointerType());
+					pParent.ReleaseLocal(off);
+					break;
+				}
+				case IRLinearizedLocationType.ArrayLength:
+				{
+					var arr = pParent.RequestLocal(ArrayLength.ArrayLocation.GetTypeOfLocation());
+					ArrayLength.ArrayLocation.LoadTo(pParent, arr);
+					new LIRInstructions.Move(pParent, new Indirect(arr), pDestination, ParentInstruction.ParentMethod.Assembly.AppDomain.System_Int32);
+					pParent.ReleaseLocal(arr);
+					break;
+				}
+#warning Finish the rest of these case statements
+			}
+
+		}
+
+		public void StoreTo(LIRMethod pParent, ISource pSource)
+		{
 		}
 
 		public void Dump(IndentableStreamWriter pWriter)

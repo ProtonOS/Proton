@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Proton.LIR;
 
 namespace Proton.VM.IR
 {
@@ -62,6 +63,8 @@ namespace Proton.VM.IR
         }
 
         public virtual IRInstruction Transform() { return this; }
+
+		public abstract void ConvertToLIR(LIRMethod pLIRMethod);
 
 		public void Dump(IndentableStreamWriter pWriter)
 		{

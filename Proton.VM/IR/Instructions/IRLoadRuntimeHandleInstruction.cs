@@ -1,3 +1,5 @@
+using Proton.LIR;
+using LIRInstructions = Proton.LIR.Instructions;
 using System;
 using System.Collections.Generic;
 
@@ -54,6 +56,8 @@ namespace Proton.VM.IR.Instructions
 			if (TargetMethod != null) TargetMethod.Resolve(ref mTargetMethod, ParentMethod.ParentType.GenericParameters, ParentMethod.GenericParameters);
 			if (TargetField != null) TargetField.Resolve(ref mTargetField, ParentMethod.ParentType.GenericParameters, ParentMethod.GenericParameters);
 		}
+
+		public override void ConvertToLIR(LIRMethod pLIRMethod) { }
 
 		protected override void DumpDetails(IndentableStreamWriter pWriter)
 		{
