@@ -23,6 +23,7 @@ namespace Proton.VM.IR.Instructions
 
 		public override void ConvertToLIR(LIRMethod pLIRMethod)
 		{
+			throw new NotSupportedException();
 		}
 	}
 }

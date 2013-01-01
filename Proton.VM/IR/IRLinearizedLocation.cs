@@ -582,12 +582,7 @@ namespace Proton.VM.IR
 					pWriter.WriteLine("Value {0}", String.Value);
 					break;
 				case IRLinearizedLocationType.Phi:
-					pWriter.WriteLine("Phi");
-					pWriter.WriteLine("{");
-					pWriter.Indent++;
 					Phi.SourceLocations.ForEach(l => l.Dump(pWriter));
-					pWriter.Indent--;
-					pWriter.WriteLine("}");
 					break;
 			}
 		}

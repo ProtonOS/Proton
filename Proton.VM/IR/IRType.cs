@@ -717,10 +717,13 @@ namespace Proton.VM.IR
 				if (mIsUnsafeTypeCache != null)
 					return mIsUnsafeTypeCache.Value;
 				bool isUnsafe = true;
-				if (this.IsClass || this.IsInterface || (this.IsManagedPointerType && !this.ManagedPointerType.IsUnsafeType))
-					isUnsafe = false;
-				else if (!Fields.TrueForAll(f => f.Type.IsUnsafeType))
-					isUnsafe = false;
+				if (!this.IsUnmanagedPointerType)
+				{
+					if (this.IsClass || this.IsInterface || (this.IsManagedPointerType && !this.ManagedPointerType.IsUnsafeType))
+						isUnsafe = false;
+					else if (!Fields.Where(f => f.Type != this).TrueForAll(f => f.Type.IsUnsafeType))
+						isUnsafe = false;
+				}
 				mIsUnsafeTypeCache = isUnsafe;
 				return mIsUnsafeTypeCache.Value;
 			}

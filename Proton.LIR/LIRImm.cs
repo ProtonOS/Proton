@@ -52,5 +52,19 @@ namespace Proton.LIR
 
 		public static implicit operator LIRImm(float val) { return new LIRImm(val); }
 		public static implicit operator LIRImm(double val) { return new LIRImm(val); }
+
+		public override string ToString()
+		{
+			switch (ImmType)
+			{
+				case LIRValueType.Int8: return ByteValue.ToString();
+				case LIRValueType.Int16: return UShortValue.ToString();
+				case LIRValueType.Int32: return UIntValue.ToString();
+				case LIRValueType.Int64: return ULongValue.ToString();
+				case LIRValueType.Single: return FloatValue.ToString();
+				case LIRValueType.Double: return DoubleValue.ToString();
+				default: throw new Exception();
+			}
+		}
 	}
 }

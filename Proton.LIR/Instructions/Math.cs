@@ -8,6 +8,11 @@ namespace Proton.LIR.Instructions
 		Add,
 		Subtract,
 		Multiply,
+		Divide,
+
+		And,
+		Or,
+		Xor,
 	}
 
 	public class Math : LIRInstruction
@@ -37,6 +42,14 @@ namespace Proton.LIR.Instructions
 					return "-";
 				case MathOperation.Multiply:
 					return "*";
+				case MathOperation.Divide:
+					return "/";
+				case MathOperation.And:
+					return "&";
+				case MathOperation.Or:
+					return "|";
+				case MathOperation.Xor:
+					return "^";
 				default:
 					throw new NotSupportedException();
 			}

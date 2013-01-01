@@ -18,6 +18,11 @@ namespace Proton.LIR
 			parent.mParameters.Add(this);
 		}
 
+		public void Dump(IndentedStreamWriter pWriter)
+		{
+			pWriter.Write(Type.ToString());
+		}
+
 		public override string ToString()
 		{
 			return "$" + Index.ToString();

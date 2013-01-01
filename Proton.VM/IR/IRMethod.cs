@@ -370,10 +370,16 @@ namespace Proton.VM.IR
         public void AddInstruction(uint pILOffset, IRInstruction pInstruction)
         {
             pInstruction.ILOffset = (int)pILOffset;
-            pInstruction.IRIndex = (uint)Instructions.Count;
             pInstruction.ParentMethod = this;
             Instructions.Add(pInstruction);
         }
+
+		public void InsertInstruction(uint pIRIndex, IRInstruction pInstruction)
+		{
+			pInstruction.ILOffset = Instructions[pIRIndex].ILOffset;
+			pInstruction.ParentMethod = this;
+			Instructions.Insert(pInstruction, pIRIndex);
+		}
 
         public void ConvertInstructions(MethodDefData pMethodDefData)
         {
@@ -761,7 +767,8 @@ namespace Proton.VM.IR
                     if (branch.Item2.Count != 0 && branch.Item2.Count != expectedOnStack) throw new Exception();
                 }
                 //if (!Instructions.TrueForAll(i => i.Linearized)) throw new Exception();
-            }
+				Instructions.RemoveDead();
+			}
         }
 
         public void TransformInstructions(MethodDefData pMethodDefData)
@@ -913,16 +920,55 @@ namespace Proton.VM.IR
 			// the parent final iterations created earlier, so that various
 			// optimizations occuring before leaving SSA can be done much more
 			// effectively
-			//for (int originalIndex = 0; originalIndex < originalCount; ++originalIndex)
-			//{
-			//    if (node.SSAPhis[phiIndex] != null)
-			//}
+			IRMoveInstruction moveInstruction = null;
+			IRLinearizedLocation location = null;
+			HashSet<int> sourceLocals = new HashSet<int>(); // Used to prevent us from adding the same source twice
+			foreach (IRControlFlowGraphNode node in cfg.Nodes)
+			{
+				for (int originalIndex = originalCount - 1; originalIndex >= 0; --originalIndex)
+				{
+					if (node.SSAPhis[originalIndex] != null)
+					{
+						moveInstruction = new IRMoveInstruction();
+						moveInstruction.Destination = new IRLinearizedLocation(moveInstruction, IRLinearizedLocationType.Local);
+						moveInstruction.Destination.Local.LocalIndex = node.SSAPhis[originalIndex].Index;
+						location = new IRLinearizedLocation(moveInstruction, IRLinearizedLocationType.Phi);
+						location.Phi.SourceLocations = new List<IRLinearizedLocation>();
+						foreach (IRControlFlowGraphNode parentNode in node.ParentNodes)
+						{
+							int finalIterationIndex = parentNode.SSAFinalIterations[originalIndex].Item1.Index;
+							if (sourceLocals.Add(finalIterationIndex))
+							{
+								IRLinearizedLocation phiSourceLocation = new IRLinearizedLocation(moveInstruction, IRLinearizedLocationType.Local);
+								phiSourceLocation.Local.LocalIndex = finalIterationIndex;
+								location.Phi.SourceLocations.Add(phiSourceLocation);
+							}
+						}
+						sourceLocals.Clear();
+						if (location.Phi.SourceLocations.Count == 1)
+						{
+							location.Type = IRLinearizedLocationType.Local;
+							location.Local.LocalIndex = location.Phi.SourceLocations[0].Local.LocalIndex;
+							location.Phi.SourceLocations = null;
+						}
+						moveInstruction.Sources.Add(location);
+						InsertInstruction(node.Instructions[0].IRIndex, moveInstruction);
+						node.Instructions.Insert(0, moveInstruction);
+					}
+				}
+			}
+			mInstructions.FixInsertedTargetInstructions();
+			//LayoutLocals();
 		}
 
 		public void LeaveSSA()
 		{
 			IRControlFlowGraph cfg = IRControlFlowGraph.Build(this);
 			if (cfg == null) return;
+
+
+			LayoutLocals();
+			foreach (IRLocal local in mLocals) local.SSAData = null;
 		}
 
 		private int? mHashCodeCache;
@@ -1005,6 +1051,7 @@ namespace Proton.VM.IR
 				Instructions.ForEach(i => i.Dump(pWriter));
 				pWriter.Indent--;
 				pWriter.WriteLine("}");
+				if (LIRMethod != null) LIRMethod.Dump(pWriter);
 			}
 			pWriter.Indent--;
 			pWriter.WriteLine("}");

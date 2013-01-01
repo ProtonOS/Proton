@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Proton.LIR
 {
-	internal sealed class IndentedStreamWriter
+	public sealed class IndentedStreamWriter
 	{
 		private int mIdent = 0;
 		private string mIdentStr = "";

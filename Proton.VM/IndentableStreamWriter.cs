@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Proton.LIR;
 
 namespace Proton.VM
 {
@@ -20,6 +21,11 @@ namespace Proton.VM
 		public void WriteLine(string pFormat, params object[] pArgs)
 		{
 			mWriter.WriteLine(new string('\t', mIndent) + ((pFormat == "}" || pFormat == "{") ? pFormat : string.Format(pFormat, pArgs)));
+		}
+
+		public static implicit operator IndentedStreamWriter(IndentableStreamWriter r)
+		{
+			return new IndentedStreamWriter(r.mWriter) { Indent = r.mIndent };
 		}
 	}
 }

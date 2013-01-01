@@ -71,6 +71,12 @@ namespace Proton.Nernel
 		}
 	}
 
+	public struct UnsafeManagedTest
+	{
+		string SomeString;
+		string SomeMethod() { return SomeString; }
+	}
+
 	internal static class Program
 	{
 		private static void Main(string[] pCommandLine)

@@ -39,6 +39,7 @@
     <Compile Include="Indirect.cs" />
     <Compile Include="Instructions\Math.cs" />
     <Compile Include="Instructions\Move.cs" />
+    <Compile Include="Instructions\Unary.cs" />
     <Compile Include="LIRImm.cs" />
     <Compile Include="LIRInstruction.cs" />
     <Compile Include="LIRLocal.cs" />

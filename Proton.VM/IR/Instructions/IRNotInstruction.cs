@@ -26,6 +26,13 @@ namespace Proton.VM.IR.Instructions
 
 		public override void ConvertToLIR(LIRMethod pLIRMethod)
 		{
+			var sA = pLIRMethod.RequestLocal(Sources[0].GetTypeOfLocation());
+			Sources[0].LoadTo(pLIRMethod, sA);
+			var dest = pLIRMethod.RequestLocal(Destination.GetTypeOfLocation());
+			new LIRInstructions.Unary(pLIRMethod, sA, dest, LIRInstructions.UnaryOperation.Not, dest.Type);
+			pLIRMethod.ReleaseLocal(sA);
+			Destination.StoreTo(pLIRMethod, dest);
+			pLIRMethod.ReleaseLocal(dest);
 		}
 	}
 }

@@ -64,8 +64,8 @@ Resolve internal calls, limiting internal calls for mandatory calls only means r
 ===== Stage 6 =====
 Optional Optimizations
 * Build control flow graph
-* SSA Enter, with pruned phi reductions
-SSA Leave, with variable reductions
+* SSA Enter
+SSA Leave
 
 ===== Stage 7 =====
 Assemble IRInstructions

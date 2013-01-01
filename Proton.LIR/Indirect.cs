@@ -13,5 +13,10 @@ namespace Proton.LIR
 		{
 			this.Source = src;
 		}
+
+		public override string ToString()
+		{
+			return "[" + Source + "]";
+		}
 	}
 }

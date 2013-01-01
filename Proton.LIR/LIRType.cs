@@ -27,6 +27,7 @@ namespace Proton.LIR
 
 		public LIRType(uint size)
 		{
+			this.Allocatable = true;
 			this.Type = LIRValueType.None;
 			this.Size = size;
 			this.Signed = false;
@@ -34,6 +35,7 @@ namespace Proton.LIR
 
 		public LIRType(uint size, bool signed, bool floating = false)
 		{
+			this.Allocatable = true;
 			switch (size)
 			{
 				case 1:
@@ -78,6 +80,7 @@ namespace Proton.LIR
 		{
 			this.Type = tp;
 			this.Signed = signed;
+			this.Allocatable = true;
 			switch (tp)
 			{
 				case LIRValueType.Int8:
@@ -105,6 +108,11 @@ namespace Proton.LIR
 				default:
 					throw new ArgumentOutOfRangeException("tp");
 			}
+		}
+
+		public override string ToString()
+		{
+			return Type + (!Allocatable ? "&" : "") + ":" + (Signed ? "@" : "") + Size;
 		}
 		
 	}

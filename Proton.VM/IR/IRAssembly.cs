@@ -228,8 +228,8 @@ namespace Proton.VM.IR
 		{
 			Console.WriteLine("========== Stage 6: {0,-45} ==========", File.ReferenceName);
 			// Optional Optimizations
-			AppDomain.Methods.ForEach(m => m.EnterSSA());
-			AppDomain.Methods.ForEach(m => m.LeaveSSA());
+			//AppDomain.Methods.ForEach(m => m.EnterSSA());
+			//AppDomain.Methods.ForEach(m => m.LeaveSSA());
 		}
 
 

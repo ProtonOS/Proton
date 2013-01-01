@@ -23,5 +23,22 @@ namespace Proton.LIR
 		{
 
 		}
+
+		public void Dump(IndentedStreamWriter pWriter)
+		{
+			pWriter.Write("LIRMethod(");
+			for (int index = 0; index < mParameters.Count; ++index)
+			{
+				mParameters[index].Dump(pWriter);
+				if (index != mParameters.Count - 1)
+					pWriter.Write(", ");
+			}
+			pWriter.WriteLine(")");
+			pWriter.WriteLine("{");
+			pWriter.Indent++;
+			mInstructions.ForEach(i => i.Dump(pWriter));
+			pWriter.Indent--;
+			pWriter.WriteLine("}");
+		}
 	}
 }
