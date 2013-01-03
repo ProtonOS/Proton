@@ -280,6 +280,11 @@ namespace Proton.VM.IR
 		{
 			public int Birth;
 			public int Death;
+
+			public override string ToString()
+			{
+				return Birth.ToString() + " - " + Death.ToString();
+			}
 		}
 
 		public void MapLocals(LocalLifetime[] lives)

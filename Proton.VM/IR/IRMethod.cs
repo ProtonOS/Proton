@@ -992,7 +992,11 @@ namespace Proton.VM.IR
 		private void CalculateLocalSSALifespans(IRControlFlowGraph pControlFlowGraph)
 		{
 			IRLinearizedLocation.LocalLifetime[] lives = new IRLinearizedLocation.LocalLifetime[Locals.Count];
-			lives.ForEach(l => { l.Birth = Instructions.Count; l.Death = -1; });
+			for (int i = 0; i < lives.Length; i++)
+			{
+				lives[i].Birth = Instructions.Count;
+				lives[i].Death = -1;
+			}
 			foreach (IRInstruction instr in Instructions)
 			{
 				if (instr.Destination != null)
