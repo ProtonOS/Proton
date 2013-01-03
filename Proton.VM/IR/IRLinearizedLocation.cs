@@ -276,46 +276,103 @@ namespace Proton.VM.IR
 			}
 		}
 
-		public bool UsesLocal(int pLocalIndex)
+		public struct LocalLifetime
 		{
+			public int Birth;
+			public int Death;
+		}
+
+		public void MapLocals(LocalLifetime[] lives)
+		{
+			LocalLifetime liv;
 			switch (Type)
 			{
 				case IRLinearizedLocationType.Local:
-					if (Local.LocalIndex == pLocalIndex) return true;
+					liv = lives[Local.LocalIndex];
+					if (liv.Birth > ParentInstruction.IRIndex)
+						liv.Birth = (int)ParentInstruction.IRIndex;
+					if (liv.Death < ParentInstruction.IRIndex)
+						liv.Death = (int)ParentInstruction.IRIndex;
+					lives[Local.LocalIndex] = liv;
 					break;
 				case IRLinearizedLocationType.LocalAddress:
-					if (LocalAddress.LocalIndex == pLocalIndex) return true;
+					liv = lives[LocalAddress.LocalIndex];
+					if (liv.Birth > ParentInstruction.IRIndex)
+						liv.Birth = (int)ParentInstruction.IRIndex;
+					if (liv.Death < ParentInstruction.IRIndex)
+						liv.Death = (int)ParentInstruction.IRIndex;
+					lives[LocalAddress.LocalIndex] = liv;
 					break;
 				case IRLinearizedLocationType.Field:
-					if (Field.FieldLocation.UsesLocal(pLocalIndex)) return true;
+					Field.FieldLocation.MapLocals(lives);
 					break;
 				case IRLinearizedLocationType.FieldAddress:
-					if (FieldAddress.FieldLocation.UsesLocal(pLocalIndex)) return true;
+					FieldAddress.FieldLocation.MapLocals(lives);
 					break;
-		        case IRLinearizedLocationType.Indirect:
-					if (Indirect.AddressLocation.UsesLocal(pLocalIndex)) return true;
+				case IRLinearizedLocationType.Indirect:
+					Indirect.AddressLocation.MapLocals(lives);
 					break;
 				case IRLinearizedLocationType.ArrayElement:
-					if (ArrayElement.ArrayLocation.UsesLocal(pLocalIndex) ||
-						ArrayElement.IndexLocation.UsesLocal(pLocalIndex)) return true;
+					ArrayElement.ArrayLocation.MapLocals(lives);
+					ArrayElement.IndexLocation.MapLocals(lives);
 					break;
 				case IRLinearizedLocationType.ArrayElementAddress:
-					if (ArrayElementAddress.ArrayLocation.UsesLocal(pLocalIndex) ||
-						ArrayElementAddress.IndexLocation.UsesLocal(pLocalIndex)) return true;
+					ArrayElementAddress.ArrayLocation.MapLocals(lives);
+					ArrayElementAddress.IndexLocation.MapLocals(lives);
 					break;
 				case IRLinearizedLocationType.ArrayLength:
-					if (ArrayLength.ArrayLocation.UsesLocal(pLocalIndex)) return true;
+					ArrayLength.ArrayLocation.MapLocals(lives);
 					break;
 				case IRLinearizedLocationType.FunctionAddress:
-					if (FunctionAddress.InstanceLocation != null &&
-						FunctionAddress.InstanceLocation.UsesLocal(pLocalIndex)) return true;
+					if (FunctionAddress.InstanceLocation != null)
+						FunctionAddress.InstanceLocation.MapLocals(lives);
 					break;
 				case IRLinearizedLocationType.Phi:
-					if (Phi.SourceLocations.Exists(l => l.UsesLocal(pLocalIndex))) return true;
+					Phi.SourceLocations.ForEach(l => l.MapLocals(lives));
 					break;
 			}
-			return false;
 		}
+
+		//public bool UsesLocal(int pLocalIndex)
+		//{
+		//    switch (Type)
+		//    {
+		//        case IRLinearizedLocationType.Local:
+		//            if (Local.LocalIndex == pLocalIndex) return true;
+		//            break;
+		//        case IRLinearizedLocationType.LocalAddress:
+		//            if (LocalAddress.LocalIndex == pLocalIndex) return true;
+		//            break;
+		//        case IRLinearizedLocationType.Field:
+		//            if (Field.FieldLocation.UsesLocal(pLocalIndex)) return true;
+		//            break;
+		//        case IRLinearizedLocationType.FieldAddress:
+		//            if (FieldAddress.FieldLocation.UsesLocal(pLocalIndex)) return true;
+		//            break;
+		//        case IRLinearizedLocationType.Indirect:
+		//            if (Indirect.AddressLocation.UsesLocal(pLocalIndex)) return true;
+		//            break;
+		//        case IRLinearizedLocationType.ArrayElement:
+		//            if (ArrayElement.ArrayLocation.UsesLocal(pLocalIndex) ||
+		//                ArrayElement.IndexLocation.UsesLocal(pLocalIndex)) return true;
+		//            break;
+		//        case IRLinearizedLocationType.ArrayElementAddress:
+		//            if (ArrayElementAddress.ArrayLocation.UsesLocal(pLocalIndex) ||
+		//                ArrayElementAddress.IndexLocation.UsesLocal(pLocalIndex)) return true;
+		//            break;
+		//        case IRLinearizedLocationType.ArrayLength:
+		//            if (ArrayLength.ArrayLocation.UsesLocal(pLocalIndex)) return true;
+		//            break;
+		//        case IRLinearizedLocationType.FunctionAddress:
+		//            if (FunctionAddress.InstanceLocation != null &&
+		//                FunctionAddress.InstanceLocation.UsesLocal(pLocalIndex)) return true;
+		//            break;
+		//        case IRLinearizedLocationType.Phi:
+		//            if (Phi.SourceLocations.Exists(l => l.UsesLocal(pLocalIndex))) return true;
+		//            break;
+		//    }
+		//    return false;
+		//}
 
 		public IRType GetTypeOfLocation()
 		{

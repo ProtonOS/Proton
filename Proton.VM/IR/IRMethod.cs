@@ -991,88 +991,105 @@ namespace Proton.VM.IR
 
 		private void CalculateLocalSSALifespans(IRControlFlowGraph pControlFlowGraph)
 		{
-			IRLocal local = null;
-			IRInstruction instruction = null;
-			bool used = false;
-			for (int localIndex = 0; localIndex < mLocals.Count; ++localIndex)
+			IRLinearizedLocation.LocalLifetime[] lives = new IRLinearizedLocation.LocalLifetime[Locals.Count];
+			lives.ForEach(l => { l.Birth = Instructions.Count; l.Death = -1; });
+			foreach (IRInstruction instr in Instructions)
 			{
-				local = mLocals[localIndex];
-				used = false;
-				for (int instructionIndex = 0; instructionIndex < mInstructions.Count; ++instructionIndex)
+				if (instr.Destination != null)
+					instr.Destination.MapLocals(lives);
+				foreach (var v in instr.Sources)
+					v.MapLocals(lives);
+			}
+			for (int i = 0; i < Locals.Count; i++)
+			{
+				if (lives[i].Death != -1)
 				{
-					instruction = mInstructions[instructionIndex];
-					if (instruction.Destination != null &&
-						instruction.Destination.UsesLocal(localIndex))
-					{
-						local.SSAData.LifeBegins = instruction;
-						used = true;
-					}
-					else
-					{
-						foreach (IRLinearizedLocation sourceLocation in instruction.Sources)
-						{
-							if (sourceLocation.UsesLocal(localIndex))
-							{
-								local.SSAData.LifeBegins = instruction;
-								used = true;
-								break;
-							}
-						}
-					}
-					if (used) break;
+					Locals[i].SSAData.LifeBegins = Instructions[lives[i].Birth];
+					Locals[i].SSAData.LifeEnds = Instructions[lives[i].Death];
 				}
 			}
-			IRInstruction endInstruction = null;
-			IRControlFlowGraphNode node = null;
-			IRInstruction lastInstruction = null;
-			for (int localIndex = 0; localIndex < mLocals.Count; ++localIndex)
-			{
-				local = mLocals[localIndex];
-				used = false;
-				if (local.SSAData.LifeBegins == null) continue;
-				for (int instructionIndex = mInstructions.Count - 1; instructionIndex >= local.SSAData.LifeBegins.IRIndex; --instructionIndex)
-				{
-					instruction = mInstructions[instructionIndex];
-					if (instruction.Destination != null &&
-						instruction.Destination.UsesLocal(localIndex))
-					{
-						used = true;
-					}
-					else
-					{
-						foreach (IRLinearizedLocation sourceLocation in instruction.Sources)
-						{
-							if (sourceLocation.UsesLocal(localIndex))
-							{
-								used = true;
-								break;
-							}
-						}
-					}
-					if (used)
-					{
-						endInstruction = instruction;
-						for (int nodeIndex = 0; nodeIndex < pControlFlowGraph.Nodes.Count; ++nodeIndex)
-						{
-							node = pControlFlowGraph.Nodes[nodeIndex];
-							lastInstruction = node.Instructions[node.Instructions.Count - 1];
-							if (node.Instructions[0].IRIndex <= instruction.IRIndex &&
-								lastInstruction.IRIndex >= instruction.IRIndex)
-							{
-								if (lastInstruction.Opcode == IROpcode.Branch &&
-									lastInstruction.IRIndex >= ((IRBranchInstruction)lastInstruction).TargetIRInstruction.IRIndex)
-								{
-									if (nodeIndex < (pControlFlowGraph.Nodes.Count - 1)) endInstruction = pControlFlowGraph.Nodes[nodeIndex + 1].Instructions[0];
-									else endInstruction = lastInstruction;
-								}
-								break;
-							}
-						}
-						local.SSAData.LifeEnds = endInstruction;
-						break;
-					}
-				}
-			}
+			//IRLocal local = null;
+			//IRInstruction instruction = null;
+			//bool used = false;
+			//for (int localIndex = 0; localIndex < mLocals.Count; ++localIndex)
+			//{
+			//    local = mLocals[localIndex];
+			//    used = false;
+			//    for (int instructionIndex = 0; instructionIndex < mInstructions.Count; ++instructionIndex)
+			//    {
+			//        instruction = mInstructions[instructionIndex];
+			//        if (instruction.Destination != null &&
+			//            instruction.Destination.UsesLocal(localIndex))
+			//        {
+			//            local.SSAData.LifeBegins = instruction;
+			//            used = true;
+			//        }
+			//        else
+			//        {
+			//            foreach (IRLinearizedLocation sourceLocation in instruction.Sources)
+			//            {
+			//                if (sourceLocation.UsesLocal(localIndex))
+			//                {
+			//                    local.SSAData.LifeBegins = instruction;
+			//                    used = true;
+			//                    break;
+			//                }
+			//            }
+			//        }
+			//        if (used) break;
+			//    }
+			//}
+			//IRInstruction endInstruction = null;
+			//IRControlFlowGraphNode node = null;
+			//IRInstruction lastInstruction = null;
+			//for (int localIndex = 0; localIndex < mLocals.Count; ++localIndex)
+			//{
+			//    local = mLocals[localIndex];
+			//    used = false;
+			//    if (local.SSAData.LifeBegins == null) continue;
+			//    for (int instructionIndex = mInstructions.Count - 1; instructionIndex >= local.SSAData.LifeBegins.IRIndex; --instructionIndex)
+			//    {
+			//        instruction = mInstructions[instructionIndex];
+			//        if (instruction.Destination != null &&
+			//            instruction.Destination.UsesLocal(localIndex))
+			//        {
+			//            used = true;
+			//        }
+			//        else
+			//        {
+			//            foreach (IRLinearizedLocation sourceLocation in instruction.Sources)
+			//            {
+			//                if (sourceLocation.UsesLocal(localIndex))
+			//                {
+			//                    used = true;
+			//                    break;
+			//                }
+			//            }
+			//        }
+			//        if (used)
+			//        {
+			//            endInstruction = instruction;
+			//            for (int nodeIndex = 0; nodeIndex < pControlFlowGraph.Nodes.Count; ++nodeIndex)
+			//            {
+			//                node = pControlFlowGraph.Nodes[nodeIndex];
+			//                lastInstruction = node.Instructions[node.Instructions.Count - 1];
+			//                if (node.Instructions[0].IRIndex <= instruction.IRIndex &&
+			//                    lastInstruction.IRIndex >= instruction.IRIndex)
+			//                {
+			//                    if (lastInstruction.Opcode == IROpcode.Branch &&
+			//                        lastInstruction.IRIndex >= ((IRBranchInstruction)lastInstruction).TargetIRInstruction.IRIndex)
+			//                    {
+			//                        if (nodeIndex < (pControlFlowGraph.Nodes.Count - 1)) endInstruction = pControlFlowGraph.Nodes[nodeIndex + 1].Instructions[0];
+			//                        else endInstruction = lastInstruction;
+			//                    }
+			//                    break;
+			//                }
+			//            }
+			//            local.SSAData.LifeEnds = endInstruction;
+			//            break;
+			//        }
+			//    }
+			//}
 		}
 
 		private int? mHashCodeCache;
