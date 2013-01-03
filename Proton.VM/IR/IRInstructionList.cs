@@ -54,6 +54,14 @@ namespace Proton.VM.IR
 			mInsertedTargetFixCache[originalInstruction] = pInstruction;
 		}
 
+		private Dictionary<IRInstruction, IRInstruction> mRemovedTargetFixCache = new Dictionary<IRInstruction, IRInstruction>();
+		public void Remove(IRInstruction pInstruction)
+		{
+			mInstructions.RemoveAt((int)pInstruction.IRIndex);
+			for (int index = (int)pInstruction.IRIndex; index < mInstructions.Count; ++index) --mInstructions[index].IRIndex;
+			mRemovedTargetFixCache[pInstruction] = mInstructions[(int)pInstruction.IRIndex];
+		}
+
 		public void FixInsertedTargetInstructions()
 		{
 			IRInstruction targetInstruction = null;
@@ -87,6 +95,41 @@ namespace Proton.VM.IR
 				}
 			}
 			mInsertedTargetFixCache.Clear();
+		}
+
+		public void FixRemovedTargetInstructions()
+		{
+			IRInstruction targetInstruction = null;
+			foreach (IRInstruction instruction in mInstructions)
+			{
+				switch (instruction.Opcode)
+				{
+					case IROpcode.Branch:
+						{
+							IRBranchInstruction branchInstruction = (IRBranchInstruction)instruction;
+							if (mRemovedTargetFixCache.TryGetValue(branchInstruction.TargetIRInstruction, out targetInstruction)) branchInstruction.TargetIRInstruction = targetInstruction;
+							break;
+						}
+					case IROpcode.Switch:
+						{
+							IRSwitchInstruction switchInstruction = (IRSwitchInstruction)instruction;
+							for (int index = 0; index < switchInstruction.TargetIRInstructions.Length; ++index)
+							{
+								if (mRemovedTargetFixCache.TryGetValue(switchInstruction.TargetIRInstructions[index], out targetInstruction))
+									switchInstruction.TargetIRInstructions[index] = targetInstruction;
+							}
+							break;
+						}
+					case IROpcode.Leave:
+						{
+							IRLeaveInstruction leaveInstruction = (IRLeaveInstruction)instruction;
+							if (mRemovedTargetFixCache.TryGetValue(leaveInstruction.TargetIRInstruction, out targetInstruction)) leaveInstruction.TargetIRInstruction = targetInstruction;
+							break;
+						}
+					default: break;
+				}
+			}
+			mRemovedTargetFixCache.Clear();
 		}
 
 		public IRInstruction this[uint pIndex] { get { return this[(int)pIndex]; } set { this[(int)pIndex] = value; } }

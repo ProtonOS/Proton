@@ -50,6 +50,7 @@ namespace Proton.VM.IR
 		{
 			public IRLocal Original = null;
 			public int Iteration = 0;
+			public bool Phi = false;
 			public IRInstruction LifeBegins = null;
 			public IRInstruction LifeEnds = null;
 
@@ -62,6 +63,7 @@ namespace Proton.VM.IR
 				clone.LifeEnds = LifeEnds;
 				return clone;
 			}
+			public bool IsDead { get { return LifeBegins == null || LifeEnds == null; } }
 		}
 		public IRLocalSSAData SSAData = null;
 
@@ -88,7 +90,18 @@ namespace Proton.VM.IR
 
 		public override string ToString()
 		{
-			return Type.ToString() + ": " + Index.ToString();
+			string ssaBuf = "";
+			if (SSAData != null)
+			{
+				if (SSAData.IsDead)
+				{
+					if (SSAData.Phi) ssaBuf = " (Dead Phi)";
+					else ssaBuf = " (Dead)";
+				}
+				else if (SSAData.Phi) ssaBuf = string.Format(" (Alive {0}-{1} Phi)", SSAData.LifeBegins.IRIndex, SSAData.LifeEnds.IRIndex);
+				else ssaBuf = string.Format(" (Alive {0}-{1})", SSAData.LifeBegins.IRIndex, SSAData.LifeEnds.IRIndex);
+			}
+			return Type.ToString() + ": " + Index.ToString() + ssaBuf;
 		}
 
 		public void Dump(IndentableStreamWriter pWriter)

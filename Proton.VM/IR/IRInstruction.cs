@@ -71,6 +71,7 @@ namespace Proton.VM.IR
 			pWriter.WriteLine("IRInstruction {0}", Opcode.ToString());
 			pWriter.WriteLine("{");
 			pWriter.Indent++;
+			pWriter.WriteLine("IRIndex {0}", IRIndex);
 			DumpDetails(pWriter);
 
 			if (Destination != null)

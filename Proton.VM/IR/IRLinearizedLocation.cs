@@ -307,7 +307,8 @@ namespace Proton.VM.IR
 					if (ArrayLength.ArrayLocation.UsesLocal(pLocalIndex)) return true;
 					break;
 				case IRLinearizedLocationType.FunctionAddress:
-					if (FunctionAddress.InstanceLocation.UsesLocal(pLocalIndex)) return true;
+					if (FunctionAddress.InstanceLocation != null &&
+						FunctionAddress.InstanceLocation.UsesLocal(pLocalIndex)) return true;
 					break;
 				case IRLinearizedLocationType.Phi:
 					if (Phi.SourceLocations.Exists(l => l.UsesLocal(pLocalIndex))) return true;
@@ -341,6 +342,7 @@ namespace Proton.VM.IR
 				case IRLinearizedLocationType.FunctionAddress: return ParentInstruction.ParentMethod.Assembly.AppDomain.System_UIntPtr;
 				case IRLinearizedLocationType.RuntimeHandle: return RuntimeHandle.HandleType;
 				case IRLinearizedLocationType.String: return ParentInstruction.ParentMethod.Assembly.AppDomain.System_String;
+				case IRLinearizedLocationType.Phi: return ParentInstruction.ParentMethod.Locals[Phi.SourceLocations[0].Local.LocalIndex].Type;
 				default: throw new InvalidOperationException();
 			}
 		}
