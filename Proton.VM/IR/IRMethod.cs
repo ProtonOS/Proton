@@ -1026,7 +1026,7 @@ namespace Proton.VM.IR
 			}
 			for (int i = 0; i < Locals.Count; i++)
 			{
-				if (lives[i].Death != -1)
+				if (lives[i].Death != -1 && (lives[i].Birth != lives[i].Death || Locals[i].SSAData.Phi))
 				{
 					Locals[i].SSAData.LifeBegins = Instructions[lives[i].Birth];
 					Locals[i].SSAData.LifeEnds = Instructions[lives[i].Death];
