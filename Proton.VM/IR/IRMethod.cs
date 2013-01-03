@@ -88,7 +88,7 @@ namespace Proton.VM.IR
 		{
 			get
 			{
-				if (mParentMethod != null && !mBoundLocals && mParentMethod.Locals.Count != mLocals.Count)
+				if (!mBoundLocals && mParentMethod != null && mParentMethod.Locals.Count != mLocals.Count)
 				{
 					mBoundLocals = true;
 					mParentMethod.Locals.ForEach(l => mLocals.Add(l.Clone(this)));
@@ -112,7 +112,7 @@ namespace Proton.VM.IR
 		{
 			get
 			{
-				if (mParentMethod != null && !mBoundInstructions && mParentMethod.Instructions.Count != mInstructions.Count)
+				if (!mBoundInstructions && mParentMethod != null && mParentMethod.Instructions.Count != mInstructions.Count)
 				{
 					mBoundInstructions = true;
 					mParentMethod.Instructions.ForEach(i => mInstructions.Add(i.Clone(this)));
@@ -1003,6 +1003,26 @@ namespace Proton.VM.IR
 					instr.Destination.MapLocals(lives);
 				foreach (var v in instr.Sources)
 					v.MapLocals(lives);
+			}
+			foreach (IRControlFlowGraphNode n in pControlFlowGraph.Nodes)
+			{
+				var lastInstruction = n.Instructions.Last();
+				uint fir;
+				uint tir;
+				uint mir;
+				if (lastInstruction.Opcode == IROpcode.Branch && (tir = ((IRBranchInstruction)lastInstruction).TargetIRInstruction.IRIndex) < (mir = lastInstruction.IRIndex))
+				{
+					fir = n.Instructions.First().IRIndex;
+					for (int i = 0; i < lives.Length; i++)
+					{
+						var l = lives[i];
+						if (l.Birth < fir && l.Birth < tir && l.Death < mir)
+						{
+							l.Death = (int)mir;
+						}
+						lives[i] = l;
+					}
+				}
 			}
 			for (int i = 0; i < Locals.Count; i++)
 			{
