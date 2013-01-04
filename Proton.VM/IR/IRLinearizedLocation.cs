@@ -287,6 +287,42 @@ namespace Proton.VM.IR
 			}
 		}
 
+		public void SetParentInstruction(IRInstruction newParent)
+		{
+			ParentInstruction = newParent;
+			switch (Type)
+			{
+				case IRLinearizedLocationType.Field:
+					Field.FieldLocation.SetParentInstruction(newParent);
+					break;
+				case IRLinearizedLocationType.FieldAddress:
+					FieldAddress.FieldLocation.SetParentInstruction(newParent);
+					break;
+				case IRLinearizedLocationType.Indirect:
+					Indirect.AddressLocation.SetParentInstruction(newParent);
+					break;
+				case IRLinearizedLocationType.ArrayElement:
+					ArrayElement.ArrayLocation.SetParentInstruction(newParent);
+					ArrayElement.IndexLocation.SetParentInstruction(newParent);
+					break;
+				case IRLinearizedLocationType.ArrayElementAddress:
+					ArrayElementAddress.ArrayLocation.SetParentInstruction(newParent);
+					ArrayElementAddress.IndexLocation.SetParentInstruction(newParent);
+					break;
+				case IRLinearizedLocationType.ArrayLength:
+					ArrayLength.ArrayLocation.SetParentInstruction(newParent);
+					break;
+				case IRLinearizedLocationType.FunctionAddress:
+					if (FunctionAddress.InstanceLocation != null)
+						FunctionAddress.InstanceLocation.SetParentInstruction(newParent);
+					break;
+				case IRLinearizedLocationType.Phi:
+					Phi.SourceLocations.ForEach(l => l.SetParentInstruction(newParent));
+					break;
+				default: break;
+			}
+		}
+
 		public void MapLocals(LocalLifetime[] lives)
 		{
 			LocalLifetime liv;
@@ -518,7 +554,7 @@ namespace Proton.VM.IR
 
 		public void Dump(IndentableStreamWriter pWriter)
 		{
-			pWriter.WriteLine("#" + mTempID);
+			pWriter.WriteLine("#" + mTempID + " Parent: " + ParentInstruction.IRIndex);
 			switch (Type)
 			{
 				case IRLinearizedLocationType.Null: break;
