@@ -175,15 +175,30 @@ namespace Proton.VM.IR
             Assemblies.ForEach(a => a.LoadStage2());
             Assemblies.ForEach(a => a.LoadStage3());
             Assemblies.ForEach(a => a.LoadStage4());
-			Layout();
-			StaticFieldLiteralInlining();
-			Assemblies.ForEach(a => a.LoadStage5());
-			Assemblies.ForEach(a => a.LoadStage6());
-			Methods.ForEach(m => m.CreateLIRMethod());
+			LoadStage5();
+			LoadStage6();
+			LoadStage7();
 			Console.WriteLine("Dumping...");
 			Dump();
 			return assembly;
         }
+
+		private void LoadStage5()
+		{
+			Layout();
+			StaticFieldLiteralInlining();
+		}
+
+		private void LoadStage6()
+		{
+			Methods.ForEach(m => m.EnterSSA());
+			Methods.ForEach(m => m.LeaveSSA());
+		}
+
+		private void LoadStage7()
+		{
+			Methods.ForEach(m => m.CreateLIRMethod());
+		}
 
 		private void Layout()
 		{

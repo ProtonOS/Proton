@@ -650,5 +650,11 @@ namespace Proton.VM.IR
 					break;
 			}
 		}
+
+#warning Implement me, because it is annoying to debug
+		public override string ToString()
+		{
+			return base.ToString();
+		}
 	}
 }

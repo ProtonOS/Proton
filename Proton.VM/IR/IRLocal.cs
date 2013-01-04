@@ -106,7 +106,7 @@ namespace Proton.VM.IR
 
 		public void Dump(IndentableStreamWriter pWriter)
 		{
-			pWriter.WriteLine("IRLocal {0} @ {1}", ToString(), Offset);
+			pWriter.WriteLine("IRLocal #{0} {1} @ {2}", mTempID, ToString(), Offset);
 		}
     }
 }

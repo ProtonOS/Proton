@@ -14,7 +14,9 @@ namespace Proton.VM.IR.Instructions
             IRIndex = pInstruction.IRIndex;
             ParentMethod = pInstruction.ParentMethod;
             Sources.AddRange(pInstruction.Sources);
+			Sources.ForEach(s => s.ParentInstruction = this);
             Destination = pInstruction.Destination;
+			Destination.ParentInstruction = this;
         }
 
         public override void Linearize(Stack<IRStackObject> pStack) { throw new InvalidOperationException(); }

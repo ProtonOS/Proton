@@ -979,6 +979,7 @@ namespace Proton.VM.IR
 			}
 			mInstructions.FixRemovedTargetInstructions();
 
+			mLocals.ForEach(l => l.SSAData.LifeBegins = l.SSAData.LifeEnds = null);
 			//LayoutLocals();
 		}
 
@@ -989,6 +990,14 @@ namespace Proton.VM.IR
 
 			CalculateLocalSSALifespans(cfg);
 
+			List<IRLocal> sortedLocals = Locals.FindAll(l => !l.SSAData.IsDead);
+			sortedLocals.Sort((l1, l2) =>
+			{
+				int beginCompare = l1.SSAData.LifeBegins.IRIndex.CompareTo(l2.SSAData.LifeBegins.IRIndex);
+				if (beginCompare != 0) return beginCompare;
+				return l1.SSAData.LifeEnds.IRIndex.CompareTo(l2.SSAData.LifeEnds.IRIndex);
+			});
+
 
 			LayoutLocals();
 			//foreach (IRLocal local in mLocals) local.SSAData = null;
@@ -996,45 +1005,46 @@ namespace Proton.VM.IR
 
 		private void CalculateLocalSSALifespans(IRControlFlowGraph pControlFlowGraph)
 		{
-			IRLinearizedLocation.LocalLifetime[] lives = new IRLinearizedLocation.LocalLifetime[Locals.Count];
-			for (int i = 0; i < lives.Length; i++)
+			IRLinearizedLocation.LocalLifetime[] localLifetimes = new IRLinearizedLocation.LocalLifetime[Locals.Count];
+			for (int localIndex = 0; localIndex < localLifetimes.Length; localIndex++)
 			{
-				lives[i].Birth = Instructions.Count;
-				lives[i].Death = -1;
+				localLifetimes[localIndex].Birth = Instructions.Count;
+				localLifetimes[localIndex].Death = -1;
 			}
-			foreach (IRInstruction instr in Instructions)
+			foreach (IRInstruction instruction in Instructions)
 			{
-				if (instr.Destination != null)
-					instr.Destination.MapLocals(lives);
-				foreach (var v in instr.Sources)
-					v.MapLocals(lives);
+				if (instruction.Destination != null)
+					instruction.Destination.MapLocals(localLifetimes);
+				foreach (IRLinearizedLocation source in instruction.Sources)
+					source.MapLocals(localLifetimes);
 			}
 			foreach (IRControlFlowGraphNode n in pControlFlowGraph.Nodes)
 			{
-				var lastInstruction = n.Instructions.Last();
-				uint fir;
-				uint tir;
-				uint mir;
-				if (lastInstruction.Opcode == IROpcode.Branch && (tir = ((IRBranchInstruction)lastInstruction).TargetIRInstruction.IRIndex) < (mir = lastInstruction.IRIndex))
+				IRInstruction lastInstruction = n.Instructions.Last();
+				uint firstInstructionIndex;
+				uint targetInstructionIndex;
+				uint lastInstructionIndex;
+				IRLinearizedLocation.LocalLifetime lifetime;
+				if (lastInstruction.Opcode == IROpcode.Branch && (targetInstructionIndex = ((IRBranchInstruction)lastInstruction).TargetIRInstruction.IRIndex) < (lastInstructionIndex = lastInstruction.IRIndex))
 				{
-					fir = n.Instructions.First().IRIndex;
-					for (int i = 0; i < lives.Length; i++)
+					firstInstructionIndex = n.Instructions.First().IRIndex;
+					for (int localIndex = 0; localIndex < localLifetimes.Length; localIndex++)
 					{
-						var l = lives[i];
-						if (l.Birth < fir && l.Birth < tir && l.Death < mir)
+						lifetime = localLifetimes[localIndex];
+						if (lifetime.Birth < firstInstructionIndex && lifetime.Birth < targetInstructionIndex && lifetime.Death < lastInstructionIndex)
 						{
-							l.Death = (int)mir;
+							lifetime.Death = (int)lastInstructionIndex;
 						}
-						lives[i] = l;
+						localLifetimes[localIndex] = lifetime;
 					}
 				}
 			}
-			for (int i = 0; i < Locals.Count; i++)
+			for (int localIndex = 0; localIndex < Locals.Count; localIndex++)
 			{
-				if (lives[i].Death != -1 && (lives[i].Birth != lives[i].Death || Locals[i].SSAData.Phi))
+				if (localLifetimes[localIndex].Death != -1 && (localLifetimes[localIndex].Birth != localLifetimes[localIndex].Death || Locals[localIndex].SSAData.Phi))
 				{
-					Locals[i].SSAData.LifeBegins = Instructions[lives[i].Birth];
-					Locals[i].SSAData.LifeEnds = Instructions[lives[i].Death];
+					Locals[localIndex].SSAData.LifeBegins = Instructions[localLifetimes[localIndex].Birth];
+					Locals[localIndex].SSAData.LifeEnds = Instructions[localLifetimes[localIndex].Death];
 				}
 			}
 			//IRLocal local = null;

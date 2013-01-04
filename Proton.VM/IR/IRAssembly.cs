@@ -218,20 +218,6 @@ namespace Proton.VM.IR
             Types.ForEach(t => t.Substitute(t.GenericParameters, IRGenericParameterList.Empty));
         }
 
-        internal void LoadStage5()
-        {
-			Console.WriteLine("========== Stage 5: {0,-45} ==========", File.ReferenceName);
-			// Required Optimizations
-		}
-
-		internal void LoadStage6()
-		{
-			Console.WriteLine("========== Stage 6: {0,-45} ==========", File.ReferenceName);
-			// Optional Optimizations
-			AppDomain.Methods.ForEach(m => m.EnterSSA());
-			AppDomain.Methods.ForEach(m => m.LeaveSSA());
-		}
-
 
 
 		public void Dump(IndentableStreamWriter pWriter)
