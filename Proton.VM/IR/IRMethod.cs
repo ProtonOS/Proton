@@ -712,6 +712,11 @@ namespace Proton.VM.IR
                     pStack.Push(exceptionObj);
                 }
 
+				if (currentInstruction.Linearized)
+				{
+					currentInstruction.Destination = null;
+					currentInstruction.Sources.Clear();
+				}
                 currentInstruction.Linearize(pStack);
                 currentInstruction.Linearized = true;
                 switch (currentInstruction.Opcode)
