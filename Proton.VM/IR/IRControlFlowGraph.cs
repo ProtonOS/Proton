@@ -161,8 +161,6 @@ namespace Proton.VM.IR
 			}
 
 			cfg.Nodes.ForEach(n => n.Dominators = new BitVector(cfg.Nodes.Count, true));
-			cfg.Nodes[0].Dominators.SetAll(false);
-			cfg.Nodes[0].Dominators.Set(0, true);
 			BitVector intersectedParentDominators = new BitVector(cfg.Nodes.Count);
 			HashSet<IRControlFlowGraphNode> todoSet = new HashSet<IRControlFlowGraphNode>();
 			todoSet.Add(cfg.Nodes[0]);
@@ -170,7 +168,7 @@ namespace Proton.VM.IR
 			{
 				IRControlFlowGraphNode node = todoSet.ElementAt(0);
 				todoSet.Remove(node);
-				intersectedParentDominators.SetAll(true);
+				intersectedParentDominators.SetAll(node.ParentNodes.Count > 0);
 				node.ParentNodes.ForEach(n => intersectedParentDominators.AndEquals(n.Dominators));
 				intersectedParentDominators.Set(node.Index, true);
 				if (!intersectedParentDominators.Equals(node.Dominators))
@@ -199,6 +197,7 @@ namespace Proton.VM.IR
 					}
 				}
 			}
+			cfg.Nodes[0].Dominator = cfg.Nodes[0];
 
 			foreach (IRControlFlowGraphNode node in cfg.Nodes)
 			{

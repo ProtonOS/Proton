@@ -24,5 +24,10 @@ namespace Proton.VM.IR
 			ChildNodes.Add(pChildNode);
 			pChildNode.ParentNodes.Add(this);
 		}
+
+		public override string ToString()
+		{
+			return "Node #" + Index.ToString();
+		}
 	}
 }

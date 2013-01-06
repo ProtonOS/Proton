@@ -912,10 +912,17 @@ namespace Proton.VM.IR
 				foreach (IRInstruction instruction in node.Instructions)
 				{
 					instruction.Sources.ForEach(l => l.RetargetLocals(currentIterations));
-					if (instruction.Destination != null && instruction.Destination.Type == IRLinearizedLocationType.Local)
+					if (instruction.Destination != null)
 					{
-						tempLocal = Locals[instruction.Destination.Local.LocalIndex];
-						currentIterations[tempLocal.SSAData.Original.Index] = tempLocal;
+						if (instruction.Destination.Type == IRLinearizedLocationType.Local)
+						{
+							tempLocal = Locals[instruction.Destination.Local.LocalIndex];
+							currentIterations[tempLocal.SSAData.Original.Index] = tempLocal;
+						}
+						else
+						{
+							instruction.Destination.RetargetLocals(currentIterations);
+						}
 					}
 				}
 			}
