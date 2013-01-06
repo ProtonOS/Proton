@@ -2,9 +2,11 @@
 using Proton.Metadata.Tables;
 using Proton.Metadata.Signatures;
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Proton.VM.IR.Optimizations;
 
 namespace Proton.VM.IR
 {
@@ -190,11 +192,54 @@ namespace Proton.VM.IR
 			StaticFieldLiteralInlining();
 		}
 
+		private static readonly List<IROptimizationPass> KnownOptimizationPasses = new List<IROptimizationPass>()
+		{
+			// First
+
+			// Before SSA
+			new IRBranchRemovalOptimizationPass(),
+
+			// During SSA
+
+			// After SSA
+
+			// Last
+			new IRNopKillingOptimizationPass(),
+		};
+
 		private void LoadStage6()
 		{
 			Console.WriteLine("========== {0,-22} Stage 6 {0,-23} ==========", " ");
+			KnownOptimizationPasses.Where(op => op.Location == IROptimizationPass.RunLocation.First).ForEach(op =>
+			{
+				Methods.ForEach(m => op.Run(m));
+			});
+			KnownOptimizationPasses.Where(op => op.Location == IROptimizationPass.RunLocation.BeforeSSA).ForEach(op =>
+			{
+				Methods.ForEach(m => op.Run(m));
+			});
+
+
 			Methods.ForEach(m => m.EnterSSA());
+
+
+			KnownOptimizationPasses.Where(op => op.Location == IROptimizationPass.RunLocation.DuringSSA).ForEach(op =>
+			{
+				Methods.ForEach(m => op.Run(m));
+			});
+
+
 			Methods.ForEach(m => m.LeaveSSA());
+
+
+			KnownOptimizationPasses.Where(op => op.Location == IROptimizationPass.RunLocation.AfterSSA).ForEach(op =>
+			{
+				Methods.ForEach(m => op.Run(m));
+			});
+			KnownOptimizationPasses.Where(op => op.Location == IROptimizationPass.RunLocation.Last).ForEach(op =>
+			{
+				Methods.ForEach(m => op.Run(m));
+			});
 		}
 
 		private void LoadStage7()

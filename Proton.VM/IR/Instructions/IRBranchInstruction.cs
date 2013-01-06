@@ -68,7 +68,7 @@ namespace Proton.VM.IR.Instructions
 
 		protected override void DumpDetails(IndentableStreamWriter pWriter)
 		{
-			pWriter.WriteLine("BranchCondition {0}", BranchCondition);
+			pWriter.WriteLine("BranchCondition {0} -> {1}", BranchCondition, TargetIRInstruction.IRIndex);
 		}
 
 		public override string ToString()

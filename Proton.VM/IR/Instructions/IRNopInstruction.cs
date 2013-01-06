@@ -9,7 +9,7 @@ namespace Proton.VM.IR.Instructions
     {
         public bool ForceEmit { get; private set; }
 
-        public IRNopInstruction(bool pForceEmit) : base(IROpcode.Nop) { ForceEmit = pForceEmit; }
+        public IRNopInstruction(bool pForceEmit = false) : base(IROpcode.Nop) { ForceEmit = pForceEmit; }
 
         public override void Linearize(Stack<IRStackObject> pStack) { }
 
@@ -17,6 +17,8 @@ namespace Proton.VM.IR.Instructions
 
 		public override void ConvertToLIR(LIRMethod pLIRMethod)
 		{
+			if (ForceEmit)
+				new LIRInstructions.Nop(pLIRMethod);
 		}
 
 		protected override void DumpDetails(IndentableStreamWriter pWriter)

@@ -134,6 +134,45 @@ namespace Proton.VM.IR
 
 		public IRInstruction this[uint pIndex] { get { return this[(int)pIndex]; } set { this[(int)pIndex] = value; } }
 
+		private bool mImmediateRetargetModifiedInstructions = true;
+		public bool ImmediateRetargetModifiedInstructions
+		{
+			get { return mImmediateRetargetModifiedInstructions; }
+			set { mImmediateRetargetModifiedInstructions = value; }
+		}
+
+		public void FixModifiedTargetInstructions()
+		{
+			foreach (IRInstruction instruction in mInstructions)
+			{
+				switch (instruction.Opcode)
+				{
+					case IROpcode.Branch:
+					{
+						IRBranchInstruction branchInstruction = (IRBranchInstruction)instruction;
+						branchInstruction.TargetIRInstruction = mInstructions[(int)branchInstruction.TargetIRInstruction.IRIndex];
+						break;
+					}
+					case IROpcode.Switch:
+					{
+						IRSwitchInstruction switchInstruction = (IRSwitchInstruction)instruction;
+						for (int index = 0; index < switchInstruction.TargetIRInstructions.Length; ++index)
+						{
+							switchInstruction.TargetIRInstructions[index] = mInstructions[(int)switchInstruction.TargetIRInstructions[index].IRIndex];
+						}
+						break;
+					}
+					case IROpcode.Leave:
+					{
+						IRLeaveInstruction leaveInstruction = (IRLeaveInstruction)instruction;
+						leaveInstruction.TargetIRInstruction = mInstructions[(int)leaveInstruction.TargetIRInstruction.IRIndex];
+						break;
+					}
+					default: break;
+				}
+			}
+		}
+
         public IRInstruction this[int pIndex]
         {
             get
@@ -154,35 +193,44 @@ namespace Proton.VM.IR
                     IRInstruction newInstruction = value;
 
                     mInstructions[pIndex] = value;
-                    mILOffsetLookup[newInstruction.ILOffset] = newInstruction;
-                    foreach (IRInstruction instruction in mInstructions)
-                    {
-                        switch (instruction.Opcode)
-                        {
-                            case IROpcode.Branch:
-                                {
-                                    IRBranchInstruction branchInstruction = (IRBranchInstruction)instruction;
-                                    if (branchInstruction.TargetIRInstruction == oldInstruction) branchInstruction.TargetIRInstruction = newInstruction;
-                                    break;
-                                }
-                            case IROpcode.Switch:
-                                {
-                                    IRSwitchInstruction switchInstruction = (IRSwitchInstruction)instruction;
-                                    for (int index = 0; index < switchInstruction.TargetIRInstructions.Length; ++index)
-                                    {
-                                        if (switchInstruction.TargetIRInstructions[index] == oldInstruction) switchInstruction.TargetIRInstructions[index] = newInstruction;
-                                    }
-                                    break;
-                                }
-                            case IROpcode.Leave:
-                                {
-                                    IRLeaveInstruction leaveInstruction = (IRLeaveInstruction)instruction;
-                                    if (leaveInstruction.TargetIRInstruction == oldInstruction) leaveInstruction.TargetIRInstruction = newInstruction;
-                                    break;
-                                }
-                            default: break;
-                        }
-                    }
+
+					if (ImmediateRetargetModifiedInstructions)
+					{
+						mILOffsetLookup[newInstruction.ILOffset] = newInstruction;
+						foreach (IRInstruction instruction in mInstructions)
+						{
+							switch (instruction.Opcode)
+							{
+								case IROpcode.Branch:
+									{
+										IRBranchInstruction branchInstruction = (IRBranchInstruction)instruction;
+										if (branchInstruction.TargetIRInstruction == oldInstruction) branchInstruction.TargetIRInstruction = newInstruction;
+										break;
+									}
+								case IROpcode.Switch:
+									{
+										IRSwitchInstruction switchInstruction = (IRSwitchInstruction)instruction;
+										for (int index = 0; index < switchInstruction.TargetIRInstructions.Length; ++index)
+										{
+											if (switchInstruction.TargetIRInstructions[index] == oldInstruction) switchInstruction.TargetIRInstructions[index] = newInstruction;
+										}
+										break;
+									}
+								case IROpcode.Leave:
+									{
+										IRLeaveInstruction leaveInstruction = (IRLeaveInstruction)instruction;
+										if (leaveInstruction.TargetIRInstruction == oldInstruction) leaveInstruction.TargetIRInstruction = newInstruction;
+										break;
+									}
+								default: break;
+							}
+						}
+					}
+					else
+					{
+						value.ParentMethod = this.mInstructions[0].ParentMethod;
+						value.IRIndex = (uint)pIndex;
+					}
                 }
             }
         }

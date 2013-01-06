@@ -23,6 +23,7 @@ namespace Proton.VM.IR.Instructions
 				var sA = pLIRMethod.RequestLocal(Sources[0].GetTypeOfLocation());
 				Sources[0].LoadTo(pLIRMethod, sA);
 				new LIRInstructions.Return(pLIRMethod, sA, sA.Type);
+				pLIRMethod.ReleaseLocal(sA);
 			}
 			else
 			{

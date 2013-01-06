@@ -57,6 +57,32 @@ namespace Proton.VM.IR.Instructions
 
 		public override void ConvertToLIR(LIRMethod pLIRMethod)
 		{
+			if (Virtual)
+			{
+#warning Still need to implement this
+			}
+			else
+			{
+				List<LIRLocal> paramSources = new List<LIRLocal>(Target.Parameters.Count);
+				foreach (var v in Sources)
+				{
+					var s = pLIRMethod.RequestLocal(v.GetTypeOfLocation());
+					v.LoadTo(pLIRMethod, s);
+					paramSources.Add(s);
+				}
+				if (Target.ReturnType != null)
+				{
+					var dest = pLIRMethod.RequestLocal(Destination.GetTypeOfLocation());
+					new LIRInstructions.Call(pLIRMethod, Target.LIRMethod, paramSources, dest);
+					Destination.StoreTo(pLIRMethod, dest);
+					pLIRMethod.ReleaseLocal(dest);
+				}
+				else
+				{
+					new LIRInstructions.Call(pLIRMethod, Target.LIRMethod, paramSources);
+				}
+				paramSources.ForEach(s => pLIRMethod.ReleaseLocal(s));
+			}
 		}
 
 		protected override void DumpDetails(IndentableStreamWriter pWriter)

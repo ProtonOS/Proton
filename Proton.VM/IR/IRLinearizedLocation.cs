@@ -429,6 +429,9 @@ namespace Proton.VM.IR
 				case IRLinearizedLocationType.ConstantR8:
 					new LIRInstructions.Move(pParent, (LIRImm)ConstantR8.Value, pDestination, ParentInstruction.ParentMethod.Assembly.AppDomain.System_Double);
 					break;
+				case IRLinearizedLocationType.SizeOf:
+					new LIRInstructions.Move(pParent, (LIRImm)SizeOf.Type.StackSize, pDestination, ParentInstruction.ParentMethod.Assembly.AppDomain.System_Int32);
+					break;
 				case IRLinearizedLocationType.Field:
 				{
 					var obj = pParent.RequestLocal(Field.FieldLocation.GetTypeOfLocation());
@@ -459,9 +462,6 @@ namespace Proton.VM.IR
 					pParent.ReleaseLocal(obj);
 					break;
 				}
-				case IRLinearizedLocationType.SizeOf:
-					new LIRInstructions.Move(pParent, (LIRImm)SizeOf.Type.StackSize, pDestination, ParentInstruction.ParentMethod.Assembly.AppDomain.System_Int32);
-					break;
 				case IRLinearizedLocationType.ArrayElement:
 				{
 					var arr = pParent.RequestLocal(ArrayElement.ArrayLocation.GetTypeOfLocation());
@@ -503,12 +503,24 @@ namespace Proton.VM.IR
 					break;
 				}
 #warning Finish the rest of these case statements
-			}
 
+				//case IRLinearizedLocationType.Phi:
+				//	throw new Exception("All phi's should have been eliminated by this point!");
+
+			}
 		}
 
 		public void StoreTo(LIRMethod pParent, ISource pSource)
 		{
+			switch (Type)
+			{
+				case IRLinearizedLocationType.Local:
+					new LIRInstructions.Move(pParent, pSource, pParent.Locals[Local.LocalIndex], pParent.Locals[Local.LocalIndex].Type);
+					break;
+				case IRLinearizedLocationType.Parameter:
+					new LIRInstructions.Move(pParent, pSource, pParent.Parameters[(int)Parameter.ParameterIndex], pParent.Parameters[(int)Parameter.ParameterIndex].Type);
+					break;
+			}
 		}
 
 		public void Dump(IndentableStreamWriter pWriter)

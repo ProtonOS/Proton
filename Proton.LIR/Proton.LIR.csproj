@@ -40,6 +40,7 @@
     <Compile Include="Instructions\Call.cs" />
     <Compile Include="Instructions\Math.cs" />
     <Compile Include="Instructions\Move.cs" />
+    <Compile Include="Instructions\Nop.cs" />
     <Compile Include="Instructions\Return.cs" />
     <Compile Include="Instructions\Unary.cs" />
     <Compile Include="LIRImm.cs" />

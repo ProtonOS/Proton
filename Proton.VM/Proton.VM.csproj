@@ -132,6 +132,9 @@
     <Compile Include="IR\IRStackObject.cs" />
     <Compile Include="IR\IRStackObjectSourceType.cs" />
     <Compile Include="IR\IRType.cs" />
+    <Compile Include="IR\Optimizations\BranchRemoval.cs" />
+    <Compile Include="IR\Optimizations\IROptimizationPass.cs" />
+    <Compile Include="IR\Optimizations\NopKilling.cs" />
     <Compile Include="VMConfig.cs" />
   </ItemGroup>
   <ItemGroup>
