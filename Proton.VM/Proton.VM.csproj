@@ -55,33 +55,33 @@
     <Compile Include="IR\Instructions\IRCopyBlockInstruction.cs" />
     <Compile Include="IR\Instructions\IRCopyObjectInstruction.cs" />
     <Compile Include="IR\Instructions\IRDivideInstruction.cs" />
-    <Compile Include="IR\Instructions\IRDuplicateInstruction.cs" />
+    <Compile Include="IR\Instructions\Transformed\IRDuplicateInstruction.cs" />
     <Compile Include="IR\Instructions\IREndFinallyInstruction.cs" />
     <Compile Include="IR\Instructions\IRInitializeBlockInstruction.cs" />
     <Compile Include="IR\Instructions\IRInitializeObjectInstruction.cs" />
     <Compile Include="IR\Instructions\IRJumpInstruction.cs" />
     <Compile Include="IR\Instructions\IRLeaveInstruction.cs" />
-    <Compile Include="IR\Instructions\IRLoadArrayElementAddressInstruction.cs" />
-    <Compile Include="IR\Instructions\IRLoadArrayElementInstruction.cs" />
-    <Compile Include="IR\Instructions\IRLoadArrayLengthInstruction.cs" />
-    <Compile Include="IR\Instructions\IRLoadFieldAddressInstruction.cs" />
-    <Compile Include="IR\Instructions\IRLoadFieldInstruction.cs" />
-    <Compile Include="IR\Instructions\IRLoadFunctionInstruction.cs" />
-    <Compile Include="IR\Instructions\IRLoadIndirectInstruction.cs" />
-    <Compile Include="IR\Instructions\IRLoadInteger32Instruction.cs" />
-    <Compile Include="IR\Instructions\IRLoadInteger64Instruction.cs" />
-    <Compile Include="IR\Instructions\IRLoadLocalAddressInstruction.cs" />
-    <Compile Include="IR\Instructions\IRLoadLocalInstruction.cs" />
-    <Compile Include="IR\Instructions\IRLoadNullInstruction.cs" />
-    <Compile Include="IR\Instructions\IRLoadObjectInstruction.cs" />
-    <Compile Include="IR\Instructions\IRLoadParameterAddressInstruction.cs" />
-    <Compile Include="IR\Instructions\IRLoadParameterInstruction.cs" />
-    <Compile Include="IR\Instructions\IRLoadReal32Instruction.cs" />
-    <Compile Include="IR\Instructions\IRLoadReal64Instruction.cs" />
-    <Compile Include="IR\Instructions\IRLoadRuntimeHandleInstruction.cs" />
-    <Compile Include="IR\Instructions\IRLoadStaticFieldAddressInstruction.cs" />
-    <Compile Include="IR\Instructions\IRLoadStaticFieldInstruction.cs" />
-    <Compile Include="IR\Instructions\IRLoadStringInstruction.cs" />
+    <Compile Include="IR\Instructions\Transformed\IRLoadArrayElementAddressInstruction.cs" />
+    <Compile Include="IR\Instructions\Transformed\IRLoadArrayElementInstruction.cs" />
+    <Compile Include="IR\Instructions\Transformed\IRLoadArrayLengthInstruction.cs" />
+    <Compile Include="IR\Instructions\Transformed\IRLoadFieldAddressInstruction.cs" />
+    <Compile Include="IR\Instructions\Transformed\IRLoadFieldInstruction.cs" />
+    <Compile Include="IR\Instructions\Transformed\IRLoadFunctionInstruction.cs" />
+    <Compile Include="IR\Instructions\Transformed\IRLoadIndirectInstruction.cs" />
+    <Compile Include="IR\Instructions\Transformed\IRLoadInteger32Instruction.cs" />
+    <Compile Include="IR\Instructions\Transformed\IRLoadInteger64Instruction.cs" />
+    <Compile Include="IR\Instructions\Transformed\IRLoadLocalAddressInstruction.cs" />
+    <Compile Include="IR\Instructions\Transformed\IRLoadLocalInstruction.cs" />
+    <Compile Include="IR\Instructions\Transformed\IRLoadNullInstruction.cs" />
+    <Compile Include="IR\Instructions\Transformed\IRLoadObjectInstruction.cs" />
+    <Compile Include="IR\Instructions\Transformed\IRLoadParameterAddressInstruction.cs" />
+    <Compile Include="IR\Instructions\Transformed\IRLoadParameterInstruction.cs" />
+    <Compile Include="IR\Instructions\Transformed\IRLoadReal32Instruction.cs" />
+    <Compile Include="IR\Instructions\Transformed\IRLoadReal64Instruction.cs" />
+    <Compile Include="IR\Instructions\Transformed\IRLoadRuntimeHandleInstruction.cs" />
+    <Compile Include="IR\Instructions\Transformed\IRLoadStaticFieldAddressInstruction.cs" />
+    <Compile Include="IR\Instructions\Transformed\IRLoadStaticFieldInstruction.cs" />
+    <Compile Include="IR\Instructions\Transformed\IRLoadStringInstruction.cs" />
     <Compile Include="IR\Instructions\IRLoadTypedReferenceAddressInstruction.cs" />
     <Compile Include="IR\Instructions\IRLoadTypedReferenceInstruction.cs" />
     <Compile Include="IR\Instructions\IRLoadTypedReferenceTypeInstruction.cs" />
@@ -97,15 +97,15 @@
     <Compile Include="IR\Instructions\IRRemainderInstruction.cs" />
     <Compile Include="IR\Instructions\IRReturnInstruction.cs" />
     <Compile Include="IR\Instructions\IRShiftInstruction.cs" />
-    <Compile Include="IR\Instructions\IRSizeOfInstruction.cs" />
+    <Compile Include="IR\Instructions\Transformed\IRSizeOfInstruction.cs" />
     <Compile Include="IR\Instructions\IRStackAllocateInstruction.cs" />
-    <Compile Include="IR\Instructions\IRStoreArrayElementInstruction.cs" />
-    <Compile Include="IR\Instructions\IRStoreFieldInstruction.cs" />
-    <Compile Include="IR\Instructions\IRStoreIndirectInstruction.cs" />
-    <Compile Include="IR\Instructions\IRStoreLocalInstruction.cs" />
-    <Compile Include="IR\Instructions\IRStoreObjectInstruction.cs" />
-    <Compile Include="IR\Instructions\IRStoreParameterInstruction.cs" />
-    <Compile Include="IR\Instructions\IRStoreStaticFieldInstruction.cs" />
+    <Compile Include="IR\Instructions\Transformed\IRStoreArrayElementInstruction.cs" />
+    <Compile Include="IR\Instructions\Transformed\IRStoreFieldInstruction.cs" />
+    <Compile Include="IR\Instructions\Transformed\IRStoreIndirectInstruction.cs" />
+    <Compile Include="IR\Instructions\Transformed\IRStoreLocalInstruction.cs" />
+    <Compile Include="IR\Instructions\Transformed\IRStoreObjectInstruction.cs" />
+    <Compile Include="IR\Instructions\Transformed\IRStoreParameterInstruction.cs" />
+    <Compile Include="IR\Instructions\Transformed\IRStoreStaticFieldInstruction.cs" />
     <Compile Include="IR\Instructions\IRSubtractInstruction.cs" />
     <Compile Include="IR\Instructions\IRSwitchInstruction.cs" />
     <Compile Include="IR\Instructions\IRThrowInstruction.cs" />
@@ -148,6 +148,7 @@
       <Name>Proton.Metadata</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
