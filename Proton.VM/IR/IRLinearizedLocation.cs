@@ -374,47 +374,6 @@ namespace Proton.VM.IR
 			}
 		}
 
-		//public bool UsesLocal(int pLocalIndex)
-		//{
-		//    switch (Type)
-		//    {
-		//        case IRLinearizedLocationType.Local:
-		//            if (Local.LocalIndex == pLocalIndex) return true;
-		//            break;
-		//        case IRLinearizedLocationType.LocalAddress:
-		//            if (LocalAddress.LocalIndex == pLocalIndex) return true;
-		//            break;
-		//        case IRLinearizedLocationType.Field:
-		//            if (Field.FieldLocation.UsesLocal(pLocalIndex)) return true;
-		//            break;
-		//        case IRLinearizedLocationType.FieldAddress:
-		//            if (FieldAddress.FieldLocation.UsesLocal(pLocalIndex)) return true;
-		//            break;
-		//        case IRLinearizedLocationType.Indirect:
-		//            if (Indirect.AddressLocation.UsesLocal(pLocalIndex)) return true;
-		//            break;
-		//        case IRLinearizedLocationType.ArrayElement:
-		//            if (ArrayElement.ArrayLocation.UsesLocal(pLocalIndex) ||
-		//                ArrayElement.IndexLocation.UsesLocal(pLocalIndex)) return true;
-		//            break;
-		//        case IRLinearizedLocationType.ArrayElementAddress:
-		//            if (ArrayElementAddress.ArrayLocation.UsesLocal(pLocalIndex) ||
-		//                ArrayElementAddress.IndexLocation.UsesLocal(pLocalIndex)) return true;
-		//            break;
-		//        case IRLinearizedLocationType.ArrayLength:
-		//            if (ArrayLength.ArrayLocation.UsesLocal(pLocalIndex)) return true;
-		//            break;
-		//        case IRLinearizedLocationType.FunctionAddress:
-		//            if (FunctionAddress.InstanceLocation != null &&
-		//                FunctionAddress.InstanceLocation.UsesLocal(pLocalIndex)) return true;
-		//            break;
-		//        case IRLinearizedLocationType.Phi:
-		//            if (Phi.SourceLocations.Exists(l => l.UsesLocal(pLocalIndex))) return true;
-		//            break;
-		//    }
-		//    return false;
-		//}
-
 		public IRType GetTypeOfLocation()
 		{
 			switch (Type)

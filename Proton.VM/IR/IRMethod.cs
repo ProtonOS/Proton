@@ -1077,20 +1077,19 @@ namespace Proton.VM.IR
 					if (instruction.Destination != null) instruction.Destination.RetargetLocals(reductionTargets);
 					instruction.Sources.ForEach(l => l.RetargetLocals(reductionTargets));
 				}
-				//reductionTargets = new IRLocal[Locals.Count];
-				//for (int reducedIndex = startOfReducedLocals; reducedIndex < reductionTargets.Length; ++reducedIndex) reductionTargets[reducedIndex] = Locals[reducedIndex];
-				//Locals.RemoveRange(0, startOfReducedLocals);
-				//for (int localIndex = 0; localIndex < Locals.Count; ++localIndex) Locals[localIndex].Index = localIndex;
-				//foreach (IRInstruction instruction in Instructions)
-				//{
-				//    if (instruction.Destination != null) instruction.Destination.RetargetLocals(reductionTargets);
-				//    instruction.Sources.ForEach(l => l.RetargetLocals(reductionTargets));
-				//}
+				reductionTargets = new IRLocal[Locals.Count];
+				for (int reducedIndex = startOfReducedLocals; reducedIndex < reductionTargets.Length; ++reducedIndex) reductionTargets[reducedIndex] = Locals[reducedIndex];
+				Locals.RemoveRange(0, startOfReducedLocals);
+				for (int localIndex = 0; localIndex < Locals.Count; ++localIndex) Locals[localIndex].Index = localIndex;
+				foreach (IRInstruction instruction in Instructions)
+				{
+					if (instruction.Destination != null) instruction.Destination.RetargetLocals(reductionTargets);
+					instruction.Sources.ForEach(l => l.RetargetLocals(reductionTargets));
+				}
 			}
 			else Locals.Clear();
 
 			LayoutLocals();
-			//foreach (IRLocal local in mLocals) local.SSAData = null;
 		}
 
 		private void CalculateLocalSSALifespans(IRControlFlowGraph pControlFlowGraph)
@@ -1131,94 +1130,12 @@ namespace Proton.VM.IR
 			}
 			for (int localIndex = 0; localIndex < Locals.Count; localIndex++)
 			{
-				if (localLifetimes[localIndex].Death != -1 && (localLifetimes[localIndex].Birth != localLifetimes[localIndex].Death || Locals[localIndex].SSAData.Phi))
+				if (localLifetimes[localIndex].Death != -1)
 				{
 					Locals[localIndex].SSAData.LifeBegins = Instructions[localLifetimes[localIndex].Birth];
 					Locals[localIndex].SSAData.LifeEnds = Instructions[localLifetimes[localIndex].Death];
 				}
 			}
-			//IRLocal local = null;
-			//IRInstruction instruction = null;
-			//bool used = false;
-			//for (int localIndex = 0; localIndex < mLocals.Count; ++localIndex)
-			//{
-			//    local = mLocals[localIndex];
-			//    used = false;
-			//    for (int instructionIndex = 0; instructionIndex < mInstructions.Count; ++instructionIndex)
-			//    {
-			//        instruction = mInstructions[instructionIndex];
-			//        if (instruction.Destination != null &&
-			//            instruction.Destination.UsesLocal(localIndex))
-			//        {
-			//            local.SSAData.LifeBegins = instruction;
-			//            used = true;
-			//        }
-			//        else
-			//        {
-			//            foreach (IRLinearizedLocation sourceLocation in instruction.Sources)
-			//            {
-			//                if (sourceLocation.UsesLocal(localIndex))
-			//                {
-			//                    local.SSAData.LifeBegins = instruction;
-			//                    used = true;
-			//                    break;
-			//                }
-			//            }
-			//        }
-			//        if (used) break;
-			//    }
-			//}
-			//IRInstruction endInstruction = null;
-			//IRControlFlowGraphNode node = null;
-			//IRInstruction lastInstruction = null;
-			//for (int localIndex = 0; localIndex < mLocals.Count; ++localIndex)
-			//{
-			//    local = mLocals[localIndex];
-			//    used = false;
-			//    if (local.SSAData.LifeBegins == null) continue;
-			//    for (int instructionIndex = mInstructions.Count - 1; instructionIndex >= local.SSAData.LifeBegins.IRIndex; --instructionIndex)
-			//    {
-			//        instruction = mInstructions[instructionIndex];
-			//        if (instruction.Destination != null &&
-			//            instruction.Destination.UsesLocal(localIndex))
-			//        {
-			//            used = true;
-			//        }
-			//        else
-			//        {
-			//            foreach (IRLinearizedLocation sourceLocation in instruction.Sources)
-			//            {
-			//                if (sourceLocation.UsesLocal(localIndex))
-			//                {
-			//                    used = true;
-			//                    break;
-			//                }
-			//            }
-			//        }
-			//        if (used)
-			//        {
-			//            endInstruction = instruction;
-			//            for (int nodeIndex = 0; nodeIndex < pControlFlowGraph.Nodes.Count; ++nodeIndex)
-			//            {
-			//                node = pControlFlowGraph.Nodes[nodeIndex];
-			//                lastInstruction = node.Instructions[node.Instructions.Count - 1];
-			//                if (node.Instructions[0].IRIndex <= instruction.IRIndex &&
-			//                    lastInstruction.IRIndex >= instruction.IRIndex)
-			//                {
-			//                    if (lastInstruction.Opcode == IROpcode.Branch &&
-			//                        lastInstruction.IRIndex >= ((IRBranchInstruction)lastInstruction).TargetIRInstruction.IRIndex)
-			//                    {
-			//                        if (nodeIndex < (pControlFlowGraph.Nodes.Count - 1)) endInstruction = pControlFlowGraph.Nodes[nodeIndex + 1].Instructions[0];
-			//                        else endInstruction = lastInstruction;
-			//                    }
-			//                    break;
-			//                }
-			//            }
-			//            local.SSAData.LifeEnds = endInstruction;
-			//            break;
-			//        }
-			//    }
-			//}
 		}
 
 		private int? mHashCodeCache;
