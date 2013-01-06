@@ -18,6 +18,16 @@ namespace Proton.VM.IR.Instructions
 
 		public override void ConvertToLIR(LIRMethod pLIRMethod)
 		{
+			if (ParentMethod.ReturnType != null)
+			{
+				var sA = pLIRMethod.RequestLocal(Sources[0].GetTypeOfLocation());
+				Sources[0].LoadTo(pLIRMethod, sA);
+				new LIRInstructions.Return(pLIRMethod, sA, sA.Type);
+			}
+			else
+			{
+				new LIRInstructions.Return(pLIRMethod);
+			}
 		}
 
 		public override string ToString()
