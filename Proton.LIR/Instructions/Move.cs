@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Proton.LIR.Instructions
 {
-	public class Move : LIRInstruction
+	public sealed class Move : LIRInstruction
 	{
 		public ISource Source { get; private set; }
 		public IDestination Destination { get; private set; }

@@ -15,7 +15,7 @@ namespace Proton.LIR.Instructions
 		Xor,
 	}
 
-	public class Math : LIRInstruction
+	public sealed class Math : LIRInstruction
 	{
 		public ISource SourceA { get; private set; }
 		public ISource SourceB { get; private set; }

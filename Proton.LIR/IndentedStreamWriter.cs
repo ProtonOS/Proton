@@ -27,6 +27,7 @@ namespace Proton.LIR
 		}
 
 		private bool mIdented = false;
+		public void Write(object o) { Write("{0}", o); }
 		public void Write(string str, params object[] formatArgs)
 		{
 			if (!mIdented)
@@ -50,7 +51,7 @@ namespace Proton.LIR
 			mRtr.WriteLine();
 			mIdented = false;
 		}
-
+		public void WriteLine(object o) { WriteLine("{0}", o); }
 		public void WriteLine(string str, params object[] formatArgs)
 		{
 			if (!mIdented)

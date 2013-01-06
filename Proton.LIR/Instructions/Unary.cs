@@ -9,7 +9,7 @@ namespace Proton.LIR.Instructions
 		Not,
 	}
 
-	public class Unary : LIRInstruction
+	public sealed class Unary : LIRInstruction
 	{
 		public ISource Source { get; private set; }
 		public IDestination Destination { get; private set; }

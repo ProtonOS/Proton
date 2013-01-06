@@ -527,7 +527,6 @@ namespace Proton.VM.IR
                         }
                         else
                         {
-#warning Need to do the rest of this resolution.
                         }
 					}
 				}

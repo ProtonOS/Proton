@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Proton.LIR
 {
-	public enum LIRValueType : int
+	public enum LIRValueType : byte
 	{
 		None = 0,
 		Int8,
@@ -12,17 +12,20 @@ namespace Proton.LIR
 		Int64,
 		Single,
 		Double,
+
+		// This should never have more than
+		// 32 elements otherwise it will break
+		// hashcode creation. (6-bits at most)
 	}
 
 	public sealed class LIRType
 	{
 		/// <summary>
-		/// The size of this type in bytes.
+		/// The size of this type in bytes. (should never have a bit above the 24th bit set)
 		/// </summary>
 		public uint Size { get; private set; }
-		public bool Signed { get; private set; }
 		public LIRValueType Type { get; private set; }
-#warning Eventually need to create constructors which take allocatable as part of their parameters and make the set on this private.
+		public bool Signed { get; private set; }
 		public bool Allocatable { get; set; }
 
 		public LIRType(uint size)
@@ -113,6 +116,11 @@ namespace Proton.LIR
 		public override string ToString()
 		{
 			return Type + (!Allocatable ? "&" : "") + ":" + (Signed ? "@" : "") + Size;
+		}
+
+		public override int GetHashCode()
+		{
+			return (int)((Size & 0x00FFFFFF) << 8) | (int)((Signed ? 1 : 0) << 8) | (int)((Allocatable ? 1 : 0) << 7) | (int)((byte)Type & 0x3F);
 		}
 		
 	}

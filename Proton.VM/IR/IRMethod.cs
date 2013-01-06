@@ -1180,13 +1180,19 @@ namespace Proton.VM.IR
 		public static bool operator !=(IRMethod a, IRMethod b) { return !(a == b); }
 
 
-		public LIRMethod LIRMethod = null;
+		public LIRMethod LIRMethod { get; private set; }
 
 		public void CreateLIRMethod()
 		{
-			LIRMethod = new LIRMethod();
-			mParameters.ForEach(p => new LIRParameter(LIRMethod, p.Type.ToLIRType()));
-			mLocals.ForEach(l => new LIRLocal(LIRMethod, l.Type.ToLIRType()));
+			LIRMethod = new LIRMethod(ReturnType ?? (LIRType)null);
+			mParameters.ForEach(p => new LIRParameter(LIRMethod, p.Type));
+			mLocals.ForEach(l => new LIRLocal(LIRMethod, l.Type));
+		}
+
+		public void PopulateLIRMethodBody()
+		{
+			if (LIRMethod == null)
+				throw new Exception();
 			mInstructions.ForEach(i => i.ConvertToLIR(LIRMethod));
 		}
 

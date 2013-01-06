@@ -37,8 +37,10 @@
     <Compile Include="IDestination.cs" />
     <Compile Include="IndentedStreamWriter.cs" />
     <Compile Include="Indirect.cs" />
+    <Compile Include="Instructions\Call.cs" />
     <Compile Include="Instructions\Math.cs" />
     <Compile Include="Instructions\Move.cs" />
+    <Compile Include="Instructions\Return.cs" />
     <Compile Include="Instructions\Unary.cs" />
     <Compile Include="LIRImm.cs" />
     <Compile Include="LIRInstruction.cs" />

@@ -185,19 +185,23 @@ namespace Proton.VM.IR
 
 		private void LoadStage5()
 		{
+			Console.WriteLine("========== {0,-22} Stage 5 {0,-23} ==========", " ");
 			Layout();
 			StaticFieldLiteralInlining();
 		}
 
 		private void LoadStage6()
 		{
+			Console.WriteLine("========== {0,-22} Stage 6 {0,-23} ==========", " ");
 			Methods.ForEach(m => m.EnterSSA());
 			Methods.ForEach(m => m.LeaveSSA());
 		}
 
 		private void LoadStage7()
 		{
+			Console.WriteLine("========== {0,-22} Stage 7 {0,-23} ==========", " ");
 			Methods.ForEach(m => m.CreateLIRMethod());
+			Methods.ForEach(m => m.PopulateLIRMethodBody());
 		}
 
 		private void Layout()
