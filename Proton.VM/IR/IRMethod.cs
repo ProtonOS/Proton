@@ -328,7 +328,8 @@ namespace Proton.VM.IR
 			mTempID = sTempID++;
         }
 
-		public override string ToString()
+		public override string ToString() { return ToString(true); }
+		public string ToString(bool printArgs)
 		{
 			StringBuilder sb = new StringBuilder();
 
@@ -340,11 +341,14 @@ namespace Proton.VM.IR
 			sb.Append(Name);
 			if (IsGeneric)
 				sb.Append(GenericParameters.ToString());
-			sb.Append("(");
-			Parameters.ForEach(p => sb.Append(p.ToString() + ", "));
-			if (Parameters.Count > 0)
-				sb.Remove(sb.Length - 2, 2);
-			sb.Append(")");
+			if (printArgs)
+			{
+				sb.Append("(");
+				Parameters.ForEach(p => sb.Append(p.ToString() + ", "));
+				if (Parameters.Count > 0)
+					sb.Remove(sb.Length - 2, 2);
+				sb.Append(")");
+			}
 
 			return sb.ToString();
 		}

@@ -55,6 +55,8 @@ namespace Proton.VM.IR.Instructions
 						Sources.Add(new IRLinearizedLocation(this, value2.LinearizedTarget));
                         break;
                     }
+				default:
+					throw new Exception("Unknown BranchCondition!");
             }
         }
 
@@ -67,6 +69,67 @@ namespace Proton.VM.IR.Instructions
 		protected override void DumpDetails(IndentableStreamWriter pWriter)
 		{
 			pWriter.WriteLine("BranchCondition {0}", BranchCondition);
+		}
+
+		public override string ToString()
+		{
+			string branchName;
+			string branchSym;
+			switch (BranchCondition)
+			{
+				case IRBranchCondition.Always:
+					return "Branch Always -> " + TargetIRInstruction.IRIndex;
+
+				case IRBranchCondition.False:
+					return "Branch False " + Sources[0] + " -> " + TargetIRInstruction.IRIndex;
+				case IRBranchCondition.True:
+					return "Branch True " + Sources[0] + " -> " + TargetIRInstruction.IRIndex;
+
+				case IRBranchCondition.Equal:
+					branchName = "Equal";
+					branchSym = "==";
+					break;
+				case IRBranchCondition.GreaterOrEqual:
+					branchName = "GreaterOrEqual";
+					branchSym = ">=";
+					break;
+				case IRBranchCondition.GreaterOrEqualUnsigned:
+					branchName = "GreaterOrEqual Unsigned";
+					branchSym = ">=";
+					break;
+				case IRBranchCondition.Greater:
+					branchName = "Greater";
+					branchSym = ">";
+					break;
+				case IRBranchCondition.GreaterUnsigned:
+					branchName = "Greater Unsigned";
+					branchSym = ">";
+					break;
+				case IRBranchCondition.LessOrEqual:
+					branchName = "LessOrEqual";
+					branchSym = "<=";
+					break;
+				case IRBranchCondition.LessOrEqualUnsigned:
+					branchName = "LessOrEqual Unsigned";
+					branchSym = "<=";
+					break;
+				case IRBranchCondition.Less:
+					branchName = "Less";
+					branchSym = "<";
+					break;
+				case IRBranchCondition.LessUnsigned:
+					branchName = "Less Unsigned";
+					branchSym = "<";
+					break;
+				case IRBranchCondition.NotEqualUnsigned:
+					branchName = "NotEqual Unsigned";
+					branchSym = "!=";
+					break;
+
+				default:
+					throw new Exception("Unknown BranchCondition!");
+			}
+			return "Branch " + branchName + " " + Sources[0] + " " + branchSym + " " + Sources[1] + " -> " + TargetIRInstruction.IRIndex;
 		}
 	}
 }

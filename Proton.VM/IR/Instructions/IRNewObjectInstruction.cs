@@ -45,7 +45,7 @@ namespace Proton.VM.IR.Instructions
 
 		public override string ToString()
 		{
-			return base.ToString();
+			return "NewObject " + Constructor.ToString(false) + "(" + String.Join(", ", Sources) + ") -> " + Destination;
 		}
 	}
 }

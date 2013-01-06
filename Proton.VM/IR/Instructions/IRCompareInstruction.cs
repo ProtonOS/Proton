@@ -42,5 +42,37 @@ namespace Proton.VM.IR.Instructions
 		{
 			pWriter.WriteLine("CompareCondition {0}", CompareCondition.ToString());
 		}
+
+		public override string ToString()
+		{
+			string cName;
+			string cSym;
+			switch (CompareCondition)
+			{
+				case IRCompareCondition.Equal:
+					cName = "Equal";
+					cSym = "==";
+					break;
+				case IRCompareCondition.GreaterThan:
+					cName = "GreaterThan";
+					cSym = ">";
+					break;
+				case IRCompareCondition.GreaterThanUnsigned:
+					cName = "GreaterThan Unsigned";
+					cSym = ">";
+					break;
+				case IRCompareCondition.LessThan:
+					cName = "LessThan";
+					cSym = "<";
+					break;
+				case IRCompareCondition.LessThanUnsigned:
+					cName = "LessThan Unsigned";
+					cSym = "<";
+					break;
+				default:
+					throw new Exception("Unknown CompareCondition!");
+			}
+			return "Compare " + cName + " " + Sources[0] + " " + cSym + " " + Sources[1] + " -> " + Destination;
+		}
 	}
 }

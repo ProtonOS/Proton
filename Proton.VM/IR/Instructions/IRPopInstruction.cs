@@ -17,5 +17,10 @@ namespace Proton.VM.IR.Instructions
         public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRPopInstruction(), pNewMethod); }
 
 		public override void ConvertToLIR(LIRMethod pLIRMethod) { }
+
+		public override string ToString()
+		{
+			return "Pop " + Sources[0] + " ->";
+		}
 	}
 }

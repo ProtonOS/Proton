@@ -64,5 +64,24 @@ namespace Proton.VM.IR.Instructions
 			pWriter.WriteLine("Target {0}", Target.ToString());
 			pWriter.WriteLine("Virtual {0}", Virtual);
 		}
+
+		public override string ToString()
+		{
+			if (Virtual)
+			{
+				if (Target.ReturnType != null)
+					return "Call Virtual " + Target.ToString(false) + "(" + String.Join(", ", Sources) + ") -> " + Destination;
+				else
+					return "Call Virtual " + Target.ToString(false) + "(" + String.Join(", ", Sources) + ")";
+			}
+			else
+			{
+				if (Target.ReturnType != null)
+					return "Call " + Target.ToString(false) + "(" + String.Join(", ", Sources) + ") -> " + Destination;
+				else
+					return "Call " + Target.ToString(false) + "(" + String.Join(", ", Sources) + ")";
+			}
+			
+		}
 	}
 }
