@@ -65,6 +65,12 @@ namespace Proton.VM.IR
 			}
 			public bool IsDead { get { return LifeBegins == null || LifeEnds == null; } }
 		}
+		public sealed class IRLocalReductionData
+		{
+			public IRInstruction LifeEnds = null;
+			public IRLocal Local = null;
+			public IRLocalReductionData(IRInstruction pLifeEnds, IRLocal pLocal) { LifeEnds = pLifeEnds; Local = pLocal; }
+		}
 		public IRLocalSSAData SSAData = null;
 
 		private static int sTempID = 0;

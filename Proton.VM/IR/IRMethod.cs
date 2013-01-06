@@ -966,8 +966,11 @@ namespace Proton.VM.IR
 			}
 			mInstructions.FixInsertedTargetInstructions();
 
+			// Analyze local lifespans
 			CalculateLocalSSALifespans(cfg);
 
+			// Find dead phis that got move instructions inserted, and remove
+			// the unneeded instructions, then fix branch targets again
 			List<IRLocal> deadPhis = mLocals.FindAll(l => l.SSAData.Phi && l.SSAData.LifeBegins == l.SSAData.LifeEnds);
 			IRInstruction onlyInstruction = null;
 			foreach (IRLocal deadPhi in deadPhis)
@@ -979,6 +982,8 @@ namespace Proton.VM.IR
 			}
 			mInstructions.FixRemovedTargetInstructions();
 
+			// Ensure that SSA lifespan analysis data is unusable, as it was
+			// invalidated by dead phi removal
 			mLocals.ForEach(l => l.SSAData.LifeBegins = l.SSAData.LifeEnds = null);
 			//LayoutLocals();
 		}
@@ -988,16 +993,90 @@ namespace Proton.VM.IR
 			IRControlFlowGraph cfg = IRControlFlowGraph.Build(this);
 			if (cfg == null) return;
 
+			// Recalculate local lifespans
 			CalculateLocalSSALifespans(cfg);
 
+			// Find and sort all locals that are alive
 			List<IRLocal> sortedLocals = Locals.FindAll(l => !l.SSAData.IsDead);
-			sortedLocals.Sort((l1, l2) =>
+			if (sortedLocals.Count > 0)
 			{
-				int beginCompare = l1.SSAData.LifeBegins.IRIndex.CompareTo(l2.SSAData.LifeBegins.IRIndex);
-				if (beginCompare != 0) return beginCompare;
-				return l1.SSAData.LifeEnds.IRIndex.CompareTo(l2.SSAData.LifeEnds.IRIndex);
-			});
+				sortedLocals.Sort((l1, l2) =>
+				{
+					int beginCompare = l1.SSAData.LifeBegins.IRIndex.CompareTo(l2.SSAData.LifeBegins.IRIndex);
+					if (beginCompare != 0) return beginCompare;
+					return l1.SSAData.LifeEnds.IRIndex.CompareTo(l2.SSAData.LifeEnds.IRIndex);
+				});
 
+				// Build an array of targets for locals to be
+				// retargeted to for reductions based on lifetime
+				// analysis
+				Dictionary<IRType, List<IRLocal.IRLocalReductionData>> reductionMap = new Dictionary<IRType, List<IRLocal.IRLocalReductionData>>();
+				List<IRLocal.IRLocalReductionData> reductionTerminations = null;
+				IRLocal[] reductionTargets = new IRLocal[Locals.Count];
+				IRLocal local = null;
+				IRLocal newLocal = null;
+				bool reused = false;
+				int startOfReducedLocals = Locals.Count;
+				for (int sortedIndex = 0; sortedIndex < sortedLocals.Count; ++sortedIndex)
+				{
+					local = sortedLocals[sortedIndex];
+					reused = false;
+					if (!reductionMap.TryGetValue(local.Type, out reductionTerminations))
+					{
+						newLocal = new IRLocal(Assembly);
+						newLocal.ParentMethod = this;
+						newLocal.Type = local.Type;
+						newLocal.Index = Locals.Count;
+						Locals.Add(newLocal);
+
+						reductionTerminations = new List<IRLocal.IRLocalReductionData>();
+						reductionTerminations.Add(new IRLocal.IRLocalReductionData(local.SSAData.LifeEnds, newLocal));
+						reductionTargets[local.Index] = newLocal;
+						reductionMap.Add(local.Type, reductionTerminations);
+					}
+					else
+					{
+						for (int terminationIndex = 0; terminationIndex < reductionTerminations.Count; ++terminationIndex)
+						{
+							if (reductionTerminations[terminationIndex].LifeEnds.IRIndex < local.SSAData.LifeBegins.IRIndex)
+							{
+								reductionTerminations[terminationIndex].LifeEnds = local.SSAData.LifeEnds;
+								reductionTargets[local.Index] = reductionTerminations[terminationIndex].Local;
+								reused = true;
+								break;
+							}
+						}
+						if (!reused)
+						{
+							newLocal = new IRLocal(Assembly);
+							newLocal.ParentMethod = this;
+							newLocal.Type = local.Type;
+							newLocal.Index = Locals.Count;
+							Locals.Add(newLocal);
+
+							reductionTerminations.Add(new IRLocal.IRLocalReductionData(local.SSAData.LifeEnds, newLocal));
+							reductionTargets[local.Index] = newLocal;
+						}
+					}
+				}
+
+				// Now we can retarget all the old locals
+				foreach (IRInstruction instruction in Instructions)
+				{
+					if (instruction.Destination != null) instruction.Destination.RetargetLocals(reductionTargets);
+					instruction.Sources.ForEach(l => l.RetargetLocals(reductionTargets));
+				}
+				//reductionTargets = new IRLocal[Locals.Count];
+				//for (int reducedIndex = startOfReducedLocals; reducedIndex < reductionTargets.Length; ++reducedIndex) reductionTargets[reducedIndex] = Locals[reducedIndex];
+				//Locals.RemoveRange(0, startOfReducedLocals);
+				//for (int localIndex = 0; localIndex < Locals.Count; ++localIndex) Locals[localIndex].Index = localIndex;
+				//foreach (IRInstruction instruction in Instructions)
+				//{
+				//    if (instruction.Destination != null) instruction.Destination.RetargetLocals(reductionTargets);
+				//    instruction.Sources.ForEach(l => l.RetargetLocals(reductionTargets));
+				//}
+			}
+			else Locals.Clear();
 
 			LayoutLocals();
 			//foreach (IRLocal local in mLocals) local.SSAData = null;
