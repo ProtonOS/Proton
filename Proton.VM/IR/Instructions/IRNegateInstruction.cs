@@ -34,5 +34,10 @@ namespace Proton.VM.IR.Instructions
 			Destination.StoreTo(pLIRMethod, dest);
 			pLIRMethod.ReleaseLocal(dest);
 		}
+
+		public override string ToString()
+		{
+			return "Negate -" + Sources[0] + " -> " + Destination;
+		}
 	}
 }

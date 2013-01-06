@@ -43,5 +43,10 @@ namespace Proton.VM.IR.Instructions
 		{
 			pWriter.WriteLine("Type {0}", Type.ToString());
 		}
+
+		public override string ToString()
+		{
+			return "SizeOf " + Type + " -> " + Destination;
+		}
 	}
 }

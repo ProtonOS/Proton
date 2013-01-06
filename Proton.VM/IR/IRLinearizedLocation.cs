@@ -687,10 +687,64 @@ namespace Proton.VM.IR
 			}
 		}
 
-#warning Implement me, because it is annoying to debug
 		public override string ToString()
 		{
-			return base.ToString();
+			switch (Type)
+			{
+				case IRLinearizedLocationType.Null:
+					return "Null";
+				case IRLinearizedLocationType.Local:
+					return "Local(" + Local.LocalIndex + ")";
+				case IRLinearizedLocationType.LocalAddress:
+					return "LocalAddress(" + LocalAddress.LocalIndex + ")";
+				case IRLinearizedLocationType.Parameter:
+					return "Parameter(" + Parameter.ParameterIndex + ")";
+				case IRLinearizedLocationType.ParameterAddress:
+					return "ParameterAddress(" + ParameterAddress.ParameterIndex + ")";
+				case IRLinearizedLocationType.ConstantI4:
+					return "ConstantI4(" + ConstantI4.Value + ")";
+				case IRLinearizedLocationType.ConstantI8:
+					return "ConstantI8(" + ConstantI8.Value + ")";
+				case IRLinearizedLocationType.ConstantR4:
+					return "ConstantR4(" + ConstantR4.Value + ")";
+				case IRLinearizedLocationType.ConstantR8:
+					return "ConstantR8(" + ConstantR8.Value + ")";
+				case IRLinearizedLocationType.Field:
+					return "Field(" + Field.FieldLocation + ", " + Field.Field + ")";
+				case IRLinearizedLocationType.FieldAddress:
+					return "FieldAddress(" + FieldAddress.FieldLocation + ", " + FieldAddress.Field + ")";
+				case IRLinearizedLocationType.StaticField:
+					return "StaticField(" + StaticField.Field + ")";
+				case IRLinearizedLocationType.StaticFieldAddress:
+					return "StaticFieldAddress(" + StaticFieldAddress.Field + ")";
+				case IRLinearizedLocationType.Indirect:
+					return "Indirect(" + Indirect.Type + ", " + Indirect.AddressLocation + ")";
+				case IRLinearizedLocationType.SizeOf:
+					return "SizeOf(" + SizeOf.Type + ")";
+				case IRLinearizedLocationType.ArrayElement:
+					return "ArrayElement(" + ArrayElement.ElementType + ", " + ArrayElement.ArrayLocation + ", " + ArrayElement.IndexLocation + ")";
+				case IRLinearizedLocationType.ArrayElementAddress:
+					return "ArrayElementAddress(" + ArrayElementAddress.ElementType + ", " + ArrayElementAddress.ArrayLocation + ", " + ArrayElementAddress.IndexLocation + ")";
+				case IRLinearizedLocationType.ArrayLength:
+					return "ArrayLength(" + ArrayLength.ArrayLocation + ")";
+				case IRLinearizedLocationType.FunctionAddress:
+					return "FunctionAddress(" + FunctionAddress.Virtual + ", " + FunctionAddress.InstanceLocation + ", " + FunctionAddress.Method + ")";
+				case IRLinearizedLocationType.RuntimeHandle:
+					if (RuntimeHandle.HandleType == ParentInstruction.ParentMethod.Assembly.AppDomain.System_RuntimeFieldHandle)
+						return "RuntimeHandle(Field, " + RuntimeHandle.TargetField + ")";
+					else if (RuntimeHandle.HandleType == ParentInstruction.ParentMethod.Assembly.AppDomain.System_RuntimeMethodHandle)
+						return "RuntimeHandle(Method, " + RuntimeHandle.TargetMethod + ")";
+					else if (RuntimeHandle.HandleType == ParentInstruction.ParentMethod.Assembly.AppDomain.System_RuntimeTypeHandle)
+						return "RuntimeHandle(Type, " + RuntimeHandle.TargetType + ")";
+					else
+						throw new Exception("Unknown runtime handle type!");
+				case IRLinearizedLocationType.String:
+					return "String(" + String.Value + ")";
+				case IRLinearizedLocationType.Phi:
+					return "Phi(" + string.Join(", ", Phi.SourceLocations) + ")";
+				default:
+					throw new Exception("Unknown IRLinearizedLocationType!");
+			}
 		}
 	}
 }

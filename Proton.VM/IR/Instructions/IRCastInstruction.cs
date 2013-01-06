@@ -47,5 +47,10 @@ namespace Proton.VM.IR.Instructions
 			pWriter.WriteLine("Type {0}", Type.ToString());
 			pWriter.WriteLine("ThrowExceptionOnFailure {0}", ThrowExceptionOnFailure);
 		}
+
+		public override string ToString()
+		{
+			return "Cast " + (ThrowExceptionOnFailure ? "ThrowOnFail " : "") + Type + " " + Sources[0] + " -> " + Destination;
+		}
 	}
 }
