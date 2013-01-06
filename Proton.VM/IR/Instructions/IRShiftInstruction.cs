@@ -43,5 +43,19 @@ namespace Proton.VM.IR.Instructions
 		{
 			pWriter.WriteLine("ShiftType {0}", ShiftType.ToString());
 		}
+
+		public override string ToString()
+		{
+			string shiftSym;
+			switch (ShiftType)
+			{
+				case IRShiftType.Left: shiftSym = "<<"; break;
+				case IRShiftType.Right: shiftSym = ">>"; break;
+				case IRShiftType.RightSignExtended: shiftSym = ">>>"; break;
+				default:
+					throw new Exception("Unknown ShiftType!");
+			}
+			return "Shift " + Sources[0] + " " + shiftSym + " " + Sources[1] + " -> " + Destination;
+		}
 	}
 }

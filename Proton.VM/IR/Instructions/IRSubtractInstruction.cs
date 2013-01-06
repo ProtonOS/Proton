@@ -43,5 +43,10 @@ namespace Proton.VM.IR.Instructions
 			Destination.StoreTo(pLIRMethod, dest);
 			pLIRMethod.ReleaseLocal(dest);
 		}
+
+		public override string ToString()
+		{
+			return "Subtract " + Sources[0] + " - " + Sources[1] + " -> " + Destination;
+		}
 	}
 }

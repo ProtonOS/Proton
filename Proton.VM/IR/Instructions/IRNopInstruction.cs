@@ -23,5 +23,10 @@ namespace Proton.VM.IR.Instructions
 		{
 			pWriter.WriteLine("ForceEmit {0}", ForceEmit);
 		}
+
+		public override string ToString()
+		{
+			return "Nop " + ForceEmit;
+		}
 	}
 }

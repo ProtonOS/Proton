@@ -19,5 +19,13 @@ namespace Proton.VM.IR.Instructions
 		public override void ConvertToLIR(LIRMethod pLIRMethod)
 		{
 		}
+
+		public override string ToString()
+		{
+			if (ParentMethod.ReturnType != null)
+				return "Return " + Sources[0];
+			else
+				return "Return";
+		}
 	}
 }

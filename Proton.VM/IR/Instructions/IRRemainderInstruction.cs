@@ -43,5 +43,10 @@ namespace Proton.VM.IR.Instructions
 		{
 			pWriter.WriteLine("OverflowType {0}", OverflowType.ToString());
 		}
+
+		public override string ToString()
+		{
+			return "Remainder " + Sources[0] + " % " + Sources[1] + " -> " + Destination;
+		}
 	}
 }

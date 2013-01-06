@@ -42,5 +42,10 @@ namespace Proton.VM.IR.Instructions
 		{
 			pWriter.WriteLine("Constructor {0}", Constructor.ToString());
 		}
+
+		public override string ToString()
+		{
+			return base.ToString();
+		}
 	}
 }

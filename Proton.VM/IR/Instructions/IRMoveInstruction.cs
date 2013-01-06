@@ -33,5 +33,10 @@ namespace Proton.VM.IR.Instructions
 			Destination.StoreTo(pLIRMethod, dest);
 			pLIRMethod.ReleaseLocal(dest);
 		}
+
+		public override string ToString()
+		{
+			return "Move " + Sources[0] + " -> " + Destination;
+		}
 	}
 }
