@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{C7F60BF2-D70C-4933-A559-E6030C004C04}</ProjectGuid>
+    <ProjectGuid>{BA71A55B-517F-4C41-A7C4-DC396B8FDF50}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Proton.LIR</RootNamespace>
-    <AssemblyName>Proton.LIR</AssemblyName>
+    <RootNamespace>System</RootNamespace>
+    <AssemblyName>System</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -21,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <NoStdLib>true</NoStdLib>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -29,30 +30,19 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <NoStdLib>true</NoStdLib>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="IDestination.cs" />
-    <Compile Include="IndentedStreamWriter.cs" />
-    <Compile Include="Indirect.cs" />
-    <Compile Include="Instructions\Call.cs" />
-    <Compile Include="Instructions\Comment.cs" />
-    <Compile Include="Instructions\Math.cs" />
-    <Compile Include="Instructions\Move.cs" />
-    <Compile Include="Instructions\Nop.cs" />
-    <Compile Include="Instructions\Return.cs" />
-    <Compile Include="Instructions\Unary.cs" />
-    <Compile Include="LIRImm.cs" />
-    <Compile Include="LIRInstruction.cs" />
-    <Compile Include="LIRLocal.cs" />
-    <Compile Include="LIRMethod.cs" />
-    <Compile Include="ISource.cs" />
-    <Compile Include="LIRParameter.cs" />
-    <Compile Include="LIRType.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Collections\Generic\Queue.cs" />
+    <Compile Include="Collections\Generic\Stack.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="System" />
+    <ProjectReference Include="..\Proton.CLR.KOR\Proton.CLR.KOR.csproj">
+      <Project>{A5E045AC-8839-472B-9ECF-4512214D5861}</Project>
+      <Name>Proton.CLR.KOR</Name>
+    </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

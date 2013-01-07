@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Text;
 using System.Collections.Generic;
 using Proton.LIR;
@@ -276,8 +275,8 @@ namespace Proton.VM.IR
 					int i3 = 0;
 					foreach (var im in ii.VirtualMethodTree)
 					{
-						var m = VirtualMethodTree.Where(m2 => m2 == im).FirstOrDefault();
-						var emd = ExplicitOverrides.Where(m2 => m2.Overridden == im).FirstOrDefault();
+						var m = VirtualMethodTree.Find(m2 => m2 == im);
+						var emd = ExplicitOverrides.Find(m2 => m2.Overridden == im);
 						if (m == null && emd == null)
 							throw new Exception("This class doesn't implement '" + im + "'!");
 						InterfaceImplementationMap[ii][i3] = emd == null ? m : emd.Overridder;
@@ -720,7 +719,7 @@ namespace Proton.VM.IR
 				{
 					if (this.IsClass || this.IsInterface || (this.IsManagedPointerType && !this.ManagedPointerType.IsUnsafeType))
 						isUnsafe = false;
-					else if (!Fields.Where(f => f.Type != this).TrueForAll(f => f.Type.IsUnsafeType))
+					else if (!Fields.FindAll(f => f.Type != this).TrueForAll(f => f.Type.IsUnsafeType))
 						isUnsafe = false;
 				}
 				mIsUnsafeTypeCache = isUnsafe;
@@ -795,8 +794,9 @@ namespace Proton.VM.IR
 				sb.Insert(1, '|');
 				sb.Append('|');
 			}
-
-			pWriter.WriteLine("IRType({0}) #{1}{2} {3} : {4}{5}{6}", mGlobalTypeID, mTempID, sb.ToString(), ToString(), BaseType, BaseType != null && ImplementedInterfaces.Count > 0 ? ", " : "", String.Join(", ", ImplementedInterfaces.Select(i => i.ToString()).ToArray()));
+			string[] iistrings = new string[ImplementedInterfaces.Count];
+			for (int index = 0; index < iistrings.Length; ++index) iistrings[index] = ImplementedInterfaces[index].ToString();
+			pWriter.WriteLine("IRType({0}) #{1}{2} {3} : {4}{5}{6}", mGlobalTypeID, mTempID, sb.ToString(), ToString(), BaseType, BaseType != null && ImplementedInterfaces.Count > 0 ? ", " : "", String.Join(", ", iistrings));
 			pWriter.WriteLine("{");
 			pWriter.Indent++;
 			pWriter.WriteLine("DataSize = {0}, StackSize = {1}", DataSize, mStackSize);

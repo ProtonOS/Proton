@@ -5,7 +5,6 @@ using Proton.Metadata.Signatures;
 using Proton.VM.IL;
 using Proton.VM.IR.Instructions;
 using System;
-using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
@@ -854,6 +853,7 @@ namespace Proton.VM.IR
 			BitArray phiInserted = new BitArray(cfg.Nodes.Count, false);
 			BitArray localAssigned = new BitArray(cfg.Nodes.Count, false);
 			HashSet<IRControlFlowGraphNode> unprocessedNodes = new HashSet<IRControlFlowGraphNode>();
+			HashSet<IRControlFlowGraphNode>.Enumerator unprocessedNodesEnumerator;
 			IRControlFlowGraphNode processingNode = null;
 			for (int originalIndex = 0; originalIndex < originalCount; ++originalIndex)
 			{
@@ -869,7 +869,9 @@ namespace Proton.VM.IR
 				}
 				while (unprocessedNodes.Count > 0)
 				{
-					processingNode = unprocessedNodes.ElementAt(0);
+					unprocessedNodesEnumerator = unprocessedNodes.GetEnumerator();
+					unprocessedNodesEnumerator.MoveNext();
+					processingNode = unprocessedNodesEnumerator.Current;
 					unprocessedNodes.Remove(processingNode);
 					foreach (IRControlFlowGraphNode frontierNode in processingNode.Frontiers)
 					{
@@ -1136,7 +1138,7 @@ namespace Proton.VM.IR
 				IRLinearizedLocation.LocalLifetime lifetime;
 				if (lastInstruction.Opcode == IROpcode.Branch && (targetInstructionIndex = ((IRBranchInstruction)lastInstruction).TargetIRInstruction.IRIndex) < (lastInstructionIndex = lastInstruction.IRIndex))
 				{
-					firstInstructionIndex = n.Instructions.First().IRIndex;
+					firstInstructionIndex = n.Instructions[0].IRIndex;
 					for (int localIndex = 0; localIndex < localLifetimes.Length; localIndex++)
 					{
 						lifetime = localLifetimes[localIndex];

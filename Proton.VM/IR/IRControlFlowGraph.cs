@@ -2,7 +2,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 namespace Proton.VM.IR
@@ -163,10 +162,13 @@ namespace Proton.VM.IR
 			cfg.Nodes.ForEach(n => n.Dominators = new BitVector(cfg.Nodes.Count, true));
 			BitVector intersectedParentDominators = new BitVector(cfg.Nodes.Count);
 			HashSet<IRControlFlowGraphNode> todoSet = new HashSet<IRControlFlowGraphNode>();
+			HashSet<IRControlFlowGraphNode>.Enumerator todoSetEnumerator;
 			todoSet.Add(cfg.Nodes[0]);
 			while (todoSet.Count > 0)
 			{
-				IRControlFlowGraphNode node = todoSet.ElementAt(0);
+				todoSetEnumerator = todoSet.GetEnumerator();
+				todoSetEnumerator.MoveNext();
+				IRControlFlowGraphNode node = todoSetEnumerator.Current;
 				todoSet.Remove(node);
 				intersectedParentDominators.SetAll(node.ParentNodes.Count > 0);
 				node.ParentNodes.ForEach(n => intersectedParentDominators.AndEquals(n.Dominators));

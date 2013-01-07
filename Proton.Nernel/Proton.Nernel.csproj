@@ -58,9 +58,9 @@
     <Compile Include="Program.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Proton.KOR\Proton.KOR.csproj">
+    <ProjectReference Include="..\Proton.CLR.KOR\Proton.CLR.KOR.csproj">
       <Project>{A5E045AC-8839-472B-9ECF-4512214D5861}</Project>
-      <Name>Proton.KOR</Name>
+      <Name>Proton.CLR.KOR</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

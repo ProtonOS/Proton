@@ -1,9 +1,13 @@
 /Build
 /Logs
+/Proton.CLR.KOR/bin
+/Proton.CLR.KOR/obj
+/Proton.CLR.System/bin
+/Proton.CLR.System/obj
+/Proton.CLR.SystemCore/bin
+/Proton.CLR.SystemCore/obj
 /Proton.Compiler/bin
 /Proton.Compiler/obj
-/Proton.KOR/bin
-/Proton.KOR/obj
 /Proton.Launcher/bin
 /Proton.Launcher/obj
 /Proton.LIR/bin

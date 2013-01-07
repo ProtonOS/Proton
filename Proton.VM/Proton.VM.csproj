@@ -139,10 +139,6 @@
     <Compile Include="VMConfig.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\Proton.LIR\Proton.LIR.csproj">
       <Project>{C7F60BF2-D70C-4933-A559-E6030C004C04}</Project>
       <Name>Proton.LIR</Name>
@@ -152,7 +148,10 @@
       <Name>Proton.Metadata</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

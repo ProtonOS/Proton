@@ -2,7 +2,6 @@
 using Proton.Metadata.Tables;
 using Proton.Metadata.Signatures;
 using System;
-using System.Linq;
 using System.Collections.Generic;
 
 namespace Proton.VM.IR
@@ -32,7 +31,7 @@ namespace Proton.VM.IR
 			{
 				IRMethod method = new IRMethod(this);
 				Methods.Add(method);
-				var mGenParams = File.GenericParamTable.Where(gp => gp.Owner.Type == TypeOrMethodDefIndex.TypeOrMethodDefType.MethodDef && gp.Owner.MethodDef == methodDefData).ToList();
+				var mGenParams = new List<GenericParamData>(Array.FindAll(File.GenericParamTable, gp => gp.Owner.Type == TypeOrMethodDefIndex.TypeOrMethodDefType.MethodDef && gp.Owner.MethodDef == methodDefData));
 				for (int i = 0; i < mGenParams.Count; i++)
 				{
 					method.GenericParameters.Add(IRType.GetMVarPlaceholder(mGenParams[i].Number));
@@ -47,7 +46,7 @@ namespace Proton.VM.IR
                 type.Namespace = typeDefData.TypeNamespace;
                 type.Name = typeDefData.TypeName;
 				type.Flags = typeDefData.Flags;
-				var genParams = File.GenericParamTable.Where(gp => gp.Owner.Type == TypeOrMethodDefIndex.TypeOrMethodDefType.TypeDef && gp.Owner.TypeDef == typeDefData).ToList();
+				var genParams = new List<GenericParamData>(Array.FindAll(File.GenericParamTable, gp => gp.Owner.Type == TypeOrMethodDefIndex.TypeOrMethodDefType.TypeDef && gp.Owner.TypeDef == typeDefData));
 				for (int i = 0; i < genParams.Count; i++)
 				{
 					type.GenericParameters.Add(IRType.GetVarPlaceholder(genParams[i].Number));
