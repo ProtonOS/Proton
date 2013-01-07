@@ -378,7 +378,7 @@ namespace Proton.VM.IR
             Instructions.Add(pInstruction);
         }
 
-		public void InsertInstruction(uint pIRIndex, IRInstruction pInstruction)
+		public void InsertInstruction(int pIRIndex, IRInstruction pInstruction)
 		{
 			pInstruction.ILOffset = Instructions[pIRIndex].ILOffset;
 			pInstruction.ParentMethod = this;
@@ -1110,9 +1110,9 @@ namespace Proton.VM.IR
 			foreach (IRControlFlowGraphNode n in pControlFlowGraph.Nodes)
 			{
 				IRInstruction lastInstruction = n.Instructions.Last();
-				uint firstInstructionIndex;
-				uint targetInstructionIndex;
-				uint lastInstructionIndex;
+				int firstInstructionIndex;
+				int targetInstructionIndex;
+				int lastInstructionIndex;
 				IRLinearizedLocation.LocalLifetime lifetime;
 				if (lastInstruction.Opcode == IROpcode.Branch && (targetInstructionIndex = ((IRBranchInstruction)lastInstruction).TargetIRInstruction.IRIndex) < (lastInstructionIndex = lastInstruction.IRIndex))
 				{

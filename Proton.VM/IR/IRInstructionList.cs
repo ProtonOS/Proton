@@ -35,7 +35,7 @@ namespace Proton.VM.IR
 
         public void Add(IRInstruction pInstruction)
         {
-			pInstruction.IRIndex = (uint)mInstructions.Count;
+			pInstruction.IRIndex = mInstructions.Count;
             mInstructions.Add(pInstruction);
             mResolvedCache = null;
 			if (!mILOffsetLookup.ContainsKey(pInstruction.ILOffset))
@@ -45,9 +45,9 @@ namespace Proton.VM.IR
         public void AddRange(IEnumerable<IRInstruction> pInstructions) { foreach (IRInstruction instruction in pInstructions) Add(instruction); }
 
 		private Dictionary<IRInstruction, IRInstruction> mInsertedTargetFixCache = new Dictionary<IRInstruction, IRInstruction>();
-		public void Insert(IRInstruction pInstruction, uint pIndex)
+		public void Insert(IRInstruction pInstruction, int pIndex)
 		{
-			IRInstruction originalInstruction = mInstructions[(int)pIndex];
+			IRInstruction originalInstruction = mInstructions[pIndex];
 			pInstruction.IRIndex = pIndex;
 			mInstructions.Insert((int)pIndex, pInstruction);
 			for (int index = (int)(pIndex + 1); index < mInstructions.Count; ++index) ++mInstructions[index].IRIndex;
@@ -229,7 +229,7 @@ namespace Proton.VM.IR
 					else
 					{
 						value.ParentMethod = this.mInstructions[0].ParentMethod;
-						value.IRIndex = (uint)pIndex;
+						value.IRIndex = pIndex;
 					}
                 }
             }
@@ -248,7 +248,7 @@ namespace Proton.VM.IR
 			if (mInstructions.RemoveAll(i => !i.Linearized) > 0)
 			{
 				for (int index = 0; index < mInstructions.Count; ++index)
-					mInstructions[index].IRIndex = (uint)index;
+					mInstructions[index].IRIndex = index;
 			}
 		}
 
