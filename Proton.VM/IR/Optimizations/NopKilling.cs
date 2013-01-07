@@ -12,14 +12,17 @@ namespace Proton.VM.IR.Optimizations
 
 		public override void Run(IRMethod pMethod)
 		{
-			for (int i = 0; i < pMethod.Instructions.Count - 1; i++)
+			for (int i = 0; i < pMethod.Instructions.Count; i++)
 			{
 				var curInstr = pMethod.Instructions[i];
 				if (curInstr.Opcode == IROpcode.Nop)
 				{
 					var nop = (IRNopInstruction)curInstr;
 					if (!nop.ForceEmit)
+					{
 						pMethod.Instructions.Remove(nop);
+						i--;
+					}
 				}
 			}
 			pMethod.Instructions.FixRemovedTargetInstructions();
