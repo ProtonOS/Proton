@@ -230,6 +230,32 @@
 		public void Sort(Comparison<T> comparison)
 		{
 			if (comparison == null) throw new ArgumentNullException("comparison");
+			List<T> ret = new List<T>();
+			using (var e = this.GetEnumerator())
+			{
+				while (e.MoveNext())
+				{
+					T cur = e.Current;
+					if (ret.Count == 0)
+						ret.Add(cur);
+					else
+					{
+						int i = 0;
+						for (; i < ret.Count; i++)
+						{
+							int r = comparison(ret[i], cur);
+							if (r > 0)
+							{
+								ret.Insert(i, cur);
+								break;
+							}
+						}
+						if (i == ret.Count)
+							ret.Add(cur);
+					}
+				}
+			}
+			this.mItems = ret.ToArray();
 		}
 	}
 }
