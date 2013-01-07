@@ -1004,6 +1004,39 @@ namespace Proton.VM.IR
 			IRControlFlowGraph cfg = IRControlFlowGraph.Build(this);
 			if (cfg == null) return;
 
+			IRLocal newLocal = null;
+			// Reduce Phi source locations
+			foreach (IRControlFlowGraphNode node in cfg.Nodes)
+			{
+				foreach (IRInstruction instruction in node.Instructions)
+				{
+					IRLinearizedLocation location = null;
+					if (instruction.Destination != null && (location = FindPhi(instruction.Destination)) != null)
+					{
+						newLocal = new IRLocal(Assembly);
+						newLocal.ParentMethod = this;
+						newLocal.Type = Locals[location.Phi.SourceLocations[0].Local.LocalIndex].Type;
+						newLocal.Index = Locals.Count;
+						Locals.Add(newLocal);
+
+						IRLocal[] localIterations = Locals.ToArray();
+						location.Phi.SourceLocations.ForEach(l => localIterations[l.Local.LocalIndex] = newLocal);
+
+						// Insert moves in parent nodes
+
+						location.Type = IRLinearizedLocationType.Local;
+						location.Local.LocalIndex = newLocal.Index;
+						location.Phi.SourceLocations = null;
+
+						foreach (IRInstruction retargetInstruction in Instructions)
+						{
+							if (retargetInstruction.Destination != null) retargetInstruction.Destination.RetargetLocals(localIterations);
+							foreach (IRLinearizedLocation retargetLocation in retargetInstruction.Sources) retargetLocation.RetargetLocals(localIterations);
+						}
+					}
+				}
+			}
+
 			// Recalculate local lifespans
 			CalculateLocalSSALifespans(cfg);
 
@@ -1025,7 +1058,6 @@ namespace Proton.VM.IR
 				List<IRLocal.IRLocalReductionData> reductionTerminations = null;
 				IRLocal[] reductionTargets = new IRLocal[Locals.Count];
 				IRLocal local = null;
-				IRLocal newLocal = null;
 				bool reused = false;
 				int startOfReducedLocals = Locals.Count;
 				for (int sortedIndex = 0; sortedIndex < sortedLocals.Count; ++sortedIndex)
@@ -1090,6 +1122,31 @@ namespace Proton.VM.IR
 			else Locals.Clear();
 
 			LayoutLocals();
+		}
+
+		private IRLinearizedLocation FindPhi(IRLinearizedLocation pRootLocation)
+		{
+			switch (pRootLocation.Type)
+			{
+				case IRLinearizedLocationType.Field:
+					return FindPhi(pRootLocation.Field.FieldLocation);
+				case IRLinearizedLocationType.FieldAddress:
+					return FindPhi(pRootLocation.FieldAddress.FieldLocation);
+				case IRLinearizedLocationType.Indirect:
+					return FindPhi(pRootLocation.Indirect.AddressLocation);
+				case IRLinearizedLocationType.ArrayElement:
+					return FindPhi(pRootLocation.ArrayElement.ArrayLocation) ?? FindPhi(pRootLocation.ArrayElement.IndexLocation);
+				case IRLinearizedLocationType.ArrayElementAddress:
+					return FindPhi(pRootLocation.ArrayElementAddress.ArrayLocation) ?? FindPhi(pRootLocation.ArrayElementAddress.IndexLocation);
+				case IRLinearizedLocationType.ArrayLength:
+					return FindPhi(pRootLocation.ArrayLength.ArrayLocation);
+				case IRLinearizedLocationType.FunctionAddress:
+					if (pRootLocation.FunctionAddress.InstanceLocation == null) return null;
+					return FindPhi(pRootLocation.FunctionAddress.InstanceLocation);
+				case IRLinearizedLocationType.Phi:
+					return pRootLocation;
+				default: return null;
+			}
 		}
 
 		private void CalculateLocalSSALifespans(IRControlFlowGraph pControlFlowGraph)
