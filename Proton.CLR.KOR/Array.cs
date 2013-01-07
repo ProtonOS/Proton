@@ -400,6 +400,11 @@ namespace System
 
         IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }
 
+		public static void ForEach<T>(T[] array, Action<T> action)
+		{
+			for (int index = 0; index < array.Length; ++index) action(array[index]);
+		}
+
 		public static T Find<T>(T[] array, Predicate<T> match)
 		{
 			if (array == null) throw new ArgumentNullException("array");

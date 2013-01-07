@@ -46,8 +46,10 @@
     <Compile Include="Attribute.cs" />
     <Compile Include="AttributeTargets.cs" />
     <Compile Include="AttributeUsageAttribute.cs" />
+    <Compile Include="BadImageFormatException.cs" />
     <Compile Include="BitConverter.cs" />
     <Compile Include="Boolean.cs" />
+    <Compile Include="Buffer.cs" />
     <Compile Include="Byte.cs" />
     <Compile Include="Char.cs" />
     <Compile Include="CharEnumerator.cs" />
@@ -160,6 +162,7 @@
     <Compile Include="String.cs" />
     <Compile Include="StringHelper.cs" />
     <Compile Include="SystemException.cs" />
+    <Compile Include="Text\Encoding.cs" />
     <Compile Include="Text\StringBuilder.cs" />
     <Compile Include="Threading\WaitHandle.cs" />
     <Compile Include="TimeSpan.cs" />
@@ -172,6 +175,9 @@
     <Compile Include="ValueType.cs" />
     <Compile Include="Version.cs" />
     <Compile Include="Void.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

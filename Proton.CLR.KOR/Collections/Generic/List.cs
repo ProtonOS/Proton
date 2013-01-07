@@ -165,6 +165,11 @@
             return false;
         }
 
+		public void RemoveRange(int index, int count)
+		{
+			Shift(index, -count);
+		}
+
         IEnumerator<T> IEnumerable<T>.GetEnumerator() { return new Enumerator(this); }
 
         IEnumerator IEnumerable.GetEnumerator() { return new Enumerator(this); }
@@ -225,6 +230,22 @@
 		{
 			for (int index = 0; index < mCount; ++index) if (!match(mItems[index])) return false;
 			return true;
+		}
+
+		public int RemoveAll(Predicate<T> match)
+		{
+			if (match == null) throw new ArgumentNullException("match");
+			int count = 0;
+			for (int index = 0; index < mCount; ++index)
+			{
+				if (match(mItems[index]))
+				{
+					Shift(index, -1);
+					--index;
+					++count;
+				}
+			}
+			return count;
 		}
 
 		public void Sort(Comparison<T> comparison)
