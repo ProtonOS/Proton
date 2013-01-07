@@ -1005,36 +1005,24 @@ namespace Proton.VM.IR
 			if (cfg == null) return;
 
 			IRLocal newLocal = null;
+			IRLocal[] reductionTargets = Locals.ToArray();
 			// Reduce Phi source locations
-			foreach (IRControlFlowGraphNode node in cfg.Nodes)
+			Instructions.ImmediateRetargetModifiedInstructions = false;
+			for (int instructionIndex = 0; instructionIndex < Instructions.Count; ++instructionIndex)
 			{
-				foreach (IRInstruction instruction in node.Instructions)
+				IRInstruction instruction = Instructions[instructionIndex];
+				if (instruction.Sources.Count == 1 && instruction.Sources[0].Type == IRLinearizedLocationType.Phi)
 				{
-					IRLinearizedLocation location = null;
-					if (instruction.Destination != null && (location = FindPhi(instruction.Destination)) != null)
-					{
-						newLocal = new IRLocal(Assembly);
-						newLocal.ParentMethod = this;
-						newLocal.Type = Locals[location.Phi.SourceLocations[0].Local.LocalIndex].Type;
-						newLocal.Index = Locals.Count;
-						Locals.Add(newLocal);
-
-						IRLocal[] localIterations = Locals.ToArray();
-						location.Phi.SourceLocations.ForEach(l => localIterations[l.Local.LocalIndex] = newLocal);
-
-						// Insert moves in parent nodes
-
-						location.Type = IRLinearizedLocationType.Local;
-						location.Local.LocalIndex = newLocal.Index;
-						location.Phi.SourceLocations = null;
-
-						foreach (IRInstruction retargetInstruction in Instructions)
-						{
-							if (retargetInstruction.Destination != null) retargetInstruction.Destination.RetargetLocals(localIterations);
-							foreach (IRLinearizedLocation retargetLocation in retargetInstruction.Sources) retargetLocation.RetargetLocals(localIterations);
-						}
-					}
+					instruction.Sources[0].Phi.SourceLocations.ForEach(l => reductionTargets[l.Local.LocalIndex] = Locals[instruction.Destination.Local.LocalIndex]);
+					Instructions[instructionIndex] = new IRNopInstruction();
 				}
+			}
+			Instructions.ImmediateRetargetModifiedInstructions = true;
+			Instructions.FixModifiedTargetInstructions();
+			foreach (IRInstruction instruction in Instructions)
+			{
+				if (instruction.Destination != null) instruction.Destination.RetargetLocals(reductionTargets);
+				foreach (IRLinearizedLocation sourceLocation in instruction.Sources) sourceLocation.RetargetLocals(reductionTargets);
 			}
 
 			// Recalculate local lifespans
@@ -1056,7 +1044,7 @@ namespace Proton.VM.IR
 				// analysis
 				Dictionary<IRType, List<IRLocal.IRLocalReductionData>> reductionMap = new Dictionary<IRType, List<IRLocal.IRLocalReductionData>>();
 				List<IRLocal.IRLocalReductionData> reductionTerminations = null;
-				IRLocal[] reductionTargets = new IRLocal[Locals.Count];
+				reductionTargets = new IRLocal[Locals.Count];
 				IRLocal local = null;
 				bool reused = false;
 				int startOfReducedLocals = Locals.Count;
@@ -1122,31 +1110,6 @@ namespace Proton.VM.IR
 			else Locals.Clear();
 
 			LayoutLocals();
-		}
-
-		private IRLinearizedLocation FindPhi(IRLinearizedLocation pRootLocation)
-		{
-			switch (pRootLocation.Type)
-			{
-				case IRLinearizedLocationType.Field:
-					return FindPhi(pRootLocation.Field.FieldLocation);
-				case IRLinearizedLocationType.FieldAddress:
-					return FindPhi(pRootLocation.FieldAddress.FieldLocation);
-				case IRLinearizedLocationType.Indirect:
-					return FindPhi(pRootLocation.Indirect.AddressLocation);
-				case IRLinearizedLocationType.ArrayElement:
-					return FindPhi(pRootLocation.ArrayElement.ArrayLocation) ?? FindPhi(pRootLocation.ArrayElement.IndexLocation);
-				case IRLinearizedLocationType.ArrayElementAddress:
-					return FindPhi(pRootLocation.ArrayElementAddress.ArrayLocation) ?? FindPhi(pRootLocation.ArrayElementAddress.IndexLocation);
-				case IRLinearizedLocationType.ArrayLength:
-					return FindPhi(pRootLocation.ArrayLength.ArrayLocation);
-				case IRLinearizedLocationType.FunctionAddress:
-					if (pRootLocation.FunctionAddress.InstanceLocation == null) return null;
-					return FindPhi(pRootLocation.FunctionAddress.InstanceLocation);
-				case IRLinearizedLocationType.Phi:
-					return pRootLocation;
-				default: return null;
-			}
 		}
 
 		private void CalculateLocalSSALifespans(IRControlFlowGraph pControlFlowGraph)

@@ -504,8 +504,8 @@ namespace Proton.VM.IR
 				}
 #warning Finish the rest of these case statements
 
-				//case IRLinearizedLocationType.Phi:
-				//	throw new Exception("All phi's should have been eliminated by this point!");
+				case IRLinearizedLocationType.Phi:
+					throw new Exception("All phi's should have been eliminated by this point!");
 
 			}
 		}

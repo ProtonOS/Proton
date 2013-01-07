@@ -98,7 +98,7 @@ namespace Proton.VM.IR.Optimizations
 
 				case IRLinearizedLocationType.Local:
 					var l = locals[location.Local.LocalIndex];
-					if (l.UseCount == 1 && l.AssignedAt != -1 && !l.AddressLoaded)
+					if (l.UseCount == 1 && l.AssignedAt != -1 && !l.AddressLoaded && !pMethod.Locals[location.Local.LocalIndex].SSAData.Phi)
 					{
 						location = pMethod.Instructions[l.AssignedAt].Sources[0].Clone(location.ParentInstruction);
 						l.Killed = true;
