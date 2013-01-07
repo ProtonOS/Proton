@@ -19,7 +19,8 @@ namespace System
 		internal unsafe char* InternalCharDataPointer { get { return (char*)((ulong)Internal_ReferenceToPointer() + sizeof(int)); } }
 
         #region Private Internal Calls
-		private String() { }
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		public extern String(char c, int count);
 
 		private static unsafe string InternalConcat(string str0, string str1)
 		{
@@ -193,7 +194,15 @@ namespace System
             return sb.ToString(0, sb.Length - separator.Length);
         }
 
-        public string[] Split(params char[] separator)
+		public static string Join<T>(string separator, IEnumerable<T> values)
+		{
+			List<T> lst = new List<T>(values);
+			string[] strvalues = new string[lst.Count];
+			for (int index = 0; index < lst.Count; ++index) strvalues[index] = lst[index].ToString();
+			return Join(separator, strvalues);
+		}
+
+		public string[] Split(params char[] separator)
         {
             return this.Split(separator, int.MaxValue);
         }

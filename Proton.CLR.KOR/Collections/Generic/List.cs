@@ -84,6 +84,11 @@
             mItems[mCount++] = item;
         }
 
+		public void AddRange(IEnumerable<T> collection)
+		{
+			foreach (T val in collection) Add(val);
+		}
+
         public int Count { get { return mCount; } }
 
         public int Capacity { get { return mItems.Length; } set { throw new NotImplementedException(); } }
@@ -147,6 +152,8 @@
 
         public void CopyTo(T[] array, int arrayIndex) { Array.Copy(mItems, 0, (Array)array, arrayIndex, mCount); }
 
+		public void CopyTo(int index, T[] array, int arrayIndex, int count) { Array.Copy(mItems, index, (Array)array, arrayIndex, count); }
+
         public bool Remove(T item)
         {
             int idx = Array.IndexOf(mItems, item);
@@ -185,5 +192,44 @@
         public object SyncRoot { get { return this; } }
 
         public void CopyTo(Array array, int index) { Array.Copy(mItems, 0, array, index, mCount); }
-    }
+
+		public void ForEach(Action<T> action)
+		{
+			for (int index = 0; index < mCount; ++index) action(mItems[index]);
+		}
+
+		public T Find(Predicate<T> match)
+		{
+			for (int index = 0; index < mCount; ++index) if (match(mItems[index])) return mItems[index];
+			return default(T);
+		}
+
+		public int FindIndex(Predicate<T> match) { return FindIndex(0, mCount, match); }
+
+		public int FindIndex(int startIndex, Predicate<T> match) { return FindIndex(startIndex, mCount - startIndex, match); }
+
+		public int FindIndex(int startIndex, int count, Predicate<T> match)
+		{
+			for (int index = 0; index < count; ++index) if (match(mItems[index + startIndex])) return index + startIndex;
+			return -1;
+		}
+
+		public List<T> FindAll(Predicate<T> match)
+		{
+			List<T> found = new List<T>();
+			for (int index = 0; index < mCount; ++index) if (match(mItems[index])) found.Add(mItems[index]);
+			return found;
+		}
+
+		public bool TrueForAll(Predicate<T> match)
+		{
+			for (int index = 0; index < mCount; ++index) if (!match(mItems[index])) return false;
+			return true;
+		}
+
+		public void Sort(Comparison<T> comparison)
+		{
+			if (comparison == null) throw new ArgumentNullException("comparison");
+		}
+	}
 }

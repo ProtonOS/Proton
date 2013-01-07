@@ -62,6 +62,18 @@
       <Project>{A5E045AC-8839-472B-9ECF-4512214D5861}</Project>
       <Name>Proton.CLR.KOR</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Proton.CLR.SystemCore\Proton.CLR.SystemCore.csproj">
+      <Project>{4CA22E6B-C5F5-4152-BB51-A22DA292B80D}</Project>
+      <Name>Proton.CLR.SystemCore</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Proton.CLR.System\Proton.CLR.System.csproj">
+      <Project>{BA71A55B-517F-4C41-A7C4-DC396B8FDF50}</Project>
+      <Name>Proton.CLR.System</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Proton.VM\Proton.VM.csproj">
+      <Project>{7F91CE6C-1499-4DB3-85ED-0BE1BB03F616}</Project>
+      <Name>Proton.VM</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

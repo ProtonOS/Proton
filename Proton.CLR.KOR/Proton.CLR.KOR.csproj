@@ -35,12 +35,14 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Action.cs" />
     <Compile Include="ArgumentException.cs" />
     <Compile Include="ArgumentNullException.cs" />
     <Compile Include="ArgumentOutOfRangeException.cs" />
     <Compile Include="ArithmeticException.cs" />
     <Compile Include="Array.cs" />
     <Compile Include="ArrayTypeMismatchException.cs" />
+    <Compile Include="AsyncCallback.cs" />
     <Compile Include="Attribute.cs" />
     <Compile Include="AttributeTargets.cs" />
     <Compile Include="AttributeUsageAttribute.cs" />
@@ -49,6 +51,7 @@
     <Compile Include="Byte.cs" />
     <Compile Include="Char.cs" />
     <Compile Include="CharEnumerator.cs" />
+    <Compile Include="Collections\BitArray.cs" />
     <Compile Include="Collections\DictionaryEntry.cs" />
     <Compile Include="Collections\Generic\Dictionary.cs" />
     <Compile Include="Collections\Generic\EqualityComparer.cs" />
@@ -68,6 +71,8 @@
     <Compile Include="Collections\IEnumerator.cs" />
     <Compile Include="Collections\IEqualityComparer.cs" />
     <Compile Include="Collections\IList.cs" />
+    <Compile Include="Comparison.cs" />
+    <Compile Include="Console.cs" />
     <Compile Include="Converter.cs" />
     <Compile Include="DateTime.cs" />
     <Compile Include="DateTimeKind.cs" />
@@ -80,6 +85,7 @@
     <Compile Include="Exception.cs" />
     <Compile Include="FlagsAttribute.cs" />
     <Compile Include="FormatException.cs" />
+    <Compile Include="Func.cs" />
     <Compile Include="GC.cs" />
     <Compile Include="Globalization\Calendar.cs" />
     <Compile Include="Globalization\CalendarWeekRule.cs" />
@@ -94,6 +100,7 @@
     <Compile Include="Globalization\NumberStyles.cs" />
     <Compile Include="Globalization\TextInfo.cs" />
     <Compile Include="Globalization\UnicodeCategory.cs" />
+    <Compile Include="IAsyncResult.cs" />
     <Compile Include="ICloneable.cs" />
     <Compile Include="IComparable.cs" />
     <Compile Include="ICustomFormatter.cs" />
@@ -108,16 +115,24 @@
     <Compile Include="IntPtr.cs" />
     <Compile Include="InvalidCastException.cs" />
     <Compile Include="InvalidOperationException.cs" />
+    <Compile Include="IO\EndOfStreamException.cs" />
+    <Compile Include="IO\File.cs" />
+    <Compile Include="IO\IOException.cs" />
+    <Compile Include="IO\StreamWriter.cs" />
+    <Compile Include="IO\TextWriter.cs" />
     <Compile Include="Kernel\PageAllocator.cs" />
     <Compile Include="Kernel\Multiboot.cs" />
     <Compile Include="Kernel\HeapAllocator.cs" />
     <Compile Include="Kernel\StringInternHash.cs" />
     <Compile Include="Kernel\Test.cs" />
+    <Compile Include="MarshalByRefObject.cs" />
     <Compile Include="Math.cs" />
     <Compile Include="MulticastDelegate.cs" />
     <Compile Include="MulticastNotSupportedException.cs" />
     <Compile Include="NotImplementedException.cs" />
     <Compile Include="NotSupportedException.cs" />
+    <Compile Include="Nullable.cs" />
+    <Compile Include="NullReferenceException.cs" />
     <Compile Include="NumberFormatter.cs" />
     <Compile Include="Object.cs" />
     <Compile Include="OperatingSystem.cs" />
@@ -125,6 +140,7 @@
     <Compile Include="ParamArrayAttribute.cs" />
     <Compile Include="ParseHelper.cs" />
     <Compile Include="PlatformID.cs" />
+    <Compile Include="Predicate.cs" />
     <Compile Include="Reflection\DefaultMemberAttribute.cs" />
     <Compile Include="Reflection\MemberInfo.cs" />
     <Compile Include="RuntimeArgumentHandle.cs" />
@@ -145,7 +161,9 @@
     <Compile Include="StringHelper.cs" />
     <Compile Include="SystemException.cs" />
     <Compile Include="Text\StringBuilder.cs" />
+    <Compile Include="Threading\WaitHandle.cs" />
     <Compile Include="TimeSpan.cs" />
+    <Compile Include="Tuple.cs" />
     <Compile Include="Type.cs" />
     <Compile Include="UInt16.cs" />
     <Compile Include="UInt32.cs" />

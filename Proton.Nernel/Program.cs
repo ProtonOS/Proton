@@ -84,6 +84,8 @@ namespace Proton.Nernel
 			//Enum.EnumInfo info = Enum.EnumInfo.GetInfo(typeof(Enum.EnumInfo.SomethingElse));
 			new SomeClass<SomeClass6<SomeClass5>>().SomeMethod(new SomeClass7<SomeClass5>(), new SomeClass4<int>());
 			new BrokenGenericReturn<string>().RunAway("Felee!", 0UL);
+
+			if (VM.VMConfig.PointerSizeForTarget != 4) throw new Exception();
 		}
 	}
 }

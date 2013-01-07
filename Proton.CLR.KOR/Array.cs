@@ -399,5 +399,24 @@ namespace System
         public IEnumerator GetEnumerator() { return new NonGenericEnumerator(this); }
 
         IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }
+
+		public static T Find<T>(T[] array, Predicate<T> match)
+		{
+			if (array == null) throw new ArgumentNullException("array");
+			if (match == null) throw new ArgumentNullException("match");
+			foreach (T val in array) if (match(val)) return val;
+			return default(T);
+		}
+
+		public static T[] FindAll<T>(T[] array, Predicate<T> match)
+		{
+			if (array == null) throw new ArgumentNullException("array");
+			if (match == null) throw new ArgumentNullException("match");
+			T[] results = new T[array.Length];
+			int resultsCount = 0;
+			foreach (T val in array) if (match(val)) results[resultsCount++] = val;
+			Resize(ref results, resultsCount);
+			return results;
+		}
     }
 }
