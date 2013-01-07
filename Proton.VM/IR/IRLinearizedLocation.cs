@@ -502,11 +502,30 @@ namespace Proton.VM.IR
 					pParent.ReleaseLocal(arr);
 					break;
 				}
+				case IRLinearizedLocationType.LocalAddress:
+					new LIRInstructions.Move(pParent, pParent.Locals[Local.LocalIndex].AddressOf(), pDestination, pParent.Locals[Local.LocalIndex].Type);
+					break;
+				case IRLinearizedLocationType.ParameterAddress:
+					new LIRInstructions.Move(pParent, pParent.Parameters[(int)Parameter.ParameterIndex].AddressOf(), pDestination, pParent.Parameters[(int)Parameter.ParameterIndex].Type);
+					break;
+
+
 #warning Finish the rest of these case statements
+				case IRLinearizedLocationType.StaticField:
+					break;
+				case IRLinearizedLocationType.StaticFieldAddress:
+					break;
+				case IRLinearizedLocationType.FunctionAddress:
+					break;
+				case IRLinearizedLocationType.RuntimeHandle:
+					break;
+				case IRLinearizedLocationType.String:
+					break;
 
 				case IRLinearizedLocationType.Phi:
 					throw new Exception("All phi's should have been eliminated by this point!");
-
+				default:
+					throw new Exception("Unknown IRLinearizedLocationType!");
 			}
 		}
 
@@ -520,6 +539,36 @@ namespace Proton.VM.IR
 				case IRLinearizedLocationType.Parameter:
 					new LIRInstructions.Move(pParent, pSource, pParent.Parameters[(int)Parameter.ParameterIndex], pParent.Parameters[(int)Parameter.ParameterIndex].Type);
 					break;
+				case IRLinearizedLocationType.Field:
+					break;
+				case IRLinearizedLocationType.StaticField:
+					break;
+				case IRLinearizedLocationType.Indirect:
+					break;
+				case IRLinearizedLocationType.ArrayElement:
+					break;
+
+
+				case IRLinearizedLocationType.Null:
+				case IRLinearizedLocationType.LocalAddress:
+				case IRLinearizedLocationType.ParameterAddress:
+				case IRLinearizedLocationType.ConstantI4:
+				case IRLinearizedLocationType.ConstantI8:
+				case IRLinearizedLocationType.ConstantR4:
+				case IRLinearizedLocationType.ConstantR8:
+				case IRLinearizedLocationType.FieldAddress:
+				case IRLinearizedLocationType.StaticFieldAddress:
+				case IRLinearizedLocationType.ArrayElementAddress:
+				case IRLinearizedLocationType.ArrayLength:
+				case IRLinearizedLocationType.FunctionAddress:
+				case IRLinearizedLocationType.RuntimeHandle:
+				case IRLinearizedLocationType.String:
+				case IRLinearizedLocationType.SizeOf:
+					throw new Exception("It's not possile to store to these!");
+				case IRLinearizedLocationType.Phi:
+					throw new Exception("All phi's should have been eliminated by this point!");
+				default:
+					throw new Exception("Unknown IRLinearizedLocationType!");
 			}
 		}
 

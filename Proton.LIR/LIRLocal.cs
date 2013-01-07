@@ -19,6 +19,12 @@ namespace Proton.LIR
 			this.Parent.mLocals.Add(this);
 		}
 
+		public ISource AddressOf()
+		{
+#warning Do me correctly....
+			return this;
+		}
+
 		public override string ToString()
 		{
 			return "#" + Index.ToString();

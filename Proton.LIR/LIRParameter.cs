@@ -18,6 +18,12 @@ namespace Proton.LIR
 			parent.mParameters.Add(this);
 		}
 
+		public ISource AddressOf()
+		{
+#warning Do me correctly....
+			return this;
+		}
+
 		public void Dump(IndentedStreamWriter pWriter)
 		{
 			pWriter.Write(Type.ToString());
