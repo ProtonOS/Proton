@@ -1193,7 +1193,11 @@ namespace Proton.VM.IR
 		{
 			if (LIRMethod == null)
 				throw new Exception();
-			mInstructions.ForEach(i => i.ConvertToLIR(LIRMethod));
+			mInstructions.ForEach(i =>
+			{
+				new LIR.Instructions.Comment(LIRMethod, i.IRIndex + ": " + i.ToString());
+				i.ConvertToLIR(LIRMethod);
+			});
 		}
 
 		public void Dump(IndentableStreamWriter pWriter)

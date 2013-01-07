@@ -4,7 +4,7 @@ using Proton.VM.IR.Instructions;
 
 namespace Proton.VM.IR.Optimizations
 {
-	public sealed class IRNopKillingOptimizationPass : IROptimizationPass
+	public sealed class IRMoveCompactingOptimizationPass : IROptimizationPass
 	{
 		public override string Name { get { return "Move Compacting"; } }
 		public override string Description { get { return "Compacts a move to a move into a single move."; } }

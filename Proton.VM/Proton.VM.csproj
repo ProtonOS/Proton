@@ -134,6 +134,7 @@
     <Compile Include="IR\IRType.cs" />
     <Compile Include="IR\Optimizations\BranchRemoval.cs" />
     <Compile Include="IR\Optimizations\IROptimizationPass.cs" />
+    <Compile Include="IR\Optimizations\MoveCompacting.cs" />
     <Compile Include="IR\Optimizations\NopKilling.cs" />
     <Compile Include="VMConfig.cs" />
   </ItemGroup>
