@@ -399,7 +399,7 @@ namespace Proton.VM.IR
 				case IRLinearizedLocationType.FunctionAddress: return ParentInstruction.ParentMethod.Assembly.AppDomain.System_UIntPtr;
 				case IRLinearizedLocationType.RuntimeHandle: return RuntimeHandle.HandleType;
 				case IRLinearizedLocationType.String: return ParentInstruction.ParentMethod.Assembly.AppDomain.System_String;
-				case IRLinearizedLocationType.Phi: return ParentInstruction.ParentMethod.Locals[Phi.SourceLocations[0].Local.LocalIndex].Type;
+				case IRLinearizedLocationType.Phi: return Phi.SourceLocations[0].GetTypeOfLocation();
 				default: throw new InvalidOperationException();
 			}
 		}
