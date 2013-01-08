@@ -3,6 +3,7 @@ using Proton.Metadata.Tables;
 using Proton.Metadata.Signatures;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Proton.VM.IR
 {
@@ -27,15 +28,18 @@ namespace Proton.VM.IR
 			Console.WriteLine("========== Stage 1: {0,-45} ==========", File.ReferenceName);
 			foreach (TypeDefData typeDefData in File.TypeDefTable) Types.Add(new IRType(this));
             foreach (FieldData fieldData in File.FieldTable) Fields.Add(new IRField(this));
+
 			foreach (MethodDefData methodDefData in File.MethodDefTable)
 			{
 				IRMethod method = new IRMethod(this);
 				Methods.Add(method);
-				var mGenParams = new List<GenericParamData>(Array.FindAll(File.GenericParamTable, gp => gp.Owner.Type == TypeOrMethodDefIndex.TypeOrMethodDefType.MethodDef && gp.Owner.MethodDef == methodDefData));
-				for (int i = 0; i < mGenParams.Count; i++)
-				{
-					method.GenericParameters.Add(IRType.GetMVarPlaceholder(mGenParams[i].Number));
-				}
+
+                /* Warning: this depends on the GenericParamTable pivot positions */
+                for (uint i = 0; i < File.GenericParamTablePivot; ++i)
+                {
+                    if (File.GenericParamTable[i].Owner.MethodDef == methodDefData)
+                        method.GenericParameters.Add(IRType.GetMVarPlaceholder(File.GenericParamTable[i].Number));
+                }
 			}
 
             for (int typeIndex = 0; typeIndex < Types.Count; ++typeIndex)
@@ -46,11 +50,13 @@ namespace Proton.VM.IR
                 type.Namespace = typeDefData.TypeNamespace;
                 type.Name = typeDefData.TypeName;
 				type.Flags = typeDefData.Flags;
-				var genParams = new List<GenericParamData>(Array.FindAll(File.GenericParamTable, gp => gp.Owner.Type == TypeOrMethodDefIndex.TypeOrMethodDefType.TypeDef && gp.Owner.TypeDef == typeDefData));
-				for (int i = 0; i < genParams.Count; i++)
-				{
-					type.GenericParameters.Add(IRType.GetVarPlaceholder(genParams[i].Number));
-				}
+
+                /* Warning: this depends on the GenericParamTable pivot positions */
+                for (int i = File.GenericParamTablePivot; i < File.GenericParamTable.Length; ++i)
+                {
+                    if (File.GenericParamTable[i].Owner.TypeDef == typeDefData)
+                        type.GenericParameters.Add(IRType.GetVarPlaceholder(File.GenericParamTable[i].Number));
+                }
 
                 foreach (FieldData fieldData in typeDefData.FieldList)
                 {
@@ -60,6 +66,7 @@ namespace Proton.VM.IR
                     field.ParentType = type;
                     type.Fields.Add(field);
                 }
+
                 foreach (MethodDefData methodDefData in typeDefData.MethodList)
                 {
                     IRMethod method = Methods[methodDefData.TableIndex];
@@ -89,6 +96,7 @@ namespace Proton.VM.IR
                     }
                 }
             }
+
             for (int typeIndex = 0; typeIndex < Types.Count; ++typeIndex)
             {
                 IRType type = Types[typeIndex];

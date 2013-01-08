@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Diagnostics;
 
 namespace Proton.Metadata.Tables
 {
@@ -18,7 +19,35 @@ namespace Proton.Metadata.Tables
 
         public static void Load(CLIFile pFile)
         {
-            for (int index = 0; index < pFile.GenericParamTable.Length; ++index) pFile.GenericParamTable[index].LoadData(pFile);
+            GenericParamData[] table = pFile.GenericParamTable;
+            int size = table.Length;
+            for (int index = 0; index < size; ++index) table[index].LoadData(pFile);
+
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            /* A single quickswap step in O(n) */
+            /* Sets MethoDef first */
+            int left = 0, right = size - 1;
+            while(left <= right)
+            {
+                while (table[left].Owner.Type == TypeOrMethodDefIndex.TypeOrMethodDefType.MethodDef && left < size)
+                    ++left;
+
+                while (table[right].Owner.Type == TypeOrMethodDefIndex.TypeOrMethodDefType.TypeDef && right > 0)
+                    --right;
+
+                if (left <= right) // swap
+                {
+                    GenericParamData temp = table[left];
+                    table[left] = table[right];
+                    table[right] = temp;
+                    ++left;
+                    --right;
+                }
+            } while (left < right);
+            pFile.GenericParamTablePivot = left;
+            sw.Stop();
+            Console.WriteLine("Time to process GenericParamData: {0} ticks.", sw.ElapsedTicks);
         }
 
         public static void Link(CLIFile pFile)
