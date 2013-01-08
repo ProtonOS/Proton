@@ -730,9 +730,9 @@ namespace Proton.VM.IR
 				case IRLinearizedLocationType.ConstantR8:
 					return "ConstantR8(" + ConstantR8.Value + ")";
 				case IRLinearizedLocationType.Field:
-					return "Field(" + Field.FieldLocation + ", " + Field.Field + ")";
+					return "Field(" + Field.FieldLocation + ", " + Field.Field.ToString(true) + ")";
 				case IRLinearizedLocationType.FieldAddress:
-					return "FieldAddress(" + FieldAddress.FieldLocation + ", " + FieldAddress.Field + ")";
+					return "FieldAddress(" + FieldAddress.FieldLocation + ", " + FieldAddress.Field.ToString(true) + ")";
 				case IRLinearizedLocationType.StaticField:
 					return "StaticField(" + StaticField.Field + ")";
 				case IRLinearizedLocationType.StaticFieldAddress:

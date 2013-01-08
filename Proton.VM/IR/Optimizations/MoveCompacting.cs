@@ -155,12 +155,23 @@ namespace Proton.VM.IR.Optimizations
 				if (curInstr.Destination != null)
 				{
 					ProcessLocation(curInstr.Destination, localUseMap);
-					if (curInstr.Opcode == IROpcode.Move && curInstr.Destination.Type == IRLinearizedLocationType.Local)
+					if (curInstr.Opcode == IROpcode.Move)
 					{
-						if (localUseMap[curInstr.Destination.Local.LocalIndex].AssignedAt >= 0)
-							throw new Exception("Somehow it was already assigned!");
-						localUseMap[curInstr.Destination.Local.LocalIndex].UseCount--;
-						localUseMap[curInstr.Destination.Local.LocalIndex].AssignedAt = i;
+						if (curInstr.Destination.Type == IRLinearizedLocationType.Local)
+						{
+							if (localUseMap[curInstr.Destination.Local.LocalIndex].AssignedAt >= 0)
+								throw new Exception("Somehow it was already assigned!");
+							localUseMap[curInstr.Destination.Local.LocalIndex].UseCount--;
+							localUseMap[curInstr.Destination.Local.LocalIndex].AssignedAt = i;
+						}
+						
+						if (curInstr.Sources[0].Type == IRLinearizedLocationType.Phi)
+						{
+							foreach (var v in curInstr.Sources[0].Phi.SourceLocations)
+							{
+								localUseMap[v.Local.LocalIndex].AddressLoaded = true;
+							}
+						}
 					}
 				}
 			}

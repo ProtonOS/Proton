@@ -90,7 +90,11 @@ namespace Proton.VM.IR
 
 		public override string ToString()
 		{
-			return (IsStatic ? "static " : "") + Type.ToString() + " " + Name;
+			return ToString(false);
+		}
+		public string ToString(bool printParent)
+		{
+			return (IsStatic ? "static " : "") + Type.ToString() + " " + (printParent ? ParentType.ToString() + "." : "") + Name;
 		}
 
 		public bool CompareSignature(FieldSig pFieldSig)
