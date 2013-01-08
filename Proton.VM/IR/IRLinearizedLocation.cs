@@ -10,8 +10,8 @@ namespace Proton.VM.IR
     {
         public struct LocalLocationData { public int LocalIndex; }
         public struct LocalAddressLocationData { public int LocalIndex; }
-        public struct ParameterLocationData { public uint ParameterIndex; }
-        public struct ParameterAddressLocationData { public uint ParameterIndex; }
+        public struct ParameterLocationData { public int ParameterIndex; }
+        public struct ParameterAddressLocationData { public int ParameterIndex; }
         public struct ConstantI4LocationData { public int Value; }
         public struct ConstantI8LocationData { public long Value; }
         public struct ConstantR4LocationData { public float Value; }
@@ -381,8 +381,8 @@ namespace Proton.VM.IR
 				case IRLinearizedLocationType.Null: return ParentInstruction.ParentMethod.Assembly.AppDomain.System_Object;
 				case IRLinearizedLocationType.Local: return ParentInstruction.ParentMethod.Locals[Local.LocalIndex].Type;
 				case IRLinearizedLocationType.LocalAddress: return ParentInstruction.ParentMethod.Locals[LocalAddress.LocalIndex].Type.GetManagedPointerType();
-				case IRLinearizedLocationType.Parameter: return ParentInstruction.ParentMethod.Parameters[(int)Parameter.ParameterIndex].Type;
-				case IRLinearizedLocationType.ParameterAddress: return ParentInstruction.ParentMethod.Parameters[(int)ParameterAddress.ParameterIndex].Type.GetManagedPointerType();
+				case IRLinearizedLocationType.Parameter: return ParentInstruction.ParentMethod.Parameters[Parameter.ParameterIndex].Type;
+				case IRLinearizedLocationType.ParameterAddress: return ParentInstruction.ParentMethod.Parameters[ParameterAddress.ParameterIndex].Type.GetManagedPointerType();
 				case IRLinearizedLocationType.ConstantI4: return ParentInstruction.ParentMethod.Assembly.AppDomain.System_Int32;
 				case IRLinearizedLocationType.ConstantI8: return ParentInstruction.ParentMethod.Assembly.AppDomain.System_Int64;
 				case IRLinearizedLocationType.ConstantR4: return ParentInstruction.ParentMethod.Assembly.AppDomain.System_Single;
@@ -415,7 +415,7 @@ namespace Proton.VM.IR
 					new LIRInstructions.Move(pParent, pParent.Locals[Local.LocalIndex], pDestination, pParent.Locals[Local.LocalIndex].Type);
 					break;
 				case IRLinearizedLocationType.Parameter:
-					new LIRInstructions.Move(pParent, pParent.Parameters[(int)Parameter.ParameterIndex], pDestination, pParent.Parameters[(int)Parameter.ParameterIndex].Type);
+					new LIRInstructions.Move(pParent, pParent.Parameters[Parameter.ParameterIndex], pDestination, pParent.Parameters[Parameter.ParameterIndex].Type);
 					break;
 				case IRLinearizedLocationType.ConstantI4:
 					new LIRInstructions.Move(pParent, (LIRImm)ConstantI4.Value, pDestination, ParentInstruction.ParentMethod.Assembly.AppDomain.System_Int32);
@@ -506,7 +506,7 @@ namespace Proton.VM.IR
 					new LIRInstructions.Move(pParent, pParent.Locals[Local.LocalIndex].AddressOf(), pDestination, pParent.Locals[Local.LocalIndex].Type);
 					break;
 				case IRLinearizedLocationType.ParameterAddress:
-					new LIRInstructions.Move(pParent, pParent.Parameters[(int)Parameter.ParameterIndex].AddressOf(), pDestination, pParent.Parameters[(int)Parameter.ParameterIndex].Type);
+					new LIRInstructions.Move(pParent, pParent.Parameters[Parameter.ParameterIndex].AddressOf(), pDestination, pParent.Parameters[Parameter.ParameterIndex].Type);
 					break;
 
 
@@ -537,7 +537,7 @@ namespace Proton.VM.IR
 					new LIRInstructions.Move(pParent, pSource, pParent.Locals[Local.LocalIndex], pParent.Locals[Local.LocalIndex].Type);
 					break;
 				case IRLinearizedLocationType.Parameter:
-					new LIRInstructions.Move(pParent, pSource, pParent.Parameters[(int)Parameter.ParameterIndex], pParent.Parameters[(int)Parameter.ParameterIndex].Type);
+					new LIRInstructions.Move(pParent, pSource, pParent.Parameters[Parameter.ParameterIndex], pParent.Parameters[Parameter.ParameterIndex].Type);
 					break;
 				case IRLinearizedLocationType.Field:
 					break;

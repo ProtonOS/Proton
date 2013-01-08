@@ -7,9 +7,9 @@ namespace Proton.VM.IR.Instructions
 {
     public sealed class IRLoadParameterAddressInstruction : IRInstruction
     {
-        public uint ParameterIndex { get; private set; }
+        public int ParameterIndex { get; private set; }
 
-        public IRLoadParameterAddressInstruction(uint pParameterIndex) : base(IROpcode.LoadParameterAddress) { ParameterIndex = pParameterIndex; }
+        public IRLoadParameterAddressInstruction(int pParameterIndex) : base(IROpcode.LoadParameterAddress) { ParameterIndex = pParameterIndex; }
 
         public override void Linearize(Stack<IRStackObject> pStack)
         {

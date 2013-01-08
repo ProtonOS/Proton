@@ -7,9 +7,9 @@ namespace Proton.VM.IR.Instructions
 {
     public sealed class IRStoreParameterInstruction : IRInstruction
     {
-        public uint ParameterIndex = 0;
+        public int ParameterIndex = 0;
 
-        public IRStoreParameterInstruction(uint pParameterIndex) : base(IROpcode.StoreParameter) { ParameterIndex = pParameterIndex; }
+        public IRStoreParameterInstruction(int pParameterIndex) : base(IROpcode.StoreParameter) { ParameterIndex = pParameterIndex; }
 
         public override void Linearize(Stack<IRStackObject> pStack)
         {

@@ -7,9 +7,9 @@ namespace Proton.VM.IR.Instructions
 {
     public sealed class IRLoadParameterInstruction : IRInstruction
     {
-        public uint ParameterIndex { get; private set; }
+        public int ParameterIndex { get; private set; }
 
-        public IRLoadParameterInstruction(uint pParameterIndex) : base(IROpcode.LoadParameter) { ParameterIndex = pParameterIndex; }
+        public IRLoadParameterInstruction(int pParameterIndex) : base(IROpcode.LoadParameter) { ParameterIndex = pParameterIndex; }
 
         public override void Linearize(Stack<IRStackObject> pStack)
         {
@@ -18,9 +18,9 @@ namespace Proton.VM.IR.Instructions
             Sources.Add(source);
 
             IRStackObject result = new IRStackObject();
-            result.Type = ParentMethod.Parameters[(int)ParameterIndex].Type;
+            result.Type = ParentMethod.Parameters[ParameterIndex].Type;
 			result.LinearizedTarget = new IRLinearizedLocation(this, IRLinearizedLocationType.Local);
-            result.LinearizedTarget.Local.LocalIndex = AddLinearizedLocal(pStack, ParentMethod.Parameters[(int)ParameterIndex].Type);
+            result.LinearizedTarget.Local.LocalIndex = AddLinearizedLocal(pStack, ParentMethod.Parameters[ParameterIndex].Type);
 			Destination = new IRLinearizedLocation(this, result.LinearizedTarget);
             pStack.Push(result);
         }
