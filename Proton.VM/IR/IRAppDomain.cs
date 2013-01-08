@@ -195,6 +195,7 @@ namespace Proton.VM.IR
 			// Method Transforms
 			new IRStaticFieldLiteralInliningTransformationPass(),
 			new IRSizeOfToConstantTransformationPass(),
+			new IRInitalizeObjectSpecializationTransformationPass(),
 		};
 
 		private void LoadStage5()
