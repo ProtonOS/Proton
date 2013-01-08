@@ -16,6 +16,10 @@ namespace Proton.VM.IR
 		public List<IRLinearizedLocation> Sources = new List<IRLinearizedLocation>();
 		public IRLinearizedLocation Destination = null;
 
+		// LIR transformation stage
+		private Label mLabel = null;
+		public Label Label { get { return mLabel ?? (mLabel = new Label()); } }
+
 		protected IRInstruction(IROpcode pOpcode)
 		{
 			Opcode = pOpcode;

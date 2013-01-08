@@ -1225,6 +1225,7 @@ namespace Proton.VM.IR
 			mInstructions.ForEach(i =>
 			{
 				new LIR.Instructions.Comment(LIRMethod, i.IRIndex + ": " + i.ToString());
+#warning Need to mark a label here at some point
 				i.ConvertToLIR(LIRMethod);
 			});
 		}

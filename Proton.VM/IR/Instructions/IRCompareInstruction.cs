@@ -36,6 +36,30 @@ namespace Proton.VM.IR.Instructions
 
 		public override void ConvertToLIR(LIRMethod pLIRMethod)
 		{
+			var sA = pLIRMethod.RequestLocal(Sources[0].GetTypeOfLocation());
+			Sources[0].LoadTo(pLIRMethod, sA);
+			var sB = pLIRMethod.RequestLocal(Sources[1].GetTypeOfLocation());
+			Sources[1].LoadTo(pLIRMethod, sB);
+			var dest = pLIRMethod.RequestLocal(Destination.GetTypeOfLocation());
+			LIRInstructions.CompareCondition condition = LIRInstructions.CompareCondition.Equal;
+			switch (CompareCondition)
+			{
+				case IRCompareCondition.Equal: break;
+				case IRCompareCondition.GreaterThan: 
+				case IRCompareCondition.GreaterThanUnsigned:
+					condition = LIRInstructions.CompareCondition.GreaterThan;
+					break;
+				case IRCompareCondition.LessThan:
+				case IRCompareCondition.LessThanUnsigned:
+					condition = LIRInstructions.CompareCondition.LessThan;
+					break;
+				default: throw new Exception("Invalid Compare Condition");
+			}
+			new LIRInstructions.Compare(pLIRMethod, sA, sB, dest, sA.Type, condition);
+			pLIRMethod.ReleaseLocal(sA);
+			pLIRMethod.ReleaseLocal(sB);
+			Destination.StoreTo(pLIRMethod, dest);
+			pLIRMethod.ReleaseLocal(dest);
 		}
 
 		protected override void DumpDetails(IndentableStreamWriter pWriter)

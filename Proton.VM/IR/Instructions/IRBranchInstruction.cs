@@ -64,6 +64,85 @@ namespace Proton.VM.IR.Instructions
 
 		public override void ConvertToLIR(LIRMethod pLIRMethod)
 		{
+			switch (BranchCondition)
+			{
+				case IRBranchCondition.Always:
+					new LIRInstructions.Branch(pLIRMethod, TargetIRInstruction.Label);
+					break;
+				case IRBranchCondition.False:
+				case IRBranchCondition.True:
+				{
+					var sA = pLIRMethod.RequestLocal(Sources[0].GetTypeOfLocation());
+					Sources[0].LoadTo(pLIRMethod, sA);
+					var sB = pLIRMethod.RequestLocal(ParentMethod.Assembly.AppDomain.System_Int32);
+					new IRLinearizedLocation(this, IRLinearizedLocationType.ConstantI4)
+					{
+						ConstantI4 = new IRLinearizedLocation.ConstantI4LocationData()
+						{
+							Value = 0
+						}
+					}.LoadTo(pLIRMethod, sB);
+					var dest = pLIRMethod.RequestLocal(ParentMethod.Assembly.AppDomain.System_Int32);
+					new LIRInstructions.Compare(pLIRMethod, sA, sB, dest, sA.Type, BranchCondition == IRBranchCondition.True ? LIRInstructions.CompareCondition.NotEqual : LIRInstructions.CompareCondition.Equal);
+					pLIRMethod.ReleaseLocal(sA);
+					pLIRMethod.ReleaseLocal(sB);
+					new LIRInstructions.BranchTrue(pLIRMethod, dest, TargetIRInstruction.Label);
+					pLIRMethod.ReleaseLocal(dest);
+					break;
+				}
+				case IRBranchCondition.GreaterOrEqual:
+				case IRBranchCondition.GreaterOrEqualUnsigned:
+				case IRBranchCondition.Greater:
+				case IRBranchCondition.GreaterUnsigned:
+				case IRBranchCondition.LessOrEqual:
+				case IRBranchCondition.LessOrEqualUnsigned:
+				case IRBranchCondition.Less:
+				case IRBranchCondition.LessUnsigned:
+				case IRBranchCondition.NotEqualUnsigned:
+				case IRBranchCondition.Equal:
+				{
+					var sA = pLIRMethod.RequestLocal(Sources[0].GetTypeOfLocation());
+					Sources[0].LoadTo(pLIRMethod, sA);
+					var sB = pLIRMethod.RequestLocal(Sources[1].GetTypeOfLocation());
+					Sources[1].LoadTo(pLIRMethod, sB);
+					var dest = pLIRMethod.RequestLocal(ParentMethod.Assembly.AppDomain.System_Int32);
+					LIRInstructions.CompareCondition condition = LIRInstructions.CompareCondition.Equal;
+					switch (BranchCondition)
+					{
+						case IRBranchCondition.GreaterOrEqual:
+						case IRBranchCondition.GreaterOrEqualUnsigned:
+							condition = LIRInstructions.CompareCondition.GreaterThanOrEqual;
+							break;
+						case IRBranchCondition.Greater:
+						case IRBranchCondition.GreaterUnsigned:
+							condition = LIRInstructions.CompareCondition.GreaterThan;
+							break;
+						case IRBranchCondition.LessOrEqual:
+						case IRBranchCondition.LessOrEqualUnsigned:
+							condition = LIRInstructions.CompareCondition.LessThanOrEqual;
+							break;
+						case IRBranchCondition.Less:
+						case IRBranchCondition.LessUnsigned:
+							condition = LIRInstructions.CompareCondition.LessThan;
+							break;
+						case IRBranchCondition.NotEqualUnsigned:
+							condition = LIRInstructions.CompareCondition.NotEqual;
+							break;
+						case IRBranchCondition.Equal:
+							condition = LIRInstructions.CompareCondition.Equal;
+							break;
+						default: throw new Exception("Something is rong here, we just were one of these....");
+					}
+					new LIRInstructions.Compare(pLIRMethod, sA, sB, dest, sA.Type, condition);
+					pLIRMethod.ReleaseLocal(sA);
+					pLIRMethod.ReleaseLocal(sB);
+					new LIRInstructions.BranchTrue(pLIRMethod, dest, TargetIRInstruction.Label);
+					pLIRMethod.ReleaseLocal(dest);
+					break;
+				}
+				default:
+					throw new Exception("Unknown IRBranchCondition!");
+			}
 		}
 
 		protected override void DumpDetails(IndentableStreamWriter pWriter)
