@@ -759,7 +759,7 @@ namespace Proton.VM.IR
 					else
 						throw new Exception("Unknown runtime handle type!");
 				case IRLinearizedLocationType.String:
-					return "String(" + String.Value + ")";
+					return "String(\"" + String.Value + "\")";
 				case IRLinearizedLocationType.Phi:
 					return "Phi(" + string.Join(", ", Phi.SourceLocations) + ")";
 				default:

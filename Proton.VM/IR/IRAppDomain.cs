@@ -179,7 +179,9 @@ namespace Proton.VM.IR
 			LoadStage5();
 			LoadStage6();
 			LoadStage7();
-			Console.WriteLine("Dumping...");
+			LoadStage8();
+			LoadStage9();
+			Console.WriteLine("Dumping IRAppDomain...");
 			Dump();
 			return assembly;
         }
@@ -199,6 +201,7 @@ namespace Proton.VM.IR
 			new IRBranchRemovalOptimizationPass(),
 
 			// During SSA
+			new IRCallDevirtualizatoinOptimizationPass(),
 			new IRMoveCompactingOptimizationPass(),
 
 			// After SSA
@@ -247,6 +250,22 @@ namespace Proton.VM.IR
 			Console.WriteLine("========== {0,-22} Stage 7 {0,-23} ==========", " ");
 			Methods.ForEach(m => m.CreateLIRMethod());
 			Methods.ForEach(m => m.PopulateLIRMethodBody());
+		}
+
+		private LIR.LIRCompileUnit mainUnit;
+		private void LoadStage8()
+		{
+			Console.WriteLine("========== {0,-22} Stage 8 {0,-23} ==========", " ");
+			mainUnit = new LIR.LIRCompileUnit();
+			Methods.ForEach(m => mainUnit.Methods.Add(m.LIRMethod));
+
+		}
+
+		private void LoadStage9()
+		{
+			Console.WriteLine("========== {0,-22} Stage 9 {0,-23} ==========", " ");
+			MemoryStream strm = new MemoryStream();
+			mainUnit.Compile(strm);
 		}
 
 		private void Layout()

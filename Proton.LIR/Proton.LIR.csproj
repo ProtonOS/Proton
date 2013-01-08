@@ -41,6 +41,7 @@
     <Compile Include="Instructions\Nop.cs" />
     <Compile Include="Instructions\Return.cs" />
     <Compile Include="Instructions\Unary.cs" />
+    <Compile Include="LIRCompileUnit.cs" />
     <Compile Include="LIRImm.cs" />
     <Compile Include="LIRInstruction.cs" />
     <Compile Include="LIRLocal.cs" />

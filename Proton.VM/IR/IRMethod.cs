@@ -297,6 +297,13 @@ namespace Proton.VM.IR
         public IRMethod GenericMethod = null;
         public readonly IRGenericParameterList GenericParameters = new IRGenericParameterList();
 
+		private int mVirtualMethodIndex = -1;
+		public int VirtualMethodIndex
+		{
+			get { return mVirtualMethodIndex; }
+			set { mVirtualMethodIndex = value; }
+		}
+
 		private int mParentTypeMethodIndex = -1;
 		public int ParentTypeMethodIndex
 		{
@@ -1206,7 +1213,7 @@ namespace Proton.VM.IR
 
 		public void CreateLIRMethod()
 		{
-			LIRMethod = new LIRMethod(ReturnType ?? (LIRType)null);
+			LIRMethod = new LIRMethod(Name, ReturnType ?? (LIRType)null);
 			mParameters.ForEach(p => new LIRParameter(LIRMethod, p.Type));
 			mLocals.ForEach(l => new LIRLocal(LIRMethod, l.Type));
 		}

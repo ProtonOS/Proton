@@ -8,8 +8,8 @@ namespace Proton.VM.IR.Instructions
     public sealed class IRCallInstruction : IRInstruction
     {
 		private IRMethod mTarget = null;
-		public IRMethod Target { get { return mTarget; } private set { mTarget = value; } }
-        public bool Virtual { get; private set; }
+		public IRMethod Target { get { return mTarget; } set { mTarget = value; } }
+        public bool Virtual { get; set; }
 
         public IRCallInstruction(IRMethod pTarget, bool pVirtual) : base(IROpcode.Call)
         {

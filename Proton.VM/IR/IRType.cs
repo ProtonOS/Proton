@@ -240,16 +240,19 @@ namespace Proton.VM.IR
 					{
 						if (method.IsNewSlot)
 						{
+							method.VirtualMethodIndex = VirtualMethodTree.Count;
 							VirtualMethodTree.Add(method);
 						}
 						else if (method.IsHideBySig)
 						{
 							var v = VirtualMethodTree.FindIndex(m2 => m2 == method);
+							method.VirtualMethodIndex = VirtualMethodTree.Count;
 							VirtualMethodTree[v] = method;
 						}
 						else
 						{
 							var v = VirtualMethodTree.FindIndex(m2 => m2.Name == method.Name);
+							method.VirtualMethodIndex = VirtualMethodTree.Count;
 							VirtualMethodTree[v] = method;
 						}
 					}

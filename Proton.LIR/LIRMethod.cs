@@ -18,23 +18,30 @@ namespace Proton.LIR
 		internal List<LIRParameter> mParameters = new List<LIRParameter>(InitialParameterCapacity);
 		public List<LIRParameter> Parameters { get { return mParameters; } }
 
+		public string Name { get; private set; }
 		public LIRType ReturnType { get; private set; }
 
 		private static int sTempID = 0;
 		private int mTempID;
-		public LIRMethod(LIRType returnType)
+		public LIRMethod(string name, LIRType returnType)
 		{
-			mTempID = sTempID++;
-			ReturnType = returnType;
+			this.mTempID = sTempID++;
+			this.Name = name;
+			this.ReturnType = returnType;
 		}
 
-		private Dictionary<LIRType, Queue<LIRLocal>> requestedLocalMap = new Dictionary<LIRType, Queue<LIRLocal>>();
+		public override string ToString()
+		{
+			return "~" + mTempID + ":" + Name;
+		}
+
+		private Dictionary<int, Queue<LIRLocal>> requestedLocalMap = new Dictionary<int, Queue<LIRLocal>>();
 		public LIRLocal RequestLocal(LIRType tp)
 		{
 			Queue<LIRLocal> q;
-			if (!requestedLocalMap.TryGetValue(tp, out q))
+			if (!requestedLocalMap.TryGetValue(tp.GetHashCode(), out q))
 			{
-				requestedLocalMap.Add(tp, new Queue<LIRLocal>());
+				requestedLocalMap.Add(tp.GetHashCode(), new Queue<LIRLocal>());
 				return new LIRLocal(this, tp);
 			}
 			if (q.Count > 0)
@@ -46,12 +53,12 @@ namespace Proton.LIR
 		}
 		public void ReleaseLocal(LIRLocal l)
 		{
-			requestedLocalMap[l.Type].Enqueue(l);
+			requestedLocalMap[l.Type.GetHashCode()].Enqueue(l);
 		}
 
 		public void Dump(IndentedStreamWriter pWriter)
 		{
-			pWriter.Write("LIRMethod(");
+			pWriter.Write("LIRMethod ~{0}:{1}(", mTempID, Name);
 			for (int index = 0; index < mParameters.Count; ++index)
 			{
 				mParameters[index].Dump(pWriter);
