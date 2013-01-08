@@ -5,10 +5,10 @@ using System.Collections.Generic;
 
 namespace Proton.VM.IR
 {
-    public sealed class IRLocal
-    {
-        public IRAssembly Assembly = null;
-        public IRMethod ParentMethod = null;
+	public sealed class IRLocal
+	{
+		public IRAssembly Assembly = null;
+		public IRMethod ParentMethod = null;
 
 		private IRLocal mParentLocal = null;
 		private IRType mType;
@@ -31,20 +31,20 @@ namespace Proton.VM.IR
 			}
 		}
 
-        public int Index = 0;
+		public int Index = 0;
 		public int Offset = -1;
 
-        public bool Resolved { get { return Type.Resolved; } }
+		public bool Resolved { get { return Type.Resolved; } }
 
 		public void Substitute() { Resolve(); }
 
-        public void Resolve()
-        {
+		public void Resolve()
+		{
 			if (Type == ParentMethod.ParentType.GenericType)
 				Type = ParentMethod.ParentType;
 			else
 				Type.Resolve(ref mType, ParentMethod.ParentType.GenericParameters, ParentMethod.GenericParameters);
-        }
+		}
 
 		public sealed class IRLocalSSAData
 		{
@@ -76,23 +76,23 @@ namespace Proton.VM.IR
 		private static int sTempID = 0;
 		private int mTempID = 0;
 		
-        public IRLocal(IRAssembly pAssembly)
-        {
-            Assembly = pAssembly;
+		public IRLocal(IRAssembly pAssembly)
+		{
+			Assembly = pAssembly;
 			mTempID = sTempID++;
 		}
 
-        public IRLocal Clone(IRMethod newMethod)
-        {
-            IRLocal local = new IRLocal(this.Assembly);
+		public IRLocal Clone(IRMethod newMethod)
+		{
+			IRLocal local = new IRLocal(this.Assembly);
 			local.ParentMethod = newMethod;
 			local.mParentLocal = this.Type == null ? this : null;
 			if (this.Type != null)
 				local.mType = this.Type;
-            local.Index = newMethod.Locals.Count;
+			local.Index = newMethod.Locals.Count;
 			if (SSAData != null) local.SSAData = SSAData.Clone();
-            return local;
-        }
+			return local;
+		}
 
 		public override string ToString()
 		{
@@ -114,5 +114,5 @@ namespace Proton.VM.IR
 		{
 			pWriter.WriteLine("IRLocal #{0} {1} @ {2}", mTempID, ToString(), Offset);
 		}
-    }
+	}
 }

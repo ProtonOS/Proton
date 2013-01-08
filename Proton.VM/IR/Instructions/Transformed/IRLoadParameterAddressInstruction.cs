@@ -5,29 +5,29 @@ using System.Collections.Generic;
 
 namespace Proton.VM.IR.Instructions
 {
-    public sealed class IRLoadParameterAddressInstruction : IRInstruction
-    {
-        public int ParameterIndex { get; private set; }
+	public sealed class IRLoadParameterAddressInstruction : IRInstruction
+	{
+		public int ParameterIndex { get; private set; }
 
-        public IRLoadParameterAddressInstruction(int pParameterIndex) : base(IROpcode.LoadParameterAddress) { ParameterIndex = pParameterIndex; }
+		public IRLoadParameterAddressInstruction(int pParameterIndex) : base(IROpcode.LoadParameterAddress) { ParameterIndex = pParameterIndex; }
 
-        public override void Linearize(Stack<IRStackObject> pStack)
-        {
+		public override void Linearize(Stack<IRStackObject> pStack)
+		{
 			IRLinearizedLocation source = new IRLinearizedLocation(this, IRLinearizedLocationType.ParameterAddress);
-            source.ParameterAddress.ParameterIndex = ParameterIndex;
-            Sources.Add(source);
+			source.ParameterAddress.ParameterIndex = ParameterIndex;
+			Sources.Add(source);
 
-            IRStackObject result = new IRStackObject();
-            result.Type = ParentMethod.Assembly.AppDomain.System_IntPtr;
+			IRStackObject result = new IRStackObject();
+			result.Type = ParentMethod.Assembly.AppDomain.System_IntPtr;
 			result.LinearizedTarget = new IRLinearizedLocation(this, IRLinearizedLocationType.Local);
-            result.LinearizedTarget.Local.LocalIndex = AddLinearizedLocal(pStack, ParentMethod.Assembly.AppDomain.System_IntPtr);
+			result.LinearizedTarget.Local.LocalIndex = AddLinearizedLocal(pStack, ParentMethod.Assembly.AppDomain.System_IntPtr);
 			Destination = new IRLinearizedLocation(this, result.LinearizedTarget);
-            pStack.Push(result);
-        }
+			pStack.Push(result);
+		}
 
-        public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRLoadParameterAddressInstruction(ParameterIndex), pNewMethod); }
+		public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRLoadParameterAddressInstruction(ParameterIndex), pNewMethod); }
 
-        public override IRInstruction Transform() { return new IRMoveInstruction(this); }
+		public override IRInstruction Transform() { return new IRMoveInstruction(this); }
 
 		public override void ConvertToLIR(LIRMethod pLIRMethod) { }
 

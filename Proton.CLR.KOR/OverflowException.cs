@@ -1,9 +1,9 @@
 ﻿namespace System
 {
-    public class OverflowException : ArithmeticException
-    {
-        public OverflowException() : base("Number overflow.") { }
+	public class OverflowException : ArithmeticException
+	{
+		public OverflowException() : base("Number overflow.") { }
 
-        public OverflowException(string message) : base(message) { }
-    }
+		public OverflowException(string message) : base(message) { }
+	}
 }

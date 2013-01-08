@@ -1,13 +1,13 @@
 ﻿namespace System.Collections
 {
-    public interface ICollection : IEnumerable
-    {
-        int Count { get; }
+	public interface ICollection : IEnumerable
+	{
+		int Count { get; }
 
-        bool IsSynchronized { get; }
+		bool IsSynchronized { get; }
 
-        object SyncRoot { get; }
+		object SyncRoot { get; }
 
-        void CopyTo(Array array, int index);
-    }
+		void CopyTo(Array array, int index);
+	}
 }

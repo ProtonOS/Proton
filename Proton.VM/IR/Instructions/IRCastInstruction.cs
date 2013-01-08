@@ -5,31 +5,31 @@ using System.Collections.Generic;
 
 namespace Proton.VM.IR.Instructions
 {
-    public sealed class IRCastInstruction : IRInstruction
-    {
+	public sealed class IRCastInstruction : IRInstruction
+	{
 		private IRType mType = null;
 		public IRType Type { get { return mType; } private set { mType = value; } }
-        public bool ThrowExceptionOnFailure { get; private set; }
+		public bool ThrowExceptionOnFailure { get; private set; }
 
-        public IRCastInstruction(IRType pType, bool pThrowExceptionOnFailure) : base(IROpcode.Cast)
-        {
-            Type = pType;
-            ThrowExceptionOnFailure = pThrowExceptionOnFailure;
-        }
+		public IRCastInstruction(IRType pType, bool pThrowExceptionOnFailure) : base(IROpcode.Cast)
+		{
+			Type = pType;
+			ThrowExceptionOnFailure = pThrowExceptionOnFailure;
+		}
 
-        public override void Linearize(Stack<IRStackObject> pStack)
-        {
+		public override void Linearize(Stack<IRStackObject> pStack)
+		{
 			Sources.Add(new IRLinearizedLocation(this, pStack.Pop().LinearizedTarget));
 
-            IRStackObject result = new IRStackObject();
-            result.Type = Type;
+			IRStackObject result = new IRStackObject();
+			result.Type = Type;
 			result.LinearizedTarget = new IRLinearizedLocation(this, IRLinearizedLocationType.Local);
-            result.LinearizedTarget.Local.LocalIndex = AddLinearizedLocal(pStack, Type);
+			result.LinearizedTarget.Local.LocalIndex = AddLinearizedLocal(pStack, Type);
 			Destination = new IRLinearizedLocation(this, result.LinearizedTarget);
-            pStack.Push(result);
-        }
+			pStack.Push(result);
+		}
 
-        public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRCastInstruction(Type, ThrowExceptionOnFailure), pNewMethod); }
+		public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRCastInstruction(Type, ThrowExceptionOnFailure), pNewMethod); }
 
 		public override bool Resolved { get { return Type.Resolved; } }
 		public override void Resolve()

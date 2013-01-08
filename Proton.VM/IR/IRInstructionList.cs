@@ -5,44 +5,44 @@ using System.Collections.Generic;
 
 namespace Proton.VM.IR
 {
-    public sealed class IRInstructionList : IEnumerable<IRInstruction>
-    {
-        public static readonly IRInstructionList Empty = new IRInstructionList();
+	public sealed class IRInstructionList : IEnumerable<IRInstruction>
+	{
+		public static readonly IRInstructionList Empty = new IRInstructionList();
 
-        private const int InnerListInitialCapacity = 32;
+		private const int InnerListInitialCapacity = 32;
 
-        private readonly List<IRInstruction> mInstructions = new List<IRInstruction>(InnerListInitialCapacity);
-        private readonly Dictionary<int, IRInstruction> mILOffsetLookup = new Dictionary<int, IRInstruction>();
+		private readonly List<IRInstruction> mInstructions = new List<IRInstruction>(InnerListInitialCapacity);
+		private readonly Dictionary<int, IRInstruction> mILOffsetLookup = new Dictionary<int, IRInstruction>();
 
-        public int Count { get { return mInstructions.Count; } }
+		public int Count { get { return mInstructions.Count; } }
 
-        private bool? mResolvedCache;
+		private bool? mResolvedCache;
 
-        public bool Resolved
-        {
-            get
-            {
-                if (mResolvedCache.HasValue) return mResolvedCache.Value;
-                mResolvedCache = mInstructions.TrueForAll(i => i.Resolved);
-                return mResolvedCache.Value;
-            }
-        }
+		public bool Resolved
+		{
+			get
+			{
+				if (mResolvedCache.HasValue) return mResolvedCache.Value;
+				mResolvedCache = mInstructions.TrueForAll(i => i.Resolved);
+				return mResolvedCache.Value;
+			}
+		}
 
-        public IRInstructionList() { }
-        public IRInstructionList(IEnumerable<IRInstruction> pInstructions) { mInstructions.AddRange(pInstructions); }
+		public IRInstructionList() { }
+		public IRInstructionList(IEnumerable<IRInstruction> pInstructions) { mInstructions.AddRange(pInstructions); }
 
-        public IRInstructionList Clone() { return new IRInstructionList(this); }
+		public IRInstructionList Clone() { return new IRInstructionList(this); }
 
-        public void Add(IRInstruction pInstruction)
-        {
+		public void Add(IRInstruction pInstruction)
+		{
 			pInstruction.IRIndex = mInstructions.Count;
-            mInstructions.Add(pInstruction);
-            mResolvedCache = null;
+			mInstructions.Add(pInstruction);
+			mResolvedCache = null;
 			if (!mILOffsetLookup.ContainsKey(pInstruction.ILOffset))
-	            mILOffsetLookup.Add(pInstruction.ILOffset, pInstruction);
-        }
+				mILOffsetLookup.Add(pInstruction.ILOffset, pInstruction);
+		}
 
-        public void AddRange(IEnumerable<IRInstruction> pInstructions) { foreach (IRInstruction instruction in pInstructions) Add(instruction); }
+		public void AddRange(IEnumerable<IRInstruction> pInstructions) { foreach (IRInstruction instruction in pInstructions) Add(instruction); }
 
 		private Dictionary<IRInstruction, IRInstruction> mInsertedTargetFixCache = new Dictionary<IRInstruction, IRInstruction>();
 		public void Insert(IRInstruction pInstruction, int pIndex)
@@ -173,26 +173,26 @@ namespace Proton.VM.IR
 			}
 		}
 
-        public IRInstruction this[int pIndex]
-        {
-            get
-            {
-                if (pIndex < 0)
-                    throw new IndexOutOfRangeException("An IRInstruction index cannot be less than 0!");
-                if (pIndex >= mInstructions.Count) throw new IndexOutOfRangeException("The requested IRInstruction doesn't exist!");
-                return mInstructions[pIndex];
-            }
-            set
-            {
-                if (pIndex < 0) throw new IndexOutOfRangeException("An IRInstruction index cannot be less than 0!");
-                if (pIndex >= mInstructions.Count) throw new IndexOutOfRangeException("The specified IRInstruction doesn't exist!");
-                if (mInstructions[pIndex] != value)
-                {
-                    if (!value.Resolved) mResolvedCache = false;
-                    IRInstruction oldInstruction = mInstructions[pIndex];
-                    IRInstruction newInstruction = value;
+		public IRInstruction this[int pIndex]
+		{
+			get
+			{
+				if (pIndex < 0)
+					throw new IndexOutOfRangeException("An IRInstruction index cannot be less than 0!");
+				if (pIndex >= mInstructions.Count) throw new IndexOutOfRangeException("The requested IRInstruction doesn't exist!");
+				return mInstructions[pIndex];
+			}
+			set
+			{
+				if (pIndex < 0) throw new IndexOutOfRangeException("An IRInstruction index cannot be less than 0!");
+				if (pIndex >= mInstructions.Count) throw new IndexOutOfRangeException("The specified IRInstruction doesn't exist!");
+				if (mInstructions[pIndex] != value)
+				{
+					if (!value.Resolved) mResolvedCache = false;
+					IRInstruction oldInstruction = mInstructions[pIndex];
+					IRInstruction newInstruction = value;
 
-                    mInstructions[pIndex] = value;
+					mInstructions[pIndex] = value;
 
 					if (ImmediateRetargetModifiedInstructions)
 					{
@@ -231,17 +231,17 @@ namespace Proton.VM.IR
 						value.ParentMethod = this.mInstructions[0].ParentMethod;
 						value.IRIndex = pIndex;
 					}
-                }
-            }
-        }
+				}
+			}
+		}
 
-        public IEnumerator<IRInstruction> GetEnumerator() { foreach (IRInstruction instruction in mInstructions) yield return instruction; }
+		public IEnumerator<IRInstruction> GetEnumerator() { foreach (IRInstruction instruction in mInstructions) yield return instruction; }
 
-        IEnumerator IEnumerable.GetEnumerator() { foreach (IRInstruction instruction in mInstructions) yield return instruction; }
+		IEnumerator IEnumerable.GetEnumerator() { foreach (IRInstruction instruction in mInstructions) yield return instruction; }
 
-        public void ForEach(Action<IRInstruction> action) { mInstructions.ForEach(action); }
+		public void ForEach(Action<IRInstruction> action) { mInstructions.ForEach(action); }
 
-        public bool TrueForAll(Predicate<IRInstruction> match) { return mInstructions.TrueForAll(match); }
+		public bool TrueForAll(Predicate<IRInstruction> match) { return mInstructions.TrueForAll(match); }
 
 		public void RemoveDead()
 		{
@@ -252,56 +252,56 @@ namespace Proton.VM.IR
 			}
 		}
 
-        private IRInstruction GetTarget(IRBranchInstruction pBranchInstruction)
-        {
-            IRInstruction targetInstruction = mILOffsetLookup[pBranchInstruction.TargetILOffset];
-            if (targetInstruction.Opcode == IROpcode.Branch)
-            {
-                IRBranchInstruction targetBranchInstruction = (IRBranchInstruction)targetInstruction;
-                if (targetBranchInstruction.BranchCondition == IRBranchCondition.Always)
-                {
-                    targetInstruction = mILOffsetLookup[targetBranchInstruction.TargetILOffset];
-                    targetInstruction = GetTarget(targetBranchInstruction);
-                }
-            }
-            return targetInstruction;
-        }
+		private IRInstruction GetTarget(IRBranchInstruction pBranchInstruction)
+		{
+			IRInstruction targetInstruction = mILOffsetLookup[pBranchInstruction.TargetILOffset];
+			if (targetInstruction.Opcode == IROpcode.Branch)
+			{
+				IRBranchInstruction targetBranchInstruction = (IRBranchInstruction)targetInstruction;
+				if (targetBranchInstruction.BranchCondition == IRBranchCondition.Always)
+				{
+					targetInstruction = mILOffsetLookup[targetBranchInstruction.TargetILOffset];
+					targetInstruction = GetTarget(targetBranchInstruction);
+				}
+			}
+			return targetInstruction;
+		}
 
-        public void LoadTargetInstructions()
-        {
-            foreach (IRInstruction instruction in mInstructions)
-            {
-                switch (instruction.Opcode)
-                {
-                    case IROpcode.Branch:
-                        {
-                            IRBranchInstruction branchInstruction = (IRBranchInstruction)instruction;
-                            branchInstruction.TargetIRInstruction = GetTarget(branchInstruction);
-                            if (branchInstruction.TargetIRInstruction == null) throw new NullReferenceException();
-                            break;
-                        }
-                    case IROpcode.Switch:
-                        {
-                            IRSwitchInstruction switchInstruction = (IRSwitchInstruction)instruction;
-                            switchInstruction.TargetIRInstructions = new IRInstruction[switchInstruction.TargetILOffsets.Length];
-                            for (int index = 0; index < switchInstruction.TargetILOffsets.Length; ++index)
-                            {
-                                switchInstruction.TargetIRInstructions[index] = mILOffsetLookup[switchInstruction.TargetILOffsets[index]];
-                                if (switchInstruction.TargetIRInstructions[index] == null) throw new NullReferenceException();
-                            }
-                            break;
-                        }
-                    case IROpcode.Leave:
-                        {
-                            IRLeaveInstruction leaveInstruction = (IRLeaveInstruction)instruction;
-                            leaveInstruction.TargetIRInstruction = mILOffsetLookup[leaveInstruction.TargetILOffset];
-                            if (leaveInstruction.TargetIRInstruction == null) throw new NullReferenceException();
-                            break;
-                        }
-                    default: break;
-                }
-            }
-        }
+		public void LoadTargetInstructions()
+		{
+			foreach (IRInstruction instruction in mInstructions)
+			{
+				switch (instruction.Opcode)
+				{
+					case IROpcode.Branch:
+						{
+							IRBranchInstruction branchInstruction = (IRBranchInstruction)instruction;
+							branchInstruction.TargetIRInstruction = GetTarget(branchInstruction);
+							if (branchInstruction.TargetIRInstruction == null) throw new NullReferenceException();
+							break;
+						}
+					case IROpcode.Switch:
+						{
+							IRSwitchInstruction switchInstruction = (IRSwitchInstruction)instruction;
+							switchInstruction.TargetIRInstructions = new IRInstruction[switchInstruction.TargetILOffsets.Length];
+							for (int index = 0; index < switchInstruction.TargetILOffsets.Length; ++index)
+							{
+								switchInstruction.TargetIRInstructions[index] = mILOffsetLookup[switchInstruction.TargetILOffsets[index]];
+								if (switchInstruction.TargetIRInstructions[index] == null) throw new NullReferenceException();
+							}
+							break;
+						}
+					case IROpcode.Leave:
+						{
+							IRLeaveInstruction leaveInstruction = (IRLeaveInstruction)instruction;
+							leaveInstruction.TargetIRInstruction = mILOffsetLookup[leaveInstruction.TargetILOffset];
+							if (leaveInstruction.TargetIRInstruction == null) throw new NullReferenceException();
+							break;
+						}
+					default: break;
+				}
+			}
+		}
 
 		public void FixClonedTargetInstructions()
 		{
@@ -334,5 +334,5 @@ namespace Proton.VM.IR
 				}
 			}
 		}
-    }
+	}
 }

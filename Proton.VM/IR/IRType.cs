@@ -6,27 +6,27 @@ using Proton.Metadata;
 
 namespace Proton.VM.IR
 {
-    public sealed class IRType
-    {
-        public static readonly List<IRType> VarPlaceholders = new List<IRType>();
-        public static readonly List<IRType> MVarPlaceholders = new List<IRType>();
+	public sealed class IRType
+	{
+		public static readonly List<IRType> VarPlaceholders = new List<IRType>();
+		public static readonly List<IRType> MVarPlaceholders = new List<IRType>();
 
-        public static IRType GetVarPlaceholder(uint pIndex)
-        {
-            while (pIndex + 1 >= VarPlaceholders.Count) VarPlaceholders.Add(new IRType() { IsTemporaryVar = true, TemporaryVarOrMVarIndex = (uint)VarPlaceholders.Count });
-            return VarPlaceholders[(int)pIndex];
-        }
+		public static IRType GetVarPlaceholder(uint pIndex)
+		{
+			while (pIndex + 1 >= VarPlaceholders.Count) VarPlaceholders.Add(new IRType() { IsTemporaryVar = true, TemporaryVarOrMVarIndex = (uint)VarPlaceholders.Count });
+			return VarPlaceholders[(int)pIndex];
+		}
 
-        public static IRType GetMVarPlaceholder(uint pIndex)
-        {
-            while (pIndex + 1 >= MVarPlaceholders.Count) MVarPlaceholders.Add(new IRType() { IsTemporaryMVar = true, TemporaryVarOrMVarIndex = (uint)MVarPlaceholders.Count });
-            return MVarPlaceholders[(int)pIndex];
-        }
+		public static IRType GetMVarPlaceholder(uint pIndex)
+		{
+			while (pIndex + 1 >= MVarPlaceholders.Count) MVarPlaceholders.Add(new IRType() { IsTemporaryMVar = true, TemporaryVarOrMVarIndex = (uint)MVarPlaceholders.Count });
+			return MVarPlaceholders[(int)pIndex];
+		}
 
-        public IRAssembly Assembly = null;
+		public IRAssembly Assembly = null;
 
-        public string Namespace = null;
-        public string Name = null;
+		public string Namespace = null;
+		public string Name = null;
 		public TypeAttributes Flags = TypeAttributes.None;
 		public bool PresolvedType = false;
 		public bool PostsolvedType = false;
@@ -51,8 +51,8 @@ namespace Proton.VM.IR
 
 		public IRType ArrayElementType = null;
 		public bool IsArrayType { get { return ArrayElementType != null; } }
-        
-        public readonly List<IRField> Fields = new List<IRField>();
+		
+		public readonly List<IRField> Fields = new List<IRField>();
 		private readonly List<IRType> mImplementedInterfaces = new List<IRType>();
 		public List<IRType> ImplementedInterfaces
 		{
@@ -140,7 +140,7 @@ namespace Proton.VM.IR
 			}
 		}
 		public readonly IRMethodList Methods = new IRMethodList();
-        public readonly List<IRType> NestedTypes = new List<IRType>();
+		public readonly List<IRType> NestedTypes = new List<IRType>();
 		public IRType NestedInsideOfType = null;
 		private IRType mParentType = null;
 		private IRType mBaseType = null;
@@ -289,37 +289,37 @@ namespace Proton.VM.IR
 			}
 		}
 
-        private bool mGlobalTypeIDSet = false;
-        private int mGlobalTypeID;
-        public int GlobalTypeID
-        {
-            get
-            {
-                if (!mGlobalTypeIDSet)
-                    throw new Exception("This type doesn't have a global type id!");
-                return mGlobalTypeID;
-            }
-            set
-            {
-                if (mGlobalTypeIDSet)
-                    throw new Exception("Cannot set the global type id more than once!");
-                mGlobalTypeID = value;
-                mGlobalTypeIDSet = true;
-            }
-        }
+		private bool mGlobalTypeIDSet = false;
+		private int mGlobalTypeID;
+		public int GlobalTypeID
+		{
+			get
+			{
+				if (!mGlobalTypeIDSet)
+					throw new Exception("This type doesn't have a global type id!");
+				return mGlobalTypeID;
+			}
+			set
+			{
+				if (mGlobalTypeIDSet)
+					throw new Exception("Cannot set the global type id more than once!");
+				mGlobalTypeID = value;
+				mGlobalTypeIDSet = true;
+			}
+		}
 
-        // We can cache this because the state
-        // of the cache doesn't extend to any
-        // derived type.
-        private bool? mResolvedCache;
-        /// <summary>
-        /// True if this type and it's members are fully
-        /// resolved, aka. this type has been fully instantiated.
-        /// </summary>
-        public bool Resolved
-        {
-            get
-            {
+		// We can cache this because the state
+		// of the cache doesn't extend to any
+		// derived type.
+		private bool? mResolvedCache;
+		/// <summary>
+		/// True if this type and it's members are fully
+		/// resolved, aka. this type has been fully instantiated.
+		/// </summary>
+		public bool Resolved
+		{
+			get
+			{
 				if (mResolvedCache != null)
 					return mResolvedCache.Value;
 				
@@ -333,31 +333,31 @@ namespace Proton.VM.IR
 				if (mResolvedCache != null)
 					return mResolvedCache.Value;
 
-                mResolvedCache = true;
+				mResolvedCache = true;
 				if (!PresolvedType && !PostsolvedType)
 				{
 					Assembly.AppDomain.Types.Add(this);
 				}
-                return true;
-            }
-        }
+				return true;
+			}
+		}
 
-        // Dynamic Types
-        public bool IsTemporaryVar = false;
-        public bool IsTemporaryMVar = false;
-        public uint TemporaryVarOrMVarIndex = 0;
+		// Dynamic Types
+		public bool IsTemporaryVar = false;
+		public bool IsTemporaryMVar = false;
+		public uint TemporaryVarOrMVarIndex = 0;
 
-        private bool? mIsGenericCache;
-        /// <summary>
-        /// True if this type is generic, this is still true
-        /// even after all generic parameters have been resolved.
-        /// </summary>
-        public bool IsGeneric
-        {
-            get 
-            {
-                if (mIsGenericCache != null)
-                    return mIsGenericCache.Value;
+		private bool? mIsGenericCache;
+		/// <summary>
+		/// True if this type is generic, this is still true
+		/// even after all generic parameters have been resolved.
+		/// </summary>
+		public bool IsGeneric
+		{
+			get 
+			{
+				if (mIsGenericCache != null)
+					return mIsGenericCache.Value;
 				bool isGenericParameter = GenericParameters.Count > 0 || IsTemporaryVar || IsTemporaryMVar;
 				bool isGenericArray = ArrayElementType != null && ArrayElementType.IsGeneric;
 				bool isGenericPointer = ManagedPointerType != null && ManagedPointerType.IsGeneric;
@@ -365,22 +365,22 @@ namespace Proton.VM.IR
 				if (isGenericArray) { }
 
 				//mIsGenericCache =
-				//    GenericParameters.Count > 0 ||
-				//    IsTemporaryVar ||
-				//    IsTemporaryMVar ||
-				//    (
-				//        ArrayElementType != null &&
-				//        ArrayElementType.IsGeneric
-				//    ) ||
-				//    (
-				//        ManagedPointerType != null &&
-				//        ManagedPointerType.IsGeneric
-				//    )
+				//	GenericParameters.Count > 0 ||
+				//	IsTemporaryVar ||
+				//	IsTemporaryMVar ||
+				//	(
+				//		ArrayElementType != null &&
+				//		ArrayElementType.IsGeneric
+				//	) ||
+				//	(
+				//		ManagedPointerType != null &&
+				//		ManagedPointerType.IsGeneric
+				//	)
 				//;
 
-                return mIsGenericCache.Value; 
-            }
-        }
+				return mIsGenericCache.Value; 
+			}
+		}
 		private IRType mGenericType = null;
 		public IRType GenericType
 		{
@@ -391,7 +391,7 @@ namespace Proton.VM.IR
 				mGenericType = value;
 			}
 		}
-        public readonly IRGenericParameterList GenericParameters = new IRGenericParameterList();
+		public readonly IRGenericParameterList GenericParameters = new IRGenericParameterList();
 
 		private static int sTempID = 0;
 		internal readonly int mTempID;
@@ -400,57 +400,57 @@ namespace Proton.VM.IR
 			mTempID = sTempID++;
 		}
 
-        public IRType(IRAssembly pAssembly) : this() { Assembly = pAssembly; }
+		public IRType(IRAssembly pAssembly) : this() { Assembly = pAssembly; }
 
-        /// <summary>
-        /// This creates a shallow copy of this <see cref="IRType"/>.
-        /// </summary>
-        /// <returns>The new IRType.</returns>
-        public IRType Clone()
-        {
-            IRType t = new IRType(this.Assembly);
+		/// <summary>
+		/// This creates a shallow copy of this <see cref="IRType"/>.
+		/// </summary>
+		/// <returns>The new IRType.</returns>
+		public IRType Clone()
+		{
+			IRType t = new IRType(this.Assembly);
 
-            this.Fields.ForEach(f => t.Fields.Add(f.Clone(t)));
+			this.Fields.ForEach(f => t.Fields.Add(f.Clone(t)));
 			t.ImplementedInterfaces.AddRange(this.ImplementedInterfaces);
 			this.ExplicitOverrides.ForEach(od => t.ExplicitOverrides.Add(od.Clone()));
-            this.Methods.ForEach(m => t.Methods.Add(m.Clone(t)));
-            t.NestedTypes.AddRange(this.NestedTypes);
+			this.Methods.ForEach(m => t.Methods.Add(m.Clone(t)));
+			t.NestedTypes.AddRange(this.NestedTypes);
 			t.NestedInsideOfType = this.NestedInsideOfType;
-            t.GenericParameters.AddRange(this.GenericParameters);
+			t.GenericParameters.AddRange(this.GenericParameters);
 
-            t.ArrayElementType = this.ArrayElementType;
+			t.ArrayElementType = this.ArrayElementType;
 			t.mParentType = this;
 			if (this.mBaseType != null) t.BaseType = this.BaseType;
 			if (this.GenericType != null) t.GenericType = this.GenericType;
 			else if (this.GenericParameters.Count > 0) t.GenericType = this;
 
-            t.IsTemporaryMVar = this.IsTemporaryMVar;
-            t.IsTemporaryVar = this.IsTemporaryVar;
-            t.Name = this.Name;
-            t.Namespace = this.Namespace;
+			t.IsTemporaryMVar = this.IsTemporaryMVar;
+			t.IsTemporaryVar = this.IsTemporaryVar;
+			t.Name = this.Name;
+			t.Namespace = this.Namespace;
 			t.Flags = this.Flags;
 			t.ManagedPointerType = this.ManagedPointerType;
-            t.UnmanagedPointerType = this.UnmanagedPointerType;
-            t.TemporaryVarOrMVarIndex = this.TemporaryVarOrMVarIndex;
+			t.UnmanagedPointerType = this.UnmanagedPointerType;
+			t.TemporaryVarOrMVarIndex = this.TemporaryVarOrMVarIndex;
 
-            return t;
-        }
+			return t;
+		}
 
 		public readonly Dictionary<IRMethod, IRMethod> GenericMethods = new Dictionary<IRMethod, IRMethod>();
 
 
 
-        public static readonly Dictionary<IRType, IRType> GenericTypes = new Dictionary<IRType, IRType>();
-        /// <summary>
-        /// Resolve any generic types used in this type.
-        /// </summary>
-        /// <param name="selfReference"></param>
-        /// <param name="typeParams"></param>
-        /// <param name="methodParams"></param>
-        public void Resolve(ref IRType selfReference, IRGenericParameterList typeParams, IRGenericParameterList methodParams)
-        {
-            if (!Resolved || PresolvedType || PostsolvedType)
-            {
+		public static readonly Dictionary<IRType, IRType> GenericTypes = new Dictionary<IRType, IRType>();
+		/// <summary>
+		/// Resolve any generic types used in this type.
+		/// </summary>
+		/// <param name="selfReference"></param>
+		/// <param name="typeParams"></param>
+		/// <param name="methodParams"></param>
+		public void Resolve(ref IRType selfReference, IRGenericParameterList typeParams, IRGenericParameterList methodParams)
+		{
+			if (!Resolved || PresolvedType || PostsolvedType)
+			{
 				if (IsGeneric)
 				{
 					if (IsTemporaryVar)
@@ -511,7 +511,7 @@ namespace Proton.VM.IR
 
 									//for (int i = 0; i < tp.GenericParameters.Count; i++)
 									//{
-									//    tp.GenericParameters[i] = this.GenericParameters[i];
+									//	tp.GenericParameters[i] = this.GenericParameters[i];
 									//}
 									for (int i = 0; i < tp.Methods.Count; i++)
 									{
@@ -526,23 +526,23 @@ namespace Proton.VM.IR
 								}
 							}
 							selfReference = tp;
-                        }
-                        else
-                        {
-                        }
+						}
+						else
+						{
+						}
 					}
 				}
-            }
-        }
+			}
+		}
 
-        /// <summary>
-        /// Resolves generic parameters within this type.
-        /// </summary>
-        /// <param name="typeParams"></param>
-        /// <param name="methodParams"></param>
-        public void Substitute(IRGenericParameterList typeParams, IRGenericParameterList methodParams)
-        {
-            this.GenericParameters.Substitute(typeParams, methodParams);
+		/// <summary>
+		/// Resolves generic parameters within this type.
+		/// </summary>
+		/// <param name="typeParams"></param>
+		/// <param name="methodParams"></param>
+		public void Substitute(IRGenericParameterList typeParams, IRGenericParameterList methodParams)
+		{
+			this.GenericParameters.Substitute(typeParams, methodParams);
 
 			if (!GenericParameters.Resolved)
 				return;
@@ -557,7 +557,7 @@ namespace Proton.VM.IR
 				ImplementedInterfaces[i] = t;
 			}
 
-            this.Fields.ForEach(f => f.Substitute());
+			this.Fields.ForEach(f => f.Substitute());
 			this.Methods.ForEach(m => m.Substitute(m.GenericParameters));
 
 			for (int i = 0; i < ExplicitOverrides.Count; i++)
@@ -569,25 +569,25 @@ namespace Proton.VM.IR
 				m.Resolve(ref m, this.GenericParameters, IRGenericParameterList.Empty);
 				ExplicitOverrides[i].Overridder = m;
 			}
-        }
+		}
 
 
-        private int? mHashCodeCache;
-        public override int GetHashCode()
-        {
-            if (mHashCodeCache != null)
-                return mHashCodeCache.Value;
+		private int? mHashCodeCache;
+		public override int GetHashCode()
+		{
+			if (mHashCodeCache != null)
+				return mHashCodeCache.Value;
 
-            int res;
-            if (this.IsTemporaryVar)
+			int res;
+			if (this.IsTemporaryVar)
 			{
 				// 5th bit from the top set
 				res = (int)this.TemporaryVarOrMVarIndex + 1;
-            }
-            else if (this.IsTemporaryMVar)
-            {
-                // Allow support for up to 256 generic type parameters before
-                // hash collisions occur.
+			}
+			else if (this.IsTemporaryMVar)
+			{
+				// Allow support for up to 256 generic type parameters before
+				// hash collisions occur.
 				res = (int)((this.TemporaryVarOrMVarIndex + 1) << 8);
 			}
 			else if (IsManagedPointerType)
@@ -600,39 +600,39 @@ namespace Proton.VM.IR
 				// 3rd bit from the top set
 				res = UnmanagedPointerType.GetHashCode() ^ unchecked((int)0x20000000);
 			}
-            else if (IsArrayType)
-            {
-                // 2nd bit from the top set
-                res = ArrayElementType.GetHashCode() ^ unchecked((int)0x40000000);
-            }
-            else
-            {
-                // The OR at the end is to ensure that this hash code can never conflict with
-                // any of the above.
-                // Top bit set
-                res = Namespace.GetHashCode() ^ Name.GetHashCode() ^ GenericParameters.GetHashCode() ^ unchecked((int)0x80000000);
-            }
+			else if (IsArrayType)
+			{
+				// 2nd bit from the top set
+				res = ArrayElementType.GetHashCode() ^ unchecked((int)0x40000000);
+			}
+			else
+			{
+				// The OR at the end is to ensure that this hash code can never conflict with
+				// any of the above.
+				// Top bit set
+				res = Namespace.GetHashCode() ^ Name.GetHashCode() ^ GenericParameters.GetHashCode() ^ unchecked((int)0x80000000);
+			}
 
-            mHashCodeCache = res;
-            return mHashCodeCache.Value;
-        }
+			mHashCodeCache = res;
+			return mHashCodeCache.Value;
+		}
 
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj == null) return false;
-            if (!(obj is IRType)) return false;
-            return ((IRType)obj).GetHashCode() == this.GetHashCode();
-        }
+		public override bool Equals(object obj)
+		{
+			if (ReferenceEquals(this, obj)) return true;
+			if (obj == null) return false;
+			if (!(obj is IRType)) return false;
+			return ((IRType)obj).GetHashCode() == this.GetHashCode();
+		}
 
-        public static bool operator ==(IRType a, IRType b)
-        {
-            if (ReferenceEquals(a, b)) return true;
-            if (((object)a == null) || ((object)b == null)) return false;
-            return a.GetHashCode() == b.GetHashCode();
-        }
+		public static bool operator ==(IRType a, IRType b)
+		{
+			if (ReferenceEquals(a, b)) return true;
+			if (((object)a == null) || ((object)b == null)) return false;
+			return a.GetHashCode() == b.GetHashCode();
+		}
 
-        public static bool operator !=(IRType a, IRType b) { return !(a == b); }
+		public static bool operator !=(IRType a, IRType b) { return !(a == b); }
 
 		public override string ToString()
 		{
@@ -856,5 +856,5 @@ namespace Proton.VM.IR
 			pWriter.Indent--;
 			pWriter.WriteLine("}");
 		}
-    }
+	}
 }

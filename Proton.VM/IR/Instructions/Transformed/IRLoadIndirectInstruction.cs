@@ -5,15 +5,15 @@ using System.Collections.Generic;
 
 namespace Proton.VM.IR.Instructions
 {
-    public sealed class IRLoadIndirectInstruction : IRInstruction
-    {
+	public sealed class IRLoadIndirectInstruction : IRInstruction
+	{
 		private IRType mType = null;
 		public IRType Type { get { return mType; } private set { mType = value; } }
 
-        public IRLoadIndirectInstruction(IRType pType) : base(IROpcode.LoadIndirect) { Type = pType; }
+		public IRLoadIndirectInstruction(IRType pType) : base(IROpcode.LoadIndirect) { Type = pType; }
 
-        public override void Linearize(Stack<IRStackObject> pStack)
-        {
+		public override void Linearize(Stack<IRStackObject> pStack)
+		{
 			IRLinearizedLocation source = new IRLinearizedLocation(this, IRLinearizedLocationType.Indirect);
 			var addressLocation = pStack.Pop();
 			source.Indirect.AddressLocation = new IRLinearizedLocation(this, addressLocation.LinearizedTarget);
@@ -26,19 +26,19 @@ namespace Proton.VM.IR.Instructions
 			}
 			if (Type == null) throw new Exception();
 			source.Indirect.Type = Type;
-            Sources.Add(source);
+			Sources.Add(source);
 
-            IRStackObject result = new IRStackObject();
-            result.Type = Type;
+			IRStackObject result = new IRStackObject();
+			result.Type = Type;
 			result.LinearizedTarget = new IRLinearizedLocation(this, IRLinearizedLocationType.Local);
-            result.LinearizedTarget.Local.LocalIndex = AddLinearizedLocal(pStack, Type);
+			result.LinearizedTarget.Local.LocalIndex = AddLinearizedLocal(pStack, Type);
 			Destination = new IRLinearizedLocation(this, result.LinearizedTarget);
-            pStack.Push(result);
-        }
+			pStack.Push(result);
+		}
 
-        public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRLoadIndirectInstruction(Type), pNewMethod); }
+		public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRLoadIndirectInstruction(Type), pNewMethod); }
 
-        public override IRInstruction Transform() { return new IRMoveInstruction(this); }
+		public override IRInstruction Transform() { return new IRMoveInstruction(this); }
 
 		public override bool Resolved { get { return Type.Resolved; } }
 		public override void Resolve()

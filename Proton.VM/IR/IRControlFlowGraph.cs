@@ -6,42 +6,42 @@ using System.Text;
 
 namespace Proton.VM.IR
 {
-    public sealed class IRControlFlowGraph
-    {
+	public sealed class IRControlFlowGraph
+	{
 		public List<IRControlFlowGraphNode> Nodes = new List<IRControlFlowGraphNode>();
 
-        public static IRControlFlowGraph Build(IRMethod pMethod)
-        {
-            if (pMethod.Instructions.Count == 0) return null;
+		public static IRControlFlowGraph Build(IRMethod pMethod)
+		{
+			if (pMethod.Instructions.Count == 0) return null;
 
-            HashSet<IRInstruction> sourceNodeBreaks = new HashSet<IRInstruction>();
-            HashSet<IRInstruction> destinationNodeBreaks = new HashSet<IRInstruction>();
-            foreach (IRInstruction instruction in pMethod.Instructions)
-            {
+			HashSet<IRInstruction> sourceNodeBreaks = new HashSet<IRInstruction>();
+			HashSet<IRInstruction> destinationNodeBreaks = new HashSet<IRInstruction>();
+			foreach (IRInstruction instruction in pMethod.Instructions)
+			{
 				bool lastInstruction = instruction == pMethod.Instructions[pMethod.Instructions.Count - 1];
-                switch (instruction.Opcode)
-                {
-                    case IROpcode.Branch:
-                        {
-                            IRBranchInstruction branchInstruction = (IRBranchInstruction)instruction;
-                            sourceNodeBreaks.Add(instruction);
-                            destinationNodeBreaks.Add(branchInstruction.TargetIRInstruction);
-                            break;
-                        }
-                    case IROpcode.Switch:
-                        {
-                            IRSwitchInstruction switchInstruction = (IRSwitchInstruction)instruction;
-                            sourceNodeBreaks.Add(instruction);
+				switch (instruction.Opcode)
+				{
+					case IROpcode.Branch:
+						{
+							IRBranchInstruction branchInstruction = (IRBranchInstruction)instruction;
+							sourceNodeBreaks.Add(instruction);
+							destinationNodeBreaks.Add(branchInstruction.TargetIRInstruction);
+							break;
+						}
+					case IROpcode.Switch:
+						{
+							IRSwitchInstruction switchInstruction = (IRSwitchInstruction)instruction;
+							sourceNodeBreaks.Add(instruction);
 							switchInstruction.TargetIRInstructions.ForEach(i => destinationNodeBreaks.Add(i));
-                            break;
-                        }
-                    case IROpcode.Leave:
-                        {
-                            IRLeaveInstruction leaveInstruction = (IRLeaveInstruction)instruction;
-                            sourceNodeBreaks.Add(instruction);
-                            destinationNodeBreaks.Add(leaveInstruction.TargetIRInstruction);
-                            break;
-                        }
+							break;
+						}
+					case IROpcode.Leave:
+						{
+							IRLeaveInstruction leaveInstruction = (IRLeaveInstruction)instruction;
+							sourceNodeBreaks.Add(instruction);
+							destinationNodeBreaks.Add(leaveInstruction.TargetIRInstruction);
+							break;
+						}
 					case IROpcode.EndFinally:
 						{
 							IREndFinallyInstruction endFinallyInstruction = (IREndFinallyInstruction)instruction;
@@ -54,93 +54,93 @@ namespace Proton.VM.IR
 					case IROpcode.Return:
 						sourceNodeBreaks.Add(instruction);
 						break;
-                    default: break;
-                }
-            }
+					default: break;
+				}
+			}
 
-            IRControlFlowGraph cfg = new IRControlFlowGraph();
+			IRControlFlowGraph cfg = new IRControlFlowGraph();
 			IRControlFlowGraphNode currentNode = new IRControlFlowGraphNode(0);
-            cfg.Nodes.Add(currentNode);
-            foreach (IRInstruction instruction in pMethod.Instructions)
-            {
-                bool lastInstruction = instruction == pMethod.Instructions[pMethod.Instructions.Count - 1];
-                bool startFromSource = sourceNodeBreaks.Contains(instruction);
-                bool startFromDestination = destinationNodeBreaks.Contains(instruction);
-                if (startFromSource && startFromDestination)
-                {
-                    if (currentNode.Instructions.Count > 0)
-                    {
+			cfg.Nodes.Add(currentNode);
+			foreach (IRInstruction instruction in pMethod.Instructions)
+			{
+				bool lastInstruction = instruction == pMethod.Instructions[pMethod.Instructions.Count - 1];
+				bool startFromSource = sourceNodeBreaks.Contains(instruction);
+				bool startFromDestination = destinationNodeBreaks.Contains(instruction);
+				if (startFromSource && startFromDestination)
+				{
+					if (currentNode.Instructions.Count > 0)
+					{
 						currentNode = new IRControlFlowGraphNode(cfg.Nodes.Count);
-                        cfg.Nodes.Add(currentNode);
-                    }
-                    currentNode.Instructions.Add(instruction);
+						cfg.Nodes.Add(currentNode);
+					}
+					currentNode.Instructions.Add(instruction);
 					if (!lastInstruction)
 					{
 						currentNode = new IRControlFlowGraphNode(cfg.Nodes.Count);
 						cfg.Nodes.Add(currentNode);
 					}
-                }
-                else if (startFromSource)
-                {
-                    currentNode.Instructions.Add(instruction);
+				}
+				else if (startFromSource)
+				{
+					currentNode.Instructions.Add(instruction);
 					if (!lastInstruction)
 					{
 						currentNode = new IRControlFlowGraphNode(cfg.Nodes.Count);
 						cfg.Nodes.Add(currentNode);
 					}
-                }
-                else if (startFromDestination)
-                {
-                    if (currentNode.Instructions.Count > 0)
-                    {
+				}
+				else if (startFromDestination)
+				{
+					if (currentNode.Instructions.Count > 0)
+					{
 						currentNode = new IRControlFlowGraphNode(cfg.Nodes.Count);
-                        cfg.Nodes.Add(currentNode);
-                    }
-                    currentNode.Instructions.Add(instruction);
-                }
-                else currentNode.Instructions.Add(instruction);
-            }
+						cfg.Nodes.Add(currentNode);
+					}
+					currentNode.Instructions.Add(instruction);
+				}
+				else currentNode.Instructions.Add(instruction);
+			}
 
 			foreach (IRControlFlowGraphNode node in cfg.Nodes)
-            {
-                IRInstruction instruction = node.Instructions[node.Instructions.Count - 1];
-                switch (instruction.Opcode)
-                {
-                    case IROpcode.Branch:
-                        {
-                            IRBranchInstruction branchInstruction = (IRBranchInstruction)instruction;
+			{
+				IRInstruction instruction = node.Instructions[node.Instructions.Count - 1];
+				switch (instruction.Opcode)
+				{
+					case IROpcode.Branch:
+						{
+							IRBranchInstruction branchInstruction = (IRBranchInstruction)instruction;
 							IRControlFlowGraphNode childNode = cfg.Nodes.Find(n => n.Instructions[0] == branchInstruction.TargetIRInstruction);
-                            if (childNode == null) throw new NullReferenceException();
-                            if (branchInstruction.BranchCondition != IRBranchCondition.Always) node.LinkTo(cfg.Nodes[node.Index + 1]);
-                            node.LinkTo(childNode);
-                            break;
-                        }
-                    case IROpcode.Switch:
-                        {
-                            IRSwitchInstruction switchInstruction = (IRSwitchInstruction)instruction;
-                            node.LinkTo(cfg.Nodes[node.Index + 1]);
-                            foreach (IRInstruction targetInstruction in switchInstruction.TargetIRInstructions)
-                            {
+							if (childNode == null) throw new NullReferenceException();
+							if (branchInstruction.BranchCondition != IRBranchCondition.Always) node.LinkTo(cfg.Nodes[node.Index + 1]);
+							node.LinkTo(childNode);
+							break;
+						}
+					case IROpcode.Switch:
+						{
+							IRSwitchInstruction switchInstruction = (IRSwitchInstruction)instruction;
+							node.LinkTo(cfg.Nodes[node.Index + 1]);
+							foreach (IRInstruction targetInstruction in switchInstruction.TargetIRInstructions)
+							{
 								IRControlFlowGraphNode childNode = cfg.Nodes.Find(n => n.Instructions[0] == targetInstruction);
-                                if (childNode == null) throw new NullReferenceException();
-                                node.LinkTo(childNode);
-                            }
-                            break;
-                        }
-                    case IROpcode.Leave:
-                        {
-                            IRLeaveInstruction leaveInstruction = (IRLeaveInstruction)instruction;
+								if (childNode == null) throw new NullReferenceException();
+								node.LinkTo(childNode);
+							}
+							break;
+						}
+					case IROpcode.Leave:
+						{
+							IRLeaveInstruction leaveInstruction = (IRLeaveInstruction)instruction;
 							IRControlFlowGraphNode childNode = cfg.Nodes.Find(n => n.Instructions[0] == leaveInstruction.TargetIRInstruction);
-                            if (childNode == null) throw new NullReferenceException();
-                            node.LinkTo(childNode);
-                            break;
-                        }
-                    case IROpcode.Throw:
+							if (childNode == null) throw new NullReferenceException();
+							node.LinkTo(childNode);
+							break;
+						}
+					case IROpcode.Throw:
 					case IROpcode.Rethrow:
 					case IROpcode.Return: continue;
-                    default: node.LinkTo(cfg.Nodes[node.Index + 1]); break;
-                }
-            }
+					default: node.LinkTo(cfg.Nodes[node.Index + 1]); break;
+				}
+			}
 
 			List<IRControlFlowGraphNode> allDeadNodes = new List<IRControlFlowGraphNode>(32);
 			List<IRControlFlowGraphNode> deadNodes = null;
@@ -215,26 +215,26 @@ namespace Proton.VM.IR
 				}
 			}
 
-            return cfg;
-        }
+			return cfg;
+		}
 
 		public IRControlFlowGraphNode FindInstructionNode(IRInstruction pInstruction)
-        {
+		{
 			foreach (IRControlFlowGraphNode node in Nodes)
-            {
-                foreach (IRInstruction instruction in node.Instructions)
-                {
-                    if (pInstruction == instruction) return node;
-                }
-            }
-            throw new NullReferenceException();
-        }
+			{
+				foreach (IRInstruction instruction in node.Instructions)
+				{
+					if (pInstruction == instruction) return node;
+				}
+			}
+			throw new NullReferenceException();
+		}
 
-        public override string ToString()
-        {
-            StringBuilder sb = new StringBuilder();
-            Nodes.ForEach(n => sb.AppendLine(string.Format("Node #{0}, 0x{1:X} - 0x{2:X}", n.Index, n.Instructions[0].ILOffset, n.Instructions[n.Instructions.Count - 1].ILOffset)));
-            return sb.ToString();
-        }
-    }
+		public override string ToString()
+		{
+			StringBuilder sb = new StringBuilder();
+			Nodes.ForEach(n => sb.AppendLine(string.Format("Node #{0}, 0x{1:X} - 0x{2:X}", n.Index, n.Instructions[0].ILOffset, n.Instructions[n.Instructions.Count - 1].ILOffset)));
+			return sb.ToString();
+		}
+	}
 }

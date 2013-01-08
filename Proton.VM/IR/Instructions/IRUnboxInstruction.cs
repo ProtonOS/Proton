@@ -7,32 +7,32 @@ using System.Text;
 
 namespace Proton.VM.IR.Instructions
 {
-    public sealed class IRUnboxInstruction : IRInstruction
-    {
-        public IRType Type = null;
-        public bool GetValue = false;
+	public sealed class IRUnboxInstruction : IRInstruction
+	{
+		public IRType Type = null;
+		public bool GetValue = false;
 
-        public IRUnboxInstruction(IRType pType, bool pValue) : base(IROpcode.Unbox)
-        {
-            Type = pType;
-            GetValue = pValue;
-        }
+		public IRUnboxInstruction(IRType pType, bool pValue) : base(IROpcode.Unbox)
+		{
+			Type = pType;
+			GetValue = pValue;
+		}
 
-        public override void Linearize(Stack<IRStackObject> pStack)
-        {
+		public override void Linearize(Stack<IRStackObject> pStack)
+		{
 			Sources.Add(new IRLinearizedLocation(this, pStack.Pop().LinearizedTarget));
 
-            IRType resultType = Type;
-            if (!GetValue) resultType = ParentMethod.Assembly.AppDomain.GetUnmanagedPointerType(Type);
-            IRStackObject result = new IRStackObject();
-            result.Type = resultType;
+			IRType resultType = Type;
+			if (!GetValue) resultType = ParentMethod.Assembly.AppDomain.GetUnmanagedPointerType(Type);
+			IRStackObject result = new IRStackObject();
+			result.Type = resultType;
 			result.LinearizedTarget = new IRLinearizedLocation(this, IRLinearizedLocationType.Local);
-            result.LinearizedTarget.Local.LocalIndex = AddLinearizedLocal(pStack, resultType);
+			result.LinearizedTarget.Local.LocalIndex = AddLinearizedLocal(pStack, resultType);
 			Destination = new IRLinearizedLocation(this, result.LinearizedTarget);
-            pStack.Push(result);
-        }
+			pStack.Push(result);
+		}
 
-        public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRUnboxInstruction(Type, GetValue), pNewMethod); }
+		public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRUnboxInstruction(Type, GetValue), pNewMethod); }
 
 		public override bool Resolved { get { return Type.Resolved; } }
 		public override void Resolve()
@@ -55,5 +55,5 @@ namespace Proton.VM.IR.Instructions
 		{
 			return "UnBox " + (GetValue ? "ValueOf" : "AddressOf") + Type + " " + Sources[0] + " -> " + Destination;
 		}
-    }
+	}
 }

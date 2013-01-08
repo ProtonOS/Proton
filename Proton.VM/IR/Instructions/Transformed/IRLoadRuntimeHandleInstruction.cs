@@ -5,8 +5,8 @@ using System.Collections.Generic;
 
 namespace Proton.VM.IR.Instructions
 {
-    public sealed class IRLoadRuntimeHandleInstruction : IRInstruction
-    {
+	public sealed class IRLoadRuntimeHandleInstruction : IRInstruction
+	{
 		private IRType mTargetType = null;
 		public IRType TargetType { get { return mTargetType; } private set { mTargetType = value; } }
 		private IRMethod mTargetMethod = null;
@@ -14,39 +14,39 @@ namespace Proton.VM.IR.Instructions
 		private IRField mTargetField = null;
 		public IRField TargetField { get { return mTargetField; } private set { mTargetField = value; } }
 
-        public IRLoadRuntimeHandleInstruction(IRType pTargetType, IRMethod pTargetMethod, IRField pTargetField) : base(IROpcode.LoadRuntimeHandle)
-        {
-            TargetType = pTargetType;
-            TargetMethod = pTargetMethod;
-            TargetField = pTargetField;
-        }
+		public IRLoadRuntimeHandleInstruction(IRType pTargetType, IRMethod pTargetMethod, IRField pTargetField) : base(IROpcode.LoadRuntimeHandle)
+		{
+			TargetType = pTargetType;
+			TargetMethod = pTargetMethod;
+			TargetField = pTargetField;
+		}
 
-        public override void Linearize(Stack<IRStackObject> pStack)
-        {
-            IRType handleType = null;
-            if (TargetType != null) handleType = ParentMethod.Assembly.AppDomain.System_RuntimeTypeHandle;
-            else if (TargetMethod != null) handleType = ParentMethod.Assembly.AppDomain.System_RuntimeMethodHandle;
-            else if (TargetField != null) handleType = ParentMethod.Assembly.AppDomain.System_RuntimeFieldHandle;
-            else throw new NullReferenceException();
+		public override void Linearize(Stack<IRStackObject> pStack)
+		{
+			IRType handleType = null;
+			if (TargetType != null) handleType = ParentMethod.Assembly.AppDomain.System_RuntimeTypeHandle;
+			else if (TargetMethod != null) handleType = ParentMethod.Assembly.AppDomain.System_RuntimeMethodHandle;
+			else if (TargetField != null) handleType = ParentMethod.Assembly.AppDomain.System_RuntimeFieldHandle;
+			else throw new NullReferenceException();
 
 			IRLinearizedLocation value = new IRLinearizedLocation(this, IRLinearizedLocationType.RuntimeHandle);
-            value.RuntimeHandle.HandleType = handleType;
-            value.RuntimeHandle.TargetType = TargetType;
-            value.RuntimeHandle.TargetMethod = TargetMethod;
-            value.RuntimeHandle.TargetField = TargetField;
-            Sources.Add(value);
+			value.RuntimeHandle.HandleType = handleType;
+			value.RuntimeHandle.TargetType = TargetType;
+			value.RuntimeHandle.TargetMethod = TargetMethod;
+			value.RuntimeHandle.TargetField = TargetField;
+			Sources.Add(value);
 
-            IRStackObject result = new IRStackObject();
-            result.Type = handleType;
+			IRStackObject result = new IRStackObject();
+			result.Type = handleType;
 			result.LinearizedTarget = new IRLinearizedLocation(this, IRLinearizedLocationType.Local);
-            result.LinearizedTarget.Local.LocalIndex = AddLinearizedLocal(pStack, handleType);
+			result.LinearizedTarget.Local.LocalIndex = AddLinearizedLocal(pStack, handleType);
 			Destination = new IRLinearizedLocation(this, result.LinearizedTarget);
-            pStack.Push(result);
-        }
+			pStack.Push(result);
+		}
 
-        public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRLoadRuntimeHandleInstruction(TargetType, TargetMethod, TargetField), pNewMethod); }
+		public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRLoadRuntimeHandleInstruction(TargetType, TargetMethod, TargetField), pNewMethod); }
 
-        public override IRInstruction Transform() { return new IRMoveInstruction(this); }
+		public override IRInstruction Transform() { return new IRMoveInstruction(this); }
 
 		public override bool Resolved { get { return (TargetType != null && TargetType.Resolved) || (TargetMethod != null && TargetMethod.Resolved) || (TargetField != null && TargetField.Resolved); } }
 		public override void Resolve()

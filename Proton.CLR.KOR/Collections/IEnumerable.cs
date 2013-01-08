@@ -1,7 +1,7 @@
 ﻿namespace System.Collections
 {
-    public interface IEnumerable
-    {
-        IEnumerator GetEnumerator();
-    }
+	public interface IEnumerable
+	{
+		IEnumerator GetEnumerator();
+	}
 }

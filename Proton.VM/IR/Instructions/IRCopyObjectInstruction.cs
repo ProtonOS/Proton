@@ -5,22 +5,22 @@ using System.Collections.Generic;
 
 namespace Proton.VM.IR.Instructions
 {
-    public sealed class IRCopyObjectInstruction : IRInstruction
-    {
+	public sealed class IRCopyObjectInstruction : IRInstruction
+	{
 		private IRType mType = null;
 		public IRType Type { get { return mType; } private set { mType = value; } }
 
-        public IRCopyObjectInstruction(IRType pType) : base(IROpcode.CopyObject) { Type = pType; }
+		public IRCopyObjectInstruction(IRType pType) : base(IROpcode.CopyObject) { Type = pType; }
 
-        public override void Linearize(Stack<IRStackObject> pStack)
-        {
-            IRStackObject srcAddr = pStack.Pop();
-            IRStackObject destAddr = pStack.Pop();
+		public override void Linearize(Stack<IRStackObject> pStack)
+		{
+			IRStackObject srcAddr = pStack.Pop();
+			IRStackObject destAddr = pStack.Pop();
 			Sources.Add(new IRLinearizedLocation(this, destAddr.LinearizedTarget));
 			Sources.Add(new IRLinearizedLocation(this, srcAddr.LinearizedTarget));
-        }
+		}
 
-        public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRCopyObjectInstruction(Type), pNewMethod); }
+		public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRCopyObjectInstruction(Type), pNewMethod); }
 
 		public override bool Resolved { get { return Type.Resolved; } }
 		public override void Resolve()

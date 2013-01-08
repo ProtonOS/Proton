@@ -7,11 +7,11 @@ using System.Text;
 
 namespace Proton.VM.IR
 {
-    public sealed class IRField
-    {
-        public IRAssembly Assembly = null;
+	public sealed class IRField
+	{
+		public IRAssembly Assembly = null;
 
-        public string Name = null;
+		public string Name = null;
 		public FieldAttributes Flags = FieldAttributes.None;
 
 		public bool IsStatic { get { return (Flags & FieldAttributes.Static) == FieldAttributes.Static; } }
@@ -42,12 +42,12 @@ namespace Proton.VM.IR
 
 		public int Offset = -1;
 
-        /// <summary>
-        /// True if all the types that this field
-        /// uses are fully resolved, aka. if they
-        /// are generic, they are fully instantiated.
-        /// </summary>
-        public bool Resolved { get { return Type.Resolved; } }
+		/// <summary>
+		/// True if all the types that this field
+		/// uses are fully resolved, aka. if they
+		/// are generic, they are fully instantiated.
+		/// </summary>
+		public bool Resolved { get { return Type.Resolved; } }
 
 		public void Resolve(ref IRField selfReference, IRGenericParameterList typeParams, IRGenericParameterList methodParams)
 		{
@@ -57,53 +57,53 @@ namespace Proton.VM.IR
 			selfReference = t.Fields[ParentType.Fields.FindIndex(f => f == f2)];
 		}
 
-        /// <summary>
-        /// Resolve any generic types in this field.
-        /// </summary>
-        /// <param name="typeParams">The type parameters to use to resolve with.</param>
-        public void Substitute()
-        {
-            Type.Resolve(ref mType, ParentType.GenericParameters, IRGenericParameterList.Empty);
-        }
+		/// <summary>
+		/// Resolve any generic types in this field.
+		/// </summary>
+		/// <param name="typeParams">The type parameters to use to resolve with.</param>
+		public void Substitute()
+		{
+			Type.Resolve(ref mType, ParentType.GenericParameters, IRGenericParameterList.Empty);
+		}
 
-        /// <summary>
-        /// Creates a shallow copy of this field.
-        /// </summary>
-        /// <returns>The shallow copy.</returns>
-        public IRField Clone(IRType newParent)
-        {
-            IRField f = new IRField(this.Assembly);
+		/// <summary>
+		/// Creates a shallow copy of this field.
+		/// </summary>
+		/// <returns>The shallow copy.</returns>
+		public IRField Clone(IRType newParent)
+		{
+			IRField f = new IRField(this.Assembly);
 
-            f.Name = this.Name;
+			f.Name = this.Name;
 			f.Flags = this.Flags;
-            f.ParentType = newParent;
-            f.Type = this.Type;
+			f.ParentType = newParent;
+			f.Type = this.Type;
 			f.mParentField = this.Type == null ? this : null;
 
-            return f;
-        }
+			return f;
+		}
 
-        public IRField(IRAssembly pAssembly)
-        {
-            Assembly = pAssembly;
-        }
+		public IRField(IRAssembly pAssembly)
+		{
+			Assembly = pAssembly;
+		}
 
 		public override string ToString()
 		{
 			return (IsStatic ? "static " : "") + Type.ToString() + " " + Name;
 		}
 
-        public bool CompareSignature(FieldSig pFieldSig)
-        {
-            if (Type != Assembly.AppDomain.PresolveType(pFieldSig.Type)) return false;
-            return true;
-        }
+		public bool CompareSignature(FieldSig pFieldSig)
+		{
+			if (Type != Assembly.AppDomain.PresolveType(pFieldSig.Type)) return false;
+			return true;
+		}
 
-        public bool CompareSignature(MemberRefData pMemberRefData)
-        {
-            if (Name != pMemberRefData.Name) return false;
-            return CompareSignature(pMemberRefData.ExpandedFieldSignature);
-        }
+		public bool CompareSignature(MemberRefData pMemberRefData)
+		{
+			if (Name != pMemberRefData.Name) return false;
+			return CompareSignature(pMemberRefData.ExpandedFieldSignature);
+		}
 
 		public void Dump(IndentableStreamWriter pWriter)
 		{
