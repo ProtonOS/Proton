@@ -138,6 +138,7 @@
     <Compile Include="IR\Optimizations\MoveCompacting.cs" />
     <Compile Include="IR\Optimizations\NopKilling.cs" />
     <Compile Include="IR\Transformations\GenericToStringImplementor.cs" />
+    <Compile Include="IR\Transformations\SizeOfToConstant.cs" />
     <Compile Include="IR\Transformations\StaticFieldLiteralInlining.cs" />
     <Compile Include="IR\Transformations\IRTransformationPass.cs" />
     <Compile Include="VMConfig.cs" />
