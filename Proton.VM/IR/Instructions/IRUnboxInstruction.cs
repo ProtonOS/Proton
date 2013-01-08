@@ -50,5 +50,10 @@ namespace Proton.VM.IR.Instructions
 			pWriter.WriteLine("Type {0}", Type.ToString());
 			pWriter.WriteLine("GetValue {0}", GetValue);
 		}
+
+		public override string ToString()
+		{
+			return "UnBox " + (GetValue ? "ValueOf" : "AddressOf") + Type + " " + Sources[0] + " -> " + Destination;
+		}
     }
 }
