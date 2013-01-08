@@ -331,17 +331,17 @@ namespace Proton.VM.IR
 				case IRLinearizedLocationType.Local:
 					liv = lives[Local.LocalIndex];
 					if (liv.Birth > ParentInstruction.IRIndex)
-						liv.Birth = (int)ParentInstruction.IRIndex;
+						liv.Birth = ParentInstruction.IRIndex;
 					if (liv.Death < ParentInstruction.IRIndex)
-						liv.Death = (int)ParentInstruction.IRIndex;
+						liv.Death = ParentInstruction.IRIndex;
 					lives[Local.LocalIndex] = liv;
 					break;
 				case IRLinearizedLocationType.LocalAddress:
 					liv = lives[LocalAddress.LocalIndex];
 					if (liv.Birth > ParentInstruction.IRIndex)
-						liv.Birth = (int)ParentInstruction.IRIndex;
+						liv.Birth = ParentInstruction.IRIndex;
 					if (liv.Death < ParentInstruction.IRIndex)
-						liv.Death = (int)ParentInstruction.IRIndex;
+						liv.Death = ParentInstruction.IRIndex;
 					lives[LocalAddress.LocalIndex] = liv;
 					break;
 				case IRLinearizedLocationType.Field:

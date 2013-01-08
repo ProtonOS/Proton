@@ -49,17 +49,17 @@ namespace Proton.VM.IR
 		{
 			IRInstruction originalInstruction = mInstructions[pIndex];
 			pInstruction.IRIndex = pIndex;
-			mInstructions.Insert((int)pIndex, pInstruction);
-			for (int index = (int)(pIndex + 1); index < mInstructions.Count; ++index) ++mInstructions[index].IRIndex;
+			mInstructions.Insert(pIndex, pInstruction);
+			for (int index = pIndex + 1; index < mInstructions.Count; ++index) ++mInstructions[index].IRIndex;
 			mInsertedTargetFixCache[originalInstruction] = pInstruction;
 		}
 
 		private Dictionary<IRInstruction, IRInstruction> mRemovedTargetFixCache = new Dictionary<IRInstruction, IRInstruction>();
 		public void Remove(IRInstruction pInstruction)
 		{
-			mInstructions.RemoveAt((int)pInstruction.IRIndex);
-			for (int index = (int)pInstruction.IRIndex; index < mInstructions.Count; ++index) --mInstructions[index].IRIndex;
-			mRemovedTargetFixCache[pInstruction] = mInstructions[(int)pInstruction.IRIndex];
+			mInstructions.RemoveAt(pInstruction.IRIndex);
+			for (int index = pInstruction.IRIndex; index < mInstructions.Count; ++index) --mInstructions[index].IRIndex;
+			mRemovedTargetFixCache[pInstruction] = mInstructions[pInstruction.IRIndex];
 		}
 
 		public void FixInsertedTargetInstructions()
@@ -150,7 +150,7 @@ namespace Proton.VM.IR
 					case IROpcode.Branch:
 					{
 						IRBranchInstruction branchInstruction = (IRBranchInstruction)instruction;
-						branchInstruction.TargetIRInstruction = mInstructions[(int)branchInstruction.TargetIRInstruction.IRIndex];
+						branchInstruction.TargetIRInstruction = mInstructions[branchInstruction.TargetIRInstruction.IRIndex];
 						break;
 					}
 					case IROpcode.Switch:
@@ -158,14 +158,14 @@ namespace Proton.VM.IR
 						IRSwitchInstruction switchInstruction = (IRSwitchInstruction)instruction;
 						for (int index = 0; index < switchInstruction.TargetIRInstructions.Length; ++index)
 						{
-							switchInstruction.TargetIRInstructions[index] = mInstructions[(int)switchInstruction.TargetIRInstructions[index].IRIndex];
+							switchInstruction.TargetIRInstructions[index] = mInstructions[switchInstruction.TargetIRInstructions[index].IRIndex];
 						}
 						break;
 					}
 					case IROpcode.Leave:
 					{
 						IRLeaveInstruction leaveInstruction = (IRLeaveInstruction)instruction;
-						leaveInstruction.TargetIRInstruction = mInstructions[(int)leaveInstruction.TargetIRInstruction.IRIndex];
+						leaveInstruction.TargetIRInstruction = mInstructions[leaveInstruction.TargetIRInstruction.IRIndex];
 						break;
 					}
 					default: break;
@@ -312,7 +312,7 @@ namespace Proton.VM.IR
 					case IROpcode.Branch:
 						{
 							IRBranchInstruction branchInstruction = (IRBranchInstruction)instruction;
-							branchInstruction.TargetIRInstruction = mInstructions[(int)branchInstruction.TargetIRInstruction.IRIndex];
+							branchInstruction.TargetIRInstruction = mInstructions[branchInstruction.TargetIRInstruction.IRIndex];
 							break;
 						}
 					case IROpcode.Switch:
@@ -320,14 +320,14 @@ namespace Proton.VM.IR
 							IRSwitchInstruction switchInstruction = (IRSwitchInstruction)instruction;
 							for (int index = 0; index < switchInstruction.TargetILOffsets.Length; ++index)
 							{
-								switchInstruction.TargetIRInstructions[index] = mInstructions[(int)switchInstruction.TargetIRInstructions[index].IRIndex];
+								switchInstruction.TargetIRInstructions[index] = mInstructions[switchInstruction.TargetIRInstructions[index].IRIndex];
 							}
 							break;
 						}
 					case IROpcode.Leave:
 						{
 							IRLeaveInstruction leaveInstruction = (IRLeaveInstruction)instruction;
-							leaveInstruction.TargetIRInstruction = mInstructions[(int)leaveInstruction.TargetIRInstruction.IRIndex];
+							leaveInstruction.TargetIRInstruction = mInstructions[leaveInstruction.TargetIRInstruction.IRIndex];
 							break;
 						}
 					default: break;
