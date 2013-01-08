@@ -222,7 +222,7 @@ namespace Proton.VM.IR
 			new IRBranchRemovalOptimizationPass(),
 
 			// During SSA
-			new IRCallDevirtualizatoinOptimizationPass(),
+			new IRCallDevirtualizationOptimizationPass(),
 			new IRMoveCompactingOptimizationPass(),
 
 			// After SSA
