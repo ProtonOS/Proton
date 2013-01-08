@@ -35,7 +35,7 @@ namespace Proton.VM.IR.Optimizations
 					var callInstr = (IRCallInstruction)curInstr;
 					if (callInstr.Virtual)
 					{
-						if (callInstr.Target.IsFinal || callInstr.Target.ParentType.IsSealed)
+						if (callInstr.Target.IsFinal || callInstr.Target.ParentType.IsSealed || callInstr.Sources[0].GetTypeOfLocation().IsSealed)
 						{
 							callInstr.Virtual = false;
 						}
