@@ -16,46 +16,46 @@ namespace Proton.Metadata
 			public MetadataLoader(CLIFileDelegate pInitializer, CLIFileDelegate pLoader, CLIFileDelegate pLinker) { Initializer = pInitializer; Loader = pLoader; Linker = pLinker; }
 		}
 		private static MetadataLoader[] sMetadataLoaders = new MetadataLoader[]
-        {
-            new MetadataLoader(ModuleData.Initialize, ModuleData.Load, ModuleData.Link),
-            new MetadataLoader(TypeRefData.Initialize, TypeRefData.Load, TypeRefData.Link),
-            new MetadataLoader(TypeDefData.Initialize, TypeDefData.Load, TypeDefData.Link),
-            new MetadataLoader(FieldData.Initialize, FieldData.Load, FieldData.Link),
-            new MetadataLoader(MethodDefData.Initialize, MethodDefData.Load, MethodDefData.Link),
-            new MetadataLoader(ParamData.Initialize, ParamData.Load, ParamData.Link),
-            new MetadataLoader(InterfaceImplData.Initialize, InterfaceImplData.Load, InterfaceImplData.Link),
-            new MetadataLoader(MemberRefData.Initialize, MemberRefData.Load, MemberRefData.Link),
-            new MetadataLoader(ConstantData.Initialize, ConstantData.Load, ConstantData.Link),
-            new MetadataLoader(CustomAttributeData.Initialize, CustomAttributeData.Load, CustomAttributeData.Link),
-            new MetadataLoader(FieldMarshalData.Initialize, FieldMarshalData.Load, FieldMarshalData.Link),
-            new MetadataLoader(DeclSecurityData.Initialize, DeclSecurityData.Load, DeclSecurityData.Link),
-            new MetadataLoader(ClassLayoutData.Initialize, ClassLayoutData.Load, ClassLayoutData.Link),
-            new MetadataLoader(FieldLayoutData.Initialize, FieldLayoutData.Load, FieldLayoutData.Link),
-            new MetadataLoader(StandAloneSigData.Initialize, StandAloneSigData.Load, StandAloneSigData.Link),
-            new MetadataLoader(EventMapData.Initialize, EventMapData.Load, EventMapData.Link),
-            new MetadataLoader(EventData.Initialize, EventData.Load, EventData.Link),
-            new MetadataLoader(PropertyMapData.Initialize, PropertyMapData.Load, PropertyMapData.Link),
-            new MetadataLoader(PropertyData.Initialize, PropertyData.Load, PropertyData.Link),
-            new MetadataLoader(MethodSemanticsData.Initialize, MethodSemanticsData.Load, MethodSemanticsData.Link),
-            new MetadataLoader(MethodImplData.Initialize, MethodImplData.Load, MethodImplData.Link),
-            new MetadataLoader(ModuleRefData.Initialize, ModuleRefData.Load, ModuleRefData.Link),
-            new MetadataLoader(TypeSpecData.Initialize, TypeSpecData.Load, TypeSpecData.Link),
-            new MetadataLoader(ImplMapData.Initialize, ImplMapData.Load, ImplMapData.Link),
-            new MetadataLoader(FieldRVAData.Initialize, FieldRVAData.Load, FieldRVAData.Link),
-            new MetadataLoader(AssemblyData.Initialize, AssemblyData.Load, AssemblyData.Link),
-            new MetadataLoader(AssemblyProcessorData.Initialize, AssemblyProcessorData.Load, AssemblyProcessorData.Link),
-            new MetadataLoader(AssemblyOSData.Initialize, AssemblyOSData.Load, AssemblyOSData.Link),
-            new MetadataLoader(AssemblyRefData.Initialize, AssemblyRefData.Load, AssemblyRefData.Link),
-            new MetadataLoader(AssemblyRefProcessorData.Initialize, AssemblyRefProcessorData.Load, AssemblyRefProcessorData.Link),
-            new MetadataLoader(AssemblyRefOSData.Initialize, AssemblyRefOSData.Load, AssemblyRefOSData.Link),
-            new MetadataLoader(FileData.Initialize, FileData.Load, FileData.Link),
-            new MetadataLoader(ExportedTypeData.Initialize, ExportedTypeData.Load, ExportedTypeData.Link),
-            new MetadataLoader(ManifestResourceData.Initialize, ManifestResourceData.Load, ManifestResourceData.Link),
-            new MetadataLoader(NestedClassData.Initialize, NestedClassData.Load, NestedClassData.Link),
-            new MetadataLoader(GenericParamData.Initialize, GenericParamData.Load, GenericParamData.Link),
-            new MetadataLoader(MethodSpecData.Initialize, MethodSpecData.Load, MethodSpecData.Link),
-            new MetadataLoader(GenericParamConstraintData.Initialize, GenericParamConstraintData.Load, GenericParamConstraintData.Link)
-        };
+		{
+			new MetadataLoader(ModuleData.Initialize, ModuleData.Load, ModuleData.Link),
+			new MetadataLoader(TypeRefData.Initialize, TypeRefData.Load, TypeRefData.Link),
+			new MetadataLoader(TypeDefData.Initialize, TypeDefData.Load, TypeDefData.Link),
+			new MetadataLoader(FieldData.Initialize, FieldData.Load, FieldData.Link),
+			new MetadataLoader(MethodDefData.Initialize, MethodDefData.Load, MethodDefData.Link),
+			new MetadataLoader(ParamData.Initialize, ParamData.Load, ParamData.Link),
+			new MetadataLoader(InterfaceImplData.Initialize, InterfaceImplData.Load, InterfaceImplData.Link),
+			new MetadataLoader(MemberRefData.Initialize, MemberRefData.Load, MemberRefData.Link),
+			new MetadataLoader(ConstantData.Initialize, ConstantData.Load, ConstantData.Link),
+			new MetadataLoader(CustomAttributeData.Initialize, CustomAttributeData.Load, CustomAttributeData.Link),
+			new MetadataLoader(FieldMarshalData.Initialize, FieldMarshalData.Load, FieldMarshalData.Link),
+			new MetadataLoader(DeclSecurityData.Initialize, DeclSecurityData.Load, DeclSecurityData.Link),
+			new MetadataLoader(ClassLayoutData.Initialize, ClassLayoutData.Load, ClassLayoutData.Link),
+			new MetadataLoader(FieldLayoutData.Initialize, FieldLayoutData.Load, FieldLayoutData.Link),
+			new MetadataLoader(StandAloneSigData.Initialize, StandAloneSigData.Load, StandAloneSigData.Link),
+			new MetadataLoader(EventMapData.Initialize, EventMapData.Load, EventMapData.Link),
+			new MetadataLoader(EventData.Initialize, EventData.Load, EventData.Link),
+			new MetadataLoader(PropertyMapData.Initialize, PropertyMapData.Load, PropertyMapData.Link),
+			new MetadataLoader(PropertyData.Initialize, PropertyData.Load, PropertyData.Link),
+			new MetadataLoader(MethodSemanticsData.Initialize, MethodSemanticsData.Load, MethodSemanticsData.Link),
+			new MetadataLoader(MethodImplData.Initialize, MethodImplData.Load, MethodImplData.Link),
+			new MetadataLoader(ModuleRefData.Initialize, ModuleRefData.Load, ModuleRefData.Link),
+			new MetadataLoader(TypeSpecData.Initialize, TypeSpecData.Load, TypeSpecData.Link),
+			new MetadataLoader(ImplMapData.Initialize, ImplMapData.Load, ImplMapData.Link),
+			new MetadataLoader(FieldRVAData.Initialize, FieldRVAData.Load, FieldRVAData.Link),
+			new MetadataLoader(AssemblyData.Initialize, AssemblyData.Load, AssemblyData.Link),
+			new MetadataLoader(AssemblyProcessorData.Initialize, AssemblyProcessorData.Load, AssemblyProcessorData.Link),
+			new MetadataLoader(AssemblyOSData.Initialize, AssemblyOSData.Load, AssemblyOSData.Link),
+			new MetadataLoader(AssemblyRefData.Initialize, AssemblyRefData.Load, AssemblyRefData.Link),
+			new MetadataLoader(AssemblyRefProcessorData.Initialize, AssemblyRefProcessorData.Load, AssemblyRefProcessorData.Link),
+			new MetadataLoader(AssemblyRefOSData.Initialize, AssemblyRefOSData.Load, AssemblyRefOSData.Link),
+			new MetadataLoader(FileData.Initialize, FileData.Load, FileData.Link),
+			new MetadataLoader(ExportedTypeData.Initialize, ExportedTypeData.Load, ExportedTypeData.Link),
+			new MetadataLoader(ManifestResourceData.Initialize, ManifestResourceData.Load, ManifestResourceData.Link),
+			new MetadataLoader(NestedClassData.Initialize, NestedClassData.Load, NestedClassData.Link),
+			new MetadataLoader(GenericParamData.Initialize, GenericParamData.Load, GenericParamData.Link),
+			new MetadataLoader(MethodSpecData.Initialize, MethodSpecData.Load, MethodSpecData.Link),
+			new MetadataLoader(GenericParamConstraintData.Initialize, GenericParamConstraintData.Load, GenericParamConstraintData.Link)
+		};
 
 		public string ReferenceName = null;
 		private byte[] mData = null;
@@ -110,7 +110,7 @@ namespace Proton.Metadata
 		public ManifestResourceData[] ManifestResourceTable = null;
 		public NestedClassData[] NestedClassTable = null;
 		public GenericParamData[] GenericParamTable = null;
-        public int GenericParamTablePivot = 0; // At this point, TypeDef owners start
+		public int GenericParamTablePivot = 0; // At this point, TypeDef owners start
 		public MethodSpecData[] MethodSpecTable = null;
 		public GenericParamConstraintData[] GenericParamConstraintTable = null;
 
@@ -362,111 +362,111 @@ namespace Proton.Metadata
 			return value;
 		}
 
-        public int ReadHeapIndex(byte p32BitFlag)
-        {
-            int heapIndex = 0;
-            if ((CLIMetadataTables.HeapOffsetSizes & p32BitFlag) != 0) heapIndex = ReadInt32();
-            else heapIndex = ReadInt16();
-            return heapIndex;
-        }
+		public int ReadHeapIndex(byte p32BitFlag)
+		{
+			int heapIndex = 0;
+			if ((CLIMetadataTables.HeapOffsetSizes & p32BitFlag) != 0) heapIndex = ReadInt32();
+			else heapIndex = ReadInt16();
+			return heapIndex;
+		}
 
-        public static uint ReadCompressedUnsigned(byte[] pBuffer, ref int pOffset)
-        {
-            uint value = 0;
-            if ((pBuffer[pOffset] & 0x80) == 0)
-            {
-                value = (uint)(pBuffer[pOffset] & 0x7F);
-                pOffset += 1;
-                return value;
-            }
-            if ((pBuffer[pOffset] & 0xC0) == 0x80)
-            {
-                value = (uint)(((pBuffer[pOffset] & 0x3F) << 8) + pBuffer[pOffset + 1]);
-                pOffset += 2;
-                return value;
-            }
-            if ((pBuffer[pOffset] & 0xE0) == 0xC0)
-            {
-                value = (uint)(((pBuffer[pOffset] & 0x1F) << 24) + (pBuffer[pOffset + 1] << 16) + (pBuffer[pOffset + 2] << 8) + pBuffer[pOffset + 3]);
-                pOffset += 4;
-                return value;
-            }
-            value = 0;
-            return value;
-        }
+		public static uint ReadCompressedUnsigned(byte[] pBuffer, ref int pOffset)
+		{
+			uint value = 0;
+			if ((pBuffer[pOffset] & 0x80) == 0)
+			{
+				value = (uint)(pBuffer[pOffset] & 0x7F);
+				pOffset += 1;
+				return value;
+			}
+			if ((pBuffer[pOffset] & 0xC0) == 0x80)
+			{
+				value = (uint)(((pBuffer[pOffset] & 0x3F) << 8) + pBuffer[pOffset + 1]);
+				pOffset += 2;
+				return value;
+			}
+			if ((pBuffer[pOffset] & 0xE0) == 0xC0)
+			{
+				value = (uint)(((pBuffer[pOffset] & 0x1F) << 24) + (pBuffer[pOffset + 1] << 16) + (pBuffer[pOffset + 2] << 8) + pBuffer[pOffset + 3]);
+				pOffset += 4;
+				return value;
+			}
+			value = 0;
+			return value;
+		}
 
-        public static int ReadCompressedSigned(byte[] pBuffer, ref int pOffset)
-        {
-            uint value = 0;
-            if ((pBuffer[pOffset] & 0x80) == 0)
-            {
-                value = (uint)(pBuffer[pOffset] & 0x7F);
-                value = RotateRight(value, 7);
-                if ((value & 0x40) != 0) value |= 0xFFFFFF80;
-                pOffset += 1;
-                return (int)value;
-            }
-            if ((pBuffer[pOffset] & 0xC0) == 0x80)
-            {
-                value = (uint)(((pBuffer[pOffset] & 0x3F) << 8) + pBuffer[pOffset + 1]);
-                value = RotateRight(value, 14);
-                if ((value & 0x2000) != 0) value |= 0xFFFFC000;
-                pOffset += 2;
-                return (int)value;
-            }
-            if ((pBuffer[pOffset] & 0xE0) == 0xC0)
-            {
-                value = (uint)(((pBuffer[pOffset] & 0x1F) << 24) + (pBuffer[pOffset + 1] << 16) + (pBuffer[pOffset + 2] << 8) + pBuffer[pOffset + 3]);
-                value = RotateRight(value, 29);
-                if ((value & 0x10000000) != 0) value |= 0xE0000000;
-                pOffset += 4;
-                return (int)value;
-            }
-            value = 0;
-            return (int)value;
-        }
+		public static int ReadCompressedSigned(byte[] pBuffer, ref int pOffset)
+		{
+			uint value = 0;
+			if ((pBuffer[pOffset] & 0x80) == 0)
+			{
+				value = (uint)(pBuffer[pOffset] & 0x7F);
+				value = RotateRight(value, 7);
+				if ((value & 0x40) != 0) value |= 0xFFFFFF80;
+				pOffset += 1;
+				return (int)value;
+			}
+			if ((pBuffer[pOffset] & 0xC0) == 0x80)
+			{
+				value = (uint)(((pBuffer[pOffset] & 0x3F) << 8) + pBuffer[pOffset + 1]);
+				value = RotateRight(value, 14);
+				if ((value & 0x2000) != 0) value |= 0xFFFFC000;
+				pOffset += 2;
+				return (int)value;
+			}
+			if ((pBuffer[pOffset] & 0xE0) == 0xC0)
+			{
+				value = (uint)(((pBuffer[pOffset] & 0x1F) << 24) + (pBuffer[pOffset + 1] << 16) + (pBuffer[pOffset + 2] << 8) + pBuffer[pOffset + 3]);
+				value = RotateRight(value, 29);
+				if ((value & 0x10000000) != 0) value |= 0xE0000000;
+				pOffset += 4;
+				return (int)value;
+			}
+			value = 0;
+			return (int)value;
+		}
 
-        private static uint RotateRight(uint pValue, byte pBits)
-        {
-            bool bit = (pValue & 0x01) != 0;
-            pValue >>= 1;
-            if (bit) pValue |= (uint)(1 << (pBits - 1));
-            return pValue;
-        }
+		private static uint RotateRight(uint pValue, byte pBits)
+		{
+			bool bit = (pValue & 0x01) != 0;
+			pValue >>= 1;
+			if (bit) pValue |= (uint)(1 << (pBits - 1));
+			return pValue;
+		}
 
-        public string ReadStringHeap(int pHeapOffset)
-        {
-            int offset = (int)(CLIMetadataHeaderOffset + Strings.Offset + pHeapOffset);
-            int length = 0;
-            while (Data[offset + length] != 0x00) ++length;
-            return Encoding.ASCII.GetString(Data, offset, length);
-        }
+		public string ReadStringHeap(int pHeapOffset)
+		{
+			int offset = (int)(CLIMetadataHeaderOffset + Strings.Offset + pHeapOffset);
+			int length = 0;
+			while (Data[offset + length] != 0x00) ++length;
+			return Encoding.ASCII.GetString(Data, offset, length);
+		}
 
-        public string ReadUserStringHeap(int pHeapOffset)
-        {
-            int offset = (int)(CLIMetadataHeaderOffset + US.Offset + pHeapOffset);
-            uint length = ReadCompressedUnsigned(Data, ref offset);
-            if (length == 0 || length == 1) return "";
-            --length;
-            return Encoding.Unicode.GetString(Data, offset, (int)length);
-        }
+		public string ReadUserStringHeap(int pHeapOffset)
+		{
+			int offset = (int)(CLIMetadataHeaderOffset + US.Offset + pHeapOffset);
+			uint length = ReadCompressedUnsigned(Data, ref offset);
+			if (length == 0 || length == 1) return "";
+			--length;
+			return Encoding.Unicode.GetString(Data, offset, (int)length);
+		}
 
-        public byte[] ReadBlobHeap(int pHeapOffset)
-        {
-            int offset = (int)(CLIMetadataHeaderOffset + Blob.Offset + pHeapOffset);
-            uint length = ReadCompressedUnsigned(Data, ref offset);
-            byte[] blob = new byte[length];
-            Buffer.BlockCopy(Data, offset, blob, 0, (int)length);
-            return blob;
-        }
+		public byte[] ReadBlobHeap(int pHeapOffset)
+		{
+			int offset = (int)(CLIMetadataHeaderOffset + Blob.Offset + pHeapOffset);
+			uint length = ReadCompressedUnsigned(Data, ref offset);
+			byte[] blob = new byte[length];
+			Buffer.BlockCopy(Data, offset, blob, 0, (int)length);
+			return blob;
+		}
 
-        public byte[] ReadGUIDHeap(int pHeapOffset)
-        {
-            int offset = (int)(CLIMetadataHeaderOffset + GUID.Offset + pHeapOffset);
-            byte[] guid = new byte[8];
-            Buffer.BlockCopy(Data, offset, guid, 0, 8);
-            return guid;
-        }
+		public byte[] ReadGUIDHeap(int pHeapOffset)
+		{
+			int offset = (int)(CLIMetadataHeaderOffset + GUID.Offset + pHeapOffset);
+			byte[] guid = new byte[8];
+			Buffer.BlockCopy(Data, offset, guid, 0, 8);
+			return guid;
+		}
 		#endregion
 
 		#region Headers

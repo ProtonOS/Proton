@@ -5,30 +5,30 @@ using System.Collections.Generic;
 
 namespace Proton.VM.IR.Instructions
 {
-    public sealed class IRSizeOfInstruction : IRInstruction
-    {
+	public sealed class IRSizeOfInstruction : IRInstruction
+	{
 		private IRType mType = null;
 		public IRType Type { get { return mType; } private set { mType = value; } }
 
-        public IRSizeOfInstruction(IRType pType) : base(IROpcode.SizeOf) { Type = pType; }
+		public IRSizeOfInstruction(IRType pType) : base(IROpcode.SizeOf) { Type = pType; }
 
-        public override void Linearize(Stack<IRStackObject> pStack)
-        {
+		public override void Linearize(Stack<IRStackObject> pStack)
+		{
 			IRLinearizedLocation value = new IRLinearizedLocation(this, IRLinearizedLocationType.SizeOf);
-            value.SizeOf.Type = Type;
-            Sources.Add(value);
+			value.SizeOf.Type = Type;
+			Sources.Add(value);
 
-            IRStackObject result = new IRStackObject();
-            result.Type = ParentMethod.Assembly.AppDomain.System_UInt32;
+			IRStackObject result = new IRStackObject();
+			result.Type = ParentMethod.Assembly.AppDomain.System_UInt32;
 			result.LinearizedTarget = new IRLinearizedLocation(this, IRLinearizedLocationType.Local);
-            result.LinearizedTarget.Local.LocalIndex = AddLinearizedLocal(pStack, ParentMethod.Assembly.AppDomain.System_UInt32);
+			result.LinearizedTarget.Local.LocalIndex = AddLinearizedLocal(pStack, ParentMethod.Assembly.AppDomain.System_UInt32);
 			Destination = new IRLinearizedLocation(this, result.LinearizedTarget);
-            pStack.Push(result);
-        }
+			pStack.Push(result);
+		}
 
-        public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRSizeOfInstruction(Type), pNewMethod); }
+		public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRSizeOfInstruction(Type), pNewMethod); }
 
-        public override IRInstruction Transform() { return new IRMoveInstruction(this); }
+		public override IRInstruction Transform() { return new IRMoveInstruction(this); }
 
 		public override bool Resolved { get { return Type.Resolved; } }
 		public override void Resolve()

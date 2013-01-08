@@ -5,23 +5,23 @@ using System.Collections.Generic;
 
 namespace Proton.VM.IR.Instructions
 {
-    public sealed class IRStoreLocalInstruction : IRInstruction
-    {
-        public int LocalIndex { get; private set; }
+	public sealed class IRStoreLocalInstruction : IRInstruction
+	{
+		public int LocalIndex { get; private set; }
 
-        public IRStoreLocalInstruction(int pLocalIndex) : base(IROpcode.StoreLocal) { LocalIndex = pLocalIndex; }
+		public IRStoreLocalInstruction(int pLocalIndex) : base(IROpcode.StoreLocal) { LocalIndex = pLocalIndex; }
 
-        public override void Linearize(Stack<IRStackObject> pStack)
-        {
+		public override void Linearize(Stack<IRStackObject> pStack)
+		{
 			Sources.Add(new IRLinearizedLocation(this, pStack.Pop().LinearizedTarget));
 
 			Destination = new IRLinearizedLocation(this, IRLinearizedLocationType.Local);
-            Destination.Local.LocalIndex = LocalIndex;
-        }
+			Destination.Local.LocalIndex = LocalIndex;
+		}
 
-        public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRStoreLocalInstruction(LocalIndex), pNewMethod); }
+		public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRStoreLocalInstruction(LocalIndex), pNewMethod); }
 
-        public override IRInstruction Transform() { return new IRMoveInstruction(this); }
+		public override IRInstruction Transform() { return new IRMoveInstruction(this); }
 
 		public override void ConvertToLIR(LIRMethod pLIRMethod) { }
 

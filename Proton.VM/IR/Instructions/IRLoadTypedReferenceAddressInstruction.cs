@@ -5,27 +5,27 @@ using System.Collections.Generic;
 
 namespace Proton.VM.IR.Instructions
 {
-    public sealed class IRLoadTypedReferenceAddressInstruction : IRInstruction
-    {
+	public sealed class IRLoadTypedReferenceAddressInstruction : IRInstruction
+	{
 		private IRType mType = null;
 		public IRType Type { get { return mType; } private set { mType = value; } }
 
-        public IRLoadTypedReferenceAddressInstruction(IRType pType) : base(IROpcode.LoadTypedReferenceAddress) { Type = pType; }
+		public IRLoadTypedReferenceAddressInstruction(IRType pType) : base(IROpcode.LoadTypedReferenceAddress) { Type = pType; }
 
-        public override void Linearize(Stack<IRStackObject> pStack)
-        {
+		public override void Linearize(Stack<IRStackObject> pStack)
+		{
 			Sources.Add(new IRLinearizedLocation(this, pStack.Pop().LinearizedTarget));
 
-            IRType pointerType = ParentMethod.Assembly.AppDomain.GetUnmanagedPointerType(Type);
-            IRStackObject result = new IRStackObject();
-            result.Type = pointerType;
+			IRType pointerType = ParentMethod.Assembly.AppDomain.GetUnmanagedPointerType(Type);
+			IRStackObject result = new IRStackObject();
+			result.Type = pointerType;
 			result.LinearizedTarget = new IRLinearizedLocation(this, IRLinearizedLocationType.Local);
-            result.LinearizedTarget.Local.LocalIndex = AddLinearizedLocal(pStack, pointerType);
+			result.LinearizedTarget.Local.LocalIndex = AddLinearizedLocal(pStack, pointerType);
 			Destination = new IRLinearizedLocation(this, result.LinearizedTarget);
-            pStack.Push(result);
-        }
+			pStack.Push(result);
+		}
 
-        public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRLoadTypedReferenceAddressInstruction(Type), pNewMethod); }
+		public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRLoadTypedReferenceAddressInstruction(Type), pNewMethod); }
 
 		public override bool Resolved { get { return Type.Resolved; } }
 		public override void Resolve()

@@ -10,7 +10,7 @@ namespace Proton.VM.IR.Transformations
 
 		public override void Transform(IRType type)
 		{
-			if (!type.IsAbstract && (type.IsGeneric || type.NestedInsideOfType != null))
+			if (!type.IsAbstract && (type.IsGeneric || type.NestedInsideOfType != null || type.IsArrayType || type.IsManagedPointerType || type.IsUnmanagedPointerType))
 			{
 				if (type.VirtualMethodTree[3].ParentType != type)
 				{

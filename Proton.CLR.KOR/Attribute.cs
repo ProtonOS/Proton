@@ -1,4 +1,4 @@
 ﻿namespace System
 {
-    public abstract class Attribute { }
+	public abstract class Attribute { }
 }

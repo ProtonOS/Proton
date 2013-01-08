@@ -5,26 +5,26 @@ using System.Collections.Generic;
 
 namespace Proton.VM.IR.Instructions
 {
-    public sealed class IRConvertUncheckedInstruction : IRInstruction
-    {
+	public sealed class IRConvertUncheckedInstruction : IRInstruction
+	{
 		private IRType mType = null;
 		public IRType TargetType { get { return mType; } private set { mType = value; } }
 
-        public IRConvertUncheckedInstruction(IRType pType) : base(IROpcode.ConvertUnchecked) { TargetType = pType; }
+		public IRConvertUncheckedInstruction(IRType pType) : base(IROpcode.ConvertUnchecked) { TargetType = pType; }
 
-        public override void Linearize(Stack<IRStackObject> pStack)
-        {
+		public override void Linearize(Stack<IRStackObject> pStack)
+		{
 			Sources.Add(new IRLinearizedLocation(this, pStack.Pop().LinearizedTarget));
 
-            IRStackObject result = new IRStackObject();
-            result.Type = TargetType;
+			IRStackObject result = new IRStackObject();
+			result.Type = TargetType;
 			result.LinearizedTarget = new IRLinearizedLocation(this, IRLinearizedLocationType.Local);
-            result.LinearizedTarget.Local.LocalIndex = AddLinearizedLocal(pStack, TargetType);
+			result.LinearizedTarget.Local.LocalIndex = AddLinearizedLocal(pStack, TargetType);
 			Destination = new IRLinearizedLocation(this, result.LinearizedTarget);
-            pStack.Push(result);
-        }
+			pStack.Push(result);
+		}
 
-        public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRConvertUncheckedInstruction(TargetType), pNewMethod); }
+		public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRConvertUncheckedInstruction(TargetType), pNewMethod); }
 
 		public override bool Resolved { get { return TargetType.Resolved; } }
 		public override void Resolve()

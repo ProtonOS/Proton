@@ -1,7 +1,7 @@
 ﻿namespace System
 {
-    public sealed class ParamArrayAttribute : Attribute
-    {
-        public ParamArrayAttribute() { }
-    }
+	public sealed class ParamArrayAttribute : Attribute
+	{
+		public ParamArrayAttribute() { }
+	}
 }

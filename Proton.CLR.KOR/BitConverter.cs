@@ -1,16 +1,16 @@
 ﻿namespace System
 {
-    public static class BitConverter
-    {
-        public static readonly bool IsLittleEndian = AmILittleEndian();
+	public static class BitConverter
+	{
+		public static readonly bool IsLittleEndian = AmILittleEndian();
 		private static readonly bool SwappedWordsInDouble = DoubleWordsAreSwapped();
 
-        private static unsafe bool AmILittleEndian()
-        {
-            int i = 1;
-            byte b = *((byte*)&i);
-            return (b == 1);
-        }
+		private static unsafe bool AmILittleEndian()
+		{
+			int i = 1;
+			byte b = *((byte*)&i);
+			return (b == 1);
+		}
 
 		private static unsafe bool DoubleWordsAreSwapped()
 		{
@@ -19,7 +19,7 @@
 			return b[2] == 0xf0;
 		}
 
-        public static unsafe long DoubleToInt64Bits(double value) { return *((long*)&value); }
+		public static unsafe long DoubleToInt64Bits(double value) { return *((long*)&value); }
 
 		private unsafe static void PutBytes(byte* dst, byte[] src, int start_index, int count)
 		{

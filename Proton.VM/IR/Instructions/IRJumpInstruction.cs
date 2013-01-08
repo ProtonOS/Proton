@@ -5,19 +5,19 @@ using System.Collections.Generic;
 
 namespace Proton.VM.IR.Instructions
 {
-    public sealed class IRJumpInstruction : IRInstruction
-    {
+	public sealed class IRJumpInstruction : IRInstruction
+	{
 		private IRMethod mTarget = null;
 		public IRMethod Target { get { return mTarget; } private set { mTarget = value; } }
 
-        public IRJumpInstruction(IRMethod pTarget) : base(IROpcode.Jump) { Target = pTarget; }
+		public IRJumpInstruction(IRMethod pTarget) : base(IROpcode.Jump) { Target = pTarget; }
 
-        public override void Linearize(Stack<IRStackObject> pStack)
-        {
-            if (pStack.Count > 0) throw new OverflowException();
-        }
+		public override void Linearize(Stack<IRStackObject> pStack)
+		{
+			if (pStack.Count > 0) throw new OverflowException();
+		}
 
-        public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRJumpInstruction(Target), pNewMethod); }
+		public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRJumpInstruction(Target), pNewMethod); }
 
 		public override bool Resolved { get { return Target.Resolved; } }
 		public override void Resolve()

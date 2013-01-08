@@ -5,15 +5,15 @@ using System.Collections.Generic;
 
 namespace Proton.VM.IR.Instructions
 {
-    public sealed class IRNopInstruction : IRInstruction
-    {
-        public bool ForceEmit { get; private set; }
+	public sealed class IRNopInstruction : IRInstruction
+	{
+		public bool ForceEmit { get; private set; }
 
-        public IRNopInstruction(bool pForceEmit = false) : base(IROpcode.Nop) { ForceEmit = pForceEmit; }
+		public IRNopInstruction(bool pForceEmit = false) : base(IROpcode.Nop) { ForceEmit = pForceEmit; }
 
-        public override void Linearize(Stack<IRStackObject> pStack) { }
+		public override void Linearize(Stack<IRStackObject> pStack) { }
 
-        public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRNopInstruction(ForceEmit), pNewMethod); }
+		public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRNopInstruction(ForceEmit), pNewMethod); }
 
 		public override void ConvertToLIR(LIRMethod pLIRMethod)
 		{

@@ -5,23 +5,23 @@ using System.Collections.Generic;
 
 namespace Proton.VM.IR.Instructions
 {
-    public sealed class IRMoveInstruction : IRInstruction
-    {
-        public IRMoveInstruction() : base(IROpcode.Move) { }
-        public IRMoveInstruction(IRInstruction pInstruction) : base(IROpcode.Move)
-        {
-            ILOffset = pInstruction.ILOffset;
-            IRIndex = pInstruction.IRIndex;
-            ParentMethod = pInstruction.ParentMethod;
-            Sources.AddRange(pInstruction.Sources);
+	public sealed class IRMoveInstruction : IRInstruction
+	{
+		public IRMoveInstruction() : base(IROpcode.Move) { }
+		public IRMoveInstruction(IRInstruction pInstruction) : base(IROpcode.Move)
+		{
+			ILOffset = pInstruction.ILOffset;
+			IRIndex = pInstruction.IRIndex;
+			ParentMethod = pInstruction.ParentMethod;
+			Sources.AddRange(pInstruction.Sources);
 			Sources.ForEach(s => s.SetParentInstruction(this));
-            Destination = pInstruction.Destination;
+			Destination = pInstruction.Destination;
 			Destination.SetParentInstruction(this);
-        }
+		}
 
-        public override void Linearize(Stack<IRStackObject> pStack) { throw new InvalidOperationException(); }
+		public override void Linearize(Stack<IRStackObject> pStack) { throw new InvalidOperationException(); }
 
-        public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRMoveInstruction(), pNewMethod); }
+		public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRMoveInstruction(), pNewMethod); }
 
 		public override void ConvertToLIR(LIRMethod pLIRMethod)
 		{

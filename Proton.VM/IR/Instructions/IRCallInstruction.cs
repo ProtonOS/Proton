@@ -5,17 +5,17 @@ using System.Collections.Generic;
 
 namespace Proton.VM.IR.Instructions
 {
-    public sealed class IRCallInstruction : IRInstruction
-    {
+	public sealed class IRCallInstruction : IRInstruction
+	{
 		private IRMethod mTarget = null;
 		public IRMethod Target { get { return mTarget; } set { mTarget = value; } }
-        public bool Virtual { get; set; }
+		public bool Virtual { get; set; }
 
-        public IRCallInstruction(IRMethod pTarget, bool pVirtual) : base(IROpcode.Call)
-        {
-            Target = pTarget;
-            Virtual = pVirtual;
-        }
+		public IRCallInstruction(IRMethod pTarget, bool pVirtual) : base(IROpcode.Call)
+		{
+			Target = pTarget;
+			Virtual = pVirtual;
+		}
 
 		private static IRType ResolveSimpleReturn(IRType tp, IRMethod target)
 		{
@@ -29,24 +29,24 @@ namespace Proton.VM.IR.Instructions
 				return tp;
 		}
 
-        public override void Linearize(Stack<IRStackObject> pStack)
-        {
+		public override void Linearize(Stack<IRStackObject> pStack)
+		{
 			for (int count = 0; count < Target.Parameters.Count; ++count) Sources.Add(new IRLinearizedLocation(this, pStack.Pop().LinearizedTarget));
 
-            if (Target.ReturnType != null)
-            {
-                IRStackObject returned = new IRStackObject();
+			if (Target.ReturnType != null)
+			{
+				IRStackObject returned = new IRStackObject();
 				IRType retType = ResolveSimpleReturn(Target.ReturnType, Target);
 
 				returned.Type = retType;
 				returned.LinearizedTarget = new IRLinearizedLocation(this, IRLinearizedLocationType.Local);
-                returned.LinearizedTarget.Local.LocalIndex = AddLinearizedLocal(pStack, retType);
+				returned.LinearizedTarget.Local.LocalIndex = AddLinearizedLocal(pStack, retType);
 				Destination = new IRLinearizedLocation(this, returned.LinearizedTarget);
-                pStack.Push(returned);
-            }
-        }
+				pStack.Push(returned);
+			}
+		}
 
-        public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRCallInstruction(Target, Virtual), pNewMethod); }
+		public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRCallInstruction(Target, Virtual), pNewMethod); }
 
 		public override bool Resolved { get { return Target == ParentMethod ? true : Target.Resolved; } }
 		public override void Resolve()

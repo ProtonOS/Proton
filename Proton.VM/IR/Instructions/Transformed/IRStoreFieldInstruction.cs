@@ -5,25 +5,25 @@ using System.Collections.Generic;
 
 namespace Proton.VM.IR.Instructions
 {
-    public sealed class IRStoreFieldInstruction : IRInstruction
-    {
+	public sealed class IRStoreFieldInstruction : IRInstruction
+	{
 		private IRField mField = null;
 		public IRField Field { get { return mField; } private set { mField = value; } }
 
-        public IRStoreFieldInstruction(IRField pField) : base(IROpcode.StoreField) { Field = pField; }
+		public IRStoreFieldInstruction(IRField pField) : base(IROpcode.StoreField) { Field = pField; }
 
-        public override void Linearize(Stack<IRStackObject> pStack)
-        {
+		public override void Linearize(Stack<IRStackObject> pStack)
+		{
 			Sources.Add(new IRLinearizedLocation(this, pStack.Pop().LinearizedTarget));
 
 			Destination = new IRLinearizedLocation(this, IRLinearizedLocationType.Field);
-            Destination.Field.Field = Field;
+			Destination.Field.Field = Field;
 			Destination.Field.FieldLocation = new IRLinearizedLocation(this, pStack.Pop().LinearizedTarget);
-        }
+		}
 
-        public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRStoreFieldInstruction(Field), pNewMethod); }
+		public override IRInstruction Clone(IRMethod pNewMethod) { return CopyTo(new IRStoreFieldInstruction(Field), pNewMethod); }
 
-        public override IRInstruction Transform() { return new IRMoveInstruction(this); }
+		public override IRInstruction Transform() { return new IRMoveInstruction(this); }
 
 		public override bool Resolved { get { return Field.Resolved; } }
 		public override void Resolve()

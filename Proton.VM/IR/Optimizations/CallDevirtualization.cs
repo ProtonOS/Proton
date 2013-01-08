@@ -4,7 +4,7 @@ using Proton.VM.IR.Instructions;
 
 namespace Proton.VM.IR.Optimizations
 {
-	public sealed class IRCallDevirtualizatoinOptimizationPass : IROptimizationPass
+	public sealed class IRCallDevirtualizationOptimizationPass : IROptimizationPass
 	{
 		public override string Name { get { return "Call Devirtualization"; } }
 		public override string Description { get { return "Makes a call non-virtual if it can be proven that it will be made on an object of a specific type."; } }

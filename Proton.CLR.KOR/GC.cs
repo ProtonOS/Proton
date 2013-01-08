@@ -3,14 +3,14 @@ using System.Kernel;
 
 namespace System
 {
-    public static unsafe class GC
-    {
+	public static unsafe class GC
+	{
 		internal const ulong HeapSize = 0x100000;
 		internal const uint MinimumObjectSize = 0x40;
 		internal const int ShiftsForMinimumObjectSize = 6;
 
-        internal struct GCHeap
-        {
+		internal struct GCHeap
+		{
 			public HeapAllocator.PageOfHeaps* PageOfHeaps;
 			public GCHeap* AllocatorPrev;
 			public GCHeap* AllocatorNext;
@@ -18,7 +18,7 @@ namespace System
 			public byte* Heap;
 			public ulong TreeSize;
 			public uint* Tree;
-            public uint TreeLevels;
+			public uint TreeLevels;
 			public GCHeap* Prev;
 			public GCHeap* Next;
 			public GCObject* AllocatedFirst;
@@ -118,23 +118,23 @@ namespace System
 			}
 		}
 
-        internal enum GCObjectFlags : uint
-        {
+		internal enum GCObjectFlags : uint
+		{
 			None = 0,
-            Marked = 1
-        }
+			Marked = 1
+		}
 
-        internal struct GCObject
-        {
+		internal struct GCObject
+		{
 			public GCHeap* Heap;
 			public GCObject* AllocatedPrev;
 			public GCObject* AllocatedNext;
 			public Type.TypeData* TypeData;
 			public Type.TypeData* BoxedTypeData;
-            public GCObjectFlags Flags;
-            public uint HeapSize;
-            public uint DataSize;
-        }
+			public GCObjectFlags Flags;
+			public uint HeapSize;
+			public uint DataSize;
+		}
 
 		private static GCHeap* HeapFirst = null;
 		private static GCHeap* HeapLast = null;
@@ -283,5 +283,5 @@ namespace System
 			*lengthPointer = (int)pElementCount;
 			return (Array)object.Internal_PointerToReference((void*)((ulong)obj + (ulong)sizeof(GCObject)));
 		}
-    }
+	}
 }
