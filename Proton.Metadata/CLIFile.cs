@@ -110,6 +110,7 @@ namespace Proton.Metadata
 		public ManifestResourceData[] ManifestResourceTable = null;
 		public NestedClassData[] NestedClassTable = null;
 		public GenericParamData[] GenericParamTable = null;
+		public int GenericParamTablePivot = 0; // At this point, TypeDef owners start
 		public MethodSpecData[] MethodSpecTable = null;
 		public GenericParamConstraintData[] GenericParamConstraintTable = null;
 

@@ -18,7 +18,32 @@ namespace Proton.Metadata.Tables
 
 		public static void Load(CLIFile pFile)
 		{
-			for (int index = 0; index < pFile.GenericParamTable.Length; ++index) pFile.GenericParamTable[index].LoadData(pFile);
+			GenericParamData[] table = pFile.GenericParamTable;
+			int size = table.Length;
+			for (int index = 0; index < size; ++index) table[index].LoadData(pFile);
+
+			/* A single quickswap step in O(n) */
+			/* Sets MethodDef first */
+			int left = 0, right = size - 1;
+			while(left <= right)
+			{
+				while (left < size && table[left].Owner.Type == TypeOrMethodDefIndex.TypeOrMethodDefType.MethodDef)
+					++left;
+
+				while (right > 0 && table[right].Owner.Type == TypeOrMethodDefIndex.TypeOrMethodDefType.TypeDef)
+					--right;
+
+				if (left <= right) // swap
+				{
+					GenericParamData temp = table[left];
+					table[left] = table[right];
+					table[right] = temp;
+
+					++left;
+					--right;
+				}
+			}
+			pFile.GenericParamTablePivot = left;
 		}
 
 		public static void Link(CLIFile pFile)
