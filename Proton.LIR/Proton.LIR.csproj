@@ -39,6 +39,7 @@
     <Compile Include="Instructions\Call.cs" />
     <Compile Include="Instructions\Comment.cs" />
     <Compile Include="Instructions\Compare.cs" />
+    <Compile Include="Instructions\Dead.cs" />
     <Compile Include="Instructions\Math.cs" />
     <Compile Include="Instructions\Move.cs" />
     <Compile Include="Instructions\Nop.cs" />
@@ -50,8 +51,12 @@
     <Compile Include="LIRLocal.cs" />
     <Compile Include="LIRMethod.cs" />
     <Compile Include="ISource.cs" />
+    <Compile Include="LIROpCode.cs" />
     <Compile Include="LIRParameter.cs" />
     <Compile Include="LIRType.cs" />
+    <Compile Include="Optimizations\DeadLabelRemoval.cs" />
+    <Compile Include="Optimizations\LimitedMoveCompacting.cs" />
+    <Compile Include="Optimizations\LIROptimizationPass.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

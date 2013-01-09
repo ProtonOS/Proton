@@ -5,10 +5,17 @@ namespace Proton.LIR
 {
 	public class LIRLocal : ISource, IDestination
 	{
+		public SourceType SourceType { get { return SourceType.Local; } }
+		public DestinationType DestinationType { get { return DestinationType.Local; } }
+
 		public LIRMethod Parent { get; private set; }
 
 		public LIRType Type { get; private set; }
 		public int Index { get; private set; }
+
+		internal bool Dynamic { get; set; }
+		internal ISource AssignedValue { get; set; }
+		internal int AssignedAt { get; set; }
 
 		public LIRLocal(LIRMethod parent, LIRType tp)
 		{
@@ -28,6 +35,11 @@ namespace Proton.LIR
 		public override string ToString()
 		{
 			return "#" + Index.ToString();
+		}
+
+		public void Dump(IndentedStreamWriter wtr)
+		{
+			wtr.WriteLine("Local {0} {1}{2}", this, Type, (this.Dynamic ? " Dynamic" : ""));
 		}
 	}
 }

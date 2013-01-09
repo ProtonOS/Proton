@@ -8,7 +8,7 @@ namespace Proton.LIR.Instructions
 		public ISource Source { get; private set; }
 		public LIRType SourceType { get; private set; }
 
-		public Return(LIRMethod parent, ISource source = null, LIRType sourceType = null) : base(parent)
+		public Return(LIRMethod parent, ISource source = null, LIRType sourceType = null) : base(parent, LIROpCode.Return)
 		{
 			this.Source = source;
 			this.SourceType = sourceType;

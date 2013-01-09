@@ -44,18 +44,21 @@ namespace Proton.LIR
 		private Dictionary<int, Queue<LIRLocal>> requestedLocalMap = new Dictionary<int, Queue<LIRLocal>>();
 		public LIRLocal RequestLocal(LIRType tp)
 		{
+			LIRLocal ret;
 			Queue<LIRLocal> q;
 			if (!requestedLocalMap.TryGetValue(tp.GetHashCode(), out q))
 			{
 				requestedLocalMap.Add(tp.GetHashCode(), new Queue<LIRLocal>());
-				return new LIRLocal(this, tp);
+				ret = new LIRLocal(this, tp);
 			}
-			if (q.Count > 0)
-				return q.Dequeue();
+			else if (q.Count > 0)
+				ret = q.Dequeue();
 			else
 			{
-				return new LIRLocal(this, tp);
+				ret = new LIRLocal(this, tp);
 			}
+			ret.Dynamic = true;
+			return ret;
 		}
 		public void ReleaseLocal(LIRLocal l)
 		{
@@ -77,26 +80,17 @@ namespace Proton.LIR
 			pWriter.WriteLine();
 			pWriter.WriteLine("{");
 			pWriter.Indent++;
-			mInstructions.ForEach(i => i.Dump(pWriter));
+
+			pWriter.WriteLine("{");
+			pWriter.Indent++;
+			mLocals.ForEach(l => l.Dump(pWriter));
 			pWriter.Indent--;
 			pWriter.WriteLine("}");
-		}
 
-		internal void RemoveDeadLabels()
-		{
-			List<LIRInstruction> instrs = new List<LIRInstruction>(mInstructions.Count);
-			foreach (var i in mInstructions)
-			{
-				if (i is Label)
-				{
-					if (((Label)i).References == 0)
-						continue;
-				}
-				i.Index = instrs.Count;
-				instrs.Add(i);
-			}
-			instrs.TrimExcess();
-			mInstructions = instrs;
+			mInstructions.ForEach(i => i.Dump(pWriter));
+			
+			pWriter.Indent--;
+			pWriter.WriteLine("}");
 		}
 	}
 }

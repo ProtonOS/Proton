@@ -3,8 +3,11 @@ using System.Collections.Generic;
 
 namespace Proton.LIR
 {
-	public class LIRParameter : ISource, IDestination
+	public sealed class LIRParameter : ISource, IDestination
 	{
+		public SourceType SourceType { get { return SourceType.Parameter; } }
+		public DestinationType DestinationType { get { return DestinationType.Parameter; } }
+
 		public LIRMethod Parent { get; private set; }
 
 		public LIRType Type { get; private set; }

@@ -16,7 +16,7 @@ namespace Proton.LIR.Instructions
 		public UnaryOperation Operation { get; private set; }
 		public LIRType ArgumentType { get; private set; }
 
-		public Unary(LIRMethod parent, ISource src, IDestination dest, UnaryOperation op, LIRType argType) : base(parent)
+		public Unary(LIRMethod parent, ISource src, IDestination dest, UnaryOperation op, LIRType argType) : base(parent, LIROpCode.Unary)
 		{
 			Source = src;
 			Destination = dest;

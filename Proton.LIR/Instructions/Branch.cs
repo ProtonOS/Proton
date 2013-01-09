@@ -7,7 +7,7 @@ namespace Proton.LIR.Instructions
 	{
 		public Label Target { get; private set; }
 
-		public Branch(LIRMethod parent, Label target) : base(parent)
+		public Branch(LIRMethod parent, Label target) : base(parent, LIROpCode.Branch)
 		{
 			this.Target = target;
 			target.References++;

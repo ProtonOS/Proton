@@ -3,15 +3,16 @@ using System.Collections.Generic;
 
 namespace Proton.LIR.Instructions
 {
-	public sealed class Nop : LIRInstruction
+	internal sealed class Dead : LIRInstruction
 	{
-		public Nop(LIRMethod parent) : base(parent, LIROpCode.Nop)
+		public Dead(int idx) : base(null, LIROpCode.Dead)
 		{
+			this.Index = idx;
 		}
 
 		internal override void Dump(IndentedStreamWriter wtr)
 		{
-			wtr.WriteLine("Nop");
+			wtr.WriteLine("DEAD");
 		}
 	}
 }

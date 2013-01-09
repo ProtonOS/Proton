@@ -10,7 +10,7 @@ namespace Proton.LIR.Instructions
 		public List<ISource> Sources { get { return mSources; } }
 		public IDestination ReturnValueDestination { get; private set; }
 
-		public Call(LIRMethod parent, LIRMethod targetMethod, IEnumerable<ISource> sources = null, IDestination returnValueDest = null) : base(parent)
+		public Call(LIRMethod parent, LIRMethod targetMethod, IEnumerable<ISource> sources = null, IDestination returnValueDest = null) : base(parent, LIROpCode.Call)
 		{
 			this.TargetMethod = targetMethod;
 			if (sources != null)

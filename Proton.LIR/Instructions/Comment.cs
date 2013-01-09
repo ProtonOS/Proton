@@ -7,7 +7,7 @@ namespace Proton.LIR.Instructions
 	{
 		public string Text { get; private set; }
 
-		public Comment(LIRMethod parent, string text) : base(parent)
+		public Comment(LIRMethod parent, string text) : base(parent, LIROpCode.Comment)
 		{
 			this.Text = text;
 		}

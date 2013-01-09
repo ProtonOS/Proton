@@ -8,7 +8,7 @@ namespace Proton.LIR.Instructions
 		public ISource Source { get; private set; }
 		public Label Target { get; private set; }
 
-		public BranchTrue(LIRMethod parent, ISource source, Label target) : base(parent)
+		public BranchTrue(LIRMethod parent, ISource source, Label target) : base(parent, LIROpCode.BranchTrue)
 		{
 			this.Source = source;
 			this.Target = target;

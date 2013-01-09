@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
+using Proton.LIR.Optimizations;
 
 namespace Proton.LIR
 {
@@ -10,7 +11,7 @@ namespace Proton.LIR
 
 		private static int sTempID = 0;
 		private int mTempID;
-		public Label() : base(null)
+		public Label() : base(null, LIROpCode.Label)
 		{
 			mTempID = sTempID++;
 		}
@@ -62,12 +63,26 @@ namespace Proton.LIR
 			// Need to align all output to what makes best sense for the architecture (multi-boot must be 4-byte aligned)
 
 
-			mMethods.ForEach(m => m.RemoveDeadLabels());
+			Optimize();
 
 			Console.WriteLine("Dumping LIRCompileUnit...");
 			using (var v = new StreamWriter("CompileUnitDump.txt"))
 			{
 				Dump(new IndentedStreamWriter(v));
+			}
+		}
+
+		private static readonly LIROptimizationPass[] KnownOptimizationPasses = new LIROptimizationPass[]
+		{
+			new LIRLimitedMoveCompactingOptimizationPass(),
+			new LIRDeadLabelRemovalOptimizationPass(),
+		};
+
+		private void Optimize()
+		{
+			foreach (var kop in KnownOptimizationPasses)
+			{
+				mMethods.ForEach(m => kop.Run(m));
 			}
 		}
 

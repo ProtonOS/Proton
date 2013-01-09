@@ -23,7 +23,7 @@ namespace Proton.LIR.Instructions
 		public MathOperation Operation { get; private set; }
 		public LIRType ArgumentType { get; private set; }
 
-		public Math(LIRMethod parent, ISource srcA, ISource srcB, IDestination dest, MathOperation op, LIRType argType) : base(parent)
+		public Math(LIRMethod parent, ISource srcA, ISource srcB, IDestination dest, MathOperation op, LIRType argType) : base(parent, LIROpCode.Math)
 		{
 			SourceA = srcA;
 			SourceB = srcB;

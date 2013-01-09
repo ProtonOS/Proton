@@ -6,9 +6,11 @@ namespace Proton.LIR
 	public abstract class LIRInstruction
 	{
 		public int Index { get; internal set; }
+		public LIROpCode OpCode { get; private set; }
 
-		protected LIRInstruction(LIRMethod parent)
+		protected LIRInstruction(LIRMethod parent, LIROpCode opCode)
 		{
+			this.OpCode = opCode;
 			if (parent != null)
 			{
 				this.Index = parent.mInstructions.Count;

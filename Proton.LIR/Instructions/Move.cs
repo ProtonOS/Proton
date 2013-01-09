@@ -5,11 +5,11 @@ namespace Proton.LIR.Instructions
 {
 	public sealed class Move : LIRInstruction
 	{
-		public ISource Source { get; private set; }
-		public IDestination Destination { get; private set; }
+		public ISource Source { get; internal set; }
+		public IDestination Destination { get; internal set; }
 		public LIRType ArgumentType { get; private set; }
 
-		public Move(LIRMethod parent, ISource src, IDestination dest, LIRType argType) : base(parent)
+		public Move(LIRMethod parent, ISource src, IDestination dest, LIRType argType) : base(parent, LIROpCode.Move)
 		{
 			Source = src;
 			Destination = dest;

@@ -7,6 +7,8 @@ namespace Proton.LIR
 	[StructLayout(LayoutKind.Explicit)]
 	public struct LIRImm : ISource
 	{
+		public SourceType SourceType { get { return SourceType.Literal; } }
+
 		[FieldOffset(0)]
 		public byte ByteValue;
 		[FieldOffset(0)]

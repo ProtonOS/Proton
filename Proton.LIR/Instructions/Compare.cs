@@ -21,7 +21,7 @@ namespace Proton.LIR.Instructions
 		public LIRType Type { get; private set; }
 		public CompareCondition Condition { get; private set; }
 
-		public Compare(LIRMethod parent, ISource sourceA, ISource sourceB, IDestination destination, LIRType type, CompareCondition condition) : base(parent)
+		public Compare(LIRMethod parent, ISource sourceA, ISource sourceB, IDestination destination, LIRType type, CompareCondition condition) : base(parent, LIROpCode.Compare)
 		{
 			this.SourceA = sourceA;
 			this.SourceB = sourceB;

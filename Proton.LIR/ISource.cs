@@ -3,8 +3,18 @@ using System.Collections.Generic;
 
 namespace Proton.LIR
 {
+	public enum SourceType
+	{
+		Local,
+		LocalAddress,
+		Parameter,
+		ParameterAddress,
+		Indirect,
+		Literal,
+	}
 	public interface ISource
 	{
+		SourceType SourceType { get; }
 		string ToString();
 	}
 }
