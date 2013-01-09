@@ -44,6 +44,7 @@ namespace Proton.VM.IR.Optimizations
 			}
 			pMethod.Instructions.FixModifiedTargetInstructions();
 			pMethod.Instructions.ImmediateRetargetModifiedInstructions = true;
+			IRAppDomain.RemoveDeadCode(pMethod);
 		}
 	}
 }

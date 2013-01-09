@@ -232,6 +232,26 @@ namespace Proton.VM.IR
 			new IRNopKillingOptimizationPass(),
 		};
 
+		public static void RemoveDeadCode(IRMethod pMethod)
+		{
+			IRControlFlowGraph cfg = IRControlFlowGraph.Build(pMethod);
+			if (cfg == null) return;
+
+			bool[] procs = new bool[pMethod.Instructions.Count];
+			cfg.Nodes.ForEach(n => n.Instructions.ForEach(i => procs[i.IRIndex] = true));
+			if (!procs.TrueForAll(f => f))
+			{
+				pMethod.Instructions.ImmediateRetargetModifiedInstructions = false;
+				for (int i = 0; i < pMethod.Instructions.Count; i++)
+				{
+					if (!procs[i])
+						pMethod.Instructions[i] = new Instructions.IRNopInstruction();
+				}
+				pMethod.Instructions.FixModifiedTargetInstructions();
+				pMethod.Instructions.ImmediateRetargetModifiedInstructions = true;
+			}
+		}
+
 		private void LoadStage6(bool runOptimizations)
 		{
 			Console.WriteLine("========== {0,-22} Stage 6 {0,-23} ==========", " ");

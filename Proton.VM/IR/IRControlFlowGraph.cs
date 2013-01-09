@@ -138,7 +138,7 @@ namespace Proton.VM.IR
 					case IROpcode.Throw:
 					case IROpcode.Rethrow:
 					case IROpcode.Return: continue;
-					default: node.LinkTo(cfg.Nodes[node.Index + 1]); break;
+					default: if (cfg.Nodes.Count > node.Index + 1) node.LinkTo(cfg.Nodes[node.Index + 1]); break;
 				}
 			}
 
