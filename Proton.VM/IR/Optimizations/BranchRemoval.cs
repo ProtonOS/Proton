@@ -19,9 +19,26 @@ namespace Proton.VM.IR.Optimizations
 				if (curInstr.Opcode == IROpcode.Branch)
 				{
 					var curBranchInstr = (IRBranchInstruction)curInstr;
-					if (curBranchInstr.BranchCondition == IRBranchCondition.Always && curBranchInstr.TargetIRInstruction.IRIndex == curBranchInstr.IRIndex + 1)
+					if (curBranchInstr.BranchCondition == IRBranchCondition.Always)
 					{
-						pMethod.Instructions[i] = new IRNopInstruction();
+						if (curBranchInstr.TargetIRInstruction.IRIndex == curBranchInstr.IRIndex + 1)
+						{
+							pMethod.Instructions[i] = new IRNopInstruction();
+						}
+						else if (curBranchInstr.TargetIRInstruction.Opcode == IROpcode.Return)
+						{
+							pMethod.Instructions[i] = curBranchInstr.TargetIRInstruction.Clone(pMethod);
+						}
+						else if (pMethod.ReturnType != null &&
+							curBranchInstr.TargetIRInstruction.Opcode == IROpcode.Move &&
+							curBranchInstr.TargetIRInstruction.Sources[0].Type == IRLinearizedLocationType.Local &&
+							pMethod.Instructions[curBranchInstr.TargetIRInstruction.IRIndex + 1].Opcode == IROpcode.Return
+						)
+						{
+							var r = pMethod.Instructions[curBranchInstr.TargetIRInstruction.IRIndex + 1].Clone(pMethod);
+							r.Sources[0] = curBranchInstr.TargetIRInstruction.Sources[0].Clone(r);
+							pMethod.Instructions[i] = r;
+						}
 					}
 				}
 			}
