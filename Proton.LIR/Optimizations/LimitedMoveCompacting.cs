@@ -18,7 +18,12 @@ namespace Proton.LIR.Optimizations
 						if (curMove.Source.SourceType == SourceType.Local)
 						{
 							var loc = (LIRLocal)curMove.Source;
-							if (loc.Dynamic && loc.AssignedValue != null && loc.AssignedValue.SourceType == SourceType.Local)
+							if (loc.Dynamic && loc.AssignedValue != null && 
+								(
+									loc.AssignedValue.SourceType == SourceType.Local ||
+									loc.AssignedValue.SourceType == SourceType.Literal
+								)
+							)
 							{
 								curMove.Source = loc.AssignedValue;
 								method.mInstructions[loc.AssignedAt] = new Instructions.Dead(loc.AssignedAt);
