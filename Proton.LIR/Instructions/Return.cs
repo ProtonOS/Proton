@@ -6,7 +6,7 @@ namespace Proton.LIR.Instructions
 	public sealed class Return : LIRInstruction
 	{
 		internal override bool MayHaveSideEffects { get { return true; } }
-		public ISource Source { get; private set; }
+		public ISource Source { get; internal set; }
 		public LIRType SourceType { get; private set; }
 
 		public Return(LIRMethod parent, ISource source = null, LIRType sourceType = null) : base(parent, LIROpCode.Return)

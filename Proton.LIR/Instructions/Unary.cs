@@ -12,9 +12,9 @@ namespace Proton.LIR.Instructions
 	public sealed class Unary : LIRInstruction
 	{
 		internal override bool MayHaveSideEffects { get { return Source.MayHaveSideEffects || Destination.MayHaveSideEffects; } }
-		public ISource Source { get; private set; }
-		public IDestination Destination { get; private set; }
-		public UnaryOperation Operation { get; private set; }
+		public ISource Source { get; internal set; }
+		public IDestination Destination { get; internal set; }
+		public UnaryOperation Operation { get; internal set; }
 		public LIRType ArgumentType { get; private set; }
 
 		public Unary(LIRMethod parent, ISource src, IDestination dest, UnaryOperation op, LIRType argType) : base(parent, LIROpCode.Unary)

@@ -69,8 +69,15 @@ namespace Proton.VM.IR.Instructions
 				case IRBranchCondition.Always:
 					new LIRInstructions.Branch(pLIRMethod, TargetIRInstruction.Label);
 					break;
-				case IRBranchCondition.False:
 				case IRBranchCondition.True:
+				{
+					var sA = pLIRMethod.RequestLocal(Sources[0].GetTypeOfLocation());
+					Sources[0].LoadTo(pLIRMethod, sA);
+					new LIRInstructions.BranchTrue(pLIRMethod, sA, TargetIRInstruction.Label);
+					pLIRMethod.ReleaseLocal(sA);
+					break;
+				}
+				case IRBranchCondition.False:
 				{
 					var sA = pLIRMethod.RequestLocal(Sources[0].GetTypeOfLocation());
 					Sources[0].LoadTo(pLIRMethod, sA);

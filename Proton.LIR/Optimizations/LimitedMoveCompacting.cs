@@ -10,33 +10,104 @@ namespace Proton.LIR.Optimizations
 			for (int i = 0; i < method.mInstructions.Count; i++)
 			{
 				var curInstr = method.mInstructions[i];
-				if (curInstr.OpCode == LIROpCode.Move)
+				switch(curInstr.OpCode)
 				{
-					var curMove = (Instructions.Move)curInstr;
-					if (curMove.Source.SourceType == SourceType.Local)
+					case LIROpCode.Move:
 					{
-						var loc = (LIRLocal)curMove.Source;
-						if (loc.Dynamic && loc.AssignedValue != null && loc.AssignedValue.SourceType == SourceType.Local)
+						var curMove = (Instructions.Move)curInstr;
+						if (curMove.Source.SourceType == SourceType.Local)
 						{
-							curMove.Source = loc.AssignedValue;
-							method.mInstructions[loc.AssignedAt] = new Instructions.Dead(loc.AssignedAt);
+							var loc = (LIRLocal)curMove.Source;
+							if (loc.Dynamic && loc.AssignedValue != null && loc.AssignedValue.SourceType == SourceType.Local)
+							{
+								curMove.Source = loc.AssignedValue;
+								method.mInstructions[loc.AssignedAt] = new Instructions.Dead(loc.AssignedAt);
+							}
 						}
+						if (curMove.Destination.DestinationType == DestinationType.Local)
+						{
+							var loc = (LIRLocal)curMove.Destination;
+							if (loc.Dynamic)
+							{
+								loc.AssignedAt = i;
+								loc.AssignedValue = curMove.Source;
+							}
+						}
+						break;
 					}
-					if (curMove.Destination.DestinationType == DestinationType.Local)
+					case LIROpCode.Math:
 					{
-						var loc = (LIRLocal)curMove.Destination;
-						if (loc.Dynamic)
-						{
-							loc.AssignedAt = i;
-							loc.AssignedValue = curMove.Source;
-						}
+						// Need to do dest
+						var curMath = (Instructions.Math)curInstr;
+						curMath.SourceA = ProcessSource(curMath.SourceA, method);
+						curMath.SourceB = ProcessSource(curMath.SourceB, method);
+						break;
 					}
+					case LIROpCode.Compare:
+					{
+						// Need to do dest
+						var curCompare = (Instructions.Compare)curInstr;
+						curCompare.SourceA = ProcessSource(curCompare.SourceA, method);
+						curCompare.SourceB = ProcessSource(curCompare.SourceB, method);
+						break;
+					}
+					case LIROpCode.BranchTrue:
+					{
+						var curBranch = (Instructions.BranchTrue)curInstr;
+						curBranch.Source = ProcessSource(curBranch.Source, method);
+						break;
+					}
+					case LIROpCode.Unary:
+					{
+						// Need to do dest
+						var curUnary = (Instructions.Unary)curInstr;
+						curUnary.Source = ProcessSource(curUnary.Source, method);
+						break;
+					}
+					case LIROpCode.Return:
+					{
+						var curReturn = (Instructions.Return)curInstr;
+						if (curReturn.Source != null)
+							curReturn.Source = ProcessSource(curReturn.Source, method);
+						break;
+					}
+					case LIROpCode.Call:
+					{
+						// Need to do dest
+						var curCall = (Instructions.Call)curInstr;
+						for (int i2 = 0; i2 < curCall.Sources.Count; i2++)
+						{
+							curCall.Sources[i2] = ProcessSource(curCall.Sources[i2], method);
+						}
+						break;
+					}
+
+					case LIROpCode.Comment:
+					case LIROpCode.Dead:
+					case LIROpCode.Label:
+					case LIROpCode.Nop:
+					case LIROpCode.Branch:
+						break;
+					default:
+						throw new Exception("Unknown LIROpCode!");
 				}
-				else
+				if (curInstr.MayHaveSideEffects)
+					method.Locals.ForEach(l => { l.AssignedAt = -1; l.AssignedValue = null; });
+			}
+		}
+
+		private static ISource ProcessSource(ISource src, LIRMethod method)
+		{
+			if (src.SourceType == SourceType.Local)
+			{
+				var loc = (LIRLocal)src;
+				if (loc.Dynamic && loc.AssignedValue != null && loc.AssignedValue.SourceType == SourceType.Local)
 				{
-					method.Locals.ForEach(m => { m.AssignedAt = -1; m.AssignedValue = null; });
+					method.mInstructions[loc.AssignedAt] = new Instructions.Dead(loc.AssignedAt);
+					return loc.AssignedValue;
 				}
 			}
+			return src;
 		}
 	}
 }

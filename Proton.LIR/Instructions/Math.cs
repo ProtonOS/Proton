@@ -18,9 +18,9 @@ namespace Proton.LIR.Instructions
 	public sealed class Math : LIRInstruction
 	{
 		internal override bool MayHaveSideEffects { get { return SourceA.MayHaveSideEffects || SourceB.MayHaveSideEffects || Destination.MayHaveSideEffects; } }
-		public ISource SourceA { get; private set; }
-		public ISource SourceB { get; private set; }
-		public IDestination Destination { get; private set; }
+		public ISource SourceA { get; internal set; }
+		public ISource SourceB { get; internal set; }
+		public IDestination Destination { get; internal set; }
 		public MathOperation Operation { get; private set; }
 		public LIRType ArgumentType { get; private set; }
 
