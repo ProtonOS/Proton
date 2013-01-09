@@ -1006,6 +1006,23 @@ namespace Proton.VM.IR
 			// invalidated by dead phi removal
 			mLocals.ForEach(l => l.SSAData.LifeBegins = l.SSAData.LifeEnds = null);
 			//LayoutLocals();
+
+			// Test that we did stuff right, make sure no local is assigned
+			// more than once, though some may never get assigned due to
+			// phi reductions that occur, if an exception is thrown here
+			// it is most likely due to something that caused dead code
+			// but never removed it before entering SSA, or a bug with
+			// branching that removed a valid node and we luckily caught a
+			// duplicate assignment due to unprocessed instructions
+			bool[] assigned = new bool[Locals.Count];
+			foreach (IRInstruction instruction in Instructions)
+			{
+				if (instruction.Destination != null && instruction.Destination.Type == IRLinearizedLocationType.Local)
+				{
+					if (assigned[instruction.Destination.Local.LocalIndex]) throw new Exception();
+					assigned[instruction.Destination.Local.LocalIndex] = true;
+				}
+			}
 		}
 
 		public void LeaveSSA()
