@@ -287,6 +287,8 @@ namespace Proton.VM.IR
 				{
 					Methods.ForEach(m => op.Run(m));
 				});
+
+				Methods.ForEach(m => RemoveDeadCode(m));
 			}
 			else
 			{

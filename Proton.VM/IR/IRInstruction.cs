@@ -6,6 +6,9 @@ namespace Proton.VM.IR
 {
 	public abstract class IRInstruction
 	{
+		private static int sTempID = 0;
+		public int mTempID = 0;
+
 		public int ILOffset = 0;
 		public int IRIndex = 0;
 		public IROpcode Opcode = IROpcode.Nop;
@@ -22,6 +25,7 @@ namespace Proton.VM.IR
 
 		protected IRInstruction(IROpcode pOpcode)
 		{
+			mTempID = sTempID++;
 			Opcode = pOpcode;
 		}
 

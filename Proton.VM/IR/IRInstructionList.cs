@@ -74,7 +74,7 @@ namespace Proton.VM.IR
 						case IROpcode.Branch:
 							{
 								IRBranchInstruction branchInstruction = (IRBranchInstruction)instruction;
-								if (mInsertedTargetFixCache.TryGetValue(branchInstruction.TargetIRInstruction, out targetInstruction)) branchInstruction.TargetIRInstruction = targetInstruction;
+								while (mInsertedTargetFixCache.TryGetValue(branchInstruction.TargetIRInstruction, out targetInstruction)) branchInstruction.TargetIRInstruction = targetInstruction;
 								break;
 							}
 						case IROpcode.Switch:
@@ -82,7 +82,7 @@ namespace Proton.VM.IR
 								IRSwitchInstruction switchInstruction = (IRSwitchInstruction)instruction;
 								for (int index = 0; index < switchInstruction.TargetIRInstructions.Length; ++index)
 								{
-									if (mInsertedTargetFixCache.TryGetValue(switchInstruction.TargetIRInstructions[index], out targetInstruction))
+									while (mInsertedTargetFixCache.TryGetValue(switchInstruction.TargetIRInstructions[index], out targetInstruction))
 										switchInstruction.TargetIRInstructions[index] = targetInstruction;
 								}
 								break;
@@ -90,7 +90,7 @@ namespace Proton.VM.IR
 						case IROpcode.Leave:
 							{
 								IRLeaveInstruction leaveInstruction = (IRLeaveInstruction)instruction;
-								if (mInsertedTargetFixCache.TryGetValue(leaveInstruction.TargetIRInstruction, out targetInstruction)) leaveInstruction.TargetIRInstruction = targetInstruction;
+								while (mInsertedTargetFixCache.TryGetValue(leaveInstruction.TargetIRInstruction, out targetInstruction)) leaveInstruction.TargetIRInstruction = targetInstruction;
 								break;
 							}
 						default: break;
@@ -112,7 +112,8 @@ namespace Proton.VM.IR
 						case IROpcode.Branch:
 							{
 								IRBranchInstruction branchInstruction = (IRBranchInstruction)instruction;
-								if (mRemovedTargetFixCache.TryGetValue(branchInstruction.TargetIRInstruction, out targetInstruction)) branchInstruction.TargetIRInstruction = targetInstruction;
+								while (mRemovedTargetFixCache.TryGetValue(branchInstruction.TargetIRInstruction, out targetInstruction))
+									branchInstruction.TargetIRInstruction = targetInstruction;
 								break;
 							}
 						case IROpcode.Switch:
@@ -120,7 +121,7 @@ namespace Proton.VM.IR
 								IRSwitchInstruction switchInstruction = (IRSwitchInstruction)instruction;
 								for (int index = 0; index < switchInstruction.TargetIRInstructions.Length; ++index)
 								{
-									if (mRemovedTargetFixCache.TryGetValue(switchInstruction.TargetIRInstructions[index], out targetInstruction))
+									while (mRemovedTargetFixCache.TryGetValue(switchInstruction.TargetIRInstructions[index], out targetInstruction))
 										switchInstruction.TargetIRInstructions[index] = targetInstruction;
 								}
 								break;
@@ -128,7 +129,7 @@ namespace Proton.VM.IR
 						case IROpcode.Leave:
 							{
 								IRLeaveInstruction leaveInstruction = (IRLeaveInstruction)instruction;
-								if (mRemovedTargetFixCache.TryGetValue(leaveInstruction.TargetIRInstruction, out targetInstruction)) leaveInstruction.TargetIRInstruction = targetInstruction;
+								while (mRemovedTargetFixCache.TryGetValue(leaveInstruction.TargetIRInstruction, out targetInstruction)) leaveInstruction.TargetIRInstruction = targetInstruction;
 								break;
 							}
 						default: break;
@@ -198,11 +199,12 @@ namespace Proton.VM.IR
 					IRInstruction oldInstruction = mInstructions[pIndex];
 					IRInstruction newInstruction = value;
 
+					value.ILOffset = oldInstruction.ILOffset;
 					mInstructions[pIndex] = value;
+					mILOffsetLookup[newInstruction.ILOffset] = newInstruction;
 
 					if (ImmediateRetargetModifiedInstructions)
 					{
-						mILOffsetLookup[newInstruction.ILOffset] = newInstruction;
 						foreach (IRInstruction instruction in mInstructions)
 						{
 							switch (instruction.Opcode)
