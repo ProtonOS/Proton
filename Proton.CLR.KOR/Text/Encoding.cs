@@ -2,8 +2,8 @@
 {
 	public abstract class Encoding : ICloneable
 	{
-		private static Encoding ASCIIEncoding = null;
-		private static Encoding UnicodeEncoding = null;
+		private static ASCIIEncoding ASCIIEncoding = new ASCIIEncoding();
+		private static UnicodeEncoding UnicodeEncoding = new UnicodeEncoding();
 
 		public static Encoding ASCII { get { return ASCIIEncoding; } }
 		public static Encoding Unicode { get { return UnicodeEncoding; } }

@@ -162,8 +162,10 @@
     <Compile Include="String.cs" />
     <Compile Include="StringHelper.cs" />
     <Compile Include="SystemException.cs" />
+    <Compile Include="Text\ASCIIEncoding.cs" />
     <Compile Include="Text\Encoding.cs" />
     <Compile Include="Text\StringBuilder.cs" />
+    <Compile Include="Text\UnicodeEncoding.cs" />
     <Compile Include="Threading\WaitHandle.cs" />
     <Compile Include="TimeSpan.cs" />
     <Compile Include="Tuple.cs" />

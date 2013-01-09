@@ -18,10 +18,13 @@ namespace System
 
 		internal unsafe char* InternalCharDataPointer { get { return (char*)((ulong)Internal_ReferenceToPointer() + sizeof(int)); } }
 
-		#region Private Internal Calls
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		public extern String(char c, int count);
 
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		public extern String(char[] chars);
+
+		#region Private Internal Calls
 		private static unsafe string InternalConcat(string str0, string str1)
 		{
 			int str0Length = str0.mLength;
