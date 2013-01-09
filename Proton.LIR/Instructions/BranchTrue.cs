@@ -12,6 +12,7 @@ namespace Proton.LIR.Instructions
 		{
 			this.Source = source;
 			this.Target = target;
+			target.References++;
 		}
 
 		internal override void Dump(IndentedStreamWriter wtr)

@@ -10,6 +10,7 @@ namespace Proton.LIR.Instructions
 		public Branch(LIRMethod parent, Label target) : base(parent)
 		{
 			this.Target = target;
+			target.References++;
 		}
 
 		internal override void Dump(IndentedStreamWriter wtr)

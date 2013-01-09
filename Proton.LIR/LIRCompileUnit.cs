@@ -4,11 +4,13 @@ using System.Collections.Generic;
 
 namespace Proton.LIR
 {
-	public sealed class Label
+	public sealed class Label : LIRInstruction
 	{
+		public int References { get; internal set; }
+
 		private static int sTempID = 0;
 		private int mTempID;
-		public Label()
+		public Label() : base(null)
 		{
 			mTempID = sTempID++;
 		}
@@ -21,6 +23,14 @@ namespace Proton.LIR
 		public override string ToString()
 		{
 			return mTempID.ToString();
+		}
+
+		internal override void Dump(IndentedStreamWriter wtr)
+		{
+			wtr.Indent--;
+			//wtr.WriteLine("{0}: ({1} References)", this, References);
+			wtr.WriteLine("{0}:", this);
+			wtr.Indent++;
 		}
 	}
 
@@ -52,6 +62,7 @@ namespace Proton.LIR
 			// Need to align all output to what makes best sense for the architecture (multi-boot must be 4-byte aligned)
 
 
+			mMethods.ForEach(m => m.RemoveDeadLabels());
 
 			Console.WriteLine("Dumping LIRCompileUnit...");
 			using (var v = new StreamWriter("CompileUnitDump.txt"))
