@@ -5,6 +5,7 @@ namespace Proton.LIR.Instructions
 {
 	public sealed class Call : LIRInstruction
 	{
+		internal override bool MayHaveSideEffects { get { return true; } }
 		public LIRMethod TargetMethod { get; private set; }
 		private List<ISource> mSources = new List<ISource>();
 		public List<ISource> Sources { get { return mSources; } }

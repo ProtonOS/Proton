@@ -5,6 +5,7 @@ namespace Proton.LIR.Instructions
 {
 	public sealed class Branch : LIRInstruction
 	{
+		internal override bool MayHaveSideEffects { get { return true; } }
 		public Label Target { get; private set; }
 
 		public Branch(LIRMethod parent, Label target) : base(parent, LIROpCode.Branch)

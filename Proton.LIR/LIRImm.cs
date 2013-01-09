@@ -7,6 +7,7 @@ namespace Proton.LIR
 	[StructLayout(LayoutKind.Explicit)]
 	public struct LIRImm : ISource
 	{
+		public bool MayHaveSideEffects { get { return false; } }
 		public SourceType SourceType { get { return SourceType.Literal; } }
 
 		[FieldOffset(0)]

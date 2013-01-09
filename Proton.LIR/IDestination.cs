@@ -11,6 +11,7 @@ namespace Proton.LIR
 	}
 	public interface IDestination
 	{
+		bool MayHaveSideEffects { get; }
 		DestinationType DestinationType { get; }
 		string ToString();
 	}

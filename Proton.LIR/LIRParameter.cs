@@ -5,6 +5,7 @@ namespace Proton.LIR
 {
 	public sealed class LIRParameter : ISource, IDestination
 	{
+		public bool MayHaveSideEffects { get { return false; } }
 		public SourceType SourceType { get { return SourceType.Parameter; } }
 		public DestinationType DestinationType { get { return DestinationType.Parameter; } }
 

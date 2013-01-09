@@ -15,6 +15,7 @@ namespace Proton.LIR.Instructions
 
 	public sealed class Compare : LIRInstruction
 	{
+		internal override bool MayHaveSideEffects { get { return SourceA.MayHaveSideEffects || SourceB.MayHaveSideEffects || Destination.MayHaveSideEffects; } }
 		public ISource SourceA { get; private set; }
 		public ISource SourceB { get; private set; }
 		public IDestination Destination { get; private set; }

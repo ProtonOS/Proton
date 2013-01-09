@@ -5,6 +5,7 @@ namespace Proton.LIR
 {
 	public class LIRLocal : ISource, IDestination
 	{
+		public bool MayHaveSideEffects { get { return false; } }
 		public SourceType SourceType { get { return SourceType.Local; } }
 		public DestinationType DestinationType { get { return DestinationType.Local; } }
 

@@ -7,6 +7,7 @@ namespace Proton.LIR
 {
 	public sealed class Label : LIRInstruction
 	{
+		internal override bool MayHaveSideEffects { get { return false; } }
 		public int References { get; internal set; }
 
 		private static int sTempID = 0;

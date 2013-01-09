@@ -5,6 +5,7 @@ namespace Proton.LIR
 {
 	public abstract class LIRInstruction
 	{
+		internal abstract bool MayHaveSideEffects { get; }
 		public int Index { get; internal set; }
 		public LIROpCode OpCode { get; private set; }
 

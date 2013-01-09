@@ -5,6 +5,7 @@ namespace Proton.LIR.Instructions
 {
 	public sealed class Move : LIRInstruction
 	{
+		internal override bool MayHaveSideEffects { get { return Source.MayHaveSideEffects || Destination.MayHaveSideEffects; } }
 		public ISource Source { get; internal set; }
 		public IDestination Destination { get; internal set; }
 		public LIRType ArgumentType { get; private set; }

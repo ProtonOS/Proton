@@ -5,6 +5,7 @@ namespace Proton.LIR.Instructions
 {
 	public sealed class Comment : LIRInstruction
 	{
+		internal override bool MayHaveSideEffects { get { return false; } }
 		public string Text { get; private set; }
 
 		public Comment(LIRMethod parent, string text) : base(parent, LIROpCode.Comment)

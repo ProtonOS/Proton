@@ -14,6 +14,7 @@ namespace Proton.LIR
 	}
 	public interface ISource
 	{
+		bool MayHaveSideEffects { get; }
 		SourceType SourceType { get; }
 		string ToString();
 	}
