@@ -283,12 +283,14 @@ namespace Proton.VM.IR
 				{
 					Methods.ForEach(m => op.Run(m));
 				});
+				
+				// Nothing in the "Last" RunLocation should produce dead code, it's only for the cleanup code.
+				Methods.ForEach(m => RemoveDeadCode(m));
+
 				KnownOptimizationPasses.FindAll(op => op.Location == IROptimizationPass.RunLocation.Last).ForEach(op =>
 				{
 					Methods.ForEach(m => op.Run(m));
 				});
-
-				Methods.ForEach(m => RemoveDeadCode(m));
 			}
 			else
 			{
