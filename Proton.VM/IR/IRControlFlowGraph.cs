@@ -16,9 +16,10 @@ namespace Proton.VM.IR
 
 			HashSet<IRInstruction> sourceNodeBreaks = new HashSet<IRInstruction>();
 			HashSet<IRInstruction> destinationNodeBreaks = new HashSet<IRInstruction>();
+			int lIRIdx = pMethod.Instructions.Count - 1;
 			foreach (IRInstruction instruction in pMethod.Instructions)
 			{
-				bool lastInstruction = instruction == pMethod.Instructions[pMethod.Instructions.Count - 1];
+				bool lastInstruction = instruction.IRIndex == lIRIdx;
 				switch (instruction.Opcode)
 				{
 					case IROpcode.Branch:
@@ -63,7 +64,7 @@ namespace Proton.VM.IR
 			cfg.Nodes.Add(currentNode);
 			foreach (IRInstruction instruction in pMethod.Instructions)
 			{
-				bool lastInstruction = instruction == pMethod.Instructions[pMethod.Instructions.Count - 1];
+				bool lastInstruction = instruction.IRIndex == lIRIdx;
 				bool startFromSource = sourceNodeBreaks.Contains(instruction);
 				bool startFromDestination = destinationNodeBreaks.Contains(instruction);
 				if (startFromSource && startFromDestination)
