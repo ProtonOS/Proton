@@ -76,9 +76,6 @@
     <Compile Include="Comparison.cs" />
     <Compile Include="Console.cs" />
     <Compile Include="Converter.cs" />
-    <Compile Include="DateTime.cs" />
-    <Compile Include="DateTimeKind.cs" />
-    <Compile Include="DayOfWeek.cs" />
     <Compile Include="Decimal.cs" />
     <Compile Include="Delegate.cs" />
     <Compile Include="Double.cs" />
@@ -89,15 +86,9 @@
     <Compile Include="FormatException.cs" />
     <Compile Include="Func.cs" />
     <Compile Include="GC.cs" />
-    <Compile Include="Globalization\Calendar.cs" />
-    <Compile Include="Globalization\CalendarWeekRule.cs" />
-    <Compile Include="Globalization\CalendricalCalculations.cs" />
     <Compile Include="Globalization\CultureInfo.cs" />
     <Compile Include="Globalization\CultureTypes.cs" />
-    <Compile Include="Globalization\DateTimeFormatInfo.cs" />
     <Compile Include="Globalization\DigitShapes.cs" />
-    <Compile Include="Globalization\GregorianCalendar.cs" />
-    <Compile Include="Globalization\GregorianCalendarTypes.cs" />
     <Compile Include="Globalization\NumberFormatInfo.cs" />
     <Compile Include="Globalization\NumberStyles.cs" />
     <Compile Include="Globalization\TextInfo.cs" />

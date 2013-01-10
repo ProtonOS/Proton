@@ -790,7 +790,10 @@ namespace Proton.VM.IR
 
 		public void TransformInstructions(MethodDefData pMethodDefData)
 		{
+			Instructions.ImmediateRetargetModifiedInstructions = false;
 			for (int index = 0; index < Instructions.Count; ++index) Instructions[index] = Instructions[index].Transform();
+			Instructions.FixModifiedTargetInstructions();
+			Instructions.ImmediateRetargetModifiedInstructions = true;
 		}
 
 		public void EnterSSA()
