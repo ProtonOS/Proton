@@ -11,9 +11,9 @@ namespace Proton.VM.IR
 		public IRAppDomain AppDomain = null;
 		public CLIFile File = null;
 		public bool CORLibrary = false;
-		public List<IRType> Types = new List<IRType>();
-		public List<IRField> Fields = new List<IRField>();
-		public List<IRMethod> Methods = new List<IRMethod>();
+		public List<IRType> Types = null;
+		public List<IRField> Fields = null;
+		public List<IRMethod> Methods = null;
 
 		internal IRAssembly(IRAppDomain pAppDomain, CLIFile pCLIFile, bool pCORLibrary)
 		{
@@ -25,6 +25,9 @@ namespace Proton.VM.IR
 		internal void LoadStage1()
 		{
 			Console.WriteLine("========== Stage 1: {0,-45} ==========", File.ReferenceName);
+			Types = new List<IRType>(File.TypeDefTable.Length);
+			Fields = new List<IRField>(File.FieldTable.Length);
+			Methods = new List<IRMethod>(File.MethodDefTable.Length);
 			foreach (TypeDefData typeDefData in File.TypeDefTable) Types.Add(new IRType(this));
 			foreach (FieldData fieldData in File.FieldTable) Fields.Add(new IRField(this));
 			foreach (MethodDefData methodDefData in File.MethodDefTable)
@@ -189,12 +192,9 @@ namespace Proton.VM.IR
 			{
 				IRType type = Types[typeIndex];
 				TypeDefData typeDefData = File.TypeDefTable[typeIndex];
-				for (int methodImplIndex = 0; methodImplIndex < File.MethodImplTable.Length; ++methodImplIndex)
+				foreach (MethodImplData methodImpl in typeDefData.MethodImplList)
 				{
-					if (File.MethodImplTable[methodImplIndex].Class == typeDefData)
-					{
-						type.ExplicitOverrides.Add(new IRType.OverrideDescriptor(AppDomain.PresolveMethod(File.MethodImplTable[methodImplIndex].MethodDeclaration), AppDomain.PresolveMethod(File.MethodImplTable[methodImplIndex].MethodBody)));
-					}
+					type.ExplicitOverrides.Add(new IRType.OverrideDescriptor(AppDomain.PresolveMethod(methodImpl.MethodDeclaration), AppDomain.PresolveMethod(methodImpl.MethodBody)));
 				}
 			}
 		}

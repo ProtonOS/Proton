@@ -45,6 +45,7 @@ namespace Proton.Metadata.Tables
 
 		private void LinkData(CLIFile pFile)
 		{
+			Class.MethodImplList.Add(this);
 		}
 	}
 }

@@ -42,6 +42,7 @@ namespace Proton.Metadata.Tables
 		public List<TypeDefData> NestedClassList = new List<TypeDefData>();
 
 		public List<GenericParamData> GenericParamList = new List<GenericParamData>();
+		public List<MethodImplData> MethodImplList = new List<MethodImplData>();
 
 		private void LoadData(CLIFile pFile)
 		{
