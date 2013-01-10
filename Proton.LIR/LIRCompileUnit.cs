@@ -7,7 +7,7 @@ namespace Proton.LIR
 {
 	public sealed class Label : LIRInstruction
 	{
-		internal override bool MayHaveSideEffects { get { return false; } }
+		internal override bool MayHaveSideEffects { get { return true; } }
 		public int References { get; internal set; }
 
 		private static int sTempID = 0;
@@ -75,8 +75,9 @@ namespace Proton.LIR
 
 		private static readonly LIROptimizationPass[] KnownOptimizationPasses = new LIROptimizationPass[]
 		{
-			new LIRLimitedMoveCompactingOptimizationPass(),
 			new LIRDeadLabelRemovalOptimizationPass(),
+			new LIRLimitedMoveCompactingOptimizationPass(),
+			new LIRDeadInstructionDestructionOptimizationPass(),
 		};
 
 		private void Optimize()

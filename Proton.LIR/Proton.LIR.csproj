@@ -54,6 +54,7 @@
     <Compile Include="LIROpCode.cs" />
     <Compile Include="LIRParameter.cs" />
     <Compile Include="LIRType.cs" />
+    <Compile Include="Optimizations\DeadInstructionDestruction.cs" />
     <Compile Include="Optimizations\DeadLabelRemoval.cs" />
     <Compile Include="Optimizations\LimitedMoveCompacting.cs" />
     <Compile Include="Optimizations\LIROptimizationPass.cs" />

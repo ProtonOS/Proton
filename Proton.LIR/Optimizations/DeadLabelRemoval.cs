@@ -7,21 +7,12 @@ namespace Proton.LIR.Optimizations
 	{
 		public override void Run(LIRMethod method)
 		{
-			List<LIRInstruction> instrs = new List<LIRInstruction>(method.mInstructions.Count);
-			foreach (var i in method.mInstructions)
+			for (int i = 0; i < method.mInstructions.Count; i++)
 			{
-				if (i.OpCode == LIROpCode.Label)
-				{
-					if (((Label)i).References == 0)
-						continue;
-				}
-				else if (i.OpCode == LIROpCode.Dead)
-					continue;
-				i.Index = instrs.Count;
-				instrs.Add(i);
+				var curInstr = method.mInstructions[i];
+				if (curInstr.OpCode == LIROpCode.Label && ((Label)curInstr).References == 0)
+					method.mInstructions[i] = new Instructions.Dead(i);
 			}
-			instrs.TrimExcess();
-			method.mInstructions = instrs;
 		}
 	}
 }
