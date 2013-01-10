@@ -41,8 +41,8 @@ namespace Proton.VM.IR.Optimizations
 						}
 						else if (callInstr.Sources[0].Type == IRLinearizedLocationType.Local && locals[callInstr.Sources[0].Local.LocalIndex].Known)
 						{
-							callInstr.Target = locals[callInstr.Sources[0].Local.LocalIndex].Type.VirtualMethodTree[callInstr.Target.VirtualMethodIndex];
-							callInstr.Virtual = false;
+							//callInstr.Target = locals[callInstr.Sources[0].Local.LocalIndex].Type.VirtualMethodTree[callInstr.Target.VirtualMethodIndex];
+							//callInstr.Virtual = false;
 						}
 					}
 				}
