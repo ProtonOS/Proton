@@ -37,6 +37,8 @@ namespace Proton.Metadata.Tables
 		public TypeDefData ParentTypeDef = null;
 		public FieldSig ExpandedSignature = null;
 
+		public ConstantData Constant = null;
+
 		private void LoadData(CLIFile pFile)
 		{
 			Flags = (FieldAttributes)pFile.ReadUInt16();

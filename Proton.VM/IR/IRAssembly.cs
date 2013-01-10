@@ -128,12 +128,12 @@ namespace Proton.VM.IR
 			for (int fieldIndex = 0; fieldIndex < Fields.Count; ++fieldIndex)
 			{
 				IRField field = Fields[fieldIndex];
+				FieldData fieldData = File.FieldTable[fieldIndex];
 				if (field.IsLiteral)
 				{
-					ConstantData constantData = Array.Find(File.ConstantTable, c => c.Parent.Type == HasConstantIndex.HasConstantType.Field && c.Parent.Field.TableIndex == fieldIndex);
-					if (constantData == null) throw new Exception();
-					field.LiteralType = constantData.Type;
-					field.LiteralValue = constantData.Value;
+					if (fieldData.Constant == null) throw new Exception();
+					field.LiteralType = fieldData.Constant.Type;
+					field.LiteralValue = fieldData.Constant.Value;
 				}
 			}
 			for (int layoutIndex = 0; layoutIndex < File.ClassLayoutTable.Length; ++layoutIndex)

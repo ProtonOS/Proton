@@ -44,6 +44,7 @@ namespace Proton.Metadata.Tables
 
 		private void LinkData(CLIFile pFile)
 		{
+			if (Parent.Type == HasConstantIndex.HasConstantType.Field) Parent.Field.Constant = this;
 		}
 	}
 }
