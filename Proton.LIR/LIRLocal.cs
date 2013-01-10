@@ -35,7 +35,7 @@ namespace Proton.LIR
 
 		public override string ToString()
 		{
-			return "#" + Index.ToString();
+			return String.Format("#{0}", Index);
 		}
 
 		public void Dump(IndentedStreamWriter wtr)

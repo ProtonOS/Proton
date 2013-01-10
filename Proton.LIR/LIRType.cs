@@ -115,7 +115,7 @@ namespace Proton.LIR
 
 		public override string ToString()
 		{
-			return Type + (!Allocatable ? "&" : "") + ":" + (Signed ? "@" : "") + Size;
+			return String.Format("{0}{1}:{2}{3}", Type, (!Allocatable ? "&" : ""), (Signed ? "@" : ""), Size);
 		}
 
 		public override int GetHashCode()
