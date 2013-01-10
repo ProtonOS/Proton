@@ -31,6 +31,8 @@ namespace Proton.VM.IR
 		public bool IsSynchronized { get { return (ImplFlags & MethodImplAttributes.Synchronized) == MethodImplAttributes.Synchronized; } }
 		public bool IsRuntime { get { return (ImplFlags & MethodImplAttributes.Runtime) == MethodImplAttributes.Runtime; } }
 
+		public bool HasUnResolvedGenerics { get { return true; } }
+
 		private IRType mParentType = null;
 		public IRType ParentType 
 		{

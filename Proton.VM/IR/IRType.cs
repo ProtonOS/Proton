@@ -515,7 +515,11 @@ namespace Proton.VM.IR
 									//}
 									for (int i = 0; i < tp.Methods.Count; i++)
 									{
-										tp.Methods[i] = tp.Methods[i].Clone(tp);
+										//tp.Methods[i].HasUnResolvedGenerics || 
+										//if (!tp.Methods[i].IsStatic)
+										{
+											tp.Methods[i] = tp.Methods[i].Clone(tp);
+										}
 									}
 
 									tp.Substitute(typeParams, methodParams);
