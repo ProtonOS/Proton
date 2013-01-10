@@ -1,0 +1,89 @@
+===== Stage 1 =====
+- [x] Create IRType table, no type linking
+- [x] Create IRFields, link to owner IRType
+- [x] Create IRInterfaceImplementations, link to owner IRType
+- [x] Create IRMethods, link to owner IRType
+- [x] Create IRParameters, link to owner IRMethod
+- [x] Create IRLocals, link to owner IRMethod
+- [x] Link nested IRTypes to enclosing IRType
+- [x] Cache CORLibrary common IRTypes
+
+===== Stage 2 =====
+- [x] Create Pointer dynamic IRTypes
+- [x] Create Array dynamic IRTypes
+- [x] Create Generic dynamic IRTypes, using generic placeholders
+- [x] Presolver for TypeDef to IRType
+- [x] Presolver for TypeRef to IRType
+- [x] Presolver for TypeSpec to IRType, using generic placeholders
+- [x] Presolver for TypeDefRefOrSpecIndex to IRType, using generic placeholders
+- [x] Presolver for MetadataToken to IRType, using generic placeholders
+- [x] Presolver for SigType to IRType, using generic placeholders
+- [x] Presolver for SigRetType to IRType, using generic placeholders
+- [x] Presolver for SigParam to IRType, using generic placeholders
+- [x] Link IRType to base IRType
+- [x] Link IRField type
+- [x] Link IRInterfaceImplementation type
+- [x] Link IRMethod return type
+- [x] Link IRMethod parameter types
+- [x] Link IRLocal types
+
+===== Stage 3 =====
+- [x] Decomposition of ILInstructions into IRInstructions
+- [x] Fix linearization of values remaining from inside branches, IE ternary operations, and if (x == null || y == null) scenario (source coming from 2 branches)
+- [x] Linearization of IRInstructions
+- [ ] Linearization of Exception Handlers, and Finally Handlers
+- [x] Transform Load/Store to Move IRInstructions
+- [ ] Transform instructions that behave like other instructions under certain conditions, IE unbox.any to castclass when dealing with a reference type
+
+===== Stage 4 =====
+- [x] Create generic instantiations for IRTypes
+- [x] Create generic instantiations for IRField types
+- [x] Create generic instantiations for IRMethod return and parameter types
+- [x] Create generic instantiations for IRLocal types
+- [x] Complete instruction cloning
+- [x] Complete instruction resolving of types, methods, and fields held by the instruction
+- [x] Complete linearized source/destination cloning and resolving
+
+===== Stage 5 =====
+- [x] Calculate fully resolved IRType sizes
+- [x] Layout IRField offsets, considering explicit layouts
+- [x] Layout IRLocal offsets
+- [x] Layout IRParameter offsets
+- [x] Layout and collect static IRFields
+- [x] Layout virtual call tree for IRTypes
+- [ ] Generate mandatory internal calls, IE object conversion to and from pointer for GC
+- [ ] Resolve internal calls, limiting internal calls for mandatory calls only means resolution on name without signatures might be enough for AOT side only
+- [x] Resolve interface implementation methods, including resolved generic instantiated methods
+- [x] Generic To String Implementor Transformation
+- [x] Static Field Literal Inlining Transformation
+- [x] SizeOf To Constant Transformation
+- [x] Initialize Object Specialization Transformation
+
+===== Stage 6 =====
+- [x] Build control flow graph
+- [x] Branch Removal Optimization, with Dead Code Removal
+- [x] SSA Enter Optimization, with pruned phis via lifetime analysis
+- [x] Call Devirtualization Optimization
+- [x] Move Compacting Optimization
+- [x] Indirection Removal Optimization
+- [x] SSA Leave Optimization, with variable reduction via lifetime analysis
+- [x] Dead Code Removal Optimization
+- [x] Nop Killing Opitmization
+
+===== Stage 7 =====
+- [o] Convert IR to LIR
+
+===== Stage 8 =====
+- [o] Build LIR Compile Unit
+
+===== Stage 9 =====
+- [x] Dead Label Removal Optimization
+- [x] Limited Move Compacting Optimization
+- [x] Dead Instruction Destruction Optimization
+
+===== Stage 10 =====
+- [ ] Convert LIR to MIR
+
+===== Stage 11 =====
+- [ ] Compile MIR to equivilent machine code
+- [ ] Build Binary ELF Kernel

@@ -1,7 +1,6 @@
 ﻿using Proton.LIR;
 using LIRInstructions = Proton.LIR.Instructions;
 using System;
-using System.Linq;
 using System.Collections.Generic;
 
 namespace Proton.VM.IR.Instructions
@@ -30,7 +29,9 @@ namespace Proton.VM.IR.Instructions
 
 		public override string ToString()
 		{
-			return "Switch " + Sources[0] + "(" + String.Join(", ", TargetIRInstructions.Select(i => i.IRIndex)) + ")";
+			string[] strs = new string[TargetIRInstructions.Length];
+			for (int index = 0; index < TargetIRInstructions.Length; ++index) strs[index] = TargetIRInstructions[index].IRIndex.ToString();
+			return "Switch " + Sources[0] + "(" + String.Join(", ", strs) + ")";
 		}
 	}
 }

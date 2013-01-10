@@ -170,6 +170,11 @@
 			Shift(index, -count);
 		}
 
+		public void TrimExcess()
+		{
+			if (mItems.Length > mCount) Array.Resize(ref mItems, mCount);
+		}
+
 		IEnumerator<T> IEnumerable<T>.GetEnumerator() { return new Enumerator(this); }
 
 		IEnumerator IEnumerable.GetEnumerator() { return new Enumerator(this); }
