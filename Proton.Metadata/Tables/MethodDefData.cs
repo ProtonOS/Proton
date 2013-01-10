@@ -42,6 +42,8 @@ namespace Proton.Metadata.Tables
 		public MethodDefBodyData Body = null;
 		public MethodSig ExpandedSignature = null;
 
+		public List<GenericParamData> GenericParamList = new List<GenericParamData>();
+
 		private void LoadData(CLIFile pFile)
 		{
 			RVA = pFile.ReadUInt32();

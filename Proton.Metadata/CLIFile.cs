@@ -157,6 +157,9 @@ namespace Proton.Metadata
 			Array.ForEach(sMetadataLoaders, l => l.Loader(this));
 			Array.ForEach(sMetadataLoaders, l => l.Linker(this));
 			Array.ForEach(MethodDefTable, m => { if (m.Body != null) m.Body.LinkData(m); });
+
+			Array.ForEach(TypeDefTable, t => t.GenericParamList.Sort((p1, p2) => p1.Number.CompareTo(p2.Number)));
+			Array.ForEach(MethodDefTable, m => m.GenericParamList.Sort((p1, p2) => p1.Number.CompareTo(p2.Number)));
 		}
 
 		public byte[] Data { get { return mData; } }

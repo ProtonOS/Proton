@@ -44,6 +44,8 @@ namespace Proton.Metadata.Tables
 
 		private void LinkData(CLIFile pFile)
 		{
+			if (Owner.Type == TypeOrMethodDefIndex.TypeOrMethodDefType.TypeDef) Owner.TypeDef.GenericParamList.Add(this);
+			else Owner.MethodDef.GenericParamList.Add(this);
 		}
 	}
 }

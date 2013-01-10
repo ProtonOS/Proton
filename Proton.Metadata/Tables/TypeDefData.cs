@@ -41,6 +41,8 @@ namespace Proton.Metadata.Tables
 		public List<TypeDefRefOrSpecIndex> InterfaceList = new List<TypeDefRefOrSpecIndex>();
 		public List<TypeDefData> NestedClassList = new List<TypeDefData>();
 
+		public List<GenericParamData> GenericParamList = new List<GenericParamData>();
+
 		private void LoadData(CLIFile pFile)
 		{
 			Flags = (TypeAttributes)pFile.ReadUInt32();

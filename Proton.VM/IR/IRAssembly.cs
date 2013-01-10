@@ -31,7 +31,7 @@ namespace Proton.VM.IR
 			{
 				IRMethod method = new IRMethod(this);
 				Methods.Add(method);
-				var mGenParams = new List<GenericParamData>(Array.FindAll(File.GenericParamTable, gp => gp.Owner.Type == TypeOrMethodDefIndex.TypeOrMethodDefType.MethodDef && gp.Owner.MethodDef == methodDefData));
+				var mGenParams = new List<GenericParamData>(methodDefData.GenericParamList);
 				for (int i = 0; i < mGenParams.Count; i++)
 				{
 					method.GenericParameters.Add(IRType.GetMVarPlaceholder(mGenParams[i].Number));
@@ -46,7 +46,7 @@ namespace Proton.VM.IR
 				type.Namespace = typeDefData.TypeNamespace;
 				type.Name = typeDefData.TypeName;
 				type.Flags = typeDefData.Flags;
-				var genParams = new List<GenericParamData>(Array.FindAll(File.GenericParamTable, gp => gp.Owner.Type == TypeOrMethodDefIndex.TypeOrMethodDefType.TypeDef && gp.Owner.TypeDef == typeDefData));
+				var genParams = new List<GenericParamData>(typeDefData.GenericParamList);
 				for (int i = 0; i < genParams.Count; i++)
 				{
 					type.GenericParameters.Add(IRType.GetVarPlaceholder(genParams[i].Number));
