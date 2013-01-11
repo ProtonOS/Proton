@@ -783,7 +783,6 @@ namespace Proton.VM.IR
 					LinearizePath(pMethodDefData, branch.Item1, branch.Item2, branches);
 					if (branch.Item2.Count != 0 && branch.Item2.Count != expectedOnStack) throw new Exception();
 				}
-				//if (!Instructions.TrueForAll(i => i.Linearized)) throw new Exception();
 				Instructions.RemoveDead();
 			}
 		}
