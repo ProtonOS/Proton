@@ -172,12 +172,12 @@ namespace Proton.VM.IR
 			for (int i = 0; i < mParams.Count; i++)
 			{
 				IRType t = mParams[i];
-				try
-				{
-#warning At some point, make this not use exceptions.
+//                try
+//                {
+//#warning At some point, make this not use exceptions.
 					t.Resolve(ref t, typeParams, methodParams);
-				}
-				catch { }
+				//}
+				//catch { }
 				mParams[i] = t;
 			}
 			mHashCodeCache = null;

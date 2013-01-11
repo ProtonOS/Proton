@@ -447,7 +447,7 @@ namespace Proton.VM.IR
 		/// <param name="selfReference"></param>
 		/// <param name="typeParams"></param>
 		/// <param name="methodParams"></param>
-		public void Resolve(ref IRType selfReference, IRGenericParameterList typeParams, IRGenericParameterList methodParams)
+		public bool Resolve(ref IRType selfReference, IRGenericParameterList typeParams, IRGenericParameterList methodParams)
 		{
 			if (!Resolved || PresolvedType || PostsolvedType)
 			{
@@ -455,22 +455,24 @@ namespace Proton.VM.IR
 				{
 					if (IsTemporaryVar)
 					{
+						if (TemporaryVarOrMVarIndex >= typeParams.Count) return false;
 						selfReference = typeParams[this.TemporaryVarOrMVarIndex];
 					}
 					else if (IsTemporaryMVar)
 					{
+						if (TemporaryVarOrMVarIndex >= methodParams.Count) return false;
 						selfReference = methodParams[this.TemporaryVarOrMVarIndex];
 					}
 					else if (IsArrayType)
 					{
 						IRType elemType = ArrayElementType;
-						elemType.Resolve(ref elemType, typeParams, methodParams);
+						if (!elemType.Resolve(ref elemType, typeParams, methodParams)) return false;
 						selfReference = Assembly.AppDomain.GetArrayType(elemType);
 					}
 					else if (IsManagedPointerType)
 					{
 						IRType typePointedTo = ManagedPointerType;
-						typePointedTo.Resolve(ref typePointedTo, typeParams, methodParams);
+						if (!typePointedTo.Resolve(ref typePointedTo, typeParams, methodParams)) return false;
 						selfReference = Assembly.AppDomain.GetManagedPointerType(typePointedTo);
 					}
 					else
@@ -493,8 +495,7 @@ namespace Proton.VM.IR
 								}
 								selfReference.PresolvedType = false;
 								selfReference.PostsolvedType = true;
-								selfReference.Resolve(ref selfReference, typeParams, methodParams);
-								return;
+								return selfReference.Resolve(ref selfReference, typeParams, methodParams);
 							}
 						}
 						if (this.GenericParameters.Resolved)
@@ -537,6 +538,7 @@ namespace Proton.VM.IR
 					}
 				}
 			}
+			return true;
 		}
 
 		/// <summary>
