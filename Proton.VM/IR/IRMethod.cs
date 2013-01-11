@@ -1243,12 +1243,12 @@ namespace Proton.VM.IR
 		{
 			if (LIRMethod == null)
 				throw new Exception();
-			mInstructions.ForEach(i =>
+			foreach (var i in mInstructions)
 			{
-				new LIR.Instructions.Comment(LIRMethod, i.IRIndex + ": " + i.ToString());
+				new LIR.Instructions.Comment(LIRMethod, String.Format("{0}: {1}", i.IRIndex, i));
 				LIRMethod.MarkLabel(i.Label);
 				i.ConvertToLIR(LIRMethod);
-			});
+			}
 		}
 
 		public void Dump(IndentableStreamWriter pWriter)
