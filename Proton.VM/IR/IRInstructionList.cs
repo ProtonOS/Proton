@@ -38,7 +38,7 @@ namespace Proton.VM.IR
 			pInstruction.IRIndex = mInstructions.Count;
 			mInstructions.Add(pInstruction);
 			mResolvedCache = null;
-			if (!mILOffsetLookup.ContainsKey(pInstruction.ILOffset))
+			if (mILOffsetLookup != null && !mILOffsetLookup.ContainsKey(pInstruction.ILOffset))
 				mILOffsetLookup.Add(pInstruction.ILOffset, pInstruction);
 		}
 
