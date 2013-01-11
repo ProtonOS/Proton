@@ -25,6 +25,31 @@ namespace Proton.LIR
 		[FieldOffset(8)]
 		public LIRValueType ImmType;
 
+		public bool IsZero
+		{
+			get
+			{
+				switch (ImmType)
+				{
+					case LIRValueType.Int8:
+						return ByteValue == 0;
+					case LIRValueType.Int16:
+						return UShortValue == 0;
+					case LIRValueType.Int32:
+						return UIntValue == 0;
+					case LIRValueType.Int64:
+						return ULongValue == 0;
+					case LIRValueType.Single:
+						return FloatValue == 0;
+					case LIRValueType.Double:
+						return DoubleValue == 0;
+					case LIRValueType.None: return false;
+					default:
+						throw new Exception("Unknown ImmType!");
+				}
+			}
+		}
+
 		public LIRImm(sbyte val) : this() { ImmType = LIRValueType.Int8; ByteValue = (byte)val; }
 		public LIRImm(byte val) : this() { ImmType = LIRValueType.Int8; ByteValue = val; }
 

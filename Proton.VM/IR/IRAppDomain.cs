@@ -339,6 +339,7 @@ namespace Proton.VM.IR
 			new IRGenericToStringImplementorTransformationPass(),
 
 			// Method Transforms
+			new IRInternalCallImplementationTransformationPass(),
 			new IRCallDevirtualizationTransformationPass(),
 			new IRStaticFieldLiteralInliningTransformationPass(),
 			new IRSizeOfToConstantTransformationPass(),

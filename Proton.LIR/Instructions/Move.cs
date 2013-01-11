@@ -17,6 +17,13 @@ namespace Proton.LIR.Instructions
 			ArgumentType = argType;
 		}
 
+		internal Move(int idx, ISource src, IDestination dest, LIRType argType) : base(idx, LIROpCode.Move)
+		{
+			Source = src;
+			Destination = dest;
+			ArgumentType = argType;
+		}
+
 		internal override void Dump(IndentedStreamWriter wtr)
 		{
 			wtr.WriteLine("Move {0} {1} -> {2}", ArgumentType, Source, Destination);

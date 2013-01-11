@@ -60,6 +60,7 @@
     <Compile Include="Optimizations\DeadLabelRemoval.cs" />
     <Compile Include="Optimizations\LimitedMoveCompacting.cs" />
     <Compile Include="Optimizations\LIROptimizationPass.cs" />
+    <Compile Include="Optimizations\UselessMathRemoval.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

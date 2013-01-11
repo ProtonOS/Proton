@@ -97,6 +97,7 @@ namespace Proton.LIR
 		private static readonly LIROptimizationPass[] KnownOptimizationPasses = new LIROptimizationPass[]
 		{
 			new LIRDeadLabelRemovalOptimizationPass(),
+			new LIRUselessMathRemovalOptimizationPass(),
 			new LIRLimitedMoveCompactingOptimizationPass(),
 			new LIRDeadInstructionDestructionOptimizationPass(),
 		};

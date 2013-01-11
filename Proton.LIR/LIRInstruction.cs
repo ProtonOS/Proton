@@ -19,6 +19,12 @@ namespace Proton.LIR
 			}
 		}
 
+		protected internal LIRInstruction(int idx, LIROpCode opCode)
+		{
+			this.OpCode = opCode;
+			this.Index = idx;
+		}
+
 		internal abstract void Dump(IndentedStreamWriter wtr);
 	}
 }
