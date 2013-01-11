@@ -404,7 +404,7 @@ namespace Proton.VM.IR
 			IRPrefixFlags prefixFlags = IRPrefixFlags.None;
 			uint prefixConstrainedToken = 0;
 			uint startOfInstruction = reader.Offset;
-			Console.WriteLine("Converting {0}.{1}.{2}", ParentType.Namespace, ParentType.Name, Name);
+			//Console.WriteLine("Converting {0}.{1}.{2}", ParentType.Namespace, ParentType.Name, Name);
 			while (!reader.EndOfCode)
 			{
 				bool clearFlags = true;

@@ -30,8 +30,12 @@ namespace Proton.Compiler
 			// TODO: Remove this when there is a binary file written out
 			File.WriteAllBytes(OutputPath, new byte[0]);
 
+			Stopwatch sw = new Stopwatch();
+			sw.Start();
 			IRAppDomain appDomain = new IRAppDomain();
 			IRAssembly entryAssembly = appDomain.LoadEntryAssembly(new CLIFile(Path.GetFileNameWithoutExtension(InputPath), File.ReadAllBytes(InputPath)));
+			sw.Stop();
+			Console.WriteLine("Compiling '" + InputPath + "' took a total of " + sw.ElapsedMilliseconds + "MS");
 
 			if (pauseBeforeExit)
 			{
