@@ -5,6 +5,14 @@ namespace System
 {
 	public static unsafe class GC
 	{
+		public static void Collect()
+		{
+		}
+
+		public static void WaitForPendingFinalizers()
+		{
+		}
+
 		internal const ulong HeapSize = 0x100000;
 		internal const uint MinimumObjectSize = 0x40;
 		internal const int ShiftsForMinimumObjectSize = 6;

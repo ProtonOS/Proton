@@ -8,8 +8,8 @@ namespace Proton.VM.IR
 {
 	public sealed class IRType
 	{
-		public static readonly List<IRType> VarPlaceholders = new List<IRType>();
-		public static readonly List<IRType> MVarPlaceholders = new List<IRType>();
+		public static List<IRType> VarPlaceholders = new List<IRType>();
+		public static List<IRType> MVarPlaceholders = new List<IRType>();
 
 		public static IRType GetVarPlaceholder(uint pIndex)
 		{
@@ -140,7 +140,7 @@ namespace Proton.VM.IR
 			}
 		}
 		public readonly IRMethodList Methods = new IRMethodList();
-		public readonly List<IRType> NestedTypes = new List<IRType>();
+		public List<IRType> NestedTypes = new List<IRType>();
 		public IRType NestedInsideOfType = null;
 		private IRType mParentType = null;
 		private IRType mBaseType = null;
@@ -387,7 +387,7 @@ namespace Proton.VM.IR
 			get { return mGenericType; }
 			set
 			{
-				if (value == null) throw new Exception();
+				//if (value == null) throw new Exception();
 				mGenericType = value;
 			}
 		}
@@ -440,7 +440,7 @@ namespace Proton.VM.IR
 
 
 
-		public static readonly Dictionary<IRType, IRType> GenericTypes = new Dictionary<IRType, IRType>();
+		public static Dictionary<IRType, IRType> GenericTypes = new Dictionary<IRType, IRType>();
 		/// <summary>
 		/// Resolve any generic types used in this type.
 		/// </summary>

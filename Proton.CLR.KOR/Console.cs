@@ -2,6 +2,8 @@
 {
 	public static class Console
 	{
+		public static string ReadLine() { return ""; }
+
 		public static void WriteLine(string s) { }
 
 		public static void WriteLine(string s, object o) { }
