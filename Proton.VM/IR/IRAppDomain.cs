@@ -343,6 +343,7 @@ namespace Proton.VM.IR
 			new IRStaticFieldLiteralInliningTransformationPass(),
 			new IRSizeOfToConstantTransformationPass(),
 			new IRInitalizeObjectSpecializationTransformationPass(),
+			new IRInstructionSpecializationTransformationPass(),
 		};
 
 		private void LoadStage5()
