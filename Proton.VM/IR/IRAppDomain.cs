@@ -88,6 +88,7 @@ namespace Proton.VM.IR
 		public IRType System_Double = null;
 		public IRType System_Enum = null;
 		public IRType System_Exception = null;
+		public IRType System_GC = null;
 		public IRType System_Int16 = null;
 		public IRType System_Int32 = null;
 		public IRType System_Int64 = null;
@@ -108,6 +109,10 @@ namespace Proton.VM.IR
 		public IRType System_UIntPtr = null;
 		public IRType System_ValueType = null;
 		public IRType System_Void = null;
+
+		// AOT Only
+		public IRMethod System_GC_AllocateObject = null;
+		public IRMethod System_GC_BoxObject = null;
 
 		public IRAppDomain()
 		{
@@ -131,7 +136,7 @@ namespace Proton.VM.IR
 			return assembly;
 		}
 
-		internal void CacheCORTypes(IRAssembly pAssembly)
+		internal void CacheCOR(IRAssembly pAssembly)
 		{
 			foreach (IRType type in pAssembly.Types)
 			{
@@ -146,6 +151,7 @@ namespace Proton.VM.IR
 						case "Double": System_Double = type; break;
 						case "Enum": System_Enum = type; break;
 						case "Exception": System_Exception = type; break;
+						case "GC": System_GC = type; break;
 						case "Int16": System_Int16 = type; break;
 						case "Int32": System_Int32 = type; break;
 						case "Int64": System_Int64 = type; break;
@@ -166,6 +172,19 @@ namespace Proton.VM.IR
 						case "UIntPtr": System_UIntPtr = type; break;
 						case "ValueType": System_ValueType = type; break;
 						case "Void": System_Void = type; break;
+						default: break;
+					}
+				}
+			}
+
+			foreach (IRMethod method in pAssembly.Methods)
+			{
+				if (method.ParentType == System_GC)
+				{
+					switch (method.Name)
+					{
+						case "AllocateObject": System_GC_AllocateObject = method; break;
+						case "BoxObject": System_GC_BoxObject = method; break;
 						default: break;
 					}
 				}

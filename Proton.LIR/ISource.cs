@@ -5,6 +5,7 @@ namespace Proton.LIR
 {
 	public enum SourceType
 	{
+		Label,
 		Local,
 		LocalAddress,
 		Parameter,

@@ -5,9 +5,11 @@ using Proton.LIR.Optimizations;
 
 namespace Proton.LIR
 {
-	public sealed class Label : LIRInstruction
+	public sealed class Label : LIRInstruction, ISource
 	{
 		internal override bool MayHaveSideEffects { get { return true; } }
+		bool ISource.MayHaveSideEffects { get { return false; } }
+		public SourceType SourceType { get { return SourceType.Label; } }
 		public int References { get; internal set; }
 
 		private static int sTempID = 0;

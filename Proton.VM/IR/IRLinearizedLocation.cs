@@ -529,6 +529,62 @@ namespace Proton.VM.IR
 			}
 		}
 
+		public void LoadAddressTo(LIRMethod pParent, IDestination pDestination)
+		{
+			switch (Type)
+			{
+				case IRLinearizedLocationType.Null:
+					break;
+				case IRLinearizedLocationType.Local:
+					break;
+				case IRLinearizedLocationType.Parameter:
+					break;
+				case IRLinearizedLocationType.ConstantI4:
+					break;
+				case IRLinearizedLocationType.ConstantI8:
+					break;
+				case IRLinearizedLocationType.ConstantR4:
+					break;
+				case IRLinearizedLocationType.ConstantR8:
+					break;
+				case IRLinearizedLocationType.SizeOf:
+					break;
+				case IRLinearizedLocationType.Field:
+					break;
+				case IRLinearizedLocationType.FieldAddress:
+					break;
+				case IRLinearizedLocationType.Indirect:
+					break;
+				case IRLinearizedLocationType.ArrayElement:
+					break;
+				case IRLinearizedLocationType.ArrayElementAddress:
+					break;
+				case IRLinearizedLocationType.ArrayLength:
+					break;
+				case IRLinearizedLocationType.LocalAddress:
+					break;
+				case IRLinearizedLocationType.ParameterAddress:
+					break;
+
+#warning Finish the rest of these case statements
+				case IRLinearizedLocationType.StaticField:
+					break;
+				case IRLinearizedLocationType.StaticFieldAddress:
+					break;
+				case IRLinearizedLocationType.FunctionAddress:
+					break;
+				case IRLinearizedLocationType.RuntimeHandle:
+					break;
+				case IRLinearizedLocationType.String:
+					break;
+
+				case IRLinearizedLocationType.Phi:
+					throw new Exception("All phi's should have been eliminated by this point!");
+				default:
+					throw new Exception("Unknown IRLinearizedLocationType!");
+			}
+		}
+
 		public void StoreTo(LIRMethod pParent, ISource pSource)
 		{
 			switch (Type)

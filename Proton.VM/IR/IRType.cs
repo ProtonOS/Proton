@@ -393,6 +393,7 @@ namespace Proton.VM.IR
 		}
 		public readonly IRGenericParameterList GenericParameters = new IRGenericParameterList();
 
+
 		private static int sTempID = 0;
 		internal readonly int mTempID;
 		private IRType()
@@ -735,6 +736,10 @@ namespace Proton.VM.IR
 				return mIsUnsafeTypeCache.Value;
 			}
 		}
+
+
+		private Label mTypeDataLabel = null;
+		public Label TypeDataLabel { get { return mTypeDataLabel ?? (mTypeDataLabel = new Label()); } }
 
 		private LIRType lirTypeCache = null;
 		public LIRType ToLIRType()

@@ -225,6 +225,15 @@ namespace System
 			return object.Internal_PointerToReference((void*)((ulong)obj + (ulong)sizeof(GCObject)));
 		}
 
+		internal static void BoxObject(Type.TypeData* pType, void* pSource, void** pReturnValue)
+		{
+			GCObject* obj = Allocate(pType->DataSize);
+			obj->TypeData = pType;
+			void* dataPtr = (void*)((ulong)obj + (ulong)sizeof(GCObject));
+			Internal_FastCopy(pSource, dataPtr, (int)pType->DataSize);
+			*pReturnValue = dataPtr;
+		}
+
 		internal static string AllocateEmptyStringOfLength(uint pLength)
 		{
 			GCObject* obj = Allocate(sizeof(int) + (pLength << 1));

@@ -105,7 +105,7 @@ namespace Proton.VM.IR
 					type.NestedTypes.Add(nestedType);
 				}
 			}
-			if (CORLibrary) AppDomain.CacheCORTypes(this);
+			if (CORLibrary) AppDomain.CacheCOR(this);
 		}
 
 		internal void LoadStage2()

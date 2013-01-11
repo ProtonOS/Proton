@@ -14,6 +14,8 @@ namespace Proton.VM.IR
 		public IROpcode Opcode = IROpcode.Nop;
 		public IRMethod ParentMethod = null;
 
+		public IRAppDomain AppDomain { get { return ParentMethod.Assembly.AppDomain; } }
+
 		// Instruction Linearization
 		public bool Linearized = false;
 		public List<IRLinearizedLocation> Sources = new List<IRLinearizedLocation>();
