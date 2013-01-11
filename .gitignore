@@ -20,6 +20,8 @@
 /Proton.Nernel/obj
 /Proton.SDKInstaller/bin
 /Proton.SDKInstaller/obj
+/Proton.VFS/bin
+/Proton.VFS/obj
 /Proton.VM/bin
 /Proton.VM/obj
 /SDK
