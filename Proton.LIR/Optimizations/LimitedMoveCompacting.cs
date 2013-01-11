@@ -86,6 +86,13 @@ namespace Proton.LIR.Optimizations
 						}
 						break;
 					}
+					case LIROpCode.Convert:
+					{
+						// Need to do dest
+						var curConvert = (Instructions.Convert)curInstr;
+						curConvert.Source = ProcessSource(curConvert.Source, method);
+						break;
+					}
 
 					case LIROpCode.Comment:
 					case LIROpCode.Dead:

@@ -10,6 +10,7 @@ namespace Proton.LIR
 		Call,
 		Comment,
 		Compare,
+		Convert,
 		Dead,
 		Label,
 		Math,

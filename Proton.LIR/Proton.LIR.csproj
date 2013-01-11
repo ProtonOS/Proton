@@ -39,6 +39,7 @@
     <Compile Include="Instructions\Call.cs" />
     <Compile Include="Instructions\Comment.cs" />
     <Compile Include="Instructions\Compare.cs" />
+    <Compile Include="Instructions\Convert.cs" />
     <Compile Include="Instructions\Dead.cs" />
     <Compile Include="Instructions\Math.cs" />
     <Compile Include="Instructions\Move.cs" />
