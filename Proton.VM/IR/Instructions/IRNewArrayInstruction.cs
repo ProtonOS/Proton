@@ -36,6 +36,20 @@ namespace Proton.VM.IR.Instructions
 
 		public override void ConvertToLIR(LIRMethod pLIRMethod)
 		{
+			var sElementCount = pLIRMethod.RequestLocal(Sources[0].GetTypeOfLocation());
+			Sources[0].LoadTo(pLIRMethod, sElementCount);
+			var sTypeDataPtr = pLIRMethod.RequestLocal(AppDomain.System_GC_AllocateArrayOfType.LIRMethod.Parameters[0].Type);
+			new LIRInstructions.Move(pLIRMethod, Destination.GetTypeOfLocation().TypeDataLabel, sTypeDataPtr, sTypeDataPtr.Type);
+			var sReturnPtr = pLIRMethod.RequestLocal(AppDomain.System_GC_AllocateArrayOfType.LIRMethod.Parameters[2].Type);
+			Destination.LoadAddressTo(pLIRMethod, sReturnPtr);
+			List<ISource> allocateArrayOfTypeParams = new List<ISource>(3);
+			allocateArrayOfTypeParams.Add(sTypeDataPtr); // pointer to type data of array
+			allocateArrayOfTypeParams.Add(sElementCount); // number of elements
+			allocateArrayOfTypeParams.Add(sReturnPtr); // pointer to destination
+			new LIRInstructions.Call(pLIRMethod, AppDomain.System_GC_AllocateArrayOfType, allocateArrayOfTypeParams, null);
+			pLIRMethod.ReleaseLocal(sReturnPtr);
+			pLIRMethod.ReleaseLocal(sTypeDataPtr);
+			pLIRMethod.ReleaseLocal(sElementCount);
 		}
 
 		protected override void DumpDetails(IndentableStreamWriter pWriter)

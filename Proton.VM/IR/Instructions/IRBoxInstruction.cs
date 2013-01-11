@@ -36,20 +36,20 @@ namespace Proton.VM.IR.Instructions
 
 		public override void ConvertToLIR(LIRMethod pLIRMethod)
 		{
-			var s = pLIRMethod.RequestLocal(Sources[0].GetTypeOfLocation());
-			Sources[0].LoadAddressTo(pLIRMethod, s);
+			var sValuePtr = pLIRMethod.RequestLocal(Sources[0].GetTypeOfLocation());
+			Sources[0].LoadAddressTo(pLIRMethod, sValuePtr);
 			var sTypeDataPtr = pLIRMethod.RequestLocal(AppDomain.System_GC_BoxObject.LIRMethod.Parameters[0].Type);
 			new LIRInstructions.Move(pLIRMethod, Type.TypeDataLabel, sTypeDataPtr, sTypeDataPtr.Type);
 			var sReturnPtr = pLIRMethod.RequestLocal(AppDomain.System_GC_BoxObject.LIRMethod.Parameters[2].Type);
 			Destination.LoadAddressTo(pLIRMethod, sReturnPtr);
 			List<ISource> allocateObjectParams = new List<ISource>(3);
 			allocateObjectParams.Add(sTypeDataPtr); // pointer to type data
-			allocateObjectParams.Add(s); // pointer to value
+			allocateObjectParams.Add(sValuePtr); // pointer to value
 			allocateObjectParams.Add(sReturnPtr); // pointer to destination
 			new LIRInstructions.Call(pLIRMethod, AppDomain.System_GC_BoxObject, allocateObjectParams, null);
 			pLIRMethod.ReleaseLocal(sReturnPtr);
 			pLIRMethod.ReleaseLocal(sTypeDataPtr);
-			pLIRMethod.ReleaseLocal(s);
+			pLIRMethod.ReleaseLocal(sValuePtr);
 		}
 
 		protected override void DumpDetails(IndentableStreamWriter pWriter)

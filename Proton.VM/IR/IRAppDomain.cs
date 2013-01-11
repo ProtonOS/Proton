@@ -113,6 +113,7 @@ namespace Proton.VM.IR
 		// AOT Only
 		public IRMethod System_GC_AllocateObject = null;
 		public IRMethod System_GC_BoxObject = null;
+		public IRMethod System_GC_AllocateArrayOfType = null;
 
 		public IRAppDomain()
 		{
@@ -185,6 +186,7 @@ namespace Proton.VM.IR
 					{
 						case "AllocateObject": System_GC_AllocateObject = method; break;
 						case "BoxObject": System_GC_BoxObject = method; break;
+						case "AllocateArrayOfType": System_GC_AllocateArrayOfType = method; break;
 						default: break;
 					}
 				}

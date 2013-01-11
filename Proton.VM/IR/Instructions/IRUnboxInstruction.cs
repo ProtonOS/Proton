@@ -61,7 +61,7 @@ namespace Proton.VM.IR.Instructions
 
 		public override string ToString()
 		{
-			return "UnBox " + (GetValue ? "ValueOf" : "AddressOf") + Type + " " + Sources[0] + " -> " + Destination;
+			return "UnBox " + (GetValue ? "ValueOf " : "AddressOf ") + Type + " " + Sources[0] + " -> " + Destination;
 		}
 	}
 }

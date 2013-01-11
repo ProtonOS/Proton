@@ -286,13 +286,13 @@ namespace System
 			return str;
 		}
 
-		internal static Array AllocateArrayOfType(Type.TypeData* pArrayType, uint pElementCount)
+		internal static void AllocateArrayOfType(Type.TypeData* pArrayType, uint pElementCount, void** pReturnValue)
 		{
 			GCObject* obj = Allocate(sizeof(int) + (pArrayType->ArrayElementType->StackSize * pElementCount));
 			obj->TypeData = pArrayType;
 			int* lengthPointer = (int*)((ulong)obj + (ulong)sizeof(GCObject));
 			*lengthPointer = (int)pElementCount;
-			return (Array)object.Internal_PointerToReference((void*)((ulong)obj + (ulong)sizeof(GCObject)));
+			*pReturnValue = (void*)((ulong)obj + (ulong)sizeof(GCObject));
 		}
 	}
 }
