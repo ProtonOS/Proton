@@ -1,4 +1,4 @@
-﻿#define ProfileMemory
+﻿//#define ProfileMemory
 using Proton.Metadata;
 using Proton.Metadata.Tables;
 using Proton.Metadata.Signatures;
