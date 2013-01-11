@@ -1280,7 +1280,7 @@ namespace Proton.VM.IR
 				Instructions.ForEach(i => i.Dump(pWriter));
 				pWriter.Indent--;
 				pWriter.WriteLine("}");
-				if (LIRMethod != null) LIRMethod.Dump(pWriter);
+				//if (LIRMethod != null) LIRMethod.Dump(pWriter);
 			}
 			pWriter.Indent--;
 			pWriter.WriteLine("}");

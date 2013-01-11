@@ -1,4 +1,5 @@
-﻿using Proton.Metadata;
+﻿#define ProfileMemory
+using Proton.Metadata;
 using Proton.Metadata.Tables;
 using Proton.Metadata.Signatures;
 using System;
@@ -7,6 +8,7 @@ using System.IO;
 using System.Text;
 using Proton.VM.IR.Optimizations;
 using Proton.VM.IR.Transformations;
+using System.Diagnostics;
 
 namespace Proton.VM.IR
 {
@@ -40,7 +42,7 @@ namespace Proton.VM.IR
 					yield return t;
 			}
 		}
-		public readonly IRTypeCollection Types = new IRTypeCollection();
+		public IRTypeCollection Types = new IRTypeCollection();
 
 		public sealed class IRMethodCollection : IEnumerable<IRMethod>
 		{
@@ -69,14 +71,14 @@ namespace Proton.VM.IR
 					yield return m;
 			}
 		}
-		public readonly IRMethodCollection Methods = new IRMethodCollection();
+		public IRMethodCollection Methods = new IRMethodCollection();
 
-		public readonly List<IRField> StaticFields = new List<IRField>();
+		public List<IRField> StaticFields = new List<IRField>();
 
 
-		public readonly List<IRAssembly> Assemblies = new List<IRAssembly>();
-		public readonly Dictionary<CLIFile, IRAssembly> AssemblyFileLookup = new Dictionary<CLIFile, IRAssembly>();
-		public readonly Dictionary<string, IRAssembly> AssemblyFileReferenceNameLookup = new Dictionary<string, IRAssembly>();
+		public List<IRAssembly> Assemblies = new List<IRAssembly>();
+		public Dictionary<CLIFile, IRAssembly> AssemblyFileLookup = new Dictionary<CLIFile, IRAssembly>();
+		public Dictionary<string, IRAssembly> AssemblyFileReferenceNameLookup = new Dictionary<string, IRAssembly>();
 
 		public IRType System_Array = null;
 		public IRType System_Boolean = null;
@@ -167,23 +169,84 @@ namespace Proton.VM.IR
 					}
 				}
 			}
+		}
 
+		[Conditional("ProfileMemory")]
+		private static void PauseForProfiler()
+		{
+			Console.WriteLine("Press Enter to Continue...");
+			Console.ReadLine();
+		}
+
+		private static void FullGCCollect()
+		{
+			GC.Collect();
+			GC.WaitForPendingFinalizers();
+			GC.Collect();
 		}
 
 		public IRAssembly LoadEntryAssembly(CLIFile pFile)
 		{
+			PauseForProfiler();
 			IRAssembly assembly = CreateAssembly(pFile);
+			PauseForProfiler();
 			Assemblies.ForEach(a => a.LoadStage1());
+			PauseForProfiler();
 			Assemblies.ForEach(a => a.LoadStage2());
+			PauseForProfiler();
 			Assemblies.ForEach(a => a.LoadStage3());
+			PauseForProfiler();
+
+			AssemblyFileLookup = null;
+			AssemblyFileReferenceNameLookup = null;
+			IRType.MVarPlaceholders = null;
+			IRType.VarPlaceholders = null;
+			FullGCCollect();
+			PauseForProfiler();
+
 			Assemblies.ForEach(a => a.LoadStage4());
+			PauseForProfiler();
+
+			Assemblies.ForEach(a =>
+			{
+				a.Fields = null;
+				a.File = null;
+				a.Methods = null;
+				a.Types = null;
+			});
+			Assemblies = null;
+			IRType.GenericTypes = null;
+			UnmanagedPointerTypes = null;
+			ArrayTypes = null;
+			FullGCCollect();
+			PauseForProfiler();
+
 			LoadStage5();
+			PauseForProfiler();
 			LoadStage6(true);
+			PauseForProfiler();
+
+			// Massive help to memory usage.
+			FullGCCollect();
+			PauseForProfiler();
+
 			LoadStage7();
+			PauseForProfiler();
+
 			LoadStage8();
+			PauseForProfiler();
+
+			StaticFields = null;
+			Methods = null;
+			Types = null;
+			ManagedPointerTypes = null;
+			FullGCCollect();
+			PauseForProfiler();
+
 			LoadStage9();
+			PauseForProfiler();
 			Console.WriteLine("Dumping IRAppDomain...");
-			Dump();
+			//Dump();
 			return assembly;
 		}
 
@@ -343,9 +406,9 @@ namespace Proton.VM.IR
 		}
 
 		// Dynamic Types
-		private readonly Dictionary<IRType, IRType> UnmanagedPointerTypes = new Dictionary<IRType, IRType>();
-		private readonly Dictionary<IRType, IRType> ManagedPointerTypes = new Dictionary<IRType, IRType>();
-		private readonly Dictionary<IRType, IRType> ArrayTypes = new Dictionary<IRType, IRType>();
+		private Dictionary<IRType, IRType> UnmanagedPointerTypes = new Dictionary<IRType, IRType>();
+		private Dictionary<IRType, IRType> ManagedPointerTypes = new Dictionary<IRType, IRType>();
+		private Dictionary<IRType, IRType> ArrayTypes = new Dictionary<IRType, IRType>();
 
 		public IRType GetUnmanagedPointerType(IRType pValueAtPointerType)
 		{

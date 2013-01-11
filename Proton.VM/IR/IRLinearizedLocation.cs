@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 
 namespace Proton.VM.IR
 {
-	public class IRLinearizedLocation
+	public sealed class IRLinearizedLocation
 	{
 		public struct LocalLocationData { public int LocalIndex; }
 		public struct LocalAddressLocationData { public int LocalIndex; }
