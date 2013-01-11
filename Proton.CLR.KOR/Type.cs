@@ -9,12 +9,13 @@ namespace System
 	{
 		internal unsafe struct TypeData
 		{
+			// This must remain at the start of TypeData
+			public void** VirtualMethodTable;
 			public int Index;
 			public sbyte* Namespace;
 			public int NamespaceLength;
 			public sbyte* Name;
 			public int NameLength;
-			public void** VirtualMethodTable;
 			//public MemberAttributes Attributes;
 			public uint StackSize;
 			public uint DataSize;

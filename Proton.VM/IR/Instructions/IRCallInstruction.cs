@@ -59,7 +59,43 @@ namespace Proton.VM.IR.Instructions
 		{
 			if (Virtual)
 			{
-#warning Still need to implement this
+				if (Target.VirtualMethodIndex < 0) throw new Exception();
+				List<LIRLocal> paramSources = new List<LIRLocal>(Target.Parameters.Count);
+				foreach (var v in Sources)
+				{
+					var s = pLIRMethod.RequestLocal(v.GetTypeOfLocation());
+					v.LoadTo(pLIRMethod, s);
+					paramSources.Add(s);
+				}
+				ISource methodPointerSource = null;
+				if (!Target.ParentType.IsInterface)
+				{
+					var s = pLIRMethod.RequestLocal(Sources[0].GetTypeOfLocation());
+					Sources[0].LoadTo(pLIRMethod, s); // Gets Object Pointer
+					new LIRInstructions.Math(pLIRMethod, s, (LIRImm)VMConfig.PointerSizeForTarget, s, LIRInstructions.MathOperation.Subtract, s.Type); // Subtract sizeof pointer to get address of TypeData pointer
+					new LIRInstructions.Move(pLIRMethod, new Indirect(s), s, s.Type); // Get TypeData Pointer
+					new LIRInstructions.Move(pLIRMethod, new Indirect(s), s, s.Type); // Get VirtualMethodTree Pointer Array
+					new LIRInstructions.Math(pLIRMethod, s, (LIRImm)(VMConfig.PointerSizeForTarget * Target.VirtualMethodIndex), s, LIRInstructions.MathOperation.Add, s.Type); // Get VirtualMethod Pointer Address
+					new LIRInstructions.Move(pLIRMethod, new Indirect(s), s, s.Type); // Get VirtualMethod Pointer
+					methodPointerSource = s;
+				}
+				else
+				{
+#warning Interface Calls Not Yet Implemented.
+					return;
+				}
+				if (Target.ReturnType != null)
+				{
+					var dest = pLIRMethod.RequestLocal(Destination.GetTypeOfLocation());
+					new LIRInstructions.CallIndirect(pLIRMethod, methodPointerSource, paramSources, dest);
+					Destination.StoreTo(pLIRMethod, dest);
+					pLIRMethod.ReleaseLocal(dest);
+				}
+				else
+				{
+					new LIRInstructions.CallIndirect(pLIRMethod, methodPointerSource, paramSources);
+				}
+				paramSources.ForEach(s => pLIRMethod.ReleaseLocal(s));
 			}
 			else
 			{

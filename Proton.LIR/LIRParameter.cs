@@ -35,7 +35,7 @@ namespace Proton.LIR
 
 		public override string ToString()
 		{
-			return String.Format("$", Index);
+			return String.Format("${0}", Index);
 		}
 	}
 }

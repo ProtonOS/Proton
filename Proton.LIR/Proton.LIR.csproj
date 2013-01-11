@@ -37,6 +37,7 @@
     <Compile Include="Instructions\Branch.cs" />
     <Compile Include="Instructions\BranchTrue.cs" />
     <Compile Include="Instructions\Call.cs" />
+    <Compile Include="Instructions\CallIndirect.cs" />
     <Compile Include="Instructions\Comment.cs" />
     <Compile Include="Instructions\Compare.cs" />
     <Compile Include="Instructions\Convert.cs" />

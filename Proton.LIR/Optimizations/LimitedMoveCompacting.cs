@@ -86,6 +86,16 @@ namespace Proton.LIR.Optimizations
 						}
 						break;
 					}
+					case LIROpCode.CallIndirect:
+					{
+						// Need to do dest
+						var curCallIndirect = (Instructions.CallIndirect)curInstr;
+						for (int i2 = 0; i2 < curCallIndirect.Sources.Count; i2++)
+						{
+							curCallIndirect.Sources[i2] = ProcessSource(curCallIndirect.Sources[i2], method);
+						}
+						break;
+					}
 					case LIROpCode.Convert:
 					{
 						// Need to do dest

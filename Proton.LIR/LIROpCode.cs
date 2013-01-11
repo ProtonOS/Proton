@@ -8,6 +8,7 @@ namespace Proton.LIR
 		Branch,
 		BranchTrue,
 		Call,
+		CallIndirect,
 		Comment,
 		Compare,
 		Convert,
