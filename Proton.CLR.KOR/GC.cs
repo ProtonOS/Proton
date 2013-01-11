@@ -218,11 +218,11 @@ namespace System
 			return obj;
 		}
 
-		internal static object AllocateObject(Type.TypeData* pType)
+		internal static void AllocateObject(Type.TypeData* pType, void** pReturnValue)
 		{
 			GCObject* obj = Allocate(pType->DataSize);
 			obj->TypeData = pType;
-			return object.Internal_PointerToReference((void*)((ulong)obj + (ulong)sizeof(GCObject)));
+			*pReturnValue = (void*)((ulong)obj + (ulong)sizeof(GCObject));
 		}
 
 		internal static void BoxObject(Type.TypeData* pType, void* pSource, void** pReturnValue)

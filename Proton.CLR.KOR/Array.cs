@@ -124,9 +124,10 @@ namespace System
 			Type.TypeData* typeData = array.GetType().GetTypeDataPointer()->ArrayElementType;
 			void* startOfArrayElement = (void*)((byte*)array.Internal_ReferenceToPointer() + sizeof(int) + (typeData->StackSize * index));
 			if (!typeData->IsValueType) return Internal_PointerToReference(*((void**)startOfArrayElement));
-			object obj = GC.AllocateObject(typeData);
-			Internal_FastCopy(startOfArrayElement, obj.Internal_ReferenceToPointer(), (int)typeData->DataSize);
-			return obj;
+			void* obj = null;
+			GC.AllocateObject(typeData, &obj);
+			Internal_FastCopy(startOfArrayElement, obj, (int)typeData->DataSize);
+			return object.Internal_PointerToReference(obj);
 		}
 
 		internal static unsafe bool SetValue(Array array, object value, int index)
