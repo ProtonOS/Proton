@@ -32,7 +32,7 @@ namespace Proton.LIR
 
 		public override string ToString()
 		{
-			return "~" + mTempID + ":" + Name;
+			return String.Format("~{0}:{1}", mTempID, Name);
 		}
 
 		public void MarkLabel(Label l)
@@ -41,7 +41,7 @@ namespace Proton.LIR
 			mInstructions.Add(l);
 		}
 
-		private Dictionary<int, Queue<LIRLocal>> requestedLocalMap = new Dictionary<int, Queue<LIRLocal>>();
+		internal Dictionary<int, Queue<LIRLocal>> requestedLocalMap = new Dictionary<int, Queue<LIRLocal>>();
 		public LIRLocal RequestLocal(LIRType tp)
 		{
 			LIRLocal ret;
