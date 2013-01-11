@@ -81,11 +81,14 @@ namespace Proton.LIR
 			pWriter.WriteLine("{");
 			pWriter.Indent++;
 
-			pWriter.WriteLine("{");
-			pWriter.Indent++;
-			mLocals.ForEach(l => l.Dump(pWriter));
-			pWriter.Indent--;
-			pWriter.WriteLine("}");
+			if (mLocals.Count > 0)
+			{
+				pWriter.WriteLine("{");
+				pWriter.Indent++;
+				mLocals.ForEach(l => l.Dump(pWriter));
+				pWriter.Indent--;
+				pWriter.WriteLine("}");
+			}
 
 			mInstructions.ForEach(i => i.Dump(pWriter));
 			

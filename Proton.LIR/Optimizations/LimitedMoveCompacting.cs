@@ -21,7 +21,8 @@ namespace Proton.LIR.Optimizations
 							if (loc.Dynamic && loc.AssignedValue != null && 
 								(
 									loc.AssignedValue.SourceType == SourceType.Local ||
-									loc.AssignedValue.SourceType == SourceType.Literal
+									loc.AssignedValue.SourceType == SourceType.Literal ||
+									loc.AssignedValue.SourceType == SourceType.Parameter
 								)
 							)
 							{
