@@ -28,15 +28,26 @@ namespace Proton.LIR
 		public bool Signed { get; private set; }
 		public bool Allocatable { get; set; }
 
-		public LIRType(uint size)
+		private static Dictionary<int, LIRType> CreatedLIRTypes = new Dictionary<int, LIRType>();
+		private static LIRType LocateLIRType(LIRType t)
+		{
+			LIRType f;
+			if (CreatedLIRTypes.TryGetValue(t.GetHashCode(), out f))
+				return f;
+			CreatedLIRTypes.Add(t.GetHashCode(), t);
+			return t;
+		}
+
+		private LIRType(uint size)
 		{
 			this.Allocatable = true;
 			this.Type = LIRValueType.None;
 			this.Size = size;
 			this.Signed = false;
 		}
+		public static LIRType GetLIRType(uint size, bool allocatable) { return LocateLIRType(new LIRType(size) { Allocatable = allocatable }); }
 
-		public LIRType(uint size, bool signed, bool floating = false)
+		private LIRType(uint size, bool signed, bool floating = false)
 		{
 			this.Allocatable = true;
 			switch (size)
@@ -78,8 +89,9 @@ namespace Proton.LIR
 			else
 				this.Signed = signed;
 		}
+		public static LIRType GetLIRType(uint size, bool signed, bool floating, bool allocatable = true) { return LocateLIRType(new LIRType(size, signed, floating) { Allocatable = allocatable }); }
 
-		public LIRType(LIRValueType tp, bool signed = false)
+		private LIRType(LIRValueType tp, bool signed = false)
 		{
 			this.Type = tp;
 			this.Signed = signed;
@@ -112,6 +124,7 @@ namespace Proton.LIR
 					throw new ArgumentOutOfRangeException("tp");
 			}
 		}
+		public static LIRType GetLIRType(LIRValueType tp, bool signed = false) { return LocateLIRType(new LIRType(tp, signed)); }
 
 		public override string ToString()
 		{

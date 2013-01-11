@@ -2,20 +2,18 @@
 using System.Collections.Generic;
 using Proton.VM.IR.Instructions;
 
-namespace Proton.VM.IR.Optimizations
+namespace Proton.VM.IR.Transformations
 {
-	public sealed class IRCallDevirtualizationOptimizationPass : IROptimizationPass
+	public sealed class IRCallDevirtualizationTransformationPass : IRTransformationPass
 	{
-		public override string Name { get { return "Call Devirtualization"; } }
-		public override string Description { get { return "Makes a call non-virtual if it can be proven that it will be made on an object of a specific type."; } }
-		public override IROptimizationPass.RunLocation Location { get { return RunLocation.Last; } }
+		public override TransformType Type { get { return TransformType.Method; } }
 
 		private struct KnownLocalType
 		{
 			public IRType Type;
 			public bool Known;
 		}
-		public override void Run(IRMethod pMethod)
+		public override void Transform(IRMethod pMethod)
 		{
 			KnownLocalType[] locals = new KnownLocalType[pMethod.Locals.Count];
 			for (int i = 0; i < pMethod.Instructions.Count; i++)
@@ -41,8 +39,8 @@ namespace Proton.VM.IR.Optimizations
 						}
 						else if (callInstr.Sources[0].Type == IRLinearizedLocationType.Local && locals[callInstr.Sources[0].Local.LocalIndex].Known)
 						{
-							//callInstr.Target = locals[callInstr.Sources[0].Local.LocalIndex].Type.VirtualMethodTree[callInstr.Target.VirtualMethodIndex];
-							//callInstr.Virtual = false;
+							callInstr.Target = locals[callInstr.Sources[0].Local.LocalIndex].Type.VirtualMethodTree[callInstr.Target.VirtualMethodIndex];
+							callInstr.Virtual = false;
 						}
 					}
 				}

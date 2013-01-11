@@ -734,18 +734,21 @@ namespace Proton.VM.IR
 			}
 		}
 
+		private LIRType lirTypeCache = null;
 		public LIRType ToLIRType()
 		{
+			if (lirTypeCache != null)
+				return lirTypeCache;
 			bool obj = this.IsClass || this.IsInterface;
 			if (obj)
-				return new LIRType((uint)StackSize, false) { Allocatable = false };
+				return (lirTypeCache = LIRType.GetLIRType((uint)StackSize, false, false, false));
 
 			if (!IsUnsafeType)
 			{
 				if (this.IsManagedPointerType)
-					return new LIRType((uint)StackSize, false) { Allocatable = false };
+					return (lirTypeCache = LIRType.GetLIRType((uint)StackSize, false, false, false));
 				else
-					return new LIRType((uint)StackSize) { Allocatable = false };
+					return (lirTypeCache = LIRType.GetLIRType((uint)StackSize, false));
 			}
 			else
 			{
@@ -759,7 +762,7 @@ namespace Proton.VM.IR
 					this.IsUnmanagedPointerType
 				)
 				{
-					return new LIRType((uint)StackSize, false);
+					return (lirTypeCache = LIRType.GetLIRType((uint)StackSize, false, false));
 				}
 				else if (
 					this == Assembly.AppDomain.System_Char ||
@@ -770,16 +773,16 @@ namespace Proton.VM.IR
 					this == Assembly.AppDomain.System_SByte
 				)
 				{
-					return new LIRType((uint)StackSize, true);
+					return (lirTypeCache = LIRType.GetLIRType((uint)StackSize, true, false));
 				}
 				else if (
 					this == Assembly.AppDomain.System_Double ||
 					this == Assembly.AppDomain.System_Single
 				)
 				{
-					return new LIRType((uint)StackSize, true, true);
+					return (lirTypeCache = LIRType.GetLIRType((uint)StackSize, true, true));
 				}
-				return new LIRType((uint)this.StackSize);
+				return (lirTypeCache = LIRType.GetLIRType((uint)this.StackSize, true));
 			}
 		}
 		public static implicit operator LIRType(IRType tp) { return tp.ToLIRType(); }

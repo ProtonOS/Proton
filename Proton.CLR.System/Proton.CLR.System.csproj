@@ -35,6 +35,7 @@
   <ItemGroup>
     <Compile Include="Collections\Generic\Queue.cs" />
     <Compile Include="Collections\Generic\Stack.cs" />
+    <Compile Include="Diagnostics\Stopwatch.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Proton.CLR.KOR\Proton.CLR.KOR.csproj">
@@ -42,7 +43,6 @@
       <Name>Proton.CLR.KOR</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

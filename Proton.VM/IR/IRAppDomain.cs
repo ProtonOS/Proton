@@ -1,4 +1,5 @@
 ﻿//#define ProfileMemory
+#define ProfileSpeed
 using Proton.Metadata;
 using Proton.Metadata.Tables;
 using Proton.Metadata.Signatures;
@@ -178,6 +179,21 @@ namespace Proton.VM.IR
 			Console.ReadLine();
 		}
 
+		[Conditional("ProfileSpeed")]
+		private static void ProfileStart(Stopwatch sw)
+		{
+			PauseForProfiler();
+			sw.Start();
+		}
+
+		[Conditional("ProfileSpeed")]
+		private static void ProfileWrite(string msg, Stopwatch sw)
+		{
+			sw.Stop();
+			Console.WriteLine(String.Format("{0} took {1}MS", msg, sw.ElapsedMilliseconds));
+			sw.Reset();
+		}
+
 		private static void FullGCCollect()
 		{
 			GC.Collect();
@@ -187,26 +203,33 @@ namespace Proton.VM.IR
 
 		public IRAssembly LoadEntryAssembly(CLIFile pFile)
 		{
-			PauseForProfiler();
+			Stopwatch sw = new Stopwatch();
+			ProfileStart(sw);
 			IRAssembly assembly = CreateAssembly(pFile);
-			PauseForProfiler();
+			ProfileWrite("Creating the main IRAssembly", sw);
+			ProfileStart(sw);
 			Assemblies.ForEach(a => a.LoadStage1());
-			PauseForProfiler();
+			ProfileWrite("Stage 1", sw);
+			ProfileStart(sw);
 			Assemblies.ForEach(a => a.LoadStage2());
-			PauseForProfiler();
+			ProfileWrite("Stage 2", sw);
+			ProfileStart(sw);
 			Assemblies.ForEach(a => a.LoadStage3());
-			PauseForProfiler();
+			ProfileWrite("Stage 3", sw);
 
+			ProfileStart(sw);
 			AssemblyFileLookup = null;
 			AssemblyFileReferenceNameLookup = null;
 			IRType.MVarPlaceholders = null;
 			IRType.VarPlaceholders = null;
 			FullGCCollect();
-			PauseForProfiler();
+			ProfileWrite("Stage 3.5 GC", sw);
 
+			ProfileStart(sw);
 			Assemblies.ForEach(a => a.LoadStage4());
-			PauseForProfiler();
+			ProfileWrite("Stage 4", sw);
 
+			ProfileStart(sw);
 			Assemblies.ForEach(a =>
 			{
 				a.Fields = null;
@@ -219,34 +242,41 @@ namespace Proton.VM.IR
 			UnmanagedPointerTypes = null;
 			ArrayTypes = null;
 			FullGCCollect();
-			PauseForProfiler();
+			ProfileWrite("Stage 4.5 GC", sw);
 
+			ProfileStart(sw);
 			LoadStage5();
-			PauseForProfiler();
+			ProfileWrite("Stage 5", sw);
+			ProfileStart(sw);
 			LoadStage6(true);
-			PauseForProfiler();
+			ProfileWrite("Stage 6", sw);
 
+			ProfileStart(sw);
 			// Massive help to memory usage.
 			FullGCCollect();
-			PauseForProfiler();
+			ProfileWrite("Stage 6.5 GC", sw);
 
+			ProfileStart(sw);
 			LoadStage7();
-			PauseForProfiler();
+			ProfileWrite("Stage 7", sw);
 
+			ProfileStart(sw);
 			LoadStage8();
-			PauseForProfiler();
+			ProfileWrite("Stage 8", sw);
 
+			ProfileStart(sw);
 			StaticFields = null;
 			Methods = null;
 			Types = null;
 			ManagedPointerTypes = null;
 			ClearCORTypes();
 			FullGCCollect();
-			PauseForProfiler();
+			ProfileWrite("Stage 8.5 GC", sw);
 
+			ProfileStart(sw);
 			LoadStage9();
-			PauseForProfiler();
-			Console.WriteLine("Dumping IRAppDomain...");
+			ProfileWrite("Stage 9", sw);
+			//Console.WriteLine("Dumping IRAppDomain...");
 			//Dump();
 			return assembly;
 		}
@@ -288,6 +318,7 @@ namespace Proton.VM.IR
 			new IRGenericToStringImplementorTransformationPass(),
 
 			// Method Transforms
+			new IRCallDevirtualizationTransformationPass(),
 			new IRStaticFieldLiteralInliningTransformationPass(),
 			new IRSizeOfToConstantTransformationPass(),
 			new IRInitalizeObjectSpecializationTransformationPass(),
@@ -317,7 +348,6 @@ namespace Proton.VM.IR
 			new IRBranchRemovalOptimizationPass(),
 
 			// During SSA
-			new IRCallDevirtualizationOptimizationPass(),
 			new IRMoveCompactingOptimizationPass(),
 			new IRIndirectionRemovalOptimizationPass(),
 
