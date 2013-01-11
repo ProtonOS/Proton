@@ -240,6 +240,7 @@ namespace Proton.VM.IR
 			Methods = null;
 			Types = null;
 			ManagedPointerTypes = null;
+			ClearCORTypes();
 			FullGCCollect();
 			PauseForProfiler();
 
@@ -248,6 +249,37 @@ namespace Proton.VM.IR
 			Console.WriteLine("Dumping IRAppDomain...");
 			//Dump();
 			return assembly;
+		}
+
+		private void ClearCORTypes()
+		{
+			System_Array = null;
+			System_Boolean = null;
+			System_Byte = null;
+			System_Char = null;
+			System_Double = null;
+			System_Enum = null;
+			System_Exception = null;
+			System_Int16 = null;
+			System_Int32 = null;
+			System_Int64 = null;
+			System_IntPtr = null;
+			System_Object = null;
+			System_RuntimeArgumentHandle = null;
+			System_RuntimeFieldHandle = null;
+			System_RuntimeMethodHandle = null;
+			System_RuntimeTypeHandle = null;
+			System_SByte = null;
+			System_Single = null;
+			System_String = null;
+			System_Type = null;
+			System_TypedReference = null;
+			System_UInt16 = null;
+			System_UInt32 = null;
+			System_UInt64 = null;
+			System_UIntPtr = null;
+			System_ValueType = null;
+			System_Void = null;
 		}
 
 		private static readonly List<IRTransformationPass> KnownTransformationPasses = new List<IRTransformationPass>()
