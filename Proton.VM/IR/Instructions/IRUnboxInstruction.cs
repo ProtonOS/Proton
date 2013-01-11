@@ -43,6 +43,14 @@ namespace Proton.VM.IR.Instructions
 
 		public override void ConvertToLIR(LIRMethod pLIRMethod)
 		{
+			var s = pLIRMethod.RequestLocal(Sources[0].GetTypeOfLocation());
+			Sources[0].LoadTo(pLIRMethod, s);
+			if (GetValue)
+			{
+				new LIRInstructions.Move(pLIRMethod, new Indirect(s), s, Destination.GetTypeOfLocation());
+			}
+			Destination.StoreTo(pLIRMethod, s);
+			pLIRMethod.ReleaseLocal(s);
 		}
 
 		protected override void DumpDetails(IndentableStreamWriter pWriter)

@@ -1229,6 +1229,7 @@ namespace Proton.VM.IR
 
 		public static bool operator !=(IRMethod a, IRMethod b) { return !(a == b); }
 
+		public static implicit operator LIRMethod(IRMethod mth) { return mth.LIRMethod; }
 
 		public LIRMethod LIRMethod { get; private set; }
 
