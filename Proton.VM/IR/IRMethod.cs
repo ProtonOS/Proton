@@ -404,7 +404,7 @@ namespace Proton.VM.IR
 			IRPrefixFlags prefixFlags = IRPrefixFlags.None;
 			uint prefixConstrainedToken = 0;
 			uint startOfInstruction = reader.Offset;
-			Console.WriteLine("Converting {0}.{1}.{2}", ParentType.Namespace, ParentType.Name, Name);
+			//Console.WriteLine("Converting {0}.{1}.{2}", ParentType.Namespace, ParentType.Name, Name);
 			while (!reader.EndOfCode)
 			{
 				bool clearFlags = true;
@@ -1243,12 +1243,12 @@ namespace Proton.VM.IR
 		{
 			if (LIRMethod == null)
 				throw new Exception();
-			mInstructions.ForEach(i =>
+			foreach (var i in mInstructions)
 			{
-				new LIR.Instructions.Comment(LIRMethod, i.IRIndex + ": " + i.ToString());
 				LIRMethod.MarkLabel(i.Label);
+				new LIR.Instructions.Comment(LIRMethod, String.Format("{0}: {1}", i.IRIndex, i));
 				i.ConvertToLIR(LIRMethod);
-			});
+			}
 		}
 
 		public void Dump(IndentableStreamWriter pWriter)

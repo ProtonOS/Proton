@@ -359,21 +359,44 @@ namespace Proton.VM.IR
 			});
 		}
 
-		private static readonly List<IROptimizationPass> KnownOptimizationPasses = new List<IROptimizationPass>()
+		private static readonly IROptimizationPass[][] KnownOptimizationPasses = new IROptimizationPass[][]
 		{
 			// First
+			new IROptimizationPass[]
+			{
 
-			// Before SSA
-			new IRBranchRemovalOptimizationPass(),
+			},
+			// BeforeSSA
+			new IROptimizationPass[]
+			{
+				new IRBranchRemovalOptimizationPass(),
+			},
+			// Enter SSA
+			new IROptimizationPass[]
+			{
 
+			},
 			// During SSA
-			new IRMoveCompactingOptimizationPass(),
-			new IRIndirectionRemovalOptimizationPass(),
+			new IROptimizationPass[]
+			{
+				new IRMoveCompactingOptimizationPass(),
+				new IRIndirectionRemovalOptimizationPass(),
+			},
+			// Leave SSA
+			new IROptimizationPass[]
+			{
 
+			},
 			// After SSA
+			new IROptimizationPass[]
+			{
 
+			},
 			// Last
-			new IRNopKillingOptimizationPass(),
+			new IROptimizationPass[]
+			{
+				new IRNopKillingOptimizationPass(),
+			},
 		};
 
 		public static void RemoveDeadCode(IRMethod pMethod)
@@ -401,40 +424,44 @@ namespace Proton.VM.IR
 			Console.WriteLine("========== {0,-22} Stage 6 {0,-23} ==========", " ");
 			if (runOptimizations)
 			{
-				KnownOptimizationPasses.FindAll(op => op.Location == IROptimizationPass.RunLocation.First).ForEach(op =>
+				foreach (var op in KnownOptimizationPasses[(int)IROptimizationPass.RunLocation.First])
 				{
-					Methods.ForEach(m => op.Run(m));
-				});
-				KnownOptimizationPasses.FindAll(op => op.Location == IROptimizationPass.RunLocation.BeforeSSA).ForEach(op =>
+					foreach (var m in Methods) 
+						op.Run(m);
+				}
+				foreach (var op in KnownOptimizationPasses[(int)IROptimizationPass.RunLocation.BeforeSSA])
 				{
-					Methods.ForEach(m => op.Run(m));
-				});
+					foreach (var m in Methods) 
+						op.Run(m);
+				}
 
+				foreach (var m in Methods)
+					m.EnterSSA();
 
-				Methods.ForEach(m => m.EnterSSA());
-
-
-				KnownOptimizationPasses.FindAll(op => op.Location == IROptimizationPass.RunLocation.DuringSSA).ForEach(op =>
+				foreach (var op in KnownOptimizationPasses[(int)IROptimizationPass.RunLocation.DuringSSA])
 				{
-					Methods.ForEach(m => op.Run(m));
-				});
+					foreach (var m in Methods)
+						op.Run(m);
+				}
 
+				foreach (var m in Methods)
+					m.LeaveSSA();
 
-				Methods.ForEach(m => m.LeaveSSA());
-
-
-				KnownOptimizationPasses.FindAll(op => op.Location == IROptimizationPass.RunLocation.AfterSSA).ForEach(op =>
+				foreach (var op in KnownOptimizationPasses[(int)IROptimizationPass.RunLocation.AfterSSA])
 				{
-					Methods.ForEach(m => op.Run(m));
-				});
+					foreach (var m in Methods)
+						op.Run(m);
+				}
 				
 				// Nothing in the "Last" RunLocation should produce dead code, it's only for the cleanup code.
-				Methods.ForEach(m => RemoveDeadCode(m));
+				foreach (var m in Methods)
+					RemoveDeadCode(m);
 
-				KnownOptimizationPasses.FindAll(op => op.Location == IROptimizationPass.RunLocation.Last).ForEach(op =>
+				foreach (var op in KnownOptimizationPasses[(int)IROptimizationPass.RunLocation.Last])
 				{
-					Methods.ForEach(m => op.Run(m));
-				});
+					foreach (var m in Methods)
+						op.Run(m);
+				}
 			}
 			else
 			{

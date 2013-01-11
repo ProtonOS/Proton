@@ -7,9 +7,11 @@ namespace Proton.VM.IR.Optimizations
 	{
 		public enum RunLocation
 		{
-			First,
+			First = 0,
 			BeforeSSA,
+			EnterSSA,
 			DuringSSA,
+			LeaveSSA,
 			AfterSSA,
 			Last,
 		}
