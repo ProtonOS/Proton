@@ -1245,8 +1245,8 @@ namespace Proton.VM.IR
 				throw new Exception();
 			foreach (var i in mInstructions)
 			{
-				new LIR.Instructions.Comment(LIRMethod, String.Format("{0}: {1}", i.IRIndex, i));
 				LIRMethod.MarkLabel(i.Label);
+				new LIR.Instructions.Comment(LIRMethod, String.Format("{0}: {1}", i.IRIndex, i));
 				i.ConvertToLIR(LIRMethod);
 			}
 		}
