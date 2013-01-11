@@ -3,6 +3,24 @@ using System.Collections.Generic;
 
 namespace Proton.LIR
 {
+	public sealed class LIRParameterAddress : ISource
+	{
+		public bool MayHaveSideEffects { get { return true; } }
+		public SourceType SourceType { get { return SourceType.ParameterAddress; } }
+
+		public LIRParameter Parent { get; private set; }
+
+		internal LIRParameterAddress(LIRParameter parent)
+		{
+			this.Parent = parent;
+		}
+
+		public override string ToString()
+		{
+			return String.Format("&{0}", Parent);
+		}
+	}
+
 	public sealed class LIRParameter : ISource, IDestination
 	{
 		public bool MayHaveSideEffects { get { return false; } }
@@ -22,11 +40,8 @@ namespace Proton.LIR
 			parent.mParameters.Add(this);
 		}
 
-		public ISource AddressOf()
-		{
-#warning Do me correctly....
-			return this;
-		}
+		private LIRParameterAddress mAddressCache = null;
+		public LIRParameterAddress AddressOf() { return mAddressCache ?? (mAddressCache = new LIRParameterAddress(this)); }
 
 		public void Dump(IndentedStreamWriter pWriter)
 		{
