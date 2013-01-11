@@ -434,7 +434,7 @@ namespace Proton.VM.IR
 				}
 				foreach (var op in KnownOptimizationPasses[(int)IROptimizationPass.RunLocation.BeforeSSA])
 				{
-					foreach (var m in Methods) 
+					foreach (var m in Methods)
 						op.Run(m);
 				}
 

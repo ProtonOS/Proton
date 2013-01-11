@@ -36,29 +36,36 @@ namespace Proton.VM.IR.Instructions
 
 		public override void ConvertToLIR(LIRMethod pLIRMethod)
 		{
-			var sTypeDataPtr = pLIRMethod.RequestLocal(AppDomain.System_GC_AllocateObject.LIRMethod.Parameters[0].Type);
-			new LIRInstructions.Move(pLIRMethod, Constructor.ParentType.TypeDataLabel, sTypeDataPtr, sTypeDataPtr.Type);
-			var sReturnPtr = pLIRMethod.RequestLocal(AppDomain.System_GC_AllocateObject.LIRMethod.Parameters[1].Type);
-			Destination.LoadAddressTo(pLIRMethod, sReturnPtr);
-			List<ISource> allocateObjectParams = new List<ISource>(2);
-			allocateObjectParams.Add(sTypeDataPtr); // pointer to type data
-			allocateObjectParams.Add(sReturnPtr); // pointer to destination
-			new LIRInstructions.Call(pLIRMethod, AppDomain.System_GC_AllocateObject, allocateObjectParams, null);
-			pLIRMethod.ReleaseLocal(sReturnPtr);
-			pLIRMethod.ReleaseLocal(sTypeDataPtr);
-
-			List<LIRLocal> constructorParams = new List<LIRLocal>(Sources.Count + 1);
-			var sObj = pLIRMethod.RequestLocal(Destination.GetTypeOfLocation());
-			Destination.LoadTo(pLIRMethod, sObj);
-			constructorParams.Add(sObj);
-			foreach (IRLinearizedLocation sourceLocation in Sources)
+			if (Constructor.ParentType == AppDomain.System_String)
 			{
-				var s = pLIRMethod.RequestLocal(sourceLocation.GetTypeOfLocation());
-				constructorParams.Add(s);
-				sourceLocation.LoadTo(pLIRMethod, s);
+#warning Finish special cases for string constructors
 			}
-			new LIRInstructions.Call(pLIRMethod, Constructor, constructorParams, null);
-			constructorParams.ForEach(s => pLIRMethod.ReleaseLocal(s));
+			else
+			{
+				var sTypeDataPtr = pLIRMethod.RequestLocal(AppDomain.System_GC_AllocateObject.LIRMethod.Parameters[0].Type);
+				new LIRInstructions.Move(pLIRMethod, Constructor.ParentType.TypeDataLabel, sTypeDataPtr, sTypeDataPtr.Type);
+				var sReturnPtr = pLIRMethod.RequestLocal(AppDomain.System_GC_AllocateObject.LIRMethod.Parameters[1].Type);
+				Destination.LoadAddressTo(pLIRMethod, sReturnPtr);
+				List<ISource> allocateObjectParams = new List<ISource>(2);
+				allocateObjectParams.Add(sTypeDataPtr); // pointer to type data
+				allocateObjectParams.Add(sReturnPtr); // pointer to destination
+				new LIRInstructions.Call(pLIRMethod, AppDomain.System_GC_AllocateObject, allocateObjectParams, null);
+				pLIRMethod.ReleaseLocal(sReturnPtr);
+				pLIRMethod.ReleaseLocal(sTypeDataPtr);
+
+				List<LIRLocal> constructorParams = new List<LIRLocal>(Sources.Count + 1);
+				var sObj = pLIRMethod.RequestLocal(Destination.GetTypeOfLocation());
+				Destination.LoadTo(pLIRMethod, sObj);
+				constructorParams.Add(sObj);
+				foreach (IRLinearizedLocation sourceLocation in Sources)
+				{
+					var s = pLIRMethod.RequestLocal(sourceLocation.GetTypeOfLocation());
+					constructorParams.Add(s);
+					sourceLocation.LoadTo(pLIRMethod, s);
+				}
+				new LIRInstructions.Call(pLIRMethod, Constructor, constructorParams, null);
+				constructorParams.ForEach(s => pLIRMethod.ReleaseLocal(s));
+			}
 		}
 
 		protected override void DumpDetails(IndentableStreamWriter pWriter)

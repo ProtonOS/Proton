@@ -536,8 +536,10 @@ namespace Proton.VM.IR
 				case IRLinearizedLocationType.Null:
 					break;
 				case IRLinearizedLocationType.Local:
+					new LIRInstructions.Move(pParent, pParent.Locals[Local.LocalIndex].AddressOf(), pDestination, pParent.Locals[Local.LocalIndex].Type);
 					break;
 				case IRLinearizedLocationType.Parameter:
+					new LIRInstructions.Move(pParent, pParent.Parameters[Parameter.ParameterIndex].AddressOf(), pDestination, pParent.Parameters[Parameter.ParameterIndex].Type);
 					break;
 				case IRLinearizedLocationType.ConstantI4:
 					break;

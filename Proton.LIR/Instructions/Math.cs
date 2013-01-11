@@ -13,6 +13,10 @@ namespace Proton.LIR.Instructions
 		And,
 		Or,
 		Xor,
+
+		ShiftLeft,
+		ShiftRight,
+		ShiftRightSignExtended,
 	}
 
 	public sealed class Math : LIRInstruction
@@ -51,6 +55,12 @@ namespace Proton.LIR.Instructions
 					return "|";
 				case MathOperation.Xor:
 					return "^";
+				case MathOperation.ShiftLeft:
+					return "<<";
+				case MathOperation.ShiftRight:
+					return ">>";
+				case MathOperation.ShiftRightSignExtended:
+					return ">>>";
 				default:
 					throw new NotSupportedException();
 			}
