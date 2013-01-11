@@ -19,7 +19,7 @@ namespace Proton.LIR
 
 		public override string ToString()
 		{
-			return "[" + Source + "]";
+			return String.Format("[{0}]", Source);
 		}
 	}
 }

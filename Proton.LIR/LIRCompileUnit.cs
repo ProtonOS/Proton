@@ -61,6 +61,8 @@ namespace Proton.LIR
 
 		public void Compile(Stream output)
 		{
+			// A bit of cleanup before we do the actual emission.
+			mMethods.ForEach(m => m.requestedLocalMap = null);
 			// Need to align all output to what makes best sense for the architecture (multi-boot must be 4-byte aligned)
 
 
@@ -71,6 +73,10 @@ namespace Proton.LIR
 			{
 				Dump(new IndentedStreamWriter(v));
 			}
+
+
+
+			// Now we trasform it to MIR and emit it.
 		}
 
 		private static readonly LIROptimizationPass[] KnownOptimizationPasses = new LIROptimizationPass[]

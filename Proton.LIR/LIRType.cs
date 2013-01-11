@@ -126,9 +126,10 @@ namespace Proton.LIR
 		}
 		public static LIRType GetLIRType(LIRValueType tp, bool signed = false) { return LocateLIRType(new LIRType(tp, signed)); }
 
+		private string mStringCache = null;
 		public override string ToString()
 		{
-			return String.Format("{0}{1}:{2}{3}", Type, (!Allocatable ? "&" : ""), (Signed ? "@" : ""), Size);
+			return mStringCache ?? (mStringCache = String.Format("{0}{1}:{2}{3}", Type, (!Allocatable ? "&" : ""), (Signed ? "@" : ""), Size));
 		}
 
 		public override int GetHashCode()
