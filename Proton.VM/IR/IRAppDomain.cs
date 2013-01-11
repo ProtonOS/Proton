@@ -246,7 +246,7 @@ namespace Proton.VM.IR
 
 			LoadStage9();
 			PauseForProfiler();
-			Console.WriteLine("Dumping IRAppDomain...");
+			//Console.WriteLine("Dumping IRAppDomain...");
 			//Dump();
 			return assembly;
 		}
@@ -288,6 +288,7 @@ namespace Proton.VM.IR
 			new IRGenericToStringImplementorTransformationPass(),
 
 			// Method Transforms
+			new IRCallDevirtualizationTransformationPass(),
 			new IRStaticFieldLiteralInliningTransformationPass(),
 			new IRSizeOfToConstantTransformationPass(),
 			new IRInitalizeObjectSpecializationTransformationPass(),
@@ -317,7 +318,6 @@ namespace Proton.VM.IR
 			new IRBranchRemovalOptimizationPass(),
 
 			// During SSA
-			new IRCallDevirtualizationOptimizationPass(),
 			new IRMoveCompactingOptimizationPass(),
 			new IRIndirectionRemovalOptimizationPass(),
 
