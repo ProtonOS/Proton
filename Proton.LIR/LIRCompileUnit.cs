@@ -142,7 +142,7 @@ namespace Proton.LIR
 
 		private void Dump(IndentedStreamWriter wtr)
 		{
-			wtr.WriteLine("LIRCompileUnit {0}", mMethods.Count);
+			wtr.WriteLine("LIRCompileUnit {0}", mMethods.Count + mData.Count);
 			wtr.WriteLine("{");
 			wtr.Indent++;
 			wtr.WriteLine("Data {0}", mData.Count);
