@@ -35,6 +35,7 @@
     <Compile Include="IndentedStreamWriter.cs" />
     <Compile Include="Indirect.cs" />
     <Compile Include="Instructions\Branch.cs" />
+    <Compile Include="Instructions\BranchIndirect.cs" />
     <Compile Include="Instructions\BranchTrue.cs" />
     <Compile Include="Instructions\Call.cs" />
     <Compile Include="Instructions\CallIndirect.cs" />

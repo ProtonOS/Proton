@@ -57,6 +57,12 @@ namespace Proton.LIR.Optimizations
 						curCompare.SourceB = ProcessSource(curCompare.SourceB, method);
 						break;
 					}
+					case LIROpCode.BranchIndirect:
+					{
+						var curBranch = (Instructions.BranchIndirect)curInstr;
+						curBranch.Source = ProcessSource(curBranch.Source, method);
+						break;
+					}
 					case LIROpCode.BranchTrue:
 					{
 						var curBranch = (Instructions.BranchTrue)curInstr;
@@ -68,6 +74,13 @@ namespace Proton.LIR.Optimizations
 						// Need to do dest
 						var curUnary = (Instructions.Unary)curInstr;
 						curUnary.Source = ProcessSource(curUnary.Source, method);
+						break;
+					}
+					case LIROpCode.Convert:
+					{
+						// Need to do dest
+						var curConvert = (Instructions.Convert)curInstr;
+						curConvert.Source = ProcessSource(curConvert.Source, method);
 						break;
 					}
 					case LIROpCode.Return:
@@ -95,13 +108,6 @@ namespace Proton.LIR.Optimizations
 						{
 							curCallIndirect.Sources[i2] = ProcessSource(curCallIndirect.Sources[i2], method);
 						}
-						break;
-					}
-					case LIROpCode.Convert:
-					{
-						// Need to do dest
-						var curConvert = (Instructions.Convert)curInstr;
-						curConvert.Source = ProcessSource(curConvert.Source, method);
 						break;
 					}
 

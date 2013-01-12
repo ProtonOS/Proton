@@ -128,7 +128,7 @@ namespace Proton.LIR
 		{
 			new LIRDeadLabelRemovalOptimizationPass(),
 			new LIRUselessMathRemovalOptimizationPass(),
-			new LIRLimitedMoveCompactingOptimizationPass(),
+			//new LIRLimitedMoveCompactingOptimizationPass(),
 			new LIRDeadInstructionDestructionOptimizationPass(),
 		};
 

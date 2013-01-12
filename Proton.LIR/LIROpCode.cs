@@ -6,6 +6,7 @@ namespace Proton.LIR
 	{
 		Unknown = 0,
 		Branch,
+		BranchIndirect,
 		BranchTrue,
 		Call,
 		CallIndirect,

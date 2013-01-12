@@ -59,6 +59,24 @@ namespace Proton.VM.IR.Instructions
 			}
 			var swDatItem = new SwitchEmittableDataItem(lbls);
 			pLIRMethod.CompileUnit.AddData(swDatItem);
+
+			// Need to load and compare original value first...
+			var vs = pLIRMethod.RequestLocal(Sources[0].GetTypeOfLocation());
+			Sources[0].LoadTo(pLIRMethod, vs);
+			var vt = pLIRMethod.RequestLocal(AppDomain.System_Boolean);
+			new LIRInstructions.Compare(pLIRMethod, vs, (LIRImm)0, vt, vs.Type, LIRInstructions.CompareCondition.LessThan);
+			new LIRInstructions.BranchTrue(pLIRMethod, vt, ParentMethod.Instructions[this.IRIndex + 1].Label);
+			new LIRInstructions.Compare(pLIRMethod, vs, (LIRImm)lbls.Length, vt, vs.Type, LIRInstructions.CompareCondition.GreaterThan);
+			new LIRInstructions.BranchTrue(pLIRMethod, vt, ParentMethod.Instructions[this.IRIndex + 1].Label);
+			pLIRMethod.ReleaseLocal(vt);
+			var sBase = pLIRMethod.RequestLocal(AppDomain.System_UIntPtr);
+			new LIRInstructions.Move(pLIRMethod, swDatItem.Label, sBase, AppDomain.System_UIntPtr);
+			new LIRInstructions.Math(pLIRMethod, vs, (LIRImm)VMConfig.PointerSizeForTarget, vs, LIRInstructions.MathOperation.Multiply, vs.Type);
+			new LIRInstructions.Math(pLIRMethod, vs, sBase, sBase, LIRInstructions.MathOperation.Add, sBase.Type);
+			pLIRMethod.ReleaseLocal(vs);
+			new LIRInstructions.Move(pLIRMethod, new Indirect(sBase), sBase, sBase.Type);
+			new LIRInstructions.BranchIndirect(pLIRMethod, sBase);
+			pLIRMethod.ReleaseLocal(sBase);
 		}
 
 		public override string ToString()
