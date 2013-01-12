@@ -23,8 +23,42 @@ namespace Proton.VM.IR.Instructions
 			return CopyTo(new IRSwitchInstruction(TargetILOffsets) { TargetIRInstructions = newTargetIRInstructions }, pNewMethod);
 		}
 
+		public sealed class SwitchEmittableDataItem : EmittableData
+		{
+			private Label[] SwitchCases;
+			private Label mLabel = new Label("SwitchCaseData");
+			public override Label Label { get { return mLabel; } }
+
+			public SwitchEmittableDataItem(params Label[] labels)
+			{
+				this.SwitchCases = labels;
+			}
+
+			public override byte[] GetData(EmissionContext c)
+			{
+				byte[] ret = new byte[SwitchCases.Length * c.SizeOfLabel];
+				for (int i = 0, i2 = 0; i2 < ret.Length; i2 += c.SizeOfLabel, i++)
+				{
+					Array.Copy(SwitchCases[i].GetData(c), 0, ret, i2, c.SizeOfLabel);
+				}
+				return ret;
+			}
+
+			public override string ToString()
+			{
+				return String.Format("SwitchCaseData {{ {0} }}", String.Join(", ", (IEnumerable<Label>)SwitchCases));
+			}
+		}
+
 		public override void ConvertToLIR(LIRMethod pLIRMethod)
 		{
+			Label[] lbls = new Label[TargetIRInstructions.Length];
+			for (int i = 0; i < lbls.Length; i++)
+			{
+				lbls[i] = TargetIRInstructions[i].Label;
+			}
+			var swDatItem = new SwitchEmittableDataItem(lbls);
+			pLIRMethod.CompileUnit.AddData(swDatItem);
 		}
 
 		public override string ToString()

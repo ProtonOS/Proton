@@ -20,6 +20,7 @@ namespace Proton.LIR
 
 		public string Name { get; private set; }
 		public LIRType ReturnType { get; private set; }
+		public LIRCompileUnit CompileUnit { get; internal set; }
 
 		private static int sTempID = 0;
 		private int mTempID;

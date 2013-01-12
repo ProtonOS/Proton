@@ -11,12 +11,18 @@ namespace Proton.LIR
 		bool ISource.MayHaveSideEffects { get { return false; } }
 		public SourceType SourceType { get { return SourceType.Label; } }
 		public int References { get; internal set; }
+		public string Name { get; private set; }
 
 		private static int sTempID = 0;
 		private int mTempID;
 		public Label() : base(null, LIROpCode.Label)
 		{
 			mTempID = sTempID++;
+		}
+
+		public Label(string name) : this()
+		{
+			this.Name = name + "_" + mTempID;
 		}
 
 		public override int GetHashCode()
@@ -26,7 +32,12 @@ namespace Proton.LIR
 
 		public override string ToString()
 		{
-			return mTempID.ToString();
+			return Name ?? mTempID.ToString();
+		}
+
+		public byte[] GetData(EmissionContext context)
+		{
+			return new byte[4];
 		}
 
 		internal override void Dump(IndentedStreamWriter wtr)
@@ -36,6 +47,12 @@ namespace Proton.LIR
 			wtr.WriteLine("{0}:", this);
 			wtr.Indent++;
 		}
+	}
+
+	public sealed class EmissionContext
+	{
+#warning Do me correctly at some point....
+		public int SizeOfLabel { get { return 4; } }
 	}
 
 	public abstract class EmittableData
@@ -48,7 +65,9 @@ namespace Proton.LIR
 			mPriority = priority;
 		}
 
-		public abstract byte[] GetData();
+		public abstract Label Label { get; }
+
+		public abstract byte[] GetData(EmissionContext context);
 	}
 	public sealed class LIRCompileUnit
 	{
@@ -56,10 +75,21 @@ namespace Proton.LIR
 		private const int InitialMethodsSize = 512;
 
 		private Dictionary<Label, EmittableData> mData = new Dictionary<Label, EmittableData>(InitialDataSize);
-		public Dictionary<Label, EmittableData> Data { get { return mData; } }
+		//public IEnumerable<EmittableData> Data { get { return mData.Values; } }
 
 		private List<LIRMethod> mMethods = new List<LIRMethod>(InitialMethodsSize);
-		public List<LIRMethod> Methods { get { return mMethods; } }
+		public IEnumerable<LIRMethod> Methods { get { return mMethods; } }
+
+		public void AddMethod(LIRMethod m)
+		{
+			mMethods.Add(m);
+			m.CompileUnit = this;
+		}
+
+		public void AddData(EmittableData data)
+		{
+			mData.Add(data.Label, data);
+		}
 
 		public void Compile(Stream output)
 		{
@@ -112,10 +142,24 @@ namespace Proton.LIR
 
 		private void Dump(IndentedStreamWriter wtr)
 		{
-			wtr.WriteLine("LIRCompileUnit {0}", Methods.Count);
+			wtr.WriteLine("LIRCompileUnit {0}", mMethods.Count);
 			wtr.WriteLine("{");
 			wtr.Indent++;
-			Methods.ForEach(m => m.Dump(wtr));
+			wtr.WriteLine("Data {0}", mData.Count);
+			wtr.WriteLine("{");
+			wtr.Indent++;
+			foreach (var d in mData)
+			{
+				wtr.WriteLine("{0} -> {1}", d.Key, d.Value);
+			}
+			wtr.Indent--;
+			wtr.WriteLine("}");
+			wtr.WriteLine("Methods {0}", mMethods.Count);
+			wtr.WriteLine("{");
+			wtr.Indent++;
+			mMethods.ForEach(m => m.Dump(wtr));
+			wtr.Indent--;
+			wtr.WriteLine("}");
 			wtr.Indent--;
 			wtr.WriteLine("}");
 		}

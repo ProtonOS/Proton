@@ -473,19 +473,19 @@ namespace Proton.VM.IR
 			}
 		}
 
+		private LIR.LIRCompileUnit mainUnit;
 		private void LoadStage7()
 		{
 			Console.WriteLine("========== {0,-22} Stage 7 {0,-23} ==========", " ");
+			mainUnit = new LIR.LIRCompileUnit();
 			Methods.ForEach(m => m.CreateLIRMethod());
+			Methods.ForEach(m => mainUnit.AddMethod(m.LIRMethod));
 			Methods.ForEach(m => m.PopulateLIRMethodBody());
 		}
-
-		private LIR.LIRCompileUnit mainUnit;
+		
 		private void LoadStage8()
 		{
 			Console.WriteLine("========== {0,-22} Stage 8 {0,-23} ==========", " ");
-			mainUnit = new LIR.LIRCompileUnit();
-			Methods.ForEach(m => mainUnit.Methods.Add(m.LIRMethod));
 
 		}
 
