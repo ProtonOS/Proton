@@ -260,12 +260,12 @@ namespace System
 			return str;
 		}
 
-		internal static string AllocateStringFromUTF16(char* pString, uint pLength)
+		internal static void AllocateStringFromUTF16(char* pString, uint pLength, void** pReturnValue)
 		{
 			string str = AllocateEmptyStringOfLength(pLength);
 			char* data = str.InternalCharDataPointer;
 			for (uint index = 0; index < pLength; ++index) data[index] = pString[index];
-			return str;
+			*pReturnValue = str.Internal_ReferenceToPointer();
 		}
 
 		internal static string AllocateStringFromCharArray(char[] pCharArray, uint pStartIndex, uint pLength)
