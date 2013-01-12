@@ -46,7 +46,7 @@ namespace Proton.VM.IR.Instructions
 
 			public override string ToString()
 			{
-				return String.Format("SwitchCaseData {{ {0} }}", String.Join(", ", (IEnumerable<Label>)SwitchCases));
+				return String.Format("SwitchCaseData({0})", String.Join(", ", (IEnumerable<Label>)SwitchCases));
 			}
 		}
 
