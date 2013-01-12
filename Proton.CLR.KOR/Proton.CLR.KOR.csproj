@@ -163,6 +163,7 @@
     <Compile Include="TimeSpan.cs" />
     <Compile Include="Tuple.cs" />
     <Compile Include="Type.cs" />
+    <Compile Include="TypedReference.cs" />
     <Compile Include="UInt16.cs" />
     <Compile Include="UInt32.cs" />
     <Compile Include="UInt64.cs" />

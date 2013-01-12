@@ -16,7 +16,7 @@ namespace Proton.VM.IR.Instructions
 		{
 			Sources.Add(new IRLinearizedLocation(this, pStack.Pop().LinearizedTarget));
 
-			IRType pointerType = ParentMethod.Assembly.AppDomain.GetUnmanagedPointerType(Type);
+			IRType pointerType = ParentMethod.Assembly.AppDomain.GetManagedPointerType(Type);
 			IRStackObject result = new IRStackObject();
 			result.Type = pointerType;
 			result.LinearizedTarget = new IRLinearizedLocation(this, IRLinearizedLocationType.Local);
@@ -36,6 +36,13 @@ namespace Proton.VM.IR.Instructions
 
 		public override void ConvertToLIR(LIRMethod pLIRMethod)
 		{
+			var sTypedReference = pLIRMethod.RequestLocal(Sources[0].GetTypeOfLocation());
+			Sources[0].LoadTo(pLIRMethod, sTypedReference);
+			var sAddressPointer = pLIRMethod.RequestLocal(Destination.GetTypeOfLocation());
+			new LIRInstructions.Math(pLIRMethod, sTypedReference, (LIRImm)VMConfig.PointerSizeForTarget, sAddressPointer, LIRInstructions.MathOperation.Add, sAddressPointer.Type);
+			Destination.StoreTo(pLIRMethod, sAddressPointer);
+			pLIRMethod.ReleaseLocal(sAddressPointer);
+			pLIRMethod.ReleaseLocal(sTypedReference);
 		}
 
 		protected override void DumpDetails(IndentableStreamWriter pWriter)
