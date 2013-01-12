@@ -37,9 +37,10 @@ namespace Proton.VM.IR.Instructions
 		public override void ConvertToLIR(LIRMethod pLIRMethod)
 		{
 			var sTypedReference = pLIRMethod.RequestLocal(Sources[0].GetTypeOfLocation());
-			Sources[0].LoadTo(pLIRMethod, sTypedReference);
+			Sources[0].LoadAddressTo(pLIRMethod, sTypedReference);
 			var sAddressPointer = pLIRMethod.RequestLocal(Destination.GetTypeOfLocation());
 			new LIRInstructions.Math(pLIRMethod, sTypedReference, (LIRImm)VMConfig.PointerSizeForTarget, sAddressPointer, LIRInstructions.MathOperation.Add, sAddressPointer.Type);
+			new LIRInstructions.Move(pLIRMethod, new Indirect(sAddressPointer), sAddressPointer, sAddressPointer.Type);
 			Destination.StoreTo(pLIRMethod, sAddressPointer);
 			pLIRMethod.ReleaseLocal(sAddressPointer);
 			pLIRMethod.ReleaseLocal(sTypedReference);
