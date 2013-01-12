@@ -2,6 +2,11 @@
 {
 	public class UnicodeEncoding : Encoding
 	{
+		public override byte[] GetBytes(string str)
+		{
+#warning Implement Me!
+			return new byte[0];
+		}
 		public override string GetString(byte[] bytes, int index, int count)
 		{
 			// Not accurate, but it'll work for now

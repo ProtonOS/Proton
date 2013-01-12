@@ -404,6 +404,47 @@ namespace Proton.VM.IR
 			}
 		}
 
+		private static Dictionary<string, StringLiteralEmittableDataItem> KnownStrings = new Dictionary<string, StringLiteralEmittableDataItem>();
+		private static StringLiteralEmittableDataItem GetStringLiteral(LIRCompileUnit cu, string val)
+		{
+			StringLiteralEmittableDataItem r;
+			if (!KnownStrings.TryGetValue(val, out r))
+			{
+				KnownStrings.Add(val, r = new StringLiteralEmittableDataItem(val));
+				cu.AddData(r);
+			}
+			return r;
+		}
+
+		public sealed class StringLiteralEmittableDataItem : EmittableData
+		{
+			private string Value;
+			private Label mLabel = new Label("StringLiteral");
+			public override Label Label { get { return mLabel; } }
+
+			public StringLiteralEmittableDataItem(string str)
+			{
+				this.Value = str;
+			}
+
+			public override byte[] GetData(EmissionContext c)
+			{
+				return System.Text.Encoding.Unicode.GetBytes(Value);
+			}
+
+			public override string ToString()
+			{
+				return string.Format("StringLiteralData(\"{0}\")", 
+					Value
+					.Replace("\\", "\\\\")
+					.Replace("\r", "\\r")
+					.Replace("\n", "\\n")
+					.Replace("\t", "\\t")
+					.Replace("\"", "\\\"")
+				);
+			}
+		}
+
 		public void LoadTo(LIRMethod pParent, IDestination pDestination)
 		{
 			switch (Type)
@@ -508,6 +549,19 @@ namespace Proton.VM.IR
 				case IRLinearizedLocationType.ParameterAddress:
 					new LIRInstructions.Move(pParent, pParent.Parameters[Parameter.ParameterIndex].AddressOf(), pDestination, pParent.Parameters[Parameter.ParameterIndex].Type);
 					break;
+				case IRLinearizedLocationType.String:
+				{
+					var dest = pParent.RequestLocal(ParentInstruction.AppDomain.System_String.GetManagedPointerType());
+					new LIRInstructions.Move(pParent, dest.AddressOf(), dest, dest.Type);
+					var str = GetStringLiteral(pParent.CompileUnit, String.Value);
+					var strLb = pParent.RequestLocal(ParentInstruction.AppDomain.System_UIntPtr);
+					new LIRInstructions.Move(pParent, str.Label, strLb, strLb.Type);
+					new LIRInstructions.Call(pParent, ParentInstruction.AppDomain.System_GC_AllocateStringFromUTF16, new List<ISource>() { strLb, dest }, null);
+					pParent.ReleaseLocal(strLb);
+					new LIRInstructions.Move(pParent, dest, pDestination, dest.Type);
+					pParent.ReleaseLocal(dest);
+					break;
+				}
 
 
 #warning Finish the rest of these case statements
@@ -518,8 +572,6 @@ namespace Proton.VM.IR
 				case IRLinearizedLocationType.FunctionAddress:
 					break;
 				case IRLinearizedLocationType.RuntimeHandle:
-					break;
-				case IRLinearizedLocationType.String:
 					break;
 
 				case IRLinearizedLocationType.Phi:
@@ -533,53 +585,39 @@ namespace Proton.VM.IR
 		{
 			switch (Type)
 			{
-				case IRLinearizedLocationType.Null:
-					break;
 				case IRLinearizedLocationType.Local:
 					new LIRInstructions.Move(pParent, pParent.Locals[Local.LocalIndex].AddressOf(), pDestination, pParent.Locals[Local.LocalIndex].Type);
 					break;
 				case IRLinearizedLocationType.Parameter:
 					new LIRInstructions.Move(pParent, pParent.Parameters[Parameter.ParameterIndex].AddressOf(), pDestination, pParent.Parameters[Parameter.ParameterIndex].Type);
 					break;
-				case IRLinearizedLocationType.ConstantI4:
-					break;
-				case IRLinearizedLocationType.ConstantI8:
-					break;
-				case IRLinearizedLocationType.ConstantR4:
-					break;
-				case IRLinearizedLocationType.ConstantR8:
-					break;
-				case IRLinearizedLocationType.SizeOf:
-					break;
-				case IRLinearizedLocationType.Field:
-					break;
-				case IRLinearizedLocationType.FieldAddress:
-					break;
 				case IRLinearizedLocationType.Indirect:
+					Indirect.AddressLocation.LoadTo(pParent, pDestination);
+					break;
+#warning Finish the rest of these case statements
+				case IRLinearizedLocationType.Field:
 					break;
 				case IRLinearizedLocationType.ArrayElement:
 					break;
-				case IRLinearizedLocationType.ArrayElementAddress:
-					break;
-				case IRLinearizedLocationType.ArrayLength:
-					break;
-				case IRLinearizedLocationType.LocalAddress:
-					break;
-				case IRLinearizedLocationType.ParameterAddress:
-					break;
-
-#warning Finish the rest of these case statements
 				case IRLinearizedLocationType.StaticField:
 					break;
-				case IRLinearizedLocationType.StaticFieldAddress:
-					break;
-				case IRLinearizedLocationType.FunctionAddress:
-					break;
-				case IRLinearizedLocationType.RuntimeHandle:
-					break;
-				case IRLinearizedLocationType.String:
-					break;
 
+				case IRLinearizedLocationType.Null:
+				case IRLinearizedLocationType.LocalAddress:
+				case IRLinearizedLocationType.ParameterAddress:
+				case IRLinearizedLocationType.ConstantI4:
+				case IRLinearizedLocationType.ConstantI8:
+				case IRLinearizedLocationType.ConstantR4:
+				case IRLinearizedLocationType.ConstantR8:
+				case IRLinearizedLocationType.FieldAddress:
+				case IRLinearizedLocationType.StaticFieldAddress:
+				case IRLinearizedLocationType.ArrayElementAddress:
+				case IRLinearizedLocationType.ArrayLength:
+				case IRLinearizedLocationType.FunctionAddress:
+				case IRLinearizedLocationType.RuntimeHandle:
+				case IRLinearizedLocationType.String:
+				case IRLinearizedLocationType.SizeOf:
+					throw new Exception("It's not possible to load the address of these!");
 				case IRLinearizedLocationType.Phi:
 					throw new Exception("All phi's should have been eliminated by this point!");
 				default:
@@ -598,12 +636,41 @@ namespace Proton.VM.IR
 					new LIRInstructions.Move(pParent, pSource, pParent.Parameters[Parameter.ParameterIndex], pParent.Parameters[Parameter.ParameterIndex].Type);
 					break;
 				case IRLinearizedLocationType.Field:
+				{
+					var obj = pParent.RequestLocal(Field.FieldLocation.GetTypeOfLocation());
+					Field.FieldLocation.LoadTo(pParent, obj);
+					var foff = pParent.RequestLocal(ParentInstruction.ParentMethod.Assembly.AppDomain.System_UIntPtr);
+					new LIRInstructions.Math(pParent, obj, (LIRImm)Field.Field.Offset, foff, LIRInstructions.MathOperation.Add, ParentInstruction.AppDomain.System_UIntPtr);
+					pParent.ReleaseLocal(obj);
+					new LIRInstructions.Move(pParent, pSource, new Indirect(foff), Field.Field.Type);
+					pParent.ReleaseLocal(foff);
 					break;
-				case IRLinearizedLocationType.StaticField:
-					break;
+				}
 				case IRLinearizedLocationType.Indirect:
+				{
+					var obj = pParent.RequestLocal(Indirect.AddressLocation.GetTypeOfLocation());
+					Indirect.AddressLocation.LoadTo(pParent, obj);
+					new LIRInstructions.Move(pParent, pSource, new Indirect(obj), Indirect.Type);
+					pParent.ReleaseLocal(obj);
 					break;
+				}
 				case IRLinearizedLocationType.ArrayElement:
+				{
+					var arr = pParent.RequestLocal(ArrayElement.ArrayLocation.GetTypeOfLocation());
+					var idx = pParent.RequestLocal(ArrayElement.IndexLocation.GetTypeOfLocation());
+					ArrayElement.ArrayLocation.LoadTo(pParent, arr);
+					ArrayElement.IndexLocation.LoadTo(pParent, idx);
+					var off = pParent.RequestLocal(ParentInstruction.ParentMethod.Assembly.AppDomain.System_UIntPtr);
+					new LIRInstructions.Math(pParent, idx, (LIRImm)ArrayElement.ElementType.StackSize, off, LIRInstructions.MathOperation.Multiply, ParentInstruction.ParentMethod.Assembly.AppDomain.System_UIntPtr);
+					pParent.ReleaseLocal(idx);
+					new LIRInstructions.Math(pParent, off, (LIRImm)0x04, off, LIRInstructions.MathOperation.Add, ParentInstruction.ParentMethod.Assembly.AppDomain.System_UIntPtr);
+					new LIRInstructions.Math(pParent, off, arr, off, LIRInstructions.MathOperation.Add, ParentInstruction.ParentMethod.Assembly.AppDomain.System_UIntPtr);
+					pParent.ReleaseLocal(arr);
+					new LIRInstructions.Move(pParent, pSource, new Indirect(off), ArrayElement.ElementType);
+					pParent.ReleaseLocal(off);
+					break;
+				}
+				case IRLinearizedLocationType.StaticField:
 					break;
 
 
@@ -622,7 +689,7 @@ namespace Proton.VM.IR
 				case IRLinearizedLocationType.RuntimeHandle:
 				case IRLinearizedLocationType.String:
 				case IRLinearizedLocationType.SizeOf:
-					throw new Exception("It's not possile to store to these!");
+					throw new Exception("It's not possible to store to these!");
 				case IRLinearizedLocationType.Phi:
 					throw new Exception("All phi's should have been eliminated by this point!");
 				default:
