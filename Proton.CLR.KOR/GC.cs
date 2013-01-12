@@ -3,6 +3,7 @@ using System.Kernel;
 
 namespace System
 {
+#warning Switch all the ulong casting to use UIntPtr
 	public static unsafe class GC
 	{
 		public static void Collect()
