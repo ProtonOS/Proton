@@ -666,13 +666,19 @@ namespace Proton.VM.IR
 					pParent.ReleaseLocal(dest);
 					break;
 				}
+				case IRLinearizedLocationType.StaticField:
+				{
+					new LIRInstructions.Move(pParent, new Indirect(StaticField.Field.Label), pDestination, StaticField.Field.Type);
+					break;
+				}
+				case IRLinearizedLocationType.StaticFieldAddress:
+				{
+					new LIRInstructions.Move(pParent, StaticFieldAddress.Field.Label, pDestination, StaticField.Field.Type);
+					break;
+				}
 
 
 #warning Finish the rest of these case statements
-				case IRLinearizedLocationType.StaticField:
-					break;
-				case IRLinearizedLocationType.StaticFieldAddress:
-					break;
 				case IRLinearizedLocationType.FunctionAddress:
 					break;
 				case IRLinearizedLocationType.RuntimeHandle:
@@ -698,14 +704,40 @@ namespace Proton.VM.IR
 				case IRLinearizedLocationType.Indirect:
 					Indirect.AddressLocation.LoadTo(pParent, pDestination);
 					break;
-#warning Finish the rest of these case statements
 				case IRLinearizedLocationType.Field:
+				{
+					var obj = pParent.RequestLocal(Field.FieldLocation.GetTypeOfLocation());
+					Field.FieldLocation.LoadTo(pParent, obj);
+					var foff = pParent.RequestLocal(ParentInstruction.ParentMethod.Assembly.AppDomain.System_UIntPtr);
+					new LIRInstructions.Math(pParent, obj, (LIRImm)Field.Field.Offset, foff, LIRInstructions.MathOperation.Add, ParentInstruction.ParentMethod.Assembly.AppDomain.System_UIntPtr);
+					pParent.ReleaseLocal(obj);
+					new LIRInstructions.Move(pParent, foff, pDestination, Field.Field.Type.GetManagedPointerType());
+					pParent.ReleaseLocal(foff);
 					break;
+				}
 				case IRLinearizedLocationType.ArrayElement:
+				{
+					var arr = pParent.RequestLocal(ArrayElement.ArrayLocation.GetTypeOfLocation());
+					var idx = pParent.RequestLocal(ArrayElement.IndexLocation.GetTypeOfLocation());
+					ArrayElement.ArrayLocation.LoadTo(pParent, arr);
+					ArrayElement.IndexLocation.LoadTo(pParent, idx);
+					var off = pParent.RequestLocal(ParentInstruction.ParentMethod.Assembly.AppDomain.System_UIntPtr);
+					new LIRInstructions.Math(pParent, idx, (LIRImm)ArrayElement.ElementType.StackSize, off, LIRInstructions.MathOperation.Multiply, ParentInstruction.ParentMethod.Assembly.AppDomain.System_UIntPtr);
+					pParent.ReleaseLocal(idx);
+					new LIRInstructions.Math(pParent, off, (LIRImm)0x04, off, LIRInstructions.MathOperation.Add, ParentInstruction.ParentMethod.Assembly.AppDomain.System_UIntPtr);
+					new LIRInstructions.Math(pParent, off, arr, off, LIRInstructions.MathOperation.Add, ParentInstruction.ParentMethod.Assembly.AppDomain.System_UIntPtr);
+					pParent.ReleaseLocal(arr);
+					new LIRInstructions.Move(pParent, off, pDestination, ArrayElement.ElementType.GetManagedPointerType());
+					pParent.ReleaseLocal(off);
 					break;
+				}
 				case IRLinearizedLocationType.StaticField:
+				{
+					new LIRInstructions.Move(pParent, StaticField.Field.Label, pDestination, StaticField.Field.Type);
 					break;
+				}
 
+#warning Finish the rest of these case statements
 				case IRLinearizedLocationType.Null:
 				case IRLinearizedLocationType.LocalAddress:
 				case IRLinearizedLocationType.ParameterAddress:
@@ -776,7 +808,10 @@ namespace Proton.VM.IR
 					break;
 				}
 				case IRLinearizedLocationType.StaticField:
+				{
+					new LIRInstructions.Move(pParent, pSource, new Indirect(StaticField.Field.Label), StaticField.Field.Type);
 					break;
+				}
 
 
 				case IRLinearizedLocationType.Null:

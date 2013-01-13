@@ -51,7 +51,7 @@ namespace Proton.LIR
 
 	public sealed class EmissionContext
 	{
-#warning Do me correctly at some point....
+#warning Do me correctly at some point.... (same with Label.GetData)
 		public int SizeOfLabel { get { return 4; } }
 	}
 
@@ -60,7 +60,7 @@ namespace Proton.LIR
 		private int mPriority;
 		public int Priority { get { return mPriority; } }
 
-		protected EmittableData(int priority = 5)
+		protected EmittableData(int priority = 50)
 		{
 			mPriority = priority;
 		}
@@ -136,7 +136,10 @@ namespace Proton.LIR
 		{
 			foreach (var kop in KnownOptimizationPasses)
 			{
-				mMethods.ForEach(m => kop.Run(m));
+				foreach (var m in Methods)
+				{
+					kop.Run(m);
+				}
 			}
 		}
 
@@ -157,7 +160,10 @@ namespace Proton.LIR
 			wtr.WriteLine("Methods {0}", mMethods.Count);
 			wtr.WriteLine("{");
 			wtr.Indent++;
-			mMethods.ForEach(m => m.Dump(wtr));
+			foreach (var m in Methods)
+			{
+				m.Dump(wtr);
+			}
 			wtr.Indent--;
 			wtr.WriteLine("}");
 			wtr.Indent--;

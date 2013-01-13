@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using Proton.Metadata;
 using System.Text;
+using Proton.LIR;
 
 namespace Proton.VM.IR
 {
@@ -41,6 +42,41 @@ namespace Proton.VM.IR
 		}
 
 		public int Offset = -1;
+
+		public sealed class StaticFieldEmittableDataItem : EmittableData
+		{
+			private LIRType FieldType;
+			private string FieldName;
+			private Label mLabel = new Label("StaticField");
+			public override Label Label { get { return mLabel; } }
+
+			public StaticFieldEmittableDataItem(IRField fld)
+			{
+				this.FieldType = fld.Type;
+				this.FieldName = fld.ToString();
+			}
+
+			public override byte[] GetData(EmissionContext c)
+			{
+				return new byte[FieldType.Size];
+			}
+
+			public override string ToString()
+			{
+				return string.Format("StaticFieldData({0})", FieldName);
+			}
+		}
+		private StaticFieldEmittableDataItem mStaticFieldEmittableData;
+		public Label Label
+		{
+			get { return (mStaticFieldEmittableData ?? (mStaticFieldEmittableData = new StaticFieldEmittableDataItem(this))).Label; }
+		}
+
+		public void AddToCompileUnit(LIRCompileUnit cu)
+		{
+			if (mStaticFieldEmittableData != null)
+				cu.AddData(mStaticFieldEmittableData);
+		}
 
 		/// <summary>
 		/// True if all the types that this field
