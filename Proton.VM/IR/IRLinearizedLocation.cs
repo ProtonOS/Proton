@@ -6,53 +6,157 @@ using System.Runtime.InteropServices;
 
 namespace Proton.VM.IR
 {
+	[StructLayout(LayoutKind.Explicit, Pack=1)]
 	public sealed class IRLinearizedLocation
 	{
 		public struct LocalLocationData { public int LocalIndex; }
+		[FieldOffset(0)]
+		public LocalLocationData Local;
+
 		public struct LocalAddressLocationData { public int LocalIndex; }
+		[FieldOffset(0)]
+		public LocalAddressLocationData LocalAddress;
+
 		public struct ParameterLocationData { public int ParameterIndex; }
+		[FieldOffset(0)]
+		public ParameterLocationData Parameter;
+
 		public struct ParameterAddressLocationData { public int ParameterIndex; }
+		[FieldOffset(0)]
+		public ParameterAddressLocationData ParameterAddress;
+
 		public struct ConstantI4LocationData { public int Value; }
+		[FieldOffset(0)]
+		public ConstantI4LocationData ConstantI4;
+
 		public struct ConstantI8LocationData { public long Value; }
+		[FieldOffset(0)]
+		public ConstantI8LocationData ConstantI8;
+
 		public struct ConstantR4LocationData { public float Value; }
+		[FieldOffset(0)]
+		public ConstantR4LocationData ConstantR4;
+
 		public struct ConstantR8LocationData { public double Value; }
+		[FieldOffset(0)]
+		public ConstantR8LocationData ConstantR8;
+		// 49 unmanaged
+		// 144 managed (x86)
+		// 288 managed (x64)
+
+		[StructLayout(LayoutKind.Sequential, Pack = 8, Size = 32)]
 		public struct FieldLocationData
 		{
 			public IRField Field;
 			public IRLinearizedLocation FieldLocation;
+			private object padA;
+			private object padB;
 		}
+		[FieldOffset(8)]
+		public FieldLocationData Field;
+
+		[StructLayout(LayoutKind.Sequential, Pack = 8, Size = 32)]
 		public struct FieldAddressLocationData
 		{
 			public IRField Field;
 			public IRLinearizedLocation FieldLocation;
+			private object padA;
+			private object padB;
 		}
-		public struct StaticFieldLocationData { public IRField Field; }
-		public struct StaticFieldAddressLocationData { public IRField Field; }
+		[FieldOffset(8)]
+		public FieldAddressLocationData FieldAddress;
+
+		[StructLayout(LayoutKind.Sequential, Pack = 8, Size = 32)]
+		public struct StaticFieldLocationData 
+		{
+			public IRField Field;
+			private object padA;
+			private object padB;
+			private object padC;
+		}
+		[FieldOffset(8)]
+		public StaticFieldLocationData StaticField;
+
+		[StructLayout(LayoutKind.Sequential, Pack = 8, Size = 32)]
+		public struct StaticFieldAddressLocationData 
+		{
+			public IRField Field;
+			private object padA;
+			private object padB;
+			private object padC;
+		}
+		[FieldOffset(8)]
+		public StaticFieldAddressLocationData StaticFieldAddress;
+
+		[StructLayout(LayoutKind.Sequential, Pack = 8, Size = 32)]
 		public struct IndirectLocationData
 		{
 			public IRType Type;
 			public IRLinearizedLocation AddressLocation;
+			private object padA;
+			private object padB;
 		}
-		public struct SizeOfLocationData { public IRType Type; }
+		[FieldOffset(8)]
+		public IndirectLocationData Indirect;
+
+		[StructLayout(LayoutKind.Sequential, Pack = 8, Size = 32)]
+		public struct SizeOfLocationData 
+		{
+			public IRType Type;
+			private object padA;
+			private object padB;
+			private object padC;
+		}
+		[FieldOffset(8)]
+		public SizeOfLocationData SizeOf;
+
+		[StructLayout(LayoutKind.Sequential, Pack = 8, Size = 32)]
 		public struct ArrayElementLocationData
 		{
 			public IRType ElementType;
 			public IRLinearizedLocation ArrayLocation;
 			public IRLinearizedLocation IndexLocation;
+			private object padA;
 		}
+		[FieldOffset(8)]
+		public ArrayElementLocationData ArrayElement;
+
+		[StructLayout(LayoutKind.Sequential, Pack = 8, Size = 32)]
 		public struct ArrayElementAddressLocationData
 		{
 			public IRType ElementType;
 			public IRLinearizedLocation ArrayLocation;
 			public IRLinearizedLocation IndexLocation;
+			private object padA;
 		}
-		public struct ArrayLengthLocationData { public IRLinearizedLocation ArrayLocation; }
+		[FieldOffset(8)]
+		public ArrayElementAddressLocationData ArrayElementAddress;
+
+		[StructLayout(LayoutKind.Sequential, Pack = 8, Size = 32)]
+		public struct ArrayLengthLocationData 
+		{
+			public IRLinearizedLocation ArrayLocation;
+			private object padA;
+			private object padB;
+			private object padC;
+		}
+		[FieldOffset(8)]
+		public ArrayLengthLocationData ArrayLength;
+
+		[StructLayout(LayoutKind.Sequential, Pack = 8, Size = 32)]
 		public struct FunctionAddressLocationData
 		{
+			private object mVirtual;
 			public IRLinearizedLocation InstanceLocation;
 			public IRMethod Method;
-			public bool Virtual;
+			private object padA;
+
+			public bool Virtual { get { return (bool)(mVirtual ?? (mVirtual = false)); } set { mVirtual = value; } }
 		}
+		[FieldOffset(8)]
+		public FunctionAddressLocationData FunctionAddress;
+
+		[StructLayout(LayoutKind.Sequential, Pack = 8, Size = 32)]
 		public struct RuntimeHandleLocationData
 		{
 			public IRType HandleType;
@@ -60,39 +164,39 @@ namespace Proton.VM.IR
 			public IRMethod TargetMethod;
 			public IRField TargetField;
 		}
-		public struct StringLocationData { public string Value; }
+		[FieldOffset(8)]
+		public RuntimeHandleLocationData RuntimeHandle;
+
+		[StructLayout(LayoutKind.Sequential, Pack = 8, Size = 32)]
+		public struct StringLocationData 
+		{
+			public string Value;
+			private object padA;
+			private object padB;
+			private object padC;
+		}
+		[FieldOffset(8)]
+		public StringLocationData String;
+
+		[StructLayout(LayoutKind.Sequential, Pack = 8, Size = 32)]
 		public struct PhiLocationData
 		{
 			public List<IRLinearizedLocation> SourceLocations;
+			private object padA;
+			private object padB;
+			private object padC;
 		}
-
-		private static int sTempID = 0;
-		internal int mTempID = 0;
-
-		public IRInstruction ParentInstruction;
-		public IRLinearizedLocationType Type;
-		public LocalLocationData Local;
-		public LocalAddressLocationData LocalAddress;
-		public ParameterLocationData Parameter;
-		public ParameterAddressLocationData ParameterAddress;
-		public ConstantI4LocationData ConstantI4;
-		public ConstantI8LocationData ConstantI8;
-		public ConstantR4LocationData ConstantR4;
-		public ConstantR8LocationData ConstantR8;
-		public FieldLocationData Field;
-		public FieldAddressLocationData FieldAddress;
-		public StaticFieldLocationData StaticField;
-		public StaticFieldAddressLocationData StaticFieldAddress;
-		public IndirectLocationData Indirect;
-		public SizeOfLocationData SizeOf;
-		public ArrayElementLocationData ArrayElement;
-		public ArrayElementAddressLocationData ArrayElementAddress;
-		public ArrayLengthLocationData ArrayLength;
-		public FunctionAddressLocationData FunctionAddress;
-		public RuntimeHandleLocationData RuntimeHandle;
-		public StringLocationData String;
+		[FieldOffset(8)]
 		public PhiLocationData Phi;
 
+		[FieldOffset(40)]
+		public IRInstruction ParentInstruction;
+		[FieldOffset(48)]
+		public IRLinearizedLocationType Type;
+
+		private static int sTempID = 0;
+		[FieldOffset(52)]
+		internal int mTempID = 0;
 		public IRLinearizedLocation(IRInstruction pParentInstruction, IRLinearizedLocationType pType)
 		{
 			mTempID = sTempID++;
@@ -617,7 +721,8 @@ namespace Proton.VM.IR
 				case IRLinearizedLocationType.RuntimeHandle:
 				case IRLinearizedLocationType.String:
 				case IRLinearizedLocationType.SizeOf:
-					throw new Exception("It's not possible to load the address of these!");
+					break;
+					//throw new Exception("It's not possible to load the address of these!");
 				case IRLinearizedLocationType.Phi:
 					throw new Exception("All phi's should have been eliminated by this point!");
 				default:

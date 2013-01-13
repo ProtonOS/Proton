@@ -75,7 +75,7 @@ namespace Proton.LIR
 		private const int InitialMethodsSize = 512;
 
 		private Dictionary<Label, EmittableData> mData = new Dictionary<Label, EmittableData>(InitialDataSize);
-		//public IEnumerable<EmittableData> Data { get { return mData.Values; } }
+		public IEnumerable<EmittableData> Data { get { return mData.Values; } }
 
 		private List<LIRMethod> mMethods = new List<LIRMethod>(InitialMethodsSize);
 		public IEnumerable<LIRMethod> Methods { get { return mMethods; } }
@@ -111,7 +111,7 @@ namespace Proton.LIR
 			GC.WaitForPendingFinalizers();
 			GC.Collect();
 
-			// Now we trasform it to MIR and emit it.
+			// Now we transform it to MIR and emit it.
 		}
 
 		private static void FinalMethodCleanup(LIRMethod m)

@@ -28,43 +28,34 @@ namespace Proton.VM.IR.Optimizations
 				case IRLinearizedLocationType.StaticField: break;
 				case IRLinearizedLocationType.StaticFieldAddress: break;
 				case IRLinearizedLocationType.Indirect:
-					switch (loc.Indirect.AddressLocation.Type)
+					var adrLoc = loc.Indirect.AddressLocation;
+					switch (adrLoc.Type)
 					{
 						case IRLinearizedLocationType.ArrayElementAddress:
 							loc.Type = IRLinearizedLocationType.ArrayElement;
-							loc.ArrayElement.ArrayLocation = loc.Indirect.AddressLocation.ArrayElementAddress.ArrayLocation;
-							loc.ArrayElement.IndexLocation = loc.Indirect.AddressLocation.ArrayElementAddress.IndexLocation;
-							loc.ArrayElement.ElementType = loc.Indirect.AddressLocation.ArrayElementAddress.ElementType;
+							loc.ArrayElement.ArrayLocation = adrLoc.ArrayElementAddress.ArrayLocation;
+							loc.ArrayElement.IndexLocation = adrLoc.ArrayElementAddress.IndexLocation;
+							loc.ArrayElement.ElementType = adrLoc.ArrayElementAddress.ElementType;
 							ProcessIndirection(loc.ArrayElement.ArrayLocation);
 							ProcessIndirection(loc.ArrayElement.IndexLocation);
-							loc.Indirect.AddressLocation = null;
-							loc.Indirect.Type = null;
 							break;
 						case IRLinearizedLocationType.FieldAddress:
 							loc.Type = IRLinearizedLocationType.Field;
-							loc.Field.Field = loc.Indirect.AddressLocation.FieldAddress.Field;
-							loc.Field.FieldLocation = loc.Indirect.AddressLocation.FieldAddress.FieldLocation;
+							loc.Field.Field = adrLoc.FieldAddress.Field;
+							loc.Field.FieldLocation = adrLoc.FieldAddress.FieldLocation;
 							ProcessIndirection(loc.Field.FieldLocation);
-							loc.Indirect.AddressLocation = null;
-							loc.Indirect.Type = null;
 							break;
 						case IRLinearizedLocationType.LocalAddress:
 							loc.Type = IRLinearizedLocationType.Local;
-							loc.Local.LocalIndex = loc.Indirect.AddressLocation.LocalAddress.LocalIndex;
-							loc.Indirect.AddressLocation = null;
-							loc.Indirect.Type = null;
+							loc.Local.LocalIndex = adrLoc.LocalAddress.LocalIndex;
 							break;
 						case IRLinearizedLocationType.ParameterAddress:
 							loc.Type = IRLinearizedLocationType.Parameter;
-							loc.Parameter.ParameterIndex = loc.Indirect.AddressLocation.ParameterAddress.ParameterIndex;
-							loc.Indirect.AddressLocation = null;
-							loc.Indirect.Type = null;
+							loc.Parameter.ParameterIndex = adrLoc.ParameterAddress.ParameterIndex;
 							break;
 						case IRLinearizedLocationType.StaticFieldAddress:
 							loc.Type = IRLinearizedLocationType.StaticField;
-							loc.StaticField.Field = loc.Indirect.AddressLocation.StaticFieldAddress.Field;
-							loc.Indirect.AddressLocation = null;
-							loc.Indirect.Type = null;
+							loc.StaticField.Field = adrLoc.StaticFieldAddress.Field;
 							break;
 						default:
 							break;

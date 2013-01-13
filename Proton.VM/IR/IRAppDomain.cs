@@ -313,6 +313,11 @@ namespace Proton.VM.IR
 			System_Double = null;
 			System_Enum = null;
 			System_Exception = null;
+			System_GC = null;
+			System_GC_AllocateArrayOfType = null;
+			System_GC_AllocateObject = null;
+			System_GC_AllocateStringFromUTF16 = null;
+			System_GC_BoxObject = null;
 			System_Int16 = null;
 			System_Int32 = null;
 			System_Int64 = null;
