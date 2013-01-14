@@ -142,6 +142,42 @@ namespace Proton.VM.IR
 			}
 		}
 
+		public sealed class MethodMetadataEmittableDataItem : EmittableData
+		{
+			private string MethodName;
+			private Label mLabel = new Label("MethodMetadata");
+			public override Label Label { get { return mLabel; } }
+
+			public MethodMetadataEmittableDataItem(IRMethod m)
+			{
+#warning Need to get the required data here
+				this.MethodName = m.ToString();
+			}
+
+			public override byte[] GetData(EmissionContext c)
+			{
+				return new byte[16];
+			}
+
+			public override string ToString()
+			{
+				return string.Format("MethodMetadata({0})", MethodName);
+			}
+		}
+		private MethodMetadataEmittableDataItem mMetadataItem;
+		public Label MetadataLabel { get { return (mMetadataItem ?? (mMetadataItem = new MethodMetadataEmittableDataItem(this))).Label; } }
+
+		private bool mAddedToCompileUnit = false;
+		public void AddToCompileUnit(LIRCompileUnit cu)
+		{
+			if (!mAddedToCompileUnit)
+			{
+				if (mMetadataItem != null)
+					cu.AddData(mMetadataItem);
+				mAddedToCompileUnit = true;
+			}
+		}
+
 		private bool? mResolvedCache;
 		public bool Resolved
 		{

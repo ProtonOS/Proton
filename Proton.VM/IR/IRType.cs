@@ -224,6 +224,43 @@ namespace Proton.VM.IR
 			mSizesCalculated = true;
 		}
 
+		public sealed class TypeMetadataEmittableDataItem : EmittableData
+		{
+			private string TypeName;
+			private Label mLabel = new Label("TypeMetadata");
+			public override Label Label { get { return mLabel; } }
+
+			public TypeMetadataEmittableDataItem(IRType t)
+			{
+#warning Need to get the required data here
+				this.TypeName = t.ToString();
+			}
+
+			public override byte[] GetData(EmissionContext c)
+			{
+				return new byte[16];
+			}
+
+			public override string ToString()
+			{
+				return string.Format("TypeMetadata({0})", TypeName);
+			}
+		}
+		private TypeMetadataEmittableDataItem mMetadataItem;
+		public Label MetadataLabel { get { return (mMetadataItem ?? (mMetadataItem = new TypeMetadataEmittableDataItem(this))).Label; } }
+
+		private bool mAddedToCompileUnit = false;
+		public void AddToCompileUnit(LIRCompileUnit cu)
+		{
+			if (!mAddedToCompileUnit)
+			{
+#warning Probably need to load all types here
+				if (mMetadataItem != null)
+					cu.AddData(mMetadataItem);
+				mAddedToCompileUnit = true;
+			}
+		}
+
 		public readonly List<IRMethod> VirtualMethodTree = new List<IRMethod>();
 		internal void CreateVirtualMethodTree()
 		{

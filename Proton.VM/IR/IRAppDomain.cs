@@ -493,6 +493,18 @@ namespace Proton.VM.IR
 		private void LoadStage8()
 		{
 			Console.WriteLine("========== {0,-22} Stage 8 {0,-23} ==========", " ");
+			foreach (var t in Types)
+			{
+				t.AddToCompileUnit(mainUnit);
+				foreach (var f in t.Fields)
+				{
+					f.AddToCompileUnit(mainUnit);
+				}
+			}
+			foreach (var m in Methods)
+			{
+				m.AddToCompileUnit(mainUnit);
+			}
 			StaticFields.ForEach(f => f.AddToCompileUnit(mainUnit));
 		}
 

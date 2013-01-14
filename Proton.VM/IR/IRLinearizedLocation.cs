@@ -706,9 +706,26 @@ namespace Proton.VM.IR
 					}
 					break;
 				}
-#warning Finish the rest of these case statements
 				case IRLinearizedLocationType.RuntimeHandle:
+				{
+					if (RuntimeHandle.HandleType == ParentInstruction.AppDomain.System_RuntimeTypeHandle)
+					{
+						new LIRInstructions.Move(pParent, RuntimeHandle.TargetType.MetadataLabel, pDestination, RuntimeHandle.HandleType);
+					}
+					else if (RuntimeHandle.HandleType == ParentInstruction.AppDomain.System_RuntimeMethodHandle)
+					{
+						new LIRInstructions.Move(pParent, RuntimeHandle.TargetMethod.MetadataLabel, pDestination, RuntimeHandle.HandleType);
+					}
+					else if (RuntimeHandle.HandleType == ParentInstruction.AppDomain.System_RuntimeFieldHandle)
+					{
+						new LIRInstructions.Move(pParent, RuntimeHandle.TargetField.MetadataLabel, pDestination, RuntimeHandle.HandleType);
+					}
+					else
+					{
+						throw new Exception("Unknown RuntimeHandle HandleType!");
+					}
 					break;
+				}
 
 				case IRLinearizedLocationType.Phi:
 					throw new Exception("All phi's should have been eliminated by this point!");
