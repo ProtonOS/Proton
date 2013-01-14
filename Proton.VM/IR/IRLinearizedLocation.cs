@@ -680,7 +680,17 @@ namespace Proton.VM.IR
 
 #warning Finish the rest of these case statements
 				case IRLinearizedLocationType.FunctionAddress:
+				{
+					if (FunctionAddress.Virtual)
+					{
+
+					}
+					else
+					{
+						new LIRInstructions.Move(pParent, FunctionAddress.Method.LIRMethod.Label, pDestination, ParentInstruction.AppDomain.System_UIntPtr);
+					}
 					break;
+				}
 				case IRLinearizedLocationType.RuntimeHandle:
 					break;
 

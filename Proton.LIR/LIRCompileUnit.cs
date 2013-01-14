@@ -20,9 +20,12 @@ namespace Proton.LIR
 			mTempID = sTempID++;
 		}
 
-		public Label(string name) : this()
+		public Label(string name, bool autoUnique = true) : this()
 		{
-			this.Name = name + "_" + mTempID;
+			if (autoUnique)
+				this.Name = name + "_" + mTempID;
+			else
+				this.Name = name;
 		}
 
 		public override int GetHashCode()

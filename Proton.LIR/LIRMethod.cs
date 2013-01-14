@@ -18,6 +18,9 @@ namespace Proton.LIR
 		internal List<LIRParameter> mParameters = new List<LIRParameter>(InitialParameterCapacity);
 		public List<LIRParameter> Parameters { get { return mParameters; } }
 
+		private Label mLabel;
+		public Label Label { get { return mLabel ?? (mLabel = new Label("LIRMethod_" + mTempID, false)); } }
+
 		public string Name { get; private set; }
 		public LIRType ReturnType { get; private set; }
 		public LIRCompileUnit CompileUnit { get; internal set; }
