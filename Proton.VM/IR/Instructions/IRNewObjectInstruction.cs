@@ -43,7 +43,7 @@ namespace Proton.VM.IR.Instructions
 			else
 			{
 				var sTypeDataPtr = pLIRMethod.RequestLocal(AppDomain.System_GC_AllocateObject.LIRMethod.Parameters[0].Type);
-				new LIRInstructions.Move(pLIRMethod, Constructor.ParentType.TypeDataLabel, sTypeDataPtr, sTypeDataPtr.Type);
+				new LIRInstructions.Move(pLIRMethod, Constructor.ParentType.MetadataLabel, sTypeDataPtr, sTypeDataPtr.Type);
 				var sReturnPtr = pLIRMethod.RequestLocal(AppDomain.System_GC_AllocateObject.LIRMethod.Parameters[1].Type);
 				Destination.LoadAddressTo(pLIRMethod, sReturnPtr);
 				List<ISource> allocateObjectParams = new List<ISource>(2);

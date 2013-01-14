@@ -676,8 +676,6 @@ namespace Proton.VM.IR
 					new LIRInstructions.Move(pParent, StaticFieldAddress.Field.Label, pDestination, StaticField.Field.Type);
 					break;
 				}
-
-
 				case IRLinearizedLocationType.FunctionAddress:
 				{
 					if (FunctionAddress.Virtual)

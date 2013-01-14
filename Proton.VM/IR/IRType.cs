@@ -774,10 +774,6 @@ namespace Proton.VM.IR
 			}
 		}
 
-
-		private Label mTypeDataLabel = null;
-		public Label TypeDataLabel { get { return mTypeDataLabel ?? (mTypeDataLabel = new Label()); } }
-
 		private LIRType lirTypeCache = null;
 		public LIRType ToLIRType()
 		{
