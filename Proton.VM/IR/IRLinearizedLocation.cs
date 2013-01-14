@@ -678,12 +678,27 @@ namespace Proton.VM.IR
 				}
 
 
-#warning Finish the rest of these case statements
 				case IRLinearizedLocationType.FunctionAddress:
 				{
 					if (FunctionAddress.Virtual)
 					{
-
+						if (FunctionAddress.Method.VirtualMethodIndex < 0)
+							throw new Exception("The requested method never got laid out in a virtual method tree!");
+						if (FunctionAddress.Method.ParentType.IsInterface)
+						{
+#warning Loading the virtual function address of a method on an interface isn't supported yet!
+						}
+						else
+						{
+							var s = pParent.RequestLocal(Indirect.AddressLocation.GetTypeOfLocation());
+							Indirect.AddressLocation.LoadTo(pParent, s); // Gets Object Pointer
+							new LIRInstructions.Math(pParent, s, (LIRImm)VMConfig.PointerSizeForTarget, s, LIRInstructions.MathOperation.Subtract, s.Type); // Subtract sizeof pointer to get address of TypeData pointer
+							new LIRInstructions.Move(pParent, new Indirect(s), s, s.Type); // Get TypeData Pointer
+							new LIRInstructions.Move(pParent, new Indirect(s), s, s.Type); // Get VirtualMethodTree Pointer Array
+							new LIRInstructions.Math(pParent, s, (LIRImm)(VMConfig.PointerSizeForTarget * FunctionAddress.Method.VirtualMethodIndex), s, LIRInstructions.MathOperation.Add, s.Type); // Get VirtualMethod Pointer Address
+							new LIRInstructions.Move(pParent, new Indirect(s), pDestination, s.Type); // Get VirtualMethod Pointer
+							pParent.ReleaseLocal(s);
+						}
 					}
 					else
 					{
@@ -691,6 +706,7 @@ namespace Proton.VM.IR
 					}
 					break;
 				}
+#warning Finish the rest of these case statements
 				case IRLinearizedLocationType.RuntimeHandle:
 					break;
 
