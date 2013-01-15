@@ -224,6 +224,8 @@ namespace Proton.VM.IR
 			GC.Collect();
 		}
 
+		public int CurrentCompileStage { get; private set; }
+
 		public IRAssembly LoadEntryAssembly(CLIFile pFile)
 		{
 			Stopwatch sw = new Stopwatch();
@@ -231,12 +233,15 @@ namespace Proton.VM.IR
 			IRAssembly assembly = CreateAssembly(pFile);
 			ProfileWrite("Creating the main IRAssembly", sw);
 			ProfileStart(sw);
+			CurrentCompileStage = 1;
 			Assemblies.ForEach(a => a.LoadStage1());
 			ProfileWrite("Stage 1", sw);
 			ProfileStart(sw);
+			CurrentCompileStage = 2;
 			Assemblies.ForEach(a => a.LoadStage2());
 			ProfileWrite("Stage 2", sw);
 			ProfileStart(sw);
+			CurrentCompileStage = 3;
 			Assemblies.ForEach(a => a.LoadStage3());
 			ProfileWrite("Stage 3", sw);
 
@@ -249,7 +254,18 @@ namespace Proton.VM.IR
 			ProfileWrite("Stage 3.5 GC", sw);
 
 			ProfileStart(sw);
+			CurrentCompileStage = 4;
 			Assemblies.ForEach(a => a.LoadStage4());
+			foreach (var t in ArrayTypes.Values)
+			{
+				if (t.Resolved) 
+				{
+					foreach (var m in t.Methods)
+					{
+						if (m.Resolved) { }
+					}
+				}
+			}
 			ProfileWrite("Stage 4", sw);
 
 			ProfileStart(sw);
@@ -268,9 +284,11 @@ namespace Proton.VM.IR
 			ProfileWrite("Stage 4.5 GC", sw);
 
 			ProfileStart(sw);
+			CurrentCompileStage = 5;
 			LoadStage5();
 			ProfileWrite("Stage 5", sw);
 			ProfileStart(sw);
+			CurrentCompileStage = 6;
 			LoadStage6(true);
 			ProfileWrite("Stage 6", sw);
 
@@ -280,10 +298,12 @@ namespace Proton.VM.IR
 			ProfileWrite("Stage 6.5 GC", sw);
 
 			ProfileStart(sw);
+			CurrentCompileStage = 7;
 			LoadStage7();
 			ProfileWrite("Stage 7", sw);
 
 			ProfileStart(sw);
+			CurrentCompileStage = 8;
 			LoadStage8();
 			ProfileWrite("Stage 8", sw);
 
@@ -297,6 +317,7 @@ namespace Proton.VM.IR
 			ProfileWrite("Stage 8.5 GC", sw);
 
 			ProfileStart(sw);
+			CurrentCompileStage = 9;
 			LoadStage9();
 			ProfileWrite("Stage 9", sw);
 			//Console.WriteLine("Dumping IRAppDomain...");

@@ -232,6 +232,7 @@ namespace Proton.VM.IR
 		public sealed class TypeMetadataEmittableDataItem : EmittableData
 		{
 			private string TypeName;
+			private Label VirtualMethodTreeLabel;
 			private Label mLabel = new Label("TypeMetadata");
 			public override Label Label { get { return mLabel; } }
 
@@ -239,20 +240,74 @@ namespace Proton.VM.IR
 			{
 #warning Need to get the required data here
 				this.TypeName = t.ToString();
+				this.VirtualMethodTreeLabel = t.VirtualMethodTreeLabel;
 			}
 
 			public override byte[] GetData(EmissionContext c)
 			{
-				return new byte[16];
+				byte[] ret = new byte[c.SizeOfLabel * 1];
+				int i2 = 0;
+				Array.Copy(VirtualMethodTreeLabel.GetData(c), 0, ret, i2, c.SizeOfLabel);
+				i2 += c.SizeOfLabel;
+				return ret;
 			}
 
 			public override string ToString()
 			{
-				return string.Format("TypeMetadata({0})", TypeName);
+				return string.Format("TypeMetadata({0}, {1})", TypeName, VirtualMethodTreeLabel);
 			}
 		}
 		private TypeMetadataEmittableDataItem mMetadataItem;
 		public Label MetadataLabel { get { return (mMetadataItem ?? (mMetadataItem = new TypeMetadataEmittableDataItem(this))).Label; } }
+
+		public sealed class VirtualMethodTreeEmittableDataItem : EmittableData
+		{
+			private Label[] Tree;
+			private string TypeName;
+			private Label mLabel = new Label("VirtualMethodTree");
+			public override Label Label { get { return mLabel; } }
+
+			public VirtualMethodTreeEmittableDataItem(IRType t)
+			{
+				this.TypeName = t.ToString();
+				this.Tree = new Label[t.VirtualMethodTree.Count];
+				for (int i = 0; i < t.VirtualMethodTree.Count; i++)
+				{
+					this.Tree[i] = t.VirtualMethodTree[i].LIRMethod.Label;
+				}
+			}
+
+			public override byte[] GetData(EmissionContext c)
+			{
+				byte[] ret = new byte[c.SizeOfLabel * Tree.Length];
+				for (int i = 0, i2 = 0; i2 < ret.Length; i2 += c.SizeOfLabel, i++)
+				{
+					Array.Copy(Tree[i].GetData(c), 0, ret, i2, c.SizeOfLabel);
+				}
+				return ret;
+			}
+
+			public override string ToString()
+			{
+				return string.Format("VirtualMethodTree({0}, {{ {1} }})", TypeName, string.Join(", ", (IEnumerable<Label>)Tree));
+			}
+		}
+		private VirtualMethodTreeEmittableDataItem mVirtualMethodTreeDataItem;
+		public Label VirtualMethodTreeLabel { get { return (mVirtualMethodTreeDataItem ?? (mVirtualMethodTreeDataItem = new VirtualMethodTreeEmittableDataItem(this))).Label; } }
+
+		private bool mAddedToCompileUnit = false;
+		public void AddToCompileUnit(LIRCompileUnit cu)
+		{
+			if (!mAddedToCompileUnit)
+			{
+#warning Probably need to load all types here
+				if (mMetadataItem != null)
+					cu.AddData(mMetadataItem);
+				if (mVirtualMethodTreeDataItem != null)
+					cu.AddData(mVirtualMethodTreeDataItem);
+				mAddedToCompileUnit = true;
+			}
+		}
 
 		private bool locatedStaticConstructor = false;
 		private IRMethod mStaticConstructor = null;
@@ -274,18 +329,6 @@ namespace Proton.VM.IR
 			}
 		}
 
-		private bool mAddedToCompileUnit = false;
-		public void AddToCompileUnit(LIRCompileUnit cu)
-		{
-			if (!mAddedToCompileUnit)
-			{
-#warning Probably need to load all types here
-				if (mMetadataItem != null)
-					cu.AddData(mMetadataItem);
-				mAddedToCompileUnit = true;
-			}
-		}
-
 		public readonly List<IRMethod> VirtualMethodTree = new List<IRMethod>();
 		internal void CreateVirtualMethodTree()
 		{
@@ -298,7 +341,7 @@ namespace Proton.VM.IR
 				}
 				foreach (IRMethod method in Methods)
 				{
-					if (!method.IsStatic && method.IsVirtual)
+					if (!method.IsStatic && method.IsVirtual && !method.IsGeneric)
 					{
 						if (method.IsNewSlot)
 						{
@@ -449,7 +492,7 @@ namespace Proton.VM.IR
 			get { return mGenericType; }
 			set
 			{
-				//if (value == null) throw new Exception();
+				if (value == null) throw new Exception();
 				mGenericType = value;
 			}
 		}
@@ -476,7 +519,10 @@ namespace Proton.VM.IR
 			this.Fields.ForEach(f => t.Fields.Add(f.Clone(t)));
 			t.ImplementedInterfaces.AddRange(this.ImplementedInterfaces);
 			this.ExplicitOverrides.ForEach(od => t.ExplicitOverrides.Add(od.Clone()));
-			this.Methods.ForEach(m => t.Methods.Add(m.Clone(t)));
+			foreach (var m in this.Methods)
+			{
+				t.Methods.Add(m.IsStatic && !m.IsGeneric && !this.IsGeneric ? m : m.Clone(t));
+			}
 			t.NestedTypes.AddRange(this.NestedTypes);
 			t.NestedInsideOfType = this.NestedInsideOfType;
 			t.GenericParameters.AddRange(this.GenericParameters);
@@ -580,7 +626,7 @@ namespace Proton.VM.IR
 									for (int i = 0; i < tp.Methods.Count; i++)
 									{
 										//tp.Methods[i].HasUnResolvedGenerics || 
-										//if (!tp.Methods[i].IsStatic)
+										if (tp.Methods[i].IsStatic)
 										{
 											tp.Methods[i] = tp.Methods[i].Clone(tp);
 										}

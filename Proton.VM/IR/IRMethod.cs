@@ -302,13 +302,13 @@ namespace Proton.VM.IR
 			m.ParentType = newParent;
 			m.GenericMethod = this.GenericMethod;
 			m.GenericParameters.AddRange(this.GenericParameters);
-			if (this.Instructions.Count != 0)
+			if (this.Instructions.Count != 0 && Assembly.AppDomain.CurrentCompileStage >= 3)
 			{
 				m.mBoundInstructions = true;
 				this.Instructions.ForEach(i => m.Instructions.Add(i.Clone(m)));
 			}
 			m.Instructions.FixClonedTargetInstructions();
-			if (this.Locals.Count != 0)
+			if (this.Locals.Count != 0 && Assembly.AppDomain.CurrentCompileStage >= 3)
 			{
 				m.mBoundLocals = true;
 				this.Locals.ForEach(l => m.Locals.Add(l.Clone(m)));
@@ -323,7 +323,6 @@ namespace Proton.VM.IR
 				m.mParentMethod = this.GenericMethod;
 			else
 				m.mParentMethod = this;
-			// TODO: Fix Branch/Switch/Leave IRInstruction's to new method instructions based on IRIndex's
 			return m;
 		}
 
