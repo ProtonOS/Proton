@@ -287,13 +287,87 @@ namespace Proton.VM.IR
 				return ret;
 			}
 
+			public bool IsEqualTo(VirtualMethodTreeEmittableDataItem o)
+			{
+				if (Tree.Length != o.Tree.Length) return false;
+				for (int i = 0; i < Tree.Length; i++)
+				{
+					if (Tree[i] != o.Tree[i])
+						return false;
+				}
+				return true;
+			}
+
+			public override int GetHashCode()
+			{
+				if (Tree.Length == 0)
+					return 0;
+				int curHsh = Tree[0].GetHashCode();
+				for (int i = 1; i < Tree.Length; i++)
+					curHsh ^= Tree[i].GetHashCode();
+				return curHsh;
+			}
+
 			public override string ToString()
 			{
 				return string.Format("VirtualMethodTree({0}, {{ {1} }})", TypeName, string.Join(", ", (IEnumerable<Label>)Tree));
 			}
 		}
+		public static Dictionary<int, List<VirtualMethodTreeEmittableDataItem>> KnownVirtualMethodTrees = new Dictionary<int, List<VirtualMethodTreeEmittableDataItem>>();
 		private VirtualMethodTreeEmittableDataItem mVirtualMethodTreeDataItem;
-		public Label VirtualMethodTreeLabel { get { return (mVirtualMethodTreeDataItem ?? (mVirtualMethodTreeDataItem = new VirtualMethodTreeEmittableDataItem(this))).Label; } }
+		private bool mVMTWasCached = false;
+		public Label VirtualMethodTreeLabel
+		{
+			get 
+			{
+				if (mVirtualMethodTreeDataItem == null)
+				{
+					var vmt = new VirtualMethodTreeEmittableDataItem(this);
+					List<VirtualMethodTreeEmittableDataItem> kvmt;
+					if (!KnownVirtualMethodTrees.TryGetValue(vmt.GetHashCode(), out kvmt))
+					{
+						mVirtualMethodTreeDataItem = vmt;
+						KnownVirtualMethodTrees.Add(vmt.GetHashCode(), new List<VirtualMethodTreeEmittableDataItem>() { vmt });
+					}
+					else
+					{
+						if (kvmt.Count == 1)
+						{
+							if (kvmt[0].IsEqualTo(vmt))
+							{
+								mVirtualMethodTreeDataItem = kvmt[0];
+								mVMTWasCached = true;
+							}
+							else
+							{
+								kvmt.Add(vmt);
+								mVirtualMethodTreeDataItem = vmt;
+							}
+						}
+						else
+						{
+							bool found = false;
+							for (int i = 0; i < kvmt.Count; i++)
+							{
+								if (kvmt[i].IsEqualTo(vmt))
+								{
+									found = true;
+									mVirtualMethodTreeDataItem = kvmt[i];
+									mVMTWasCached = true;
+									break;
+								}
+							}
+							if (!found)
+							{
+								kvmt.Add(vmt);
+								mVirtualMethodTreeDataItem = vmt;
+							}
+						}
+					}
+				}
+				return mVirtualMethodTreeDataItem.Label; 
+			}
+		}
 
 		private bool mAddedToCompileUnit = false;
 		public void AddToCompileUnit(LIRCompileUnit cu)
@@ -303,7 +377,7 @@ namespace Proton.VM.IR
 #warning Probably need to load all types here
 				if (mMetadataItem != null)
 					cu.AddData(mMetadataItem);
-				if (mVirtualMethodTreeDataItem != null)
+				if (mVirtualMethodTreeDataItem != null && !mVMTWasCached)
 					cu.AddData(mVirtualMethodTreeDataItem);
 				mAddedToCompileUnit = true;
 			}
@@ -447,7 +521,6 @@ namespace Proton.VM.IR
 			}
 		}
 
-		// Dynamic Types
 		public bool IsTemporaryVar = false;
 		public bool IsTemporaryMVar = false;
 		public uint TemporaryVarOrMVarIndex = 0;
@@ -463,25 +536,20 @@ namespace Proton.VM.IR
 			{
 				if (mIsGenericCache != null)
 					return mIsGenericCache.Value;
-				bool isGenericParameter = GenericParameters.Count > 0 || IsTemporaryVar || IsTemporaryMVar;
-				bool isGenericArray = ArrayElementType != null && ArrayElementType.IsGeneric;
-				bool isGenericPointer = ManagedPointerType != null && ManagedPointerType.IsGeneric;
-				mIsGenericCache = isGenericParameter || isGenericArray || isGenericPointer;
-				if (isGenericArray) { }
 
-				//mIsGenericCache =
-				//	GenericParameters.Count > 0 ||
-				//	IsTemporaryVar ||
-				//	IsTemporaryMVar ||
-				//	(
-				//		ArrayElementType != null &&
-				//		ArrayElementType.IsGeneric
-				//	) ||
-				//	(
-				//		ManagedPointerType != null &&
-				//		ManagedPointerType.IsGeneric
-				//	)
-				//;
+				mIsGenericCache =
+					GenericParameters.Count > 0 ||
+					IsTemporaryVar ||
+					IsTemporaryMVar ||
+					(
+						ArrayElementType != null &&
+						ArrayElementType.IsGeneric
+					) ||
+					(
+						ManagedPointerType != null &&
+						ManagedPointerType.IsGeneric
+					)
+				;
 
 				return mIsGenericCache.Value; 
 			}
@@ -629,20 +697,6 @@ namespace Proton.VM.IR
 								if (!GenericTypes.TryGetValue(tp, out tp2))
 								{
 									GenericTypes.Add(tp, tp);
-
-									//for (int i = 0; i < tp.GenericParameters.Count; i++)
-									//{
-									//	tp.GenericParameters[i] = this.GenericParameters[i];
-									//}
-									//for (int i = 0; i < tp.Methods.Count; i++)
-									//{
-									//    //tp.Methods[i].HasUnResolvedGenerics || 
-									//    //if (!tp.Methods[i].IsStatic)
-									//    //{
-									//    //    tp.Methods[i] = tp.Methods[i].Clone(tp);
-									//    //}
-									//}
-
 									tp.Substitute(typeParams, methodParams);
 								}
 								else

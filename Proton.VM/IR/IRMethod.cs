@@ -238,12 +238,6 @@ namespace Proton.VM.IR
 							if (!t.GenericMethods.TryGetValue(mth, out mth2))
 							{
 								t.GenericMethods.Add(mth, mth);
-
-								//for (int i = 0; i < mth.GenericParameters.Count; i++)
-								//{
-								//	mth.GenericParameters[i] = this.GenericParameters[i];
-								//}
-
 								mth.Substitute(this.GenericParameters);
 							}
 							else
