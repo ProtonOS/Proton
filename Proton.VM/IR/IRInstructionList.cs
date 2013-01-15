@@ -54,14 +54,6 @@ namespace Proton.VM.IR
 			mInsertedTargetFixCache[originalInstruction] = pInstruction;
 		}
 
-		private Dictionary<IRInstruction, IRInstruction> mRemovedTargetFixCache = new Dictionary<IRInstruction, IRInstruction>();
-		public void Remove(IRInstruction pInstruction)
-		{
-			mInstructions.RemoveAt(pInstruction.IRIndex);
-			for (int index = pInstruction.IRIndex; index < mInstructions.Count; ++index) --mInstructions[index].IRIndex;
-			if (pInstruction.IRIndex != mInstructions.Count) mRemovedTargetFixCache[pInstruction] = mInstructions[pInstruction.IRIndex];
-		}
-
 		public void FixInsertedTargetInstructions()
 		{
 			if (mInsertedTargetFixCache.Count > 0)
@@ -100,38 +92,66 @@ namespace Proton.VM.IR
 			}
 		}
 
+		private Dictionary<IRInstruction, IRInstruction> mRemovedTargetFixCache = new Dictionary<IRInstruction, IRInstruction>();
+		private int removedIndexOffset = 0;
+		public bool DelayedReIndexOnRemove { get; set; }
+		public void Remove(IRInstruction pInstruction)
+		{
+			int realIdx;
+			if (!DelayedReIndexOnRemove)
+				realIdx = pInstruction.IRIndex;
+			else
+				realIdx = pInstruction.IRIndex - removedIndexOffset;
+			removedIndexOffset++;
+			mInstructions.RemoveAt(realIdx);
+			if (!DelayedReIndexOnRemove)
+			{
+				for (int index = pInstruction.IRIndex; index < mInstructions.Count; ++index) 
+					--mInstructions[index].IRIndex;
+			}
+			if (realIdx != mInstructions.Count) mRemovedTargetFixCache[pInstruction] = mInstructions[realIdx];
+		}
+
 		public void FixRemovedTargetInstructions()
 		{
+			removedIndexOffset = 0;
 			if (mRemovedTargetFixCache.Count > 0)
 			{
+				if (DelayedReIndexOnRemove)
+				{
+					for (int i = 0; i < mInstructions.Count; i++)
+					{
+						mInstructions[i].IRIndex = i;
+					}
+				}
 				IRInstruction targetInstruction = null;
 				foreach (IRInstruction instruction in mInstructions)
 				{
 					switch (instruction.Opcode)
 					{
 						case IROpcode.Branch:
-							{
-								IRBranchInstruction branchInstruction = (IRBranchInstruction)instruction;
-								while (mRemovedTargetFixCache.TryGetValue(branchInstruction.TargetIRInstruction, out targetInstruction))
-									branchInstruction.TargetIRInstruction = targetInstruction;
-								break;
-							}
+						{
+							IRBranchInstruction branchInstruction = (IRBranchInstruction)instruction;
+							while (mRemovedTargetFixCache.TryGetValue(branchInstruction.TargetIRInstruction, out targetInstruction))
+								branchInstruction.TargetIRInstruction = targetInstruction;
+							break;
+						}
 						case IROpcode.Switch:
+						{
+							IRSwitchInstruction switchInstruction = (IRSwitchInstruction)instruction;
+							for (int index = 0; index < switchInstruction.TargetIRInstructions.Length; ++index)
 							{
-								IRSwitchInstruction switchInstruction = (IRSwitchInstruction)instruction;
-								for (int index = 0; index < switchInstruction.TargetIRInstructions.Length; ++index)
-								{
-									while (mRemovedTargetFixCache.TryGetValue(switchInstruction.TargetIRInstructions[index], out targetInstruction))
-										switchInstruction.TargetIRInstructions[index] = targetInstruction;
-								}
-								break;
+								while (mRemovedTargetFixCache.TryGetValue(switchInstruction.TargetIRInstructions[index], out targetInstruction))
+									switchInstruction.TargetIRInstructions[index] = targetInstruction;
 							}
+							break;
+						}
 						case IROpcode.Leave:
-							{
-								IRLeaveInstruction leaveInstruction = (IRLeaveInstruction)instruction;
-								while (mRemovedTargetFixCache.TryGetValue(leaveInstruction.TargetIRInstruction, out targetInstruction)) leaveInstruction.TargetIRInstruction = targetInstruction;
-								break;
-							}
+						{
+							IRLeaveInstruction leaveInstruction = (IRLeaveInstruction)instruction;
+							while (mRemovedTargetFixCache.TryGetValue(leaveInstruction.TargetIRInstruction, out targetInstruction)) leaveInstruction.TargetIRInstruction = targetInstruction;
+							break;
+						}
 						default: break;
 					}
 				}

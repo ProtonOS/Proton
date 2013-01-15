@@ -571,7 +571,7 @@ namespace Proton.VM.IR
 			}
 		}
 
-		private static Dictionary<IRType, StaticConstructorCalledEmittableDataItem> KnownStaticConstructors = new Dictionary<IRType, StaticConstructorCalledEmittableDataItem>();
+		public static Dictionary<IRType, StaticConstructorCalledEmittableDataItem> KnownStaticConstructors = new Dictionary<IRType, StaticConstructorCalledEmittableDataItem>();
 		public static void EmitStaticConstructorCheck(LIRMethod m, IRType targetType, IRType curType, bool forceEmit = false)
 		{
 			if (targetType.HasStaticConstructor && (forceEmit || targetType != curType))

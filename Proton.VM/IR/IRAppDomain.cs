@@ -318,6 +318,7 @@ namespace Proton.VM.IR
 			Methods = null;
 			Types = null;
 			ManagedPointerTypes = null;
+			IRLinearizedLocation.KnownStaticConstructors = null;
 			ClearCORTypes();
 			FullGCCollect();
 			ProfileWrite("Stage 8.5 GC", sw);
