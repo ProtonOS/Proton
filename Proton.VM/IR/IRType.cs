@@ -623,14 +623,14 @@ namespace Proton.VM.IR
 									//{
 									//	tp.GenericParameters[i] = this.GenericParameters[i];
 									//}
-									for (int i = 0; i < tp.Methods.Count; i++)
-									{
-										//tp.Methods[i].HasUnResolvedGenerics || 
-										if (tp.Methods[i].IsStatic)
-										{
-											tp.Methods[i] = tp.Methods[i].Clone(tp);
-										}
-									}
+									//for (int i = 0; i < tp.Methods.Count; i++)
+									//{
+									//    //tp.Methods[i].HasUnResolvedGenerics || 
+									//    //if (!tp.Methods[i].IsStatic)
+									//    //{
+									//    //    tp.Methods[i] = tp.Methods[i].Clone(tp);
+									//    //}
+									//}
 
 									tp.Substitute(typeParams, methodParams);
 								}
