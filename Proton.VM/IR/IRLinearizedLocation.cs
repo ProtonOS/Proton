@@ -549,6 +549,52 @@ namespace Proton.VM.IR
 			}
 		}
 
+		public sealed class StaticConstructorCalledEmittableDataItem : EmittableData
+		{
+			private string TypeName;
+			private Label mLabel = new Label("StaticConstructorCalled");
+			public override Label Label { get { return mLabel; } }
+
+			public StaticConstructorCalledEmittableDataItem(IRType tp)
+			{
+				this.TypeName = tp.ToString();
+			}
+
+			public override byte[] GetData(EmissionContext c)
+			{
+				return new byte[1];
+			}
+
+			public override string ToString()
+			{
+				return string.Format("StaticConstructorCalled({0})", TypeName);
+			}
+		}
+
+		private static Dictionary<IRType, StaticConstructorCalledEmittableDataItem> KnownStaticConstructors = new Dictionary<IRType, StaticConstructorCalledEmittableDataItem>();
+		public static void EmitStaticConstructorCheck(LIRMethod m, IRType targetType, IRType curType, bool forceEmit = false)
+		{
+			if (targetType.HasStaticConstructor && (forceEmit || targetType != curType))
+			{
+				StaticConstructorCalledEmittableDataItem d = null;
+				if (!KnownStaticConstructors.TryGetValue(targetType, out d))
+				{
+					d = new StaticConstructorCalledEmittableDataItem(targetType);
+					m.CompileUnit.AddData(d);
+					KnownStaticConstructors.Add(targetType, d);
+				}
+				new LIRInstructions.Comment(m, "Static Constructor Check");
+				var c = m.RequestLocal(targetType.Assembly.AppDomain.System_Boolean);
+				new LIRInstructions.Move(m, new Indirect(d.Label), c, targetType.Assembly.AppDomain.System_Boolean);
+				Label called = new Label();
+				new LIRInstructions.BranchTrue(m, c, called);
+				m.ReleaseLocal(c);
+				new LIRInstructions.Move(m, (LIRImm)1, new Indirect(d.Label), targetType.Assembly.AppDomain.System_Boolean);
+				new LIRInstructions.Call(m, targetType.StaticConstructor);
+				m.MarkLabel(called);
+			}
+		}
+
 		public void LoadTo(LIRMethod pParent, IDestination pDestination)
 		{
 			switch (Type)
@@ -668,11 +714,13 @@ namespace Proton.VM.IR
 				}
 				case IRLinearizedLocationType.StaticField:
 				{
+					EmitStaticConstructorCheck(pParent, StaticField.Field.ParentType, ParentInstruction.ParentMethod.ParentType);
 					new LIRInstructions.Move(pParent, new Indirect(StaticField.Field.Label), pDestination, StaticField.Field.Type);
 					break;
 				}
 				case IRLinearizedLocationType.StaticFieldAddress:
 				{
+					EmitStaticConstructorCheck(pParent, StaticFieldAddress.Field.ParentType, ParentInstruction.ParentMethod.ParentType);
 					new LIRInstructions.Move(pParent, StaticFieldAddress.Field.Label, pDestination, StaticField.Field.Type);
 					break;
 				}
@@ -774,6 +822,7 @@ namespace Proton.VM.IR
 				}
 				case IRLinearizedLocationType.StaticField:
 				{
+					EmitStaticConstructorCheck(pParent, StaticField.Field.ParentType, ParentInstruction.ParentMethod.ParentType);
 					new LIRInstructions.Move(pParent, StaticField.Field.Label, pDestination, StaticField.Field.Type);
 					break;
 				}
@@ -850,6 +899,7 @@ namespace Proton.VM.IR
 				}
 				case IRLinearizedLocationType.StaticField:
 				{
+					EmitStaticConstructorCheck(pParent, StaticField.Field.ParentType, ParentInstruction.ParentMethod.ParentType);
 					new LIRInstructions.Move(pParent, pSource, new Indirect(StaticField.Field.Label), StaticField.Field.Type);
 					break;
 				}

@@ -1280,6 +1280,7 @@ namespace Proton.VM.IR
 		{
 			if (LIRMethod == null)
 				throw new Exception();
+			IRLinearizedLocation.EmitStaticConstructorCheck(LIRMethod, this.ParentType, this.ParentType, true);
 			foreach (var i in mInstructions)
 			{
 				LIRMethod.MarkLabel(i.Label);

@@ -122,6 +122,11 @@ namespace Proton.VM.IR
 				vals.Add(m);
 			}
 
+			public List<IRMethod> FindAll(Predicate<IRMethod> cond)
+			{
+				return vals.FindAll(cond);
+			}
+
 			public IEnumerator<IRMethod> GetEnumerator()
 			{
 				foreach (IRMethod m in vals)
@@ -248,6 +253,26 @@ namespace Proton.VM.IR
 		}
 		private TypeMetadataEmittableDataItem mMetadataItem;
 		public Label MetadataLabel { get { return (mMetadataItem ?? (mMetadataItem = new TypeMetadataEmittableDataItem(this))).Label; } }
+
+		private bool locatedStaticConstructor = false;
+		private IRMethod mStaticConstructor = null;
+		public bool HasStaticConstructor { get { return StaticConstructor != null; } }
+		public IRMethod StaticConstructor
+		{
+			get
+			{
+				if (!locatedStaticConstructor)
+				{
+					var cctors = Methods.FindAll(m => m.Name == ".cctor");
+					if (cctors.Count > 1)
+						throw new Exception("Found multiple static constructors!");
+					else if (cctors.Count == 1)
+						mStaticConstructor = cctors[0];
+					locatedStaticConstructor = true;
+				}
+				return mStaticConstructor;
+			}
+		}
 
 		private bool mAddedToCompileUnit = false;
 		public void AddToCompileUnit(LIRCompileUnit cu)
