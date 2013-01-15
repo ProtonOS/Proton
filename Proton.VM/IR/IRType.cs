@@ -519,9 +519,20 @@ namespace Proton.VM.IR
 			this.Fields.ForEach(f => t.Fields.Add(f.Clone(t)));
 			t.ImplementedInterfaces.AddRange(this.ImplementedInterfaces);
 			this.ExplicitOverrides.ForEach(od => t.ExplicitOverrides.Add(od.Clone()));
-			foreach (var m in this.Methods)
+			if (this.IsGeneric)
 			{
-				t.Methods.Add(m.IsStatic && !m.IsGeneric && !this.IsGeneric ? m : m.Clone(t));
+				this.Methods.ForEach(m => t.Methods.Add(m.Clone(t)));
+			}
+			else if (this == Assembly.AppDomain.System_Array)
+			{
+				this.Methods.ForEach(m => t.Methods.Add(m));
+			}
+			else
+			{
+				foreach (var m in this.Methods)
+				{
+					t.Methods.Add(m.IsStatic && !m.IsGeneric ? m : m.Clone(t));
+				}
 			}
 			t.NestedTypes.AddRange(this.NestedTypes);
 			t.NestedInsideOfType = this.NestedInsideOfType;

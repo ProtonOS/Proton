@@ -60,6 +60,11 @@ namespace Proton.VM.IR
 				m.GlobalMethodID = vals.Count - 1;
 			}
 
+			public List<IRMethod> FindAll(Predicate<IRMethod> cond)
+			{
+				return vals.FindAll(cond);
+			}
+
 			public IEnumerator<IRMethod> GetEnumerator()
 			{
 				foreach (IRMethod m in vals)
@@ -283,6 +288,7 @@ namespace Proton.VM.IR
 			FullGCCollect();
 			ProfileWrite("Stage 4.5 GC", sw);
 
+			Console.WriteLine("There are {0} methods from arrays, {1} from managed pointers, and {2} from unmanaged pointers", Methods.FindAll(m => m.ParentType.IsArrayType).Count, Methods.FindAll(m => m.ParentType.IsManagedPointerType).Count, Methods.FindAll(m => m.ParentType.IsUnmanagedPointerType).Count);
 			ProfileStart(sw);
 			CurrentCompileStage = 5;
 			LoadStage5();
