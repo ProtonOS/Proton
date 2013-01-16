@@ -30,6 +30,11 @@ namespace Proton.VM.IR
 				vals.Add(t);
 				t.GlobalTypeID = vals.Count - 1;
 			}
+			
+			public List<IRType> FindAll(Predicate<IRType> cond)
+			{
+				return vals.FindAll(cond);
+			}
 
 			public IEnumerator<IRType> GetEnumerator()
 			{
@@ -551,6 +556,17 @@ namespace Proton.VM.IR
 			Methods.ForEach(m => m.LayoutLocals());
 			Types.ForEach(t => t.CreateVirtualMethodTree());
 			Types.ForEach(t => t.CreateInterfaceImplementationMap());
+			LayoutInterfaceTable();
+		}
+		
+		private void LayoutInterfaceTable()
+		{
+			int i = 0;
+			foreach (var v in Types.FindAll(t => t.IsInterface))
+			{
+				t.InterfaceID = i++;
+			}
+			
 		}
 
 		private void LayoutStaticFields()
