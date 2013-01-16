@@ -8,6 +8,20 @@ namespace Proton.VM.IR
 {
 	public sealed class IRType
 	{
+		private int mInterfaceID = -1;
+		public int InterfaceID
+		{
+			get { return mInterfaceID; }
+			set { mInterfaceID = value; }
+		}
+		
+		private int mInterfaceTableTypeID = -1;
+		public int InterfaceTableTypeID
+		{
+			get { return mInterfaceTableTypeID; }
+			set { mInterfaceTableTypeID = value; }
+		}
+		
 		public static List<IRType> VarPlaceholders = new List<IRType>();
 		public static List<IRType> MVarPlaceholders = new List<IRType>();
 
