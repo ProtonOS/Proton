@@ -564,7 +564,7 @@ namespace Proton.VM.IR
 			int i = 0;
 			foreach (var v in Types.FindAll(t => t.IsInterface))
 			{
-				t.InterfaceID = i++;
+				v.InterfaceID = i++;
 			}
 			
 		}
