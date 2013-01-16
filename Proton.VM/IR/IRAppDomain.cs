@@ -558,15 +558,100 @@ namespace Proton.VM.IR
 			Types.ForEach(t => t.CreateInterfaceImplementationMap());
 			LayoutInterfaceTable();
 		}
-		
+
+		private static Dictionary<IRType, List<IRType>> KnownInterfaces = new Dictionary<IRType, List<IRType>>();
+		private static int GetAvailableSlot(IRType interfaceType, int startIndex)
+		{
+			List<IRType> tpTable;
+			if (!KnownInterfaces.TryGetValue(interfaceType, out tpTable))
+				throw new Exception("Unknown interface type!");
+			if (tpTable.Count < startIndex)
+				return startIndex + 1;
+			else
+			{
+				for (int i = startIndex; i < tpTable.Count; i++)
+				{
+					if (tpTable[i] == null)
+						return i;
+				}
+				return tpTable.Count;
+			}
+		}
+
+		private static void AssignToInterfaceMap(IRType tp, int idx, IEnumerable<IRType> interfaces)
+		{
+			foreach (var iFace in interfaces)
+			{
+				List<IRType> tMap;
+				if (!KnownInterfaces.TryGetValue(iFace, out tMap))
+					throw new Exception("Unknown interface!");
+				while (idx >= tMap.Count)
+					tMap.Add(null);
+				if (tMap[idx] != null)
+					throw new Exception("We shouldn't be re-assigning to an index!");
+				tMap[idx] = tp;
+			}
+			tp.InterfaceTableTypeID = idx;
+		}
+
+		private static void AddToInterfaceTable(IRType tp)
+		{
+			if (tp.InterfaceImplementationMap.Count > 0)
+			{
+				int tryIndex = 0;
+				while (true)
+				{
+					List<int> lIdxs = new List<int>(tp.InterfaceImplementationMap.Count);
+					foreach (var iFace in tp.InterfaceImplementationMap.Keys)
+					{
+						lIdxs.Add(GetAvailableSlot(iFace, tryIndex));
+					}
+					bool same = true;
+					int lst = lIdxs[0];
+					int max = lIdxs[0];
+					for (int i = 1; i < lIdxs.Count; i++)
+					{
+						if (lIdxs[i] != lst)
+							same = false;
+						if (lIdxs[i] > max)
+							max = lIdxs[i];
+					}
+					if (same)
+					{
+						AssignToInterfaceMap(tp, lst, tp.InterfaceImplementationMap.Keys);
+						break;
+					}
+					tryIndex = max;
+				}
+			}
+		}
+
 		private void LayoutInterfaceTable()
 		{
 			int i = 0;
 			foreach (var v in Types.FindAll(t => t.IsInterface))
 			{
 				v.InterfaceID = i++;
+				KnownInterfaces[v] = new List<IRType>();
 			}
-			
+			int typesInTable = 0;
+			foreach (var v in Types)
+			{
+				if (!v.IsInterface)
+				{
+					AddToInterfaceTable(v);
+					typesInTable++;
+				}
+			}
+			int maxTpIdx = 0;
+			int total = 0;
+			foreach (var v in KnownInterfaces.Values)
+			{
+				if (v.Count > maxTpIdx)
+					maxTpIdx = v.Count;
+				total += v.Count;
+			}
+			Console.WriteLine(String.Format("Fit {0} types implementing {1} interfaces in {2} total entries, with a maximum of {3} entries in one table", typesInTable, i, total, maxTpIdx));
 		}
 
 		private void LayoutStaticFields()
