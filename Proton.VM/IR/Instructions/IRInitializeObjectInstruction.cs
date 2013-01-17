@@ -34,5 +34,10 @@ namespace Proton.VM.IR.Instructions
 		{
 			pWriter.WriteLine("Type {0}", Type.ToString());
 		}
+
+		public override string ToString()
+		{
+			return String.Format("InitializeObject {0} [{1}]", Type, Sources[0]);
+		}
 	}
 }
