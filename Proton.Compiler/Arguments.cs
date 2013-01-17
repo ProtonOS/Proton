@@ -27,8 +27,8 @@ namespace Proton.Compiler
 		public Arguments(string[] pCommandLine)
 		{
 			mParameters = new StringDictionary();
-			Regex splitter = new Regex(@"^-{1,2}|^/|=|:", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-			Regex remover = new Regex(@"^['""]?(.*?)['""]?$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+			Regex splitter = new Regex(@"^-{1,2}|^/|=|:", RegexOptions.IgnoreCase);// | RegexOptions.Compiled);
+			Regex remover = new Regex(@"^['""]?(.*?)['""]?$", RegexOptions.IgnoreCase);// | RegexOptions.Compiled);
 			string parameter = null;
 			string[] parts;
 
