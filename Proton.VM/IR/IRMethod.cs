@@ -61,14 +61,26 @@ namespace Proton.VM.IR
 		}
 
 		private IRMethod mParentMethod;
+		private bool mBoundParameters = false;
 		private readonly List<IRParameter> mParameters = new List<IRParameter>();
 		public List<IRParameter> Parameters
 		{
 			get
 			{
-				if (mParentMethod != null && mParentMethod.Parameters.Count != mParameters.Count)
+				if (!mBoundParameters)
 				{
-					mParameters.Insert(0, mParentMethod.Parameters[0].Clone(this));
+					if (mParentMethod != null)
+					{
+						if (mParentMethod.Parameters.Count != mParameters.Count)
+						{
+							mBoundParameters = true;
+							mParameters.Insert(0, mParentMethod.Parameters[0].Clone(this));
+						}
+					}
+					else
+					{
+						//mBoundParameters = true;
+					}
 				}
 				return mParameters;
 			}
@@ -89,10 +101,13 @@ namespace Proton.VM.IR
 		{
 			get
 			{
-				if (!mBoundLocals && mParentMethod != null && mParentMethod.Locals.Count != mLocals.Count)
+				if (!mBoundLocals)
 				{
 					mBoundLocals = true;
-					mParentMethod.Locals.ForEach(l => mLocals.Add(l.Clone(this)));
+					if (mParentMethod != null && mParentMethod.Locals.Count != mLocals.Count)
+					{
+						mParentMethod.Locals.ForEach(l => mLocals.Add(l.Clone(this)));
+					}
 				}
 				return mLocals;
 			}
@@ -113,11 +128,14 @@ namespace Proton.VM.IR
 		{
 			get
 			{
-				if (!mBoundInstructions && mParentMethod != null && mParentMethod.Instructions.Count != mInstructions.Count)
+				if (!mBoundInstructions)
 				{
 					mBoundInstructions = true;
-					mParentMethod.Instructions.ForEach(i => mInstructions.Add(i.Clone(this)));
-					mInstructions.FixClonedTargetInstructions();
+					if (mParentMethod != null && mParentMethod.Instructions.Count != mInstructions.Count)
+					{
+						mParentMethod.Instructions.ForEach(i => mInstructions.Add(i.Clone(this)));
+						mInstructions.FixClonedTargetInstructions();
+					}
 				}
 				return mInstructions;
 			}
@@ -293,30 +311,30 @@ namespace Proton.VM.IR
 			if (newParent == null) throw new Exception();
 			IRMethod m = new IRMethod(this.Assembly);
 
+			if (this.PresolvedMethod)
+				m.mParentMethod = this.GenericMethod;
+			else
+				m.mParentMethod = this;
 			m.ParentType = newParent;
 			m.GenericMethod = this.GenericMethod;
 			m.GenericParameters.AddRange(this.GenericParameters);
-			if (this.Instructions.Count != 0 && Assembly.AppDomain.CurrentCompileStage >= 3)
+			if (this.mInstructions.Count != 0 && Assembly.AppDomain.CurrentCompileStage >= 3)
 			{
 				m.mBoundInstructions = true;
-				this.Instructions.ForEach(i => m.Instructions.Add(i.Clone(m)));
+				this.Instructions.ForEach(i => m.mInstructions.Add(i.Clone(m)));
+				m.Instructions.FixClonedTargetInstructions();
 			}
-			m.Instructions.FixClonedTargetInstructions();
-			if (this.Locals.Count != 0 && Assembly.AppDomain.CurrentCompileStage >= 3)
+			if (this.mLocals.Count != 0 && Assembly.AppDomain.CurrentCompileStage >= 3)
 			{
 				m.mBoundLocals = true;
-				this.Locals.ForEach(l => m.Locals.Add(l.Clone(m)));
+				this.mLocals.ForEach(l => m.mLocals.Add(l.Clone(m)));
 			}
-			this.Parameters.ForEach(p => m.Parameters.Add(p.Clone(m)));
+			this.mParameters.ForEach(p => m.mParameters.Add(p.Clone(m)));
 			m.MaximumStackDepth = this.MaximumStackDepth;
 			m.Name = this.Name;
 			m.Flags = this.Flags;
 			m.ImplFlags = this.ImplFlags;
 			m.ReturnType = this.ReturnType;
-			if (this.PresolvedMethod)
-				m.mParentMethod = this.GenericMethod;
-			else
-				m.mParentMethod = this;
 			return m;
 		}
 

@@ -293,7 +293,6 @@ namespace Proton.VM.IR
 			FullGCCollect();
 			ProfileWrite("Stage 4.5 GC", sw);
 
-			//Console.WriteLine("There are {0} methods from arrays, {1} from managed pointers, and {2} from unmanaged pointers", Methods.FindAll(m => m.ParentType.IsArrayType).Count, Methods.FindAll(m => m.ParentType.IsManagedPointerType).Count, Methods.FindAll(m => m.ParentType.IsUnmanagedPointerType).Count);
 			ProfileStart(sw);
 			CurrentCompileStage = 5;
 			LoadStage5();
@@ -302,6 +301,8 @@ namespace Proton.VM.IR
 			CurrentCompileStage = 6;
 			LoadStage6(true);
 			ProfileWrite("Stage 6", sw);
+
+			//Console.WriteLine("There are {0} methods from arrays, {1} from managed pointers, and {2} from unmanaged pointers", Methods.FindAll(m => m.ParentType.IsArrayType).Count, Methods.FindAll(m => m.ParentType.IsManagedPointerType).Count, Methods.FindAll(m => m.ParentType.IsUnmanagedPointerType).Count);
 
 			ProfileStart(sw);
 			// Massive help to memory usage.
@@ -637,7 +638,7 @@ namespace Proton.VM.IR
 			int typesInTable = 0;
 			foreach (var v in Types)
 			{
-				if (!v.IsInterface)
+				if (!v.IsInterface && v.InterfaceImplementationMap.Count > 0)
 				{
 					AddToInterfaceTable(v);
 					typesInTable++;
@@ -651,7 +652,7 @@ namespace Proton.VM.IR
 					maxTpIdx = v.Count;
 				total += v.Count;
 			}
-			Console.WriteLine(String.Format("Fit {0} types implementing {1} interfaces in {2} total entries, with a maximum of {3} entries in one table", typesInTable, i, total, maxTpIdx));
+			Console.WriteLine(String.Format("Fit {0} types implementing {1} interfaces in {2} total entries, with a max of {3} entries in a table", typesInTable, i, total, maxTpIdx));
 		}
 
 		private void LayoutStaticFields()
