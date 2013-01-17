@@ -426,6 +426,7 @@ namespace Proton.VM.IR
 			{
 				new IRMoveCompactingOptimizationPass(),
 				new IRIndirectionRemovalOptimizationPass(),
+				new IRConstructorDefaultInitializationRemovalOptimizationPass(),
 			},
 			// Leave SSA
 			new IROptimizationPass[]

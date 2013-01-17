@@ -576,22 +576,40 @@ namespace Proton.VM.IR
 		{
 			if (targetType.HasStaticConstructor && (forceEmit || targetType != curType))
 			{
-				StaticConstructorCalledEmittableDataItem d = null;
-				if (!KnownStaticConstructors.TryGetValue(targetType, out d))
+				var con = targetType.StaticConstructor;
+				if (
+					(
+						con.Instructions.Count == 1 &&
+						con.Instructions[0].Opcode == IROpcode.Return
+					) ||
+					(
+						con.Instructions.Count == 2 &&
+						con.Instructions[0].Opcode == IROpcode.Nop &&
+						con.Instructions[1].Opcode == IROpcode.Return
+					)
+				)
 				{
-					d = new StaticConstructorCalledEmittableDataItem(targetType);
-					m.CompileUnit.AddData(d);
-					KnownStaticConstructors.Add(targetType, d);
+					// We don't need a static constructor call
 				}
-				new LIRInstructions.Comment(m, "Static Constructor Check");
-				var c = m.RequestLocal(targetType.Assembly.AppDomain.System_Boolean);
-				new LIRInstructions.Move(m, new Indirect(d.Label), c, targetType.Assembly.AppDomain.System_Boolean);
-				Label called = new Label();
-				new LIRInstructions.BranchTrue(m, c, called);
-				m.ReleaseLocal(c);
-				new LIRInstructions.Move(m, (LIRImm)1, new Indirect(d.Label), targetType.Assembly.AppDomain.System_Boolean);
-				new LIRInstructions.Call(m, targetType.StaticConstructor);
-				m.MarkLabel(called);
+				else
+				{
+					StaticConstructorCalledEmittableDataItem d = null;
+					if (!KnownStaticConstructors.TryGetValue(targetType, out d))
+					{
+						d = new StaticConstructorCalledEmittableDataItem(targetType);
+						m.CompileUnit.AddData(d);
+						KnownStaticConstructors.Add(targetType, d);
+					}
+					new LIRInstructions.Comment(m, "Static Constructor Check");
+					var c = m.RequestLocal(targetType.Assembly.AppDomain.System_Boolean);
+					new LIRInstructions.Move(m, new Indirect(d.Label), c, targetType.Assembly.AppDomain.System_Boolean);
+					Label called = new Label();
+					new LIRInstructions.BranchTrue(m, c, called);
+					m.ReleaseLocal(c);
+					new LIRInstructions.Move(m, (LIRImm)1, new Indirect(d.Label), targetType.Assembly.AppDomain.System_Boolean);
+					new LIRInstructions.Call(m, con);
+					m.MarkLabel(called);
+				}
 			}
 		}
 
