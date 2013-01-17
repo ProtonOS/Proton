@@ -283,7 +283,7 @@ namespace Proton.VM.IR
 		private IRInstruction GetTarget(IRBranchInstruction pBranchInstruction)
 		{
 			IRInstruction targetInstruction = mILOffsetLookup[pBranchInstruction.TargetILOffset];
-			if (targetInstruction.Opcode == IROpcode.Branch)
+			if (targetInstruction.Opcode == IROpcode.Branch && targetInstruction != pBranchInstruction)
 			{
 				IRBranchInstruction targetBranchInstruction = (IRBranchInstruction)targetInstruction;
 				if (targetBranchInstruction.BranchCondition == IRBranchCondition.Always)
