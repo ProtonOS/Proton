@@ -27,8 +27,8 @@ namespace Proton.VM.IR
 			{
 				if (!t.Resolved)
 					throw new Exception("You cannot add a type which isn't fully resolved to the global type collection!");
+				t.GlobalTypeID = vals.Count;
 				vals.Add(t);
-				t.GlobalTypeID = vals.Count - 1;
 			}
 			
 			public List<IRType> FindAll(Predicate<IRType> cond)
@@ -61,13 +61,35 @@ namespace Proton.VM.IR
 			{
 				if (!m.Resolved)
 					throw new Exception("You cannot add a method which isn't fully resolved to the global method collection!");
+				m.GlobalMethodID = vals.Count;
 				vals.Add(m);
-				m.GlobalMethodID = vals.Count - 1;
 			}
 
 			public List<IRMethod> FindAll(Predicate<IRMethod> cond)
 			{
 				return vals.FindAll(cond);
+			}
+
+			private List<IRMethod> mQueuedForRemoval;
+			public void QueueForRemoval(IRMethod m)
+			{
+				if (mQueuedForRemoval == null)
+					mQueuedForRemoval = new List<IRMethod>();
+				mQueuedForRemoval.Add(m);
+			}
+
+			public void RemoveQueued()
+			{
+				if (mQueuedForRemoval != null)
+				{
+					int atOff = 0;
+					foreach (var m in mQueuedForRemoval)
+					{
+						vals.RemoveAt(m.GlobalMethodID - atOff);
+						atOff++;
+					}
+					mQueuedForRemoval = null;
+				}
 			}
 
 			public IEnumerator<IRMethod> GetEnumerator()
@@ -521,6 +543,7 @@ namespace Proton.VM.IR
 			Console.WriteLine("========== {0,-22} Stage 7 {0,-23} ==========", " ");
 			mainUnit = new LIR.LIRCompileUnit();
 			Methods.ForEach(m => m.CreateLIRMethod());
+			Methods.RemoveQueued();
 			Methods.ForEach(m => mainUnit.AddMethod(m.LIRMethod));
 			Methods.ForEach(m => m.PopulateLIRMethodBody());
 		}

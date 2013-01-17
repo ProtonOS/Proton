@@ -1282,6 +1282,24 @@ namespace Proton.VM.IR
 
 		public void CreateLIRMethod()
 		{
+			if (
+				this.Name == ".cctor" &&
+				(
+					(
+						this.Instructions.Count == 1 &&
+						this.Instructions[0].Opcode == IROpcode.Return
+					) ||
+					(
+						this.Instructions.Count == 2 &&
+						this.Instructions[0].Opcode == IROpcode.Nop &&
+						this.Instructions[1].Opcode == IROpcode.Return
+					)
+				)
+			)
+			{
+				Assembly.AppDomain.Methods.QueueForRemoval(this);
+				return;
+			}
 			LIRMethod = new LIRMethod(Name, ReturnType ?? (LIRType)null);
 			mParameters.ForEach(p => new LIRParameter(LIRMethod, p.Type));
 			mLocals.ForEach(l => new LIRLocal(LIRMethod, l.Type));
