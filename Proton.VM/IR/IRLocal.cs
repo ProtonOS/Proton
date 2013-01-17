@@ -76,8 +76,7 @@ namespace Proton.VM.IR
 		{
 			IRLocal local = new IRLocal(this.Assembly);
 			local.ParentMethod = newMethod;
-			if (this.Type != null)
-				local.mType = this.Type;
+			local.mType = this.Type;
 			local.Index = newMethod.Locals.Count;
 			if (SSAData != null) local.SSAData = SSAData.Clone();
 			return local;
