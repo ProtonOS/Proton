@@ -220,9 +220,26 @@ namespace Proton.VM.IR
 				FieldTree.AddRange(mBaseType.FieldTree);
 				dataSize = mBaseType.DataSize;
 			}
-			if (IsExplicitLayout && ClassSize > 0)
+			if (IsExplicitLayout)
 			{
-				dataSize += ClassSize;
+				if (ClassSize > 0)
+				{
+					dataSize += ClassSize;
+				}
+				else
+				{
+					int maxReq = 0;
+					foreach (var f in Fields)
+					{
+						if (!f.IsStatic)
+						{
+							FieldTree.Add(f);
+							if (f.Offset + f.Type.StackSize > maxReq)
+								maxReq = f.Offset + f.Type.StackSize;
+						}
+					}
+					dataSize += maxReq;
+				}
 			}
 			else
 			{
