@@ -329,14 +329,17 @@ namespace Proton.VM.IR
 				return true;
 			}
 
+			private int? mHashCodeCache;
 			public override int GetHashCode()
 			{
+				if (mHashCodeCache != null)
+					return mHashCodeCache.Value;
 				if (Tree.Length == 0)
 					return 0;
 				int curHsh = Tree[0].GetHashCode();
 				for (int i = 1; i < Tree.Length; i++)
 					curHsh ^= Tree[i].GetHashCode();
-				return curHsh;
+				return (mHashCodeCache = curHsh).Value;
 			}
 
 			public override string ToString()
@@ -371,6 +374,7 @@ namespace Proton.VM.IR
 							}
 							else
 							{
+								Console.WriteLine("WARNING: Hash collision in a Type's VMT!");
 								kvmt.Add(vmt);
 								mVirtualMethodTreeDataItem = vmt;
 							}
@@ -390,6 +394,10 @@ namespace Proton.VM.IR
 							}
 							if (!found)
 							{
+								if (kvmt.Count > 0)
+								{
+									Console.WriteLine("WARNING: Hash collision in a Type's VMT!");
+								}
 								kvmt.Add(vmt);
 								mVirtualMethodTreeDataItem = vmt;
 							}

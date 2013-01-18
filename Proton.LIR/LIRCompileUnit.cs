@@ -28,9 +28,10 @@ namespace Proton.LIR
 				this.Name = name;
 		}
 
+		private int? mHashCodeCache;
 		public override int GetHashCode()
 		{
-			return mTempID;
+			return (mHashCodeCache ?? (mHashCodeCache = this.ToString().GetHashCode())).Value;
 		}
 
 		public override string ToString()
