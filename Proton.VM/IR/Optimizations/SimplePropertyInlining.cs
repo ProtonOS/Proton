@@ -15,7 +15,6 @@ namespace Proton.VM.IR.Optimizations
 			// TODO: Allow for statics here as well.
 			return
 				(retInstrIdx = -1) == -1 &&
-				!m.IsStatic &&
 				m.ReturnType != null &&
 				m.Parameters.Count == 1 &&
 				m.Parameters[0].Type == m.ParentType &&
@@ -86,24 +85,38 @@ namespace Proton.VM.IR.Optimizations
 					int retIdx;
 					if (!curCall.Virtual && IsSimpleAccessor(curCall.Target, out retIdx))
 					{
-						var newMove = new IRMoveInstruction()
+						if (curCall.Target.IsStatic)
 						{
-							ParentMethod = pMethod,
-						};
-						newMove.Destination = curCall.Destination.Clone(newMove);
-						var curSrc = curCall.Sources[0];
-						var retSrc = curCall.Target.Instructions[retIdx].Sources[0];
-						var paramSrc = new IRLinearizedLocation(newMove, IRLinearizedLocationType.Parameter)
-						{
-							Parameter = new IRLinearizedLocation.ParameterLocationData()
+							var newMove = new IRMoveInstruction()
 							{
-								ParameterIndex = 0,
-							},
-						};
-						var nSrc = retSrc.Clone(newMove);
-						nSrc.RetargetSource(ref nSrc, paramSrc, curSrc);
-						newMove.Sources.Add(nSrc);
-						pMethod.Instructions[i] = newMove;
+								ParentMethod = pMethod,
+							};
+							newMove.Destination = curCall.Destination.Clone(newMove);
+							var retSrc = curCall.Target.Instructions[retIdx].Sources[0];
+							newMove.Sources.Add(retSrc.Clone(newMove));
+							pMethod.Instructions[i] = newMove;
+						}
+						else
+						{
+							var newMove = new IRMoveInstruction()
+							{
+								ParentMethod = pMethod,
+							};
+							newMove.Destination = curCall.Destination.Clone(newMove);
+							var curSrc = curCall.Sources[0];
+							var retSrc = curCall.Target.Instructions[retIdx].Sources[0];
+							var paramSrc = new IRLinearizedLocation(newMove, IRLinearizedLocationType.Parameter)
+							{
+								Parameter = new IRLinearizedLocation.ParameterLocationData()
+								{
+									ParameterIndex = 0,
+								},
+							};
+							var nSrc = retSrc.Clone(newMove);
+							nSrc.RetargetSource(ref nSrc, paramSrc, curSrc);
+							newMove.Sources.Add(nSrc);
+							pMethod.Instructions[i] = newMove;
+						}
 					}
 				}
 			}
