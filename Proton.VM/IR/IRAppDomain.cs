@@ -452,6 +452,8 @@ namespace Proton.VM.IR
 				// The passes above have generated a massive number of nops.
 				new IRNopKillingOptimizationPass(),
 				new IREmptyBaseConstructorCallEliminationOptimizationPass(),
+				new IRSimplePropertyInliningOptimizationPass(),
+				new IRMoveCompactingOptimizationPass(),
 			},
 			// Leave SSA
 			new IROptimizationPass[]

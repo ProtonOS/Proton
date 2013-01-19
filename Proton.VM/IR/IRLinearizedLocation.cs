@@ -6,6 +6,10 @@ using System.Runtime.InteropServices;
 
 namespace Proton.VM.IR
 {
+// Disable warnings about GetHashcode not being implemented
+#pragma warning disable 659
+#pragma warning disable 661
+
 	[StructLayout(LayoutKind.Explicit, Pack=1)]
 	public sealed class IRLinearizedLocation
 	{
@@ -946,6 +950,70 @@ namespace Proton.VM.IR
 			}
 		}
 
+		public void RetargetSource(ref IRLinearizedLocation selfReference, IRLinearizedLocation oldSrc, IRLinearizedLocation newSrc)
+		{
+			if (selfReference == oldSrc)
+			{
+				selfReference = newSrc;
+				return;
+			}
+
+			switch (this.Type)
+			{
+				case IRLinearizedLocationType.Null:
+				case IRLinearizedLocationType.Local:
+				case IRLinearizedLocationType.LocalAddress:
+				case IRLinearizedLocationType.Parameter:
+				case IRLinearizedLocationType.ParameterAddress:
+				case IRLinearizedLocationType.ConstantI4:
+				case IRLinearizedLocationType.ConstantI8:
+				case IRLinearizedLocationType.ConstantR4:
+				case IRLinearizedLocationType.ConstantR8:
+				case IRLinearizedLocationType.SizeOf:
+				case IRLinearizedLocationType.StaticField:
+				case IRLinearizedLocationType.StaticFieldAddress:
+				case IRLinearizedLocationType.RuntimeHandle:
+				case IRLinearizedLocationType.String:
+					break;
+
+				case IRLinearizedLocationType.Field:
+					Field.FieldLocation.RetargetSource(ref Field.FieldLocation, oldSrc, newSrc);
+					break;
+				case IRLinearizedLocationType.FieldAddress:
+					FieldAddress.FieldLocation.RetargetSource(ref FieldAddress.FieldLocation, oldSrc, newSrc);
+					break;
+				case IRLinearizedLocationType.Indirect:
+					Indirect.AddressLocation.RetargetSource(ref Indirect.AddressLocation, oldSrc, newSrc);
+					break;
+				case IRLinearizedLocationType.ArrayElement:
+					ArrayElement.ArrayLocation.RetargetSource(ref ArrayElement.ArrayLocation, oldSrc, newSrc);
+					ArrayElement.IndexLocation.RetargetSource(ref ArrayElement.IndexLocation, oldSrc, newSrc);
+					break;
+				case IRLinearizedLocationType.ArrayElementAddress:
+					ArrayElementAddress.ArrayLocation.RetargetSource(ref ArrayElementAddress.ArrayLocation, oldSrc, newSrc);
+					ArrayElementAddress.IndexLocation.RetargetSource(ref ArrayElementAddress.IndexLocation, oldSrc, newSrc);
+					break;
+				case IRLinearizedLocationType.ArrayLength:
+					ArrayLength.ArrayLocation.RetargetSource(ref ArrayLength.ArrayLocation, oldSrc, newSrc);
+					break;
+				case IRLinearizedLocationType.FunctionAddress:
+					if (FunctionAddress.Virtual)
+						FunctionAddress.InstanceLocation.RetargetSource(ref FunctionAddress.InstanceLocation, oldSrc, newSrc);
+					break;
+				case IRLinearizedLocationType.Phi:
+					for (int i = 0; i < Phi.SourceLocations.Count; i++)
+					{
+						var l = Phi.SourceLocations[i];
+						l.RetargetSource(ref l, oldSrc, newSrc);
+						Phi.SourceLocations[i] = l;
+					}
+					break;
+
+				default:
+					throw new Exception("Unknown IRLinearizedLocationType!");
+			}
+		}
+
 		public void Dump(IndentableStreamWriter pWriter)
 		{
 			pWriter.WriteLine("#" + mTempID + " Parent: " + ParentInstruction.IRIndex);
@@ -1080,6 +1148,83 @@ namespace Proton.VM.IR
 					break;
 			}
 		}
+
+		public override bool Equals(object obj)
+		{
+			if (!(obj is IRLinearizedLocation)) return false;
+			return (IRLinearizedLocation)obj == this;
+		}
+
+		public static bool operator ==(IRLinearizedLocation locA, IRLinearizedLocation locB)
+		{
+			if (ReferenceEquals(locA, locB)) return true;
+			if ((object)locA == null)
+			{
+				if ((object)locB == null)
+					return true;
+				return false;
+			}
+			else if ((object)locB == null)
+				return false;
+
+			if (locA.Type != locB.Type)
+				return false;
+			switch (locA.Type)
+			{
+				case IRLinearizedLocationType.Null:
+					return true;
+				case IRLinearizedLocationType.String:
+					return locA.String.Value == locB.String.Value;
+				case IRLinearizedLocationType.Local:
+					return locA.Local.LocalIndex == locB.Local.LocalIndex;
+				case IRLinearizedLocationType.LocalAddress:
+					return locA.LocalAddress.LocalIndex == locB.LocalAddress.LocalIndex;
+				case IRLinearizedLocationType.Parameter:
+					return locA.Parameter.ParameterIndex == locB.Parameter.ParameterIndex;
+				case IRLinearizedLocationType.ParameterAddress:
+					return locA.ParameterAddress.ParameterIndex == locB.ParameterAddress.ParameterIndex;
+				case IRLinearizedLocationType.ConstantI4:
+					return locA.ConstantI4.Value == locB.ConstantI4.Value;
+				case IRLinearizedLocationType.ConstantI8:
+					return locA.ConstantI8.Value == locB.ConstantI8.Value;
+				case IRLinearizedLocationType.ConstantR4:
+					return locA.ConstantR4.Value == locB.ConstantR4.Value;
+				case IRLinearizedLocationType.ConstantR8:
+					return locA.ConstantR8.Value == locB.ConstantR8.Value;
+				case IRLinearizedLocationType.Field:
+					return locA.Field.Field == locB.Field.Field && locA.Field.FieldLocation == locB.Field.FieldLocation;
+				case IRLinearizedLocationType.FieldAddress:
+					return locA.FieldAddress.Field == locB.FieldAddress.Field && locA.FieldAddress.FieldLocation == locB.FieldAddress.FieldLocation;
+				case IRLinearizedLocationType.StaticField:
+					return locA.StaticField.Field == locB.StaticField.Field;
+				case IRLinearizedLocationType.StaticFieldAddress:
+					return locA.StaticFieldAddress.Field == locB.StaticFieldAddress.Field;
+				case IRLinearizedLocationType.Indirect:
+					return locA.Indirect.Type == locB.Indirect.Type && locA.Indirect.AddressLocation == locB.Indirect.AddressLocation;
+				case IRLinearizedLocationType.SizeOf:
+					return locA.SizeOf.Type == locB.SizeOf.Type;
+				case IRLinearizedLocationType.ArrayElement:
+					return locA.ArrayElement.ElementType == locB.ArrayElement.ElementType && locA.ArrayElement.ArrayLocation == locB.ArrayElement.ArrayLocation && locA.ArrayElement.IndexLocation == locB.ArrayElement.IndexLocation;
+				case IRLinearizedLocationType.ArrayElementAddress:
+					return locA.ArrayElementAddress.ElementType == locB.ArrayElementAddress.ElementType && locA.ArrayElementAddress.ArrayLocation == locB.ArrayElementAddress.ArrayLocation && locA.ArrayElementAddress.IndexLocation == locB.ArrayElementAddress.IndexLocation;
+				case IRLinearizedLocationType.ArrayLength:
+					return locA.ArrayLength.ArrayLocation == locB.ArrayLength.ArrayLocation;
+				case IRLinearizedLocationType.FunctionAddress:
+					return locA.FunctionAddress.Method == locB.FunctionAddress.Method && locA.FunctionAddress.InstanceLocation == locB.FunctionAddress.InstanceLocation;
+				case IRLinearizedLocationType.RuntimeHandle:
+					return locA.RuntimeHandle.HandleType == locB.RuntimeHandle.HandleType && locA.RuntimeHandle.TargetField == locB.RuntimeHandle.TargetField && locA.RuntimeHandle.TargetMethod == locB.RuntimeHandle.TargetMethod && locA.RuntimeHandle.TargetType == locB.RuntimeHandle.TargetType;
+				case IRLinearizedLocationType.Phi:
+					for (int i = 0; i < locA.Phi.SourceLocations.Count; i++)
+					{
+						if (locA.Phi.SourceLocations[i] != locB.Phi.SourceLocations[i])
+							return false;
+					}
+					return true;
+				default:
+					throw new Exception("Unknown IRLinearizedLocationType!");
+			}
+		}
+		public static bool operator !=(IRLinearizedLocation locA, IRLinearizedLocation locB) { return !(locA == locB); }
 
 		public override string ToString()
 		{

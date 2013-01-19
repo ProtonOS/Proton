@@ -220,7 +220,6 @@ namespace Proton.VM.IR
 					IRInstruction newInstruction = value;
 
 					value.ILOffset = oldInstruction.ILOffset;
-					mInstructions[pIndex] = value;
 					mILOffsetLookup[newInstruction.ILOffset] = newInstruction;
 
 					if (ImmediateRetargetModifiedInstructions)
@@ -259,6 +258,7 @@ namespace Proton.VM.IR
 						value.ParentMethod = this.mInstructions[0].ParentMethod;
 						value.IRIndex = pIndex;
 					}
+					mInstructions[pIndex] = value;
 				}
 			}
 		}

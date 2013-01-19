@@ -135,6 +135,7 @@
     <Compile Include="IR\Optimizations\BranchRemoval.cs" />
     <Compile Include="IR\Optimizations\ConstructorDefaultInitializationRemoval.cs" />
     <Compile Include="IR\Optimizations\EmptyBaseConstructorCallElimination.cs" />
+    <Compile Include="IR\Optimizations\SimplePropertyInlining.cs" />
     <Compile Include="IR\Transformations\CallDevirtualization.cs" />
     <Compile Include="IR\Optimizations\IndirectionRemoval.cs" />
     <Compile Include="IR\Optimizations\IROptimizationPass.cs" />
