@@ -39,7 +39,7 @@ namespace Proton.VM.IR.Instructions
 			var sValuePtr = pLIRMethod.RequestLocal(Sources[0].GetTypeOfLocation());
 			Sources[0].LoadAddressTo(pLIRMethod, sValuePtr);
 			var sTypeDataPtr = pLIRMethod.RequestLocal(AppDomain.System_GC_BoxObject.LIRMethod.Parameters[0].Type);
-			new LIRInstructions.Move(pLIRMethod, Type.TypeDataLabel, sTypeDataPtr, sTypeDataPtr.Type);
+			new LIRInstructions.Move(pLIRMethod, Type.MetadataLabel, sTypeDataPtr, sTypeDataPtr.Type);
 			var sReturnPtr = pLIRMethod.RequestLocal(AppDomain.System_GC_BoxObject.LIRMethod.Parameters[2].Type);
 			Destination.LoadAddressTo(pLIRMethod, sReturnPtr);
 			List<ISource> boxObjectParams = new List<ISource>(3);

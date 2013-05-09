@@ -13,6 +13,7 @@ namespace Proton.VM.IR.Optimizations
 		public override void Run(IRMethod pMethod)
 		{
 			bool prevWasKeptNop = false;
+			pMethod.Instructions.DelayedReIndexOnRemove = true;
 			for (int i = 0; i < pMethod.Instructions.Count; i++)
 			{
 				var curInstr = pMethod.Instructions[i];
@@ -35,6 +36,7 @@ namespace Proton.VM.IR.Optimizations
 				}
 			}
 			pMethod.Instructions.FixRemovedTargetInstructions();
+			pMethod.Instructions.DelayedReIndexOnRemove = false;
 		}
 	}
 }

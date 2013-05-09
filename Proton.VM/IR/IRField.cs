@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using Proton.Metadata;
 using System.Text;
+using Proton.LIR;
 
 namespace Proton.VM.IR
 {
@@ -41,6 +42,73 @@ namespace Proton.VM.IR
 		}
 
 		public int Offset = -1;
+
+		public sealed class FieldMetadataEmittableDataItem : EmittableData
+		{
+			private string FieldName;
+			private Label mLabel = new Label("FieldMetadata");
+			public override Label Label { get { return mLabel; } }
+
+			public FieldMetadataEmittableDataItem(IRField f)
+			{
+#warning Need to get the required data here
+				this.FieldName = f.ToString();
+			}
+
+			public override byte[] GetData(EmissionContext c)
+			{
+				return new byte[16];
+			}
+
+			public override string ToString()
+			{
+				return string.Format("FieldMetadata({0})", FieldName);
+			}
+		}
+		private FieldMetadataEmittableDataItem mMetadataItem;
+		public Label MetadataLabel { get { return (mMetadataItem ?? (mMetadataItem = new FieldMetadataEmittableDataItem(this))).Label; } }
+
+		public sealed class StaticFieldEmittableDataItem : EmittableData
+		{
+			private LIRType FieldType;
+			private string FieldName;
+			private Label mLabel = new Label("StaticField");
+			public override Label Label { get { return mLabel; } }
+
+			public StaticFieldEmittableDataItem(IRField fld)
+			{
+				this.FieldType = fld.Type;
+				this.FieldName = fld.ToString();
+			}
+
+			public override byte[] GetData(EmissionContext c)
+			{
+				return new byte[FieldType.Size];
+			}
+
+			public override string ToString()
+			{
+				return string.Format("StaticFieldData({0})", FieldName);
+			}
+		}
+		private StaticFieldEmittableDataItem mStaticFieldEmittableData;
+		public Label Label
+		{
+			get { return (mStaticFieldEmittableData ?? (mStaticFieldEmittableData = new StaticFieldEmittableDataItem(this))).Label; }
+		}
+
+		private bool mAddedToCompileUnit = false;
+		public void AddToCompileUnit(LIRCompileUnit cu)
+		{
+			if (!mAddedToCompileUnit)
+			{
+				if (mStaticFieldEmittableData != null)
+					cu.AddData(mStaticFieldEmittableData);
+				if (mMetadataItem != null)
+					cu.AddData(mMetadataItem);
+				mAddedToCompileUnit = true;
+			}
+		}
 
 		/// <summary>
 		/// True if all the types that this field

@@ -77,8 +77,7 @@ namespace System.Collections.Generic
 		public BitVector AndEquals(BitVector pBitVector)
 		{
 			if (mBitCount != pBitVector.mBitCount) throw new ArgumentException("different number of bits");
-			int dataLength = mData.Length;
-			for (int index = 0; index < dataLength; ++index) mData[index] &= pBitVector.mData[index];
+			for (int index = 0; index < mData.Length; ++index) mData[index] &= pBitVector.mData[index];
 			return this;
 		}
 
@@ -92,8 +91,7 @@ namespace System.Collections.Generic
 		public BitVector OrEquals(BitVector pBitVector)
 		{
 			if (mBitCount != pBitVector.mBitCount) throw new ArgumentException("different number of bits");
-			int dataLength = mData.Length;
-			for (int index = 0; index < dataLength; ++index) mData[index] |= pBitVector.mData[index];
+			for (int index = 0; index < mData.Length; ++index) mData[index] |= pBitVector.mData[index];
 			return this;
 		}
 
@@ -107,8 +105,7 @@ namespace System.Collections.Generic
 		public BitVector XorEquals(BitVector pBitVector)
 		{
 			if (mBitCount != pBitVector.mBitCount) throw new ArgumentException("different number of bits");
-			int dataLength = mData.Length;
-			for (int index = 0; index < dataLength; ++index) mData[index] ^= pBitVector.mData[index];
+			for (int index = 0; index < mData.Length; ++index) mData[index] ^= pBitVector.mData[index];
 			return this;
 		}
 
@@ -121,11 +118,15 @@ namespace System.Collections.Generic
 
 		public bool Equals(BitVector pBitVector)
 		{
-			bool equal = mBitCount == pBitVector.mBitCount;
-			if (!equal) return false;
+			if (mBitCount != pBitVector.mBitCount)
+				return false;
 			int dataLength = mData.Length;
-			for (int index = 0; index < dataLength && (equal = (mData[index] == pBitVector.mData[index])); ++index) ;
-			return equal;
+			for (int index = 0; index < mData.Length; ++index)
+			{
+				if (mData[index] != pBitVector.mData[index])
+					return false;
+			}
+			return true;
 		}
 	}
 }

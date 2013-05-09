@@ -27,8 +27,13 @@ namespace Proton.VM.IR
 			{
 				if (!t.Resolved)
 					throw new Exception("You cannot add a type which isn't fully resolved to the global type collection!");
+				t.GlobalTypeID = vals.Count;
 				vals.Add(t);
-				t.GlobalTypeID = vals.Count - 1;
+			}
+			
+			public List<IRType> FindAll(Predicate<IRType> cond)
+			{
+				return vals.FindAll(cond);
 			}
 
 			public IEnumerator<IRType> GetEnumerator()
@@ -56,8 +61,35 @@ namespace Proton.VM.IR
 			{
 				if (!m.Resolved)
 					throw new Exception("You cannot add a method which isn't fully resolved to the global method collection!");
+				m.GlobalMethodID = vals.Count;
 				vals.Add(m);
-				m.GlobalMethodID = vals.Count - 1;
+			}
+
+			public List<IRMethod> FindAll(Predicate<IRMethod> cond)
+			{
+				return vals.FindAll(cond);
+			}
+
+			private List<IRMethod> mQueuedForRemoval;
+			public void QueueForRemoval(IRMethod m)
+			{
+				if (mQueuedForRemoval == null)
+					mQueuedForRemoval = new List<IRMethod>();
+				mQueuedForRemoval.Add(m);
+			}
+
+			public void RemoveQueued()
+			{
+				if (mQueuedForRemoval != null)
+				{
+					int atOff = 0;
+					foreach (var m in mQueuedForRemoval)
+					{
+						vals.RemoveAt(m.GlobalMethodID - atOff);
+						atOff++;
+					}
+					mQueuedForRemoval = null;
+				}
 			}
 
 			public IEnumerator<IRMethod> GetEnumerator()
@@ -224,6 +256,8 @@ namespace Proton.VM.IR
 			GC.Collect();
 		}
 
+		public int CurrentCompileStage { get; private set; }
+
 		public IRAssembly LoadEntryAssembly(CLIFile pFile)
 		{
 			Stopwatch sw = new Stopwatch();
@@ -231,12 +265,15 @@ namespace Proton.VM.IR
 			IRAssembly assembly = CreateAssembly(pFile);
 			ProfileWrite("Creating the main IRAssembly", sw);
 			ProfileStart(sw);
+			CurrentCompileStage = 1;
 			Assemblies.ForEach(a => a.LoadStage1());
 			ProfileWrite("Stage 1", sw);
 			ProfileStart(sw);
+			CurrentCompileStage = 2;
 			Assemblies.ForEach(a => a.LoadStage2());
 			ProfileWrite("Stage 2", sw);
 			ProfileStart(sw);
+			CurrentCompileStage = 3;
 			Assemblies.ForEach(a => a.LoadStage3());
 			ProfileWrite("Stage 3", sw);
 
@@ -249,7 +286,18 @@ namespace Proton.VM.IR
 			ProfileWrite("Stage 3.5 GC", sw);
 
 			ProfileStart(sw);
+			CurrentCompileStage = 4;
 			Assemblies.ForEach(a => a.LoadStage4());
+			foreach (var t in ArrayTypes.Values)
+			{
+				if (t.Resolved) 
+				{
+					foreach (var m in t.Methods)
+					{
+						if (m.Resolved) { }
+					}
+				}
+			}
 			ProfileWrite("Stage 4", sw);
 
 			ProfileStart(sw);
@@ -268,11 +316,15 @@ namespace Proton.VM.IR
 			ProfileWrite("Stage 4.5 GC", sw);
 
 			ProfileStart(sw);
+			CurrentCompileStage = 5;
 			LoadStage5();
 			ProfileWrite("Stage 5", sw);
 			ProfileStart(sw);
+			CurrentCompileStage = 6;
 			LoadStage6(true);
 			ProfileWrite("Stage 6", sw);
+
+			//Console.WriteLine("There are {0} methods from arrays, {1} from managed pointers, and {2} from unmanaged pointers", Methods.FindAll(m => m.ParentType.IsArrayType).Count, Methods.FindAll(m => m.ParentType.IsManagedPointerType).Count, Methods.FindAll(m => m.ParentType.IsUnmanagedPointerType).Count);
 
 			ProfileStart(sw);
 			// Massive help to memory usage.
@@ -280,10 +332,12 @@ namespace Proton.VM.IR
 			ProfileWrite("Stage 6.5 GC", sw);
 
 			ProfileStart(sw);
+			CurrentCompileStage = 7;
 			LoadStage7();
 			ProfileWrite("Stage 7", sw);
 
 			ProfileStart(sw);
+			CurrentCompileStage = 8;
 			LoadStage8();
 			ProfileWrite("Stage 8", sw);
 
@@ -292,11 +346,13 @@ namespace Proton.VM.IR
 			Methods = null;
 			Types = null;
 			ManagedPointerTypes = null;
+			IRLinearizedLocation.KnownStaticConstructors = null;
 			ClearCORTypes();
 			FullGCCollect();
 			ProfileWrite("Stage 8.5 GC", sw);
 
 			ProfileStart(sw);
+			CurrentCompileStage = 9;
 			LoadStage9();
 			ProfileWrite("Stage 9", sw);
 			//Console.WriteLine("Dumping IRAppDomain...");
@@ -313,6 +369,11 @@ namespace Proton.VM.IR
 			System_Double = null;
 			System_Enum = null;
 			System_Exception = null;
+			System_GC = null;
+			System_GC_AllocateArrayOfType = null;
+			System_GC_AllocateObject = null;
+			System_GC_AllocateStringFromUTF16 = null;
+			System_GC_BoxObject = null;
 			System_Int16 = null;
 			System_Int32 = null;
 			System_Int64 = null;
@@ -387,6 +448,12 @@ namespace Proton.VM.IR
 			{
 				new IRMoveCompactingOptimizationPass(),
 				new IRIndirectionRemovalOptimizationPass(),
+				new IRConstructorDefaultInitializationRemovalOptimizationPass(),
+				// The passes above have generated a massive number of nops.
+				new IRNopKillingOptimizationPass(),
+				new IREmptyBaseConstructorCallEliminationOptimizationPass(),
+				new IRSimplePropertyInliningOptimizationPass(),
+				new IRMoveCompactingOptimizationPass(),
 			},
 			// Leave SSA
 			new IROptimizationPass[]
@@ -481,6 +548,7 @@ namespace Proton.VM.IR
 			Console.WriteLine("========== {0,-22} Stage 7 {0,-23} ==========", " ");
 			mainUnit = new LIR.LIRCompileUnit();
 			Methods.ForEach(m => m.CreateLIRMethod());
+			Methods.RemoveQueued();
 			Methods.ForEach(m => mainUnit.AddMethod(m.LIRMethod));
 			Methods.ForEach(m => m.PopulateLIRMethodBody());
 		}
@@ -488,7 +556,19 @@ namespace Proton.VM.IR
 		private void LoadStage8()
 		{
 			Console.WriteLine("========== {0,-22} Stage 8 {0,-23} ==========", " ");
-
+			foreach (var t in Types)
+			{
+				t.AddToCompileUnit(mainUnit);
+				foreach (var f in t.Fields)
+				{
+					f.AddToCompileUnit(mainUnit);
+				}
+			}
+			foreach (var m in Methods)
+			{
+				m.AddToCompileUnit(mainUnit);
+			}
+			StaticFields.ForEach(f => f.AddToCompileUnit(mainUnit));
 		}
 
 		private void LoadStage9()
@@ -506,6 +586,102 @@ namespace Proton.VM.IR
 			Methods.ForEach(m => m.LayoutLocals());
 			Types.ForEach(t => t.CreateVirtualMethodTree());
 			Types.ForEach(t => t.CreateInterfaceImplementationMap());
+			LayoutInterfaceTable();
+		}
+
+		private static Dictionary<IRType, List<IRType>> KnownInterfaces = new Dictionary<IRType, List<IRType>>();
+		private static int GetAvailableSlot(IRType interfaceType, int startIndex)
+		{
+			List<IRType> tpTable;
+			if (!KnownInterfaces.TryGetValue(interfaceType, out tpTable))
+				throw new Exception("Unknown interface type!");
+			if (tpTable.Count < startIndex)
+				return startIndex + 1;
+			else
+			{
+				for (int i = startIndex; i < tpTable.Count; i++)
+				{
+					if (tpTable[i] == null)
+						return i;
+				}
+				return tpTable.Count;
+			}
+		}
+
+		private static void AssignToInterfaceMap(IRType tp, int idx, IEnumerable<IRType> interfaces)
+		{
+			foreach (var iFace in interfaces)
+			{
+				List<IRType> tMap;
+				if (!KnownInterfaces.TryGetValue(iFace, out tMap))
+					throw new Exception("Unknown interface!");
+				while (idx >= tMap.Count)
+					tMap.Add(null);
+				if (tMap[idx] != null)
+					throw new Exception("We shouldn't be re-assigning to an index!");
+				tMap[idx] = tp;
+			}
+			tp.InterfaceTableTypeID = idx;
+		}
+
+		private static void AddToInterfaceTable(IRType tp)
+		{
+			if (tp.InterfaceImplementationMap.Count > 0)
+			{
+				int tryIndex = 0;
+				while (true)
+				{
+					List<int> lIdxs = new List<int>(tp.InterfaceImplementationMap.Count);
+					foreach (var iFace in tp.InterfaceImplementationMap.Keys)
+					{
+						lIdxs.Add(GetAvailableSlot(iFace, tryIndex));
+					}
+					bool same = true;
+					int lst = lIdxs[0];
+					int max = lIdxs[0];
+					for (int i = 1; i < lIdxs.Count; i++)
+					{
+						if (lIdxs[i] != lst)
+							same = false;
+						if (lIdxs[i] > max)
+							max = lIdxs[i];
+					}
+					if (same)
+					{
+						AssignToInterfaceMap(tp, lst, tp.InterfaceImplementationMap.Keys);
+						break;
+					}
+					tryIndex = max;
+				}
+			}
+		}
+
+		private void LayoutInterfaceTable()
+		{
+			int i = 0;
+			foreach (var v in Types.FindAll(t => t.IsInterface))
+			{
+				v.InterfaceID = i++;
+				KnownInterfaces[v] = new List<IRType>();
+			}
+			int typesInTable = 0;
+			foreach (var v in Types)
+			{
+				if (!v.IsInterface && v.InterfaceImplementationMap.Count > 0)
+				{
+					AddToInterfaceTable(v);
+					typesInTable++;
+				}
+			}
+			int maxTpIdx = 0;
+			int total = 0;
+			foreach (var v in KnownInterfaces.Values)
+			{
+				if (v.Count > maxTpIdx)
+					maxTpIdx = v.Count;
+				total += v.Count;
+			}
+			Console.WriteLine(String.Format("Fit {0} types implementing {1} interfaces in {2} total entries, with a max of {3} entries in a table", typesInTable, i, total, maxTpIdx));
 		}
 
 		private void LayoutStaticFields()

@@ -12,6 +12,7 @@ namespace Proton.LIR
 		ParameterAddress,
 		Indirect,
 		Literal,
+		DefaultValue,
 	}
 	public interface ISource
 	{

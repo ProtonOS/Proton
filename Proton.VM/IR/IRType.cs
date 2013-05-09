@@ -8,6 +8,20 @@ namespace Proton.VM.IR
 {
 	public sealed class IRType
 	{
+		private int mInterfaceID = -1;
+		public int InterfaceID
+		{
+			get { return mInterfaceID; }
+			set { mInterfaceID = value; }
+		}
+		
+		private int mInterfaceTableTypeID = -1;
+		public int InterfaceTableTypeID
+		{
+			get { return mInterfaceTableTypeID; }
+			set { mInterfaceTableTypeID = value; }
+		}
+		
 		public static List<IRType> VarPlaceholders = new List<IRType>();
 		public static List<IRType> MVarPlaceholders = new List<IRType>();
 
@@ -122,6 +136,11 @@ namespace Proton.VM.IR
 				vals.Add(m);
 			}
 
+			public List<IRMethod> FindAll(Predicate<IRMethod> cond)
+			{
+				return vals.FindAll(cond);
+			}
+
 			public IEnumerator<IRMethod> GetEnumerator()
 			{
 				foreach (IRMethod m in vals)
@@ -201,9 +220,26 @@ namespace Proton.VM.IR
 				FieldTree.AddRange(mBaseType.FieldTree);
 				dataSize = mBaseType.DataSize;
 			}
-			if (IsExplicitLayout && ClassSize > 0)
+			if (IsExplicitLayout)
 			{
-				dataSize += ClassSize;
+				if (ClassSize > 0)
+				{
+					dataSize += ClassSize;
+				}
+				else
+				{
+					int maxReq = 0;
+					foreach (var f in Fields)
+					{
+						if (!f.IsStatic)
+						{
+							FieldTree.Add(f);
+							if (f.Offset + f.Type.StackSize > maxReq)
+								maxReq = f.Offset + f.Type.StackSize;
+						}
+					}
+					dataSize += maxReq;
+				}
 			}
 			else
 			{
@@ -224,6 +260,188 @@ namespace Proton.VM.IR
 			mSizesCalculated = true;
 		}
 
+		public sealed class TypeMetadataEmittableDataItem : EmittableData
+		{
+			private string TypeName;
+			private Label VirtualMethodTreeLabel;
+			private Label mLabel = new Label("TypeMetadata");
+			public override Label Label { get { return mLabel; } }
+
+			public TypeMetadataEmittableDataItem(IRType t)
+			{
+#warning Need to get the required data here
+				this.TypeName = t.ToString();
+				this.VirtualMethodTreeLabel = t.VirtualMethodTreeLabel;
+			}
+
+			public override byte[] GetData(EmissionContext c)
+			{
+				byte[] ret = new byte[c.SizeOfLabel * 1];
+				int i2 = 0;
+				Array.Copy(VirtualMethodTreeLabel.GetData(c), 0, ret, i2, c.SizeOfLabel);
+				i2 += c.SizeOfLabel;
+				return ret;
+			}
+
+			public override string ToString()
+			{
+				return string.Format("TypeMetadata({0}, {1})", TypeName, VirtualMethodTreeLabel);
+			}
+		}
+		private TypeMetadataEmittableDataItem mMetadataItem;
+		public Label MetadataLabel { get { return (mMetadataItem ?? (mMetadataItem = new TypeMetadataEmittableDataItem(this))).Label; } }
+
+		public sealed class VirtualMethodTreeEmittableDataItem : EmittableData
+		{
+			private Label[] Tree;
+			private string TypeName;
+			private Label mLabel = new Label("VirtualMethodTree");
+			public override Label Label { get { return mLabel; } }
+
+			public VirtualMethodTreeEmittableDataItem(IRType t)
+			{
+				this.TypeName = t.ToString();
+				this.Tree = new Label[t.VirtualMethodTree.Count];
+				for (int i = 0; i < t.VirtualMethodTree.Count; i++)
+				{
+					this.Tree[i] = t.VirtualMethodTree[i].LIRMethod.Label;
+				}
+			}
+
+			public override byte[] GetData(EmissionContext c)
+			{
+				byte[] ret = new byte[c.SizeOfLabel * Tree.Length];
+				for (int i = 0, i2 = 0; i2 < ret.Length; i2 += c.SizeOfLabel, i++)
+				{
+					Array.Copy(Tree[i].GetData(c), 0, ret, i2, c.SizeOfLabel);
+				}
+				return ret;
+			}
+
+			public bool IsEqualTo(VirtualMethodTreeEmittableDataItem o)
+			{
+				if (Tree.Length != o.Tree.Length) return false;
+				for (int i = 0; i < Tree.Length; i++)
+				{
+					if (Tree[i] != o.Tree[i])
+						return false;
+				}
+				return true;
+			}
+
+			private int? mHashCodeCache;
+			public override int GetHashCode()
+			{
+				if (mHashCodeCache != null)
+					return mHashCodeCache.Value;
+				if (Tree.Length == 0)
+					return 0;
+				int curHsh = Tree[0].GetHashCode();
+				for (int i = 1; i < Tree.Length; i++)
+					curHsh ^= Tree[i].GetHashCode();
+				return (mHashCodeCache = curHsh).Value;
+			}
+
+			public override string ToString()
+			{
+				return string.Format("VirtualMethodTree({0}, {{ {1} }})", TypeName, string.Join(", ", (IEnumerable<Label>)Tree));
+			}
+		}
+		public static Dictionary<int, List<VirtualMethodTreeEmittableDataItem>> KnownVirtualMethodTrees = new Dictionary<int, List<VirtualMethodTreeEmittableDataItem>>();
+		private VirtualMethodTreeEmittableDataItem mVirtualMethodTreeDataItem;
+		private bool mVMTWasCached = false;
+		public Label VirtualMethodTreeLabel
+		{
+			get 
+			{
+				if (mVirtualMethodTreeDataItem == null)
+				{
+					var vmt = new VirtualMethodTreeEmittableDataItem(this);
+					List<VirtualMethodTreeEmittableDataItem> kvmt;
+					if (!KnownVirtualMethodTrees.TryGetValue(vmt.GetHashCode(), out kvmt))
+					{
+						mVirtualMethodTreeDataItem = vmt;
+						KnownVirtualMethodTrees.Add(vmt.GetHashCode(), new List<VirtualMethodTreeEmittableDataItem>() { vmt });
+					}
+					else
+					{
+						if (kvmt.Count == 1)
+						{
+							if (kvmt[0].IsEqualTo(vmt))
+							{
+								mVirtualMethodTreeDataItem = kvmt[0];
+								mVMTWasCached = true;
+							}
+							else
+							{
+								Console.WriteLine("WARNING: Hash collision in a Type's VMT!");
+								kvmt.Add(vmt);
+								mVirtualMethodTreeDataItem = vmt;
+							}
+						}
+						else
+						{
+							bool found = false;
+							for (int i = 0; i < kvmt.Count; i++)
+							{
+								if (kvmt[i].IsEqualTo(vmt))
+								{
+									found = true;
+									mVirtualMethodTreeDataItem = kvmt[i];
+									mVMTWasCached = true;
+									break;
+								}
+							}
+							if (!found)
+							{
+								if (kvmt.Count > 0)
+								{
+									Console.WriteLine("WARNING: Hash collision in a Type's VMT!");
+								}
+								kvmt.Add(vmt);
+								mVirtualMethodTreeDataItem = vmt;
+							}
+						}
+					}
+				}
+				return mVirtualMethodTreeDataItem.Label; 
+			}
+		}
+
+		private bool mAddedToCompileUnit = false;
+		public void AddToCompileUnit(LIRCompileUnit cu)
+		{
+			if (!mAddedToCompileUnit)
+			{
+#warning Probably need to load all types here
+				if (mMetadataItem != null)
+					cu.AddData(mMetadataItem);
+				if (mVirtualMethodTreeDataItem != null && !mVMTWasCached)
+					cu.AddData(mVirtualMethodTreeDataItem);
+				mAddedToCompileUnit = true;
+			}
+		}
+
+		private bool locatedStaticConstructor = false;
+		private IRMethod mStaticConstructor = null;
+		public bool HasStaticConstructor { get { return StaticConstructor != null; } }
+		public IRMethod StaticConstructor
+		{
+			get
+			{
+				if (!locatedStaticConstructor)
+				{
+					var cctors = Methods.FindAll(m => m.Name == ".cctor");
+					if (cctors.Count > 1)
+						throw new Exception("Found multiple static constructors!");
+					else if (cctors.Count == 1)
+						mStaticConstructor = cctors[0];
+					locatedStaticConstructor = true;
+				}
+				return mStaticConstructor;
+			}
+		}
+
 		public readonly List<IRMethod> VirtualMethodTree = new List<IRMethod>();
 		internal void CreateVirtualMethodTree()
 		{
@@ -236,7 +454,7 @@ namespace Proton.VM.IR
 				}
 				foreach (IRMethod method in Methods)
 				{
-					if (!method.IsStatic && method.IsVirtual)
+					if (!method.IsStatic && method.IsVirtual && !method.IsGeneric)
 					{
 						if (method.IsNewSlot)
 						{
@@ -342,7 +560,6 @@ namespace Proton.VM.IR
 			}
 		}
 
-		// Dynamic Types
 		public bool IsTemporaryVar = false;
 		public bool IsTemporaryMVar = false;
 		public uint TemporaryVarOrMVarIndex = 0;
@@ -358,25 +575,20 @@ namespace Proton.VM.IR
 			{
 				if (mIsGenericCache != null)
 					return mIsGenericCache.Value;
-				bool isGenericParameter = GenericParameters.Count > 0 || IsTemporaryVar || IsTemporaryMVar;
-				bool isGenericArray = ArrayElementType != null && ArrayElementType.IsGeneric;
-				bool isGenericPointer = ManagedPointerType != null && ManagedPointerType.IsGeneric;
-				mIsGenericCache = isGenericParameter || isGenericArray || isGenericPointer;
-				if (isGenericArray) { }
 
-				//mIsGenericCache =
-				//	GenericParameters.Count > 0 ||
-				//	IsTemporaryVar ||
-				//	IsTemporaryMVar ||
-				//	(
-				//		ArrayElementType != null &&
-				//		ArrayElementType.IsGeneric
-				//	) ||
-				//	(
-				//		ManagedPointerType != null &&
-				//		ManagedPointerType.IsGeneric
-				//	)
-				//;
+				mIsGenericCache =
+					GenericParameters.Count > 0 ||
+					IsTemporaryVar ||
+					IsTemporaryMVar ||
+					(
+						ArrayElementType != null &&
+						ArrayElementType.IsGeneric
+					) ||
+					(
+						ManagedPointerType != null &&
+						ManagedPointerType.IsGeneric
+					)
+				;
 
 				return mIsGenericCache.Value; 
 			}
@@ -387,7 +599,7 @@ namespace Proton.VM.IR
 			get { return mGenericType; }
 			set
 			{
-				//if (value == null) throw new Exception();
+				if (value == null) throw new Exception();
 				mGenericType = value;
 			}
 		}
@@ -414,7 +626,21 @@ namespace Proton.VM.IR
 			this.Fields.ForEach(f => t.Fields.Add(f.Clone(t)));
 			t.ImplementedInterfaces.AddRange(this.ImplementedInterfaces);
 			this.ExplicitOverrides.ForEach(od => t.ExplicitOverrides.Add(od.Clone()));
-			this.Methods.ForEach(m => t.Methods.Add(m.Clone(t)));
+			if (this.IsGeneric)
+			{
+				this.Methods.ForEach(m => t.Methods.Add(m.Clone(t)));
+			}
+			else if (this == Assembly.AppDomain.System_Array)
+			{
+				this.Methods.ForEach(m => t.Methods.Add(m));
+			}
+			else
+			{
+				foreach (var m in this.Methods)
+				{
+					t.Methods.Add(m.IsStatic && !m.IsGeneric ? m : m.Clone(t));
+				}
+			}
 			t.NestedTypes.AddRange(this.NestedTypes);
 			t.NestedInsideOfType = this.NestedInsideOfType;
 			t.GenericParameters.AddRange(this.GenericParameters);
@@ -510,20 +736,6 @@ namespace Proton.VM.IR
 								if (!GenericTypes.TryGetValue(tp, out tp2))
 								{
 									GenericTypes.Add(tp, tp);
-
-									//for (int i = 0; i < tp.GenericParameters.Count; i++)
-									//{
-									//	tp.GenericParameters[i] = this.GenericParameters[i];
-									//}
-									for (int i = 0; i < tp.Methods.Count; i++)
-									{
-										//tp.Methods[i].HasUnResolvedGenerics || 
-										//if (!tp.Methods[i].IsStatic)
-										{
-											tp.Methods[i] = tp.Methods[i].Clone(tp);
-										}
-									}
-
 									tp.Substitute(typeParams, methodParams);
 								}
 								else
@@ -736,10 +948,6 @@ namespace Proton.VM.IR
 				return mIsUnsafeTypeCache.Value;
 			}
 		}
-
-
-		private Label mTypeDataLabel = null;
-		public Label TypeDataLabel { get { return mTypeDataLabel ?? (mTypeDataLabel = new Label()); } }
 
 		private LIRType lirTypeCache = null;
 		public LIRType ToLIRType()

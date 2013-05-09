@@ -28,11 +28,23 @@ namespace Proton.VM.IR.Instructions
 
 		public override void ConvertToLIR(LIRMethod pLIRMethod)
 		{
+			var s = pLIRMethod.RequestLocal(Sources[0].GetTypeOfLocation());
+			Sources[0].LoadTo(pLIRMethod, s);
+			var d = pLIRMethod.RequestLocal(Type);
+			new LIRInstructions.Move(pLIRMethod, Type.ToLIRType().Empty, d, Type);
+			new LIRInstructions.Move(pLIRMethod, d, new Indirect(s), Type);
+			pLIRMethod.ReleaseLocal(s);
+			pLIRMethod.ReleaseLocal(d);
 		}
 
 		protected override void DumpDetails(IndentableStreamWriter pWriter)
 		{
 			pWriter.WriteLine("Type {0}", Type.ToString());
+		}
+
+		public override string ToString()
+		{
+			return String.Format("InitializeObject {0} {1}", Type, Sources[0]);
 		}
 	}
 }

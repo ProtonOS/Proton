@@ -10,20 +10,10 @@ namespace Proton.VM.IR
 		public IRAssembly Assembly = null;
 		public IRMethod ParentMethod = null;
 
-		private IRLocal mParentLocal = null;
 		private IRType mType;
 		public IRType Type
 		{
-			get
-			{
-				if (mType == null && mParentLocal != null)
-				{
-					mType = mParentLocal.Type;
-					if (mType == null) throw new Exception();
-					mParentLocal = null;
-				}
-				return mType;
-			}
+			get { return mType; }
 			set
 			{
 				if (value == null) throw new Exception();
@@ -86,9 +76,7 @@ namespace Proton.VM.IR
 		{
 			IRLocal local = new IRLocal(this.Assembly);
 			local.ParentMethod = newMethod;
-			local.mParentLocal = this.Type == null ? this : null;
-			if (this.Type != null)
-				local.mType = this.Type;
+			local.mType = this.Type;
 			local.Index = newMethod.Locals.Count;
 			if (SSAData != null) local.SSAData = SSAData.Clone();
 			return local;

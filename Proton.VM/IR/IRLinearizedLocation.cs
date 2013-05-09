@@ -6,53 +6,161 @@ using System.Runtime.InteropServices;
 
 namespace Proton.VM.IR
 {
+// Disable warnings about GetHashcode not being implemented
+#pragma warning disable 659
+#pragma warning disable 661
+
+	[StructLayout(LayoutKind.Explicit, Pack=1)]
 	public sealed class IRLinearizedLocation
 	{
 		public struct LocalLocationData { public int LocalIndex; }
+		[FieldOffset(0)]
+		public LocalLocationData Local;
+
 		public struct LocalAddressLocationData { public int LocalIndex; }
+		[FieldOffset(0)]
+		public LocalAddressLocationData LocalAddress;
+
 		public struct ParameterLocationData { public int ParameterIndex; }
+		[FieldOffset(0)]
+		public ParameterLocationData Parameter;
+
 		public struct ParameterAddressLocationData { public int ParameterIndex; }
+		[FieldOffset(0)]
+		public ParameterAddressLocationData ParameterAddress;
+
 		public struct ConstantI4LocationData { public int Value; }
+		[FieldOffset(0)]
+		public ConstantI4LocationData ConstantI4;
+
 		public struct ConstantI8LocationData { public long Value; }
+		[FieldOffset(0)]
+		public ConstantI8LocationData ConstantI8;
+
 		public struct ConstantR4LocationData { public float Value; }
+		[FieldOffset(0)]
+		public ConstantR4LocationData ConstantR4;
+
 		public struct ConstantR8LocationData { public double Value; }
+		[FieldOffset(0)]
+		public ConstantR8LocationData ConstantR8;
+		// 49 unmanaged
+		// 144 managed (x86)
+		// 288 managed (x64)
+
+		[StructLayout(LayoutKind.Sequential, Pack = 8, Size = 32)]
 		public struct FieldLocationData
 		{
 			public IRField Field;
 			public IRLinearizedLocation FieldLocation;
+			private object padA;
+			private object padB;
 		}
+		[FieldOffset(8)]
+		public FieldLocationData Field;
+
+		[StructLayout(LayoutKind.Sequential, Pack = 8, Size = 32)]
 		public struct FieldAddressLocationData
 		{
 			public IRField Field;
 			public IRLinearizedLocation FieldLocation;
+			private object padA;
+			private object padB;
 		}
-		public struct StaticFieldLocationData { public IRField Field; }
-		public struct StaticFieldAddressLocationData { public IRField Field; }
+		[FieldOffset(8)]
+		public FieldAddressLocationData FieldAddress;
+
+		[StructLayout(LayoutKind.Sequential, Pack = 8, Size = 32)]
+		public struct StaticFieldLocationData 
+		{
+			public IRField Field;
+			private object padA;
+			private object padB;
+			private object padC;
+		}
+		[FieldOffset(8)]
+		public StaticFieldLocationData StaticField;
+
+		[StructLayout(LayoutKind.Sequential, Pack = 8, Size = 32)]
+		public struct StaticFieldAddressLocationData 
+		{
+			public IRField Field;
+			private object padA;
+			private object padB;
+			private object padC;
+		}
+		[FieldOffset(8)]
+		public StaticFieldAddressLocationData StaticFieldAddress;
+
+		[StructLayout(LayoutKind.Sequential, Pack = 8, Size = 32)]
 		public struct IndirectLocationData
 		{
 			public IRType Type;
 			public IRLinearizedLocation AddressLocation;
+			private object padA;
+			private object padB;
 		}
-		public struct SizeOfLocationData { public IRType Type; }
+		[FieldOffset(8)]
+		public IndirectLocationData Indirect;
+
+		[StructLayout(LayoutKind.Sequential, Pack = 8, Size = 32)]
+		public struct SizeOfLocationData 
+		{
+			public IRType Type;
+			private object padA;
+			private object padB;
+			private object padC;
+		}
+		[FieldOffset(8)]
+		public SizeOfLocationData SizeOf;
+
+		[StructLayout(LayoutKind.Sequential, Pack = 8, Size = 32)]
 		public struct ArrayElementLocationData
 		{
 			public IRType ElementType;
 			public IRLinearizedLocation ArrayLocation;
 			public IRLinearizedLocation IndexLocation;
+			private object padA;
 		}
+		[FieldOffset(8)]
+		public ArrayElementLocationData ArrayElement;
+
+		[StructLayout(LayoutKind.Sequential, Pack = 8, Size = 32)]
 		public struct ArrayElementAddressLocationData
 		{
 			public IRType ElementType;
 			public IRLinearizedLocation ArrayLocation;
 			public IRLinearizedLocation IndexLocation;
+			private object padA;
 		}
-		public struct ArrayLengthLocationData { public IRLinearizedLocation ArrayLocation; }
+		[FieldOffset(8)]
+		public ArrayElementAddressLocationData ArrayElementAddress;
+
+		[StructLayout(LayoutKind.Sequential, Pack = 8, Size = 32)]
+		public struct ArrayLengthLocationData 
+		{
+			public IRLinearizedLocation ArrayLocation;
+			private object padA;
+			private object padB;
+			private object padC;
+		}
+		[FieldOffset(8)]
+		public ArrayLengthLocationData ArrayLength;
+
+		[StructLayout(LayoutKind.Sequential, Pack = 8, Size = 32)]
 		public struct FunctionAddressLocationData
 		{
+			private object mVirtual;
 			public IRLinearizedLocation InstanceLocation;
 			public IRMethod Method;
-			public bool Virtual;
+			private object padA;
+
+			public bool Virtual { get { return (bool)(mVirtual ?? (mVirtual = false)); } set { mVirtual = value; } }
 		}
+		[FieldOffset(8)]
+		public FunctionAddressLocationData FunctionAddress;
+
+		[StructLayout(LayoutKind.Sequential, Pack = 8, Size = 32)]
 		public struct RuntimeHandleLocationData
 		{
 			public IRType HandleType;
@@ -60,39 +168,39 @@ namespace Proton.VM.IR
 			public IRMethod TargetMethod;
 			public IRField TargetField;
 		}
-		public struct StringLocationData { public string Value; }
+		[FieldOffset(8)]
+		public RuntimeHandleLocationData RuntimeHandle;
+
+		[StructLayout(LayoutKind.Sequential, Pack = 8, Size = 32)]
+		public struct StringLocationData 
+		{
+			public string Value;
+			private object padA;
+			private object padB;
+			private object padC;
+		}
+		[FieldOffset(8)]
+		public StringLocationData String;
+
+		[StructLayout(LayoutKind.Sequential, Pack = 8, Size = 32)]
 		public struct PhiLocationData
 		{
 			public List<IRLinearizedLocation> SourceLocations;
+			private object padA;
+			private object padB;
+			private object padC;
 		}
-
-		private static int sTempID = 0;
-		internal int mTempID = 0;
-
-		public IRInstruction ParentInstruction;
-		public IRLinearizedLocationType Type;
-		public LocalLocationData Local;
-		public LocalAddressLocationData LocalAddress;
-		public ParameterLocationData Parameter;
-		public ParameterAddressLocationData ParameterAddress;
-		public ConstantI4LocationData ConstantI4;
-		public ConstantI8LocationData ConstantI8;
-		public ConstantR4LocationData ConstantR4;
-		public ConstantR8LocationData ConstantR8;
-		public FieldLocationData Field;
-		public FieldAddressLocationData FieldAddress;
-		public StaticFieldLocationData StaticField;
-		public StaticFieldAddressLocationData StaticFieldAddress;
-		public IndirectLocationData Indirect;
-		public SizeOfLocationData SizeOf;
-		public ArrayElementLocationData ArrayElement;
-		public ArrayElementAddressLocationData ArrayElementAddress;
-		public ArrayLengthLocationData ArrayLength;
-		public FunctionAddressLocationData FunctionAddress;
-		public RuntimeHandleLocationData RuntimeHandle;
-		public StringLocationData String;
+		[FieldOffset(8)]
 		public PhiLocationData Phi;
 
+		[FieldOffset(40)]
+		public IRInstruction ParentInstruction;
+		[FieldOffset(48)]
+		public IRLinearizedLocationType Type;
+
+		private static int sTempID = 0;
+		[FieldOffset(52)]
+		internal int mTempID = 0;
 		public IRLinearizedLocation(IRInstruction pParentInstruction, IRLinearizedLocationType pType)
 		{
 			mTempID = sTempID++;
@@ -445,6 +553,70 @@ namespace Proton.VM.IR
 			}
 		}
 
+		public sealed class StaticConstructorCalledEmittableDataItem : EmittableData
+		{
+			private string TypeName;
+			private Label mLabel = new Label("StaticConstructorCalled");
+			public override Label Label { get { return mLabel; } }
+
+			public StaticConstructorCalledEmittableDataItem(IRType tp)
+			{
+				this.TypeName = tp.ToString();
+			}
+
+			public override byte[] GetData(EmissionContext c)
+			{
+				return new byte[1];
+			}
+
+			public override string ToString()
+			{
+				return string.Format("StaticConstructorCalled({0})", TypeName);
+			}
+		}
+
+		public static Dictionary<IRType, StaticConstructorCalledEmittableDataItem> KnownStaticConstructors = new Dictionary<IRType, StaticConstructorCalledEmittableDataItem>();
+		public static void EmitStaticConstructorCheck(LIRMethod m, IRType targetType, IRType curType, bool forceEmit = false)
+		{
+			if (targetType.HasStaticConstructor && (forceEmit || targetType != curType))
+			{
+				var con = targetType.StaticConstructor;
+				if (
+					(
+						con.Instructions.Count == 1 &&
+						con.Instructions[0].Opcode == IROpcode.Return
+					) ||
+					(
+						con.Instructions.Count == 2 &&
+						con.Instructions[0].Opcode == IROpcode.Nop &&
+						con.Instructions[1].Opcode == IROpcode.Return
+					)
+				)
+				{
+					// We don't need a static constructor call
+				}
+				else
+				{
+					StaticConstructorCalledEmittableDataItem d = null;
+					if (!KnownStaticConstructors.TryGetValue(targetType, out d))
+					{
+						d = new StaticConstructorCalledEmittableDataItem(targetType);
+						m.CompileUnit.AddData(d);
+						KnownStaticConstructors.Add(targetType, d);
+					}
+					new LIRInstructions.Comment(m, "Static Constructor Check");
+					var c = m.RequestLocal(targetType.Assembly.AppDomain.System_Boolean);
+					new LIRInstructions.Move(m, new Indirect(d.Label), c, targetType.Assembly.AppDomain.System_Boolean);
+					Label called = new Label();
+					new LIRInstructions.BranchTrue(m, c, called);
+					m.ReleaseLocal(c);
+					new LIRInstructions.Move(m, (LIRImm)1, new Indirect(d.Label), targetType.Assembly.AppDomain.System_Boolean);
+					new LIRInstructions.Call(m, con);
+					m.MarkLabel(called);
+				}
+			}
+		}
+
 		public void LoadTo(LIRMethod pParent, IDestination pDestination)
 		{
 			switch (Type)
@@ -562,17 +734,66 @@ namespace Proton.VM.IR
 					pParent.ReleaseLocal(dest);
 					break;
 				}
-
-
-#warning Finish the rest of these case statements
 				case IRLinearizedLocationType.StaticField:
+				{
+					EmitStaticConstructorCheck(pParent, StaticField.Field.ParentType, ParentInstruction.ParentMethod.ParentType);
+					new LIRInstructions.Move(pParent, new Indirect(StaticField.Field.Label), pDestination, StaticField.Field.Type);
 					break;
+				}
 				case IRLinearizedLocationType.StaticFieldAddress:
+				{
+					EmitStaticConstructorCheck(pParent, StaticFieldAddress.Field.ParentType, ParentInstruction.ParentMethod.ParentType);
+					new LIRInstructions.Move(pParent, StaticFieldAddress.Field.Label, pDestination, StaticField.Field.Type);
 					break;
+				}
 				case IRLinearizedLocationType.FunctionAddress:
+				{
+					if (FunctionAddress.Virtual)
+					{
+						if (FunctionAddress.Method.VirtualMethodIndex < 0)
+							throw new Exception("The requested method never got laid out in a virtual method tree!");
+						if (FunctionAddress.Method.ParentType.IsInterface)
+						{
+#warning Loading the virtual function address of a method on an interface isn't supported yet!
+						}
+						else
+						{
+							var s = pParent.RequestLocal(Indirect.AddressLocation.GetTypeOfLocation());
+							Indirect.AddressLocation.LoadTo(pParent, s); // Gets Object Pointer
+							new LIRInstructions.Math(pParent, s, (LIRImm)VMConfig.PointerSizeForTarget, s, LIRInstructions.MathOperation.Subtract, s.Type); // Subtract sizeof pointer to get address of TypeData pointer
+							new LIRInstructions.Move(pParent, new Indirect(s), s, s.Type); // Get TypeData Pointer
+							new LIRInstructions.Move(pParent, new Indirect(s), s, s.Type); // Get VirtualMethodTree Pointer Array
+							new LIRInstructions.Math(pParent, s, (LIRImm)(VMConfig.PointerSizeForTarget * FunctionAddress.Method.VirtualMethodIndex), s, LIRInstructions.MathOperation.Add, s.Type); // Get VirtualMethod Pointer Address
+							new LIRInstructions.Move(pParent, new Indirect(s), pDestination, s.Type); // Get VirtualMethod Pointer
+							pParent.ReleaseLocal(s);
+						}
+					}
+					else
+					{
+						new LIRInstructions.Move(pParent, FunctionAddress.Method.LIRMethod.Label, pDestination, ParentInstruction.AppDomain.System_UIntPtr);
+					}
 					break;
+				}
 				case IRLinearizedLocationType.RuntimeHandle:
+				{
+					if (RuntimeHandle.HandleType == ParentInstruction.AppDomain.System_RuntimeTypeHandle)
+					{
+						new LIRInstructions.Move(pParent, RuntimeHandle.TargetType.MetadataLabel, pDestination, RuntimeHandle.HandleType);
+					}
+					else if (RuntimeHandle.HandleType == ParentInstruction.AppDomain.System_RuntimeMethodHandle)
+					{
+						new LIRInstructions.Move(pParent, RuntimeHandle.TargetMethod.MetadataLabel, pDestination, RuntimeHandle.HandleType);
+					}
+					else if (RuntimeHandle.HandleType == ParentInstruction.AppDomain.System_RuntimeFieldHandle)
+					{
+						new LIRInstructions.Move(pParent, RuntimeHandle.TargetField.MetadataLabel, pDestination, RuntimeHandle.HandleType);
+					}
+					else
+					{
+						throw new Exception("Unknown RuntimeHandle HandleType!");
+					}
 					break;
+				}
 
 				case IRLinearizedLocationType.Phi:
 					throw new Exception("All phi's should have been eliminated by this point!");
@@ -594,14 +815,41 @@ namespace Proton.VM.IR
 				case IRLinearizedLocationType.Indirect:
 					Indirect.AddressLocation.LoadTo(pParent, pDestination);
 					break;
-#warning Finish the rest of these case statements
 				case IRLinearizedLocationType.Field:
+				{
+					var obj = pParent.RequestLocal(Field.FieldLocation.GetTypeOfLocation());
+					Field.FieldLocation.LoadTo(pParent, obj);
+					var foff = pParent.RequestLocal(ParentInstruction.ParentMethod.Assembly.AppDomain.System_UIntPtr);
+					new LIRInstructions.Math(pParent, obj, (LIRImm)Field.Field.Offset, foff, LIRInstructions.MathOperation.Add, ParentInstruction.ParentMethod.Assembly.AppDomain.System_UIntPtr);
+					pParent.ReleaseLocal(obj);
+					new LIRInstructions.Move(pParent, foff, pDestination, Field.Field.Type.GetManagedPointerType());
+					pParent.ReleaseLocal(foff);
 					break;
+				}
 				case IRLinearizedLocationType.ArrayElement:
+				{
+					var arr = pParent.RequestLocal(ArrayElement.ArrayLocation.GetTypeOfLocation());
+					var idx = pParent.RequestLocal(ArrayElement.IndexLocation.GetTypeOfLocation());
+					ArrayElement.ArrayLocation.LoadTo(pParent, arr);
+					ArrayElement.IndexLocation.LoadTo(pParent, idx);
+					var off = pParent.RequestLocal(ParentInstruction.ParentMethod.Assembly.AppDomain.System_UIntPtr);
+					new LIRInstructions.Math(pParent, idx, (LIRImm)ArrayElement.ElementType.StackSize, off, LIRInstructions.MathOperation.Multiply, ParentInstruction.ParentMethod.Assembly.AppDomain.System_UIntPtr);
+					pParent.ReleaseLocal(idx);
+					new LIRInstructions.Math(pParent, off, (LIRImm)0x04, off, LIRInstructions.MathOperation.Add, ParentInstruction.ParentMethod.Assembly.AppDomain.System_UIntPtr);
+					new LIRInstructions.Math(pParent, off, arr, off, LIRInstructions.MathOperation.Add, ParentInstruction.ParentMethod.Assembly.AppDomain.System_UIntPtr);
+					pParent.ReleaseLocal(arr);
+					new LIRInstructions.Move(pParent, off, pDestination, ArrayElement.ElementType.GetManagedPointerType());
+					pParent.ReleaseLocal(off);
 					break;
+				}
 				case IRLinearizedLocationType.StaticField:
+				{
+					EmitStaticConstructorCheck(pParent, StaticField.Field.ParentType, ParentInstruction.ParentMethod.ParentType);
+					new LIRInstructions.Move(pParent, StaticField.Field.Label, pDestination, StaticField.Field.Type);
 					break;
+				}
 
+#warning Finish the rest of these case statements
 				case IRLinearizedLocationType.Null:
 				case IRLinearizedLocationType.LocalAddress:
 				case IRLinearizedLocationType.ParameterAddress:
@@ -617,7 +865,8 @@ namespace Proton.VM.IR
 				case IRLinearizedLocationType.RuntimeHandle:
 				case IRLinearizedLocationType.String:
 				case IRLinearizedLocationType.SizeOf:
-					throw new Exception("It's not possible to load the address of these!");
+					break;
+					//throw new Exception("It's not possible to load the address of these!");
 				case IRLinearizedLocationType.Phi:
 					throw new Exception("All phi's should have been eliminated by this point!");
 				default:
@@ -671,7 +920,11 @@ namespace Proton.VM.IR
 					break;
 				}
 				case IRLinearizedLocationType.StaticField:
+				{
+					EmitStaticConstructorCheck(pParent, StaticField.Field.ParentType, ParentInstruction.ParentMethod.ParentType);
+					new LIRInstructions.Move(pParent, pSource, new Indirect(StaticField.Field.Label), StaticField.Field.Type);
 					break;
+				}
 
 
 				case IRLinearizedLocationType.Null:
@@ -692,6 +945,70 @@ namespace Proton.VM.IR
 					throw new Exception("It's not possible to store to these!");
 				case IRLinearizedLocationType.Phi:
 					throw new Exception("All phi's should have been eliminated by this point!");
+				default:
+					throw new Exception("Unknown IRLinearizedLocationType!");
+			}
+		}
+
+		public void RetargetSource(ref IRLinearizedLocation selfReference, IRLinearizedLocation oldSrc, IRLinearizedLocation newSrc)
+		{
+			if (selfReference == oldSrc)
+			{
+				selfReference = newSrc;
+				return;
+			}
+
+			switch (this.Type)
+			{
+				case IRLinearizedLocationType.Null:
+				case IRLinearizedLocationType.Local:
+				case IRLinearizedLocationType.LocalAddress:
+				case IRLinearizedLocationType.Parameter:
+				case IRLinearizedLocationType.ParameterAddress:
+				case IRLinearizedLocationType.ConstantI4:
+				case IRLinearizedLocationType.ConstantI8:
+				case IRLinearizedLocationType.ConstantR4:
+				case IRLinearizedLocationType.ConstantR8:
+				case IRLinearizedLocationType.SizeOf:
+				case IRLinearizedLocationType.StaticField:
+				case IRLinearizedLocationType.StaticFieldAddress:
+				case IRLinearizedLocationType.RuntimeHandle:
+				case IRLinearizedLocationType.String:
+					break;
+
+				case IRLinearizedLocationType.Field:
+					Field.FieldLocation.RetargetSource(ref Field.FieldLocation, oldSrc, newSrc);
+					break;
+				case IRLinearizedLocationType.FieldAddress:
+					FieldAddress.FieldLocation.RetargetSource(ref FieldAddress.FieldLocation, oldSrc, newSrc);
+					break;
+				case IRLinearizedLocationType.Indirect:
+					Indirect.AddressLocation.RetargetSource(ref Indirect.AddressLocation, oldSrc, newSrc);
+					break;
+				case IRLinearizedLocationType.ArrayElement:
+					ArrayElement.ArrayLocation.RetargetSource(ref ArrayElement.ArrayLocation, oldSrc, newSrc);
+					ArrayElement.IndexLocation.RetargetSource(ref ArrayElement.IndexLocation, oldSrc, newSrc);
+					break;
+				case IRLinearizedLocationType.ArrayElementAddress:
+					ArrayElementAddress.ArrayLocation.RetargetSource(ref ArrayElementAddress.ArrayLocation, oldSrc, newSrc);
+					ArrayElementAddress.IndexLocation.RetargetSource(ref ArrayElementAddress.IndexLocation, oldSrc, newSrc);
+					break;
+				case IRLinearizedLocationType.ArrayLength:
+					ArrayLength.ArrayLocation.RetargetSource(ref ArrayLength.ArrayLocation, oldSrc, newSrc);
+					break;
+				case IRLinearizedLocationType.FunctionAddress:
+					if (FunctionAddress.Virtual)
+						FunctionAddress.InstanceLocation.RetargetSource(ref FunctionAddress.InstanceLocation, oldSrc, newSrc);
+					break;
+				case IRLinearizedLocationType.Phi:
+					for (int i = 0; i < Phi.SourceLocations.Count; i++)
+					{
+						var l = Phi.SourceLocations[i];
+						l.RetargetSource(ref l, oldSrc, newSrc);
+						Phi.SourceLocations[i] = l;
+					}
+					break;
+
 				default:
 					throw new Exception("Unknown IRLinearizedLocationType!");
 			}
@@ -831,6 +1148,83 @@ namespace Proton.VM.IR
 					break;
 			}
 		}
+
+		public override bool Equals(object obj)
+		{
+			if (!(obj is IRLinearizedLocation)) return false;
+			return (IRLinearizedLocation)obj == this;
+		}
+
+		public static bool operator ==(IRLinearizedLocation locA, IRLinearizedLocation locB)
+		{
+			if (ReferenceEquals(locA, locB)) return true;
+			if ((object)locA == null)
+			{
+				if ((object)locB == null)
+					return true;
+				return false;
+			}
+			else if ((object)locB == null)
+				return false;
+
+			if (locA.Type != locB.Type)
+				return false;
+			switch (locA.Type)
+			{
+				case IRLinearizedLocationType.Null:
+					return true;
+				case IRLinearizedLocationType.String:
+					return locA.String.Value == locB.String.Value;
+				case IRLinearizedLocationType.Local:
+					return locA.Local.LocalIndex == locB.Local.LocalIndex;
+				case IRLinearizedLocationType.LocalAddress:
+					return locA.LocalAddress.LocalIndex == locB.LocalAddress.LocalIndex;
+				case IRLinearizedLocationType.Parameter:
+					return locA.Parameter.ParameterIndex == locB.Parameter.ParameterIndex;
+				case IRLinearizedLocationType.ParameterAddress:
+					return locA.ParameterAddress.ParameterIndex == locB.ParameterAddress.ParameterIndex;
+				case IRLinearizedLocationType.ConstantI4:
+					return locA.ConstantI4.Value == locB.ConstantI4.Value;
+				case IRLinearizedLocationType.ConstantI8:
+					return locA.ConstantI8.Value == locB.ConstantI8.Value;
+				case IRLinearizedLocationType.ConstantR4:
+					return locA.ConstantR4.Value == locB.ConstantR4.Value;
+				case IRLinearizedLocationType.ConstantR8:
+					return locA.ConstantR8.Value == locB.ConstantR8.Value;
+				case IRLinearizedLocationType.Field:
+					return locA.Field.Field == locB.Field.Field && locA.Field.FieldLocation == locB.Field.FieldLocation;
+				case IRLinearizedLocationType.FieldAddress:
+					return locA.FieldAddress.Field == locB.FieldAddress.Field && locA.FieldAddress.FieldLocation == locB.FieldAddress.FieldLocation;
+				case IRLinearizedLocationType.StaticField:
+					return locA.StaticField.Field == locB.StaticField.Field;
+				case IRLinearizedLocationType.StaticFieldAddress:
+					return locA.StaticFieldAddress.Field == locB.StaticFieldAddress.Field;
+				case IRLinearizedLocationType.Indirect:
+					return locA.Indirect.Type == locB.Indirect.Type && locA.Indirect.AddressLocation == locB.Indirect.AddressLocation;
+				case IRLinearizedLocationType.SizeOf:
+					return locA.SizeOf.Type == locB.SizeOf.Type;
+				case IRLinearizedLocationType.ArrayElement:
+					return locA.ArrayElement.ElementType == locB.ArrayElement.ElementType && locA.ArrayElement.ArrayLocation == locB.ArrayElement.ArrayLocation && locA.ArrayElement.IndexLocation == locB.ArrayElement.IndexLocation;
+				case IRLinearizedLocationType.ArrayElementAddress:
+					return locA.ArrayElementAddress.ElementType == locB.ArrayElementAddress.ElementType && locA.ArrayElementAddress.ArrayLocation == locB.ArrayElementAddress.ArrayLocation && locA.ArrayElementAddress.IndexLocation == locB.ArrayElementAddress.IndexLocation;
+				case IRLinearizedLocationType.ArrayLength:
+					return locA.ArrayLength.ArrayLocation == locB.ArrayLength.ArrayLocation;
+				case IRLinearizedLocationType.FunctionAddress:
+					return locA.FunctionAddress.Method == locB.FunctionAddress.Method && locA.FunctionAddress.InstanceLocation == locB.FunctionAddress.InstanceLocation;
+				case IRLinearizedLocationType.RuntimeHandle:
+					return locA.RuntimeHandle.HandleType == locB.RuntimeHandle.HandleType && locA.RuntimeHandle.TargetField == locB.RuntimeHandle.TargetField && locA.RuntimeHandle.TargetMethod == locB.RuntimeHandle.TargetMethod && locA.RuntimeHandle.TargetType == locB.RuntimeHandle.TargetType;
+				case IRLinearizedLocationType.Phi:
+					for (int i = 0; i < locA.Phi.SourceLocations.Count; i++)
+					{
+						if (locA.Phi.SourceLocations[i] != locB.Phi.SourceLocations[i])
+							return false;
+					}
+					return true;
+				default:
+					throw new Exception("Unknown IRLinearizedLocationType!");
+			}
+		}
+		public static bool operator !=(IRLinearizedLocation locA, IRLinearizedLocation locB) { return !(locA == locB); }
 
 		public override string ToString()
 		{

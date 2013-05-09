@@ -20,6 +20,27 @@ namespace Proton.LIR
 
 	public sealed class LIRType
 	{
+		public sealed class DefaultValue : ISource
+		{
+			public bool MayHaveSideEffects { get { return false; } } 
+			public SourceType SourceType { get { return SourceType.DefaultValue; } }
+
+			public LIRType Type { get; private set; }
+
+			internal DefaultValue(LIRType tp)
+			{
+				this.Type = tp;
+			}
+
+			public override string ToString()
+			{
+				return String.Format("default({0})", Type);
+			}
+		}
+
+		private DefaultValue mEmpty;
+		public DefaultValue Empty { get { return mEmpty ?? (mEmpty = new DefaultValue(this)); } }
+
 		/// <summary>
 		/// The size of this type in bytes. (should never have a bit above the 24th bit set)
 		/// </summary>

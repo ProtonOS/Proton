@@ -61,14 +61,26 @@ namespace Proton.VM.IR
 		}
 
 		private IRMethod mParentMethod;
+		private bool mBoundParameters = false;
 		private readonly List<IRParameter> mParameters = new List<IRParameter>();
 		public List<IRParameter> Parameters
 		{
 			get
 			{
-				if (mParentMethod != null && mParentMethod.Parameters.Count != mParameters.Count)
+				if (!mBoundParameters)
 				{
-					mParameters.Insert(0, mParentMethod.Parameters[0].Clone(this));
+					if (mParentMethod != null)
+					{
+						if (mParentMethod.Parameters.Count != mParameters.Count)
+						{
+							mBoundParameters = true;
+							mParameters.Insert(0, mParentMethod.Parameters[0].Clone(this));
+						}
+					}
+					else
+					{
+						//mBoundParameters = true;
+					}
 				}
 				return mParameters;
 			}
@@ -89,10 +101,13 @@ namespace Proton.VM.IR
 		{
 			get
 			{
-				if (!mBoundLocals && mParentMethod != null && mParentMethod.Locals.Count != mLocals.Count)
+				if (!mBoundLocals)
 				{
 					mBoundLocals = true;
-					mParentMethod.Locals.ForEach(l => mLocals.Add(l.Clone(this)));
+					if (mParentMethod != null && mParentMethod.Locals.Count != mLocals.Count)
+					{
+						mParentMethod.Locals.ForEach(l => mLocals.Add(l.Clone(this)));
+					}
 				}
 				return mLocals;
 			}
@@ -113,11 +128,14 @@ namespace Proton.VM.IR
 		{
 			get
 			{
-				if (!mBoundInstructions && mParentMethod != null && mParentMethod.Instructions.Count != mInstructions.Count)
+				if (!mBoundInstructions)
 				{
 					mBoundInstructions = true;
-					mParentMethod.Instructions.ForEach(i => mInstructions.Add(i.Clone(this)));
-					mInstructions.FixClonedTargetInstructions();
+					if (mParentMethod != null && mParentMethod.Instructions.Count != mInstructions.Count)
+					{
+						mParentMethod.Instructions.ForEach(i => mInstructions.Add(i.Clone(this)));
+						mInstructions.FixClonedTargetInstructions();
+					}
 				}
 				return mInstructions;
 			}
@@ -139,6 +157,42 @@ namespace Proton.VM.IR
 					throw new Exception("Cannot set the global method id more than once!");
 				mGlobalMethodID = value;
 				mGlobalMethodIDSet = true;
+			}
+		}
+
+		public sealed class MethodMetadataEmittableDataItem : EmittableData
+		{
+			private string MethodName;
+			private Label mLabel = new Label("MethodMetadata");
+			public override Label Label { get { return mLabel; } }
+
+			public MethodMetadataEmittableDataItem(IRMethod m)
+			{
+#warning Need to get the required data here
+				this.MethodName = m.ToString();
+			}
+
+			public override byte[] GetData(EmissionContext c)
+			{
+				return new byte[16];
+			}
+
+			public override string ToString()
+			{
+				return string.Format("MethodMetadata({0})", MethodName);
+			}
+		}
+		private MethodMetadataEmittableDataItem mMetadataItem;
+		public Label MetadataLabel { get { return (mMetadataItem ?? (mMetadataItem = new MethodMetadataEmittableDataItem(this))).Label; } }
+
+		private bool mAddedToCompileUnit = false;
+		public void AddToCompileUnit(LIRCompileUnit cu)
+		{
+			if (!mAddedToCompileUnit)
+			{
+				if (mMetadataItem != null)
+					cu.AddData(mMetadataItem);
+				mAddedToCompileUnit = true;
 			}
 		}
 
@@ -202,12 +256,6 @@ namespace Proton.VM.IR
 							if (!t.GenericMethods.TryGetValue(mth, out mth2))
 							{
 								t.GenericMethods.Add(mth, mth);
-
-								//for (int i = 0; i < mth.GenericParameters.Count; i++)
-								//{
-								//	mth.GenericParameters[i] = this.GenericParameters[i];
-								//}
-
 								mth.Substitute(this.GenericParameters);
 							}
 							else
@@ -263,31 +311,30 @@ namespace Proton.VM.IR
 			if (newParent == null) throw new Exception();
 			IRMethod m = new IRMethod(this.Assembly);
 
+			if (this.PresolvedMethod)
+				m.mParentMethod = this.GenericMethod;
+			else
+				m.mParentMethod = this;
 			m.ParentType = newParent;
 			m.GenericMethod = this.GenericMethod;
 			m.GenericParameters.AddRange(this.GenericParameters);
-			if (this.Instructions.Count != 0)
+			if (this.mInstructions.Count != 0 && Assembly.AppDomain.CurrentCompileStage >= 3)
 			{
 				m.mBoundInstructions = true;
-				this.Instructions.ForEach(i => m.Instructions.Add(i.Clone(m)));
+				this.Instructions.ForEach(i => m.mInstructions.Add(i.Clone(m)));
+				m.Instructions.FixClonedTargetInstructions();
 			}
-			m.Instructions.FixClonedTargetInstructions();
-			if (this.Locals.Count != 0)
+			if (this.mLocals.Count != 0 && Assembly.AppDomain.CurrentCompileStage >= 3)
 			{
 				m.mBoundLocals = true;
-				this.Locals.ForEach(l => m.Locals.Add(l.Clone(m)));
+				this.mLocals.ForEach(l => m.mLocals.Add(l.Clone(m)));
 			}
-			this.Parameters.ForEach(p => m.Parameters.Add(p.Clone(m)));
+			this.mParameters.ForEach(p => m.mParameters.Add(p.Clone(m)));
 			m.MaximumStackDepth = this.MaximumStackDepth;
 			m.Name = this.Name;
 			m.Flags = this.Flags;
 			m.ImplFlags = this.ImplFlags;
 			m.ReturnType = this.ReturnType;
-			if (this.PresolvedMethod)
-				m.mParentMethod = this.GenericMethod;
-			else
-				m.mParentMethod = this;
-			// TODO: Fix Branch/Switch/Leave IRInstruction's to new method instructions based on IRIndex's
 			return m;
 		}
 
@@ -1235,6 +1282,24 @@ namespace Proton.VM.IR
 
 		public void CreateLIRMethod()
 		{
+			if (
+				this.Name == ".cctor" &&
+				(
+					(
+						this.Instructions.Count == 1 &&
+						this.Instructions[0].Opcode == IROpcode.Return
+					) ||
+					(
+						this.Instructions.Count == 2 &&
+						this.Instructions[0].Opcode == IROpcode.Nop &&
+						this.Instructions[1].Opcode == IROpcode.Return
+					)
+				)
+			)
+			{
+				Assembly.AppDomain.Methods.QueueForRemoval(this);
+				return;
+			}
 			LIRMethod = new LIRMethod(Name, ReturnType ?? (LIRType)null);
 			mParameters.ForEach(p => new LIRParameter(LIRMethod, p.Type));
 			mLocals.ForEach(l => new LIRLocal(LIRMethod, l.Type));
@@ -1244,6 +1309,11 @@ namespace Proton.VM.IR
 		{
 			if (LIRMethod == null)
 				throw new Exception();
+			// Static constructors don't need to check if they've been called.
+			if (this.Name != ".cctor")
+			{
+				IRLinearizedLocation.EmitStaticConstructorCheck(LIRMethod, this.ParentType, this.ParentType, true);
+			}
 			foreach (var i in mInstructions)
 			{
 				LIRMethod.MarkLabel(i.Label);

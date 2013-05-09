@@ -20,14 +20,18 @@ namespace Proton.LIR
 			mTempID = sTempID++;
 		}
 
-		public Label(string name) : this()
+		public Label(string name, bool autoUnique = true) : this()
 		{
-			this.Name = name + "_" + mTempID;
+			if (autoUnique)
+				this.Name = name + "_" + mTempID;
+			else
+				this.Name = name;
 		}
 
+		private int? mHashCodeCache;
 		public override int GetHashCode()
 		{
-			return mTempID;
+			return (mHashCodeCache ?? (mHashCodeCache = this.ToString().GetHashCode())).Value;
 		}
 
 		public override string ToString()
@@ -51,7 +55,7 @@ namespace Proton.LIR
 
 	public sealed class EmissionContext
 	{
-#warning Do me correctly at some point....
+#warning Do me correctly at some point.... (same with Label.GetData)
 		public int SizeOfLabel { get { return 4; } }
 	}
 
@@ -60,7 +64,7 @@ namespace Proton.LIR
 		private int mPriority;
 		public int Priority { get { return mPriority; } }
 
-		protected EmittableData(int priority = 5)
+		protected EmittableData(int priority = 50)
 		{
 			mPriority = priority;
 		}
@@ -75,7 +79,7 @@ namespace Proton.LIR
 		private const int InitialMethodsSize = 512;
 
 		private Dictionary<Label, EmittableData> mData = new Dictionary<Label, EmittableData>(InitialDataSize);
-		//public IEnumerable<EmittableData> Data { get { return mData.Values; } }
+		public IEnumerable<EmittableData> Data { get { return mData.Values; } }
 
 		private List<LIRMethod> mMethods = new List<LIRMethod>(InitialMethodsSize);
 		public IEnumerable<LIRMethod> Methods { get { return mMethods; } }
@@ -111,7 +115,7 @@ namespace Proton.LIR
 			GC.WaitForPendingFinalizers();
 			GC.Collect();
 
-			// Now we trasform it to MIR and emit it.
+			// Now we transform it to MIR and emit it.
 		}
 
 		private static void FinalMethodCleanup(LIRMethod m)
@@ -136,7 +140,10 @@ namespace Proton.LIR
 		{
 			foreach (var kop in KnownOptimizationPasses)
 			{
-				mMethods.ForEach(m => kop.Run(m));
+				foreach (var m in Methods)
+				{
+					kop.Run(m);
+				}
 			}
 		}
 
@@ -157,7 +164,10 @@ namespace Proton.LIR
 			wtr.WriteLine("Methods {0}", mMethods.Count);
 			wtr.WriteLine("{");
 			wtr.Indent++;
-			mMethods.ForEach(m => m.Dump(wtr));
+			foreach (var m in Methods)
+			{
+				m.Dump(wtr);
+			}
 			wtr.Indent--;
 			wtr.WriteLine("}");
 			wtr.Indent--;
