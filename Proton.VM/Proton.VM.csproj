@@ -159,6 +159,10 @@
       <Project>{8708283B-D74F-49C4-B9AF-948F4AC73FBA}</Project>
       <Name>Proton.Metadata</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Proton.Runtime\Proton.Runtime.csproj">
+      <Project>{6448070F-A659-49C4-8FBC-B96DA43C21EF}</Project>
+      <Name>Proton.Runtime</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />

@@ -11,15 +11,17 @@ namespace Proton.VM.IR
 		public IRAppDomain AppDomain = null;
 		public CLIFile File = null;
 		public bool CORLibrary = false;
+		public bool RuntimeLibrary = false;
 		public List<IRType> Types = null;
 		public List<IRField> Fields = null;
 		public List<IRMethod> Methods = null;
 
-		internal IRAssembly(IRAppDomain pAppDomain, CLIFile pCLIFile, bool pCORLibrary)
+		internal IRAssembly(IRAppDomain pAppDomain, CLIFile pCLIFile, bool pCORLibrary, bool pRuntimeLibrary)
 		{
 			AppDomain = pAppDomain;
 			File = pCLIFile;
 			CORLibrary = pCORLibrary;
+			RuntimeLibrary = pRuntimeLibrary;
 		}
 
 		internal void LoadStage1()
@@ -106,6 +108,7 @@ namespace Proton.VM.IR
 				}
 			}
 			if (CORLibrary) AppDomain.CacheCOR(this);
+			else if (RuntimeLibrary) AppDomain.CacheRuntime(this);
 		}
 
 		internal void LoadStage2()

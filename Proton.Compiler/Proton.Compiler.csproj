@@ -85,6 +85,7 @@
     <PostBuildEvent>$(SolutionDir)SDK\bin\cp --force $(SolutionDir)Proton.CLR.KOR\$(OutDir)mscorlib.dll $(TargetDir)
 $(SolutionDir)SDK\bin\cp --force $(SolutionDir)Proton.CLR.System\$(OutDir)System.dll $(TargetDir)
 $(SolutionDir)SDK\bin\cp --force $(SolutionDir)Proton.CLR.SystemCore\$(OutDir)System.Core.dll $(TargetDir)
+$(SolutionDir)SDK\bin\cp --force $(SolutionDir)Proton.Runtime\$(OutDir)Proton.Runtime.dll $(TargetDir)
 $(SolutionDir)SDK\bin\cp --force $(SolutionDir)Proton.Nernel\$(OutDir)Proton.Nernel.exe $(TargetDir)</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

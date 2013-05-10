@@ -142,6 +142,11 @@ namespace Proton.VM.IR
 		public IRType System_ValueType = null;
 		public IRType System_Void = null;
 
+		// JIT and/or AOT
+		public IRType Proton_Runtime_RuntimeHelpers = null;
+		public IRMethod Proton_Runtime_RuntimeHelpers_CanCast = null;
+		public IRMethod Proton_Runtime_RuntimeHelpers_GetTypeByGlobalTypeID = null;
+
 		// AOT Only
 		public IRMethod System_GC_AllocateArrayOfType = null;
 		public IRMethod System_GC_AllocateObject = null;
@@ -150,7 +155,8 @@ namespace Proton.VM.IR
 
 		public IRAppDomain()
 		{
-			AddAssembly(new IRAssembly(this, new CLIFile("mscorlib", File.ReadAllBytes("mscorlib.dll")), true));
+			AddAssembly(new IRAssembly(this, new CLIFile("mscorlib", File.ReadAllBytes("mscorlib.dll")), true, false));
+			AddAssembly(new IRAssembly(this, new CLIFile("Proton.Runtime", File.ReadAllBytes("Proton.Runtime.dll")), false, true));
 		}
 
 		private void AddAssembly(IRAssembly pAssembly)
@@ -164,7 +170,7 @@ namespace Proton.VM.IR
 		{
 			IRAssembly assembly = null;
 			if (AssemblyFileReferenceNameLookup.TryGetValue(pFile.ReferenceName, out assembly)) return assembly;
-			assembly = new IRAssembly(this, pFile, false);
+			assembly = new IRAssembly(this, pFile, false, false);
 			AddAssembly(assembly);
 			foreach (AssemblyRefData assemblyRefData in pFile.AssemblyRefTable) CreateAssembly(new CLIFile(assemblyRefData.Name, File.ReadAllBytes(assemblyRefData.Name + ".dll")));
 			return assembly;
@@ -221,6 +227,34 @@ namespace Proton.VM.IR
 						case "AllocateObject": System_GC_AllocateObject = method; break;
 						case "AllocateStringFromUTF16": System_GC_AllocateStringFromUTF16 = method; break;
 						case "BoxObject": System_GC_BoxObject = method; break;
+						default: break;
+					}
+				}
+			}
+		}
+
+		internal void CacheRuntime(IRAssembly pAssembly)
+		{
+			foreach (IRType type in pAssembly.Types)
+			{
+				if (type.Namespace == "Proton.Runtime")
+				{
+					switch (type.Name)
+					{
+						case "RuntimeHelpers": Proton_Runtime_RuntimeHelpers = type; break;
+						default: break;
+					}
+				}
+			}
+
+			foreach (IRMethod method in pAssembly.Methods)
+			{
+				if (method.ParentType == Proton_Runtime_RuntimeHelpers)
+				{
+					switch (method.Name)
+					{
+						case "CanCast": Proton_Runtime_RuntimeHelpers_CanCast = method; break;
+						case "GetTypeByGlobalTypeID": Proton_Runtime_RuntimeHelpers_GetTypeByGlobalTypeID = method; break;
 						default: break;
 					}
 				}
@@ -518,7 +552,7 @@ namespace Proton.VM.IR
 				}
 
 				foreach (var m in Methods)
-					m.LeaveSSA();
+				    m.LeaveSSA();
 
 				foreach (var op in KnownOptimizationPasses[(int)IROptimizationPass.RunLocation.AfterSSA])
 				{

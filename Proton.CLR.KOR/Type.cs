@@ -7,7 +7,7 @@ namespace System
 {
 	public abstract class Type : MemberInfo
 	{
-		internal unsafe struct TypeData
+		public unsafe struct TypeData
 		{
 			// This must remain at the start of TypeData
 			public void** VirtualMethodTable;
@@ -31,17 +31,17 @@ namespace System
 			public int EnumerationCount;
 			public TypeData* ArrayElementType;
 		}
-		internal unsafe struct FieldData
+		public unsafe struct FieldData
 		{
 			public TypeData* Type;
 			public int Offset;
 		}
-		internal unsafe struct StaticFieldData
+		public unsafe struct StaticFieldData
 		{
 			public TypeData* Type;
 			public void* Data;
 		}
-		internal unsafe struct EnumerationData
+		public unsafe struct EnumerationData
 		{
 			public sbyte* Name;
 			public int NameLength;

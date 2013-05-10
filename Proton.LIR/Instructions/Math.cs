@@ -9,6 +9,7 @@ namespace Proton.LIR.Instructions
 		Subtract,
 		Multiply,
 		Divide,
+		Modulus,
 
 		And,
 		Or,
@@ -49,6 +50,8 @@ namespace Proton.LIR.Instructions
 					return "*";
 				case MathOperation.Divide:
 					return "/";
+				case MathOperation.Modulus:
+					return "%";
 				case MathOperation.And:
 					return "&";
 				case MathOperation.Or:

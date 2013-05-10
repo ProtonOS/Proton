@@ -14,6 +14,18 @@ namespace Proton.LIR.Instructions
 			target.References++;
 		}
 
+		public Branch(LIRMethod parent)
+			: base(parent, LIROpCode.Branch)
+		{
+		}
+
+		public void SetTarget(Label target)
+		{
+			if (Target != null) Target.References--;
+			this.Target = target;
+			target.References++;
+		}
+
 		internal override void Dump(IndentedStreamWriter wtr)
 		{
 			wtr.WriteLine("Branch -> {0}", Target);

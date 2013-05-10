@@ -18,6 +18,8 @@
 /Proton.Metadata/obj
 /Proton.Nernel/bin
 /Proton.Nernel/obj
+/Proton.Runtime/bin
+/Proton.Runtime/obj
 /Proton.SDKInstaller/bin
 /Proton.SDKInstaller/obj
 /Proton.VFS/bin
