@@ -21,7 +21,8 @@
 .comm gStack, gStackSize, 32
 .code32
 Boot:
-    mov  gStack + gStackSize, esp
+    mov  esp, gStack
+	add esp, gStackSize
     push ebx
     push eax
 
