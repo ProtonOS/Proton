@@ -1,13 +1,12 @@
 #include <stdio.h>
-int main(int argc, char ** argv) {
-    printf("Lolhai");
-	return 0;
-}
 #include <reent.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <unistd.h>
 #include <stdint.h>
+extern "C" {
+__cdecl void Main(uint32_t A, uint32_t B) { }
+}
 
 struct Thread {};
 //struct _reent {};
