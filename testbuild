@@ -1,0 +1,9 @@
+export CLANG_FLAGS="-c -std=c++11 -O4 -D__DYNAMIC_REENT__ -ffreestanding -emit-llvm --target=x86_64-pc-elf -I/a/Proton/x86_64-pc-elf/x86_64-pc-elf/include"
+export LLC_FLAGS=""
+export GCC_FLAGS="-nostdlib -L/a/Proton/x86_64-pc-elf/x86_64-pc-elf/lib -lc -lm -lgcc"
+echo Performing clang $CLANG_FLAGS test.cpp -o test.o
+clang $CLANG_FLAGS test.cpp -o test.bc
+echo Performing llc $LLC_FLAGS test.bc -o test.s
+llc $LLC_FLAGS test.bc -o test.s
+echo Performing x86_64-pc-elf-gcc test.s -o test.out $GCC_FLAGS
+x86_64-pc-elf-gcc test.s -o test.out $GCC_FLAGS
