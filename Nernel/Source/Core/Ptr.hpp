@@ -2,33 +2,44 @@
 
 namespace Core
 {
-    template <typename T>
-    class ConstPtr;
     //Provides a simple pointer wrapper that does null checks
     template <typename T>
     class Ptr
     {
     public:
-        Ptr() : mPtr {nullptr} { }
-        Ptr(Ptr && ) = default;
-        Ptr(const Ptr &) = default;
-        Ptr(T * pOther) : mPtr {pOther} { }
-        Ptr & operator=(Ptr && ) = default;
-        Ptr & operator=(const Ptr &)= default;
-        T * operator->() const
+        constexpr Ptr() : mPtr {nullptr}
         {
-            Check();
-            return mPtr;
         }
-        T & operator*() const
+        constexpr Ptr(Ptr && pOther) : mPtr {pOther.mPtr}
         {
-            return *mPtr;
+        }
+        constexpr Ptr(const Ptr & pOther) : mPtr {pOther.mPtr}
+        {
+        }
+        constexpr Ptr(T * pOther) : mPtr {pOther}
+        {
+        }
+        constexpr Ptr & operator=(Ptr && pOther)
+        {
+            return mPtr = pOther.mPtr, *this;
+        }
+        constexpr Ptr & operator=(const Ptr & pOther)
+        {
+            return mPtr = pOther.mPtr, *this;
+        }
+        constexpr T * operator->() const
+        {
+            return mPtr ? mPtr : mPtr;
+        }
+        constexpr T & operator*() const
+        {
+            return mPtr ? *mPtr : *mPtr;
         }
         Ptr & operator++()
         {
             return ++mPtr, *this;
         }
-        Ptr operator+(UInt mSize) const
+        constexpr Ptr operator+(UInt mSize) const
         {
             return {mPtr + mSize};
         }
@@ -36,33 +47,14 @@ namespace Core
         {
             return mPtr += pSize, *this;
         }
-        T & operator[](UInt pIndex) const {
-            Check();
-            return mPtr[pIndex];
+        constexpr T & operator[](UInt pIndex) const {
+            return mPtr ? mPtr[pIndex] : mPtr[pIndex];
         }
-        T * Get() const
+        constexpr T * Get() const
         {
-            Check();
-            return mPtr;
+            return mPtr ? mPtr : mPtr;
         }
-        void Check() const
-        {
-            if (!mPtr) {
-                /*Panic("Null Pointer Access");*/
-            }
-        }
-    protected:
+    private:
         T * mPtr;
-    };
-    template <typename T>
-    class Ptr<const T> : public Ptr<T> {
-    public:
-        Ptr() : Ptr<T>::mPtr {nullptr} { }
-        Ptr(Ptr && ) = default;
-        Ptr(Ptr const &) = default;
-        Ptr(Ptr<T> && pOther) : Ptr<T>::mPtr {pOther.mPtr} { }
-        Ptr(Ptr<T> const & pOther) : Ptr<T>::mPtr {pOther.mPtr} { }
-        Ptr(T * pOther) : Ptr<T>::mPtr {pOther} { }
-        Ptr(T const * pOther) : Ptr<T>::mPtr {pOther} { }
     };
 }

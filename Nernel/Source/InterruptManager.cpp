@@ -1,4 +1,5 @@
-#include "InterruptManager.h"
+#include "Core/Core.hpp"
+#include "InterruptManager.hpp"
 
 IDT::InterruptHandler InterruptManager::sHandlers[IDT::IDTDescriptorMax];
 

@@ -1,5 +1,5 @@
 #ifdef _WIN32
-#define constexpr const
+#define constexpr
 #endif
 #include "Types.hpp"
 #include "Ptr.hpp"

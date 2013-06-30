@@ -20,20 +20,20 @@
     <ClCompile Include="Source\InterruptManager.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Source\Arch\X86\KernelConsole.h" />
-    <ClInclude Include="Source\Arch\X86\PortIO.h" />
-    <ClInclude Include="Source\KernelConsole.h" />
     <ClInclude Include="Source\Core\Ptr.hpp" />
     <ClInclude Include="Source\MultiBoot.hpp" />
     <ClInclude Include="Source\Core\Memory.hpp" />
     <ClInclude Include="Source\Core\Types.hpp" />
-    <ClInclude Include="Source\Arch\X86\GDT.h" />
-    <ClInclude Include="Source\Arch\X86\Arch.h" />
-    <ClInclude Include="Source\Arch.h" />
     <ClInclude Include="Source\Core\Core.hpp" />
-    <ClInclude Include="Source\Arch\X86\IDT.h" />
-    <ClInclude Include="Source\Arch\X86\IDTExternal.h" />
-    <ClInclude Include="Source\Arch\X86\PIC.h" />
-    <ClInclude Include="Source\InterruptManager.h" />
+    <ClInclude Include="Source\KernelConsole.hpp" />
+    <ClInclude Include="Source\Arch.hpp" />
+    <ClInclude Include="Source\Arch\X86\PortIO.hpp" />
+    <ClInclude Include="Source\Arch\X86\PIC.hpp" />
+    <ClInclude Include="Source\Arch\X86\Arch.hpp" />
+    <ClInclude Include="Source\Arch\X86\IDT.hpp" />
+    <ClInclude Include="Source\Arch\X86\IDTExternal.hpp" />
+    <ClInclude Include="Source\Arch\X86\GDT.hpp" />
+    <ClInclude Include="Source\Arch\X86\KernelConsole.hpp" />
+    <ClInclude Include="Source\InterruptManager.hpp" />
   </ItemGroup>
 </Project>

@@ -1,5 +1,7 @@
-#include "PIC.h"
-#include "PortIO.h"
+#include "../../Core/Core.hpp"
+
+#include "PIC.hpp"
+#include "PortIO.hpp"
 
 void PIC::Load()
 {

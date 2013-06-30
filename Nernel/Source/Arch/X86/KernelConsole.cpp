@@ -1,10 +1,10 @@
-
 #include "../../Core/Core.hpp"
-#include "KernelConsole.h"
+
+#include "KernelConsole.hpp"
 
 namespace KernelConsole
 {
-    Core::Ptr<UInt8> BaseMemory = reinterpret_cast<UInt8 *>(BaseMemoryAddress);
+    constexpr Core::Ptr<UInt8> BaseMemory = reinterpret_cast<UInt8 *>(BaseMemoryAddress);
     UInt8 Columns = DefaultColumns;
     UInt8 Rows = DefaultRows;
     UInt8 CursorColumn = 0;

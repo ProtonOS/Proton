@@ -1,4 +1,4 @@
-#include "Core/Types.hpp"
+#include "Core/Core.hpp"
 #include "MultiBoot.hpp"
 
 extern char __EOK;

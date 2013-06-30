@@ -1,4 +1,6 @@
-#include "GDT.h"
+#include "../../Core/Core.hpp"
+
+#include "GDT.hpp"
 
 struct GDTRegister
 {

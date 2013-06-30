@@ -1,7 +1,9 @@
-#include "IDT.h"
-#include "PIC.h"
-#include "../../InterruptManager.h"
-#include "KernelConsole.h"
+#include "../../Core/Core.hpp"
+
+#include "IDT.hpp"
+#include "PIC.hpp"
+#include "KernelConsole.hpp"
+#include "../../InterruptManager.hpp"
 
 struct IDTRegister
 {
@@ -20,7 +22,7 @@ public:
     UInt16 AddressHigh;
 };
 
-#include "IDTExternal.h"
+#include "IDTExternal.hpp"
 
 typedef void (*IDTStub)(void);
 
