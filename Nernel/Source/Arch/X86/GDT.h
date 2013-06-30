@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../PrimitiveTypes.h"
+#include "../../Core/Types.hpp"
 
 extern "C" void GDTUpdate();
 
