@@ -1,38 +1,68 @@
 #pragma once
-namespace Core {
+
+namespace Core
+{
+    template <typename T>
+    class ConstPtr;
     //Provides a simple pointer wrapper that does null checks
     template <typename T>
-    class Ptr {
+    class Ptr
+    {
     public:
-        Ptr() : ptr {nullptr} {}
+        Ptr() : mPtr {nullptr} { }
         Ptr(Ptr && ) = default;
-        Ptr(Ptr const &) = default;
-        Ptr(T * o) : ptr(o) {}
-        Ptr & operator=(Ptr const &)= default;
-        T * operator->() const {
+        Ptr(const Ptr &) = default;
+        Ptr(T * pOther) : mPtr {pOther} { }
+        Ptr & operator=(Ptr && ) = default;
+        Ptr & operator=(const Ptr &)= default;
+        T * operator->() const
+        {
             Check();
-            return ptr;
+            return mPtr;
         }
-        Ptr & operator++() {
-            return ++ptr, *this;
+        T & operator*() const
+        {
+            return *mPtr;
         }
-        T & operator[](size_t o) const {
+        Ptr & operator++()
+        {
+            return ++mPtr, *this;
+        }
+        Ptr operator+(UInt mSize) const
+        {
+            return {mPtr + mSize};
+        }
+        Ptr & operator+=(UInt pSize)
+        {
+            return mPtr += pSize, *this;
+        }
+        T & operator[](UInt pIndex) const {
             Check();
-            return ptr[o];
+            return mPtr[pIndex];
         }
-        operator T *() const {
-            return Get();
-        }
-        T * Get() const {
+        T * Get() const
+        {
             Check();
-            return ptr;
+            return mPtr;
         }
-        void Check() const {
-            if (!ptr) {
+        void Check() const
+        {
+            if (!mPtr) {
                 /*Panic("Null Pointer Access");*/
             }
         }
-    private:
-        T * ptr;
+    protected:
+        T * mPtr;
+    };
+    template <typename T>
+    class Ptr<const T> : public Ptr<T> {
+    public:
+        Ptr() : Ptr<T>::mPtr {nullptr} { }
+        Ptr(Ptr && ) = default;
+        Ptr(Ptr const &) = default;
+        Ptr(Ptr<T> && pOther) : Ptr<T>::mPtr {pOther.mPtr} { }
+        Ptr(Ptr<T> const & pOther) : Ptr<T>::mPtr {pOther.mPtr} { }
+        Ptr(T * pOther) : Ptr<T>::mPtr {pOther} { }
+        Ptr(T const * pOther) : Ptr<T>::mPtr {pOther} { }
     };
 }

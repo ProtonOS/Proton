@@ -1,59 +1,47 @@
 #pragma once
 
-#include "../../Core/Types.hpp"
+#include "../../Core/Core.hpp"
 #include "PortIO.h"
 
-class KernelConsole
+namespace KernelConsole
 {
-public:
-	static const uint8 DarkBlack = 0x00;
-	static const uint8 DarkBlue = 0x01;
-	static const uint8 DarkGreen = 0x02;
-	static const uint8 DarkCyan = 0x03;
-	static const uint8 DarkRed = 0x04;
-	static const uint8 DarkMagenta = 0x05;
-	static const uint8 DarkYellow = 0x06;
-	static const uint8 DarkWhite = 0x07;
-	static const uint8 LightBlack = 0x08;
-	static const uint8 LightBlue = 0x09;
-	static const uint8 LightGreen = 0x0A;
-	static const uint8 LightCyan = 0x0B;
-	static const uint8 LightRed = 0x0C;
-	static const uint8 LightMagenta = 0x0D;
-	static const uint8 LightYellow = 0x0E;
-	static const uint8 LightWhite = 0x0F;
+	constexpr UInt8 DarkBlack = 0x00;
+	constexpr UInt8 DarkBlue = 0x01;
+	constexpr UInt8 DarkGreen = 0x02;
+	constexpr UInt8 DarkCyan = 0x03;
+	constexpr UInt8 DarkRed = 0x04;
+	constexpr UInt8 DarkMagenta = 0x05;
+	constexpr UInt8 DarkYellow = 0x06;
+	constexpr UInt8 DarkWhite = 0x07;
+	constexpr UInt8 LightBlack = 0x08;
+	constexpr UInt8 LightBlue = 0x09;
+	constexpr UInt8 LightGreen = 0x0A;
+	constexpr UInt8 LightCyan = 0x0B;
+	constexpr UInt8 LightRed = 0x0C;
+	constexpr UInt8 LightMagenta = 0x0D;
+	constexpr UInt8 LightYellow = 0x0E;
+	constexpr UInt8 LightWhite = 0x0F;
 
-	static const uintptr BaseMemoryAddress = 0x000B8000;
-	static const uint16 DefaultColumns = 80;
-	static const uint16 DefaultRows = 25;
-	static const uint8 DefaultAttributes = 0x0F;
+	constexpr UInt BaseMemoryAddress = 0x000B8000;
+	constexpr UInt16 DefaultColumns = 80;
+	constexpr UInt16 DefaultRows = 25;
+	constexpr UInt8 DefaultAttributes = 0x0F;
 
-	static uint8 CreateAttributes(uint8 pForeground, uint8 pBackground) { return (pForeground | (pBackground << 4)); }
+    UInt8 CreateAttributes(UInt8 pForeground, UInt8 pBackground);
 
-	static void Load();
+	void Load();
 
-	static void Clear(uint8 pAttributes);
+	void Clear(UInt8 pAttributes);
 
-	static void MoveCursorTo(uint8 pColumn, uint8 pRow)
-	{
-		CursorColumn = pColumn % Columns;
-		CursorRow = pRow % Rows;
-	}
-	static void MoveCursorToTopLeft() { MoveCursorTo(0, 0); }
-	static void MoveCursorToNextLine();
-	static void Advance();
+    void MoveCursorTo(UInt8 pColumn, UInt8 pRow);
+    void MoveCursorToTopLeft();
+	void MoveCursorToNextLine();
+	void Advance();
 
-	static void WriteCharacter(char pCharacter);
-	static void WriteString(const char* pString, uint32 pLength);
-	static void WriteLine(const char* pString);
+	void WriteCharacter(char pCharacter);
+	void WriteString(const char* pString, UInt32 pLength);
+	void WriteLine(const char* pString);
 
-private:
-	static uint8* BaseMemory;
-	static uint8 Columns;
-	static uint8 Rows;
-	static uint8 CursorColumn;
-	static uint8 CursorRow;
-	static uint8 Attributes;
 
-	static uint8* GetCursor() { return BaseMemory + (((CursorRow * Columns) + CursorColumn) * 2); }
+	
 };

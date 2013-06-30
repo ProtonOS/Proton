@@ -5,5 +5,5 @@
 
 namespace MultiBoot {
     struct MultiBootHeader;
-	void Load(uint32 pMultiBootMagic, Core::Ptr<MultiBootHeader> pMultiBootHeader);
+	void Load(UInt32 pMultiBootMagic, Core::Ptr<MultiBootHeader> pMultiBootHeader);
 };

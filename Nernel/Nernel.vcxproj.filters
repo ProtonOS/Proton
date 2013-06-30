@@ -25,5 +25,6 @@
     <ClInclude Include="Source\Arch\X86\GDT.h" />
     <ClInclude Include="Source\Arch\X86\Arch.h" />
     <ClInclude Include="Source\Arch.h" />
+    <ClInclude Include="Source\Core\Core.hpp" />
   </ItemGroup>
 </Project>
