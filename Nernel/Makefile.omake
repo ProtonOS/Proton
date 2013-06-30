@@ -44,6 +44,7 @@
 #define SOURCE(ALL_CPP_FILES)
 {
 	Source/Boot.cpp
+	Source/InterruptManager.cpp
 	Source/Main.cpp
 	Source/MultiBoot.cpp
 }

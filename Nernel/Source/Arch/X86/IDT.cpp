@@ -1,5 +1,6 @@
 #include "IDT.h"
 #include "PIC.h"
+#include "../../InterruptManager.h"
 #include "KernelConsole.h"
 
 struct IDTRegister
@@ -46,19 +47,25 @@ IDTStub gIDTStubs[IDT::IDTDescriptorMax] =
 IDTRegister gIDTRegister;
 IDTDescriptor gIDTDescriptors[IDT::IDTDescriptorMax];
 
-IDT::InterruptHandler IDT::sHandlers[IDT::IDTDescriptorMax];
-
 extern "C" void IDTISRHandler(InterruptRegisters pRegisters)
 {
-    IDT::InterruptHandler handler = IDT::GetHandler(pRegisters.int_no);
+    IDT::InterruptHandler handler = InterruptManager::GetHandler(pRegisters.int_no);
     if (handler) handler(pRegisters);
 }
 
 extern "C" void IDTIRQHandler(InterruptRegisters pRegisters)
 {
-    IDT::InterruptHandler handler = IDT::GetHandler(PIC::IRQBaseISR + pRegisters.int_no);
+    IDT::InterruptHandler handler = InterruptManager::GetHandler(PIC::IRQBaseISR + pRegisters.int_no);
     if (handler) handler(pRegisters);
 	PIC::ResetInterrupts(pRegisters.int_no >= 9);
+}
+
+extern "C" void CPUInterruptHandler(InterruptRegisters pRegisters)
+{
+	//char buf[128];
+	//snprintf(buf, 128, "CPU Exception: %d", (int)pRegisters.int_no);
+	//Panic(buf);
+	while (true) ;
 }
 
 
@@ -80,14 +87,6 @@ void IDT::Load()
 		SetInterrupt((UInt8)idtDescriptorIndex, (UInt32)gIDTStubs[idtDescriptorIndex], SelectorDescriptorIndex, TypeInterrupt386Gate32Bit | TypePresent);
 
 	IDTUpdate(&gIDTRegister);
-}
 
-void IDT::RegisterHandler(UInt8 pInterrupt, InterruptHandler pHandler)
-{
-	sHandlers[pInterrupt] = pHandler;
-}
-
-IDT::InterruptHandler IDT::GetHandler(UInt8 pInterrupt)
-{
-	return sHandlers[pInterrupt];
+	for (UInt8 interrupt = 0; interrupt < PIC::IRQBaseISR; ++interrupt) InterruptManager::RegisterHandler(interrupt, &CPUInterruptHandler);
 }

@@ -51,11 +51,6 @@ public:
 
 	static void Load();
 
-	static void RegisterHandler(UInt8 pInterrupt, InterruptHandler pHandler);
-	static InterruptHandler GetHandler(UInt8 pInterrupt);
-
 private:
 	static void SetInterrupt(UInt8 pIndex, UInt32 pAddress, UInt16 pSelector, UInt8 pTypeAndFlags);
-
-	static InterruptHandler sHandlers[IDTDescriptorMax];
 };
