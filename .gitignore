@@ -9,3 +9,4 @@ SDK/
 !*.h
 !*.hpp
 !*.sln
+!*.asm
