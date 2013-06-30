@@ -4,6 +4,7 @@
     <None Include="Makefile.omake" />
     <None Include="Source\Arch\Win32\Boot.asm" />
     <None Include="Source\Arch\X86\Boot.asm" />
+    <None Include="Source\Arch\X86\GDTUpdate.asm" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Main.cpp" />
@@ -11,6 +12,7 @@
     <ClCompile Include="Source\Arch\X86\GDT.cpp" />
     <ClCompile Include="Source\MultiBoot.cpp" />
     <ClCompile Include="Source\Arch\X86\KernelConsole.cpp" />
+    <ClCompile Include="Source\Arch\X86\Arch.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Arch\X86\KernelConsole.h" />
@@ -20,5 +22,8 @@
     <ClInclude Include="Source\MultiBoot.hpp" />
     <ClInclude Include="Source\Core\Memory.hpp" />
     <ClInclude Include="Source\Core\Types.hpp" />
+    <ClInclude Include="Source\Arch\X86\GDT.h" />
+    <ClInclude Include="Source\Arch\X86\Arch.h" />
+    <ClInclude Include="Source\Arch.h" />
   </ItemGroup>
 </Project>

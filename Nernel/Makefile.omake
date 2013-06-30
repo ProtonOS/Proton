@@ -36,6 +36,7 @@
 #define SOURCE(X86_ASM_FILES)
 {
 	Source/Arch/X86/Boot.asm
+	Source/Arch/X86/GDTUpdate.asm
 }
 
 #define SOURCE(ALL_CPP_FILES)
@@ -47,6 +48,7 @@
 
 #define SOURCE(X86_CPP_FILES)
 {
+	Source/Arch/X86/Arch.cpp
 	Source/Arch/X86/GDT.cpp
 	Source/Arch/X86/KernelConsole.cpp
 }

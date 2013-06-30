@@ -11,6 +11,7 @@
 .set RealModeInitAddress, 0x8000
 .set GDTRegisterAddress, 0x9000
 .set GDTDescriptorAddress, 0xA000
+.set GDTDescriptorMax, 512
 
 .code32
 
@@ -23,6 +24,7 @@ Boot:
 	/ TODO: Confirm that word ptr is right here, we need gGDTRegister to point to GDTRegisterAddress
 	mov  word ptr gGDTRegister, GDTRegisterAddress
 	mov  word ptr gGDTDescriptors, GDTDescriptorAddress
+	mov  dword ptr gGDTDescriptorMax, GDTDescriptorMax
 	mov  gBootStackTop, esp
 	push ebx
 	push eax
