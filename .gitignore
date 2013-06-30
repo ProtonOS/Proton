@@ -2,8 +2,10 @@
 SDK/
 !*.vcxproj
 !*.vcxproj.user
+!*.vcxproj.filters
 !*.ld
 !*.omake
 !*.cpp
 !*.h
 !*.hpp
+!*.sln
