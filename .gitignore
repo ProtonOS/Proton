@@ -1,6 +1,9 @@
-*
-!.gitignore
-!*.cpp
-!testbuild
+*.*
+SDK/
+!*.vcxproj
+!*.vcxproj.user
 !*.ld
-!Boot.s
+!*.omake
+!*.cpp
+!*.h
+!*.hpp

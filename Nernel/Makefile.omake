@@ -1,0 +1,93 @@
+#define PLATFORM(WINDOWS_X32);
+#define PLATFORM_ALIAS(WINDOWS_X32, WINDOWS_32);
+#define PLATFORM_ALIAS(WINDOWS_X32, WIN32);
+
+#define TOOL_WIN32(CPP, ../SDK/bin/i686-elf-g++.exe);
+
+#define TOOL_WIN32(AS, ../SDK/bin/i686-elf-as.exe);
+
+#define TOOL_WIN32(LD, ../SDK/bin/i686-elf-ld.exe);
+
+#define TOOL_WIN32(RM, ../SDK/bin/rm.exe);
+
+#define TOOL_WIN32(CP, ../SDK/bin/cp.exe);
+
+#define TOOL_WIN32(MKDIR, ../SDK/bin/mkdir.exe);
+
+#define TOOL_WIN32(MKISOFS, ../SDK/bin/mkisofs.exe);
+
+
+#define CONST(CPP_ARGS, -g -O0 -D__DYNAMIC_REENT__ -DX86 -std=c++11 -Wall -Wextra -Werror -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -fno-builtin -fno-exceptions -fno-rtti -nostdlib -fpack-struct=1 -nostartfiles -nodefaultlibs -c);
+#define CONST(LD_ARGS, -L../SDK/lib -T Nernel.ld -g);
+#define CONST(LD_LIBS, -lgcc);
+#define CONST(RM_ARGS, -rf);
+#define CONST(CP_ARGS, -f);
+#define CONST(MKDIR_ARGS, -p);
+#define CONST(MKISOFS_ARGS, -quiet -rational-rock -b boot/grub/stage2_eltorito -no-emul-boot -boot-load-size 4 -boot-info-table);
+
+#define CONST(OBJECT, ./Object);
+#define CONST(LOGS, ../Logs);
+#define CONST(BUILD, ../Build);
+#define CONST(OUT, ${BUILD}/boot/nernel.bin);
+#define CONST(ISO, ../Proton.iso);
+#define CONST(CACHE, ./makefile.omake.cache);
+
+
+#define SOURCE(X86_ASM_FILES)
+{
+	Source/Arch/X86/Boot.asm
+}
+
+#define SOURCE(ALL_CPP_FILES)
+{
+	Source/Boot.cpp
+	Source/Main.cpp
+	Source/MultiBoot.cpp
+}
+
+#define SOURCE(X86_CPP_FILES)
+{
+	Source/Arch/X86/GDT.cpp
+	Source/Arch/X86/KernelConsole.cpp
+}
+
+#define TARGET(X86)
+{
+	MKDIR ${MKDIR_ARGS} ${LOGS}
+	MKDIR ${MKDIR_ARGS} ${OBJECT}
+	MKDIR ${MKDIR_ARGS} ${BUILD}/boot/grub
+
+	CP ${CP_ARGS} ../SDK/grub/stage2_eltorito ${BUILD}/boot/grub
+
+	file CREATE_OR_TRUNCATE(${BUILD}/boot/grub/menu.lst)
+	{
+		timeout 0
+		default 0
+		title Proton
+		kernel /boot/nernel.bin
+	}
+
+	common TOOL(AS -o ) : X86_ASM_FILES
+	{
+		#prefix{${OBJECT}/$(FILENAME.NO_EXTENSION.DIR_TO_FILENAME).o} : ALL
+	}
+
+	common TOOL(CPP ${CPP_ARGS} -o ) : ALL_CPP_FILES
+	{
+		#prefix{${OBJECT}/$(FILENAME.NO_EXTENSION.DIR_TO_FILENAME).o} : ALL
+	}
+
+	common TOOL(CPP ${CPP_ARGS} -o ) : X86_CPP_FILES
+	{
+		#prefix{${OBJECT}/$(FILENAME.NO_EXTENSION.DIR_TO_FILENAME).o} : ALL
+	}
+
+	LD ${LD_ARGS} -o ${OUT} ${${OBJECT}/&([X86_ASM_FILES].NO_EXTENSION.DIR_TO_FILENAME).o} ${${OBJECT}/&([X86_CPP_FILES].NO_EXTENSION.DIR_TO_FILENAME).o} ${${OBJECT}/&([ALL_CPP_FILES].NO_EXTENSION.DIR_TO_FILENAME).o} ${LD_LIBS}
+
+	MKISOFS ${MKISOFS_ARGS} -o ${ISO} ${BUILD}
+}
+
+#define TARGET(clean)
+{
+	RM ${RM_ARGS} ${LOGS} ${BUILD} ${OBJECT} ${CACHE}
+}
