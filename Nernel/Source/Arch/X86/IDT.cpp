@@ -5,21 +5,21 @@
 struct IDTRegister
 {
 public:
-    uint16 Limit;
-    uint32 Address;
+    UInt16 Limit;
+    UInt32 Address;
 };
 
 struct IDTDescriptor
 {
 public:
-    uint16 AddressLow;
-    uint16 Selector;
-    uint8 Zero;
-    uint8 TypeAndFlags;
-    uint16 AddressHigh;
+    UInt16 AddressLow;
+    UInt16 Selector;
+    UInt8 Zero;
+    UInt8 TypeAndFlags;
+    UInt16 AddressHigh;
 };
 
-static const uint32 IDTDescriptorMax = 256;
+static const UInt32 IDTDescriptorMax = 256;
 
 #include "IDTExternal.h"
 
@@ -60,7 +60,7 @@ extern "C" void IDTIRQHandler(InterruptRegisters pRegisters)
 }
 
 
-void IDT::SetInterrupt(uint8 pIndex, uint32 pAddress, uint16 pSelector, uint8 pTypeAndFlags)
+void IDT::SetInterrupt(UInt8 pIndex, UInt32 pAddress, UInt16 pSelector, UInt8 pTypeAndFlags)
 {
     gIDTDescriptors[pIndex].AddressLow = pAddress & 0xFFFF;
     gIDTDescriptors[pIndex].AddressHigh = (pAddress >> 16) & 0xFFFF;
@@ -72,10 +72,10 @@ void IDT::SetInterrupt(uint8 pIndex, uint32 pAddress, uint16 pSelector, uint8 pT
 void IDT::Load()
 {
 	gIDTRegister.Limit = (sizeof(IDTDescriptor) * IDTDescriptorMax) - 1;
-	gIDTRegister.Address = (uint32)&gIDTDescriptors[0];
+	gIDTRegister.Address = (UInt32)&gIDTDescriptors[0];
 
-	for (uint32 idtDescriptorIndex = 0; idtDescriptorIndex < IDTDescriptorMax; ++idtDescriptorIndex)
-		SetInterrupt((uint8)idtDescriptorIndex, (uint32)gIDTStubs[idtDescriptorIndex], SelectorDescriptorIndex, TypeInterrupt386Gate32Bit | TypePresent);
+	for (UInt32 idtDescriptorIndex = 0; idtDescriptorIndex < IDTDescriptorMax; ++idtDescriptorIndex)
+		SetInterrupt((UInt8)idtDescriptorIndex, (UInt32)gIDTStubs[idtDescriptorIndex], SelectorDescriptorIndex, TypeInterrupt386Gate32Bit | TypePresent);
 
 	IDTUpdate(&gIDTRegister);
 }
