@@ -19,13 +19,11 @@ public:
     UInt16 AddressHigh;
 };
 
-static const UInt32 IDTDescriptorMax = 256;
-
 #include "IDTExternal.h"
 
 typedef void (*IDTStub)(void);
 
-IDTStub gIDTStubs[IDTDescriptorMax] =
+IDTStub gIDTStubs[IDT::IDTDescriptorMax] =
 {
 	IDTISR00, IDTISR01, IDTISR02, IDTISR03, IDTISR04, IDTISR05, IDTISR06, IDTISR07, IDTISR08, IDTISR09, IDTISR0A, IDTISR0B, IDTISR0C, IDTISR0D, IDTISR0E, IDTISR0F,
 	IDTISR10, IDTISR11, IDTISR12, IDTISR13, IDTISR14, IDTISR15, IDTISR16, IDTISR17, IDTISR18, IDTISR19, IDTISR1A, IDTISR1B, IDTISR1C, IDTISR1D, IDTISR1E, IDTISR1F,
@@ -46,16 +44,20 @@ IDTStub gIDTStubs[IDTDescriptorMax] =
 };
 
 IDTRegister gIDTRegister;
-IDTDescriptor gIDTDescriptors[IDTDescriptorMax];
+IDTDescriptor gIDTDescriptors[IDT::IDTDescriptorMax];
+
+IDT::InterruptHandler IDT::sHandlers[IDT::IDTDescriptorMax];
 
 extern "C" void IDTISRHandler(InterruptRegisters pRegisters)
 {
-	// TODO: Support for calling system registered interrupt handler
+    IDT::InterruptHandler handler = IDT::GetHandler(pRegisters.int_no);
+    if (handler) handler(pRegisters);
 }
 
 extern "C" void IDTIRQHandler(InterruptRegisters pRegisters)
 {
-	// TODO: Support for calling system registered interrupt handler
+    IDT::InterruptHandler handler = IDT::GetHandler(PIC::IRQBaseISR + pRegisters.int_no);
+    if (handler) handler(pRegisters);
 	PIC::ResetInterrupts(pRegisters.int_no >= 9);
 }
 
@@ -78,4 +80,14 @@ void IDT::Load()
 		SetInterrupt((UInt8)idtDescriptorIndex, (UInt32)gIDTStubs[idtDescriptorIndex], SelectorDescriptorIndex, TypeInterrupt386Gate32Bit | TypePresent);
 
 	IDTUpdate(&gIDTRegister);
+}
+
+void IDT::RegisterHandler(UInt8 pInterrupt, InterruptHandler pHandler)
+{
+	sHandlers[pInterrupt] = pHandler;
+}
+
+IDT::InterruptHandler IDT::GetHandler(UInt8 pInterrupt)
+{
+	return sHandlers[pInterrupt];
 }

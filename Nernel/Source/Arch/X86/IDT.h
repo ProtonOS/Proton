@@ -30,10 +30,9 @@ public:
 
 class IDT
 {
-private:
-	static void SetInterrupt(UInt8 pIndex, UInt32 pAddress, UInt16 pSelector, UInt8 pTypeAndFlags);
-
 public:
+	static const UInt32 IDTDescriptorMax = 256;
+
 	static const UInt16 SelectorPriviledgeLevelRing0 = 0x0000;
 	static const UInt16 SelectorPriviledgeLevelRing1 = 0x0001;
 	static const UInt16 SelectorPriviledgeLevelRing2 = 0x0002;
@@ -48,5 +47,15 @@ public:
 	static const UInt8 TypeTrap386Gate32Bit = 0x0F;
 	static const UInt8 TypePresent = 0x80;
 
+	typedef void (*InterruptHandler)(InterruptRegisters pRegisters);
+
 	static void Load();
+
+	static void RegisterHandler(UInt8 pInterrupt, InterruptHandler pHandler);
+	static InterruptHandler GetHandler(UInt8 pInterrupt);
+
+private:
+	static void SetInterrupt(UInt8 pIndex, UInt32 pAddress, UInt16 pSelector, UInt8 pTypeAndFlags);
+
+	static InterruptHandler sHandlers[IDTDescriptorMax];
 };
