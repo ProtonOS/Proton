@@ -5,6 +5,8 @@
     <None Include="Source\Arch\Win32\Boot.asm" />
     <None Include="Source\Arch\X86\Boot.asm" />
     <None Include="Source\Arch\X86\GDTUpdate.asm" />
+    <None Include="Source\Arch\X86\IDTStubs.asm" />
+    <None Include="Source\Arch\X86\IDTUpdate.asm" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Main.cpp" />
@@ -13,6 +15,8 @@
     <ClCompile Include="Source\MultiBoot.cpp" />
     <ClCompile Include="Source\Arch\X86\KernelConsole.cpp" />
     <ClCompile Include="Source\Arch\X86\Arch.cpp" />
+    <ClCompile Include="Source\Arch\X86\IDT.cpp" />
+    <ClCompile Include="Source\Arch\X86\PIC.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Arch\X86\KernelConsole.h" />
@@ -25,5 +29,8 @@
     <ClInclude Include="Source\Arch\X86\GDT.h" />
     <ClInclude Include="Source\Arch\X86\Arch.h" />
     <ClInclude Include="Source\Arch.h" />
+    <ClInclude Include="Source\Arch\X86\IDT.h" />
+    <ClInclude Include="Source\Arch\X86\IDTExternal.h" />
+    <ClInclude Include="Source\Arch\X86\PIC.h" />
   </ItemGroup>
 </Project>
