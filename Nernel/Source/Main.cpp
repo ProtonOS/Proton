@@ -9,4 +9,5 @@ extern "C" void Main(UInt32 pMultiBootMagic, MultiBoot::MultiBootHeader* pMultiB
 	Arch::Load();
 
 	KernelConsole::WriteLine("Hello World!");
+	while (true) ;
 }

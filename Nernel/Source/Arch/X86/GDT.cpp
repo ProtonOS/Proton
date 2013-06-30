@@ -1,4 +1,3 @@
-#include "../../Core/Types.hpp"
 #include "GDT.h"
 
 struct GDTRegister
@@ -57,7 +56,6 @@ static const UInt32 GDTDescriptorCount = 5;
 GDTRegister* gGDTRegister = nullptr;
 GDTDescriptor* gGDTDescriptors = nullptr;
 UInt32 gGDTDescriptorMax = 0;
-UInt32 gGDTDescriptorCount = 0;
 
 // 512 comes from the number of GDTDescriptors that can be stored within 4096 bytes at 0xA000
 // would be nice to get this out of Boot.asm, but it would not be constant, which is required
@@ -82,14 +80,14 @@ void GDT::Load()
     gGDTRegister->Limit = (sizeof(GDTDescriptor) * gGDTDescriptorMax) - 1;
     gGDTRegister->Address = (UInt)&gGDTDescriptors[0];
 
-	for (UInt32 gdtDescriptorIndex = 0; gdtDescriptorIndex < gGDTDescriptorMax; ++gdtDescriptorIndex) SetSegment(0, 0x00000000, 0x00000000, 0x00, 0x00);
+    for (UInt32 gdtDescriptorIndex = 0; gdtDescriptorIndex < gGDTDescriptorMax; ++gdtDescriptorIndex) SetSegment(gdtDescriptorIndex, 0x00000000, 0x00000000, 0x00, 0x00);
 
     SetSegment(1, 0x00000000, 0xFFFFFFFF, AccessReadWriteOnePresent | AccessExecutable, FlagsSelector32BitGranularity4KB);
     SetSegment(2, 0x00000000, 0xFFFFFFFF, AccessReadWriteOnePresent, FlagsSelector32BitGranularity4KB);
     SetSegment(3, 0x00000000, 0xFFFFFFFF, AccessReadWriteOnePresent | AccessExecutable | AccessRing3, FlagsSelector32BitGranularity4KB);
     SetSegment(4, 0x00000000, 0xFFFFFFFF, AccessReadWriteOnePresent | AccessRing3, FlagsSelector32BitGranularity4KB);
 
-	for (UInt32 gdtDescriptorIndex = 5, tssDescriptorIndex = 0; gdtDescriptorIndex < gGDTDescriptorMax; ++gdtDescriptorIndex, ++tssDescriptorIndex)
+    for (UInt32 gdtDescriptorIndex = GDTDescriptorCount, tssDescriptorIndex = 0; gdtDescriptorIndex < gGDTDescriptorMax; ++gdtDescriptorIndex, ++tssDescriptorIndex)
 	{
 		UInt baseAddress = (UInt)&gTSSDescriptors[tssDescriptorIndex];
 	    SetSegment(gdtDescriptorIndex, baseAddress, baseAddress + sizeof(TSSDescriptor), 0xE9, 0x00);
