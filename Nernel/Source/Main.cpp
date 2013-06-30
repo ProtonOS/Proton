@@ -1,4 +1,4 @@
-#include "MultiBoot.h"
+#include "MultiBoot.hpp"
 #include "KernelConsole.h"
 
 extern "C" void Main(uint32 pMultiBootMagic, MultiBoot::MultiBootHeader* pMultiBootHeader)

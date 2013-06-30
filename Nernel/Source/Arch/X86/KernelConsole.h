@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../PrimitiveTypes.h"
+#include "../../Core/Types.hpp"
 #include "PortIO.h"
 
 class KernelConsole

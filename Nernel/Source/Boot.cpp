@@ -1,4 +1,4 @@
-#include "PrimitiveTypes.h"
+#include "Core/Types.hpp"
 
 const uint32 gBootStackSize = 0x100000;
 uint8 gBootStack[gBootStackSize];

@@ -72,9 +72,11 @@
   <ItemGroup>
     <ClInclude Include="Source\Arch\X86\KernelConsole.h" />
     <ClInclude Include="Source\Arch\X86\PortIO.h" />
+    <ClInclude Include="Source\Core\Memory.hpp" />
+    <ClInclude Include="Source\Core\Ptr.hpp" />
     <ClInclude Include="Source\KernelConsole.h" />
-    <ClInclude Include="Source\MultiBoot.h" />
-    <ClInclude Include="Source\PrimitiveTypes.h" />
+    <ClInclude Include="Source\MultiBoot.hpp" />
+    <ClInclude Include="Source\Core\Types.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

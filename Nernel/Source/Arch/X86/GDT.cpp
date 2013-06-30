@@ -1,4 +1,4 @@
-#include "../../PrimitiveTypes.h"
+#include "../../Core/Types.hpp"
 
 struct GDTRegister
 {
