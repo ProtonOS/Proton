@@ -1,11 +1,11 @@
 #include "Core/Core.hpp"
 
-const UInt32 gBootStackSize = 0x100000;
+constexpr UInt32 gBootStackSize = 0x100000;
 UInt8 gBootStack[gBootStackSize];
 Core::Ptr<const UInt8> gBootStackTop = gBootStack + gBootStackSize;
 Core::Ptr<const UInt8> gBootStackBottom = gBootStack;
 
-const UInt32 gTempStackSize = 0x100000;
+constexpr UInt32 gTempStackSize = 0x100000;
 UInt8 gTempStack[gTempStackSize];
 Core::Ptr<const UInt8> gTempStackTop = gTempStack + gTempStackSize;
 Core::Ptr<const UInt8> gTempStackBottom = gTempStack;

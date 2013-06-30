@@ -32,9 +32,12 @@ static_assert(sizeof(UInt) == sizeof(void *), "Incorrect UInt");
 static_assert(sizeof(Bool) == 1, "Incorrect Bool");
 
 //Type information
-template <typename T> class Type
-{ };
-template <> class Type<Int8>
+template <typename T>
+class Type
+{
+};
+template <>
+class Type<Int8>
 {
 public:
     constexpr static bool Signed = true;
@@ -43,7 +46,8 @@ public:
     constexpr static UInt8 Mask = 0;
     constexpr static UInt8 Shift = 0;
 };
-template <> class Type<UInt8>
+template <>
+class Type<UInt8>
 {
 public:
     constexpr static bool Signed = false;
@@ -52,7 +56,8 @@ public:
     constexpr static UInt8 Mask = 0;
     constexpr static UInt8 Shift = 0;
 };
-template <> class Type<Int16>
+template <>
+class Type<Int16>
 {
 public:
     constexpr static bool Signed = true;
@@ -61,7 +66,8 @@ public:
     constexpr static UInt8 Mask = 1;
     constexpr static UInt8 Shift = 1;
 };
-template <> class Type<UInt16>
+template <>
+class Type<UInt16>
 {
 public:
     constexpr static bool Signed = false;
@@ -70,7 +76,8 @@ public:
     constexpr static UInt8 Mask = 1;
     constexpr static UInt8 Shift = 1;
 };
-template <> class Type<Int32>
+template <>
+class Type<Int32>
 {
 public:
     constexpr static bool Signed = true;
@@ -79,7 +86,8 @@ public:
     constexpr static UInt8 Mask = 3;
     constexpr static UInt8 Shift = 2;
 };
-template <> class Type<UInt32>
+template <>
+class Type<UInt32>
 {
 public:
     constexpr static bool Signed = false;
@@ -88,7 +96,8 @@ public:
     constexpr static UInt8 Mask = 3;
     constexpr static UInt8 Shift = 2;
 };
-template <> class Type<Int64>
+template <>
+class Type<Int64>
 {
 public:
     constexpr static bool Signed = true;
@@ -97,7 +106,8 @@ public:
     constexpr static UInt8 Mask = 7;
     constexpr static UInt8 Shift = 3;
 };
-template <> class Type<UInt64>
+template <>
+class Type<UInt64>
 {
 public:
     constexpr static bool Signed = false;
@@ -109,12 +119,14 @@ public:
 //Various utilities
 namespace Core
 {
-    template <typename T> class RemoveConst
+    template <typename T>
+    class RemoveConst
     {
     public:
         typedef T Type;
     };
-    template <typename T> class RemoveConst<const T>
+    template <typename T>
+    class RemoveConst<const T>
     {
     public:
         typedef T Type;

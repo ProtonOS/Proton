@@ -4,7 +4,8 @@
 extern char __EOK;
 extern char __SOK;
 
-namespace MultiBoot {
+namespace MultiBoot
+{
     constexpr UInt32 MagicNumber = 0x2BADB002;
     constexpr UInt32 MemoryMapAvailableType = 1;
     constexpr UInt32 ReservedMemoryBlocksMax = 64;
@@ -12,7 +13,8 @@ namespace MultiBoot {
     constexpr UInt32 LoadedModuleIdentifierMax = 128;
     constexpr UInt32 AvailableMemoryBlocksMax = 64;
 
-    struct MultiBootModule {
+    struct MultiBootModule
+    {
     public:
         UInt32 Start;
         UInt32 End;
@@ -20,7 +22,8 @@ namespace MultiBoot {
         UInt32 Reserved;
     };
 
-    struct MultiBootMemoryMap {
+    struct MultiBootMemoryMap
+    {
     public:
         UInt32 Size;
         UInt32 AddressLower;
@@ -31,13 +34,15 @@ namespace MultiBoot {
     };
 
 
-    struct ReservedMemoryBlock {
+    struct ReservedMemoryBlock
+    {
     public:
         UInt Address;
         UInt Size;
     };
 
-    struct MultiBootHeader {
+    struct MultiBootHeader
+    {
     public:
         UInt32 Flags;
         UInt32 LowerMemory;
@@ -64,14 +69,16 @@ namespace MultiBoot {
         UInt16 VBEInterfaceOffset;
         UInt16 VBEInterfaceLength;
     };
-    struct LoadedModule {
+    struct LoadedModule
+    {
     public:
         UInt Address;
         UInt Size;
         char Identifier[LoadedModuleIdentifierMax];
     };
 
-    struct AvailableMemoryBlock {
+    struct AvailableMemoryBlock
+    {
     public:
         UInt Address;
         UInt Size;
@@ -85,7 +92,8 @@ namespace MultiBoot {
     AvailableMemoryBlock AvailableMemoryBlocks[AvailableMemoryBlocksMax];
     UInt32 AvailableMemoryBlocksCount = 0;
 
-    void Load(UInt32 pMultiBootMagic, Core::Ptr<MultiBootHeader> pMultiBootHeader) {
+    void Load(UInt32 pMultiBootMagic, Core::Ptr<MultiBootHeader> pMultiBootHeader)
+    {
         //extern char __EOK;
         //extern char __SOK;
         //UInt kernelStart = (UInt)&__SOK;

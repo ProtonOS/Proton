@@ -2,29 +2,25 @@
 
 extern "C" void GDTUpdate();
 
-class GDT
+namespace GDT
 {
-private:
-	static void SetSegment(UInt32 pIndex, UInt32 pAddress, UInt32 pLimit, UInt8 pAccess, UInt8 pFlags);
+    constexpr UInt8 AccessAccessed = 0x01;
+    constexpr UInt8 AccessReadWrite = 0x02;
+    constexpr UInt8 AccessDirectionConforming = 0x04;
+    constexpr UInt8 AccessExecutable = 0x08;
+    constexpr UInt8 AccessOne = 0x10;
+    constexpr UInt8 AccessRing0 = 0x00;
+    constexpr UInt8 AccessRing1 = 0x20;
+    constexpr UInt8 AccessRing2 = 0x40;
+    constexpr UInt8 AccessRing3 = 0x60;
+    constexpr UInt8 AccessPresent = 0x80;
+    constexpr UInt8 AccessReadWriteOnePresent = AccessReadWrite | AccessOne | AccessPresent;
 
-public:
-	static const UInt8 AccessAccessed = 0x01;
-	static const UInt8 AccessReadWrite = 0x02;
-	static const UInt8 AccessDirectionConforming = 0x04;
-	static const UInt8 AccessExecutable = 0x08;
-	static const UInt8 AccessOne = 0x10;
-	static const UInt8 AccessRing0 = 0x00;
-	static const UInt8 AccessRing1 = 0x20;
-	static const UInt8 AccessRing2 = 0x40;
-	static const UInt8 AccessRing3 = 0x60;
-	static const UInt8 AccessPresent = 0x80;
-	static const UInt8 AccessReadWriteOnePresent = AccessReadWrite | AccessOne | AccessPresent;
+    constexpr UInt8 FlagsSelector32Bit = 0x40;
+    constexpr UInt8 FlagsGranularity4KB = 0x80;
+    constexpr UInt8 FlagsSelector32BitGranularity4KB = FlagsSelector32Bit | FlagsGranularity4KB;
 
-	static const UInt8 FlagsSelector32Bit = 0x40;
-	static const UInt8 FlagsGranularity4KB = 0x80;
-	static const UInt8 FlagsSelector32BitGranularity4KB = FlagsSelector32Bit | FlagsGranularity4KB;
+    void Load();
 
-	static void Load();
-
-	static void SetTSSStack(UInt32 pIndex, UInt pStackAddress);
+    void SetTSSStack(UInt32 pIndex, UInt pStackAddress);
 };

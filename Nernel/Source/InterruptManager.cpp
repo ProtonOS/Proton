@@ -1,15 +1,20 @@
 #include "Core/Core.hpp"
 #include "InterruptManager.hpp"
 
-IDT::InterruptHandler InterruptManager::sHandlers[IDT::IDTDescriptorMax];
-
-
-void InterruptManager::RegisterHandler(UInt8 pInterrupt, IDT::InterruptHandler pHandler)
+namespace InterruptManager
 {
-	sHandlers[pInterrupt] = pHandler;
-}
 
-IDT::InterruptHandler InterruptManager::GetHandler(UInt8 pInterrupt)
-{
-	return sHandlers[pInterrupt];
+    IDT::InterruptHandler sHandlers[IDT::IDTDescriptorMax];
+
+
+    void RegisterHandler(UInt8 pInterrupt, IDT::InterruptHandler pHandler)
+    {
+        sHandlers[pInterrupt] = pHandler;
+    }
+
+    IDT::InterruptHandler GetHandler(UInt8 pInterrupt)
+    {
+        return sHandlers[pInterrupt];
+    }
+
 }

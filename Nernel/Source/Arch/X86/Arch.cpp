@@ -7,7 +7,7 @@
 
 void Arch::Load()
 {
-	GDT::Load();
-	PIC::Load();
-	IDT::Load();
+    GDT::Load();
+    PIC::Load();
+    IDT::Load();
 }

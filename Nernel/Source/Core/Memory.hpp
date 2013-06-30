@@ -1,12 +1,15 @@
 #pragma once
 #include "Ptr.hpp"
 #include "Types.hpp"
-namespace Core {
-    namespace Memory {
+namespace Core
+{
+    namespace Memory
+    {
         //Requires that the destination and source do not overlap
         //Also does not work with any data type which is not POD due to virtual pointers
         template <typename T>
-        void ByteCopy(Core::Ptr<T> pDest, Core::Ptr<const T> pSrc, UInt pLen) {
+        void ByteCopy(Core::Ptr<T> pDest, Core::Ptr<const T> pSrc, UInt pLen)
+        {
             UInt full = pLen * sizeof(T);
             UInt large = full >> Type<UInt>::Shift;
             UInt small = full & Type<UInt>::Mask;

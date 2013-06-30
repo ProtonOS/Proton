@@ -2,5 +2,5 @@
 
 namespace Arch
 {
-	void Load();
+    void Load();
 };
