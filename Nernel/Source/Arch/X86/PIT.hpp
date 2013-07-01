@@ -35,4 +35,5 @@ namespace PIT
 
 	extern UInt16 MillisecondsSinceSecond;
 	extern UInt64 SecondsSinceStartup;
+	extern UInt64 MillisecondsSinceStartup;
 };

@@ -20,6 +20,7 @@
     <ClCompile Include="Source\Kernel\MultiBoot.cpp" />
     <ClCompile Include="Source\Kernel\InterruptManager.cpp" />
     <ClCompile Include="Source\Kernel\Boot.cpp" />
+    <ClCompile Include="Source\Kernel\SystemClock.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Core\Ptr.hpp" />
@@ -39,5 +40,6 @@
     <ClInclude Include="Source\Kernel\MultiBoot.hpp" />
     <ClInclude Include="Source\Kernel\InterruptManager.hpp" />
     <ClInclude Include="Source\Kernel\KernelConsole.hpp" />
+    <ClInclude Include="Source\Kernel\SystemClock.hpp" />
   </ItemGroup>
 </Project>

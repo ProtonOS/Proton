@@ -47,6 +47,7 @@
 	Source/Kernel/Boot.cpp
 	Source/Kernel/InterruptManager.cpp
 	Source/Kernel/MultiBoot.cpp
+	Source/Kernel/SystemClock.cpp
 }
 
 #define SOURCE(X86_CPP_FILES)
