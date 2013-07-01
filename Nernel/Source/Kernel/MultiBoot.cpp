@@ -144,26 +144,26 @@ namespace MultiBoot
                                 // Space left at start, but not at end
                                 availableMemoryBlock->Size = reservedMemoryBlock->Address - availableMemoryBlock->Address;
                         } else if (reservedMemoryBlock->Address <= availableMemoryBlock->Address &&
-                                   reservedMemoryBlock->Address + reservedMemoryBlock->Size < availableMemoryBlock->Address + availableMemoryBlock->Size) {
-                                       // Space left at end, but not at start
-                                       availableMemoryBlock->Size = (availableMemoryBlock->Address + availableMemoryBlock->Size) - (reservedMemoryBlock->Address + reservedMemoryBlock->Size);
-                                       availableMemoryBlock->Address = reservedMemoryBlock->Address + reservedMemoryBlock->Size;
+                            reservedMemoryBlock->Address + reservedMemoryBlock->Size < availableMemoryBlock->Address + availableMemoryBlock->Size) {
+                                // Space left at end, but not at start
+                                availableMemoryBlock->Size = (availableMemoryBlock->Address + availableMemoryBlock->Size) - (reservedMemoryBlock->Address + reservedMemoryBlock->Size);
+                                availableMemoryBlock->Address = reservedMemoryBlock->Address + reservedMemoryBlock->Size;
                         } else if (reservedMemoryBlock->Address > availableMemoryBlock->Address &&
-                                   reservedMemoryBlock->Address + reservedMemoryBlock->Size < availableMemoryBlock->Address + availableMemoryBlock->Size) {
-                                       // Space left at both start and end
-                                       if (AvailableMemoryBlocksCount == AvailableMemoryBlocksMax) {
-                                           //Panic("Insufficient memory blocks to process available memory");
-                                           while (true);
-                                       }
+                            reservedMemoryBlock->Address + reservedMemoryBlock->Size < availableMemoryBlock->Address + availableMemoryBlock->Size) {
+                                // Space left at both start and end
+                                if (AvailableMemoryBlocksCount == AvailableMemoryBlocksMax) {
+                                    //Panic("Insufficient memory blocks to process available memory");
+                                    while (true);
+                                }
 
-                                       for (UInt32 copyBlockIndex = AvailableMemoryBlocksCount; copyBlockIndex > availableMemoryBlockIndex; --copyBlockIndex) {
-                                           AvailableMemoryBlocks[copyBlockIndex] = AvailableMemoryBlocks[copyBlockIndex - 1];
-                                       }
-                                       ++AvailableMemoryBlocksCount;
+                                for (UInt32 copyBlockIndex = AvailableMemoryBlocksCount; copyBlockIndex > availableMemoryBlockIndex; --copyBlockIndex) {
+                                    AvailableMemoryBlocks[copyBlockIndex] = AvailableMemoryBlocks[copyBlockIndex - 1];
+                                }
+                                ++AvailableMemoryBlocksCount;
 
-                                       AvailableMemoryBlocks[availableMemoryBlockIndex + 1].Size = (availableMemoryBlock->Address + availableMemoryBlock->Size) - (reservedMemoryBlock->Address + reservedMemoryBlock->Size);
-                                       AvailableMemoryBlocks[availableMemoryBlockIndex + 1].Address = reservedMemoryBlock->Address + reservedMemoryBlock->Size;
-                                       availableMemoryBlock->Size = reservedMemoryBlock->Address - availableMemoryBlock->Address;
+                                AvailableMemoryBlocks[availableMemoryBlockIndex + 1].Size = (availableMemoryBlock->Address + availableMemoryBlock->Size) - (reservedMemoryBlock->Address + reservedMemoryBlock->Size);
+                                AvailableMemoryBlocks[availableMemoryBlockIndex + 1].Address = reservedMemoryBlock->Address + reservedMemoryBlock->Size;
+                                availableMemoryBlock->Size = reservedMemoryBlock->Address - availableMemoryBlock->Address;
 
                         } else {
                             // No space, used the whole darn block!

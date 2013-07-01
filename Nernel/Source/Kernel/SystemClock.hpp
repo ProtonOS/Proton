@@ -2,12 +2,12 @@
 
 namespace SystemClock
 {
-	void Load();
+    void Load();
 
-	bool IsReady();
-	UInt32 GetSecondsSinceEpoch();
-	UInt16 GetMillisecondsSinceSecond();
-	UInt64 GetMillisecondsSinceStartup();
+    bool IsReady();
+    UInt32 GetSecondsSinceEpoch();
+    UInt16 GetMillisecondsSinceSecond();
+    UInt64 GetMillisecondsSinceStartup();
 
-	extern UInt32 StartupSecondsSinceEpoch;
+    extern UInt32 StartupSecondsSinceEpoch;
 };

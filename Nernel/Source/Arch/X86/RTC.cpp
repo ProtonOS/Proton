@@ -21,22 +21,22 @@ void RTC::Load()
 
     outb(IOPortAddress, 0x0B);
     UInt8 modes = inb(IOPortData);
-	MilitaryMode = (modes & 0x02) == 0x02;
-	BinaryCodedDecimalMode = (modes & 0x04) != 0x04;
+    MilitaryMode = (modes & 0x02) == 0x02;
+    BinaryCodedDecimalMode = (modes & 0x04) != 0x04;
 }
 
 UInt8 RTC::GetSecond()
 {
     WaitForReady();
     outb(IOPortAddress, 0x00);
-	return BinaryCodedDecimalMode ? FromBCD(inb(IOPortData)) : inb(IOPortData);
+    return BinaryCodedDecimalMode ? FromBCD(inb(IOPortData)) : inb(IOPortData);
 }
 
 UInt8 RTC::GetMinute()
 {
     WaitForReady();
     outb(IOPortAddress, 0x02);
-	return BinaryCodedDecimalMode ? FromBCD(inb(IOPortData)) : inb(IOPortData);
+    return BinaryCodedDecimalMode ? FromBCD(inb(IOPortData)) : inb(IOPortData);
 }
 
 UInt8 RTC::GetHour()
@@ -47,7 +47,7 @@ UInt8 RTC::GetHour()
     UInt8 b = inb(IOPortData);
     if ((b & 0x80) == 0x80) return (BinaryCodedDecimalMode ? FromBCD(b) : b) + 12;
     if (BinaryCodedDecimalMode && FromBCD(b) == 12) return 0;
-	if (!BinaryCodedDecimalMode && b == 12) return 0;
+    if (!BinaryCodedDecimalMode && b == 12) return 0;
     return BinaryCodedDecimalMode ? FromBCD(b) : b;
 }
 
