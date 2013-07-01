@@ -5,6 +5,7 @@
 #include "IDT.hpp"
 #include "PIC.hpp"
 #include "PIT.hpp"
+#include "RTC.hpp"
 
 void Arch::Load()
 {
@@ -12,4 +13,5 @@ void Arch::Load()
     PIC::Load();
 	PIT::Load();
     IDT::Load();
+	RTC::Load();
 }

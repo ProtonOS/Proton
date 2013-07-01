@@ -57,6 +57,7 @@
 	Source/Arch/X86/KernelConsole.cpp
 	Source/Arch/X86/PIC.cpp
 	Source/Arch/X86/PIT.cpp
+	Source/Arch/X86/RTC.cpp
 }
 
 #define TARGET(X86)

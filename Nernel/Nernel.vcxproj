@@ -71,6 +71,7 @@
     <ClCompile Include="Source\Arch\X86\GDT.cpp" />
     <ClCompile Include="Source\Arch\X86\PIC.cpp" />
     <ClCompile Include="Source\Arch\X86\PIT.cpp" />
+    <ClCompile Include="Source\Arch\X86\RTC.cpp" />
     <ClCompile Include="Source\Boot.cpp" />
     <ClCompile Include="Source\InterruptManager.cpp" />
     <ClCompile Include="Source\Main.cpp" />
@@ -86,6 +87,7 @@
     <ClInclude Include="Source\Arch\X86\PIC.hpp" />
     <ClInclude Include="Source\Arch\X86\PIT.hpp" />
     <ClInclude Include="Source\Arch\X86\PortIO.hpp" />
+    <ClInclude Include="Source\Arch\X86\RTC.hpp" />
     <ClInclude Include="Source\Core\Core.hpp" />
     <ClInclude Include="Source\Core\Memory.hpp" />
     <ClInclude Include="Source\Core\Ptr.hpp" />
