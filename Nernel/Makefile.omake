@@ -56,6 +56,7 @@
 	Source/Arch/X86/IDT.cpp
 	Source/Arch/X86/KernelConsole.cpp
 	Source/Arch/X86/PIC.cpp
+	Source/Arch/X86/PIT.cpp
 }
 
 #define TARGET(X86)

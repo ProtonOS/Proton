@@ -18,6 +18,7 @@
     <ClCompile Include="Source\Arch\X86\IDT.cpp" />
     <ClCompile Include="Source\Arch\X86\PIC.cpp" />
     <ClCompile Include="Source\InterruptManager.cpp" />
+    <ClCompile Include="Source\Arch\X86\PIT.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Core\Ptr.hpp" />
@@ -35,5 +36,6 @@
     <ClInclude Include="Source\Arch\X86\GDT.hpp" />
     <ClInclude Include="Source\Arch\X86\KernelConsole.hpp" />
     <ClInclude Include="Source\InterruptManager.hpp" />
+    <ClInclude Include="Source\Arch\X86\PIT.hpp" />
   </ItemGroup>
 </Project>
