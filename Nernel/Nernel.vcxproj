@@ -74,6 +74,7 @@
     <ClCompile Include="Source\Arch\X86\PIT.cpp" />
     <ClCompile Include="Source\Arch\X86\RTC.cpp" />
     <ClCompile Include="Source\Kernel\Boot.cpp" />
+    <ClCompile Include="Source\Kernel\Debug.cpp" />
     <ClCompile Include="Source\Kernel\InterruptManager.cpp" />
     <ClCompile Include="Source\Kernel\SystemClock.cpp" />
     <ClCompile Include="Source\Main.cpp" />
@@ -93,6 +94,7 @@
     <ClInclude Include="Source\Core\Core.hpp" />
     <ClInclude Include="Source\Core\Memory.hpp" />
     <ClInclude Include="Source\Core\Ptr.hpp" />
+    <ClInclude Include="Source\Kernel\Debug.hpp" />
     <ClInclude Include="Source\Kernel\InterruptManager.hpp" />
     <ClInclude Include="Source\Kernel\KernelConsole.hpp" />
     <ClInclude Include="Source\Kernel\MultiBoot.hpp" />

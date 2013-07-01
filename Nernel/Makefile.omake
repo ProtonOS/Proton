@@ -45,6 +45,7 @@
 {
 	Source/Main.cpp
 	Source/Kernel/Boot.cpp
+	Source/Kernel/Debug.cpp
 	Source/Kernel/InterruptManager.cpp
 	Source/Kernel/MultiBoot.cpp
 	Source/Kernel/SystemClock.cpp
