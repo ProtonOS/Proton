@@ -1,5 +1,8 @@
 #pragma once
 
+#if defined(_WIN32) && _MSC_VER < 1800
+#  define constexpr
+#endif
 namespace Core
 {
     //Provides a simple pointer wrapper that does null checks
@@ -58,3 +61,6 @@ namespace Core
         T * mPtr;
     };
 }
+#if defined(_WIN32) && _MSC_VER < 1800
+#  define constexpr const
+#endif
