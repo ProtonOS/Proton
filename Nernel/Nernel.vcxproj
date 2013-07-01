@@ -46,6 +46,7 @@
     <NMakeIncludeSearchPath>
     </NMakeIncludeSearchPath>
     <IncludePath />
+    <NMakeForcedIncludes>$(ProjectDir)Source\Core\Core.hpp</NMakeForcedIncludes>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <NMakeOutput>Nernel.exe</NMakeOutput>
@@ -72,13 +73,13 @@
     <ClCompile Include="Source\Arch\X86\PIC.cpp" />
     <ClCompile Include="Source\Arch\X86\PIT.cpp" />
     <ClCompile Include="Source\Arch\X86\RTC.cpp" />
-    <ClCompile Include="Source\Boot.cpp" />
-    <ClCompile Include="Source\InterruptManager.cpp" />
+    <ClCompile Include="Source\Kernel\Boot.cpp" />
+    <ClCompile Include="Source\Kernel\InterruptManager.cpp" />
     <ClCompile Include="Source\Main.cpp" />
-    <ClCompile Include="Source\MultiBoot.cpp" />
+    <ClCompile Include="Source\Kernel\MultiBoot.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Source\Arch.hpp" />
+    <ClInclude Include="Source\Kernel\Arch.hpp" />
     <ClInclude Include="Source\Arch\X86\Arch.hpp" />
     <ClInclude Include="Source\Arch\X86\GDT.hpp" />
     <ClInclude Include="Source\Arch\X86\IDT.hpp" />
@@ -91,9 +92,9 @@
     <ClInclude Include="Source\Core\Core.hpp" />
     <ClInclude Include="Source\Core\Memory.hpp" />
     <ClInclude Include="Source\Core\Ptr.hpp" />
-    <ClInclude Include="Source\InterruptManager.hpp" />
-    <ClInclude Include="Source\KernelConsole.hpp" />
-    <ClInclude Include="Source\MultiBoot.hpp" />
+    <ClInclude Include="Source\Kernel\InterruptManager.hpp" />
+    <ClInclude Include="Source\Kernel\KernelConsole.hpp" />
+    <ClInclude Include="Source\Kernel\MultiBoot.hpp" />
     <ClInclude Include="Source\Core\Types.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -1,5 +1,3 @@
-#include "Core/Core.hpp"
-
 constexpr UInt32 gBootStackSize = 0x100000;
 UInt8 gBootStack[gBootStackSize];
 Core::Ptr<const UInt8> gBootStackTop = gBootStack + gBootStackSize;

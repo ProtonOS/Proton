@@ -1,4 +1,3 @@
-#include "Core/Core.hpp"
 #include "InterruptManager.hpp"
 
 namespace InterruptManager

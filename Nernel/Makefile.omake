@@ -17,7 +17,7 @@
 #define TOOL_WIN32(MKISOFS, ../SDK/bin/mkisofs.exe);
 
 
-#define CONST(CPP_ARGS, -g -O0 -D__DYNAMIC_REENT__ -DX86 -std=c++11 -Wall -Wextra -Werror -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -fno-builtin -fno-exceptions -fno-rtti -nostdlib -fpack-struct=1 -nostartfiles -nodefaultlibs -c);
+#define CONST(CPP_ARGS, -include "Source\Core\Core.hpp" -g -O0 -D__DYNAMIC_REENT__ -DX86 -std=c++11 -Wall -Wextra -Werror -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -fno-builtin -fno-exceptions -fno-rtti -nostdlib -fpack-struct=1 -nostartfiles -nodefaultlibs -c);
 #define CONST(LD_ARGS, -L../SDK/lib -T Nernel.ld -g);
 #define CONST(LD_LIBS, -lgcc);
 #define CONST(RM_ARGS, -rf);
@@ -43,10 +43,10 @@
 
 #define SOURCE(ALL_CPP_FILES)
 {
-	Source/Boot.cpp
-	Source/InterruptManager.cpp
 	Source/Main.cpp
-	Source/MultiBoot.cpp
+	Source/Kernel/Boot.cpp
+	Source/Kernel/InterruptManager.cpp
+	Source/Kernel/MultiBoot.cpp
 }
 
 #define SOURCE(X86_CPP_FILES)

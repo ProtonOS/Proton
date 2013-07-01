@@ -1,7 +1,6 @@
-#include "Core/Core.hpp"
-#include "MultiBoot.hpp"
-#include "KernelConsole.hpp"
-#include "Arch.hpp"
+#include "Kernel/MultiBoot.hpp"
+#include "Kernel/KernelConsole.hpp"
+#include "Kernel/Arch.hpp"
 
 extern "C" void Main(UInt32 pMultiBootMagic, MultiBoot::MultiBootHeader* pMultiBootHeader)
 {

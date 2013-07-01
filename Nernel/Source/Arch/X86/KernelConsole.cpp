@@ -1,5 +1,3 @@
-#include "../../Core/Core.hpp"
-
 #include "KernelConsole.hpp"
 
 namespace KernelConsole

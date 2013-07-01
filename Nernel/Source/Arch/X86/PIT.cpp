@@ -1,6 +1,5 @@
-#include "../../Core/Core.hpp"
-#include "../../InterruptManager.hpp"
-#include "../../KernelConsole.hpp"
+#include "../../Kernel/InterruptManager.hpp"
+#include "../../Kernel/KernelConsole.hpp"
 
 #include "PIC.hpp"
 #include "PIT.hpp"

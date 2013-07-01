@@ -1,5 +1,3 @@
-#include "../../Core/Core.hpp"
-
 #include "Arch.hpp"
 #include "GDT.hpp"
 #include "IDT.hpp"

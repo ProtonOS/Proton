@@ -1,9 +1,8 @@
-#include "../../Core/Core.hpp"
+#include "../../Kernel/KernelConsole.hpp"
+#include "../../Kernel/InterruptManager.hpp"
 
 #include "IDT.hpp"
 #include "PIC.hpp"
-#include "KernelConsole.hpp"
-#include "../../InterruptManager.hpp"
 
 struct IDTRegister
 {
