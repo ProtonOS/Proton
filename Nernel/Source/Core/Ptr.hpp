@@ -7,16 +7,16 @@ namespace Core
     class Ptr
     {
     public:
-        constexpr Ptr() : mPtr {nullptr}
+        constexpr Ptr() : mPtr (nullptr)
         {
         }
-        constexpr Ptr(Ptr && pOther) : mPtr {pOther.mPtr}
+        constexpr Ptr(Ptr && pOther) : mPtr (pOther.mPtr)
         {
         }
-        constexpr Ptr(const Ptr & pOther) : mPtr {pOther.mPtr}
+        constexpr Ptr(const Ptr & pOther) : mPtr (pOther.mPtr)
         {
         }
-        constexpr Ptr(T * pOther) : mPtr {pOther}
+        constexpr Ptr(T * pOther) : mPtr (pOther)
         {
         }
         constexpr Ptr & operator=(Ptr && pOther)
