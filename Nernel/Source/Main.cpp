@@ -35,5 +35,8 @@ extern "C" void Main(UInt32 pMultiBootMagic, MultiBoot::MultiBootHeader * pMulti
     KernelConsole::WriteLine("Hello World!");
     Debug::Write<Int64, 16>(-0x9001DEADBEEF);
     Debug::WriteFormat("\n%u %% %i %x %s", 273, -999, 0xface, "Wat");
+    Core::Ptr<char> lol;
+    UInt meh = 273;
+    lol = Core::Ptr<char>(meh);
     while (true);
 }

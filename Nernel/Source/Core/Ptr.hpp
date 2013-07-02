@@ -19,6 +19,9 @@ namespace Core
         constexpr Ptr(T * pOther) : mPtr (pOther)
         {
         }
+        constexpr explicit Ptr(UInt pOther) : mPtr(reinterpret_cast<T *>(pOther))
+        {
+        }
         Ptr & operator=(const Ptr & pOther)
         {
             return mPtr = pOther.mPtr, *this;
@@ -50,16 +53,13 @@ namespace Core
         constexpr T & operator[](UInt pIndex) const {
             return mPtr ? mPtr[pIndex] : mPtr[pIndex];
         }
-        constexpr explicit operator bool() const
-        {
-            return mPtr ? true : false;
-        }
-        constexpr explicit Ptr(UInt pOther) : mPtr(pOther)
-        {
-        }
 		constexpr T * Get() const
         {
             return mPtr ? mPtr : mPtr;
+        }
+        constexpr explicit operator bool() const
+        {
+            return mPtr ? true : false;
         }
     private:
         T * mPtr;
