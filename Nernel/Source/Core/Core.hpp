@@ -4,3 +4,4 @@
 #include "Types.hpp"
 #include "Ptr.hpp"
 #include "Memory.hpp"
+#include "String.hpp"

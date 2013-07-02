@@ -4,7 +4,7 @@
 #include "Kernel/SystemClock.hpp"
 #include "Kernel/Debug.hpp"
 
-extern "C" void Main(UInt32 pMultiBootMagic, MultiBoot::MultiBootHeader* pMultiBootHeader)
+extern "C" void Main(UInt32 pMultiBootMagic, MultiBoot::MultiBootHeader * pMultiBootHeader)
 {
     // Debugging Support
     KernelConsole::Load();
@@ -33,5 +33,6 @@ extern "C" void Main(UInt32 pMultiBootMagic, MultiBoot::MultiBootHeader* pMultiB
 
     KernelConsole::WriteLine("Hello World!");
     Debug::Write<Int64, 16>(-0x9001DEADBEEF);
+    Debug::WriteFormat("\n%u %% %i %x %s", 273, -999, 0xface, "Wat");
     while (true);
 }

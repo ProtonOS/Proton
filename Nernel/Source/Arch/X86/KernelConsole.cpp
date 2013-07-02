@@ -87,23 +87,16 @@ namespace KernelConsole
         }
     }
 
-    void WriteString(const char* pString, UInt32 pLength)
+    void WriteString(Core::String pString)
     {
-        const char* iterator = pString;
-        bool useLength = pLength > 0;
-        while (*iterator) {
-            WriteCharacter(*iterator);
-            ++iterator;
-            if (useLength) {
-                --pLength;
-                if (pLength == 0) break;
-            }
+        for (UInt i = 0; i < pString.Length(); ++i) {
+            WriteCharacter(pString[i]);
         }
     }
 
-    void WriteLine(const char* pString)
+    void WriteLine(Core::String pString)
     {
-        WriteString(pString, 0);
+        WriteString(pString);
         WriteCharacter('\n');
     }
 }

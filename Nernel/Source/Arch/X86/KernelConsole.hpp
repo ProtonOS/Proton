@@ -38,7 +38,7 @@ namespace KernelConsole
     void Advance();
 
     void WriteCharacter(char pCharacter);
-    void WriteString(const char* pString, UInt32 pLength);
-    void WriteLine(const char* pString);
+    void WriteString(Core::String pString);
+    void WriteLine(Core::String pString);
 
 }

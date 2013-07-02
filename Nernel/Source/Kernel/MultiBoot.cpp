@@ -125,7 +125,7 @@ namespace MultiBoot
         UInt32 multiBootMemoryMapsCount = pMultiBootHeader->MemoryMapsSize / sizeof(MultiBootMemoryMap);
 
         for (UInt32 multiBootMemoryMapIndex = 0; multiBootMemoryMapIndex < multiBootMemoryMapsCount; ++multiBootMemoryMapIndex, ++multiBootMemoryMap) {
-            if (multiBootMemoryMap->Type == MemoryMapAvailableType && multiBootMemoryMap->AddressLower >= (UInt)&__SOK) {
+            if (multiBootMemoryMap->Type == MemoryMapAvailableType && multiBootMemoryMap->AddressLower >= reinterpret_cast<UInt>(&__SOK)) {
                 AvailableMemoryBlocks[AvailableMemoryBlocksCount].Address = multiBootMemoryMap->AddressLower;
                 AvailableMemoryBlocks[AvailableMemoryBlocksCount].Size = multiBootMemoryMap->LengthLower;
                 AvailableMemoryBlocks[AvailableMemoryBlocksCount].Used = 0;

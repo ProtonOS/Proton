@@ -23,7 +23,7 @@ public:
 
 #include "IDTExternal.hpp"
 
-typedef void (*IDTStub)(void);
+typedef void (* IDTStub)(void);
 
 IDTStub gIDTStubs[IDT::IDTDescriptorMax] = {
     IDTISR00, IDTISR01, IDTISR02, IDTISR03, IDTISR04, IDTISR05, IDTISR06, IDTISR07, IDTISR08, IDTISR09, IDTISR0A, IDTISR0B, IDTISR0C, IDTISR0D, IDTISR0E, IDTISR0F,
@@ -82,10 +82,10 @@ namespace IDT
     void Load()
     {
         gIDTRegister.Limit = (sizeof(IDTDescriptor) * IDTDescriptorMax) - 1;
-        gIDTRegister.Address = (UInt32)&gIDTDescriptors[0];
+        gIDTRegister.Address = reinterpret_cast<UInt32>(gIDTDescriptors);
 
         for (UInt32 idtDescriptorIndex = 0; idtDescriptorIndex < IDTDescriptorMax; ++idtDescriptorIndex)
-            SetInterrupt((UInt8)idtDescriptorIndex, (UInt32)gIDTStubs[idtDescriptorIndex], SelectorDescriptorIndex, TypeInterrupt386Gate32Bit | TypePresent);
+            SetInterrupt(static_cast<UInt8>(idtDescriptorIndex), reinterpret_cast<UInt32>(gIDTStubs[idtDescriptorIndex]), SelectorDescriptorIndex, TypeInterrupt386Gate32Bit | TypePresent);
 
         IDTUpdate(&gIDTRegister);
 

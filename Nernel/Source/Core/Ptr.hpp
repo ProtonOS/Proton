@@ -13,20 +13,13 @@ namespace Core
         constexpr Ptr() : mPtr (nullptr)
         {
         }
-        constexpr Ptr(Ptr && pOther) : mPtr (pOther.mPtr)
-        {
-        }
         constexpr Ptr(const Ptr & pOther) : mPtr (pOther.mPtr)
         {
         }
         constexpr Ptr(T * pOther) : mPtr (pOther)
         {
         }
-        constexpr Ptr & operator=(Ptr && pOther)
-        {
-            return mPtr = pOther.mPtr, *this;
-        }
-        constexpr Ptr & operator=(const Ptr & pOther)
+        Ptr & operator=(const Ptr & pOther)
         {
             return mPtr = pOther.mPtr, *this;
         }
@@ -41,6 +34,10 @@ namespace Core
         Ptr & operator++()
         {
             return ++mPtr, *this;
+        }
+        Ptr operator++(int)
+        {
+            return {mPtr++};
         }
         constexpr Ptr operator+(UInt mSize) const
         {

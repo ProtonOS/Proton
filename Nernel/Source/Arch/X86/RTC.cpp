@@ -90,7 +90,7 @@ UInt32 RTC::GetTotalDays(UInt16 pYear, UInt8 pMonth, UInt8 pDay)
 {
     UInt32 totalDays = 0;
     UInt8 month = 1;
-    UInt8* daysPerMonth = DaysPerMonth;
+    Core::Ptr<UInt8> daysPerMonth = DaysPerMonth;
     if (((pYear % 4 == 0) && (pYear % 100) != 0) || (pYear % 400) == 0) daysPerMonth = LeapYearDaysPerMonth;
     while (month < pMonth) totalDays += daysPerMonth[month++];
     return ((pDay - 1) + totalDays + (365 * (pYear - 1)) + ((pYear - 1) / 4) - ((pYear - 1) / 100) + ((pYear - 1) / 400));

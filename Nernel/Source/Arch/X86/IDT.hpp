@@ -3,7 +3,7 @@
 #include "../../Core/Types.hpp"
 
 struct IDTRegister;
-extern "C" void IDTUpdate(IDTRegister*);
+extern "C" void IDTUpdate(IDTRegister *);
 
 struct InterruptRegisters
 {
@@ -46,7 +46,7 @@ namespace IDT
     constexpr UInt8 TypeTrap386Gate32Bit = 0x0F;
     constexpr UInt8 TypePresent = 0x80;
 
-    typedef void (*InterruptHandler)(InterruptRegisters pRegisters);
+    typedef void (* InterruptHandler)(InterruptRegisters pRegisters);
 
     void Load();
 

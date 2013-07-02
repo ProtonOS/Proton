@@ -43,5 +43,6 @@
     <ClInclude Include="Source\Kernel\KernelConsole.hpp" />
     <ClInclude Include="Source\Kernel\SystemClock.hpp" />
     <ClInclude Include="Source\Kernel\Debug.hpp" />
+    <ClInclude Include="Source\Core\String.hpp" />
   </ItemGroup>
 </Project>

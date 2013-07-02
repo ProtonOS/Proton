@@ -81,6 +81,7 @@
     <ClCompile Include="Source\Kernel\MultiBoot.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Core\String.hpp" />
     <ClInclude Include="Source\Kernel\Arch.hpp" />
     <ClInclude Include="Source\Arch\X86\Arch.hpp" />
     <ClInclude Include="Source\Arch\X86\GDT.hpp" />

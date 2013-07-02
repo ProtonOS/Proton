@@ -80,7 +80,7 @@ namespace GDT
     void Load()
     {
         gGDTRegister->Limit = (sizeof(GDTDescriptor) * gGDTDescriptorMax) - 1;
-        gGDTRegister->Address = (UInt)&gGDTDescriptors[0];
+        gGDTRegister->Address = reinterpret_cast<UInt>(gGDTDescriptors);
 
         for (UInt32 gdtDescriptorIndex = 0; gdtDescriptorIndex < gGDTDescriptorMax; ++gdtDescriptorIndex) SetSegment(gdtDescriptorIndex, 0x00000000, 0x00000000, 0x00, 0x00);
 
@@ -90,7 +90,7 @@ namespace GDT
         SetSegment(4, 0x00000000, 0xFFFFFFFF, AccessReadWriteOnePresent | AccessRing3, FlagsSelector32BitGranularity4KB);
 
         for (UInt32 gdtDescriptorIndex = GDTDescriptorCount, tssDescriptorIndex = 0; gdtDescriptorIndex < gGDTDescriptorMax; ++gdtDescriptorIndex, ++tssDescriptorIndex) {
-            UInt baseAddress = (UInt)&gTSSDescriptors[tssDescriptorIndex];
+            UInt baseAddress = reinterpret_cast<UInt>(gTSSDescriptors + tssDescriptorIndex);
             SetSegment(gdtDescriptorIndex, baseAddress, baseAddress + sizeof(TSSDescriptor), 0xE9, 0x00);
             gTSSDescriptors[tssDescriptorIndex].ss0 = 0x10;
         }
