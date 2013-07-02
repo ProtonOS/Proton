@@ -29,5 +29,20 @@ namespace Core
         {
             return ByteCopy<T>(pDest, pSrc, pLen);
         }
+        template <typename T>
+        void MemClear(Core::Ptr<T> pDest, UInt pLen)
+        {
+            UInt full = pLen * sizeof(T);
+            UInt large = full >> Type<UInt>::Shift;
+            UInt small = full & Type<UInt>::Mask;
+            UInt * destlarge = reinterpret_cast<UInt *>(pDest.Get());
+            for (UInt i = large; i; --i) {
+                *destlarge++ = 0;
+            }
+            UInt8 * destsmall = reinterpret_cast<UInt8 *>(pDest.Get());
+            for (UInt i = small; i; --i) {
+                *destsmall++ = 0;
+            }
+        }
     }
 }
