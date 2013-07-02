@@ -48,6 +48,7 @@
 	Source/Kernel/Debug.cpp
 	Source/Kernel/InterruptManager.cpp
 	Source/Kernel/MultiBoot.cpp
+	Source/Kernel/PMM.cpp
 	Source/Kernel/SystemClock.cpp
 }
 

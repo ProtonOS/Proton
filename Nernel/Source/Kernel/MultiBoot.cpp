@@ -8,9 +8,6 @@ namespace MultiBoot
     constexpr UInt32 MagicNumber = 0x2BADB002;
     constexpr UInt32 MemoryMapAvailableType = 1;
     constexpr UInt32 ReservedMemoryBlocksMax = 64;
-    constexpr UInt32 LoadedModulesMax = 64;
-    constexpr UInt32 LoadedModuleIdentifierMax = 128;
-    constexpr UInt32 AvailableMemoryBlocksMax = 64;
 
     struct MultiBootModule
     {
@@ -68,22 +65,8 @@ namespace MultiBoot
         UInt16 VBEInterfaceOffset;
         UInt16 VBEInterfaceLength;
     };
-    struct LoadedModule
-    {
-    public:
-        UInt Address;
-        UInt Size;
-        char Identifier[LoadedModuleIdentifierMax];
-    };
 
-    struct AvailableMemoryBlock
-    {
-    public:
-        UInt Address;
-        UInt Size;
-        UInt Used;
-    };
-
+	UInt TotalPhysicalMemory = 0;
 
     LoadedModule LoadedModules[LoadedModulesMax];
     UInt32 LoadedModulesCount = 0;
@@ -125,12 +108,19 @@ namespace MultiBoot
         UInt32 multiBootMemoryMapsCount = pMultiBootHeader->MemoryMapsSize / sizeof(MultiBootMemoryMap);
 
         for (UInt32 multiBootMemoryMapIndex = 0; multiBootMemoryMapIndex < multiBootMemoryMapsCount; ++multiBootMemoryMapIndex, ++multiBootMemoryMap) {
-            if (multiBootMemoryMap->Type == MemoryMapAvailableType && multiBootMemoryMap->AddressLower >= reinterpret_cast<UInt>(&__SOK)) {
-                AvailableMemoryBlocks[AvailableMemoryBlocksCount].Address = multiBootMemoryMap->AddressLower;
-                AvailableMemoryBlocks[AvailableMemoryBlocksCount].Size = multiBootMemoryMap->LengthLower;
+			UInt address = multiBootMemoryMap->AddressLower;
+			UInt size = multiBootMemoryMap->LengthLower;
+#ifdef IS64BIT
+                address |= multiBootMemoryMap->AddressUpper << 32;
+                size |= multiBootMemoryMap->LengthUpper << 32;
+#endif
+            if (multiBootMemoryMap->Type == MemoryMapAvailableType && address >= reinterpret_cast<UInt>(&__SOK)) {
+                AvailableMemoryBlocks[AvailableMemoryBlocksCount].Address = address;
+                AvailableMemoryBlocks[AvailableMemoryBlocksCount].Size = size;
                 AvailableMemoryBlocks[AvailableMemoryBlocksCount].Used = 0;
                 ++AvailableMemoryBlocksCount;
             }
+			if ((address + size) >= TotalPhysicalMemory) TotalPhysicalMemory = address + size;
         }
 
         Core::Ptr<ReservedMemoryBlock> reservedMemoryBlock = reservedMemoryBlocks;

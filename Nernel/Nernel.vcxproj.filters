@@ -22,6 +22,7 @@
     <ClCompile Include="Source\Kernel\Boot.cpp" />
     <ClCompile Include="Source\Kernel\SystemClock.cpp" />
     <ClCompile Include="Source\Kernel\Debug.cpp" />
+    <ClCompile Include="Source\Kernel\PMM.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Core\Ptr.hpp" />
@@ -44,5 +45,7 @@
     <ClInclude Include="Source\Kernel\SystemClock.hpp" />
     <ClInclude Include="Source\Kernel\Debug.hpp" />
     <ClInclude Include="Source\Core\String.hpp" />
+    <ClInclude Include="Source\Kernel\PMM.hpp" />
+    <ClInclude Include="Source\Core\Math.hpp" />
   </ItemGroup>
 </Project>

@@ -76,11 +76,13 @@
     <ClCompile Include="Source\Kernel\Boot.cpp" />
     <ClCompile Include="Source\Kernel\Debug.cpp" />
     <ClCompile Include="Source\Kernel\InterruptManager.cpp" />
+    <ClCompile Include="Source\Kernel\PMM.cpp" />
     <ClCompile Include="Source\Kernel\SystemClock.cpp" />
     <ClCompile Include="Source\Main.cpp" />
     <ClCompile Include="Source\Kernel\MultiBoot.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Core\Math.hpp" />
     <ClInclude Include="Source\Core\String.hpp" />
     <ClInclude Include="Source\Kernel\Arch.hpp" />
     <ClInclude Include="Source\Arch\X86\Arch.hpp" />
@@ -100,6 +102,7 @@
     <ClInclude Include="Source\Kernel\KernelConsole.hpp" />
     <ClInclude Include="Source\Kernel\MultiBoot.hpp" />
     <ClInclude Include="Source\Core\Types.hpp" />
+    <ClInclude Include="Source\Kernel\PMM.hpp" />
     <ClInclude Include="Source\Kernel\SystemClock.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

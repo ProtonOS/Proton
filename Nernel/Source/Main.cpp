@@ -1,8 +1,9 @@
 #include "Kernel/Arch.hpp"
+#include "Kernel/Debug.hpp"
 #include "Kernel/KernelConsole.hpp"
 #include "Kernel/MultiBoot.hpp"
+#include "Kernel/PMM.hpp"
 #include "Kernel/SystemClock.hpp"
-#include "Kernel/Debug.hpp"
 
 extern "C" void Main(UInt32 pMultiBootMagic, MultiBoot::MultiBootHeader * pMultiBootHeader)
 {
@@ -19,7 +20,7 @@ extern "C" void Main(UInt32 pMultiBootMagic, MultiBoot::MultiBootHeader * pMulti
     SystemClock::Load();
 
     // Complete Memory Management
-    // PhysicalMemory::Load();
+    PMM::Load();
     // VirtualMemory::Load();
 
     // Preemptive MultiTasking Support

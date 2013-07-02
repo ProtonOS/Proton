@@ -50,7 +50,14 @@ namespace Core
         constexpr T & operator[](UInt pIndex) const {
             return mPtr ? mPtr[pIndex] : mPtr[pIndex];
         }
-        constexpr T * Get() const
+        constexpr explicit operator bool() const
+        {
+            return mPtr ? true : false;
+        }
+        constexpr explicit Ptr(UInt pOther) : mPtr(pOther)
+        {
+        }
+		constexpr T * Get() const
         {
             return mPtr ? mPtr : mPtr;
         }

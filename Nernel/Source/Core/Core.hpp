@@ -5,3 +5,4 @@
 #include "Ptr.hpp"
 #include "Memory.hpp"
 #include "String.hpp"
+#include "Math.hpp"
