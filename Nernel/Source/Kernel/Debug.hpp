@@ -1,8 +1,11 @@
 #pragma once
 
+extern "C" void Panic(Core::String pString);
+
 namespace Debug
 {
     void WriteString(Core::String pString);
+    void WriteLine(Core::String pString);
 
     template <typename T, UInt8 Base>
     void Write(T pValue)

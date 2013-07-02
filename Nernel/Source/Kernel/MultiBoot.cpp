@@ -7,7 +7,6 @@ namespace MultiBoot
 {
     constexpr UInt32 MagicNumber = 0x2BADB002;
     constexpr UInt32 MemoryMapAvailableType = 1;
-    constexpr UInt32 ReservedMemoryBlocksMax = 64;
 
     struct MultiBootModule
     {
@@ -29,13 +28,6 @@ namespace MultiBoot
         UInt32 Type;
     };
 
-
-    struct ReservedMemoryBlock
-    {
-    public:
-        UInt Address;
-        UInt Size;
-    };
 
     struct MultiBootHeader
     {
@@ -71,6 +63,9 @@ namespace MultiBoot
     LoadedModule LoadedModules[LoadedModulesMax];
     UInt32 LoadedModulesCount = 0;
 
+    ReservedMemoryBlock ReservedMemoryBlocks[ReservedMemoryBlocksMax];
+    UInt32 ReservedMemoryBlocksCount = 0;
+
     AvailableMemoryBlock AvailableMemoryBlocks[AvailableMemoryBlocksMax];
     UInt32 AvailableMemoryBlocksCount = 0;
 
@@ -83,8 +78,9 @@ namespace MultiBoot
         //UInt kernelSize = kernelEnd - kernelStart;
 
         Core::Ptr<MultiBootModule> multiBootModule = pMultiBootHeader->Modules;
-        ReservedMemoryBlock reservedMemoryBlocks[ReservedMemoryBlocksMax] = {{ 0, (UInt)&__EOK }};
-        UInt32 reservedMemoryBlocksCount = 1;
+        ReservedMemoryBlocks[0].Address = 0;
+		ReservedMemoryBlocks[0].Size = (UInt)&__EOK;
+        ReservedMemoryBlocksCount = 1;
 
         for (UInt32 multiBootModuleIndex = 0; multiBootModuleIndex < pMultiBootHeader->ModulesCount; ++multiBootModuleIndex, ++multiBootModule) {
             LoadedModules[LoadedModulesCount].Address = multiBootModule->Start;
@@ -97,11 +93,11 @@ namespace MultiBoot
             }
             LoadedModules[LoadedModulesCount].Identifier[multiBootModuleIdentifierIndex] = '\0';
 
-            reservedMemoryBlocks[reservedMemoryBlocksCount].Address = LoadedModules[LoadedModulesCount].Address;
-            reservedMemoryBlocks[reservedMemoryBlocksCount].Size = LoadedModules[LoadedModulesCount].Size;
+            ReservedMemoryBlocks[ReservedMemoryBlocksCount].Address = LoadedModules[LoadedModulesCount].Address;
+            ReservedMemoryBlocks[ReservedMemoryBlocksCount].Size = LoadedModules[LoadedModulesCount].Size;
 
             ++LoadedModulesCount;
-            ++reservedMemoryBlocksCount;
+            ++ReservedMemoryBlocksCount;
         }
 
         Core::Ptr<MultiBootMemoryMap> multiBootMemoryMap = pMultiBootHeader->MemoryMaps;
@@ -123,8 +119,8 @@ namespace MultiBoot
 			if ((address + size) >= TotalPhysicalMemory) TotalPhysicalMemory = address + size;
         }
 
-        Core::Ptr<ReservedMemoryBlock> reservedMemoryBlock = reservedMemoryBlocks;
-        for (UInt32 reservedMemoryBlockIndex = 0; reservedMemoryBlockIndex < reservedMemoryBlocksCount; ++reservedMemoryBlockIndex, ++reservedMemoryBlock) {
+        Core::Ptr<ReservedMemoryBlock> reservedMemoryBlock = ReservedMemoryBlocks;
+        for (UInt32 reservedMemoryBlockIndex = 0; reservedMemoryBlockIndex < ReservedMemoryBlocksCount; ++reservedMemoryBlockIndex, ++reservedMemoryBlock) {
             Core::Ptr<AvailableMemoryBlock> availableMemoryBlock = AvailableMemoryBlocks;
             for (UInt32 availableMemoryBlockIndex = 0; availableMemoryBlockIndex < AvailableMemoryBlocksCount; ++availableMemoryBlockIndex, ++availableMemoryBlock) {
                 if (reservedMemoryBlock->Address + reservedMemoryBlock->Size > availableMemoryBlock->Address &&

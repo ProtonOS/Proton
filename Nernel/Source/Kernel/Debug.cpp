@@ -1,11 +1,25 @@
 #include "Debug.hpp"
 #include "KernelConsole.hpp"
 
+extern "C" void Halt();
+extern "C" void Panic(Core::String pString)
+{
+	KernelConsole::Clear(KernelConsole::CreateAttributes(KernelConsole::DarkBlack, KernelConsole::LightRed));
+	Debug::WriteLine(pString);
+	Halt();
+}
+
 namespace Debug
 {
     void WriteString(Core::String pString)
     {
         KernelConsole::WriteString(pString);
+    }
+
+    void WriteLine(Core::String pString)
+    {
+        KernelConsole::WriteString(pString);
+        KernelConsole::WriteCharacter('\n');
     }
 
     void WriteFormat(Core::String pString)
