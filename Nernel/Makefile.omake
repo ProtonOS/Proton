@@ -20,8 +20,8 @@
 
 
 #define CONST(CPP_ARGS, -target i686-elf -include "Source\Core\Core.hpp" -g -O0 -D__DYNAMIC_REENT__ -DX86 -std=c++11 -Wall -Wextra -Werror -Wno-unused-parameter -Wno-tautological-compare -fno-builtin -fno-exceptions -fno-rtti -nostdlib -fpack-struct=1 -nostartfiles -nodefaultlibs -c);
-#define CONST(LD_ARGS, -L../SDK/lib -T Nernel.ld -g);
-#define CONST(LD_LIBS, -lgcc);
+#define CONST(LD_ARGS,  -T Nernel.ld -g);
+#define CONST(LD_LIBS, );
 #define CONST(RM_ARGS, -rf);
 #define CONST(CP_ARGS, -f);
 #define CONST(MKDIR_ARGS, -p);

@@ -2,13 +2,38 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Nernel", "Nernel\Nernel.vcxproj", "{910BD3E7-F883-4F15-9C43-4BB7AF66976F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDKInstaller", "SDKInstaller\SDKInstaller.csproj", "{EACAF3FF-83F5-445B-AC33-04C9B12465A0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|Mixed Platforms = Debug|Mixed Platforms
 		Debug|Win32 = Debug|Win32
+		Release|Any CPU = Release|Any CPU
+		Release|Mixed Platforms = Release|Mixed Platforms
+		Release|Win32 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{910BD3E7-F883-4F15-9C43-4BB7AF66976F}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{910BD3E7-F883-4F15-9C43-4BB7AF66976F}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{910BD3E7-F883-4F15-9C43-4BB7AF66976F}.Debug|Mixed Platforms.Build.0 = Debug|Win32
 		{910BD3E7-F883-4F15-9C43-4BB7AF66976F}.Debug|Win32.ActiveCfg = Debug|Win32
 		{910BD3E7-F883-4F15-9C43-4BB7AF66976F}.Debug|Win32.Build.0 = Debug|Win32
+		{910BD3E7-F883-4F15-9C43-4BB7AF66976F}.Release|Any CPU.ActiveCfg = Release|Win32
+		{910BD3E7-F883-4F15-9C43-4BB7AF66976F}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{910BD3E7-F883-4F15-9C43-4BB7AF66976F}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{910BD3E7-F883-4F15-9C43-4BB7AF66976F}.Release|Win32.ActiveCfg = Release|Win32
+		{910BD3E7-F883-4F15-9C43-4BB7AF66976F}.Release|Win32.Build.0 = Release|Win32
+		{EACAF3FF-83F5-445B-AC33-04C9B12465A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EACAF3FF-83F5-445B-AC33-04C9B12465A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EACAF3FF-83F5-445B-AC33-04C9B12465A0}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{EACAF3FF-83F5-445B-AC33-04C9B12465A0}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{EACAF3FF-83F5-445B-AC33-04C9B12465A0}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{EACAF3FF-83F5-445B-AC33-04C9B12465A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EACAF3FF-83F5-445B-AC33-04C9B12465A0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EACAF3FF-83F5-445B-AC33-04C9B12465A0}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{EACAF3FF-83F5-445B-AC33-04C9B12465A0}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{EACAF3FF-83F5-445B-AC33-04C9B12465A0}.Release|Win32.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

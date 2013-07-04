@@ -1,7 +1,8 @@
 Build/
 Logs/
-*.*
+Temp/
 SDK/
+*.*
 !*.vcxproj
 !*.vcxproj.user
 !*.vcxproj.filters
@@ -12,3 +13,6 @@ SDK/
 !*.hpp
 !*.sln
 !*.asm
+!*.csproj
+!*.csproj.user
+!*.cs
