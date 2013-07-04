@@ -60,7 +60,7 @@ extern "C" void IDTIRQHandler(InterruptRegisters pRegisters)
     PIC::ResetInterrupts(pRegisters.int_no >= 9);
 }
 
-extern "C" void CPUInterruptHandler(InterruptRegisters pRegisters)
+void CPUInterruptHandler(InterruptRegisters & pRegisters)
 {
     //char buf[128];
     //snprintf(buf, 128, "CPU Exception: %d", (int)pRegisters.int_no);

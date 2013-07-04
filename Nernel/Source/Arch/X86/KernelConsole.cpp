@@ -2,7 +2,6 @@
 
 namespace KernelConsole
 {
-    constexpr Core::Ptr<UInt8> BaseMemory = reinterpret_cast<UInt8 *>(BaseMemoryAddress);
     UInt8 Columns = DefaultColumns;
     UInt8 Rows = DefaultRows;
     UInt8 CursorColumn = 0;
@@ -22,6 +21,7 @@ namespace KernelConsole
 
     Core::Ptr<UInt8> GetCursor()
     {
+        Core::Ptr<UInt8> BaseMemory(BaseMemoryAddress);
         return BaseMemory + (((CursorRow * Columns) + CursorColumn) * 2);
     }
 
@@ -55,6 +55,7 @@ namespace KernelConsole
 
     void MoveCursorToNextLine()
     {
+        Core::Ptr<UInt8> BaseMemory (BaseMemoryAddress);
         if (CursorRow + 1 >= Rows) {
             UInt32 lengthToCopyUp = ((Rows - 1) * Columns) * 2;
             Core::Memory::ByteCopy(BaseMemory, BaseMemory + (Columns * 2), lengthToCopyUp);

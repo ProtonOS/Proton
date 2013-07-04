@@ -11,11 +11,12 @@ namespace Debug
     void Write(T pValue)
     {
         if (!pValue) return WriteString("0");
-        char buf[0x20] = { };
+        char buf[0x20];
+        buf[0x19] = '\0';
         bool negative = pValue < 0;
         if (negative) pValue = -pValue;
         UInt i;
-        for (i = 0x19; pValue; --i) {
+        for (i = 0x18; pValue; --i) {
             T quot = pValue / Base;
             T rem = pValue % Base;
             buf[i] = rem + (rem < 10 ? 48 : 55);
@@ -59,13 +60,13 @@ namespace Debug
     void WriteFormat(Core::String pString, UInt pArg, R ... pRest)
     {
         UInt pos;
-        if ((pos = FindFormat<'u'>(pString)) != -1) {
+        if ((pos = FindFormat<'u'>(pString)) != static_cast<UInt>(-1)) {
             WriteFormat(pString.SubString(0, pos));
             Write<UInt, 10>(pArg);
-        } else if ((pos = FindFormat<'i'>(pString)) != -1) {
+        } else if ((pos = FindFormat<'i'>(pString)) != static_cast<UInt>(-1)) {
             WriteFormat(pString.SubString(0, pos));
             Write<Int, 10>(pArg);
-        } else if ((pos = FindFormat<'x'>(pString)) != -1) {
+        } else if ((pos = FindFormat<'x'>(pString)) != static_cast<UInt>(-1)) {
             WriteFormat(pString.SubString(0, pos));
             Write<UInt, 16>(pArg);
         } else {
@@ -78,13 +79,13 @@ namespace Debug
     void WriteFormat(Core::String pString, Int pArg, R ... pRest)
     {
         UInt pos;
-        if ((pos = FindFormat<'u'>(pString)) != -1) {
+        if ((pos = FindFormat<'u'>(pString)) != static_cast<UInt>(-1)) {
             WriteFormat(pString.SubString(0, pos));
             Write<UInt, 10>(pArg);
-        } else if ((pos = FindFormat<'i'>(pString)) != -1) {
+        } else if ((pos = FindFormat<'i'>(pString)) != static_cast<UInt>(-1)) {
             WriteFormat(pString.SubString(0, pos));
             Write<Int, 10>(pArg);
-        } else if ((pos = FindFormat<'x'>(pString)) != -1) {
+        } else if ((pos = FindFormat<'x'>(pString)) != static_cast<UInt>(-1)) {
             WriteFormat(pString.SubString(0, pos));
             Write<Int, 16>(pArg);
         } else {
@@ -97,7 +98,7 @@ namespace Debug
     void WriteFormat(Core::String pString, Core::String pArg, R ... pRest)
     {
         UInt pos = FindFormat<'s'>(pString);
-        if (pos == -1) {
+        if (pos == static_cast<UInt>(-1)) {
         }//Panic
         WriteFormat(pString.SubString(0, pos));
         WriteString(pArg);

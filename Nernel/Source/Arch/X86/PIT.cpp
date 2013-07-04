@@ -9,7 +9,7 @@ UInt16 PIT::MillisecondsSinceSecond = 0;
 UInt64 PIT::SecondsSinceStartup = 0;
 UInt64 PIT::MillisecondsSinceStartup = 0;
 
-extern "C" void PITChannel0(InterruptRegisters pRegisters)
+void PITChannel0(InterruptRegisters & pRegisters)
 {
     PIT::MillisecondsSinceSecond += PIT::MillisecondsPerCycle;
     PIT::MillisecondsSinceStartup += PIT::MillisecondsPerCycle;
