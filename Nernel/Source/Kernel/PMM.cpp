@@ -18,7 +18,43 @@ namespace PMM
     UInt8 TreeLevels = 0;
     Core::Ptr<UInt8> Tree = nullptr;
 
-	UInt RelativeIndexToAbsoluteIndex(UInt8 pTreeLevel, UInt pRelativeIndex) { return ((1 << pTreeLevel) - 1) + pRelativeIndex; }
+	UInt RelativeIndexToAbsoluteIndex(UInt8 pTreeLevel, UInt pRelativeIndex) { return (1 << (pTreeLevel - 1)) + pRelativeIndex; }
+
+	void SetPageAvailable(UInt pRelativeIndex)
+	{
+		UInt absoluteIndex = RelativeIndexToAbsoluteIndex(TreeLevels, pRelativeIndex);
+		Tree[absoluteIndex] = StateAvailable;
+		for (UInt8 treeLevel = TreeLevels - 1; treeLevel > 0; --treeLevel)
+		{
+			pRelativeIndex >>= 1;
+			absoluteIndex = RelativeIndexToAbsoluteIndex(treeLevel, pRelativeIndex);
+			switch (Tree[absoluteIndex])
+			{
+			case StateAvailable:
+				Panic("PMM (SetPageAvailable): StateAvailable not expected");
+				break;
+			case StateUnavailable:
+				Panic("PMM (SetPageAvailable): StateUnavailable not expected");
+				break;
+			case StatePartial:
+				{
+					UInt8 leftChild = Tree[RelativeIndexToAbsoluteIndex(treeLevel, pRelativeIndex << 1)];
+					UInt8 rightChild = Tree[RelativeIndexToAbsoluteIndex(treeLevel, (pRelativeIndex << 1) + 1)];
+					// If both children are Available, parent becomes Available
+					if (leftChild == StateAvailable && rightChild == StateAvailable)
+						Tree[absoluteIndex] = StateAvailable;
+					// All other scenarios, parent stays Partial
+					break;
+				}
+			case StateFull:
+				Tree[absoluteIndex] = StatePartial;
+				break;
+			default:
+				Panic("PMM (SetPageAvailable): State unknown");
+				break;
+			}
+		}
+	}
 
 	void SetPageUnavailable(UInt pRelativeIndex)
 	{
@@ -148,4 +184,29 @@ namespace PMM
 		for (UInt reservedTreePagesOffset = 0; reservedTreePagesOffset < reservedTreePagesCount; ++reservedTreePagesOffset)
 			SetPageFull(reservedTreePagesStart + reservedTreePagesOffset);
     }
+
+	UInt AllocatePage()
+	{
+		UInt8 state = Tree[RelativeIndexToAbsoluteIndex(1, 0)];
+		if (state == StateFull || state == StateUnavailable)
+			Panic("PMM (AllocatePage): Out of memory?");
+
+		UInt relativeIndex = 0;
+		for (UInt8 treeLevel = 1; treeLevel <= TreeLevels; ++treeLevel)
+		{
+			state = Tree[RelativeIndexToAbsoluteIndex(treeLevel, relativeIndex)];
+			if (state == StateUnavailable || state == StateFull) ++relativeIndex;
+			if (treeLevel != TreeLevels) relativeIndex <<= 1;
+		}
+		SetPageFull(relativeIndex);
+		return relativeIndex << PageSizeShifts;
+	}
+
+	void ReleasePage(UInt pAddress)
+	{
+		UInt relativeIndex = pAddress >> PageSizeShifts;
+		if (Tree[RelativeIndexToAbsoluteIndex(TreeLevels, relativeIndex)] != StateFull)
+			Panic("PMM (ReleasePage): Doh?");
+		SetPageAvailable(relativeIndex);
+	}
 };
